@@ -1,6 +1,4 @@
-@file:Suppress("LongParameterList", "UnusedPrivateMember")
-
-package no.nav.tiltakspenger.saksbehandling.søknad
+package no.nav.tiltakspenger.saksbehandling.søknad.domene
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -12,34 +10,38 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class Søknad(
-    val versjon: String = "1",
-    val id: SøknadId,
-    val journalpostId: String,
-    val personopplysninger: Personopplysninger,
-    val tiltak: Søknadstiltak,
-    val barnetillegg: List<BarnetilleggFraSøknad>,
-    val opprettet: LocalDateTime,
-    val tidsstempelHosOss: LocalDateTime,
-    val kvp: PeriodeSpm,
-    val intro: PeriodeSpm,
-    val institusjon: PeriodeSpm,
-    val etterlønn: JaNeiSpm,
-    val gjenlevendepensjon: PeriodeSpm,
-    val alderspensjon: FraOgMedDatoSpm,
-    val sykepenger: PeriodeSpm,
-    val supplerendeStønadAlder: PeriodeSpm,
-    val supplerendeStønadFlyktning: PeriodeSpm,
-    val jobbsjansen: PeriodeSpm,
-    val trygdOgPensjon: PeriodeSpm,
-    val vedlegg: Int,
-    val sakId: SakId,
-    val saksnummer: Saksnummer,
-    val avbrutt: Avbrutt?,
-) {
-    val kravdato: LocalDate = tidsstempelHosOss.toLocalDate()
-    val erAvbrutt: Boolean by lazy { avbrutt != null }
-    val fnr: Fnr = personopplysninger.fnr
+sealed interface Søknad {
+    val versjon: String
+    val id: SøknadId
+    val personopplysninger: Personopplysninger
+    val sakId: SakId
+    val saksnummer: Saksnummer
+    val journalpostId: String
+    val opprettet: LocalDateTime
+    val tidsstempelHosOss: LocalDateTime
+    val avbrutt: Avbrutt?
+    val erAvbrutt: Boolean
+    val fnr: Fnr
+    val tiltak: Søknadstiltak?
+    val barnetillegg: List<BarnetilleggFraSøknad>
+    val kvp: PeriodeSpm?
+    val intro: PeriodeSpm?
+    val institusjon: PeriodeSpm?
+    val etterlønn: JaNeiSpm?
+    val gjenlevendepensjon: PeriodeSpm?
+    val alderspensjon: FraOgMedDatoSpm?
+    val sykepenger: PeriodeSpm?
+    val supplerendeStønadAlder: PeriodeSpm?
+    val supplerendeStønadFlyktning: PeriodeSpm?
+    val jobbsjansen: PeriodeSpm?
+    val trygdOgPensjon: PeriodeSpm?
+    val vedlegg: Int
+
+    val søknadstype: Søknadstype
+        get() = when (this) {
+            is InnvilgbarSøknad -> Søknadstype.DIGITAL
+            is Papirsøknad -> Søknadstype.PAPIR
+        }
 
     companion object {
         fun randomId() = SøknadId.random()
@@ -49,58 +51,21 @@ data class Søknad(
         if (this.avbrutt != null) {
             throw IllegalStateException("Søknad er allerede avbrutt")
         }
-        return this.copy(
-            avbrutt = Avbrutt(
-                tidspunkt = tidspunkt,
-                saksbehandler = avbruttAv.navIdent,
-                begrunnelse = begrunnelse,
-            ),
+
+        val avbrutt = Avbrutt(
+            tidspunkt = tidspunkt,
+            saksbehandler = avbruttAv.navIdent,
+            begrunnelse = begrunnelse,
         )
+
+        return when (this) {
+            is InnvilgbarSøknad -> this.copy(avbrutt = avbrutt)
+            is Papirsøknad -> this.copy(avbrutt = avbrutt)
+            else -> {
+                throw IllegalStateException("Ukjent søknadstype")
+            }
+        }
     }
-
-    /**
-     * Merk at dette er sånn tiltaksdeltagelsen så ut i søknadsøyeblikket og kan ha endret seg i etterkant.
-     * Man kan bare søke om tiltakspenger for en tiltaksdeltagelse per søknad (aug 2025).
-     */
-    fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom)
-
-    fun harLivsoppholdYtelser(): Boolean =
-        sykepenger.erJa() ||
-            etterlønn.erJa() ||
-            trygdOgPensjon.erJa() ||
-            gjenlevendepensjon.erJa() ||
-            supplerendeStønadAlder.erJa() ||
-            supplerendeStønadFlyktning.erJa() ||
-            alderspensjon.erJa() ||
-            jobbsjansen.erJa() ||
-            trygdOgPensjon.erJa()
-
-    fun harKvp(): Boolean =
-        kvp.erJa()
-
-    fun harIntro(): Boolean =
-        intro.erJa()
-
-    fun harInstitusjonsopphold(): Boolean =
-        institusjon.erJa()
-
-    fun harLagtTilBarnManuelt(): Boolean =
-        barnetillegg.any { it is BarnetilleggFraSøknad.Manuell }
-
-    fun harBarnUtenforEOS(): Boolean =
-        barnetillegg.any { it.oppholderSegIEØS == JaNeiSpm.Nei }
-
-    fun harBarnSomFyller16FørDato(dato: LocalDate): Boolean =
-        barnetillegg.any { !it.under16ForDato(dato) }
-
-    fun harBarnSomBleFødtEtterDato(dato: LocalDate): Boolean =
-        barnetillegg.any { it.fødselsdato.isAfter(dato) }
-
-    fun harSoktMerEnn3ManederEtterOppstart(): Boolean =
-        kravdato.withDayOfMonth(1).minusMonths(3).isAfter(tiltak.deltakelseFom)
-
-    fun erUnder18ISoknadsperioden(fodselsdato: LocalDate): Boolean =
-        fodselsdato.plusYears(18).isAfter(tiltaksdeltagelseperiodeDetErSøktOm().fraOgMed)
 
     data class Personopplysninger(
         val fnr: Fnr,
@@ -149,6 +114,10 @@ data class Søknad(
                 is Nei -> false
             }
     }
+
+    fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode
+    fun erPapirsøknad() = søknadstype == Søknadstype.PAPIR
+    fun erDigitalSøknad() = søknadstype == Søknadstype.DIGITAL
 }
 
 /**

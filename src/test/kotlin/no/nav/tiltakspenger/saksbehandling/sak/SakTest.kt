@@ -11,13 +11,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class SakTest {
     @Test
     fun `avbryter søknad`() {
-        val søknad = ObjectMother.nySøknad()
+        val søknad = ObjectMother.nyDigitalsøknad()
         val sak = ObjectMother.nySak(søknader = listOf(søknad))
 
         val (sakMedAvbruttsøknad, avbruttSøknad, behandling) = sak.avbrytSøknadOgBehandling(
@@ -93,7 +94,7 @@ class SakTest {
 
     @Test
     fun `harSoknadUnderBehandling - har åpen søknad - returnerer true`() {
-        val søknad = ObjectMother.nySøknad()
+        val søknad = ObjectMother.nyDigitalsøknad()
         val sak = ObjectMother.nySak(søknader = listOf(søknad))
 
         sak.harSoknadUnderBehandling() shouldBe true
@@ -116,7 +117,7 @@ class SakTest {
     @Test
     fun `harSoknadUnderBehandling - har iverksatt søknadsbehandling og ny søknad - returnerer true`() {
         val sak = ObjectMother.nySakMedVedtak().first
-        val soknad = ObjectMother.nySøknad(fnr = sak.fnr, sakId = sak.id)
+        val soknad = ObjectMother.nyDigitalsøknad(fnr = sak.fnr, sakId = sak.id)
         val soknader = sak.soknader
         val oppdatertSak = sak.copy(soknader = soknader + soknad)
 
@@ -133,7 +134,7 @@ class SakTest {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            søknad = sak.soknader.first(),
+            søknad = sak.soknader.filterIsInstance<InnvilgbarSøknad>().first(),
             clock = clock,
         )
 

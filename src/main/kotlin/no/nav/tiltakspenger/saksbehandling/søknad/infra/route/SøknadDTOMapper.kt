@@ -11,9 +11,10 @@ import no.nav.tiltakspenger.libs.soknad.SpmSvarDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadsTiltakDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import java.time.LocalDateTime
 
 object SøknadDTOMapper {
@@ -21,8 +22,8 @@ object SøknadDTOMapper {
         dto: SøknadDTO,
         innhentet: LocalDateTime,
         sak: Sak,
-    ): Søknad =
-        Søknad(
+    ): InnvilgbarSøknad =
+        InnvilgbarSøknad(
             id = SøknadId.fromString(dto.søknadId),
             versjon = dto.versjon,
             journalpostId = dto.journalpostId,

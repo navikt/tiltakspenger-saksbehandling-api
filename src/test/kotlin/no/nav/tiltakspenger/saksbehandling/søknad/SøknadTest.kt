@@ -12,7 +12,7 @@ class SøknadTest {
 
     @Test
     fun `avbryter en søknad`() {
-        val søknad = ObjectMother.nySøknad()
+        val søknad = ObjectMother.nyDigitalsøknad()
         val avbruttSøknad = søknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad", førsteNovember24)
 
         avbruttSøknad.erAvbrutt shouldBe true
@@ -26,7 +26,7 @@ class SøknadTest {
 
     @Test
     fun `kaster exception dersom man prøver å avbryte en avbrutt søknad`() {
-        val avbruttSøknad = ObjectMother.nySøknad(
+        val avbruttSøknad = ObjectMother.nyDigitalsøknad(
             avbrutt = Avbrutt(
                 tidspunkt = førsteNovember24,
                 saksbehandler = "navident",

@@ -63,7 +63,7 @@ class EndretTiltaksdeltakerJobbTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = fnr,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(id = id),
                         sakId = sak.id,
@@ -98,7 +98,7 @@ class EndretTiltaksdeltakerJobbTest {
                     saksnummer = sak.saksnummer,
                     fnr = fnr,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -134,7 +134,7 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             id = id,
@@ -183,7 +183,7 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             id = id,
@@ -238,7 +238,7 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             id = id,
@@ -276,7 +276,7 @@ class EndretTiltaksdeltakerJobbTest {
         private val førsteDeltakelsesTom = 5.mai(2025)
         private val førsteSøknadstiltakId = UUID.randomUUID().toString()
         private val førsteSøknadId = SøknadId.random()
-        private val førsteSøknad = ObjectMother.nySøknad(
+        private val førsteSøknad = ObjectMother.nyDigitalsøknad(
             id = førsteSøknadId,
             personopplysninger = ObjectMother.personSøknad(fnr = fnr),
             søknadstiltak = ObjectMother.søknadstiltak(
@@ -291,7 +291,7 @@ class EndretTiltaksdeltakerJobbTest {
         private val andreDeltakelsesTom = 11.juni(2025)
         private val andreSøknadstiltakId = UUID.randomUUID().toString()
         private val andreSøknadId = SøknadId.random()
-        private val andreSøknad = ObjectMother.nySøknad(
+        private val andreSøknad = ObjectMother.nyDigitalsøknad(
             id = andreSøknadId,
             personopplysninger = ObjectMother.personSøknad(fnr = fnr),
             søknadstiltak = ObjectMother.søknadstiltak(
@@ -468,7 +468,7 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             id = id,
@@ -522,7 +522,7 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             id = id,

@@ -43,6 +43,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFraDbJson
@@ -404,7 +405,7 @@ class BehandlingPostgresRepo(
                         saksnummer = saksnummer,
                         fnr = fnr,
                         saksopplysninger = saksopplysninger,
-                        søknad = søknadId?.let { SøknadDAO.hentForSøknadId(it, session) }
+                        søknad = søknadId?.let { SøknadDAO.hentForSøknadId(it, session) } as InnvilgbarSøknad?
                             ?: throw IllegalStateException("Fant ikke søknad for søknadsbehandling, behandlingsid $id"),
                         virkningsperiode = virkningsperiode,
                         saksbehandler = saksbehandler,
@@ -721,7 +722,7 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "sendt_til_beslutning" to this.sendtTilBeslutning,
         "fritekst_vedtaksbrev" to this.fritekstTilVedtaksbrev?.verdi,
         "begrunnelse_vilkarsvurdering" to this.begrunnelseVilkårsvurdering?.verdi,
-        "saksopplysninger" to this.saksopplysninger.toDbJson(),
+        "saksopplysninger" to this.saksopplysninger?.toDbJson(),
         "saksopplysningsperiode_fra_og_med" to this.saksopplysningsperiode?.fraOgMed,
         "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode?.tilOgMed,
         "avbrutt" to this.avbrutt?.toDbJson(),

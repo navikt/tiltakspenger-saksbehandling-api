@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import java.time.LocalDate
 import kotlin.random.Random
 
@@ -21,7 +21,7 @@ internal fun TestDataHelper.persisterSakOgSøknad(
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     søknad: Søknad =
-        ObjectMother.nySøknad(
+        ObjectMother.nyDigitalsøknad(
             journalpostId = journalpostId,
             personopplysninger =
             ObjectMother.personSøknad(

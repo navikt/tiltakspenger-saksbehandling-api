@@ -59,7 +59,7 @@ class GenererMeldeperioderSakIT {
                 innvilgelsesperiode = revurderingInnvilgelse.toDTO(),
                 valgteTiltaksdeltakelser = listOf(
                     TiltaksdeltakelsePeriodeDTO(
-                        eksternDeltagelseId = søknadsbehandling.søknad.tiltak.id,
+                        eksternDeltagelseId = søknadsbehandling.søknad.tiltak!!.id,
                         periode = revurderingInnvilgelse.toDTO(),
                     ),
                 ),

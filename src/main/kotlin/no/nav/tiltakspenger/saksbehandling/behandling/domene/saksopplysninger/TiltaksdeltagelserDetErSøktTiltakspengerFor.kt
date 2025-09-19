@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger
 
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import java.time.LocalDateTime
 
 /**

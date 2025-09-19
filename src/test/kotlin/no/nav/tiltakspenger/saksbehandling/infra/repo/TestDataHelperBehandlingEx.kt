@@ -34,7 +34,8 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
@@ -57,8 +58,8 @@ internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
         fnr = fnr,
         saksnummer = saksnummer,
     ),
-    søknad: Søknad =
-        ObjectMother.nySøknad(
+    søknad: InnvilgbarSøknad =
+        ObjectMother.nyDigitalsøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -117,8 +118,8 @@ internal fun TestDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
         fnr = fnr,
         saksnummer = saksnummer,
     ),
-    søknad: Søknad =
-        ObjectMother.nySøknad(
+    søknad: InnvilgbarSøknad =
+        ObjectMother.nyDigitalsøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -173,7 +174,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     id: SøknadId = Søknad.randomId(),
-    søknad: Søknad = ObjectMother.nySøknad(
+    søknad: InnvilgbarSøknad = ObjectMother.nyDigitalsøknad(
         periode = tiltaksOgVurderingsperiode,
         journalpostId = journalpostId,
         personopplysninger =
@@ -218,7 +219,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
             tiltaksdeltakelser = listOf(
                 Pair(
                     behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
-                    behandling.søknad.tiltak.id,
+                    behandling.søknad.tiltak!!.id,
                 ),
             ),
             innvilgelsesperiode = tiltaksOgVurderingsperiode,
@@ -255,7 +256,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     id: SøknadId = Søknad.randomId(),
-    søknad: Søknad = ObjectMother.nySøknad(
+    søknad: InnvilgbarSøknad = ObjectMother.nyDigitalsøknad(
         periode = tiltaksOgVurderingsperiode,
         journalpostId = journalpostId,
         personopplysninger =
@@ -300,7 +301,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     val tiltaksdeltakelser = listOf(
         Pair(
             tiltaksOgVurderingsperiode,
-            søknadsbehandling.saksopplysninger.tiltaksdeltagelser.first().eksternDeltagelseId,
+            søknadsbehandling.saksopplysninger!!.tiltaksdeltagelser.first().eksternDeltagelseId,
         ),
     )
 
@@ -359,7 +360,7 @@ internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     id: SøknadId = Søknad.randomId(),
-    søknad: Søknad = ObjectMother.nySøknad(
+    søknad: InnvilgbarSøknad = ObjectMother.nyDigitalsøknad(
         periode = tiltaksOgVurderingsperiode,
         journalpostId = journalpostId,
         personopplysninger =
@@ -424,8 +425,8 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     id: SøknadId = Søknad.randomId(),
-    søknad: Søknad =
-        ObjectMother.nySøknad(
+    søknad: InnvilgbarSøknad =
+        ObjectMother.nyDigitalsøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -503,8 +504,8 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     søknadId: SøknadId = Søknad.randomId(),
-    søknad: Søknad =
-        ObjectMother.nySøknad(
+    søknad: InnvilgbarSøknad =
+        ObjectMother.nyDigitalsøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -577,7 +578,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     id: SøknadId = Søknad.randomId(),
-    søknad: Søknad = ObjectMother.nySøknad(
+    søknad: InnvilgbarSøknad = ObjectMother.nyDigitalsøknad(
         periode = tiltaksOgVurderingsperiode,
         journalpostId = journalpostId,
         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
@@ -641,8 +642,8 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.neste(),
     ),
-    søknad: Søknad =
-        ObjectMother.nySøknad(
+    søknad: InnvilgbarSøknad =
+        ObjectMother.nyDigitalsøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -704,7 +705,7 @@ internal fun TestDataHelper.persisterRammevedtakAvslag(
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.neste(),
     ),
-    søknad: Søknad = ObjectMother.nySøknad(
+    søknad: InnvilgbarSøknad = ObjectMother.nyDigitalsøknad(
         periode = tiltaksOgVurderingsperiode,
         journalpostId = journalpostId,
         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
