@@ -3,11 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbeha
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.DigitalsøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
 
 class DelautomatiskSoknadsbehandlingJobb(
-    private val søknadRepo: SøknadRepo,
+    private val digitalsøknadRepo: DigitalsøknadRepo,
     private val behandlingRepo: BehandlingRepo,
     private val startSøknadsbehandlingService: StartSøknadsbehandlingService,
     private val delautomatiskBehandlingService: DelautomatiskBehandlingService,
@@ -15,7 +15,7 @@ class DelautomatiskSoknadsbehandlingJobb(
     private val log = KotlinLogging.logger {}
 
     suspend fun opprettBehandlingForNyeSoknader() {
-        val ubehandledeSoknader = søknadRepo.hentAlleUbehandledeSoknader(limit = 10)
+        val ubehandledeSoknader = digitalsøknadRepo.hentAlleUbehandledeSoknader(limit = 10)
         log.debug { "Fant ${ubehandledeSoknader.size} åpne søknader som det skal opprettes behandling for" }
         ubehandledeSoknader.forEach {
             val correlationId = CorrelationId.generate()

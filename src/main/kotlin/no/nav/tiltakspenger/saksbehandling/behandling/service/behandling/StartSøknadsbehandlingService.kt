@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.Digitalsøknad
 import java.time.Clock
 
 class StartSøknadsbehandlingService(
@@ -30,7 +30,7 @@ class StartSøknadsbehandlingService(
     val logger = KotlinLogging.logger {}
 
     suspend fun opprettAutomatiskSoknadsbehandling(
-        soknad: Søknad,
+        soknad: Digitalsøknad,
         correlationId: CorrelationId,
     ): Søknadsbehandling {
         val pdlPerson = personKlient.hentEnkelPerson(soknad.fnr)

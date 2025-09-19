@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.Digitalsøknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
@@ -56,7 +56,7 @@ data class Søknadsbehandling(
     override val resultat: SøknadsbehandlingResultat?,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    val søknad: Søknad,
+    val søknad: Digitalsøknad,
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
     override val utbetaling: BehandlingUtbetaling?,
@@ -176,7 +176,7 @@ data class Søknadsbehandling(
 
         return this.copy(
             status = AVBRUTT,
-            søknad = this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt),
+            søknad = this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt) as Digitalsøknad,
             avbrutt = Avbrutt(
                 tidspunkt = tidspunkt,
                 saksbehandler = avbruttAv.navIdent,
@@ -193,7 +193,7 @@ data class Søknadsbehandling(
     companion object {
         suspend fun opprett(
             sak: Sak,
-            søknad: Søknad,
+            søknad: Digitalsøknad,
             saksbehandler: Saksbehandler,
             hentSaksopplysninger: HentSaksopplysninger,
             correlationId: CorrelationId,
@@ -243,7 +243,7 @@ data class Søknadsbehandling(
 
         suspend fun opprettAutomatiskBehandling(
             sak: Sak,
-            søknad: Søknad,
+            søknad: Digitalsøknad,
             hentSaksopplysninger: HentSaksopplysninger,
             correlationId: CorrelationId,
             clock: Clock,

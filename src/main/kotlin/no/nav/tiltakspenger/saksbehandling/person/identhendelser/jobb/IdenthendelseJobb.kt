@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.person.identhendelser.jobb
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.DigitalsøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseDto
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb
@@ -17,7 +17,7 @@ class IdenthendelseJobb(
     private val identhendelseRepository: IdenthendelseRepository,
     private val identhendelseKafkaProducer: IdenthendelseKafkaProducer,
     private val sakRepo: SakRepo,
-    private val søknadRepo: SøknadRepo,
+    private val digitalsøknadRepo: DigitalsøknadRepo,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
     private val statistikkMeldekortRepo: StatistikkMeldekortRepo,
@@ -54,7 +54,7 @@ class IdenthendelseJobb(
     private fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
         sessionFactory.withTransactionContext { tx ->
             sakRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
-            søknadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
+            digitalsøknadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
             statistikkSakRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
             statistikkStønadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
             statistikkMeldekortRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)

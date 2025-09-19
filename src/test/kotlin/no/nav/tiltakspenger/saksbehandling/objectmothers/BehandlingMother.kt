@@ -522,7 +522,7 @@ fun TestApplicationContext.nySøknad(
         saksnummer = sak.saksnummer,
     ),
 ): Søknad {
-    this.søknadContext.søknadService.nySøknad(søknad)
+    this.søknadContext.digitalsøknadService.nySøknad(søknad)
     this.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltaksdeltagelse ?: søknad.tiltak.toTiltak())
     return søknad
 }

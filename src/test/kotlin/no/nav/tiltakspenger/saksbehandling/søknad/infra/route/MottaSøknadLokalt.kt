@@ -31,7 +31,7 @@ fun nySøknadForFnr(
             periode = periode,
             barnetillegg = barnetillegg,
         )
-        applicationContext.søknadContext.søknadService.nySøknad(
+        applicationContext.søknadContext.digitalsøknadService.nySøknad(
             søknad = søknad,
         )
 
@@ -58,7 +58,7 @@ fun nySakMedNySøknad(
             periode = periode,
             barnetillegg = barnetillegg,
         )
-        applicationContext.søknadContext.søknadService.nySøknad(
+        applicationContext.søknadContext.digitalsøknadService.nySøknad(
             søknad = søknad,
         )
         sak.saksnummer

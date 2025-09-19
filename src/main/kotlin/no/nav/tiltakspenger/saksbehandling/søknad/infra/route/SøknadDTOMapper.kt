@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadsTiltakDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.Digitalsøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
 import java.time.LocalDateTime
@@ -21,8 +22,8 @@ object SøknadDTOMapper {
         dto: SøknadDTO,
         innhentet: LocalDateTime,
         sak: Sak,
-    ): Søknad =
-        Søknad(
+    ): Digitalsøknad =
+        Digitalsøknad(
             id = SøknadId.fromString(dto.søknadId),
             versjon = dto.versjon,
             journalpostId = dto.journalpostId,

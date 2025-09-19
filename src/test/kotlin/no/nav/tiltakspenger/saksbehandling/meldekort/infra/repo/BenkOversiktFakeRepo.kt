@@ -12,10 +12,10 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.DigitalsøknadFakeRepo
 
 class BenkOversiktFakeRepo(
-    private val søknadFakeRepo: SøknadFakeRepo,
+    private val søknadFakeRepo: DigitalsøknadFakeRepo,
     private val behandlingFakeRepo: BehandlingFakeRepo,
     private val meldekortBehandlingFakeRepo: MeldekortBehandlingFakeRepo,
 ) : BenkOversiktRepo {

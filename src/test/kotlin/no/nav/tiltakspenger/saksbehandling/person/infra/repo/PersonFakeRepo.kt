@@ -10,11 +10,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakFakeRepo
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.DigitalsøknadFakeRepo
 
 class PersonFakeRepo(
     private val sakFakeRepo: SakFakeRepo,
-    private val søknadFakeRepo: SøknadFakeRepo,
+    private val søknadFakeRepo: DigitalsøknadFakeRepo,
     private val meldekortBehandlingFakeRepo: MeldekortBehandlingFakeRepo,
     private val behandlingFakeRepo: BehandlingFakeRepo,
 ) : PersonRepo {

@@ -5,54 +5,54 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.DigitalsøknadRepo
+import no.nav.tiltakspenger.saksbehandling.søknad.Digitalsøknad
 
-internal class SøknadPostgresRepo(
+internal class DigitalsøknadPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) : SøknadRepo {
-    override fun hentForSøknadId(søknadId: SøknadId): Søknad? =
+) : DigitalsøknadRepo {
+    override fun hentForSøknadId(søknadId: SøknadId): Digitalsøknad? =
         sessionFactory.withSession {
-            SøknadDAO.hentForSøknadId(søknadId, it)
+            DigitalsøknadDAO.hentForSøknadId(søknadId, it)
         }
 
     override fun lagre(
-        søknad: Søknad,
+        søknad: Digitalsøknad,
         txContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(txContext) {
-            SøknadDAO.lagreHeleSøknaden(søknad, it)
+            DigitalsøknadDAO.lagreHeleSøknaden(søknad, it)
         }
     }
 
     override fun hentSakIdForSoknad(søknadId: SøknadId): SakId? =
         sessionFactory.withSession {
-            SøknadDAO.finnSakId(søknadId, it)
+            DigitalsøknadDAO.finnSakId(søknadId, it)
         }
 
-    override fun hentSøknaderForFnr(fnr: Fnr): List<Søknad> {
+    override fun hentSøknaderForFnr(fnr: Fnr): List<Digitalsøknad> {
         return sessionFactory.withSession {
-            SøknadDAO.hentForFnr(fnr, it)
+            DigitalsøknadDAO.hentForFnr(fnr, it)
         }
     }
 
     override fun finnSakIdForTiltaksdeltakelse(eksternId: String): SakId? =
         sessionFactory.withSession {
-            SøknadDAO.finnSakIdForTiltaksdeltakelse(eksternId, it)
+            DigitalsøknadDAO.finnSakIdForTiltaksdeltakelse(eksternId, it)
         }
 
-    override fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext?) {
+    override fun lagreAvbruttSøknad(søknad: Digitalsøknad, txContext: TransactionContext?) {
         if (søknad.avbrutt == null) {
             throw IllegalArgumentException("Kan ikke lagre en søknad som ikke er avbrutt")
         }
         sessionFactory.withTransaction(txContext) {
-            SøknadDAO.lagreAvbruttSøknad(søknad.id, søknad.avbrutt, it)
+            DigitalsøknadDAO.lagreAvbruttSøknad(søknad.id, søknad.avbrutt, it)
         }
     }
 
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
         sessionFactory.withTransaction(context) {
-            SøknadDAO.oppdaterFnr(
+            DigitalsøknadDAO.oppdaterFnr(
                 gammeltFnr = gammeltFnr,
                 nyttFnr = nyttFnr,
                 session = it,
@@ -60,9 +60,9 @@ internal class SøknadPostgresRepo(
         }
     }
 
-    override fun hentAlleUbehandledeSoknader(limit: Int): List<Søknad> {
+    override fun hentAlleUbehandledeSoknader(limit: Int): List<Digitalsøknad> {
         return sessionFactory.withTransaction {
-            SøknadDAO.hentAlleUbehandledeSoknader(
+            DigitalsøknadDAO.hentAlleUbehandledeSoknader(
                 limit = limit,
                 session = it,
             )

@@ -136,7 +136,7 @@ class LocalApplicationContext(
     }
 
     private val tiltaksdeltagelseFakeKlient by lazy {
-        TiltaksdeltagelseFakeKlient(søknadRepo = søknadContext.søknadRepo)
+        TiltaksdeltagelseFakeKlient(digitalsøknadRepo = søknadContext.digitalsøknadRepo)
     }
 
     override val tiltakContext by lazy {
@@ -245,13 +245,13 @@ class LocalApplicationContext(
             fnr = fnr,
             saksnummer = sakRepo.hentNesteSaksnummer(),
         ).also { sakRepo.opprettSak(it) }
-        val søknad = søknadContext.søknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nySøknad(
+        val søknad = søknadContext.digitalsøknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nySøknad(
             fnr = fnr,
             id = søknadId,
             søknadstiltak = søknadstiltak,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
-        ).also { søknadContext.søknadRepo.lagre(it) }
+        ).also { søknadContext.digitalsøknadRepo.lagre(it) }
         require(søknadstiltak == søknad.tiltak) {
             "Diff mellom søknadstiltak i lokal database og statiske tiltaksdata i LocalApplicationContext. Mulig løsning: Tøm lokal db."
         }

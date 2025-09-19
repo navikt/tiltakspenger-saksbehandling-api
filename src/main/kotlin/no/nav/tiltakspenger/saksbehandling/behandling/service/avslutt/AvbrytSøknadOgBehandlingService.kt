@@ -8,18 +8,20 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.DigitalsøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.søknad.Digitalsøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.Papirsøknad
 import java.time.LocalDateTime
 
 class AvbrytSøknadOgBehandlingService(
     private val sakService: SakService,
-    private val søknadService: SøknadService,
+    private val digitalsøknadService: DigitalsøknadService,
     private val behandlingService: BehandlingService,
     private val statistikkSakService: StatistikkSakService,
     private val sessionFactory: SessionFactory,
@@ -39,8 +41,9 @@ class AvbrytSøknadOgBehandlingService(
         }
 
         sessionFactory.withTransactionContext { tx ->
-            avbruttSøknad?.also {
-                søknadService.lagreAvbruttSøknad(it, tx)
+            when (avbruttSøknad) {
+                is Digitalsøknad -> digitalsøknadService.lagreAvbruttSøknad(avbruttSøknad, tx)
+                is Papirsøknad -> throw IllegalStateException("Kan ikke avbryte papirsøknad samtidig med en behandling")
             }
             behandlingOgStatistikk?.also {
                 behandlingService.lagreMedStatistikk(it.first, it.second, tx)

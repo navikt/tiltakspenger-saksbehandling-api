@@ -99,7 +99,7 @@ class DelautomatiskBehandlingServiceTest {
                     ),
                 )
                 val behandling = sakOgBehandling.second
-                tac.søknadContext.søknadRepo.lagre(behandling.søknad)
+                tac.søknadContext.digitalsøknadRepo.lagre(behandling.søknad)
                 tac.behandlingContext.behandlingRepo.lagre(behandling)
                 tac.leggTilPerson(
                     fnr = sak.fnr,
@@ -182,7 +182,7 @@ class DelautomatiskBehandlingServiceTest {
                     ),
                 )
                 val behandling = sakOgBehandling.second
-                tac.søknadContext.søknadRepo.lagre(behandling.søknad)
+                tac.søknadContext.digitalsøknadRepo.lagre(behandling.søknad)
                 tac.behandlingContext.behandlingRepo.lagre(behandling)
                 tac.leggTilPerson(
                     fnr = sak.fnr,

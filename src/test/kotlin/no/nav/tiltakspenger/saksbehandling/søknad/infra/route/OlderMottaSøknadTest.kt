@@ -66,7 +66,7 @@ class OlderMottaSøknadTest {
                 }
             }
 
-            val actualSøknad = tac.søknadContext.søknadRepo.hentForSøknadId(søknadId)
+            val actualSøknad = tac.søknadContext.digitalsøknadRepo.hentForSøknadId(søknadId)
             actualSøknad shouldBe
                 Søknad(
                     versjon = "3",
@@ -122,7 +122,7 @@ class OlderMottaSøknadTest {
                     avbrutt = null,
                 )
 
-            tac.søknadContext.søknadRepo.hentSakIdForSoknad(søknadId) shouldBe sak.id
+            tac.søknadContext.digitalsøknadRepo.hentSakIdForSoknad(søknadId) shouldBe sak.id
         }
     }
 

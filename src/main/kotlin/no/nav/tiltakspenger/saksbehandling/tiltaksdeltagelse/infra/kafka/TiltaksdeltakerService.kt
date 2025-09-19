@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.DigitalsøknadRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.arena.ArenaKafkaMessage
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.komet.DeltakerV1Dto
@@ -14,7 +14,7 @@ import java.util.UUID
 
 class TiltaksdeltakerService(
     private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
-    private val søknadRepo: SøknadRepo,
+    private val digitalsøknadRepo: DigitalsøknadRepo,
     private val arenaDeltakerMapper: ArenaDeltakerMapper,
 ) {
     private val log = KotlinLogging.logger { }
@@ -53,7 +53,7 @@ class TiltaksdeltakerService(
     }
 
     private fun finnSakIdForTiltaksdeltaker(eksternId: String): SakId? {
-        return søknadRepo.finnSakIdForTiltaksdeltakelse(eksternId)
+        return digitalsøknadRepo.finnSakIdForTiltaksdeltakelse(eksternId)
     }
 
     private fun lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb: TiltaksdeltakerKafkaDb, melding: String) {

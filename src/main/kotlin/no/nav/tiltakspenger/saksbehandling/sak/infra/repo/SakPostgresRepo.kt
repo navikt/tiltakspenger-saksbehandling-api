@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGenerator
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.DigitalsøknadDAO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
@@ -247,7 +247,7 @@ class SakPostgresRepo(
                 val meldekortBehandlinger =
                     MeldekortBehandlingPostgresRepo.hentForSakId(id, session) ?: MeldekortBehandlinger.empty()
                 val meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(id, session)
-                val soknader = SøknadDAO.hentForSakId(id, session)
+                val soknader = DigitalsøknadDAO.hentForSakId(id, session)
 
                 Sak(
                     id = id,

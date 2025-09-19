@@ -42,7 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortFakeRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadFakeRepo
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.DigitalsøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
@@ -86,8 +86,8 @@ class TestApplicationContext(
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
     private val behandlingFakeRepo = BehandlingFakeRepo()
-    private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
-    private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient(søknadRepo = søknadFakeRepo)
+    private val søknadFakeRepo = DigitalsøknadFakeRepo(behandlingFakeRepo)
+    private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient(digitalsøknadRepo = søknadFakeRepo)
     private val sokosUtbetaldataFakeClient = SokosUtbetaldataFakeClient()
     private val tiltakspengerArenaFakeClient = TiltakspengerArenaFakeClient()
     private val personFakeKlient = PersonFakeKlient(clock)
@@ -166,7 +166,7 @@ class TestApplicationContext(
 
     override val søknadContext by lazy {
         object : SøknadContext(sessionFactory, sakContext.sakService) {
-            override val søknadRepo = søknadFakeRepo
+            override val digitalsøknadRepo = søknadFakeRepo
         }
     }
 

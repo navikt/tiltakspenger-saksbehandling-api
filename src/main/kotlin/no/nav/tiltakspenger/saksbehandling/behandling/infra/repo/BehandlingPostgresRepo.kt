@@ -42,7 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.DigitalsøknadDAO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFraDbJson
 import org.intellij.lang.annotations.Language
@@ -403,7 +403,7 @@ class BehandlingPostgresRepo(
                         saksnummer = saksnummer,
                         fnr = fnr,
                         saksopplysninger = saksopplysninger,
-                        søknad = søknadId?.let { SøknadDAO.hentForSøknadId(it, session) }
+                        søknad = søknadId?.let { DigitalsøknadDAO.hentForSøknadId(it, session) }
                             ?: throw IllegalStateException("Fant ikke søknad for søknadsbehandling, behandlingsid $id"),
                         virkningsperiode = virkningsperiode,
                         saksbehandler = saksbehandler,

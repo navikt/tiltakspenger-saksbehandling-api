@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.søknad.Digitalsøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
@@ -42,6 +43,8 @@ data class Sak(
     val brukersMeldekort: List<BrukersMeldekort>,
     val soknader: List<Søknad>,
 ) {
+    val digitaleSøknader = soknader.filterIsInstance<Digitalsøknad>()
+
     val utbetalinger: Utbetalinger by lazy {
         Utbetalinger(
             vedtaksliste.utbetalinger
@@ -74,7 +77,7 @@ data class Sak(
 
     val tiltaksdeltagelserDetErSøktTiltakspengerFor by lazy {
         TiltaksdeltagelserDetErSøktTiltakspengerFor(
-            this.soknader.map {
+            this.digitaleSøknader.map {
                 TiltaksdeltagelseDetErSøktTiltakspengerFor(it.tiltak, it.tidsstempelHosOss)
             },
         )

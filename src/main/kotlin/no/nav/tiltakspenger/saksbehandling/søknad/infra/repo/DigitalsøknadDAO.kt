@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.søknad.Digitalsøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
 private const val KVP_FELT = "kvp"
@@ -26,7 +27,7 @@ private const val ALDERSPENSJON_FELT = "alderspensjon"
 private const val TRYGD_OG_PENSJON_FELT = "trygd_og_pensjon"
 private const val ETTERLØNN_FELT = "etterlonn"
 
-internal object SøknadDAO {
+internal object DigitalsøknadDAO {
     fun finnSakIdForTiltaksdeltakelse(
         eksternId: String,
         session: Session,
@@ -53,7 +54,7 @@ internal object SøknadDAO {
     fun hentForSøknadId(
         søknadId: SøknadId,
         session: Session,
-    ): Søknad? =
+    ): Digitalsøknad? =
         session.run(
             // language=SQL
             queryOf(
@@ -93,7 +94,7 @@ internal object SøknadDAO {
     fun hentForFnr(
         fnr: Fnr,
         session: Session,
-    ): List<Søknad> =
+    ): List<Digitalsøknad> =
         session
             .run(
                 sqlQuery(
@@ -108,7 +109,7 @@ internal object SøknadDAO {
                 }.asList,
             )
 
-    fun hentAlleUbehandledeSoknader(limit: Int, session: Session): List<Søknad> =
+    fun hentAlleUbehandledeSoknader(limit: Int, session: Session): List<Digitalsøknad> =
         session.run(
             sqlQuery(
                 """
@@ -143,7 +144,7 @@ internal object SøknadDAO {
      *  @param søknad Lagres dersom den ikke finnes fra før, hvis den finnes, oppdateres den ikke.
      */
     fun lagreHeleSøknaden(
-        søknad: Søknad,
+        søknad: Digitalsøknad,
         txSession: TransactionalSession,
     ) {
         if (søknadFinnes(søknad.id, txSession)) return
@@ -190,7 +191,7 @@ internal object SøknadDAO {
     }
 
     private fun lagreSøknad(
-        søknad: Søknad,
+        søknad: Digitalsøknad,
         session: Session,
     ) {
         val periodeSpmParamMap =
@@ -348,7 +349,7 @@ internal object SøknadDAO {
 
     private fun Row.toSakId() = stringOrNull("sak_id")?.let { SakId.fromString(it) }
 
-    private fun Row.toSøknad(session: Session): Søknad {
+    private fun Row.toSøknad(session: Session): Digitalsøknad {
         val id = SøknadId.fromString(string("id"))
         val versjon = string("versjon")
         val fornavn = string("fornavn")
@@ -374,7 +375,7 @@ internal object SøknadDAO {
         val jobbsjansen = periodeSpm(JOBBSJANSEN_FELT)
         val trygdOgPensjon = periodeSpm(TRYGD_OG_PENSJON_FELT)
         val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
-        return Søknad(
+        return Digitalsøknad(
             versjon = versjon,
             id = id,
             journalpostId = journalpostId,

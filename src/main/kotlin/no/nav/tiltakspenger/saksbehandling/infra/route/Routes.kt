@@ -71,7 +71,7 @@ fun Route.routes(
             tilgangskontrollService = applicationContext.tilgangskontrollService,
         )
         mottaSøknadRoute(
-            applicationContext.søknadContext.søknadService,
+            applicationContext.søknadContext.digitalsøknadService,
             applicationContext.sakContext.sakService,
         )
     }

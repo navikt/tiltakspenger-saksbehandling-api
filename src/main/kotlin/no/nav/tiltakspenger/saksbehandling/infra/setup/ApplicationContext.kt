@@ -130,7 +130,7 @@ open class ApplicationContext(
     open val tiltaksdeltakerService: TiltaksdeltakerService by lazy {
         TiltaksdeltakerService(
             tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-            søknadRepo = søknadContext.søknadRepo,
+            digitalsøknadRepo = søknadContext.digitalsøknadRepo,
             arenaDeltakerMapper = ArenaDeltakerMapper(),
         )
     }
@@ -218,7 +218,7 @@ open class ApplicationContext(
             identhendelseRepository = identhendelseRepository,
             identhendelseKafkaProducer = identhendelseKafkaProducer,
             sakRepo = sakContext.sakRepo,
-            søknadRepo = søknadContext.søknadRepo,
+            digitalsøknadRepo = søknadContext.digitalsøknadRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
@@ -228,7 +228,7 @@ open class ApplicationContext(
 
     open val delautomatiskSoknadsbehandlingJobb by lazy {
         DelautomatiskSoknadsbehandlingJobb(
-            søknadRepo = søknadContext.søknadRepo,
+            digitalsøknadRepo = søknadContext.digitalsøknadRepo,
             behandlingRepo = behandlingContext.behandlingRepo,
             startSøknadsbehandlingService = behandlingContext.startSøknadsbehandlingService,
             delautomatiskBehandlingService = behandlingContext.delautomatiskBehandlingService,
@@ -344,7 +344,7 @@ open class ApplicationContext(
     val avbrytSøknadOgBehandlingContext by lazy {
         AvbrytSøknadOgBehandlingContext(
             sakService = sakContext.sakService,
-            søknadService = søknadContext.søknadService,
+            digitalsøknadService = søknadContext.digitalsøknadService,
             behandlingService = behandlingContext.behandlingService,
             statistikkSakService = statistikkContext.statistikkSakService,
             sessionFactory = sessionFactory,

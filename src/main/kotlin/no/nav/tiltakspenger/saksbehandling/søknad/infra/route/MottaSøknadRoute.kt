@@ -8,7 +8,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.texas.systembruker
-import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.DigitalsøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
@@ -22,7 +22,7 @@ private val logger = KotlinLogging.logger {}
 const val SØKNAD_PATH = "/soknad"
 
 fun Route.mottaSøknadRoute(
-    søknadService: SøknadService,
+    digitalsøknadService: DigitalsøknadService,
     sakService: SakService,
 ) {
     post(SØKNAD_PATH) {
@@ -38,7 +38,7 @@ fun Route.mottaSøknadRoute(
             ),
         )
         // Oppretter søknad og lagrer den med kobling til angitt sak
-        søknadService.nySøknad(
+        digitalsøknadService.nySøknad(
             søknad = SøknadDTOMapper.mapSøknad(
                 dto = søknadDTO,
                 innhentet = søknadDTO.opprettet,
