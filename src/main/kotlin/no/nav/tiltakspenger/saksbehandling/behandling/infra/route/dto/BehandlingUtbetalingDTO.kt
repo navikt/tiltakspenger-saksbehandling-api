@@ -28,13 +28,13 @@ data class BehandlingUtbetalingDTO(
 )
 
 data class BeregningerSummertDTO(
-    val totalt: BeløpFørOgNå,
-    val ordinært: BeløpFørOgNå,
-    val barnetillegg: BeløpFørOgNå,
+    val totalt: BeløpFørOgNåDTO,
+    val ordinært: BeløpFørOgNåDTO,
+    val barnetillegg: BeløpFørOgNåDTO,
 )
 
-data class BeløpFørOgNå(
-    val før: Int,
+data class BeløpFørOgNåDTO(
+    val før: Int?,
     val nå: Int,
 )
 
@@ -52,15 +52,15 @@ fun BehandlingUtbetaling.tilDTO(
         status = utbetalingsstatus.toUtbetalingsstatusDTO(),
         beregninger = beregning.beregninger.map { it.tilMeldeperiodeBeregningDTO() },
         beregningerSummert = BeregningerSummertDTO(
-            totalt = BeløpFørOgNå(
+            totalt = BeløpFørOgNåDTO(
                 før = forrigeBeregninger.beregnTotalBeløp(),
                 nå = beregning.totalBeløp,
             ),
-            ordinært = BeløpFørOgNå(
+            ordinært = BeløpFørOgNåDTO(
                 før = forrigeBeregninger.beregnOrdinærBeløp(),
                 nå = beregning.ordinærBeløp,
             ),
-            barnetillegg = BeløpFørOgNå(
+            barnetillegg = BeløpFørOgNåDTO(
                 før = forrigeBeregninger.beregnBarnetilleggBeløp(),
                 nå = beregning.barnetilleggBeløp,
             ),

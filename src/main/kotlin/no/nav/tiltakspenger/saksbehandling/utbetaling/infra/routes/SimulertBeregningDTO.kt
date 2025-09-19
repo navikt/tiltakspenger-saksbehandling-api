@@ -1,7 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes
 
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BeløpFørOgNåDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BeregningerSummertDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.BeløpDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortDagStatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning.SimulertBeregningPerMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning.SimulertBeregningPerMeldeperiode.SimulertBeregningDag
@@ -50,6 +54,7 @@ data class SimulertBeregningDTO(
     ) {
         data class SimulertBeregningDagDTO(
             val dato: LocalDate,
+            val status: MeldekortDagStatusDTO,
             val simuleringFeilutbetaling: Int?,
             val simuleringEtterbetaling: Int?,
             val simuleringTidligereUtbetalt: Int?,
@@ -57,9 +62,7 @@ data class SimulertBeregningDTO(
             val simuleringTotalJustering: Int?,
             val simuleringTotalTrekk: Int?,
             val beregningEndring: BeløpDTO,
-            val beregningOrdinær: Int,
-            val beregningBarnetillegg: Int,
-            val beregningTotal: Int,
+            val beregning: BeregningerSummertDTO,
         )
     }
 }
@@ -108,6 +111,7 @@ fun SimulertBeregningPerMeldeperiode.toDTO(): SimulertBeregningDTO.SimulertBereg
 fun SimulertBeregningDag.toDTO(): SimulertBeregningDTO.SimulertBeregningPerMeldeperiodeDTO.SimulertBeregningDagDTO {
     return SimulertBeregningDTO.SimulertBeregningPerMeldeperiodeDTO.SimulertBeregningDagDTO(
         dato = this.dato,
+        status = this.beregningsdag.tilMeldekortDagStatusDTO(),
         simuleringFeilutbetaling = this.simuleringsdag?.totalFeilutbetaling,
         simuleringEtterbetaling = this.simuleringsdag?.totalEtterbetaling,
         simuleringTidligereUtbetalt = this.simuleringsdag?.tidligereUtbetalt,
@@ -115,9 +119,20 @@ fun SimulertBeregningDag.toDTO(): SimulertBeregningDTO.SimulertBeregningPerMelde
         simuleringTotalJustering = this.simuleringsdag?.totalJustering,
         simuleringTotalTrekk = this.simuleringsdag?.totalTrekk,
         beregningEndring = this.beregningEndring.toDTO(),
-        beregningOrdinær = this.beregningsdag.beløp,
-        beregningBarnetillegg = this.beregningsdag.beløpBarnetillegg,
-        beregningTotal = this.beregningsdag.totalBeløp,
+        beregning = BeregningerSummertDTO(
+            totalt = BeløpFørOgNåDTO(
+                før = this.forrigeBeregningsdag?.totalBeløp,
+                nå = this.beregningsdag.totalBeløp,
+            ),
+            ordinært = BeløpFørOgNåDTO(
+                før = this.forrigeBeregningsdag?.beløp,
+                nå = this.beregningsdag.beløp,
+            ),
+            barnetillegg = BeløpFørOgNåDTO(
+                før = this.forrigeBeregningsdag?.beløpBarnetillegg,
+                nå = this.beregningsdag.beløpBarnetillegg,
+            ),
+        ),
     )
 }
 
