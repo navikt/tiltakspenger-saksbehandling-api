@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -11,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknads
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -31,6 +33,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 )
 
                 val soknad = testDataHelper.persisterSakOgSøknad()
+                soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
                 coEvery {
                     startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
                         any(),
@@ -61,6 +64,8 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 )
 
                 val soknad = testDataHelper.persisterSakOgSøknad()
+
+                soknad as InnvilgbarSøknad
                 soknadRepo.lagreAvbruttSøknad(
                     soknad.copy(
                         avbrutt = Avbrutt(

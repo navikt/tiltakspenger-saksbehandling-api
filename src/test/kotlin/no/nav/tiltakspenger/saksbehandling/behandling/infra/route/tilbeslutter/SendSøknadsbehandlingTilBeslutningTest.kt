@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningReturnerRespons
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import org.junit.jupiter.api.Test
 
 class SendSøknadsbehandlingTilBeslutningTest {
@@ -50,6 +51,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
                 it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.size shouldBe 1
+                søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
                 it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.firstOrNull()?.verdi?.eksternDeltagelseId shouldBe søknad.tiltak.id
                 it.valgteTiltaksdeltakelser?.periodisering?.totalPeriode shouldBe søknad.tiltaksdeltagelseperiodeDetErSøktOm()
             }

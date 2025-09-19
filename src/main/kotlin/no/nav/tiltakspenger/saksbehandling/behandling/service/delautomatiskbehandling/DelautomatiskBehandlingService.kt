@@ -25,7 +25,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
@@ -142,6 +143,11 @@ class DelautomatiskBehandlingService(
 
     private fun kanBehandleAutomatisk(behandling: Søknadsbehandling): List<ManueltBehandlesGrunn> {
         val manueltBehandlesGrunner = mutableListOf<ManueltBehandlesGrunn>()
+        require(
+            behandling.søknad is InnvilgbarSøknad &&
+                behandling.søknad.erDigitalSøknad() &&
+                behandling.saksopplysninger != null,
+        ) { "Kan ikke automatisk behandle papirsøknad ${behandling.søknad.id}" }
 
         if (behandling.søknad.harLivsoppholdYtelser()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_HAR_ANDRE_YTELSER)
@@ -188,7 +194,10 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_OVERLAPPENDE_TILTAK)
         } else if (behandling.saksopplysninger.harOverlappendeTiltaksdeltakelse(
                 eksternDeltakelseId = tiltaksid,
-                tiltaksperiode = Periode(tiltaksperiode.fraOgMed.minusDays(14), tiltaksperiode.tilOgMed.plusDays(14)),
+                tiltaksperiode = Periode(
+                    tiltaksperiode.fraOgMed.minusDays(14),
+                    tiltaksperiode.tilOgMed.plusDays(14),
+                ),
             )
         ) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_MINDRE_ENN_14_DAGER_MELLOM_TILTAK_OG_SOKNAD)
@@ -201,6 +210,9 @@ class DelautomatiskBehandlingService(
         if (behandling.saksopplysninger.harTiltakspengevedtakFraArena()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_VEDTAK_I_ARENA)
         }
+        if (behandling.søknad.erUnder18ISoknadsperioden(behandling.saksopplysninger.fødselsdato)) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_ER_UNDER_18_I_SOKNADSPERIODEN)
+        }
 
         val behandlinger = behandlingRepo.hentAlleForFnr(behandling.fnr)
         if (behandlinger.any { !it.erAvsluttet && it.id != behandling.id }) {
@@ -212,10 +224,6 @@ class DelautomatiskBehandlingService(
 
         if (behandling.søknad.harSoktMerEnn3ManederEtterOppstart()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_HAR_SOKT_FOR_SENT)
-        }
-
-        if (behandling.søknad.erUnder18ISoknadsperioden(behandling.saksopplysninger.fødselsdato)) {
-            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_ER_UNDER_18_I_SOKNADSPERIODEN)
         }
 
         return manueltBehandlesGrunner
@@ -257,20 +265,22 @@ class DelautomatiskBehandlingService(
     private fun utledTiltaksdeltakelser(
         behandling: Søknadsbehandling,
     ): List<Pair<Periode, String>> {
-        return listOf(
-            Pair(
-                behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
-                behandling.søknad.tiltak.id,
-            ),
-        )
+        return behandling.søknad.tiltak?.let { tiltak ->
+            listOf(
+                Pair(
+                    behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+                    tiltak.id,
+                ),
+            )
+        } ?: emptyList()
     }
 
     private fun utledAntallDagerPerMeldeperiode(
         behandling: Søknadsbehandling,
     ): SammenhengendePeriodisering<AntallDagerForMeldeperiode> {
-        val soknadstiltakFraSaksopplysning =
-            behandling.saksopplysninger.getTiltaksdeltagelse(behandling.søknad.tiltak.id)
-                ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk")
+        val soknadstiltakFraSaksopplysning = behandling.søknad.tiltak
+            ?.let { tiltak -> behandling.saksopplysninger?.getTiltaksdeltagelse(tiltak.id) }
+            ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk")
         return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
             SammenhengendePeriodisering(
                 AntallDagerForMeldeperiode((soknadstiltakFraSaksopplysning.antallDagerPerUke * 2).toInt()),

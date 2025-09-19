@@ -33,7 +33,7 @@ class OppdaterSaksopplysningerService(
             tiltaksdeltagelserDetErSøktTiltakspengerFor = sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
             aktuelleTiltaksdeltagelserForBehandlingen = when (behandling) {
                 is Revurdering -> sak.tiltaksdeltagelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }
-                is Søknadsbehandling -> listOf(behandling.søknad.tiltak.id)
+                is Søknadsbehandling -> listOfNotNull(behandling.søknad.tiltak?.id)
             },
             inkluderOverlappendeTiltaksdeltagelserDetErSøktOm = when (behandling) {
                 is Revurdering -> false

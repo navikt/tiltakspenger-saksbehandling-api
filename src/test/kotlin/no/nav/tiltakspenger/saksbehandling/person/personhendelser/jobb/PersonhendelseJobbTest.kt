@@ -58,7 +58,7 @@ class PersonhendelseJobbTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = fnr,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -101,7 +101,7 @@ class PersonhendelseJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             deltakelseFom = deltakelseFom,
@@ -148,7 +148,7 @@ class PersonhendelseJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             deltakelseFom = deltakelseFom,
@@ -198,7 +198,7 @@ class PersonhendelseJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             deltakelseFom = deltakelseFom,
@@ -248,7 +248,7 @@ class PersonhendelseJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             deltakelseFom = deltakelseFom,
@@ -295,7 +295,7 @@ class PersonhendelseJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             deltakelseFom = deltakelseFom,
@@ -346,7 +346,7 @@ class PersonhendelseJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             deltakelseFom = deltakelseFom,
@@ -398,7 +398,7 @@ class PersonhendelseJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             deltakelseFom = deltakelseFom,

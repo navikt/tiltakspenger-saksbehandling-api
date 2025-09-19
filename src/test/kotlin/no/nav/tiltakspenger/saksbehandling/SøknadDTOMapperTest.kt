@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadsTiltakDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -26,7 +26,7 @@ internal class SøknadDTOMapperTest {
     fun mapBasisFelter() {
         val sak = ObjectMother.nySak()
         val søknadDTO = søknadDTO(saksnummer = sak.saksnummer)
-        val søknad = SøknadDTOMapper.mapSøknad(søknadDTO, LocalDateTime.MIN, sak)
+        val søknad = SøknadDTOMapper.mapDigitalsøknad(søknadDTO, LocalDateTime.MIN, sak)
 
         assertEquals(søknadDTO.søknadId, søknad.id.toString())
         assertEquals(søknadDTO.journalpostId, søknad.journalpostId)
@@ -71,7 +71,7 @@ internal class SøknadDTOMapperTest {
                 etterlønn = JaNeiSpmDTO(SpmSvarDTO.Ja),
                 saksnummer = sak.saksnummer,
             )
-        val søknad = SøknadDTOMapper.mapSøknad(søknadDTO, LocalDateTime.MIN, sak)
+        val søknad = SøknadDTOMapper.mapDigitalsøknad(søknadDTO, LocalDateTime.MIN, sak)
 
         assertEquals(søknad.kvp, Søknad.PeriodeSpm.Ja(Periode(fraOgMed = fra, tilOgMed = til)))
         assertEquals(søknad.intro, Søknad.PeriodeSpm.Ja(Periode(fraOgMed = fra, tilOgMed = til)))

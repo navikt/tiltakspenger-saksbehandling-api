@@ -51,7 +51,7 @@ class TiltaksdeltakerServiceTest {
             testDataHelper.persisterSakOgSøknad(
                 fnr = fnr,
                 sak = sak,
-                søknad = ObjectMother.nySøknad(
+                søknad = ObjectMother.nyInnvilgbarSøknad(
                     personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                     søknadstiltak = ObjectMother.søknadstiltak(id = id),
                     sakId = sak.id,
@@ -87,7 +87,7 @@ class TiltaksdeltakerServiceTest {
             testDataHelper.persisterSakOgSøknad(
                 fnr = fnr,
                 sak = sak,
-                søknad = ObjectMother.nySøknad(
+                søknad = ObjectMother.nyInnvilgbarSøknad(
                     personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                     søknadstiltak = ObjectMother.søknadstiltak(id = id),
                     sakId = sak.id,
@@ -158,7 +158,7 @@ class TiltaksdeltakerServiceTest {
             testDataHelper.persisterSakOgSøknad(
                 fnr = fnr,
                 sak = sak,
-                søknad = ObjectMother.nySøknad(
+                søknad = ObjectMother.nyInnvilgbarSøknad(
                     personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                     søknadstiltak = ObjectMother.søknadstiltak(id = deltakerId.toString()),
                     sakId = sak.id,
@@ -197,7 +197,7 @@ class TiltaksdeltakerServiceTest {
             testDataHelper.persisterSakOgSøknad(
                 fnr = fnr,
                 sak = sak,
-                søknad = ObjectMother.nySøknad(
+                søknad = ObjectMother.nyInnvilgbarSøknad(
                     personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                     søknadstiltak = ObjectMother.søknadstiltak(id = deltakerId.toString()),
                     sakId = sak.id,

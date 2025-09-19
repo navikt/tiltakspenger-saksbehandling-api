@@ -4,7 +4,8 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 
 interface SøknadRepo {
     fun lagre(
@@ -24,5 +25,5 @@ interface SøknadRepo {
 
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
 
-    fun hentAlleUbehandledeSoknader(limit: Int = 10): List<Søknad>
+    fun hentAlleUbehandledeSoknader(limit: Int = 10): List<InnvilgbarSøknad>
 }
