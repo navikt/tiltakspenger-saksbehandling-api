@@ -17,7 +17,7 @@ value class AntallDagerForMeldeperiode(val value: Int) : Comparable<AntallDagerF
     }
 
     companion object {
-        val default: AntallDagerForMeldeperiode = AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)
+        val default: AntallDagerForMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)
     }
 }
 

@@ -23,8 +23,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -75,7 +75,7 @@ interface BehandlingMother : MotherOfAllMothers {
         )
     }
 
-    fun Rammebehandling.antallDagerPerMeldeperiodeDTO(periode: Periode, antallDager: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE): List<AntallDagerPerMeldeperiodeDTO> {
+    fun Rammebehandling.antallDagerPerMeldeperiodeDTO(periode: Periode, antallDager: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE): List<AntallDagerPerMeldeperiodeDTO> {
         return SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(antallDager),
             periode,
@@ -198,7 +198,7 @@ interface BehandlingMother : MotherOfAllMothers {
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
@@ -265,7 +265,7 @@ interface BehandlingMother : MotherOfAllMothers {
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
@@ -318,7 +318,7 @@ interface BehandlingMother : MotherOfAllMothers {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
@@ -426,7 +426,7 @@ interface BehandlingMother : MotherOfAllMothers {
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
     ): Rammebehandling {
@@ -605,7 +605,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("Fritekst"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("Begrunnelse"),
     antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-        AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
+        AntallDagerForMeldeperiode((DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         periode,
     ),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
@@ -672,7 +672,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
     beslutter: Saksbehandler = beslutter(),
     resultat: SøknadsbehandlingType,
     antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-        AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
+        AntallDagerForMeldeperiode((DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         periode,
     ),
     barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
@@ -702,7 +702,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
     beslutter: Saksbehandler = beslutter(),
     resultat: SøknadsbehandlingType,
     antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-        AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
+        AntallDagerForMeldeperiode((DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         periode,
     ),
     barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
@@ -735,7 +735,7 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
     clock: Clock = fixedClock,
     resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-        AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
+        AntallDagerForMeldeperiode((DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         periode,
     ),
     barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),

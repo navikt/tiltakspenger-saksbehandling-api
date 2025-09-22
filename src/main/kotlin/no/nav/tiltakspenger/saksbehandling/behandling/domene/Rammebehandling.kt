@@ -32,13 +32,10 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import java.time.Clock
 import java.time.LocalDateTime
 
-/** Hardkoder denne til 10 for nå. På sikt vil vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
-const val MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
+const val DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
 
 /**
  * En rammebehandling fører til et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak]. Dette er en vurderingen av søknaden og inngangsvilkårene - om en bruker har rett til tiltangspenger i en gitt periode.
@@ -51,7 +48,7 @@ sealed interface Rammebehandling : Behandling {
     override val opprettet: LocalDateTime
 
     val sistEndret: LocalDateTime
-    val iverksattTidspunkt: LocalDateTime?
+    override val iverksattTidspunkt: LocalDateTime?
     val sendtTilDatadeling: LocalDateTime?
     override val sakId: SakId
 
@@ -83,18 +80,13 @@ sealed interface Rammebehandling : Behandling {
         }
 
     val erUnderBehandling: Boolean get() = status == UNDER_BEHANDLING || status == UNDER_AUTOMATISK_BEHANDLING
-    val erAvbrutt: Boolean get() = status == AVBRUTT
+    override val erAvbrutt: Boolean get() = status == AVBRUTT
     val erVedtatt: Boolean get() = status == VEDTATT
-    val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
-    val maksDagerMedTiltakspengerForPeriode: Int get() = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+    override val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
 
     val saksopplysningsperiode: Periode? get() = saksopplysninger.periode
 
     val utbetaling: BehandlingUtbetaling?
-
-    fun toSimulertBeregning(tidligereUtbetalinger: Utbetalinger): SimulertBeregning? {
-        return utbetaling?.toSimulertBeregning(tidligereUtbetalinger)
-    }
 
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
@@ -464,15 +456,6 @@ sealed interface Rammebehandling : Behandling {
     }
 
     /**
-     * @param periode må være en 14 dagers meldeperiode fra mandag til søndag.
-     * @throws NullPointerException dersom [antallDagerPerMeldeperiode] er null
-     * @return den høyeste verdien som overlapper perioden eller null dersom ingen overlapper
-     */
-    fun finnAntallDagerForMeldeperiode(periode: Periode): AntallDagerForMeldeperiode? {
-        return antallDagerPerMeldeperiode!!.finnAntallDagerForMeldeperiode(periode)
-    }
-
-    /**
      * Validerer saksbehandler og behandlingens tilstand.
      * Validerer ikke om saksbehandler har tilgang til personen.
      */
@@ -483,6 +466,7 @@ sealed interface Rammebehandling : Behandling {
         return validerKanOppdatere(saksbehandler).mapLeft {
             KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling(it)
         }.map {
+            @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
             val skalNullstille: Boolean =
                 (
                     this.saksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }

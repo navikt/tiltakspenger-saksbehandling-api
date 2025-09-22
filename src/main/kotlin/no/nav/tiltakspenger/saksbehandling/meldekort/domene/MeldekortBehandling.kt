@@ -63,7 +63,7 @@ sealed interface MeldekortBehandling : Behandling {
     override val beslutter: String?
     val status: MeldekortBehandlingStatus
     val navkontor: Navkontor
-    val iverksattTidspunkt: LocalDateTime?
+    override val iverksattTidspunkt: LocalDateTime?
     override val sendtTilBeslutning: LocalDateTime?
     val begrunnelse: MeldekortBehandlingBegrunnelse?
 
@@ -73,7 +73,7 @@ sealed interface MeldekortBehandling : Behandling {
     val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?
 
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
-    val erAvsluttet
+    override val erAvsluttet
         get() = when (status) {
             KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> false
             GODKJENT, AUTOMATISK_BEHANDLET, IKKE_RETT_TIL_TILTAKSPENGER, AVBRUTT -> true
@@ -90,6 +90,9 @@ sealed interface MeldekortBehandling : Behandling {
     val barnetilleggBeløp: Int?
 
     val avbrutt: Avbrutt?
+
+    override val erAvbrutt: Boolean
+        get() = avbrutt != null
 
     val rammevedtak: List<VedtakId>? get() = meldeperiode.rammevedtak.verdier.distinct()
 

@@ -19,4 +19,7 @@ interface Behandling {
     val saksbehandler: String?
     val beslutter: String?
     val attesteringer: Attesteringer
+    val iverksattTidspunkt: LocalDateTime?
+    val erAvsluttet: Boolean
+    val erAvbrutt: Boolean
 }
