@@ -61,7 +61,7 @@ object OppsummeringGenerator {
         )
 
     private fun beregnEtterbetaling(posteringer: PosteringerForDag): Int {
-        val justeringer: Int = posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
+        val justeringer: Int = beregnJustering(posteringer)
         val resultat = beregnNyttBeløp(posteringer) - beregnTidligereUtbetalt(posteringer)
         return if (justeringer < 0) {
             maxOf(resultat - abs(justeringer), 0)
@@ -73,11 +73,16 @@ object OppsummeringGenerator {
     private fun beregnFeilutbetaling(posteringer: PosteringerForDag): Int =
         maxOf(0, posteringer.summerBarePositivePosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_FEILUTBETALING))
 
-    // TODO jah: Jeg vet ikke om disse kommer som positive eller negative fra helved. Gjetter på at disse er negative, men vi må bekrefte dette når vi har en simulering med trekk.
+    /** TREK i OS/UR. Kommer som positive posteringer. */
     private fun beregnTrekk(posteringer: PosteringerForDag): Int =
-        posteringer.summerBareNegativePosteringer(Posteringstype.TREKK)
+        posteringer.summerBarePositivePosteringer(Posteringstype.TREKK)
 
-    /** TODO jah: Usikker på om disse vil være negative, postive eller begge deler. */
+    /**
+     * Dersom den er negativ for denne dagen, vil den redusere etterbetalingen. Vi får et innslag per positive justering på andre dager.
+     * Dersom den er positiv for denne dagen, vil dagen være justert istedenfor at den fører til feilubetaling. Utregning: tidligere utbetalt = ny utbetaling + justering.
+     * Dette gjelder FEILUTBETALING kombinert med KLASSEKODE_JUSTERING. Dette er "motregninger" som må sees på tvers av dager.
+     * Disse vil komme uten en MOTP.
+     */
     private fun beregnJustering(posteringer: PosteringerForDag): Int =
         posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
 
