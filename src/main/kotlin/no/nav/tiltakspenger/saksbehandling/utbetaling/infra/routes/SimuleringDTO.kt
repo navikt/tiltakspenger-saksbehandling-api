@@ -79,8 +79,8 @@ fun Simulering.tilSimuleringDTO(): SimuleringDTO {
             totalFeilutbetaling = this.totalFeilutbetaling,
             totalTrekk = this.totalTrekk,
             totalJustering = this.totalJustering,
-            totalBeløp = this.totalBeløp,
-            datoBeregnet = this.datoBeregnet,
+            totalBeløp = this.eksterntTotalbeløp,
+            datoBeregnet = this.eksternDatoBeregnet,
             totalPeriode = this.totalPeriode.toDTO(),
             perMeldeperiode = this.simuleringPerMeldeperiode.toList().map {
                 SimuleringEndringDTO.SimuleringForMeldeperiode(

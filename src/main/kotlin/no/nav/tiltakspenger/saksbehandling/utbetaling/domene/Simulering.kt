@@ -14,10 +14,14 @@ sealed interface Simulering {
 
     fun hentDag(dato: LocalDate): Simuleringsdag?
 
+    /**
+     * @param eksterntTotalbeløp kommer fra Økonomisystemet, og er summen av alle posteringer i simuleringen. Ukjent hva slags algoritme som brukes. Ved simuleringer på tvers av meldeperioder, er ikke dette så relevant.
+     * @param eksternDatoBeregnet kommer fra Økonomisystemet, og er datoen simuleringen ble beregnet.
+     */
     data class Endring(
         val simuleringPerMeldeperiode: NonEmptyList<SimuleringForMeldeperiode>,
-        val datoBeregnet: LocalDate,
-        val totalBeløp: Int,
+        val eksternDatoBeregnet: LocalDate,
+        val eksterntTotalbeløp: Int,
     ) : Simulering {
         val meldeperioder: NonEmptyList<Meldeperiode> by lazy { simuleringPerMeldeperiode.map { it.meldeperiode } }
         val perioder: NonEmptyList<Periode> by lazy { meldeperioder.map { it.periode } }
@@ -27,12 +31,50 @@ sealed interface Simulering {
                 tilOgMed = perioder.maxOf { it.tilOgMed },
             )
         }
-        val tidligereUtbetalt: Int by lazy { simuleringPerMeldeperiode.sumOf { it.tidligereUtbetalt } }
-        val nyUtbetaling: Int by lazy { simuleringPerMeldeperiode.sumOf { it.nyUtbetaling } }
-        val totalEtterbetaling: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalEtterbetaling } }
-        val totalFeilutbetaling: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalFeilutbetaling } }
-        val totalJustering: Int by lazy { simuleringPerMeldeperiode.sumOf { it.simuleringsdager.sumOf { dag -> dag.totalJustering } } }
-        val totalTrekk: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalTrekk } }
+        val ordinær: Simuleringsbeløp? by lazy {
+            if (simuleringPerMeldeperiode.all { it.ordinær == null }) {
+                null
+            } else {
+                Simuleringsbeløp(
+                    tidligereUtbetalt = simuleringPerMeldeperiode.mapNotNull { it.ordinær?.tidligereUtbetalt }.sum(),
+                    nyUtbetaling = simuleringPerMeldeperiode.mapNotNull { it.ordinær?.nyUtbetaling }.sum(),
+                    totalEtterbetaling = simuleringPerMeldeperiode.mapNotNull { it.ordinær?.totalEtterbetaling }.sum(),
+                    totalFeilutbetaling = simuleringPerMeldeperiode.mapNotNull { it.ordinær?.totalFeilutbetaling }
+                        .sum(),
+                    totalTrekk = simuleringPerMeldeperiode.mapNotNull { it.ordinær?.totalTrekk }.sum(),
+                    totalJustering = simuleringPerMeldeperiode.mapNotNull { it.ordinær?.totalJustering }.sum(),
+                )
+            }
+        }
+        val barnetillegg: Simuleringsbeløp? by lazy {
+            if (simuleringPerMeldeperiode.all { it.barnetillegg == null }) {
+                null
+            } else {
+                Simuleringsbeløp(
+                    tidligereUtbetalt = simuleringPerMeldeperiode.mapNotNull { it.barnetillegg?.tidligereUtbetalt }
+                        .sum(),
+                    nyUtbetaling = simuleringPerMeldeperiode.mapNotNull { it.barnetillegg?.nyUtbetaling }.sum(),
+                    totalEtterbetaling = simuleringPerMeldeperiode.mapNotNull { it.barnetillegg?.totalEtterbetaling }
+                        .sum(),
+                    totalFeilutbetaling = simuleringPerMeldeperiode.mapNotNull { it.barnetillegg?.totalFeilutbetaling }
+                        .sum(),
+                    totalTrekk = simuleringPerMeldeperiode.mapNotNull { it.barnetillegg?.totalTrekk }.sum(),
+                    totalJustering = simuleringPerMeldeperiode.mapNotNull { it.barnetillegg?.totalJustering }.sum(),
+                )
+            }
+        }
+
+        val totalbeløp: Simuleringsbeløp? by lazy {
+            if (ordinær == null && barnetillegg == null) return@lazy null
+            Simuleringsbeløp(
+                tidligereUtbetalt = (ordinær?.tidligereUtbetalt ?: 0) + (barnetillegg?.tidligereUtbetalt ?: 0),
+                nyUtbetaling = (ordinær?.nyUtbetaling ?: 0) + (barnetillegg?.nyUtbetaling ?: 0),
+                totalEtterbetaling = (ordinær?.totalEtterbetaling ?: 0) + (barnetillegg?.totalEtterbetaling ?: 0),
+                totalFeilutbetaling = (ordinær?.totalFeilutbetaling ?: 0) + (barnetillegg?.totalFeilutbetaling ?: 0),
+                totalTrekk = (ordinær?.totalTrekk ?: 0) + (barnetillegg?.totalTrekk ?: 0),
+                totalJustering = (ordinær?.totalJustering ?: 0) + (barnetillegg?.totalJustering ?: 0),
+            )
+        }
 
         override fun hentDag(dato: LocalDate): Simuleringsdag? {
             return simuleringPerMeldeperiode
@@ -42,6 +84,21 @@ sealed interface Simulering {
                     it.dato == dato
                 }
         }
+
+        @Suppress("unused")
+        val harTidligereUtbetaling: Boolean by lazy { barnetillegg?.harTidligereUtbetaling == true || ordinær?.harTidligereUtbetaling == true }
+
+        @Suppress("unused")
+        val harFeilutbetaling: Boolean by lazy { barnetillegg?.harFeilutbetaling == true || ordinær?.harFeilutbetaling == true }
+
+        @Suppress("unused")
+        val harEtterbetaling: Boolean by lazy { barnetillegg?.harEtterbetaling == true || ordinær?.harEtterbetaling == true }
+
+        @Suppress("unused")
+        val harTrekk: Boolean by lazy { barnetillegg?.harTrekk == true || ordinær?.harTrekk == true }
+
+        @Suppress("unused")
+        val harJustering: Boolean by lazy { barnetillegg?.harJustering == true || ordinær?.harJustering == true }
 
         init {
             simuleringPerMeldeperiode.zipWithNext { a, b ->
@@ -61,16 +118,112 @@ data class SimuleringForMeldeperiode(
     val meldeperiode: Meldeperiode,
     val simuleringsdager: NonEmptyList<Simuleringsdag>,
 ) {
-    val tidligereUtbetalt: Int = simuleringsdager.sumOf { it.tidligereUtbetalt }
-    val nyUtbetaling: Int = simuleringsdager.sumOf { it.nyUtbetaling }
-    val totalEtterbetaling: Int = simuleringsdager.sumOf { it.totalEtterbetaling }
-    val totalFeilutbetaling: Int = simuleringsdager.sumOf { it.totalFeilutbetaling }
-    val totalTrekk: Int = simuleringsdager.sumOf { it.totalTrekk }
+    val ordinær: Simuleringsbeløp? by lazy {
+        if (simuleringsdager.all { it.ordinær == null }) {
+            null
+        } else {
+            Simuleringsbeløp(
+                tidligereUtbetalt = simuleringsdager.mapNotNull { it.ordinær?.tidligereUtbetalt }.sum(),
+                nyUtbetaling = simuleringsdager.mapNotNull { it.ordinær?.nyUtbetaling }.sum(),
+                totalEtterbetaling = simuleringsdager.mapNotNull { it.ordinær?.totalEtterbetaling }.sum(),
+                totalFeilutbetaling = simuleringsdager.mapNotNull { it.ordinær?.totalFeilutbetaling }.sum(),
+                totalTrekk = simuleringsdager.mapNotNull { it.ordinær?.totalTrekk }.sum(),
+                totalJustering = simuleringsdager.mapNotNull { it.ordinær?.totalJustering }.sum(),
+            )
+        }
+    }
+    val barnetillegg: Simuleringsbeløp? by lazy {
+        if (simuleringsdager.all { it.barnetillegg == null }) {
+            null
+        } else {
+            Simuleringsbeløp(
+                tidligereUtbetalt = simuleringsdager.mapNotNull { it.barnetillegg?.tidligereUtbetalt }.sum(),
+                nyUtbetaling = simuleringsdager.mapNotNull { it.barnetillegg?.nyUtbetaling }.sum(),
+                totalEtterbetaling = simuleringsdager.mapNotNull { it.barnetillegg?.totalEtterbetaling }.sum(),
+                totalFeilutbetaling = simuleringsdager.mapNotNull { it.barnetillegg?.totalFeilutbetaling }.sum(),
+                totalTrekk = simuleringsdager.mapNotNull { it.barnetillegg?.totalTrekk }.sum(),
+                totalJustering = simuleringsdager.mapNotNull { it.barnetillegg?.totalJustering }.sum(),
+            )
+        }
+    }
+
+    val totalbeløp: Simuleringsbeløp? by lazy {
+        if (ordinær == null && barnetillegg == null) return@lazy null
+        Simuleringsbeløp(
+            tidligereUtbetalt = (ordinær?.tidligereUtbetalt ?: 0) + (barnetillegg?.tidligereUtbetalt ?: 0),
+            nyUtbetaling = (ordinær?.nyUtbetaling ?: 0) + (barnetillegg?.nyUtbetaling ?: 0),
+            totalEtterbetaling = (ordinær?.totalEtterbetaling ?: 0) + (barnetillegg?.totalEtterbetaling ?: 0),
+            totalFeilutbetaling = (ordinær?.totalFeilutbetaling ?: 0) + (barnetillegg?.totalFeilutbetaling ?: 0),
+            totalTrekk = (ordinær?.totalTrekk ?: 0) + (barnetillegg?.totalTrekk ?: 0),
+            totalJustering = (ordinær?.totalJustering ?: 0) + (barnetillegg?.totalJustering ?: 0),
+        )
+    }
+
+    @Suppress("unused")
+    val harTidligereUtbetaling: Boolean by lazy { barnetillegg?.harTidligereUtbetaling == true || ordinær?.harTidligereUtbetaling == true }
+
+    @Suppress("unused")
+    val harFeilutbetaling: Boolean by lazy { barnetillegg?.harFeilutbetaling == true || ordinær?.harFeilutbetaling == true }
+
+    @Suppress("unused")
+    val harEtterbetaling: Boolean by lazy { barnetillegg?.harEtterbetaling == true || ordinær?.harEtterbetaling == true }
+
+    @Suppress("unused")
+    val harTrekk: Boolean by lazy { barnetillegg?.harTrekk == true || ordinær?.harTrekk == true }
+
+    @Suppress("unused")
+    val harJustering: Boolean by lazy { barnetillegg?.harJustering == true || ordinær?.harJustering == true }
 }
 
+/**
+ * Må enten ha ordinær eller barnetillegg, eller begge.
+ */
 data class Simuleringsdag(
     val dato: LocalDate,
+    val ordinær: Simuleringsbeløp?,
+    val barnetillegg: Simuleringsbeløp?,
 
+    /** Detaljene som ligger bak oppsummeringen. */
+    val posteringsdag: PosteringerForDag,
+) {
+    init {
+        require((ordinær != null) || (barnetillegg != null)) {
+            "Må ha enten ordinær eller barnetillegg, eller begge."
+        }
+    }
+
+    /**
+     * Summen av ordinær og barnetillegg, eller null hvis begge er null.
+     */
+    val totalbeløp: Simuleringsbeløp? by lazy {
+        if (ordinær == null && barnetillegg == null) return@lazy null
+        Simuleringsbeløp(
+            tidligereUtbetalt = (ordinær?.tidligereUtbetalt ?: 0) + (barnetillegg?.tidligereUtbetalt ?: 0),
+            nyUtbetaling = (ordinær?.nyUtbetaling ?: 0) + (barnetillegg?.nyUtbetaling ?: 0),
+            totalEtterbetaling = (ordinær?.totalEtterbetaling ?: 0) + (barnetillegg?.totalEtterbetaling ?: 0),
+            totalFeilutbetaling = (ordinær?.totalFeilutbetaling ?: 0) + (barnetillegg?.totalFeilutbetaling ?: 0),
+            totalTrekk = (ordinær?.totalTrekk ?: 0) + (barnetillegg?.totalTrekk ?: 0),
+            totalJustering = (ordinær?.totalJustering ?: 0) + (barnetillegg?.totalJustering ?: 0),
+        )
+    }
+
+    @Suppress("unused")
+    val harTidligereUtbetaling: Boolean by lazy { barnetillegg?.harTidligereUtbetaling == true || ordinær?.harTidligereUtbetaling == true }
+
+    @Suppress("unused")
+    val harFeilutbetaling: Boolean by lazy { barnetillegg?.harFeilutbetaling == true || ordinær?.harFeilutbetaling == true }
+
+    @Suppress("unused")
+    val harEtterbetaling: Boolean by lazy { barnetillegg?.harEtterbetaling == true || ordinær?.harEtterbetaling == true }
+
+    @Suppress("unused")
+    val harTrekk: Boolean by lazy { barnetillegg?.harTrekk == true || ordinær?.harTrekk == true }
+
+    @Suppress("unused")
+    val harJustering: Boolean by lazy { barnetillegg?.harJustering == true || ordinær?.harJustering == true }
+}
+
+data class Simuleringsbeløp(
     /** Totalbeløpet som er utbetalt til bruker på saken tidligere, for perioden oppsummeringen gjelder for. */
     val tidligereUtbetalt: Int,
 
@@ -101,20 +254,24 @@ data class Simuleringsdag(
 
     /** F.eks. trekk fra namsmannen. Kommentar jah: Usikker på om denne vil vise omposteringer eller om det kun er justering som tar for seg det. */
     val totalTrekk: Int,
+
     /** Hvis denne dagen er negativt justert (typisk ompostert til en annen dag) */
     val totalJustering: Int,
-
-    /** Detaljene som ligger bak oppsummeringen. */
-    val posteringsdag: PosteringerForDag,
 ) {
     @Suppress("unused")
-    val harFeilutbetaling: Boolean by lazy { totalFeilutbetaling > 0 }
+    val harTidligereUtbetaling: Boolean by lazy { tidligereUtbetalt != 0 }
 
     @Suppress("unused")
-    val harEtterbetaling: Boolean by lazy { totalEtterbetaling > 0 }
+    val harFeilutbetaling: Boolean by lazy { totalFeilutbetaling != 0 }
 
     @Suppress("unused")
-    val harTrekk: Boolean by lazy { totalTrekk > 0 }
+    val harEtterbetaling: Boolean by lazy { totalEtterbetaling != 0 }
+
+    @Suppress("unused")
+    val harTrekk: Boolean by lazy { totalTrekk != 0 }
+
+    @Suppress("unused")
+    val harJustering: Boolean by lazy { totalJustering != 0 }
 }
 
 /**

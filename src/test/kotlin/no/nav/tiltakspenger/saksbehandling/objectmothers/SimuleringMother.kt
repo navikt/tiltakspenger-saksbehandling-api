@@ -67,8 +67,8 @@ interface SimuleringMother {
         ),
     ): Simulering.Endring {
         return Simulering.Endring(
-            datoBeregnet = periode.tilOgMed,
-            totalBeløp = 0,
+            eksternDatoBeregnet = periode.tilOgMed,
+            eksterntTotalbeløp = 0,
             simuleringPerMeldeperiode = nonEmptyListOf(
                 SimuleringForMeldeperiode(
                     meldeperiode = meldeperiode,
@@ -149,9 +149,9 @@ fun Sak.genererSimuleringFraBeregning(
         } else {
             Simulering.Endring(
                 simuleringPerMeldeperiode = simuleringForMeldeperioder,
-                datoBeregnet = LocalDate.now(),
+                eksternDatoBeregnet = LocalDate.now(),
                 // TODO jah: Litt usikker på hva denne kommer som fra OS.
-                totalBeløp = simuleringForMeldeperioder.sumOf { it.nyUtbetaling },
+                eksterntTotalbeløp = simuleringForMeldeperioder.sumOf { it.nyUtbetaling },
             )
         },
         originalResponseBody = "{}",

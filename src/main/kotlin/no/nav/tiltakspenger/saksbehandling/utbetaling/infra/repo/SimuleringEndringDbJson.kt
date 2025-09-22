@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
 import java.time.LocalDate
 
 private data class SimuleringDbJson(
@@ -98,8 +97,8 @@ private data class SimuleringEndringDbJson(
 
     fun toEndring(meldeperiodeKjeder: MeldeperiodeKjeder): Simulering.Endring {
         return Simulering.Endring(
-            datoBeregnet = this.datoBeregnet,
-            totalBeløp = this.totalBeløp,
+            eksternDatoBeregnet = this.datoBeregnet,
+            eksterntTotalbeløp = this.totalBeløp,
             simuleringPerMeldeperiode = this.perMeldeperiode.map {
                 SimuleringForMeldeperiode(
                     meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeId(MeldeperiodeId.fromString(it.meldeperiodeId))!!,
@@ -165,8 +164,8 @@ private fun Simulering.toSimuleringEndringDbJson(): SimuleringEndringDbJson? {
 
 private fun Simulering.Endring.toDbJson(): SimuleringEndringDbJson {
     return SimuleringEndringDbJson(
-        datoBeregnet = this.datoBeregnet,
-        totalBeløp = this.totalBeløp,
+        datoBeregnet = this.eksternDatoBeregnet,
+        totalBeløp = this.eksterntTotalbeløp,
         perMeldeperiode = this.simuleringPerMeldeperiode.toList().map {
             SimuleringEndringDbJson.SimuleringForMeldeperiode(
                 meldeperiodeId = it.meldeperiode.id.toString(),

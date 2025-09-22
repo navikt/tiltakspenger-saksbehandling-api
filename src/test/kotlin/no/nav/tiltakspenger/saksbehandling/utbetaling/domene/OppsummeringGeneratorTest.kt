@@ -288,8 +288,8 @@ class OppsummeringGeneratorTest {
                     ),
                 ),
             ),
-            datoBeregnet = LocalDate.parse("2025-05-12"),
-            totalBeløp = 2280,
+            eksternDatoBeregnet = LocalDate.parse("2025-05-12"),
+            eksterntTotalbeløp = 2280,
         )
     }
 
@@ -521,8 +521,8 @@ class OppsummeringGeneratorTest {
             ),
         )
         helvedResponse.toSimuleringFraHelvedResponse(meldeperiodeKjeder) shouldBe Simulering.Endring(
-            totalBeløp = 0,
-            datoBeregnet = 16.mai(2025),
+            eksterntTotalbeløp = 0,
+            eksternDatoBeregnet = 16.mai(2025),
             simuleringPerMeldeperiode = nonEmptyListOf(
                 SimuleringForMeldeperiode(
                     meldeperiode = meldeperiode2,
@@ -992,8 +992,8 @@ class OppsummeringGeneratorTest {
             ),
         )
         val actual = jsonFraHelved.toSimuleringFraHelvedResponse(meldeperiodeKjeder)
-        actual.totalBeløp shouldBe 3740
-        actual.datoBeregnet shouldBe 16.september(2025)
+        actual.eksterntTotalbeløp shouldBe 3740
+        actual.eksternDatoBeregnet shouldBe 16.september(2025)
         actual.simuleringPerMeldeperiode.size shouldBe 4
         actual.simuleringPerMeldeperiode[0] shouldBe SimuleringForMeldeperiode(
             meldeperiode = meldeperiode1,

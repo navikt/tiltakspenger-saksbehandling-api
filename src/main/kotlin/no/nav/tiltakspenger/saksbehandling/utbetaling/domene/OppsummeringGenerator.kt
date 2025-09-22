@@ -24,21 +24,12 @@ object OppsummeringGenerator {
         // Merk at simuleringsperioden og meldeperiodene sin totale periode ikke trenger å være like.
         val aktuelleMeldeperioder = meldeperiodeKjeder.hentMeldeperioderForPeriode(simuleringsperiode)
         return Simulering.Endring(
-            datoBeregnet = datoBeregnet,
-            totalBeløp = totalBeløp,
+            eksternDatoBeregnet = datoBeregnet,
+            eksterntTotalbeløp = totalBeløp,
             simuleringPerMeldeperiode = aktuelleMeldeperioder.mapNotNull { meldeperiode ->
                 val simuleringsdager = meldeperiode.periode.tilDager().mapNotNull { dato ->
                     posteringerPerDag[dato]?.let { posteringerForDag ->
-                        Simuleringsdag(
-                            dato = dato,
-                            tidligereUtbetalt = beregnTidligereUtbetalt(posteringerForDag),
-                            nyUtbetaling = beregnNyttBeløp(posteringerForDag),
-                            totalEtterbetaling = beregnEtterbetaling(posteringerForDag),
-                            totalFeilutbetaling = beregnFeilutbetaling(posteringerForDag),
-                            totalTrekk = beregnTrekk(posteringerForDag),
-                            totalJustering = beregnJustering(posteringerForDag),
-                            posteringsdag = posteringerForDag,
-                        )
+                        beregnSimuleringsdag(dato, posteringerForDag)
                     }
                 }
                 simuleringsdager.toNonEmptyListOrNull()?.let {
@@ -51,18 +42,43 @@ object OppsummeringGenerator {
         )
     }
 
-    private fun beregnTidligereUtbetalt(posteringer: PosteringerForDag): Int =
-        abs(posteringer.summerBareNegativePosteringer(Posteringstype.YTELSE))
+    private fun beregnSimuleringsdag(dato: LocalDate, posteringerForDag: PosteringerForDag): Simuleringsdag {
+        return Simuleringsdag(
+            dato = dato,
+            barnetillegg = Simuleringsbeløp(
+                tidligereUtbetalt = beregnTidligereUtbetalt(posteringerForDag, true),
+                nyUtbetaling = beregnNyttBeløp(posteringerForDag, true),
+                totalEtterbetaling = beregnEtterbetaling(posteringerForDag, true),
+                totalFeilutbetaling = beregnFeilutbetaling(posteringerForDag),
+                totalTrekk = beregnTrekk(posteringerForDag),
+                totalJustering = beregnJustering(posteringerForDag),
+            ),
+            ordinær = Simuleringsbeløp(
+                tidligereUtbetalt = beregnTidligereUtbetalt(posteringerForDag, false),
+                nyUtbetaling = beregnNyttBeløp(posteringerForDag, false),
+                totalEtterbetaling = beregnEtterbetaling(posteringerForDag, false),
+                totalFeilutbetaling = beregnFeilutbetaling(posteringerForDag),
+                totalTrekk = beregnTrekk(posteringerForDag),
+                totalJustering = beregnJustering(posteringerForDag),
+            ),
+            posteringsdag = posteringerForDag,
+        )
+    }
 
-    private fun beregnNyttBeløp(posteringer: PosteringerForDag): Int =
-        posteringer.summerBarePositivePosteringer(Posteringstype.YTELSE) - posteringer.summerBarePositivePosteringer(
+    private fun beregnTidligereUtbetalt(posteringer: PosteringerForDag, erBarnetillegg: Boolean): Int {
+        return abs(posteringer.summerBareNegativePosteringer(Posteringstype.YTELSE))
+    }
+
+    private fun beregnNyttBeløp(posteringer: PosteringerForDag, erBarnetillegg: Boolean): Int {
+        return posteringer.summerBarePositivePosteringer(Posteringstype.YTELSE) - posteringer.summerBarePositivePosteringer(
             Posteringstype.FEILUTBETALING,
             KLASSEKODE_FEILUTBETALING,
         )
+    }
 
-    private fun beregnEtterbetaling(posteringer: PosteringerForDag): Int {
+    private fun beregnEtterbetaling(posteringer: PosteringerForDag, erBarnetillegg: Boolean): Int {
         val justeringer: Int = posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
-        val resultat = beregnNyttBeløp(posteringer) - beregnTidligereUtbetalt(posteringer)
+        val resultat = beregnNyttBeløp(posteringer, erBarnetillegg) - beregnTidligereUtbetalt(posteringer, erBarnetillegg)
         return if (justeringer < 0) {
             maxOf(resultat - abs(justeringer), 0)
         } else {
@@ -70,6 +86,7 @@ object OppsummeringGenerator {
         }
     }
 
+    /** Vi kan ikke lese ut fra FEILUTBETALING posteringene om de er ordinær, barnetillegg eller en kombinasjon. */
     private fun beregnFeilutbetaling(posteringer: PosteringerForDag): Int =
         maxOf(0, posteringer.summerBarePositivePosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_FEILUTBETALING))
 
@@ -77,7 +94,7 @@ object OppsummeringGenerator {
     private fun beregnTrekk(posteringer: PosteringerForDag): Int =
         posteringer.summerBareNegativePosteringer(Posteringstype.TREKK)
 
-    /** TODO jah: Usikker på om disse vil være negative, postive eller begge deler. */
+    /** TODO jah: Usikker på om disse vil være negative, positive eller en blanding. */
     private fun beregnJustering(posteringer: PosteringerForDag): Int =
         posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
 

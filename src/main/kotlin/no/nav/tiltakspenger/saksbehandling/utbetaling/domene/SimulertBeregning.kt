@@ -152,8 +152,8 @@ data class SimulertBeregning(
                 beregningstidspunkt = null,
                 // TODO jah: Legg på denne på simuleringen i domenet+basen
                 simuleringstidspunkt = null,
-                simuleringsdato = (simulering as? Simulering.Endring)?.datoBeregnet,
-                simuleringTotalBeløp = (simulering as? Simulering.Endring)?.totalBeløp,
+                simuleringsdato = (simulering as? Simulering.Endring)?.eksternDatoBeregnet,
+                simuleringTotalBeløp = (simulering as? Simulering.Endring)?.eksterntTotalbeløp,
             )
         }
     }
