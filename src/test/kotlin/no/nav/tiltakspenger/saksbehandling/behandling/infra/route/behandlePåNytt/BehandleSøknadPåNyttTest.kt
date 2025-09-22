@@ -7,7 +7,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
@@ -39,7 +39,7 @@ internal class BehandleSøknadPåNyttTest {
                     resultat = SøknadsbehandlingType.AVSLAG,
                 )
                 behandling.virkningsperiode.shouldNotBeNull()
-                behandling.status shouldBe Behandlingsstatus.VEDTATT
+                behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
                 behandling.resultat is SøknadsbehandlingResultat.Avslag
 
                 val (_, _, nyBehandling, _) = this.behandleSøknadPåNytt(
@@ -51,7 +51,7 @@ internal class BehandleSøknadPåNyttTest {
                 )
 
                 nyBehandling.shouldNotBeNull()
-                nyBehandling.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                nyBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 nyBehandling shouldBe instanceOf<Søknadsbehandling>()
                 nyBehandling.søknad.id shouldBe behandling.søknad.id
             }
@@ -74,7 +74,7 @@ internal class BehandleSøknadPåNyttTest {
                     resultat = SøknadsbehandlingType.AVSLAG,
                 )
                 behandling.virkningsperiode.shouldNotBeNull()
-                behandling.status shouldBe Behandlingsstatus.VEDTATT
+                behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
                 behandling.resultat is SøknadsbehandlingResultat.Avslag
 
                 val responskode = this.startBehandlingAvSøknadPåNyttForSøknadId(
@@ -105,7 +105,7 @@ internal class BehandleSøknadPåNyttTest {
                     resultat = SøknadsbehandlingType.AVSLAG,
                 )
                 behandling.virkningsperiode.shouldNotBeNull()
-                behandling.status shouldBe Behandlingsstatus.VEDTATT
+                behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
                 behandling.resultat is SøknadsbehandlingResultat.Avslag
 
                 tac.tilgangsmaskinFakeClient.leggTil(sak.fnr, false)

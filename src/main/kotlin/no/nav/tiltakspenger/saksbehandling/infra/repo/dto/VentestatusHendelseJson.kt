@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo.dto
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import java.time.LocalDateTime
 
@@ -24,8 +24,8 @@ fun VentestatusHendelseJson.toSattPåVentBegrunnelse(): VentestatusHendelse {
         begrunnelse = begrunnelse,
         erSattPåVent = erSattPåVent,
         status = when (status) {
-            VentestatusHendelseJson.Behandlingsstatus.UNDER_BEHANDLING -> Behandlingsstatus.UNDER_BEHANDLING
-            VentestatusHendelseJson.Behandlingsstatus.UNDER_BESLUTNING -> Behandlingsstatus.UNDER_BESLUTNING
+            VentestatusHendelseJson.Behandlingsstatus.UNDER_BEHANDLING -> Rammebehandlingsstatus.UNDER_BEHANDLING
+            VentestatusHendelseJson.Behandlingsstatus.UNDER_BESLUTNING -> Rammebehandlingsstatus.UNDER_BESLUTNING
         },
     )
 }
@@ -36,8 +36,8 @@ fun VentestatusHendelse.toDbJson(): VentestatusHendelseJson = VentestatusHendels
     tidspunkt = this.tidspunkt.toString(),
     erSattPåVent = this.erSattPåVent,
     status = when (this.status) {
-        Behandlingsstatus.UNDER_BEHANDLING -> VentestatusHendelseJson.Behandlingsstatus.UNDER_BEHANDLING
-        Behandlingsstatus.UNDER_BESLUTNING -> VentestatusHendelseJson.Behandlingsstatus.UNDER_BESLUTNING
+        Rammebehandlingsstatus.UNDER_BEHANDLING -> VentestatusHendelseJson.Behandlingsstatus.UNDER_BEHANDLING
+        Rammebehandlingsstatus.UNDER_BESLUTNING -> VentestatusHendelseJson.Behandlingsstatus.UNDER_BESLUTNING
         else -> throw IllegalArgumentException("Ugyldig behandlingsstatus for VentestatusHendelse: ${this.status}")
     },
 )

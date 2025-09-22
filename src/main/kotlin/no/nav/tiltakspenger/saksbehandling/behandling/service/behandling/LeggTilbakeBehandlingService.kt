@@ -5,8 +5,8 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -36,7 +36,7 @@ class LeggTilbakeBehandlingService(
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
             when (it.status) {
-                Behandlingsstatus.KLAR_TIL_BEHANDLING -> {
+                Rammebehandlingsstatus.KLAR_TIL_BEHANDLING -> {
                     sessionFactory.withTransactionContext { tx ->
                         behandlingRepo.leggTilbakeBehandlingSaksbehandler(
                             it.id,
@@ -48,7 +48,7 @@ class LeggTilbakeBehandlingService(
                     }
                 }
 
-                Behandlingsstatus.KLAR_TIL_BESLUTNING -> {
+                Rammebehandlingsstatus.KLAR_TIL_BESLUTNING -> {
                     sessionFactory.withTransactionContext { tx ->
                         behandlingRepo.leggTilbakeBehandlingBeslutter(
                             it.id,
@@ -60,11 +60,11 @@ class LeggTilbakeBehandlingService(
                     }
                 }
 
-                Behandlingsstatus.UNDER_BEHANDLING,
-                Behandlingsstatus.UNDER_BESLUTNING,
-                Behandlingsstatus.VEDTATT,
-                Behandlingsstatus.AVBRUTT,
-                Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
+                Rammebehandlingsstatus.UNDER_BEHANDLING,
+                Rammebehandlingsstatus.UNDER_BESLUTNING,
+                Rammebehandlingsstatus.VEDTATT,
+                Rammebehandlingsstatus.AVBRUTT,
+                Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
                 -> throw IllegalStateException("Behandlingen er i en ugyldig status for å kunne legge tilbake")
             }
 

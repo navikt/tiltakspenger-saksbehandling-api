@@ -7,7 +7,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -28,7 +28,7 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext { tac ->
             val (_, _, behandling) = this.iverksettSøknadsbehandling(tac)
             behandling.virkningsperiode.shouldNotBeNull()
-            behandling.status shouldBe Behandlingsstatus.VEDTATT
+            behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
         }
     }
 
@@ -37,7 +37,7 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext { tac ->
             val (_, _, behandling) = this.iverksettAutomatiskBehandletSøknadsbehandling(tac)
             behandling.virkningsperiode.shouldNotBeNull()
-            behandling.status shouldBe Behandlingsstatus.VEDTATT
+            behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
         }
     }
 
@@ -49,7 +49,7 @@ class IverksettSøknadsbehandlingTest {
                 resultat = SøknadsbehandlingType.AVSLAG,
             )
             behandling.virkningsperiode.shouldNotBeNull()
-            behandling.status shouldBe Behandlingsstatus.VEDTATT
+            behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
             behandling.resultat shouldBe instanceOf<SøknadsbehandlingResultat.Avslag>()
         }
     }
@@ -62,7 +62,7 @@ class IverksettSøknadsbehandlingTest {
             val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac, saksbehandler = saksbehandler)
             val behandlingId = behandling.id
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
             }
@@ -98,7 +98,7 @@ class IverksettSøknadsbehandlingTest {
             val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac, saksbehandler = saksbehandler)
             val behandlingId = behandling.id
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
             }

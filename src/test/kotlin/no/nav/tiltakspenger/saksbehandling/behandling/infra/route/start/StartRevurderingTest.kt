@@ -5,8 +5,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -33,7 +33,7 @@ internal class StartRevurderingTest {
                 val (sak, _, _, revurdering) = startRevurderingStans(tac)
                 revurdering.shouldBeInstanceOf<Revurdering>()
                 revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
-                revurdering.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 revurdering.resultat.shouldBeInstanceOf<RevurderingResultat.Stans>()
                 revurdering.sakId shouldBe sak.id
                 revurdering.fritekstTilVedtaksbrev shouldBe null
@@ -61,7 +61,7 @@ internal class StartRevurderingTest {
                 val (sak, _, _, revurdering) = startRevurderingInnvilgelse(tac)
                 revurdering.shouldBeInstanceOf<Revurdering>()
                 revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
-                revurdering.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 revurdering.resultat.shouldBeInstanceOf<RevurderingResultat.Innvilgelse>()
                 revurdering.sakId shouldBe sak.id
                 revurdering.fritekstTilVedtaksbrev shouldBe null

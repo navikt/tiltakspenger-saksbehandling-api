@@ -11,17 +11,18 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.AVBRUTT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
+import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
@@ -44,24 +45,24 @@ const val MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
  * Dette gjelder både søknadsbehandling (innvilgelse og avslag) og revurdering (endring og omgjøring, inkl. stans/opphør, innvilgelse/forlengelse)
  * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling] for behandling av meldekort innenfor et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak].
  */
-sealed interface Rammebehandling {
+sealed interface Rammebehandling : Behandling {
     val id: BehandlingId
-    val status: Behandlingsstatus
-    val opprettet: LocalDateTime
+    val status: Rammebehandlingsstatus
+    override val opprettet: LocalDateTime
 
     val sistEndret: LocalDateTime
     val iverksattTidspunkt: LocalDateTime?
     val sendtTilDatadeling: LocalDateTime?
-    val sakId: SakId
+    override val sakId: SakId
 
-    val saksnummer: Saksnummer
-    val fnr: Fnr
+    override val saksnummer: Saksnummer
+    override val fnr: Fnr
     val saksopplysninger: Saksopplysninger
 
-    val saksbehandler: String?
-    val beslutter: String?
-    val sendtTilBeslutning: LocalDateTime?
-    val attesteringer: List<Attestering>
+    override val saksbehandler: String?
+    override val beslutter: String?
+    override val sendtTilBeslutning: LocalDateTime?
+    override val attesteringer: Attesteringer
 
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
@@ -381,7 +382,7 @@ sealed interface Rammebehandling {
                 }
                 check(!ventestatus.erSattPåVent) { "Behandlingen må gjenopptas før den kan iverksettes." }
 
-                val attesteringer = attesteringer + attestering
+                val attesteringer = attesteringer.leggTil(attestering)
                 val iverksattTidspunkt = nå(clock)
 
                 when (this) {
@@ -431,7 +432,7 @@ sealed interface Rammebehandling {
                 }
                 check(!ventestatus.erSattPåVent) { "Behandlingen må gjenopptas før den kan underkjennes." }
 
-                val attesteringer = attesteringer + attestering
+                val attesteringer = attesteringer.leggTil(attestering)
 
                 when (this) {
                     is Søknadsbehandling -> this.copy(

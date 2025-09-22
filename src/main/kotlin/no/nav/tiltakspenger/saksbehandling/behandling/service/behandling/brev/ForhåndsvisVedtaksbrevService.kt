@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -34,16 +34,16 @@ class ForhåndsvisVedtaksbrevService(
         val sak = sakService.hentForSakId(kommando.sakId)
         val behandling = sak.hentBehandling(kommando.behandlingId)!!
         val virkningsperiode = when (behandling.status) {
-            Behandlingsstatus.KLAR_TIL_BEHANDLING,
-            Behandlingsstatus.UNDER_BEHANDLING,
+            Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
+            Rammebehandlingsstatus.UNDER_BEHANDLING,
             // gir det mening at man har lyst til å se innvilgelsesbrevet hvis behandlingen er avbrutt eller til automatisk behandling?
-            Behandlingsstatus.AVBRUTT,
-            Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
+            Rammebehandlingsstatus.AVBRUTT,
+            Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
             -> kommando.virkningsperiode ?: behandling.virkningsperiode
 
-            Behandlingsstatus.KLAR_TIL_BESLUTNING,
-            Behandlingsstatus.UNDER_BESLUTNING,
-            Behandlingsstatus.VEDTATT,
+            Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
+            Rammebehandlingsstatus.UNDER_BESLUTNING,
+            Rammebehandlingsstatus.VEDTATT,
             -> behandling.virkningsperiode!!
         }
         val resultat = kommando.resultat

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 
 enum class BehandlingsstatusDTO {
     UNDER_AUTOMATISK_BEHANDLING,
@@ -12,14 +12,14 @@ enum class BehandlingsstatusDTO {
     AVBRUTT,
 }
 
-fun Behandlingsstatus.toBehandlingsstatusDTO(): BehandlingsstatusDTO {
+fun Rammebehandlingsstatus.toBehandlingsstatusDTO(): BehandlingsstatusDTO {
     return when (this) {
-        Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> BehandlingsstatusDTO.UNDER_AUTOMATISK_BEHANDLING
-        Behandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingsstatusDTO.KLAR_TIL_BEHANDLING
-        Behandlingsstatus.UNDER_BEHANDLING -> BehandlingsstatusDTO.UNDER_BEHANDLING
-        Behandlingsstatus.KLAR_TIL_BESLUTNING -> BehandlingsstatusDTO.KLAR_TIL_BESLUTNING
-        Behandlingsstatus.UNDER_BESLUTNING -> BehandlingsstatusDTO.UNDER_BESLUTNING
-        Behandlingsstatus.VEDTATT -> BehandlingsstatusDTO.VEDTATT
-        Behandlingsstatus.AVBRUTT -> BehandlingsstatusDTO.AVBRUTT
+        Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> BehandlingsstatusDTO.UNDER_AUTOMATISK_BEHANDLING
+        Rammebehandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingsstatusDTO.KLAR_TIL_BEHANDLING
+        Rammebehandlingsstatus.UNDER_BEHANDLING -> BehandlingsstatusDTO.UNDER_BEHANDLING
+        Rammebehandlingsstatus.KLAR_TIL_BESLUTNING -> BehandlingsstatusDTO.KLAR_TIL_BESLUTNING
+        Rammebehandlingsstatus.UNDER_BESLUTNING -> BehandlingsstatusDTO.UNDER_BESLUTNING
+        Rammebehandlingsstatus.VEDTATT -> BehandlingsstatusDTO.VEDTATT
+        Rammebehandlingsstatus.AVBRUTT -> BehandlingsstatusDTO.AVBRUTT
     }
 }

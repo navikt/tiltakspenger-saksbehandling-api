@@ -15,8 +15,8 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
@@ -253,7 +253,7 @@ class OppdaterBehandlingRouteTest {
             val behandlingId = behandling.id
 
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
             }
@@ -290,7 +290,7 @@ class OppdaterBehandlingRouteTest {
             )
 
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
                 it.fritekstTilVedtaksbrev.shouldBeNull()

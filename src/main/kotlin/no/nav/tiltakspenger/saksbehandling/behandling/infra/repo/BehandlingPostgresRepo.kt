@@ -19,10 +19,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
@@ -35,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraBehandling
+import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
@@ -122,7 +123,7 @@ class BehandlingPostgresRepo(
     override fun taBehandlingSaksbehandler(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
@@ -149,7 +150,7 @@ class BehandlingPostgresRepo(
     override fun taBehandlingBeslutter(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
@@ -215,7 +216,7 @@ class BehandlingPostgresRepo(
     override fun leggTilbakeBehandlingSaksbehandler(
         behandlingId: BehandlingId,
         nåværendeSaksbehandler: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
@@ -233,7 +234,7 @@ class BehandlingPostgresRepo(
     override fun leggTilbakeBehandlingBeslutter(
         behandlingId: BehandlingId,
         nåværendeBeslutter: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
@@ -409,7 +410,7 @@ class BehandlingPostgresRepo(
                         saksbehandler = saksbehandler,
                         sendtTilBeslutning = sendtTilBeslutning,
                         beslutter = beslutter,
-                        attesteringer = attesteringer,
+                        attesteringer = Attesteringer(attesteringer),
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
@@ -467,7 +468,7 @@ class BehandlingPostgresRepo(
                         saksbehandler = saksbehandler,
                         sendtTilBeslutning = sendtTilBeslutning,
                         beslutter = beslutter,
-                        attesteringer = attesteringer,
+                        attesteringer = Attesteringer(attesteringer),
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,

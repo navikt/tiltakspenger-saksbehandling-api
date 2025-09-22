@@ -4,7 +4,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
  * Kun tenkt brukt for Søknadsbehandling i første omgang.
  * Det kan hende den passer for Revurdering også, men vurderer det når vi kommer dit.
  */
-enum class Behandlingsstatus {
+enum class Rammebehandlingsstatus {
     /** Behandlingen er opprettet og blir forsøkt behandlet automatisk */
     UNDER_AUTOMATISK_BEHANDLING,
 

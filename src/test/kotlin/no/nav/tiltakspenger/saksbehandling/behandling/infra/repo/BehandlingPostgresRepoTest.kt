@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
@@ -103,7 +103,7 @@ internal class BehandlingPostgresRepoTest {
                 ) > 0
             }
 
-            behandlingRepo.taBehandlingSaksbehandler(behandling.id, saksbehandler, Behandlingsstatus.UNDER_BEHANDLING)
+            behandlingRepo.taBehandlingSaksbehandler(behandling.id, saksbehandler, Rammebehandlingsstatus.UNDER_BEHANDLING)
             behandlingRepo.hent(behandling.id).saksbehandler shouldBe saksbehandler.navIdent
         }
     }
@@ -135,7 +135,7 @@ internal class BehandlingPostgresRepoTest {
                 saksbehandler = beslutter,
             )
 
-            val harTatt = behandlingRepo.taBehandlingSaksbehandler(behandlingId, beslutter, Behandlingsstatus.UNDER_BEHANDLING)
+            val harTatt = behandlingRepo.taBehandlingSaksbehandler(behandlingId, beslutter, Rammebehandlingsstatus.UNDER_BEHANDLING)
             harTatt shouldBe true
 
             val behandling = behandlingRepo.hent(behandlingId)
@@ -195,7 +195,7 @@ internal class BehandlingPostgresRepoTest {
             val (_, behandling) = testDataHelper.persisterKlarTilBeslutningSøknadsbehandling()
 
             behandling.beslutter shouldBe null
-            behandlingRepo.taBehandlingBeslutter(behandling.id, beslutter, Behandlingsstatus.UNDER_BESLUTNING)
+            behandlingRepo.taBehandlingBeslutter(behandling.id, beslutter, Rammebehandlingsstatus.UNDER_BESLUTNING)
             behandlingRepo.hent(behandling.id).beslutter shouldBe beslutter.navIdent
         }
     }

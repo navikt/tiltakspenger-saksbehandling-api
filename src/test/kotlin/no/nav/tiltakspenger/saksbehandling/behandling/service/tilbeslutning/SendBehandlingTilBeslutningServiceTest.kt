@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -27,7 +27,7 @@ class SendBehandlingTilBeslutningServiceTest {
                 saksbehandler = saksbehandler,
             )
 
-            behandling.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+            behandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
 
             val kommando = SendBehandlingTilBeslutningKommando(
                 sakId = sak.id,
@@ -44,7 +44,7 @@ class SendBehandlingTilBeslutningServiceTest {
                 sak.id,
             )
 
-            oppdatertBehandling.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING
+            oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             oppdatertSak.behandlinger.any { it.id == oppdatertBehandling.id } shouldBe true
         }
     }
@@ -88,7 +88,7 @@ class SendBehandlingTilBeslutningServiceTest {
                 sak.id,
             )
 
-            innvilgetBehandlingSendtTilBeslutning.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING
+            innvilgetBehandlingSendtTilBeslutning.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             oppdatertSak.behandlinger.any { it.id == innvilgetBehandlingSendtTilBeslutning.id } shouldBe true
         }
     }

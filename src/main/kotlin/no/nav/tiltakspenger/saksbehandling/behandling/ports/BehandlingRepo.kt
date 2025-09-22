@@ -5,8 +5,8 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import java.time.LocalDateTime
 
@@ -36,14 +36,14 @@ interface BehandlingRepo {
     fun taBehandlingSaksbehandler(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext? = null,
     ): Boolean
 
     fun taBehandlingBeslutter(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext? = null,
     ): Boolean
 
@@ -64,14 +64,14 @@ interface BehandlingRepo {
     fun leggTilbakeBehandlingSaksbehandler(
         behandlingId: BehandlingId,
         nåværendeSaksbehandler: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext? = null,
     ): Boolean
 
     fun leggTilbakeBehandlingBeslutter(
         behandlingId: BehandlingId,
         nåværendeBeslutter: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext? = null,
     ): Boolean
 

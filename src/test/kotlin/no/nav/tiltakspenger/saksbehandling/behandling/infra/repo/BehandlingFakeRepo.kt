@@ -10,8 +10,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
@@ -63,14 +63,14 @@ class BehandlingFakeRepo : BehandlingRepo {
 
     override fun hentAlleAutomatiskeSoknadsbehandlinger(limit: Int): List<Søknadsbehandling> {
         return data.get().values.filter {
-            it.status == Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+            it.status == Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
         }.filterIsInstance<Søknadsbehandling>()
     }
 
     override fun taBehandlingSaksbehandler(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
@@ -98,7 +98,7 @@ class BehandlingFakeRepo : BehandlingRepo {
     override fun taBehandlingBeslutter(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
@@ -173,7 +173,7 @@ class BehandlingFakeRepo : BehandlingRepo {
     override fun leggTilbakeBehandlingSaksbehandler(
         behandlingId: BehandlingId,
         nåværendeSaksbehandler: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
@@ -198,7 +198,7 @@ class BehandlingFakeRepo : BehandlingRepo {
     override fun leggTilbakeBehandlingBeslutter(
         behandlingId: BehandlingId,
         nåværendeBeslutter: Saksbehandler,
-        behandlingsstatus: Behandlingsstatus,
+        behandlingsstatus: Rammebehandlingsstatus,
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]

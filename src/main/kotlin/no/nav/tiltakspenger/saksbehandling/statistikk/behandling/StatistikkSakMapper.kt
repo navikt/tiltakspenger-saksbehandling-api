@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -90,7 +90,7 @@ fun genererSaksstatistikkForBehandling(
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         behandlingStatus = if (behandling.erAvbrutt) {
             StatistikkBehandlingStatus.AVSLUTTET
-        } else if (behandling.status == Behandlingsstatus.KLAR_TIL_BESLUTNING || behandling.status == Behandlingsstatus.UNDER_BESLUTNING) {
+        } else if (behandling.status == Rammebehandlingsstatus.KLAR_TIL_BESLUTNING || behandling.status == Rammebehandlingsstatus.UNDER_BESLUTNING) {
             StatistikkBehandlingStatus.UNDER_BESLUTNING
         } else {
             StatistikkBehandlingStatus.UNDER_BEHANDLING

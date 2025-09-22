@@ -5,7 +5,7 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.NonBlankString
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -48,7 +48,7 @@ class UnderkjennBehandlingTest {
                             )
                     }
                     oppdatertBehandling.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
-                    oppdatertBehandling.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                    oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 }
             }
         }
@@ -81,7 +81,7 @@ class UnderkjennBehandlingTest {
                             )
                     }
                     oppdatertBehandling.saksbehandler shouldBe null
-                    oppdatertBehandling.status shouldBe Behandlingsstatus.KLAR_TIL_BEHANDLING
+                    oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                     (oppdatertBehandling as Søknadsbehandling).automatiskSaksbehandlet shouldBe false
                 }
             }

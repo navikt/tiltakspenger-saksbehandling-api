@@ -7,7 +7,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -32,7 +32,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
             val behandlingId = behandling.id
 
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
             }
@@ -46,7 +46,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
 
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                 it.shouldBeInstanceOf<Søknadsbehandling>()
-                it.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
                 it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.size shouldBe 1
@@ -66,7 +66,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
             )
             val behandlingId = behandling.id
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
             }
@@ -122,7 +122,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
             }
 
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
             }
         }
     }

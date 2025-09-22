@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
@@ -47,13 +47,13 @@ class LeggTilbakeBehandlingRouteTest {
                 val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
                 val behandlingId = behandling.id
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                    it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                     it.saksbehandler shouldBe "Z12345"
                 }
                 leggTilbakeBehanding(tac, sak.id, behandlingId, ObjectMother.saksbehandler()).also {
                     JSONObject(it).getString("saksbehandler") shouldBe "null"
                     tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                        it.status shouldBe Behandlingsstatus.KLAR_TIL_BEHANDLING
+                        it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                         it.saksbehandler shouldBe null
                     }
                 }
@@ -74,18 +74,18 @@ class LeggTilbakeBehandlingRouteTest {
                 }
                 val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                    it.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING
+                    it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                 }
                 taBehanding(tac, sak.id, behandlingId, ObjectMother.beslutter()).also {
                     tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                        it.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
+                        it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                         it.beslutter shouldBe "B12345"
                     }
                 }
                 leggTilbakeBehanding(tac, sak.id, behandlingId, ObjectMother.beslutter()).also {
                     JSONObject(it).getString("beslutter") shouldBe "null"
                     tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                        it.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING
+                        it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                         it.beslutter shouldBe null
                     }
                 }

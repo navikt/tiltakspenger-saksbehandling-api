@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -37,12 +38,12 @@ import java.time.LocalDateTime
  * TODO: splitt denne i separate hierarkier for 1. alle states av manuell behandling og 2. automatisk behandling
  * */
 
-sealed interface MeldekortBehandling {
+sealed interface MeldekortBehandling : Behandling {
     val id: MeldekortId
-    val sakId: SakId
-    val saksnummer: Saksnummer
-    val fnr: Fnr
-    val opprettet: LocalDateTime
+    override val sakId: SakId
+    override val saksnummer: Saksnummer
+    override val fnr: Fnr
+    override val opprettet: LocalDateTime
     val dager: MeldekortDager
     val beregning: MeldekortBeregning?
 
@@ -58,15 +59,15 @@ sealed interface MeldekortBehandling {
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
-    val saksbehandler: String?
-    val beslutter: String?
+    override val saksbehandler: String?
+    override val beslutter: String?
     val status: MeldekortBehandlingStatus
     val navkontor: Navkontor
     val iverksattTidspunkt: LocalDateTime?
-    val sendtTilBeslutning: LocalDateTime?
+    override val sendtTilBeslutning: LocalDateTime?
     val begrunnelse: MeldekortBehandlingBegrunnelse?
 
-    val attesteringer: Attesteringer
+    override val attesteringer: Attesteringer
 
     /** Denne styres kun av vedtakene. Dersom vi har en åpen meldekortbehandling (inkl. til beslutning) kan et nytt vedtak overstyre hele meldeperioden til [MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] */
     val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?

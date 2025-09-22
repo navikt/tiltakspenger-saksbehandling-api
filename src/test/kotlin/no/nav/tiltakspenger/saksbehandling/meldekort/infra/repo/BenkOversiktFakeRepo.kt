@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
@@ -39,11 +39,11 @@ class BenkOversiktFakeRepo(
         BehandlingssammendragType.KORRIGERT_MELDEKORT -> throw IllegalArgumentException("Korrigert meldekort er ikke en behandlingstype")
     }
 
-    private fun BehandlingssammendragStatus.toBehandlingsstatus(): Behandlingsstatus = when (this) {
-        BehandlingssammendragStatus.KLAR_TIL_BEHANDLING -> Behandlingsstatus.KLAR_TIL_BEHANDLING
-        BehandlingssammendragStatus.UNDER_BEHANDLING -> Behandlingsstatus.UNDER_BEHANDLING
-        BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> Behandlingsstatus.KLAR_TIL_BESLUTNING
-        BehandlingssammendragStatus.UNDER_BESLUTNING -> Behandlingsstatus.UNDER_BESLUTNING
+    private fun BehandlingssammendragStatus.toBehandlingsstatus(): Rammebehandlingsstatus = when (this) {
+        BehandlingssammendragStatus.KLAR_TIL_BEHANDLING -> Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+        BehandlingssammendragStatus.UNDER_BEHANDLING -> Rammebehandlingsstatus.UNDER_BEHANDLING
+        BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+        BehandlingssammendragStatus.UNDER_BESLUTNING -> Rammebehandlingsstatus.UNDER_BESLUTNING
     }
 
     private fun Behandlingstype.toBehandlingssammendragType(): BehandlingssammendragType = when (this) {
@@ -51,14 +51,14 @@ class BenkOversiktFakeRepo(
         Behandlingstype.REVURDERING -> BehandlingssammendragType.REVURDERING
     }
 
-    private fun Behandlingsstatus.toBehandlingssammendragStatus(): BehandlingssammendragStatus = when (this) {
-        Behandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatus.KLAR_TIL_BEHANDLING
-        Behandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
-        Behandlingsstatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatus.KLAR_TIL_BESLUTNING
-        Behandlingsstatus.UNDER_BESLUTNING -> BehandlingssammendragStatus.UNDER_BESLUTNING
-        Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> throw IllegalStateException("Behandlinger som behandles automatisk skal ikke være åpne")
-        Behandlingsstatus.VEDTATT -> throw IllegalStateException("Vedtatte behandlinger skal ikke være åpne")
-        Behandlingsstatus.AVBRUTT -> throw IllegalStateException("Avbrutte behandlinger skal ikke være åpne")
+    private fun Rammebehandlingsstatus.toBehandlingssammendragStatus(): BehandlingssammendragStatus = when (this) {
+        Rammebehandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatus.KLAR_TIL_BEHANDLING
+        Rammebehandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
+        Rammebehandlingsstatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatus.KLAR_TIL_BESLUTNING
+        Rammebehandlingsstatus.UNDER_BESLUTNING -> BehandlingssammendragStatus.UNDER_BESLUTNING
+        Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> throw IllegalStateException("Behandlinger som behandles automatisk skal ikke være åpne")
+        Rammebehandlingsstatus.VEDTATT -> throw IllegalStateException("Vedtatte behandlinger skal ikke være åpne")
+        Rammebehandlingsstatus.AVBRUTT -> throw IllegalStateException("Avbrutte behandlinger skal ikke være åpne")
     }
 
     private fun hentÅpneBehandlinger(command: HentÅpneBehandlingerCommand): List<Behandlingssammendrag> {

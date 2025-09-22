@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
@@ -34,7 +34,7 @@ class OvertaBehandlingService(
 
             sessionFactory.withTransactionContext { tx ->
                 when (it.status) {
-                    Behandlingsstatus.UNDER_BEHANDLING -> {
+                    Rammebehandlingsstatus.UNDER_BEHANDLING -> {
                         behandlingRepo.overtaSaksbehandler(
                             it.id,
                             saksbehandler,
@@ -43,7 +43,7 @@ class OvertaBehandlingService(
                         )
                     }
 
-                    Behandlingsstatus.UNDER_BESLUTNING -> {
+                    Rammebehandlingsstatus.UNDER_BESLUTNING -> {
                         behandlingRepo.overtaBeslutter(
                             it.id,
                             saksbehandler,
@@ -52,11 +52,11 @@ class OvertaBehandlingService(
                         )
                     }
 
-                    Behandlingsstatus.KLAR_TIL_BESLUTNING,
-                    Behandlingsstatus.KLAR_TIL_BEHANDLING,
-                    Behandlingsstatus.VEDTATT,
-                    Behandlingsstatus.AVBRUTT,
-                    Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
+                    Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
+                    Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
+                    Rammebehandlingsstatus.VEDTATT,
+                    Rammebehandlingsstatus.AVBRUTT,
+                    Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
                     -> throw IllegalStateException("Behandlingen er i en ugyldig status for å kunne overta")
                 }.also { harOvertatt ->
                     require(harOvertatt) {

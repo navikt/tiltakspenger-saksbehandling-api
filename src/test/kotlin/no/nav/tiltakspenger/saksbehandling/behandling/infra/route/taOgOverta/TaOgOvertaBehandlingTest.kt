@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta
 import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
@@ -32,14 +32,14 @@ internal class TaOgOvertaBehandlingTest {
                 val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
                 val behandlingId = behandling.id
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                    it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                     it.saksbehandler shouldBe "Z12345"
                 }
                 tac.clock.spol1timeFrem()
                 overtaBehanding(tac, sak.id, behandlingId, "Z12345", ObjectMother.saksbehandler123()).also {
                     JSONObject(it).getString("saksbehandler") shouldBe "123"
                     tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                        it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                        it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                         it.saksbehandler shouldBe "123"
                     }
                 }
@@ -47,7 +47,7 @@ internal class TaOgOvertaBehandlingTest {
                 overtaBehanding(tac, sak.id, behandlingId, "123", ObjectMother.saksbehandler()).also {
                     JSONObject(it).getString("saksbehandler") shouldBe "Z12345"
                     tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                        it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                        it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                         it.saksbehandler shouldBe "Z12345"
                     }
                 }
@@ -68,12 +68,12 @@ internal class TaOgOvertaBehandlingTest {
                 }
                 val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                    it.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING
+                    it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                 }
                 tac.clock.spol1timeFrem()
                 taBehanding(tac, sak.id, behandlingId, ObjectMother.beslutter()).also {
                     tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                        it.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
+                        it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                         it.beslutter shouldBe "B12345"
                     }
                 }
@@ -81,7 +81,7 @@ internal class TaOgOvertaBehandlingTest {
                 overtaBehanding(tac, sak.id, behandlingId, "B12345", ObjectMother.beslutter("B123")).also {
                     JSONObject(it).getString("beslutter") shouldBe "B123"
                     tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                        it.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
+                        it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                         it.beslutter shouldBe "B123"
                     }
                 }
@@ -89,7 +89,7 @@ internal class TaOgOvertaBehandlingTest {
                 overtaBehanding(tac, sak.id, behandlingId, "B123", ObjectMother.beslutter()).also {
                     JSONObject(it).getString("beslutter") shouldBe "B12345"
                     tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                        it.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
+                        it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                         it.beslutter shouldBe "B12345"
                     }
                 }

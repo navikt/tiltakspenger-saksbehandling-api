@@ -35,7 +35,7 @@ class BehandlingTest {
         }
         avbruttBehandling.søknad.avbrutt shouldNotBe null
         avbruttBehandling.avbrutt shouldBe avbruttBehandling.søknad.avbrutt
-        avbruttBehandling.status shouldBe Behandlingsstatus.AVBRUTT
+        avbruttBehandling.status shouldBe Rammebehandlingsstatus.AVBRUTT
     }
 
     @Test
@@ -56,7 +56,7 @@ class BehandlingTest {
         }
         avbruttBehandling.søknad.avbrutt shouldNotBe null
         avbruttBehandling.avbrutt shouldBe avbruttBehandling.søknad.avbrutt
-        avbruttBehandling.status shouldBe Behandlingsstatus.AVBRUTT
+        avbruttBehandling.status shouldBe Rammebehandlingsstatus.AVBRUTT
     }
 
     @Test
@@ -86,7 +86,7 @@ class BehandlingTest {
             val taBehandling = behandling.taBehandling(saksbehandler)
 
             taBehandling.saksbehandler shouldBe saksbehandler.navIdent
-            taBehandling.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+            taBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
         }
 
         @Test
@@ -96,7 +96,7 @@ class BehandlingTest {
             val taBehandling = behandling.taBehandling(beslutter)
 
             taBehandling.beslutter shouldBe beslutter.navIdent
-            taBehandling.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
+            taBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
         }
     }
 
@@ -178,7 +178,7 @@ class BehandlingTest {
 
             val behandlingSattPåVent = behandling.settPåVent(beslutter, "Venter på mer informasjon", clock)
 
-            behandlingSattPåVent.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
+            behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
             behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 1
             behandlingSattPåVent.ventestatus.ventestatusHendelser.last().let { it ->
                 it.endretAv shouldBe beslutter.navIdent
@@ -201,7 +201,7 @@ class BehandlingTest {
             val behandlingSattPåVent = behandling.settPåVent(beslutter, "Venter på mer informasjon", clock)
             val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(beslutter, clock)
 
-            gjenopptattBehandling.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
+            gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
             gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
         }
 

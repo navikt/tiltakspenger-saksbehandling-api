@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import java.time.LocalDateTime
 
 data class Ventestatus(
@@ -19,7 +19,7 @@ data class Ventestatus(
         endretAv: String,
         begrunnelse: String = "",
         erSattPåVent: Boolean,
-        status: Behandlingsstatus,
+        status: Rammebehandlingsstatus,
     ): Ventestatus {
         return copy(
             ventestatusHendelser = ventestatusHendelser + VentestatusHendelse(

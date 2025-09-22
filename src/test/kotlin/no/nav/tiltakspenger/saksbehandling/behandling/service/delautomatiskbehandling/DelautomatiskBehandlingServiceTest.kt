@@ -15,8 +15,8 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
@@ -45,7 +45,7 @@ class DelautomatiskBehandlingServiceTest {
                 }
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac)
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
-                    it.status shouldBe Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 }
                 val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == soknad.tiltak.id }!!
@@ -54,7 +54,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
-                oppdatertBehandling.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                 oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe true
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
@@ -108,7 +108,7 @@ class DelautomatiskBehandlingServiceTest {
                 )
 
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
-                    it.status shouldBe Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                     (it as Søknadsbehandling).søknad.sykepenger.erJa() shouldBe true
                 }
@@ -116,7 +116,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
-                oppdatertBehandling.status shouldBe Behandlingsstatus.KLAR_TIL_BEHANDLING
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                 oppdatertBehandling.saksbehandler shouldBe null
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe false
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe listOf(ManueltBehandlesGrunn.SOKNAD_HAR_ANDRE_YTELSER)
@@ -140,14 +140,14 @@ class DelautomatiskBehandlingServiceTest {
 
                 val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr = fnr)
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
-                    it.status shouldBe Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 }
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
-                oppdatertBehandling.status shouldBe Behandlingsstatus.KLAR_TIL_BEHANDLING
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                 oppdatertBehandling.saksbehandler shouldBe null
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe false
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe listOf(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)
@@ -191,7 +191,7 @@ class DelautomatiskBehandlingServiceTest {
                 )
 
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
-                    it.status shouldBe Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                     (it as Søknadsbehandling).søknad.kvp.erJa() shouldBe true
                     it.søknad.institusjon.erJa() shouldBe true
@@ -201,7 +201,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
-                oppdatertBehandling.status shouldBe Behandlingsstatus.KLAR_TIL_BEHANDLING
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                 oppdatertBehandling.saksbehandler shouldBe null
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe false
                 oppdatertBehandling.manueltBehandlesGrunner.size shouldBe 3
