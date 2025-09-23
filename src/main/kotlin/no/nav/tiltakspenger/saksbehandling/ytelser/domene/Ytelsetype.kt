@@ -30,6 +30,7 @@ enum class Ytelsetype(val tekstverdi: String) {
     TILTAKSPENGER("Tiltakspenger"),
     UFOREPENSJON("Uførepensjon"),
     UFORETRYGD("Uføretrygd"),
+    UNGDOMSPROGRAMYTELSE("Ungdomsprogram ytelse"),
     UTDANNINGSSTONAD("Utdanningsstønad"),
     UKJENT("Ukjent"),
 }

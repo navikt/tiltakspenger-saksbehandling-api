@@ -10,7 +10,11 @@ data class Ytelse(
 ) {
     fun toDTO(): YtelseDTO {
         return YtelseDTO(
-            ytelsetype = ytelsetype.tekstverdi,
+            ytelsetype = if (ytelsetype == Ytelsetype.UNGDOMSPROGRAMYTELSE) {
+                "Ungdomsprogramytelse"
+            } else {
+                ytelsetype.tekstverdi
+            },
             perioder = perioder.map { it.toDTO() },
         )
     }
