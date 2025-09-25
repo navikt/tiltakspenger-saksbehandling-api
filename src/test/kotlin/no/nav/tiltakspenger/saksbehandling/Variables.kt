@@ -10,6 +10,7 @@ import java.time.temporal.TemporalUnit
 private val startPoint = LocalDate.parse("2025-01-01")
 
 // TODO - flytt alt nedenfor til libs
+
 /** Fixed UTC Clock at 2025-01-01T01:02:03.456789000Z */
 val fixedClock: Clock = Clock.fixed(startPoint.atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 
