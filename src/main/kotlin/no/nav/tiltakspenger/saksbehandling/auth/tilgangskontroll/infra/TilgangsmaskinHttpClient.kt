@@ -78,6 +78,7 @@ class TilgangsmaskinHttpClient(
         val status = httpResponse.statusCode()
         if (status == 207) {
             val jsonResponse = httpResponse.body()
+            Sikkerlogg.info { "Respons fra tilgangsmaskinen: $jsonResponse" }
             return objectMapper.readValue<TilgangBulkResponse>(jsonResponse)
         }
         if (status == 413) {
