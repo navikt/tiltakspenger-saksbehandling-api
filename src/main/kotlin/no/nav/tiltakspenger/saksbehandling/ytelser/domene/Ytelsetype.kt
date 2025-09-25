@@ -4,7 +4,6 @@ enum class Ytelsetype(val tekstverdi: String) {
     AAP("Arbeidsavklaringspenger"),
     AFP("Avtalefestet pensjon"),
     ALDERSPENSJON("Alderspensjon"),
-    ARBEIDSAVKLARINGSP("Arbeidsavklaringspenger"),
     BARNEPENSJON("Barnepensjon"),
     DAGPENGER("Dagpenger"),
     ENSLIG_FORSORGER("Enslig forsørger"),
