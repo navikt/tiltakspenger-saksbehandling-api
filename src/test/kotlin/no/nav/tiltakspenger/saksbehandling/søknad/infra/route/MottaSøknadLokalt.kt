@@ -24,7 +24,7 @@ fun nySøknadForFnr(
             fnr,
             CorrelationId.generate(),
         )
-        val søknad = ObjectMother.nyDigitalsøknad(
+        val søknad = ObjectMother.nyInnvilgbarSøknad(
             fnr = fnr,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
@@ -51,7 +51,7 @@ fun nySakMedNySøknad(
             Fnr.random(),
             CorrelationId.generate(),
         )
-        val søknad = ObjectMother.nyDigitalsøknad(
+        val søknad = ObjectMother.nyInnvilgbarSøknad(
             fnr = sak.fnr,
             sakId = sak.id,
             saksnummer = sak.saksnummer,

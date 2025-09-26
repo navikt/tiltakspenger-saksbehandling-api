@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Yt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyDigitalsøknad
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.virkningsperiode
@@ -78,7 +78,7 @@ interface SakMother {
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
         saksbehandler: Saksbehandler = saksbehandler(),
         søknad: InnvilgbarSøknad =
-            nyDigitalsøknad(
+            nyInnvilgbarSøknad(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 søknadstiltak =
@@ -183,7 +183,7 @@ interface SakMother {
         virkningsperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
         søknad: InnvilgbarSøknad =
-            nyDigitalsøknad(
+            nyInnvilgbarSøknad(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 søknadstiltak =

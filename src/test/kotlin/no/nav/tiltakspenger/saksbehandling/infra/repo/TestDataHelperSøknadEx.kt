@@ -21,7 +21,7 @@ internal fun TestDataHelper.persisterSakOgSøknad(
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     søknad: Søknad =
-        ObjectMother.nyDigitalsøknad(
+        ObjectMother.nyInnvilgbarSøknad(
             journalpostId = journalpostId,
             personopplysninger =
             ObjectMother.personSøknad(

@@ -36,12 +36,10 @@ sealed interface Søknad {
     val jobbsjansen: PeriodeSpm?
     val trygdOgPensjon: PeriodeSpm?
     val vedlegg: Int
-
     val søknadstype: Søknadstype
-        get() = when (this) {
-            is InnvilgbarSøknad -> Søknadstype.DIGITAL
-            is Papirsøknad -> Søknadstype.PAPIR
-        }
+
+    // Blir ikke satt for digitale søknader
+    val manueltSattSøknadsperiode: Periode?
 
     companion object {
         fun randomId() = SøknadId.random()
@@ -60,10 +58,7 @@ sealed interface Søknad {
 
         return when (this) {
             is InnvilgbarSøknad -> this.copy(avbrutt = avbrutt)
-            is Papirsøknad -> this.copy(avbrutt = avbrutt)
-            else -> {
-                throw IllegalStateException("Ukjent søknadstype")
-            }
+            is IkkeInnvilgbarSøknad -> this.copy(avbrutt = avbrutt)
         }
     }
 
@@ -134,7 +129,7 @@ data class Søknadstiltak(
 )
 
 sealed class BarnetilleggFraSøknad {
-    abstract val oppholderSegIEØS: Søknad.JaNeiSpm
+    abstract val oppholderSegIEØS: Søknad.JaNeiSpm?
     abstract val fornavn: String?
     abstract val mellomnavn: String?
     abstract val etternavn: String?
@@ -143,7 +138,7 @@ sealed class BarnetilleggFraSøknad {
     abstract fun under16ForDato(dato: LocalDate): Boolean
 
     data class FraPdl(
-        override val oppholderSegIEØS: Søknad.JaNeiSpm,
+        override val oppholderSegIEØS: Søknad.JaNeiSpm?,
         override val fornavn: String?,
         override val mellomnavn: String?,
         override val etternavn: String?,
@@ -153,7 +148,7 @@ sealed class BarnetilleggFraSøknad {
     }
 
     data class Manuell(
-        override val oppholderSegIEØS: Søknad.JaNeiSpm,
+        override val oppholderSegIEØS: Søknad.JaNeiSpm?,
         override val fornavn: String,
         override val mellomnavn: String?,
         override val etternavn: String,

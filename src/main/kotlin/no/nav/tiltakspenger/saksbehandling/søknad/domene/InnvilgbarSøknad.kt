@@ -23,18 +23,20 @@ data class InnvilgbarSøknad(
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
     override val avbrutt: Avbrutt?,
-    override val kvp: Søknad.PeriodeSpm,
-    override val intro: Søknad.PeriodeSpm,
-    override val institusjon: Søknad.PeriodeSpm,
-    override val etterlønn: Søknad.JaNeiSpm,
-    override val gjenlevendepensjon: Søknad.PeriodeSpm,
-    override val alderspensjon: Søknad.FraOgMedDatoSpm,
-    override val sykepenger: Søknad.PeriodeSpm,
-    override val supplerendeStønadAlder: Søknad.PeriodeSpm,
-    override val supplerendeStønadFlyktning: Søknad.PeriodeSpm,
-    override val jobbsjansen: Søknad.PeriodeSpm,
-    override val trygdOgPensjon: Søknad.PeriodeSpm,
+    override val kvp: Søknad.PeriodeSpm?,
+    override val intro: Søknad.PeriodeSpm?,
+    override val institusjon: Søknad.PeriodeSpm?,
+    override val etterlønn: Søknad.JaNeiSpm?,
+    override val gjenlevendepensjon: Søknad.PeriodeSpm?,
+    override val alderspensjon: Søknad.FraOgMedDatoSpm?,
+    override val sykepenger: Søknad.PeriodeSpm?,
+    override val supplerendeStønadAlder: Søknad.PeriodeSpm?,
+    override val supplerendeStønadFlyktning: Søknad.PeriodeSpm?,
+    override val jobbsjansen: Søknad.PeriodeSpm?,
+    override val trygdOgPensjon: Søknad.PeriodeSpm?,
     override val vedlegg: Int,
+    override val manueltSattSøknadsperiode: Periode? = null,
+    override val søknadstype: Søknadstype,
 ) : Søknad {
     val kravdato: LocalDate = tidsstempelHosOss.toLocalDate()
     override val fnr: Fnr = personopplysninger.fnr
@@ -47,24 +49,23 @@ data class InnvilgbarSøknad(
     override fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom)
 
     fun harLivsoppholdYtelser(): Boolean =
-        sykepenger.erJa() ||
-            etterlønn.erJa() ||
-            trygdOgPensjon.erJa() ||
-            gjenlevendepensjon.erJa() ||
-            supplerendeStønadAlder.erJa() ||
-            supplerendeStønadFlyktning.erJa() ||
-            alderspensjon.erJa() ||
-            jobbsjansen.erJa() ||
-            trygdOgPensjon.erJa()
+        sykepenger?.erJa() == true ||
+            etterlønn?.erJa() == true ||
+            trygdOgPensjon?.erJa() == true ||
+            gjenlevendepensjon?.erJa() == true ||
+            supplerendeStønadAlder?.erJa() == true ||
+            supplerendeStønadFlyktning?.erJa() == true ||
+            alderspensjon?.erJa() == true ||
+            jobbsjansen?.erJa() == true
 
     fun harKvp(): Boolean =
-        kvp.erJa()
+        kvp?.erJa() == true
 
     fun harIntro(): Boolean =
-        intro.erJa()
+        intro?.erJa() == true
 
     fun harInstitusjonsopphold(): Boolean =
-        institusjon.erJa()
+        institusjon?.erJa() == true
 
     fun harLagtTilBarnManuelt(): Boolean =
         barnetillegg.any { it is BarnetilleggFraSøknad.Manuell }

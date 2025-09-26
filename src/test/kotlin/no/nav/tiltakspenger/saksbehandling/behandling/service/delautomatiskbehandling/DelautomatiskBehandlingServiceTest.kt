@@ -95,7 +95,7 @@ class DelautomatiskBehandlingServiceTest {
                     sakId = sak.id,
                     fnr = sak.fnr,
                     saksnummer = sak.saksnummer,
-                    søknad = ObjectMother.nyDigitalsøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         fnr = sak.fnr,
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -177,7 +177,7 @@ class DelautomatiskBehandlingServiceTest {
                     sakId = sak.id,
                     fnr = sak.fnr,
                     saksnummer = sak.saksnummer,
-                    søknad = ObjectMother.nyDigitalsøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         fnr = sak.fnr,
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,

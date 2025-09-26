@@ -143,7 +143,11 @@ class DelautomatiskBehandlingService(
 
     private fun kanBehandleAutomatisk(behandling: Søknadsbehandling): List<ManueltBehandlesGrunn> {
         val manueltBehandlesGrunner = mutableListOf<ManueltBehandlesGrunn>()
-        require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Kan ikke automatisk behandle papirsøknader" }
+        require(
+            behandling.søknad is InnvilgbarSøknad &&
+                behandling.søknad.erDigitalSøknad() &&
+                behandling.saksopplysninger != null,
+        ) { "Kan ikke automatisk behandle papirsøknad ${behandling.søknad.id}" }
 
         if (behandling.søknad.harLivsoppholdYtelser()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_HAR_ANDRE_YTELSER)
@@ -170,48 +174,44 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_INSTITUSJONSOPPHOLD)
         }
 
-        if (behandling.saksopplysninger == null) {
-            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNINGER_MANGLER)
-        } else {
-            val soknadstiltakFraSaksopplysning =
-                behandling.saksopplysninger.getTiltaksdeltagelse(behandling.søknad.tiltak.id)
+        val soknadstiltakFraSaksopplysning =
+            behandling.saksopplysninger.getTiltaksdeltagelse(behandling.søknad.tiltak.id)
 
-            if (soknadstiltakFraSaksopplysning == null) {
-                manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_FANT_IKKE_TILTAK)
-            } else if (tiltakFraSoknadHarEndretPeriode(behandling.søknad.tiltak, soknadstiltakFraSaksopplysning)) {
-                manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ULIK_TILTAKSPERIODE)
-            }
+        if (soknadstiltakFraSaksopplysning == null) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_FANT_IKKE_TILTAK)
+        } else if (tiltakFraSoknadHarEndretPeriode(behandling.søknad.tiltak, soknadstiltakFraSaksopplysning)) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ULIK_TILTAKSPERIODE)
+        }
 
-            val tiltaksid = behandling.søknad.tiltak.id
-            val tiltaksperiode = Periode(behandling.søknad.tiltak.deltakelseFom, behandling.søknad.tiltak.deltakelseTom)
+        val tiltaksid = behandling.søknad.tiltak.id
+        val tiltaksperiode = Periode(behandling.søknad.tiltak.deltakelseFom, behandling.søknad.tiltak.deltakelseTom)
 
-            if (behandling.saksopplysninger.harOverlappendeTiltaksdeltakelse(
-                    eksternDeltakelseId = tiltaksid,
-                    tiltaksperiode = tiltaksperiode,
-                )
-            ) {
-                manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_OVERLAPPENDE_TILTAK)
-            } else if (behandling.saksopplysninger.harOverlappendeTiltaksdeltakelse(
-                    eksternDeltakelseId = tiltaksid,
-                    tiltaksperiode = Periode(
-                        tiltaksperiode.fraOgMed.minusDays(14),
-                        tiltaksperiode.tilOgMed.plusDays(14),
-                    ),
-                )
-            ) {
-                manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_MINDRE_ENN_14_DAGER_MELLOM_TILTAK_OG_SOKNAD)
-            }
+        if (behandling.saksopplysninger.harOverlappendeTiltaksdeltakelse(
+                eksternDeltakelseId = tiltaksid,
+                tiltaksperiode = tiltaksperiode,
+            )
+        ) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_OVERLAPPENDE_TILTAK)
+        } else if (behandling.saksopplysninger.harOverlappendeTiltaksdeltakelse(
+                eksternDeltakelseId = tiltaksid,
+                tiltaksperiode = Periode(
+                    tiltaksperiode.fraOgMed.minusDays(14),
+                    tiltaksperiode.tilOgMed.plusDays(14),
+                ),
+            )
+        ) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_MINDRE_ENN_14_DAGER_MELLOM_TILTAK_OG_SOKNAD)
+        }
 
-            if (behandling.saksopplysninger.harAndreYtelser()) {
-                manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ANDRE_YTELSER)
-            }
+        if (behandling.saksopplysninger.harAndreYtelser()) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ANDRE_YTELSER)
+        }
 
-            if (behandling.saksopplysninger.harTiltakspengevedtakFraArena()) {
-                manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_VEDTAK_I_ARENA)
-            }
-            if (behandling.søknad.erUnder18ISoknadsperioden(behandling.saksopplysninger.fødselsdato)) {
-                manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_ER_UNDER_18_I_SOKNADSPERIODEN)
-            }
+        if (behandling.saksopplysninger.harTiltakspengevedtakFraArena()) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_VEDTAK_I_ARENA)
+        }
+        if (behandling.søknad.erUnder18ISoknadsperioden(behandling.saksopplysninger.fødselsdato)) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_ER_UNDER_18_I_SOKNADSPERIODEN)
         }
 
         val behandlinger = behandlingRepo.hentAlleForFnr(behandling.fnr)

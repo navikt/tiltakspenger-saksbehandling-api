@@ -12,8 +12,8 @@ private const val FOM_SUFFIX = "_fom"
 private const val TOM_SUFFIX = "_tom"
 private const val TYPE_SUFFIX = "_type"
 
-fun Row.periodeSpm(navn: String): Søknad.PeriodeSpm {
-    val type = string(navn + TYPE_SUFFIX)
+fun Row.periodeSpm(navn: String): Søknad.PeriodeSpm? {
+    val type = stringOrNull(navn + TYPE_SUFFIX)
     val fom = localDateOrNull(navn + FOM_SUFFIX)
     val tom = localDateOrNull(navn + TOM_SUFFIX)
     return when (type) {
@@ -23,12 +23,13 @@ fun Row.periodeSpm(navn: String): Søknad.PeriodeSpm {
             Søknad.PeriodeSpm.Ja(Periode(fom, tom))
         }
         NEI -> Søknad.PeriodeSpm.Nei
+        null -> null
         else -> throw IllegalArgumentException("Ugyldig type")
     }
 }
 
-fun Row.fraOgMedDatoSpm(navn: String): Søknad.FraOgMedDatoSpm {
-    val type = string(navn + TYPE_SUFFIX)
+fun Row.fraOgMedDatoSpm(navn: String): Søknad.FraOgMedDatoSpm? {
+    val type = stringOrNull(navn + TYPE_SUFFIX)
     val fom = localDateOrNull(navn + FOM_SUFFIX)
     return when (type) {
         JA -> {
@@ -36,14 +37,16 @@ fun Row.fraOgMedDatoSpm(navn: String): Søknad.FraOgMedDatoSpm {
             Søknad.FraOgMedDatoSpm.Ja(fom)
         }
         NEI -> Søknad.FraOgMedDatoSpm.Nei
+        null -> null
         else -> throw IllegalArgumentException("Ugyldig type")
     }
 }
 
-fun Row.jaNeiSpm(navn: String): Søknad.JaNeiSpm =
-    when (string(navn + TYPE_SUFFIX)) {
+fun Row.jaNeiSpm(navn: String): Søknad.JaNeiSpm? =
+    when (stringOrNull(navn + TYPE_SUFFIX)) {
         JA -> Søknad.JaNeiSpm.Ja
         NEI -> Søknad.JaNeiSpm.Nei
+        null -> null
         else -> throw IllegalArgumentException("Ugyldig type")
     }
 
