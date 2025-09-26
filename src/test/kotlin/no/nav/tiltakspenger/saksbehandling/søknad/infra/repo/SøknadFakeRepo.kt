@@ -10,8 +10,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
-import no.nav.tiltakspenger.saksbehandling.søknad.domene.Papirsøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 
 class SøknadFakeRepo(private val behandlingRepo: BehandlingFakeRepo) : SøknadRepo {
@@ -47,7 +47,7 @@ class SøknadFakeRepo(private val behandlingRepo: BehandlingFakeRepo) : SøknadR
 
             when (soknad) {
                 is InnvilgbarSøknad -> data.get()[it.id] = soknad.copy(personopplysninger = personopplysninger)
-                is Papirsøknad -> data.get()[it.id] = soknad.copy(personopplysninger = personopplysninger)
+                is IkkeInnvilgbarSøknad -> data.get()[it.id] = soknad.copy(personopplysninger = personopplysninger)
             }
         }
     }

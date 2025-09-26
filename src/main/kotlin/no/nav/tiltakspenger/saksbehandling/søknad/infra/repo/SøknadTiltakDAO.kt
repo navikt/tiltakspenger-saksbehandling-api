@@ -13,12 +13,7 @@ internal object SøknadTiltakDAO {
 
     private const val ULID_PREFIX_TILTAK = "tilt"
 
-    fun hent(
-        søknadId: SøknadId,
-        session: Session,
-    ): Søknadstiltak = hentTiltak(søknadId, session)!!
-
-    private fun hentTiltak(
+    fun hentTiltak(
         søknadId: SøknadId,
         session: Session,
     ): Søknadstiltak? =

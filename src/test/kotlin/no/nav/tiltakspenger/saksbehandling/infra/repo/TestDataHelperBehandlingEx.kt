@@ -59,7 +59,7 @@ internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
         saksnummer = saksnummer,
     ),
     søknad: InnvilgbarSøknad =
-        ObjectMother.nyDigitalsøknad(
+        ObjectMother.nyInnvilgbarSøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -119,7 +119,7 @@ internal fun TestDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
         saksnummer = saksnummer,
     ),
     søknad: InnvilgbarSøknad =
-        ObjectMother.nyDigitalsøknad(
+        ObjectMother.nyInnvilgbarSøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -174,7 +174,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     id: SøknadId = Søknad.randomId(),
-    søknad: InnvilgbarSøknad = ObjectMother.nyDigitalsøknad(
+    søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
         periode = tiltaksOgVurderingsperiode,
         journalpostId = journalpostId,
         personopplysninger =
@@ -256,7 +256,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     id: SøknadId = Søknad.randomId(),
-    søknad: InnvilgbarSøknad = ObjectMother.nyDigitalsøknad(
+    søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
         periode = tiltaksOgVurderingsperiode,
         journalpostId = journalpostId,
         personopplysninger =
@@ -360,7 +360,7 @@ internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     id: SøknadId = Søknad.randomId(),
-    søknad: InnvilgbarSøknad = ObjectMother.nyDigitalsøknad(
+    søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
         periode = tiltaksOgVurderingsperiode,
         journalpostId = journalpostId,
         personopplysninger =
@@ -426,7 +426,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
     ),
     id: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad =
-        ObjectMother.nyDigitalsøknad(
+        ObjectMother.nyInnvilgbarSøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -505,7 +505,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     ),
     søknadId: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad =
-        ObjectMother.nyDigitalsøknad(
+        ObjectMother.nyInnvilgbarSøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -578,7 +578,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     id: SøknadId = Søknad.randomId(),
-    søknad: InnvilgbarSøknad = ObjectMother.nyDigitalsøknad(
+    søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
         periode = tiltaksOgVurderingsperiode,
         journalpostId = journalpostId,
         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
@@ -643,7 +643,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         saksnummer = this.saksnummerGenerator.neste(),
     ),
     søknad: InnvilgbarSøknad =
-        ObjectMother.nyDigitalsøknad(
+        ObjectMother.nyInnvilgbarSøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -705,7 +705,7 @@ internal fun TestDataHelper.persisterRammevedtakAvslag(
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.neste(),
     ),
-    søknad: InnvilgbarSøknad = ObjectMother.nyDigitalsøknad(
+    søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
         periode = tiltaksOgVurderingsperiode,
         journalpostId = journalpostId,
         personopplysninger = ObjectMother.personSøknad(fnr = fnr),

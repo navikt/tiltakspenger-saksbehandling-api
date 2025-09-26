@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -121,6 +122,8 @@ class OlderMottaSøknadTest {
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     avbrutt = null,
+                    manueltSattSøknadsperiode = null,
+                    søknadstype = Søknadstype.DIGITAL,
                 )
 
             tac.søknadContext.søknadRepo.hentSakIdForSoknad(søknadId) shouldBe sak.id

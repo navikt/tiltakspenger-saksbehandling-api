@@ -467,23 +467,21 @@ sealed interface Rammebehandling : Behandling {
             KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling(it)
         }.map {
             @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
-            fun skalNullstille(): Boolean {
-                return this.saksopplysninger?.let { saksopplysninger ->
-                    if (saksopplysninger.tiltaksdeltagelser.size != nyeSaksopplysninger.tiltaksdeltagelser.size) {
-                        true
-                    } else {
-                        (
-                            saksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }
-                                .zip(nyeSaksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }) { forrige, nye ->
-                                    // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltagelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
-                                    forrige.eksternDeltagelseId != nye.eksternDeltagelseId || forrige.deltagelseFraOgMed == nye.deltagelseFraOgMed || forrige.deltagelseTilOgMed == nye.deltagelseTilOgMed
-                                }.any { it }
-                            )
-                    }
-                } ?: false
-            }
-
-            val skalNullstille: Boolean = skalNullstille()
+            val skalNullstille = this.saksopplysninger?.let { saksopplysninger ->
+                if (saksopplysninger.tiltaksdeltagelser.size != nyeSaksopplysninger.tiltaksdeltagelser.size) {
+                    true
+                } else {
+                    (
+                        saksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }
+                            .zip(nyeSaksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }) { forrige, nye ->
+                                // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltagelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
+                                forrige.eksternDeltagelseId != nye.eksternDeltagelseId ||
+                                    forrige.deltagelseFraOgMed == nye.deltagelseFraOgMed ||
+                                    forrige.deltagelseTilOgMed == nye.deltagelseTilOgMed
+                            }.any { it }
+                        )
+                }
+            } ?: true
 
             when (this) {
                 is Søknadsbehandling -> this.copy(

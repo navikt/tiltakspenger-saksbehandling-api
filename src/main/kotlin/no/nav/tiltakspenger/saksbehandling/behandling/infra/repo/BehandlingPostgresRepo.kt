@@ -672,6 +672,7 @@ class BehandlingPostgresRepo(
         return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
+                    //language=SQL
                     """
                     select b.*,
                     sak.saksnummer,

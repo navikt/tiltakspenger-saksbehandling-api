@@ -11,10 +11,11 @@ import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
-import no.nav.tiltakspenger.saksbehandling.søknad.domene.Papirsøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -68,7 +69,7 @@ interface SøknadMother {
 
     fun personopplysningFødselsdato() = 1.januar(2000)
 
-    fun nyDigitalsøknad(
+    fun nyInnvilgbarSøknad(
         periode: Periode = ObjectMother.virkningsperiode(),
         versjon: String = "1",
         id: SøknadId = Søknad.randomId(),
@@ -96,6 +97,7 @@ interface SøknadMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         vedlegg: Int = 0,
         avbrutt: Avbrutt? = null,
+        søknadstype: Søknadstype = Søknadstype.DIGITAL,
     ): InnvilgbarSøknad =
         InnvilgbarSøknad(
             versjon = versjon,
@@ -121,9 +123,11 @@ interface SøknadMother {
             sakId = sakId,
             saksnummer = saksnummer,
             avbrutt = avbrutt,
+            manueltSattSøknadsperiode = null,
+            søknadstype = søknadstype,
         )
 
-    fun nyPapirsøknad(
+    fun nyIkkeInnvilgbarSøknad(
         periode: Periode = ObjectMother.virkningsperiode(),
         versjon: String = "1",
         id: SøknadId = Søknad.randomId(),
@@ -155,8 +159,9 @@ interface SøknadMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         avbrutt: Avbrutt? = null,
         søknadsperiode: Periode = ObjectMother.virkningsperiode(),
-    ): Papirsøknad =
-        Papirsøknad(
+        søknadstype: Søknadstype = Søknadstype.PAPIR,
+    ): IkkeInnvilgbarSøknad =
+        IkkeInnvilgbarSøknad(
             versjon = versjon,
             id = id,
             journalpostId = journalpostId,
@@ -180,7 +185,8 @@ interface SøknadMother {
             sakId = sakId,
             saksnummer = saksnummer,
             avbrutt = avbrutt,
-            søknadsperiode = søknadsperiode,
+            manueltSattSøknadsperiode = søknadsperiode,
+            søknadstype = søknadstype,
         )
 
     fun personSøknad(

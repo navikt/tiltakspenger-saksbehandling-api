@@ -15,10 +15,11 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import java.time.LocalDateTime
 
 object SøknadDTOMapper {
-    fun mapSøknad(
+    fun mapDigitalsøknad(
         dto: SøknadDTO,
         innhentet: LocalDateTime,
         sak: Sak,
@@ -58,6 +59,8 @@ object SøknadDTOMapper {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             avbrutt = null,
+            manueltSattSøknadsperiode = null,
+            søknadstype = Søknadstype.DIGITAL,
         )
 
     private fun mapPeriodeSpm(periodeSpmDTO: PeriodeSpmDTO): Søknad.PeriodeSpm =

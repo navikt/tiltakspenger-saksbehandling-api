@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 class SakTest {
     @Test
     fun `avbryter søknad`() {
-        val søknad = ObjectMother.nyDigitalsøknad()
+        val søknad = ObjectMother.nyInnvilgbarSøknad()
         val sak = ObjectMother.nySak(søknader = listOf(søknad))
 
         val (sakMedAvbruttsøknad, avbruttSøknad, behandling) = sak.avbrytSøknadOgBehandling(
@@ -94,7 +94,7 @@ class SakTest {
 
     @Test
     fun `harSoknadUnderBehandling - har åpen søknad - returnerer true`() {
-        val søknad = ObjectMother.nyDigitalsøknad()
+        val søknad = ObjectMother.nyInnvilgbarSøknad()
         val sak = ObjectMother.nySak(søknader = listOf(søknad))
 
         sak.harSoknadUnderBehandling() shouldBe true
@@ -117,7 +117,7 @@ class SakTest {
     @Test
     fun `harSoknadUnderBehandling - har iverksatt søknadsbehandling og ny søknad - returnerer true`() {
         val sak = ObjectMother.nySakMedVedtak().first
-        val soknad = ObjectMother.nyDigitalsøknad(fnr = sak.fnr, sakId = sak.id)
+        val soknad = ObjectMother.nyInnvilgbarSøknad(fnr = sak.fnr, sakId = sak.id)
         val soknader = sak.soknader
         val oppdatertSak = sak.copy(soknader = soknader + soknad)
 

@@ -73,7 +73,7 @@ class PersonhendelseServiceTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = fnr,
                     sak = sak,
-                    søknad = ObjectMother.nyDigitalsøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -113,7 +113,7 @@ class PersonhendelseServiceTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = fnr,
                     sak = sak,
-                    søknad = ObjectMother.nyDigitalsøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -156,7 +156,7 @@ class PersonhendelseServiceTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = fnr,
                     sak = sak,
-                    søknad = ObjectMother.nyDigitalsøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -188,7 +188,7 @@ class PersonhendelseServiceTest {
                     sakId = sak.id,
                     fnr = fnr,
                     sak = sak,
-                    søknad = ObjectMother.nyDigitalsøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -255,7 +255,7 @@ class PersonhendelseServiceTest {
                     sakId = sak.id,
                     fnr = fnr,
                     sak = sak,
-                    søknad = ObjectMother.nyDigitalsøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,

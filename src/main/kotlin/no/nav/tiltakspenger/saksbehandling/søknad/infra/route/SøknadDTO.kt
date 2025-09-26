@@ -5,8 +5,8 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
-import no.nav.tiltakspenger.saksbehandling.søknad.domene.Papirsøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad.FraOgMedDatoSpm
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad.JaNeiSpm
@@ -45,7 +45,7 @@ data class SøknadDTO(
     )
 
     data class BarnetilleggFraSøknadDTO(
-        val oppholderSegIEØS: Boolean,
+        val oppholderSegIEØS: Boolean?,
         val fornavn: String?,
         val mellomnavn: String?,
         val etternavn: String?,
@@ -62,7 +62,7 @@ data class SøknadDTO(
 fun Søknad.toSøknadDTO(): SøknadDTO {
     return when (this) {
         is InnvilgbarSøknad -> return this.toSøknadDTO()
-        is Papirsøknad -> return this.toSøknadDTO()
+        is IkkeInnvilgbarSøknad -> return this.toSøknadDTO()
         else -> {
             throw IllegalStateException("Ukjent søknadstype")
         }
@@ -77,23 +77,23 @@ fun InnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         barnetillegg = this.barnetillegg.toDTO(),
         opprettet = this.opprettet,
         tidsstempelHosOss = this.tidsstempelHosOss,
-        kvp = this.kvp.toPeriodeDTO(),
-        intro = this.intro.toPeriodeDTO(),
-        institusjon = this.institusjon.toPeriodeDTO(),
-        etterlønn = this.etterlønn.toDTO(),
-        gjenlevendepensjon = this.gjenlevendepensjon.toPeriodeDTO(),
-        alderspensjon = this.alderspensjon.toDTO(),
-        sykepenger = this.sykepenger.toPeriodeDTO(),
-        supplerendeStønadAlder = this.supplerendeStønadAlder.toPeriodeDTO(),
-        supplerendeStønadFlyktning = this.supplerendeStønadFlyktning.toPeriodeDTO(),
-        jobbsjansen = this.jobbsjansen.toPeriodeDTO(),
-        trygdOgPensjon = this.trygdOgPensjon.toPeriodeDTO(),
+        kvp = this.kvp?.toPeriodeDTO(),
+        intro = this.intro?.toPeriodeDTO(),
+        institusjon = this.institusjon?.toPeriodeDTO(),
+        etterlønn = this.etterlønn?.toDTO(),
+        gjenlevendepensjon = this.gjenlevendepensjon?.toPeriodeDTO(),
+        alderspensjon = this.alderspensjon?.toDTO(),
+        sykepenger = this.sykepenger?.toPeriodeDTO(),
+        supplerendeStønadAlder = this.supplerendeStønadAlder?.toPeriodeDTO(),
+        supplerendeStønadFlyktning = this.supplerendeStønadFlyktning?.toPeriodeDTO(),
+        jobbsjansen = this.jobbsjansen?.toPeriodeDTO(),
+        trygdOgPensjon = this.trygdOgPensjon?.toPeriodeDTO(),
         antallVedlegg = this.vedlegg,
         avbrutt = avbrutt?.toAvbruttDTO(),
     )
 }
 
-fun Papirsøknad.toSøknadDTO(): SøknadDTO {
+fun IkkeInnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
     return SøknadDTO(
         id = this.id.toString(),
         journalpostId = this.journalpostId,
@@ -158,6 +158,7 @@ fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknad
         oppholderSegIEØS = when (it.oppholderSegIEØS) {
             JaNeiSpm.Ja -> true
             JaNeiSpm.Nei -> false
+            null -> null
         },
         fornavn = it.fornavn,
         mellomnavn = it.mellomnavn,

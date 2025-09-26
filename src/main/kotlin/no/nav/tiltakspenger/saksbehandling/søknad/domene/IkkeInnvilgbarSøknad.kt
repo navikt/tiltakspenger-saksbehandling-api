@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDateTime
 
-data class Papirsøknad(
+data class IkkeInnvilgbarSøknad(
     override val versjon: String = "1",
     override val id: SøknadId,
     override val journalpostId: String,
@@ -32,13 +32,15 @@ data class Papirsøknad(
     override val jobbsjansen: Søknad.PeriodeSpm?,
     override val trygdOgPensjon: Søknad.PeriodeSpm?,
     override val vedlegg: Int,
-    val søknadsperiode: Periode,
+    override val manueltSattSøknadsperiode: Periode,
+    override val søknadstype: Søknadstype,
 ) : Søknad {
     override val fnr: Fnr = personopplysninger.fnr
     override val erAvbrutt: Boolean by lazy { avbrutt != null }
 
     // TODO Ta høyde for at tiltak er satt og bruk den i stedet?
-    override fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode = Periode(søknadsperiode.fraOgMed, søknadsperiode.tilOgMed)
+    override fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode =
+        Periode(manueltSattSøknadsperiode.fraOgMed, manueltSattSøknadsperiode.tilOgMed)
 
     fun tilInnvilgbarSøknad(): InnvilgbarSøknad {
         requireNotNull(tiltak) { "Tiltak mangler" }
@@ -77,6 +79,7 @@ data class Papirsøknad(
             sakId = sakId,
             saksnummer = saksnummer,
             avbrutt = avbrutt,
+            søknadstype = søknadstype,
         )
     }
 }

@@ -26,7 +26,7 @@ internal class SøknadDTOMapperTest {
     fun mapBasisFelter() {
         val sak = ObjectMother.nySak()
         val søknadDTO = søknadDTO(saksnummer = sak.saksnummer)
-        val søknad = SøknadDTOMapper.mapSøknad(søknadDTO, LocalDateTime.MIN, sak)
+        val søknad = SøknadDTOMapper.mapDigitalsøknad(søknadDTO, LocalDateTime.MIN, sak)
 
         assertEquals(søknadDTO.søknadId, søknad.id.toString())
         assertEquals(søknadDTO.journalpostId, søknad.journalpostId)
@@ -71,7 +71,7 @@ internal class SøknadDTOMapperTest {
                 etterlønn = JaNeiSpmDTO(SpmSvarDTO.Ja),
                 saksnummer = sak.saksnummer,
             )
-        val søknad = SøknadDTOMapper.mapSøknad(søknadDTO, LocalDateTime.MIN, sak)
+        val søknad = SøknadDTOMapper.mapDigitalsøknad(søknadDTO, LocalDateTime.MIN, sak)
 
         assertEquals(søknad.kvp, Søknad.PeriodeSpm.Ja(Periode(fraOgMed = fra, tilOgMed = til)))
         assertEquals(søknad.intro, Søknad.PeriodeSpm.Ja(Periode(fraOgMed = fra, tilOgMed = til)))
