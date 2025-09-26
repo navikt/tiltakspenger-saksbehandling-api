@@ -50,7 +50,12 @@ class AutomatiskMeldekortBehandlingService(
             logger.debug { "Fant ${meldekortListe.size} meldekort som skal behandles automatisk" }
 
             meldekortListe.forEach { meldekort ->
-                val sak = sakRepo.hentForSakId(meldekort.sakId)!!
+                val sak = try {
+                    sakRepo.hentForSakId(meldekort.sakId)!!
+                } catch (e: Exception) {
+                    logger.error { "Kunne ikke hente sak for mottatt meldekort med id ${meldekort.id}, sakId ${meldekort.sakId}, ${e.message}" }
+                    throw e
+                }
                 Either.catch {
                     opprettMeldekortBehandling(meldekort, sak).onLeft {
                         logger.error { "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Feil: $it" }
