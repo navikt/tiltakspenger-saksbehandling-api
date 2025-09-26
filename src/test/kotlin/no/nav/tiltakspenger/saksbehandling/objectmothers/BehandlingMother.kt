@@ -42,7 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.personSøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
@@ -50,8 +50,9 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
@@ -65,7 +66,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun virkningsperiode() = 1.januar(2023) til 31.mars(2023)
 
     fun Rammebehandling.tiltaksdeltagelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
-        val tiltaksdeltagelse = this.saksopplysninger.tiltaksdeltagelser.single()
+        val tiltaksdeltagelse = this.saksopplysninger!!.tiltaksdeltagelser.single()
 
         return listOf(
             TiltaksdeltakelsePeriodeDTO(
@@ -97,7 +98,7 @@ interface BehandlingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        søknad: Søknad = nySøknad(),
+        søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
             saksopplysninger(
                 fom = søknad.tiltak.deltakelseFom,
@@ -125,7 +126,7 @@ interface BehandlingMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
-        søknad: Søknad = nySøknad(),
+        søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
             saksopplysninger(
                 fom = søknad.tiltak.deltakelseFom,
@@ -151,7 +152,7 @@ interface BehandlingMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
-        søknad: Søknad = nySøknad(),
+        søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
             saksopplysninger(
                 fom = søknad.tiltak.deltakelseFom,
@@ -183,7 +184,7 @@ interface BehandlingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        søknad: Søknad = nySøknad(),
+        søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         sendtTilBeslutning: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nySøknadsbehandlingKlarTilBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nySøknadsbehandlingKlarTilBeslutning()"),
@@ -250,7 +251,7 @@ interface BehandlingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        søknad: Søknad = nySøknad(),
+        søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         sendtTilBeslutning: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nySøknadsbehandlingKlarTilBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nySøknadsbehandlingKlarTilBeslutning()"),
@@ -304,7 +305,7 @@ interface BehandlingMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         sendtTilBeslutning: LocalDateTime? = null,
-        søknad: Søknad = nySøknad(),
+        søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         beslutter: Saksbehandler = beslutter(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyBehandlingUnderBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
@@ -354,7 +355,7 @@ interface BehandlingMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         sendtTilBeslutning: LocalDateTime? = null,
-        søknad: Søknad = nySøknad(),
+        søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         beslutter: Saksbehandler = beslutter(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyBehandlingUnderBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
@@ -409,7 +410,7 @@ interface BehandlingMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         sendtTilBeslutning: LocalDateTime? = null,
-        søknad: Søknad = nySøknad(),
+        søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         beslutter: Saksbehandler = beslutter(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyBehandlingUnderBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
@@ -489,7 +490,7 @@ interface BehandlingMother : MotherOfAllMothers {
     }
 }
 
-fun TestApplicationContext.nySøknad(
+fun TestApplicationContext.nyInnvilgbarSøknad(
     periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     fornavn: String = "Fornavn",
@@ -508,7 +509,7 @@ fun TestApplicationContext.nySøknad(
     tiltaksdeltagelse: Tiltaksdeltagelse? = null,
     søknadstiltak: Søknadstiltak? = tiltaksdeltagelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
-    søknad: Søknad = nySøknad(
+    søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(
         fnr = fnr,
         personopplysninger = personopplysningerFraSøknad,
         tidsstempelHosOss = tidsstempelHosOss,
@@ -553,7 +554,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
     tiltaksdeltagelse: Tiltaksdeltagelse? = null,
     søknadstiltak: Søknadstiltak? = tiltaksdeltagelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
-    søknad: Søknad = nySøknad(
+    søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(
         fnr = fnr,
         personopplysninger = personopplysningerFraSøknad,
         tidsstempelHosOss = tidsstempelHosOss,
@@ -569,7 +570,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
     correlationId: CorrelationId = CorrelationId.generate(),
 ): Sak {
     this.sakContext.sakRepo.opprettSak(sak)
-    this.nySøknad(
+    this.nyInnvilgbarSøknad(
         periode = periode,
         fnr = fnr,
         fornavn = fornavn,
@@ -620,7 +621,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     val tiltaksdeltakelser = listOf(
         Pair(
             periode,
-            behandling.saksopplysninger.tiltaksdeltagelser.first().eksternDeltagelseId,
+            behandling.saksopplysninger!!.tiltaksdeltagelser.first().eksternDeltagelseId,
         ),
     )
 

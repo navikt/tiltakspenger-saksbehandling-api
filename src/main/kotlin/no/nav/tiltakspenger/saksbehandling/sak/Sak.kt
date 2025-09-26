@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.Clock
@@ -74,8 +74,10 @@ data class Sak(
 
     val tiltaksdeltagelserDetErSøktTiltakspengerFor by lazy {
         TiltaksdeltagelserDetErSøktTiltakspengerFor(
-            this.soknader.map {
-                TiltaksdeltagelseDetErSøktTiltakspengerFor(it.tiltak, it.tidsstempelHosOss)
+            this.soknader.mapNotNull { søknad ->
+                søknad.tiltak?.let { tiltak ->
+                    TiltaksdeltagelseDetErSøktTiltakspengerFor(tiltak, søknad.tidsstempelHosOss)
+                }
             },
         )
     }

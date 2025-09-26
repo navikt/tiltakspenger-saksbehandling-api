@@ -52,7 +52,7 @@ class IdenthendelseServiceTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = gammeltFnr,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = gammeltFnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -92,7 +92,7 @@ class IdenthendelseServiceTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = nyttFnr,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = nyttFnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -128,7 +128,7 @@ class IdenthendelseServiceTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = gammeltFnr,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = gammeltFnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -138,7 +138,7 @@ class IdenthendelseServiceTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = nyttFnr,
                     sak = sak2,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = nyttFnr),
                         sakId = sak2.id,
                         saksnummer = sak2.saksnummer,
@@ -174,7 +174,7 @@ class IdenthendelseServiceTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = gammeltFnr,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = gammeltFnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -184,7 +184,7 @@ class IdenthendelseServiceTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = gammeltFnr2,
                     sak = sak2,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = gammeltFnr2),
                         sakId = sak2.id,
                         saksnummer = sak2.saksnummer,

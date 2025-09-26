@@ -37,7 +37,7 @@ sealed interface BehandlingDTO {
     val saksnummer: String
     val saksbehandler: String?
     val beslutter: String?
-    val saksopplysninger: SaksopplysningerDTO
+    val saksopplysninger: SaksopplysningerDTO?
     val attesteringer: List<AttesteringDTO>
     val virkningsperiode: PeriodeDTO?
     val fritekstTilVedtaksbrev: String?
@@ -57,7 +57,7 @@ data class SøknadsbehandlingDTO(
     override val saksnummer: String,
     override val saksbehandler: String?,
     override val beslutter: String?,
-    override val saksopplysninger: SaksopplysningerDTO,
+    override val saksopplysninger: SaksopplysningerDTO?,
     override val attesteringer: List<AttesteringDTO>,
     override val virkningsperiode: PeriodeDTO?,
     override val fritekstTilVedtaksbrev: String?,
@@ -143,7 +143,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         saksbehandler = this.saksbehandler,
         beslutter = this.beslutter,
         attesteringer = this.attesteringer.toAttesteringDTO(),
-        saksopplysninger = this.saksopplysninger.toSaksopplysningerDTO(),
+        saksopplysninger = this.saksopplysninger?.toSaksopplysningerDTO(),
         søknad = this.søknad.toSøknadDTO(),
         avbrutt = this.avbrutt?.toAvbruttDTO(),
         sistEndret = this.sistEndret,
