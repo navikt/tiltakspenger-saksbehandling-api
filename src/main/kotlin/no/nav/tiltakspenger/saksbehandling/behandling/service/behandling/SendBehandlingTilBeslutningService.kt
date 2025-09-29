@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
 import arrow.core.left
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
@@ -23,6 +24,8 @@ class SendBehandlingTilBeslutningService(
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
 ) {
+    private val logger = KotlinLogging.logger { }
+
     suspend fun sendTilBeslutning(
         kommando: SendBehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Rammebehandling>> {
@@ -38,12 +41,13 @@ class SendBehandlingTilBeslutningService(
 
         behandling.utbetaling?.also { utbetaling ->
             utbetaling.validerKanIverksetteUtbetaling().onLeft {
+                logger.error { "Kan ikke iverksette behandling med utbetaling - ${kommando.behandlingId} / $it" }
+
                 // TODO: husk å re-enable relevante tester i UtbetalingerIT når alle utbetalinger støttes igjen
                 return when (it) {
                     KanIkkeIverksetteUtbetaling.SimuleringMangler -> KanIkkeSendeTilBeslutter.MåHaSimuleringAvUtbetaling.left()
-                    KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke,
-                    KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
-                    -> KanIkkeSendeTilBeslutter.StøtterIkkeNegativBeregning.left()
+                    KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke -> KanIkkeSendeTilBeslutter.StøtterIkkeFeilutbetaling.left()
+                    KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> KanIkkeSendeTilBeslutter.StøtterIkkeUtbetalingJustering.left()
                 }
             }
         }
