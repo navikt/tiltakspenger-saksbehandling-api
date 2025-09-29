@@ -39,7 +39,7 @@ fun Route.mottaSøknadRoute(
         )
         // Oppretter søknad og lagrer den med kobling til angitt sak
         søknadService.nySøknad(
-            søknad = SøknadDTOMapper.mapSøknad(
+            søknad = SøknadDTOMapper.mapDigitalsøknad(
                 dto = søknadDTO,
                 innhentet = søknadDTO.opprettet,
                 sak = sak,

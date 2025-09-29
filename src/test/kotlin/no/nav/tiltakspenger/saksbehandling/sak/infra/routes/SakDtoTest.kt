@@ -11,7 +11,7 @@ class SakDtoTest {
     @Test
     fun `behandlingsoversikt inneholder behandlinger, og søknader uten behandling`() {
         val (sak) = ObjectMother.sakMedOpprettetBehandling()
-        val nySøknad = ObjectMother.nySøknad()
+        val nySøknad = ObjectMother.nyInnvilgbarSøknad()
         // TODO - burde muligens ha en sak.nySøknad()
         val sakMedSøknadOgBehandling = sak.copy(soknader = sak.soknader + nySøknad)
 

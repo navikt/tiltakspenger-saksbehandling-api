@@ -21,9 +21,11 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -68,7 +70,7 @@ class OlderMottaSøknadTest {
 
             val actualSøknad = tac.søknadContext.søknadRepo.hentForSøknadId(søknadId)
             actualSøknad shouldBe
-                Søknad(
+                InnvilgbarSøknad(
                     versjon = "3",
                     id = actualSøknad!!.id,
                     journalpostId = JOURNALPOSTID,
@@ -120,6 +122,8 @@ class OlderMottaSøknadTest {
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     avbrutt = null,
+                    manueltSattSøknadsperiode = null,
+                    søknadstype = Søknadstype.DIGITAL,
                 )
 
             tac.søknadContext.søknadRepo.hentSakIdForSoknad(søknadId) shouldBe sak.id

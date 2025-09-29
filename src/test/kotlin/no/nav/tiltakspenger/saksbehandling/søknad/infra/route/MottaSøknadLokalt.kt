@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 
 fun nySøknadForFnr(
     fnr: Fnr,
@@ -24,7 +24,7 @@ fun nySøknadForFnr(
             fnr,
             CorrelationId.generate(),
         )
-        val søknad = ObjectMother.nySøknad(
+        val søknad = ObjectMother.nyInnvilgbarSøknad(
             fnr = fnr,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
@@ -51,7 +51,7 @@ fun nySakMedNySøknad(
             Fnr.random(),
             CorrelationId.generate(),
         )
-        val søknad = ObjectMother.nySøknad(
+        val søknad = ObjectMother.nyInnvilgbarSøknad(
             fnr = sak.fnr,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
