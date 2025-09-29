@@ -10,9 +10,12 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -66,7 +69,7 @@ interface SøknadMother {
 
     fun personopplysningFødselsdato() = 1.januar(2000)
 
-    fun nySøknad(
+    fun nyInnvilgbarSøknad(
         periode: Periode = ObjectMother.virkningsperiode(),
         versjon: String = "1",
         id: SøknadId = Søknad.randomId(),
@@ -79,23 +82,24 @@ interface SøknadMother {
         barnetillegg: List<BarnetilleggFraSøknad> = listOf(),
         tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
         søknadstiltak: Søknadstiltak = søknadstiltak(deltakelseFom = periode.fraOgMed, deltakelseTom = periode.tilOgMed),
-        kvp: Søknad.PeriodeSpm = periodeNei(),
-        intro: Søknad.PeriodeSpm = periodeNei(),
-        institusjon: Søknad.PeriodeSpm = periodeNei(),
-        trygdOgPensjon: Søknad.PeriodeSpm = periodeNei(),
-        etterlønn: Søknad.JaNeiSpm = nei(),
-        gjenlevendepensjon: Søknad.PeriodeSpm = periodeNei(),
-        alderspensjon: Søknad.FraOgMedDatoSpm = fraOgMedDatoNei(),
-        sykepenger: Søknad.PeriodeSpm = periodeNei(),
-        supplerendeStønadAlder: Søknad.PeriodeSpm = periodeNei(),
-        supplerendeStønadFlyktning: Søknad.PeriodeSpm = periodeNei(),
-        jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
+        kvp: Søknad.PeriodeSpm? = periodeNei(),
+        intro: Søknad.PeriodeSpm? = periodeNei(),
+        institusjon: Søknad.PeriodeSpm? = periodeNei(),
+        trygdOgPensjon: Søknad.PeriodeSpm? = periodeNei(),
+        etterlønn: Søknad.JaNeiSpm? = nei(),
+        gjenlevendepensjon: Søknad.PeriodeSpm? = periodeNei(),
+        alderspensjon: Søknad.FraOgMedDatoSpm? = fraOgMedDatoNei(),
+        sykepenger: Søknad.PeriodeSpm? = periodeNei(),
+        supplerendeStønadAlder: Søknad.PeriodeSpm? = periodeNei(),
+        supplerendeStønadFlyktning: Søknad.PeriodeSpm? = periodeNei(),
+        jobbsjansen: Søknad.PeriodeSpm? = periodeNei(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         vedlegg: Int = 0,
         avbrutt: Avbrutt? = null,
-    ): Søknad =
-        Søknad(
+        søknadstype: Søknadstype = Søknadstype.DIGITAL,
+    ): InnvilgbarSøknad =
+        InnvilgbarSøknad(
             versjon = versjon,
             id = id,
             journalpostId = journalpostId,
@@ -119,6 +123,70 @@ interface SøknadMother {
             sakId = sakId,
             saksnummer = saksnummer,
             avbrutt = avbrutt,
+            manueltSattSøknadsperiode = null,
+            søknadstype = søknadstype,
+        )
+
+    fun nyIkkeInnvilgbarSøknad(
+        periode: Periode = ObjectMother.virkningsperiode(),
+        versjon: String = "1",
+        id: SøknadId = Søknad.randomId(),
+        journalpostId: String = "journalpostId",
+        dokumentInfoId: String = "dokumentInfoId",
+        filnavn: String = "filnavn",
+        fnr: Fnr = Fnr.random(),
+        personopplysninger: Søknad.Personopplysninger = personSøknad(fnr = fnr),
+        opprettet: LocalDateTime = 1.januarDateTime(2022),
+        barnetillegg: List<BarnetilleggFraSøknad> = listOf(),
+        tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
+        søknadstiltak: Søknadstiltak = søknadstiltak(
+            deltakelseFom = periode.fraOgMed,
+            deltakelseTom = periode.tilOgMed,
+        ),
+        kvp: Søknad.PeriodeSpm = periodeNei(),
+        intro: Søknad.PeriodeSpm = periodeNei(),
+        institusjon: Søknad.PeriodeSpm = periodeNei(),
+        trygdOgPensjon: Søknad.PeriodeSpm = periodeNei(),
+        etterlønn: Søknad.JaNeiSpm = nei(),
+        gjenlevendepensjon: Søknad.PeriodeSpm = periodeNei(),
+        alderspensjon: Søknad.FraOgMedDatoSpm = fraOgMedDatoNei(),
+        sykepenger: Søknad.PeriodeSpm = periodeNei(),
+        supplerendeStønadAlder: Søknad.PeriodeSpm = periodeNei(),
+        supplerendeStønadFlyktning: Søknad.PeriodeSpm = periodeNei(),
+        jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
+        sakId: SakId = SakId.random(),
+        vedlegg: Int = 0,
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        avbrutt: Avbrutt? = null,
+        søknadsperiode: Periode = ObjectMother.virkningsperiode(),
+        søknadstype: Søknadstype = Søknadstype.PAPIR,
+    ): IkkeInnvilgbarSøknad =
+        IkkeInnvilgbarSøknad(
+            versjon = versjon,
+            id = id,
+            journalpostId = journalpostId,
+            personopplysninger = personopplysninger,
+            tiltak = søknadstiltak,
+            barnetillegg = barnetillegg,
+            opprettet = opprettet,
+            tidsstempelHosOss = tidsstempelHosOss,
+            vedlegg = vedlegg,
+            kvp = kvp,
+            intro = intro,
+            institusjon = institusjon,
+            etterlønn = etterlønn,
+            gjenlevendepensjon = gjenlevendepensjon,
+            alderspensjon = alderspensjon,
+            sykepenger = sykepenger,
+            supplerendeStønadAlder = supplerendeStønadAlder,
+            supplerendeStønadFlyktning = supplerendeStønadFlyktning,
+            jobbsjansen = jobbsjansen,
+            trygdOgPensjon = trygdOgPensjon,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            avbrutt = avbrutt,
+            manueltSattSøknadsperiode = søknadsperiode,
+            søknadstype = søknadstype,
         )
 
     fun personSøknad(

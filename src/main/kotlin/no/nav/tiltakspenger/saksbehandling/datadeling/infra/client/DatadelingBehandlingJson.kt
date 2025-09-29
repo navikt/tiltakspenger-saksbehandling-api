@@ -11,10 +11,14 @@ fun Søknadsbehandling.toBehandlingJson(): String {
         sakId = sakId.toString(),
         saksnummer = saksnummer.verdi,
         // TODO jah: Gir det mening at [fraOgMed] og [tilOgMed] er noe annet enn null fram til virkningsperioden er satt?
-        fraOgMed = virkningsperiode?.fraOgMed ?: saksopplysninger.tiltaksdeltagelser.tidligsteFraOgMed
-            ?: søknad.tiltak.deltakelseFom,
-        tilOgMed = virkningsperiode?.tilOgMed ?: saksopplysninger.tiltaksdeltagelser.senesteTilOgMed
-            ?: søknad.tiltak.deltakelseTom,
+        fraOgMed = virkningsperiode?.fraOgMed
+            ?: saksopplysninger?.tiltaksdeltagelser?.tidligsteFraOgMed
+            ?: søknad.tiltak?.deltakelseFom
+            ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm().fraOgMed,
+        tilOgMed = virkningsperiode?.tilOgMed
+            ?: saksopplysninger?.tiltaksdeltagelser?.senesteTilOgMed
+            ?: søknad.tiltak?.deltakelseTom
+            ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm().tilOgMed,
         behandlingStatus = status.toDatadelingDTO(),
         saksbehandler = saksbehandler,
         beslutter = beslutter,

@@ -6,7 +6,8 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 
 internal class SøknadPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -42,12 +43,11 @@ internal class SøknadPostgresRepo(
         }
 
     override fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext?) {
-        if (søknad.avbrutt == null) {
-            throw IllegalArgumentException("Kan ikke lagre en søknad som ikke er avbrutt")
-        }
-        sessionFactory.withTransaction(txContext) {
-            SøknadDAO.lagreAvbruttSøknad(søknad.id, søknad.avbrutt, it)
-        }
+        søknad.avbrutt?.let { avbrutt ->
+            sessionFactory.withTransaction(txContext) { session ->
+                SøknadDAO.lagreAvbruttSøknad(søknad.id, avbrutt, session)
+            }
+        } ?: throw IllegalArgumentException("Kan ikke lagre en søknad som ikke er avbrutt")
     }
 
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
@@ -60,9 +60,9 @@ internal class SøknadPostgresRepo(
         }
     }
 
-    override fun hentAlleUbehandledeSoknader(limit: Int): List<Søknad> {
+    override fun hentAlleUbehandledeSoknader(limit: Int): List<InnvilgbarSøknad> {
         return sessionFactory.withTransaction {
-            SøknadDAO.hentAlleUbehandledeSoknader(
+            SøknadDAO.hentAlleUbehandledeDigitalesoknader(
                 limit = limit,
                 session = it,
             )

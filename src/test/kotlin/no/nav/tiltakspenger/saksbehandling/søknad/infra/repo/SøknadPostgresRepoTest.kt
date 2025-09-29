@@ -44,7 +44,7 @@ class SøknadPostgresRepoTest {
                 val deltakelseTom = 31.mars(2023)
                 val tiltak = ObjectMother.søknadstiltak(deltakelseFom = deltakelseFom, deltakelseTom = deltakelseTom)
 
-                ObjectMother.nySøknad(
+                ObjectMother.nyInnvilgbarSøknad(
                     periode = Periode(deltakelseFom, deltakelseTom),
                     søknadstiltak = tiltak,
                     fnr = fnr,
@@ -94,7 +94,7 @@ class SøknadPostgresRepoTest {
                     val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
-                    val søknad = ObjectMother.nySøknad(
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
                         periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -124,7 +124,7 @@ class SøknadPostgresRepoTest {
                     val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
-                    val søknad = ObjectMother.nySøknad(
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
                         periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -145,6 +145,36 @@ class SøknadPostgresRepoTest {
                     }
                 }
             }
+
+            @Test
+            fun `kan mangle svar`() {
+                withMigratedDb { testDataHelper ->
+                    val søknadRepo = testDataHelper.søknadRepo
+                    val fnr = Fnr.random()
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val tiltak =
+                        ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
+                        periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        søknadstiltak = tiltak,
+                        fnr = fnr,
+                        etterlønn = null,
+                    )
+
+                    val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
+
+                    søknadRepo.hentSøknaderForFnr(fnr).also { søknader ->
+                        søknader.single().also { hentetSøknad ->
+                            hentetSøknad shouldBe persistertSøknad
+                            hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
+                            // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
+                            hentetSøknad.etterlønn shouldBe null
+                        }
+                    }
+                }
+            }
         }
 
         @Nested
@@ -157,7 +187,7 @@ class SøknadPostgresRepoTest {
                     val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
-                    val søknad = ObjectMother.nySøknad(
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
                         periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -203,7 +233,7 @@ class SøknadPostgresRepoTest {
                     val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
-                    val søknad = ObjectMother.nySøknad(
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
                         periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -240,6 +270,52 @@ class SøknadPostgresRepoTest {
                     }
                 }
             }
+
+            @Test
+            fun `kan mangle svar`() {
+                withMigratedDb { testDataHelper ->
+                    val søknadRepo = testDataHelper.søknadRepo
+                    val fnr = Fnr.random()
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val tiltak =
+                        ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
+                        periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        søknadstiltak = tiltak,
+                        fnr = fnr,
+                        kvp = null,
+                        intro = null,
+                        institusjon = null,
+                        trygdOgPensjon = null,
+                        gjenlevendepensjon = null,
+                        sykepenger = null,
+                        supplerendeStønadAlder = null,
+                        supplerendeStønadFlyktning = null,
+                        jobbsjansen = null,
+                    )
+
+                    val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
+
+                    søknadRepo.hentSøknaderForFnr(fnr).also { søknader ->
+                        søknader.single().also { hentetSøknad ->
+                            hentetSøknad shouldBe persistertSøknad
+                            hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
+                            // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
+                            hentetSøknad.kvp shouldBe null
+                            hentetSøknad.intro shouldBe null
+                            hentetSøknad.institusjon shouldBe null
+                            hentetSøknad.trygdOgPensjon shouldBe null
+                            hentetSøknad.gjenlevendepensjon shouldBe null
+                            hentetSøknad.sykepenger shouldBe null
+                            hentetSøknad.supplerendeStønadAlder shouldBe null
+                            hentetSøknad.supplerendeStønadFlyktning shouldBe null
+                            hentetSøknad.jobbsjansen shouldBe null
+                        }
+                    }
+                }
+            }
         }
 
         @Nested
@@ -252,7 +328,7 @@ class SøknadPostgresRepoTest {
                     val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
-                    val søknad = ObjectMother.nySøknad(
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
                         periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -282,7 +358,7 @@ class SøknadPostgresRepoTest {
                     val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
-                    val søknad = ObjectMother.nySøknad(
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
                         periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -299,6 +375,36 @@ class SøknadPostgresRepoTest {
                             hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
                             // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
                             hentetSøknad.alderspensjon shouldBe fraOgMedDatoNei()
+                        }
+                    }
+                }
+            }
+
+            @Test
+            fun `kan mangle svar`() {
+                withMigratedDb { testDataHelper ->
+                    val søknadRepo = testDataHelper.søknadRepo
+                    val fnr = Fnr.random()
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val tiltak =
+                        ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
+                        periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        søknadstiltak = tiltak,
+                        fnr = fnr,
+                        alderspensjon = null,
+                    )
+
+                    val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
+
+                    søknadRepo.hentSøknaderForFnr(fnr).also { søknader ->
+                        søknader.single().also { hentetSøknad ->
+                            hentetSøknad shouldBe persistertSøknad
+                            hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
+                            // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
+                            hentetSøknad.alderspensjon shouldBe null
                         }
                     }
                 }

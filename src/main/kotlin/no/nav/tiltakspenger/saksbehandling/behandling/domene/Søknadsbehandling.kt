@@ -29,7 +29,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
@@ -45,7 +46,7 @@ data class Søknadsbehandling(
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
-    override val saksopplysninger: Saksopplysninger,
+    override val saksopplysninger: Saksopplysninger?,
     override val saksbehandler: String?,
     override val beslutter: String?,
     override val sendtTilBeslutning: LocalDateTime?,
@@ -176,7 +177,7 @@ data class Søknadsbehandling(
 
         return this.copy(
             status = AVBRUTT,
-            søknad = this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt),
+            søknad = this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt) as InnvilgbarSøknad,
             avbrutt = Avbrutt(
                 tidspunkt = tidspunkt,
                 saksbehandler = avbruttAv.navIdent,
@@ -201,16 +202,16 @@ data class Søknadsbehandling(
         ): Either<KanIkkeOppretteBehandling, Søknadsbehandling> {
             val opprettet = nå(clock)
 
-            val saksopplysninger = hentSaksopplysninger(
-                sak.fnr,
-                correlationId,
-                sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
-                listOf(søknad.tiltak.id),
-                true,
-            )
-
-            if (saksopplysninger.tiltaksdeltagelser.isEmpty()) {
-                return KanIkkeOppretteBehandling.IngenRelevanteTiltak.left()
+            val saksopplysninger = if (søknad.tiltak != null) {
+                hentSaksopplysninger(
+                    sak.fnr,
+                    correlationId,
+                    sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+                    listOf(søknad.tiltak!!.id),
+                    true,
+                )
+            } else {
+                null
             }
 
             return Søknadsbehandling(
@@ -243,7 +244,7 @@ data class Søknadsbehandling(
 
         suspend fun opprettAutomatiskBehandling(
             sak: Sak,
-            søknad: Søknad,
+            søknad: InnvilgbarSøknad,
             hentSaksopplysninger: HentSaksopplysninger,
             correlationId: CorrelationId,
             clock: Clock,

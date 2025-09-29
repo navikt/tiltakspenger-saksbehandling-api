@@ -6,19 +6,14 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import org.intellij.lang.annotations.Language
 
 internal object SøknadTiltakDAO {
 
     private const val ULID_PREFIX_TILTAK = "tilt"
 
-    fun hent(
-        søknadId: SøknadId,
-        session: Session,
-    ): Søknadstiltak = hentTiltak(søknadId, session)!!
-
-    private fun hentTiltak(
+    fun hentTiltak(
         søknadId: SøknadId,
         session: Session,
     ): Søknadstiltak? =
