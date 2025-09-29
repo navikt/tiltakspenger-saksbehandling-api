@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRe
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser.Companion.sats
 import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class UtbetalingerIT {
@@ -37,6 +38,7 @@ class UtbetalingerIT {
     private val satser2025 = sats(1.januar(2025))
 
     @Test
+    @Disabled
     fun `Skal etterbetale ved revurdering som legger til barn`() {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(
@@ -99,6 +101,7 @@ class UtbetalingerIT {
     }
 
     @Test
+    @Disabled
     fun `Skal etterbetale ved søknadsbehandling som legger til barn`() {
         withTestApplicationContext { tac ->
             val førsteSøknadsperiode = Periode(1.september(2025), 14.september(2025))
@@ -143,6 +146,7 @@ class UtbetalingerIT {
     }
 
     @Test
+    @Disabled
     fun `Feilutbetaling ved stans over utbetalt periode`() {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(

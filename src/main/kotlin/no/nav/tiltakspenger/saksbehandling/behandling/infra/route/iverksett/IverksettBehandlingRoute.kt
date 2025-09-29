@@ -44,6 +44,11 @@ fun Route.iverksettBehandlingRoute(
                             is KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter -> call.respond400BadRequest(
                                 behandlingenEiesAvAnnenSaksbehandler(it.eiesAvBeslutter),
                             )
+
+                            KanIkkeIverksetteBehandling.KanIkkeHaUtbetaling -> call.respond400BadRequest(
+                                melding = "Behandling med utbetaling kan ikke iverksettes på nåværende tidspunkt",
+                                kode = "støtter_ikke_utbetaling",
+                            )
                         }
                     },
                     { (sak) ->

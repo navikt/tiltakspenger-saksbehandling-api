@@ -35,9 +35,12 @@ class SendBehandlingTilBeslutningService(
         }
 
         behandling.utbetaling?.also {
-            if (it.simulering == null) {
-                return KanIkkeSendeTilBeslutter.MåHaSimuleringAvUtbetaling.left()
-            }
+            // TODO: husk å re-enable tester i UtbetalingerIT når utbetalinger slås på igjen
+            return KanIkkeSendeTilBeslutter.KanIkkeHaUtbetaling.left()
+//
+//            if (it.simulering == null) {
+//                return KanIkkeSendeTilBeslutter.MåHaSimuleringAvUtbetaling.left()
+//            }
         }
 
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {

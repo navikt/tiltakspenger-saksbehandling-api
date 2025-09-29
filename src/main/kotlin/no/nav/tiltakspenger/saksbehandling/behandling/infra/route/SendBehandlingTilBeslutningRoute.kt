@@ -85,4 +85,9 @@ private fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJs
         "Behandling med utbetaling må simuleres for å kunne sende til beslutning",
         "må_simuleres",
     )
+
+    KanIkkeSendeTilBeslutter.KanIkkeHaUtbetaling -> HttpStatusCode.InternalServerError to ErrorJson(
+        "Behandling med utbetaling støttes ikke ennå",
+        "støtter_ikke_utbetaling",
+    )
 }
