@@ -43,7 +43,6 @@ class SendBehandlingTilBeslutningService(
             utbetaling.validerKanIverksetteUtbetaling().onLeft {
                 logger.error { "Kan ikke iverksette behandling med utbetaling - ${kommando.behandlingId} / $it" }
 
-                // TODO: husk å re-enable relevante tester i UtbetalingerIT når alle utbetalinger støttes igjen
                 return when (it) {
                     KanIkkeIverksetteUtbetaling.SimuleringMangler -> KanIkkeSendeTilBeslutter.MåHaSimuleringAvUtbetaling.left()
                     KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke -> KanIkkeSendeTilBeslutter.StøtterIkkeFeilutbetaling.left()

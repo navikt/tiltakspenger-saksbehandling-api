@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling
 
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juli
@@ -11,6 +12,7 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
@@ -198,6 +200,44 @@ class UtbetalingerIT {
                 // Sender tom liste med utbetalinger når hele sakens periode stanses
                 iverksettDto.vedtak.utbetalinger.shouldBeEmpty()
             }
+        }
+    }
+
+    // TODO: fjern denne og enable den forrige når feilutbetaling støttes igjen
+    @Test
+    fun `Behandling med feilutbetaling ved stans over utbetalt periode skal ikke kunne sendes til beslutning`() {
+        withTestApplicationContext { tac ->
+            val sak = tac.førsteMeldekortIverksatt(
+                periode = virkningsperiode,
+                fnr = Fnr.fromString("12345678911"),
+            )
+
+            val revurdering = startRevurderingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                type = RevurderingType.STANS,
+            )
+
+            oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
+                    fritekstTilVedtaksbrev = "lol",
+                    begrunnelseVilkårsvurdering = "what",
+                    valgteHjemler = listOf(ValgtHjemmelForStansDTO.Alder),
+                    stansFraOgMed = virkningsperiode.fraOgMed,
+                ),
+            )
+
+            sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+                tac,
+                sak.id,
+                revurdering.id,
+                forventetStatus = HttpStatusCode.BadRequest,
+            )
+
+            tac.behandlingContext.behandlingRepo.hent(revurdering.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
         }
     }
 }
