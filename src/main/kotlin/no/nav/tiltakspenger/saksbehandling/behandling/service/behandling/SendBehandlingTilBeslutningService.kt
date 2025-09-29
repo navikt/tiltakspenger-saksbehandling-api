@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import java.time.Clock
 
 class SendBehandlingTilBeslutningService(
@@ -34,13 +36,16 @@ class SendBehandlingTilBeslutningService(
             "Fant ikke behandlingen ${kommando.behandlingId} på sak ${kommando.sakId}"
         }
 
-        behandling.utbetaling?.also {
-            // TODO: husk å re-enable tester i UtbetalingerIT når utbetalinger slås på igjen
-            return KanIkkeSendeTilBeslutter.KanIkkeHaUtbetaling.left()
-//
-//            if (it.simulering == null) {
-//                return KanIkkeSendeTilBeslutter.MåHaSimuleringAvUtbetaling.left()
-//            }
+        behandling.utbetaling?.also { utbetaling ->
+            utbetaling.validerKanIverksetteUtbetaling().onLeft {
+                // TODO: husk å re-enable relevante tester i UtbetalingerIT når alle utbetalinger støttes igjen
+                return when (it) {
+                    KanIkkeIverksetteUtbetaling.SimuleringMangler -> KanIkkeSendeTilBeslutter.MåHaSimuleringAvUtbetaling.left()
+                    KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke,
+                    KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
+                    -> KanIkkeSendeTilBeslutter.StøtterIkkeNegativBeregning.left()
+                }
+            }
         }
 
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {

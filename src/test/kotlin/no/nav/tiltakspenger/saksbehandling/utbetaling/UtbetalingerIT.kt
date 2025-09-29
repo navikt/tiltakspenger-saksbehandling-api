@@ -38,7 +38,6 @@ class UtbetalingerIT {
     private val satser2025 = sats(1.januar(2025))
 
     @Test
-    @Disabled
     fun `Skal etterbetale ved revurdering som legger til barn`() {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(
@@ -101,7 +100,6 @@ class UtbetalingerIT {
     }
 
     @Test
-    @Disabled
     fun `Skal etterbetale ved søknadsbehandling som legger til barn`() {
         withTestApplicationContext { tac ->
             val førsteSøknadsperiode = Periode(1.september(2025), 14.september(2025))
