@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
 import arrow.core.left
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
@@ -11,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import java.time.Clock
 
 class SendBehandlingTilBeslutningService(
@@ -21,6 +23,8 @@ class SendBehandlingTilBeslutningService(
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
 ) {
+    private val logger = KotlinLogging.logger { }
+
     suspend fun sendTilBeslutning(
         kommando: SendBehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Rammebehandling>> {
@@ -34,13 +38,11 @@ class SendBehandlingTilBeslutningService(
             "Fant ikke behandlingen ${kommando.behandlingId} på sak ${kommando.sakId}"
         }
 
-        behandling.utbetaling?.also {
-            // TODO: husk å re-enable tester i UtbetalingerIT når utbetalinger slås på igjen
-            return KanIkkeSendeTilBeslutter.KanIkkeHaUtbetaling.left()
-//
-//            if (it.simulering == null) {
-//                return KanIkkeSendeTilBeslutter.MåHaSimuleringAvUtbetaling.left()
-//            }
+        behandling.utbetaling?.also { utbetaling ->
+            utbetaling.validerKanIverksetteUtbetaling().onLeft {
+                logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${kommando.behandlingId} / $it" }
+                return KanIkkeSendeTilBeslutter.UtbetalingStøttesIkke(it).left()
+            }
         }
 
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {

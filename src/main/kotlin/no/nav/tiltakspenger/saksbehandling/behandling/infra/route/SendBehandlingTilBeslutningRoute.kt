@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutning"
 
@@ -81,13 +82,20 @@ private fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJs
         "må_være_under_behandling_eller_automatisk",
     )
 
-    KanIkkeSendeTilBeslutter.MåHaSimuleringAvUtbetaling -> HttpStatusCode.InternalServerError to ErrorJson(
-        "Behandling med utbetaling må simuleres for å kunne sende til beslutning",
-        "må_simuleres",
-    )
+    is KanIkkeSendeTilBeslutter.UtbetalingStøttesIkke -> when (this.feil) {
+        KanIkkeIverksetteUtbetaling.SimuleringMangler -> HttpStatusCode.InternalServerError to ErrorJson(
+            "Behandling med utbetaling må simuleres for å kunne sende til beslutning",
+            "må_simuleres",
+        )
 
-    KanIkkeSendeTilBeslutter.KanIkkeHaUtbetaling -> HttpStatusCode.InternalServerError to ErrorJson(
-        "Behandling med utbetaling støttes ikke ennå",
-        "støtter_ikke_utbetaling",
-    )
+        KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke -> HttpStatusCode.BadRequest to ErrorJson(
+            "Behandling med feilutbetaling støttes ikke på nåværende tidspunkt",
+            "støtter_ikke_feilutbetaling",
+        )
+
+        KanIkkeIverksetteUtbetaling.NegativJusteringStøttesIkke -> HttpStatusCode.BadRequest to ErrorJson(
+            "Behandling med justering støttes ikke på nåværende tidspunkt",
+            "støtter_ikke_justering",
+        )
+    }
 }

@@ -1,10 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.NonEmptyList
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import java.time.LocalDate
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * En dry-run av en utbetaling.
@@ -31,8 +34,15 @@ sealed interface Simulering {
         val nyUtbetaling: Int by lazy { simuleringPerMeldeperiode.sumOf { it.nyUtbetaling } }
         val totalEtterbetaling: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalEtterbetaling } }
         val totalFeilutbetaling: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalFeilutbetaling } }
+        val totalMotpostering: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalMotpostering } }
         val totalJustering: Int by lazy { simuleringPerMeldeperiode.sumOf { it.simuleringsdager.sumOf { dag -> dag.totalJustering } } }
         val totalTrekk: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalTrekk } }
+
+        val harNegativJustering: Boolean by lazy {
+            simuleringPerMeldeperiode.any {
+                it.simuleringsdager.any { dag -> dag.harNegativJustering }
+            }
+        }
 
         override fun hentDag(dato: LocalDate): Simuleringsdag? {
             return simuleringPerMeldeperiode
@@ -47,6 +57,13 @@ sealed interface Simulering {
             simuleringPerMeldeperiode.zipWithNext { a, b ->
                 require(a.meldeperiode.periode.erFør(b.meldeperiode.periode)) {
                     "Simuleringene må være i rekkefølge. ${a.meldeperiode.periode} er før ${b.meldeperiode.periode}"
+                }
+            }
+
+            /** Abn: logger for nysgjerrighetens skyld om denne antagelsen stemmer! */
+            if (totalFeilutbetaling != -totalMotpostering) {
+                logger.info {
+                    "Forventet at feilutbetaling og motpostering skal summere til 0 - fikk $totalFeilutbetaling / $totalMotpostering"
                 }
             }
         }
@@ -65,6 +82,7 @@ data class SimuleringForMeldeperiode(
     val nyUtbetaling: Int = simuleringsdager.sumOf { it.nyUtbetaling }
     val totalEtterbetaling: Int = simuleringsdager.sumOf { it.totalEtterbetaling }
     val totalFeilutbetaling: Int = simuleringsdager.sumOf { it.totalFeilutbetaling }
+    val totalMotpostering: Int = simuleringsdager.sumOf { it.totalMotpostering }
     val totalTrekk: Int = simuleringsdager.sumOf { it.totalTrekk }
 }
 
@@ -99,10 +117,14 @@ data class Simuleringsdag(
      */
     val totalFeilutbetaling: Int,
 
+    /** Denne skal være lik negativ total feilutbetaling */
+    val totalMotpostering: Int,
+
     /** F.eks. trekk fra namsmannen. Kommentar jah: Usikker på om denne vil vise omposteringer eller om det kun er justering som tar for seg det. */
     val totalTrekk: Int,
     /** Hvis denne dagen er negativt justert (typisk ompostert til en annen dag) */
     val totalJustering: Int,
+    val harNegativJustering: Boolean,
 
     /** Detaljene som ligger bak oppsummeringen. */
     val posteringsdag: PosteringerForDag,

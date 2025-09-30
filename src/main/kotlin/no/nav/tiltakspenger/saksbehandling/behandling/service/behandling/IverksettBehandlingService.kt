@@ -58,10 +58,6 @@ class IverksettBehandlingService(
             ).left()
         }
 
-        behandling.utbetaling?.also {
-            return KanIkkeIverksetteBehandling.KanIkkeHaUtbetaling.left()
-        }
-
         val attestering = Attestering(
             status = Attesteringsstatus.GODKJENT,
             begrunnelse = null,
