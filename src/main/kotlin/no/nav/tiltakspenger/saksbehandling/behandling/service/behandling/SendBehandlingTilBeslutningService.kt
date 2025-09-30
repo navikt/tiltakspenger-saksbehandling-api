@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import java.time.Clock
 
@@ -41,13 +40,8 @@ class SendBehandlingTilBeslutningService(
 
         behandling.utbetaling?.also { utbetaling ->
             utbetaling.validerKanIverksetteUtbetaling().onLeft {
-                logger.error { "Kan ikke iverksette behandling med utbetaling - ${kommando.behandlingId} / $it" }
-
-                return when (it) {
-                    KanIkkeIverksetteUtbetaling.SimuleringMangler -> KanIkkeSendeTilBeslutter.MåHaSimuleringAvUtbetaling.left()
-                    KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke -> KanIkkeSendeTilBeslutter.StøtterIkkeFeilutbetaling.left()
-                    KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> KanIkkeSendeTilBeslutter.StøtterIkkeUtbetalingJustering.left()
-                }
+                logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${kommando.behandlingId} / $it" }
+                return KanIkkeSendeTilBeslutter.UtbetalingStøttesIkke(it).left()
             }
         }
 

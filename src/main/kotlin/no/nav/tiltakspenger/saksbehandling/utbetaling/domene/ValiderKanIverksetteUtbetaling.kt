@@ -12,9 +12,9 @@ fun BehandlingUtbetaling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverkse
 private fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
     return when (this) {
         is Simulering.Endring -> {
-            if (this.totalFeilutbetaling > 0) {
+            if (totalFeilutbetaling != 0) {
                 KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke.left()
-            } else if (this.totalJustering > 0) {
+            } else if (harNegativJustering()) {
                 KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left()
             } else {
                 Unit.right()
@@ -26,8 +26,15 @@ private fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverkset
     }
 }
 
-sealed interface KanIkkeIverksetteUtbetaling {
-    data object SimuleringMangler : KanIkkeIverksetteUtbetaling
-    data object FeilutbetalingStøttesIkke : KanIkkeIverksetteUtbetaling
-    data object JusteringStøttesIkke : KanIkkeIverksetteUtbetaling
+private fun Simulering.Endring.harNegativJustering(): Boolean =
+    simuleringPerMeldeperiode.any {
+        it.simuleringsdager.any { dag ->
+            dag.totalJustering < 0
+        }
+    }
+
+enum class KanIkkeIverksetteUtbetaling {
+    SimuleringMangler,
+    FeilutbetalingStøttesIkke,
+    JusteringStøttesIkke,
 }
