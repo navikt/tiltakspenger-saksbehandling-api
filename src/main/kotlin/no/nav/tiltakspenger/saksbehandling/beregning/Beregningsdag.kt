@@ -1,12 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
+import no.nav.tiltakspenger.libs.satser.Satsdag
+import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satsdag
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
 import java.time.LocalDate
 
 data class Beregningsdag(
