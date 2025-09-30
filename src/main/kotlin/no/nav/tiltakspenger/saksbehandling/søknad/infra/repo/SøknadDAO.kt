@@ -200,29 +200,6 @@ internal object SøknadDAO {
         søknad: Søknad,
         session: Session,
     ) {
-        val periodeSpmParamMap =
-            mapOf(
-                KVP_FELT to søknad.kvp,
-                INTRO_FELT to søknad.intro,
-                INSTITUSJON_FELT to søknad.institusjon,
-                SYKEPENGER_FELT to søknad.sykepenger,
-                GJENLEVENDEPENSJON_FELT to søknad.gjenlevendepensjon,
-                SUPPLERENDESTØNAD_ALDER_FELT to søknad.supplerendeStønadAlder,
-                SUPPLERENDESTØNAD_FLYKTNING_FELT to søknad.supplerendeStønadFlyktning,
-                JOBBSJANSEN_FELT to søknad.jobbsjansen,
-                TRYGD_OG_PENSJON_FELT to søknad.trygdOgPensjon,
-            ).toPeriodeSpmParams()
-
-        val fraOgMedDatoSpmParamMap =
-            mapOf(
-                ALDERSPENSJON_FELT to søknad.alderspensjon,
-            ).toFraOgMedDatoSpmParams()
-
-        val jaNeiSpmParamMap =
-            mapOf(
-                ETTERLØNN_FELT to søknad.etterlønn,
-            ).toJaNeiSpmParams()
-
         session.run(
             queryOf(
                 // language=SQL
@@ -339,9 +316,8 @@ internal object SøknadDAO {
                     :manuelt_satt_soknadsperiode_til_og_med
                 )
                 """.trimIndent(),
-                periodeSpmParamMap +
-                    fraOgMedDatoSpmParamMap +
-                    jaNeiSpmParamMap +
+                paramMap =
+                spørsmålMap(søknad) +
                     mapOf(
                         "id" to søknad.id.toString(),
                         "versjon" to søknad.versjon,
@@ -361,6 +337,29 @@ internal object SøknadDAO {
             ).asUpdate,
         )
     }
+
+    private fun periodeSpørsmålMap(søknad: Søknad) = mapOf(
+        KVP_FELT to søknad.kvp,
+        INTRO_FELT to søknad.intro,
+        INSTITUSJON_FELT to søknad.institusjon,
+        SYKEPENGER_FELT to søknad.sykepenger,
+        GJENLEVENDEPENSJON_FELT to søknad.gjenlevendepensjon,
+        SUPPLERENDESTØNAD_ALDER_FELT to søknad.supplerendeStønadAlder,
+        SUPPLERENDESTØNAD_FLYKTNING_FELT to søknad.supplerendeStønadFlyktning,
+        JOBBSJANSEN_FELT to søknad.jobbsjansen,
+        TRYGD_OG_PENSJON_FELT to søknad.trygdOgPensjon,
+    ).toPeriodeSpmParams()
+
+    private fun fraOgMedSpørsmålMap(søknad: Søknad) = mapOf(
+        ALDERSPENSJON_FELT to søknad.alderspensjon,
+    ).toFraOgMedDatoSpmParams()
+
+    private fun jaNeiSpørsmålMap(søknad: Søknad) = mapOf(
+        ETTERLØNN_FELT to søknad.etterlønn,
+    ).toJaNeiSpmParams()
+
+    private fun spørsmålMap(søknad: Søknad) =
+        periodeSpørsmålMap(søknad) + fraOgMedSpørsmålMap(søknad) + jaNeiSpørsmålMap(søknad)
 
     private fun Row.toSakId() = stringOrNull("sak_id")?.let { SakId.fromString(it) }
 
