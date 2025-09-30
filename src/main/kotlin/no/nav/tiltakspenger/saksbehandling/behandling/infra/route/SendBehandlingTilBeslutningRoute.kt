@@ -93,7 +93,7 @@ private fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJs
             "støtter_ikke_feilutbetaling",
         )
 
-        KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> HttpStatusCode.BadRequest to ErrorJson(
+        KanIkkeIverksetteUtbetaling.NegativJusteringStøttesIkke -> HttpStatusCode.BadRequest to ErrorJson(
             "Behandling med justering støttes ikke på nåværende tidspunkt",
             "støtter_ikke_justering",
         )

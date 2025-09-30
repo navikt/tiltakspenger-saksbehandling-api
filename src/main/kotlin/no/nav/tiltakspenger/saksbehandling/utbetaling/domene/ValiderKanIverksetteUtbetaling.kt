@@ -14,8 +14,8 @@ private fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverkset
         is Simulering.Endring -> {
             if (totalFeilutbetaling != 0) {
                 KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke.left()
-            } else if (harNegativJustering()) {
-                KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left()
+            } else if (harNegativJustering) {
+                KanIkkeIverksetteUtbetaling.NegativJusteringStøttesIkke.left()
             } else {
                 Unit.right()
             }
@@ -26,15 +26,8 @@ private fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverkset
     }
 }
 
-private fun Simulering.Endring.harNegativJustering(): Boolean =
-    simuleringPerMeldeperiode.any {
-        it.simuleringsdager.any { dag ->
-            dag.totalJustering < 0
-        }
-    }
-
 enum class KanIkkeIverksetteUtbetaling {
     SimuleringMangler,
     FeilutbetalingStøttesIkke,
-    JusteringStøttesIkke,
+    NegativJusteringStøttesIkke,
 }

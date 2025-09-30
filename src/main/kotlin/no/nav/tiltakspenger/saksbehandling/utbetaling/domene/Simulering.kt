@@ -34,6 +34,12 @@ sealed interface Simulering {
         val totalJustering: Int by lazy { simuleringPerMeldeperiode.sumOf { it.simuleringsdager.sumOf { dag -> dag.totalJustering } } }
         val totalTrekk: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalTrekk } }
 
+        val harNegativJustering: Boolean by lazy {
+            simuleringPerMeldeperiode.any {
+                it.simuleringsdager.any { dag -> dag.harNegativJustering }
+            }
+        }
+
         override fun hentDag(dato: LocalDate): Simuleringsdag? {
             return simuleringPerMeldeperiode
                 .flatMap { it.simuleringsdager }
@@ -115,6 +121,8 @@ data class Simuleringsdag(
 
     @Suppress("unused")
     val harTrekk: Boolean by lazy { totalTrekk > 0 }
+
+    val harNegativJustering: Boolean by lazy { totalJustering < 0 }
 }
 
 /**
