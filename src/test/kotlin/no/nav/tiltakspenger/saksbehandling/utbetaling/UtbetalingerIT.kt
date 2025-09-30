@@ -234,7 +234,7 @@ class UtbetalingerIT {
                 tac,
                 sak.id,
                 revurdering.id,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventetStatus = HttpStatusCode.InternalServerError,
             )
 
             tac.behandlingContext.behandlingRepo.hent(revurdering.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING

@@ -126,7 +126,7 @@ class OppsummeringGeneratorTest {
                             totalTrekk = 0,
                             totalJustering = 0,
                             totalMotpostering = 0,
-                            harNegativJustering = false,
+                            harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-14"),
                                 posteringer = nonEmptyListOf(
@@ -149,7 +149,7 @@ class OppsummeringGeneratorTest {
                             totalTrekk = 0,
                             totalJustering = 0,
                             totalMotpostering = 0,
-                            harNegativJustering = false,
+                            harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-15"),
                                 posteringer = nonEmptyListOf(
@@ -172,7 +172,7 @@ class OppsummeringGeneratorTest {
                             totalTrekk = 0,
                             totalJustering = 0,
                             totalMotpostering = 0,
-                            harNegativJustering = false,
+                            harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-16"),
                                 posteringer = nonEmptyListOf(
@@ -195,7 +195,7 @@ class OppsummeringGeneratorTest {
                             totalTrekk = 0,
                             totalJustering = 0,
                             totalMotpostering = 0,
-                            harNegativJustering = false,
+                            harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-17"),
                                 posteringer = nonEmptyListOf(
@@ -218,7 +218,7 @@ class OppsummeringGeneratorTest {
                             totalTrekk = 0,
                             totalJustering = 0,
                             totalMotpostering = 0,
-                            harNegativJustering = false,
+                            harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-21"),
                                 posteringer = nonEmptyListOf(
@@ -241,7 +241,7 @@ class OppsummeringGeneratorTest {
                             totalTrekk = 0,
                             totalJustering = 0,
                             totalMotpostering = 0,
-                            harNegativJustering = false,
+                            harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-22"),
                                 posteringer = nonEmptyListOf(
@@ -264,7 +264,7 @@ class OppsummeringGeneratorTest {
                             totalTrekk = 0,
                             totalJustering = 0,
                             totalMotpostering = 0,
-                            harNegativJustering = false,
+                            harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-24"),
                                 posteringer = nonEmptyListOf(
@@ -287,7 +287,7 @@ class OppsummeringGeneratorTest {
                             totalTrekk = 0,
                             totalJustering = 0,
                             totalMotpostering = 0,
-                            harNegativJustering = false,
+                            harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-25"),
                                 posteringer = nonEmptyListOf(
@@ -552,7 +552,7 @@ class OppsummeringGeneratorTest {
                             totalTrekk = 0,
                             totalJustering = 0,
                             totalMotpostering = -71,
-                            harNegativJustering = false,
+                            harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = 11.november(2024),
                                 posteringer = nonEmptyListOf(
@@ -606,7 +606,7 @@ class OppsummeringGeneratorTest {
                                 totalTrekk = 0,
                                 totalJustering = 0,
                                 totalMotpostering = 0,
-                                harNegativJustering = false,
+                                harJustering = false,
                                 posteringsdag = PosteringerForDag(
                                     dato = dato,
                                     posteringer = nonEmptyListOf(
@@ -639,7 +639,7 @@ class OppsummeringGeneratorTest {
                                 totalTrekk = 0,
                                 totalJustering = 0,
                                 totalMotpostering = 0,
-                                harNegativJustering = false,
+                                harJustering = false,
                                 posteringsdag = PosteringerForDag(
                                     dato = dato,
                                     posteringer = nonEmptyListOf(
@@ -675,7 +675,7 @@ class OppsummeringGeneratorTest {
                             totalTrekk = 0,
                             totalJustering = 0,
                             totalMotpostering = -214,
-                            harNegativJustering = false,
+                            harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = 5.desember(2024),
                                 posteringer = nonEmptyListOf(
@@ -1031,7 +1031,7 @@ class OppsummeringGeneratorTest {
                     totalTrekk = 0,
                     totalJustering = 0,
                     totalMotpostering = 0,
-                    harNegativJustering = false,
+                    harJustering = false,
                     posteringsdag = PosteringerForDag(
                         dato = 3.mars(2025),
                         posteringer = nonEmptyListOf(
@@ -1063,7 +1063,7 @@ class OppsummeringGeneratorTest {
                         totalTrekk = 0,
                         totalJustering = 0,
                         totalMotpostering = 0,
-                        harNegativJustering = false,
+                        harJustering = false,
                         posteringsdag = PosteringerForDag(
                             dato = dato,
                             posteringer = nonEmptyListOf(
@@ -1099,7 +1099,7 @@ class OppsummeringGeneratorTest {
                     totalTrekk = 0,
                     totalJustering = 0,
                     totalMotpostering = 0,
-                    harNegativJustering = false,
+                    harJustering = false,
                     posteringsdag = PosteringerForDag(
                         dato = dato,
                         posteringer = nonEmptyListOf(
@@ -1131,7 +1131,7 @@ class OppsummeringGeneratorTest {
                         totalTrekk = 0,
                         totalJustering = 0,
                         totalMotpostering = 0,
-                        harNegativJustering = false,
+                        harJustering = false,
                         posteringsdag = PosteringerForDag(
                             dato = dato,
                             posteringer = nonEmptyListOf(
@@ -1167,7 +1167,7 @@ class OppsummeringGeneratorTest {
                     totalTrekk = 0,
                     totalJustering = 0,
                     totalMotpostering = 0,
-                    harNegativJustering = false,
+                    harJustering = false,
                     posteringsdag = PosteringerForDag(
                         dato = dato,
                         posteringer = nonEmptyListOf(
@@ -1199,7 +1199,7 @@ class OppsummeringGeneratorTest {
                         totalTrekk = 0,
                         totalJustering = 0,
                         totalMotpostering = 0,
-                        harNegativJustering = false,
+                        harJustering = false,
                         posteringsdag = PosteringerForDag(
                             dato = dato,
                             posteringer = nonEmptyListOf(
@@ -1235,7 +1235,7 @@ class OppsummeringGeneratorTest {
                     totalTrekk = 0,
                     totalJustering = 0,
                     totalMotpostering = 0,
-                    harNegativJustering = false,
+                    harJustering = false,
                     posteringsdag = PosteringerForDag(
                         dato = dato,
                         posteringer = nonEmptyListOf(
@@ -1267,7 +1267,7 @@ class OppsummeringGeneratorTest {
                         totalTrekk = 0,
                         totalJustering = 0,
                         totalMotpostering = 0,
-                        harNegativJustering = false,
+                        harJustering = false,
                         posteringsdag = PosteringerForDag(
                             dato = dato,
                             posteringer = nonEmptyListOf(
@@ -1300,7 +1300,7 @@ class OppsummeringGeneratorTest {
                         totalTrekk = 0,
                         totalJustering = 0,
                         totalMotpostering = 0,
-                        harNegativJustering = false,
+                        harJustering = false,
                         posteringsdag = PosteringerForDag(
                             dato = dato,
                             posteringer = nonEmptyListOf(

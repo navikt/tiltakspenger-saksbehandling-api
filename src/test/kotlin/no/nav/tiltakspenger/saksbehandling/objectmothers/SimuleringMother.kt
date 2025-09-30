@@ -52,7 +52,7 @@ interface SimuleringMother {
                 totalTrekk = 0,
                 totalJustering = 0,
                 totalMotpostering = 0,
-                harNegativJustering = false,
+                harJustering = false,
                 posteringsdag = PosteringerForDag(
                     dato = periode.fraOgMed,
                     posteringer = nonEmptyListOf(
@@ -126,7 +126,7 @@ fun Sak.genererSimuleringFraBeregning(
                         totalTrekk = 0,
                         totalJustering = 0,
                         totalMotpostering = -totalFeilutbetaling,
-                        harNegativJustering = false,
+                        harJustering = false,
                         posteringsdag = PosteringerForDag(
                             dato = it.dato,
                             posteringer = nonEmptyListOf(

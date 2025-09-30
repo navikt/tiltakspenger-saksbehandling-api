@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -115,6 +116,8 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
     },
 ): Pair<Sak, MeldekortBehandling> {
     val (sakMedOpprettetMeldekortBehandling, opprettetMeldekortBehandling) = genererSak(sak)
+    val dager = saksbehandlerFyllerUtMeldeperiodeDager(opprettetMeldekortBehandling.meldeperiode)
+    val begrunnelse = MeldekortBehandlingBegrunnelse("TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning")
 
     return runBlocking {
         val (sakMedOppdatertMeldekortbehandling, meldekortBehandling, simuleringMedMetadata) = sakMedOpprettetMeldekortBehandling.oppdaterMeldekort(
@@ -122,9 +125,9 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
                 sakId = sakMedOpprettetMeldekortBehandling.id,
                 meldekortId = opprettetMeldekortBehandling.id,
                 saksbehandler = saksbehandler,
-                begrunnelse = MeldekortBehandlingBegrunnelse("TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning"),
+                begrunnelse = begrunnelse,
                 correlationId = CorrelationId.generate(),
-                dager = saksbehandlerFyllerUtMeldeperiodeDager(opprettetMeldekortBehandling.meldeperiode),
+                dager = dager,
             ),
             simuler = { KunneIkkeSimulere.Stengt.left() },
         ).getOrFail()
@@ -136,11 +139,16 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
                 sakId = sakMedOppdatertMeldekortbehandling.id,
                 meldekortId = meldekortBehandling.id,
                 saksbehandler = saksbehandler,
-                dager = null,
-                begrunnelse = null,
+                dager = dager,
+                begrunnelse = begrunnelse,
                 correlationId = CorrelationId.generate(),
             ),
-            beregn = { throw IllegalArgumentException("Denne skal ikke kalles") },
+            beregn = {
+                sakMedOppdatertMeldekortbehandling.beregnMeldekort(
+                    meldekortIdSomBeregnes = meldekortBehandling.id,
+                    meldeperiodeSomBeregnes = dager.tilMeldekortDager(meldekortBehandling.meldeperiode),
+                )
+            },
             simuler = { KunneIkkeSimulere.Stengt.left() },
             clock = clock,
         ).getOrFail()

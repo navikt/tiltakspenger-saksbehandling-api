@@ -38,9 +38,9 @@ sealed interface Simulering {
         val totalJustering: Int by lazy { simuleringPerMeldeperiode.sumOf { it.simuleringsdager.sumOf { dag -> dag.totalJustering } } }
         val totalTrekk: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalTrekk } }
 
-        val harNegativJustering: Boolean by lazy {
+        val harJustering: Boolean by lazy {
             simuleringPerMeldeperiode.any {
-                it.simuleringsdager.any { dag -> dag.harNegativJustering }
+                it.simuleringsdager.any { dag -> dag.harJustering }
             }
         }
 
@@ -124,7 +124,7 @@ data class Simuleringsdag(
     val totalTrekk: Int,
     /** Hvis denne dagen er negativt justert (typisk ompostert til en annen dag) */
     val totalJustering: Int,
-    val harNegativJustering: Boolean,
+    val harJustering: Boolean,
 
     /** Detaljene som ligger bak oppsummeringen. */
     val posteringsdag: PosteringerForDag,

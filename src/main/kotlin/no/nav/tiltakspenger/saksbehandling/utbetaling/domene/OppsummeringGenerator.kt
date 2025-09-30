@@ -38,7 +38,7 @@ object OppsummeringGenerator {
                             totalMotpostering = beregnMotposteringer(posteringerForDag),
                             totalTrekk = beregnTrekk(posteringerForDag),
                             totalJustering = beregnJustering(posteringerForDag),
-                            harNegativJustering = harNegativJustering(posteringerForDag),
+                            harJustering = harJustering(posteringerForDag),
                             posteringsdag = posteringerForDag,
                         )
                     }
@@ -91,7 +91,7 @@ object OppsummeringGenerator {
     private fun beregnJustering(posteringer: PosteringerForDag): Int =
         posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
 
-    private fun harNegativJustering(posteringer: PosteringerForDag): Boolean =
+    private fun harJustering(posteringer: PosteringerForDag): Boolean =
         posteringer.posteringer.any { it.type == Posteringstype.FEILUTBETALING && it.klassekode == KLASSEKODE_JUSTERING }
 
     private fun PosteringerForDag.summerBarePositivePosteringer(type: Posteringstype): Int =

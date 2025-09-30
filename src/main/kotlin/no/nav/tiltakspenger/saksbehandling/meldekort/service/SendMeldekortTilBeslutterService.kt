@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
+import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
@@ -9,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBesl
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.sendMeldekortTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
@@ -27,7 +29,7 @@ class SendMeldekortTilBeslutterService(
         kommando: SendMeldekortTilBeslutterKommando,
     ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<Sak, MeldekortBehandletManuelt>> {
         val sak = hentSak(kommando)
-
+        sakService
         return sak.sendMeldekortTilBeslutter(
             kommando = kommando,
             simuler = { behandling ->
@@ -40,6 +42,10 @@ class SendMeldekortTilBeslutterService(
             },
             clock = clock,
         ).map { (sak, meldekort, simulering) ->
+            meldekort.validerKanIverksetteUtbetaling().onLeft {
+                return KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke(it).left()
+            }
+
             meldekortBehandlingRepo.oppdater(meldekort, simulering)
             logger.info { "Meldekort med id ${meldekort.id} sendt til beslutter. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
             Pair(sak, meldekort)

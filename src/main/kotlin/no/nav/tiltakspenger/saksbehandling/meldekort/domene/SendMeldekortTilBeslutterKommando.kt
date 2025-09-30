@@ -21,7 +21,4 @@ class SendMeldekortTilBeslutterKommando(
     val correlationId: CorrelationId,
 ) {
     val periode: Periode? = dager?.let { Periode(dager.first().dag, dager.last().dag) }
-
-    /** Hvis begrunnelse eller dager ikke er null */
-    val harOppdateringer: Boolean = dager != null || begrunnelse != null
 }
