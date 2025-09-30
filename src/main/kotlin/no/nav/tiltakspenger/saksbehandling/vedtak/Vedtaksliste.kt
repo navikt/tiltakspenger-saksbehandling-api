@@ -135,7 +135,7 @@ data class Vedtaksliste(
     fun leggTilVedtak(vedtak: Rammevedtak): Vedtaksliste = copy(value = this.value.plus(vedtak))
 
     fun hentTiltaksdataForPeriode(periode: Periode): Tiltaksdeltagelser {
-        return Tiltaksdeltagelser(valgteTiltaksdeltakelserForPeriode(periode).verdier)
+        return Tiltaksdeltagelser(valgteTiltaksdeltakelserForPeriode(periode).verdier.distinctBy { it.eksternDeltagelseId })
     }
 
     init {
