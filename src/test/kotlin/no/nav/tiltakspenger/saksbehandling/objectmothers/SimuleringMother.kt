@@ -51,6 +51,8 @@ interface SimuleringMother {
                 totalFeilutbetaling = 0,
                 totalTrekk = 0,
                 totalJustering = 0,
+                totalMotpostering = 0,
+                harNegativJustering = false,
                 posteringsdag = PosteringerForDag(
                     dato = periode.fraOgMed,
                     posteringer = nonEmptyListOf(
@@ -114,14 +116,17 @@ fun Sak.genererSimuleringFraBeregning(
             simuleringsdager = sammenligning.dager.mapNotNull {
                 if (it.erEndret) {
                     val erFeilutbetaling = it.totalbeløpEndring < 0
+                    val totalFeilutbetaling = if (erFeilutbetaling) abs(it.totalbeløpEndring) else 0
                     Simuleringsdag(
                         dato = it.dato,
                         tidligereUtbetalt = it.forrigeTotalbeløp,
                         nyUtbetaling = max(it.totalbeløpEndring, 0),
                         totalEtterbetaling = max(it.totalbeløpEndring, 0),
-                        totalFeilutbetaling = if (erFeilutbetaling) abs(it.totalbeløpEndring) else 0,
+                        totalFeilutbetaling = totalFeilutbetaling,
                         totalTrekk = 0,
                         totalJustering = 0,
+                        totalMotpostering = -totalFeilutbetaling,
+                        harNegativJustering = false,
                         posteringsdag = PosteringerForDag(
                             dato = it.dato,
                             posteringer = nonEmptyListOf(

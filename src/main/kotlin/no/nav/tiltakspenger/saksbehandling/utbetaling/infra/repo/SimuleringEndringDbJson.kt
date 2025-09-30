@@ -56,9 +56,13 @@ private data class SimuleringEndringDbJson(
         val nyUtbetaling: Int,
         val totalEtterbetaling: Int,
         val totalFeilutbetaling: Int,
+        // Denne ble lagt til 30. sept, er antatt å alltid være lik minus totalFeilutbetaling
+        val totalMotpostering: Int = -totalFeilutbetaling,
         // Disse feltene ble lagt til 16. september 2025. Får vurdere og migrere de senere eller bare defaulte til 0. Vi har ikke fått noen simuleringer med typene TREKK eller JUSTERING enda.
         val totalTrekk: Int = 0,
         val totalJustering: Int = 0,
+        // Denne ble lagt til 30. sept. Defaulten er ikke nødvendigvis korrekt, dersom dagen har både positive og negative justeringer som nuller ut hverandre
+        val harNegativJustering: Boolean = totalJustering < 0,
         val posteringsdag: PosteringerForDag,
     )
 
@@ -110,8 +114,10 @@ private data class SimuleringEndringDbJson(
                             nyUtbetaling = dag.nyUtbetaling,
                             totalEtterbetaling = dag.totalEtterbetaling,
                             totalFeilutbetaling = dag.totalFeilutbetaling,
+                            totalMotpostering = dag.totalMotpostering,
                             totalTrekk = dag.totalTrekk,
                             totalJustering = dag.totalJustering,
+                            harNegativJustering = dag.harNegativJustering,
                             posteringsdag = PosteringerForDag(
                                 dato = dag.dato,
                                 posteringer = dag.posteringsdag.posteringer.map { posteringForDag ->
@@ -177,8 +183,10 @@ private fun Simulering.Endring.toDbJson(): SimuleringEndringDbJson {
                         nyUtbetaling = dag.nyUtbetaling,
                         totalEtterbetaling = dag.totalEtterbetaling,
                         totalFeilutbetaling = dag.totalFeilutbetaling,
+                        totalMotpostering = dag.totalFeilutbetaling,
                         totalTrekk = dag.totalTrekk,
                         totalJustering = dag.totalJustering,
+                        harNegativJustering = dag.harNegativJustering,
                         posteringsdag = SimuleringEndringDbJson.PosteringerForDag(
                             dato = dag.posteringsdag.dato,
                             posteringer = dag.posteringsdag.posteringer.toList().map { postering ->

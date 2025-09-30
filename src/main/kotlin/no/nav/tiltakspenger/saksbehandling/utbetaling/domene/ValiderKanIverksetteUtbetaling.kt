@@ -12,7 +12,7 @@ fun BehandlingUtbetaling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverkse
 private fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
     return when (this) {
         is Simulering.Endring -> {
-            if (totalFeilutbetaling != 0) {
+            if (totalFeilutbetaling != 0 || totalMotpostering != 0) {
                 KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke.left()
             } else if (harNegativJustering) {
                 KanIkkeIverksetteUtbetaling.NegativJusteringStøttesIkke.left()

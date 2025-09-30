@@ -35,8 +35,10 @@ object OppsummeringGenerator {
                             nyUtbetaling = beregnNyttBeløp(posteringerForDag),
                             totalEtterbetaling = beregnEtterbetaling(posteringerForDag),
                             totalFeilutbetaling = beregnFeilutbetaling(posteringerForDag),
+                            totalMotpostering = beregnMotposteringer(posteringerForDag),
                             totalTrekk = beregnTrekk(posteringerForDag),
                             totalJustering = beregnJustering(posteringerForDag),
+                            harNegativJustering = harNegativJustering(posteringerForDag),
                             posteringsdag = posteringerForDag,
                         )
                     }
@@ -73,6 +75,9 @@ object OppsummeringGenerator {
     private fun beregnFeilutbetaling(posteringer: PosteringerForDag): Int =
         maxOf(0, posteringer.summerBarePositivePosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_FEILUTBETALING))
 
+    private fun beregnMotposteringer(posteringer: PosteringerForDag): Int =
+        posteringer.summerPosteringer(Posteringstype.MOTPOSTERING)
+
     /** TREK i OS/UR. Kommer som positive posteringer. */
     private fun beregnTrekk(posteringer: PosteringerForDag): Int =
         posteringer.summerBarePositivePosteringer(Posteringstype.TREKK)
@@ -86,6 +91,9 @@ object OppsummeringGenerator {
     private fun beregnJustering(posteringer: PosteringerForDag): Int =
         posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
 
+    private fun harNegativJustering(posteringer: PosteringerForDag): Boolean =
+        posteringer.posteringer.any { it.type == Posteringstype.FEILUTBETALING && it.klassekode == KLASSEKODE_JUSTERING }
+
     private fun PosteringerForDag.summerBarePositivePosteringer(type: Posteringstype): Int =
         this.posteringer.filter { it.beløp > 0 && it.type == type }.sumOf { it.beløp }
 
@@ -97,6 +105,9 @@ object OppsummeringGenerator {
 
     private fun PosteringerForDag.summerPosteringer(type: Posteringstype, klassekode: String): Int =
         this.posteringer.filter { it.type == type && it.klassekode == klassekode }.sumOf { it.beløp }
+
+    private fun PosteringerForDag.summerPosteringer(type: Posteringstype): Int =
+        this.posteringer.filter { it.type == type }.sumOf { it.beløp }
 
     const val KLASSEKODE_JUSTERING = "KL_KODE_JUST_ARBYT"
     const val KLASSEKODE_FEILUTBETALING = "KL_KODE_FEIL_ARBYT"
