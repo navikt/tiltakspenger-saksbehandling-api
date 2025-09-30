@@ -19,8 +19,8 @@ private fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverkset
         is Simulering.Endring -> {
             if (totalFeilutbetaling != 0 || totalMotpostering != 0) {
                 KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke.left()
-            } else if (harNegativJustering) {
-                KanIkkeIverksetteUtbetaling.NegativJusteringStøttesIkke.left()
+            } else if (harJustering) {
+                KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left()
             } else {
                 Unit.right()
             }
@@ -34,5 +34,5 @@ private fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverkset
 enum class KanIkkeIverksetteUtbetaling {
     SimuleringMangler,
     FeilutbetalingStøttesIkke,
-    NegativJusteringStøttesIkke,
+    JusteringStøttesIkke,
 }

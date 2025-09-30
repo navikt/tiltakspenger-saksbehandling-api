@@ -62,7 +62,7 @@ private data class SimuleringEndringDbJson(
         val totalTrekk: Int = 0,
         val totalJustering: Int = 0,
         // Denne ble lagt til 30. sept. Defaulten er ikke nødvendigvis korrekt, dersom dagen har både positive og negative justeringer som nuller ut hverandre
-        val harNegativJustering: Boolean = totalJustering < 0,
+        val harJustering: Boolean = totalJustering < 0,
         val posteringsdag: PosteringerForDag,
     )
 
@@ -117,7 +117,7 @@ private data class SimuleringEndringDbJson(
                             totalMotpostering = dag.totalMotpostering,
                             totalTrekk = dag.totalTrekk,
                             totalJustering = dag.totalJustering,
-                            harNegativJustering = dag.harNegativJustering,
+                            harJustering = dag.harJustering,
                             posteringsdag = PosteringerForDag(
                                 dato = dag.dato,
                                 posteringer = dag.posteringsdag.posteringer.map { posteringForDag ->
@@ -186,7 +186,7 @@ private fun Simulering.Endring.toDbJson(): SimuleringEndringDbJson {
                         totalMotpostering = dag.totalFeilutbetaling,
                         totalTrekk = dag.totalTrekk,
                         totalJustering = dag.totalJustering,
-                        harNegativJustering = dag.harNegativJustering,
+                        harJustering = dag.harJustering,
                         posteringsdag = SimuleringEndringDbJson.PosteringerForDag(
                             dato = dag.posteringsdag.dato,
                             posteringer = dag.posteringsdag.posteringer.toList().map { postering ->

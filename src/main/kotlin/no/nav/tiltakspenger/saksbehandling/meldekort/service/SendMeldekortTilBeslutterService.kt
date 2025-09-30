@@ -29,7 +29,7 @@ class SendMeldekortTilBeslutterService(
         kommando: SendMeldekortTilBeslutterKommando,
     ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<Sak, MeldekortBehandletManuelt>> {
         val sak = hentSak(kommando)
-
+        sakService
         return sak.sendMeldekortTilBeslutter(
             kommando = kommando,
             simuler = { behandling ->

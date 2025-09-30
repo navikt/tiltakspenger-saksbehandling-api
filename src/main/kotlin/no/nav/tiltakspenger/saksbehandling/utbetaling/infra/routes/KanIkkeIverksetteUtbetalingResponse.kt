@@ -16,7 +16,7 @@ fun KanIkkeIverksetteUtbetaling.toErrorJson(): Pair<HttpStatusCode, ErrorJson> {
             "støtter_ikke_feilutbetaling",
         )
 
-        KanIkkeIverksetteUtbetaling.NegativJusteringStøttesIkke -> HttpStatusCode.BadRequest to ErrorJson(
+        KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> HttpStatusCode.BadRequest to ErrorJson(
             "Behandling med negativ justering støttes ikke på nåværende tidspunkt",
             "støtter_ikke_justering",
         )
