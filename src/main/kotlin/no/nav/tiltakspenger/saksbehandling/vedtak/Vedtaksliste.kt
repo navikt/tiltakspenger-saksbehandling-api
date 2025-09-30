@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -134,8 +133,8 @@ data class Vedtaksliste(
 
     fun leggTilVedtak(vedtak: Rammevedtak): Vedtaksliste = copy(value = this.value.plus(vedtak))
 
-    fun hentTiltaksdataForPeriode(periode: Periode): Tiltaksdeltagelser {
-        return Tiltaksdeltagelser(valgteTiltaksdeltakelserForPeriode(periode).verdier)
+    fun hentRammevedtakForId(rammevedtakId: VedtakId): Rammevedtak {
+        return value.single { it.id == rammevedtakId }
     }
 
     init {
