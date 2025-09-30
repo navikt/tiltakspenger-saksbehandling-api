@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -43,7 +44,88 @@ sealed interface Søknad {
 
     companion object {
         fun randomId() = SøknadId.random()
+        fun opprett(
+            sak: Sak,
+            journalpostId: String,
+            kravtidspunkt: LocalDateTime,
+            personopplysninger: Personopplysninger,
+            søknadstiltak: Søknadstiltak?,
+            barnetillegg: List<BarnetilleggFraSøknad>,
+            kvp: PeriodeSpm?,
+            intro: PeriodeSpm?,
+            institusjon: PeriodeSpm?,
+            etterlønn: JaNeiSpm?,
+            gjenlevendepensjon: PeriodeSpm?,
+            alderspensjon: FraOgMedDatoSpm?,
+            sykepenger: PeriodeSpm?,
+            supplerendeStønadAlder: PeriodeSpm?,
+            supplerendeStønadFlyktning: PeriodeSpm?,
+            jobbsjansen: PeriodeSpm?,
+            trygdOgPensjon: PeriodeSpm?,
+            antallVedlegg: Int,
+            manueltSattSøknadsperiode: Periode?,
+            søknadstype: Søknadstype,
+        ): Søknad =
+            if (manueltSattSøknadsperiode != null && søknadstiltak != null) {
+                InnvilgbarSøknad(
+                    id = SøknadId.random(),
+                    journalpostId = journalpostId,
+                    personopplysninger = personopplysninger,
+                    tiltak = søknadstiltak,
+                    barnetillegg = barnetillegg,
+                    opprettet = kravtidspunkt,
+                    tidsstempelHosOss = kravtidspunkt,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    kvp = kvp,
+                    intro = intro,
+                    institusjon = institusjon,
+                    etterlønn = etterlønn,
+                    gjenlevendepensjon = gjenlevendepensjon,
+                    alderspensjon = alderspensjon,
+                    sykepenger = sykepenger,
+                    supplerendeStønadAlder = supplerendeStønadAlder,
+                    supplerendeStønadFlyktning = supplerendeStønadFlyktning,
+                    jobbsjansen = jobbsjansen,
+                    trygdOgPensjon = trygdOgPensjon,
+                    vedlegg = antallVedlegg,
+                    manueltSattSøknadsperiode = manueltSattSøknadsperiode,
+                    søknadstype = søknadstype,
+                )
+            } else {
+                IkkeInnvilgbarSøknad(
+                    id = SøknadId.random(),
+                    journalpostId = journalpostId,
+                    personopplysninger = personopplysninger,
+                    tiltak = søknadstiltak,
+                    barnetillegg = barnetillegg,
+                    opprettet = kravtidspunkt,
+                    tidsstempelHosOss = kravtidspunkt,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    kvp = kvp,
+                    intro = intro,
+                    institusjon = institusjon,
+                    etterlønn = etterlønn,
+                    gjenlevendepensjon = gjenlevendepensjon,
+                    alderspensjon = alderspensjon,
+                    sykepenger = sykepenger,
+                    supplerendeStønadAlder = supplerendeStønadAlder,
+                    supplerendeStønadFlyktning = supplerendeStønadFlyktning,
+                    jobbsjansen = jobbsjansen,
+                    trygdOgPensjon = trygdOgPensjon,
+                    vedlegg = antallVedlegg,
+                    manueltSattSøknadsperiode = manueltSattSøknadsperiode,
+                    søknadstype = søknadstype,
+                )
+            }
     }
+
+    fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode?
+    fun erPapirsøknad() = søknadstype == Søknadstype.PAPIR
+    fun erDigitalSøknad() = søknadstype == Søknadstype.DIGITAL
+    fun kanInnvilges() =
+        (erDigitalSøknad() && tiltak != null) || (erPapirsøknad() && tiltak != null && manueltSattSøknadsperiode != null)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknad {
         if (this.avbrutt != null) {
@@ -109,10 +191,6 @@ sealed interface Søknad {
                 is Nei -> false
             }
     }
-
-    fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode
-    fun erPapirsøknad() = søknadstype == Søknadstype.PAPIR
-    fun erDigitalSøknad() = søknadstype == Søknadstype.DIGITAL
 }
 
 /**

@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.meldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonRoute
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.sakRoutes
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.route.meRoute
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.mottaSøknadRoute
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.søknadRoutes
 
 fun Route.routes(
     applicationContext: ApplicationContext,
@@ -71,9 +71,13 @@ fun Route.routes(
             clock = applicationContext.clock,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
         )
-        mottaSøknadRoute(
-            applicationContext.søknadContext.søknadService,
-            applicationContext.sakContext.sakService,
+        søknadRoutes(
+            auditService = applicationContext.personContext.auditService,
+            tilgangskontrollService = applicationContext.tilgangskontrollService,
+            registrerPapirsøknadService = applicationContext.søknadContext.registrerPapirsøknadService,
+            søknadService = applicationContext.søknadContext.søknadService,
+            sakService = applicationContext.sakContext.sakService,
+            clock = applicationContext.clock,
         )
     }
     staticResources(

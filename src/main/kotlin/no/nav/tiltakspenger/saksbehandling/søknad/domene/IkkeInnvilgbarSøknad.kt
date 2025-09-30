@@ -19,7 +19,7 @@ data class IkkeInnvilgbarSøknad(
     override val tidsstempelHosOss: LocalDateTime,
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
-    override val avbrutt: Avbrutt?,
+    override val avbrutt: Avbrutt? = null,
     override val kvp: Søknad.PeriodeSpm?,
     override val intro: Søknad.PeriodeSpm?,
     override val institusjon: Søknad.PeriodeSpm?,
@@ -32,55 +32,21 @@ data class IkkeInnvilgbarSøknad(
     override val jobbsjansen: Søknad.PeriodeSpm?,
     override val trygdOgPensjon: Søknad.PeriodeSpm?,
     override val vedlegg: Int,
-    override val manueltSattSøknadsperiode: Periode,
+    override val manueltSattSøknadsperiode: Periode?,
     override val søknadstype: Søknadstype,
 ) : Søknad {
     override val fnr: Fnr = personopplysninger.fnr
     override val erAvbrutt: Boolean by lazy { avbrutt != null }
 
-    // TODO Ta høyde for at tiltak er satt og bruk den i stedet?
-    override fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode =
-        Periode(manueltSattSøknadsperiode.fraOgMed, manueltSattSøknadsperiode.tilOgMed)
-
-    // TODO Boolean for å sjekke om søknad er innvilgbar? Frontend vil trenge noe slikt for å avgjøre om saksbehandler skal få innvilge
-    fun tilInnvilgbarSøknad(): InnvilgbarSøknad {
-        requireNotNull(tiltak) { "Tiltak mangler" }
-        requireNotNull(kvp) { "Mangler å ta stilling til kvp" }
-        requireNotNull(intro) { "Mangler å ta stilling til intro" }
-        requireNotNull(institusjon) { "Mangler å ta stilling til institusjon" }
-        requireNotNull(etterlønn) { "Mangler å ta stilling til etterlønn" }
-        requireNotNull(gjenlevendepensjon) { "Mangler å ta stilling til gjenlevendepensjon" }
-        requireNotNull(alderspensjon) { "Mangler å ta stilling til alderspensjon" }
-        requireNotNull(sykepenger) { "Mangler å ta stilling til sykepenger" }
-        requireNotNull(supplerendeStønadAlder) { "Mangler å ta stilling til supplerendeStønadAlder" }
-        requireNotNull(supplerendeStønadFlyktning) { "Mangler å ta stilling til supplerendeStønadFlyktning" }
-        requireNotNull(jobbsjansen) { "Mangler å ta stilling til jobbsjansen" }
-        requireNotNull(trygdOgPensjon) { "Mangler å ta stilling til trygdOgPensjon" }
-
-        return InnvilgbarSøknad(
-            id = SøknadId.random(),
-            journalpostId = journalpostId,
-            personopplysninger = personopplysninger,
-            tiltak = tiltak,
-            barnetillegg = barnetillegg,
-            opprettet = opprettet,
-            tidsstempelHosOss = tidsstempelHosOss,
-            kvp = kvp,
-            intro = intro,
-            institusjon = institusjon,
-            etterlønn = etterlønn,
-            gjenlevendepensjon = gjenlevendepensjon,
-            alderspensjon = alderspensjon,
-            sykepenger = sykepenger,
-            supplerendeStønadAlder = supplerendeStønadAlder,
-            supplerendeStønadFlyktning = supplerendeStønadFlyktning,
-            jobbsjansen = jobbsjansen,
-            trygdOgPensjon = trygdOgPensjon,
-            vedlegg = vedlegg,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            avbrutt = avbrutt,
-            søknadstype = søknadstype,
-        )
-    }
+    override fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode? =
+        if (tiltak != null) {
+            Periode(tiltak.deltakelseFom, tiltak.deltakelseTom)
+        } else if (manueltSattSøknadsperiode != null) {
+            Periode(
+                manueltSattSøknadsperiode.fraOgMed,
+                manueltSattSøknadsperiode.tilOgMed,
+            )
+        } else {
+            null
+        }
 }

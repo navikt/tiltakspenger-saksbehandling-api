@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
@@ -136,10 +137,4 @@ class SakService(
             sessionContext = sessionContext,
         )
     }
-}
-
-sealed interface KanIkkeBehandleSøknadPåNytt {
-    data class OppretteBehandling(
-        val underliggende: KanIkkeOppretteBehandling,
-    ) : KanIkkeBehandleSøknadPåNytt
 }
