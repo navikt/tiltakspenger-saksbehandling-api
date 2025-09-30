@@ -102,22 +102,19 @@ data class MeldekortUnderBehandling(
         validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft {
             return it.tilKanIkkeSendeMeldekortTilBeslutter().left()
         }
-        val (oppdatertMeldekort, simulering) = if (kommando.harOppdateringer) {
-            oppdater(
-                kommando = OppdaterMeldekortKommando(
-                    sakId = kommando.sakId,
-                    meldekortId = kommando.meldekortId,
-                    saksbehandler = kommando.saksbehandler,
-                    dager = kommando.dager!!,
-                    begrunnelse = kommando.begrunnelse,
-                    correlationId = kommando.correlationId,
-                ),
-                beregn = beregn,
-                simuler = simuler,
-            ).getOrElse { return KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere(it).left() }
-        } else {
-            Pair(this, null)
-        }
+
+        val (oppdatertMeldekort, simulering) = oppdater(
+            kommando = OppdaterMeldekortKommando(
+                sakId = kommando.sakId,
+                meldekortId = kommando.meldekortId,
+                saksbehandler = kommando.saksbehandler,
+                dager = kommando.dager!!,
+                begrunnelse = kommando.begrunnelse,
+                correlationId = kommando.correlationId,
+            ),
+            beregn = beregn,
+            simuler = simuler,
+        ).getOrElse { return KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere(it).left() }
 
         return (
             MeldekortBehandletManuelt(

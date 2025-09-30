@@ -4,8 +4,13 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 
 fun BehandlingUtbetaling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
+    return simulering.validerKanIverksetteUtbetaling()
+}
+
+fun MeldekortBehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
     return simulering.validerKanIverksetteUtbetaling()
 }
 
