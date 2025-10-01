@@ -87,7 +87,7 @@ class TestApplicationContext(
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
     private val behandlingFakeRepo = BehandlingFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
-    private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient(søknadRepo = søknadFakeRepo)
+    private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient { søknadFakeRepo }
     private val sokosUtbetaldataFakeClient = SokosUtbetaldataFakeClient()
     private val tiltakspengerArenaFakeClient = TiltakspengerArenaFakeClient()
     private val personFakeKlient = PersonFakeKlient(clock)

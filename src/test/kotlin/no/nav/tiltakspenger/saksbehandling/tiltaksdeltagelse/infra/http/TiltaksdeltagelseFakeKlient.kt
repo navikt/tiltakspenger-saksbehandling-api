@@ -11,7 +11,9 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.toTiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 
-class TiltaksdeltagelseFakeKlient(private val søknadRepo: SøknadRepo) : TiltaksdeltagelseKlient {
+class TiltaksdeltagelseFakeKlient(
+    private val søknadRepoProvider: suspend () -> SøknadRepo? = { null },
+) : TiltaksdeltagelseKlient {
     private val data = Atomic(mutableMapOf<Fnr, Tiltaksdeltagelser>())
 
     override suspend fun hentTiltaksdeltagelser(
@@ -45,7 +47,8 @@ class TiltaksdeltagelseFakeKlient(private val søknadRepo: SøknadRepo) : Tiltak
         }
     }
 
-    private fun hentTiltaksdeltagelseFraSøknad(fnr: Fnr): Tiltaksdeltagelser {
+    private suspend fun hentTiltaksdeltagelseFraSøknad(fnr: Fnr): Tiltaksdeltagelser {
+        val søknadRepo = søknadRepoProvider()!!
         val søknader = søknadRepo.hentSøknaderForFnr(fnr)
         val tiltak = søknader.lastOrNull()?.tiltak?.toTiltak()
 
