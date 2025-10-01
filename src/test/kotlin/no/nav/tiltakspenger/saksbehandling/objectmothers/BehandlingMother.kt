@@ -117,7 +117,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 hentSaksopplysninger = hentSaksopplysninger,
                 clock = clock,
                 correlationId = correlationId,
-            ).getOrFail()
+            )
         }
     }
 

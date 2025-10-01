@@ -14,11 +14,11 @@ fun Søknadsbehandling.toBehandlingJson(): String {
         fraOgMed = virkningsperiode?.fraOgMed
             ?: saksopplysninger?.tiltaksdeltagelser?.tidligsteFraOgMed
             ?: søknad.tiltak?.deltakelseFom
-            ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm().fraOgMed,
+            ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm()!!.fraOgMed,
         tilOgMed = virkningsperiode?.tilOgMed
             ?: saksopplysninger?.tiltaksdeltagelser?.senesteTilOgMed
             ?: søknad.tiltak?.deltakelseTom
-            ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm().tilOgMed,
+            ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm()!!.tilOgMed,
         behandlingStatus = status.toDatadelingDTO(),
         saksbehandler = saksbehandler,
         beslutter = beslutter,

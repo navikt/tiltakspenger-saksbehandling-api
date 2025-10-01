@@ -5,17 +5,17 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.søknad.service.RegistrerPapirsøknadService
+import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvPapirsøknadService
 import java.time.Clock
 
 fun Route.søknadRoutes(
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
-    registrerPapirsøknadService: RegistrerPapirsøknadService,
+    startBehandlingAvPapirsøknadService: StartBehandlingAvPapirsøknadService,
     søknadService: SøknadService,
     sakService: SakService,
     clock: Clock,
 ) {
     mottaSøknadRoute(søknadService, sakService)
-    startBehandlingAvPapirsøknadRoute(auditService, tilgangskontrollService, registrerPapirsøknadService)
+    startBehandlingAvPapirsøknadRoute(auditService, tilgangskontrollService, startBehandlingAvPapirsøknadService)
 }
