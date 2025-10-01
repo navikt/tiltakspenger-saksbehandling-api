@@ -193,7 +193,7 @@ class RammevedtakPostgresRepo(
                     """
                     select *
                     from rammevedtak
-                    where sendt_til_datadeling is null and vedtakstype != 'AVSLAG'
+                    where sendt_til_datadeling is null
                     order by opprettet
                     limit $limit
                     """.trimIndent(),
