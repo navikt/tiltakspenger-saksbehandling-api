@@ -74,7 +74,7 @@ fun Route.routes(
         søknadRoutes(
             auditService = applicationContext.personContext.auditService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
-            registrerPapirsøknadService = applicationContext.søknadContext.registrerPapirsøknadService,
+            startBehandlingAvPapirsøknadService = applicationContext.søknadContext.registrerPapirsøknadService,
             søknadService = applicationContext.søknadContext.søknadService,
             sakService = applicationContext.sakContext.sakService,
             clock = applicationContext.clock,

@@ -123,7 +123,7 @@ interface SakMother {
                     hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
                     clock = clock,
                     correlationId = correlationId,
-                ).getOrFail()
+                )
 
                 behandling.oppdater(
                     when (resultat) {
