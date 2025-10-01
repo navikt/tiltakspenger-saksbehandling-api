@@ -224,8 +224,6 @@ tasks {
         dependsOn(configurations.runtimeClasspath)
         archiveBaseName = "app"
 
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
         manifest {
             attributes["Main-Class"] = "no.nav.tiltakspenger.saksbehandling.AppKt"
             attributes["Class-Path"] = configurations.runtimeClasspath
