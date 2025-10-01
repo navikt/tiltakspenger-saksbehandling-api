@@ -24,10 +24,10 @@ class RammevedtakPostgresRepoTest {
     }
 
     @Test
-    fun `henter ikke avslagsvedtak for datadeling`() {
+    fun `henter avslagsvedtak for datadeling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            testDataHelper.persisterRammevedtakAvslag()
-            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling() shouldBe emptyList()
+            val (_, rammevedtak) = testDataHelper.persisterRammevedtakAvslag()
+            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling() shouldBe listOf(rammevedtak)
         }
     }
 
