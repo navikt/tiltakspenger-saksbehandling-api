@@ -112,7 +112,7 @@ class BenkOversiktPostgresRepo(
                                            OVER (PARTITION BY mbr.sak_id, mbr.meldeperiode_kjede_id ORDER BY mbr.mottatt DESC) AS sisteMeldekortNr
                                     FROM meldekort_bruker mbr),
         /*
-        Hjelpe-tabell for å finne siste iverksatte meldekortbehandling på en sak/kjede - dette er for å vite om et meldekort er potensielt tatt stilling til
+        Hjelpe-tabell for å finne siste opprettede meldekortbehandling på en sak/kjede - dette er for å vite om et meldekort er potensielt tatt stilling til
          */
               sisteMeldekortBehandlingForKjede AS (SELECT sak_id,
                                                           meldeperiode_kjede_id,
