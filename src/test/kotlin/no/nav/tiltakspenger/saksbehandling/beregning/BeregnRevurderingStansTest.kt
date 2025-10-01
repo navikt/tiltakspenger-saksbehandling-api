@@ -57,7 +57,7 @@ class BeregnRevurderingStansTest {
     fun `Skal ikke beregne utbetaling ved stans over kun ikke-utbetalte perioder`() {
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, 27.januar(2025))
+        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(27.januar(2025), sak.sisteDagSomGirRett!!))
 
         beregning.shouldBeNull()
     }
@@ -67,7 +67,7 @@ class BeregnRevurderingStansTest {
         // Stanser lørdag/søndag på andre meldekort
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, 25.januar(2025))
+        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(25.januar(2025), sak.sisteDagSomGirRett!!))
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 1
@@ -82,7 +82,7 @@ class BeregnRevurderingStansTest {
     fun `Skal beregne 0-utbetaling for hele virkningperioden når hele perioden stanses`() {
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, virkningsperiode.fraOgMed)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(virkningsperiode.fraOgMed, sak.sisteDagSomGirRett!!))
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 2
@@ -99,7 +99,7 @@ class BeregnRevurderingStansTest {
     fun `Skal beregne 0-utbetaling for en utbetalt meldeperiode når denne perioden stanses`() {
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, 13.januar(2025))
+        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(13.januar(2025), sak.sisteDagSomGirRett!!))
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 1
@@ -115,7 +115,7 @@ class BeregnRevurderingStansTest {
     fun `Skal beregne redusert utbetaling ved stans midt i siste utbetalte periode`() {
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, 20.januar(2025))
+        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(20.januar(2025), sak.sisteDagSomGirRett!!))
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 1
@@ -131,7 +131,7 @@ class BeregnRevurderingStansTest {
     fun `Skal beregne en redusert utbetaling og en 0-utbetaling ved stans midt i første utbetalte periode`() {
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, 6.januar(2025))
+        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(6.januar(2025), sak.sisteDagSomGirRett!!))
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 2

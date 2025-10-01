@@ -37,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDb
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
@@ -342,9 +343,7 @@ class BehandlingPostgresRepo(
             val sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling")
             val fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) }
             val begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let {
-                BegrunnelseVilkårsvurdering(
-                    it,
-                )
+                BegrunnelseVilkårsvurdering(it)
             }
 
             val fraOgMed = localDateOrNull("saksopplysningsperiode_fra_og_med")
@@ -443,6 +442,8 @@ class BehandlingPostgresRepo(
                         RevurderingType.STANS -> RevurderingResultat.Stans(
                             valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()
                                 ?: emptyList(),
+                            harValgtStansFraFørsteDagSomGirRett = booleanOrNull("har_valgt_stans_fra_første_dag_som_gir_rett"),
+                            harValgtStansTilSisteDagSomGirRett = booleanOrNull("har_valgt_stans_til_siste_dag_som_gir_rett"),
                         )
 
                         RevurderingType.INNVILGELSE -> RevurderingResultat.Innvilgelse(
@@ -532,7 +533,9 @@ class BehandlingPostgresRepo(
                 beregning,
                 simulering,
                 navkontor,
-                navkontor_navn
+                navkontor_navn,
+                har_valgt_stans_fra_første_dag_som_gir_rett,
+                har_valgt_stans_til_siste_dag_som_gir_rett
             ) values (
                 :id,
                 :sak_id,
@@ -568,7 +571,9 @@ class BehandlingPostgresRepo(
                 to_jsonb(:beregning::jsonb),
                 to_jsonb(:simulering::jsonb),
                 :navkontor,
-                :navkontor_navn
+                :navkontor_navn,
+                :har_valgt_stans_fra_forste_dag_som_gir_rett,
+                :har_valgt_stans_til_siste_dag_som_gir_rett
             )
             """.trimIndent()
 
@@ -607,7 +612,9 @@ class BehandlingPostgresRepo(
                 simulering = to_jsonb(:simulering::jsonb),
                 simulering_metadata = CASE WHEN :simulering::varchar IS NULL THEN NULL ELSE simulering_metadata END,
                 navkontor = :navkontor,
-                navkontor_navn = :navkontor_navn                
+                navkontor_navn = :navkontor_navn,
+                har_valgt_stans_fra_første_dag_som_gir_rett = :har_valgt_stans_fra_forste_dag_som_gir_rett,
+                har_valgt_stans_til_siste_dag_som_gir_rett = :har_valgt_stans_til_siste_dag_som_gir_rett
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -754,6 +761,8 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
 
     is RevurderingResultat.Stans -> arrayOf(
         "valgt_hjemmel_har_ikke_rettighet" to this.valgtHjemmel.toDbJson(),
+        "har_valgt_stans_fra_forste_dag_som_gir_rett" to this.harValgtStansFraFørsteDagSomGirRett,
+        "har_valgt_stans_til_siste_dag_som_gir_rett" to this.harValgtStansTilSisteDagSomGirRett,
     )
 
     null -> emptyArray()

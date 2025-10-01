@@ -336,7 +336,8 @@ class EndretTiltaksdeltakerJobbTest {
                     )
                     testDataHelper.persisterIverksattRevurderingStans(
                         sak = sakMedFørstegangsvedtak,
-                        stansDato = vedtak.fraOgMed,
+                        stansFraOgMed = vedtak.fraOgMed,
+                        stansTilOgMed = vedtak.tilOgMed,
                     )
                     val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
                         id = førsteSøknadstiltakId,

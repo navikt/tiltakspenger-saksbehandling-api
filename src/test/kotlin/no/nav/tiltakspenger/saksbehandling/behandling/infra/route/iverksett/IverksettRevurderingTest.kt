@@ -46,6 +46,7 @@ internal class IverksettRevurderingTest {
                     fritekstTilVedtaksbrev = null,
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
+                    stansTilOgMed = null,
                 ),
             )
 
@@ -171,6 +172,7 @@ internal class IverksettRevurderingTest {
                     fritekstTilVedtaksbrev = null,
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
+                    stansTilOgMed = null,
                 ),
             )
 

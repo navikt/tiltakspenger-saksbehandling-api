@@ -61,6 +61,7 @@ interface SendRevurderingTilBeslutningBuilder {
                 fritekstTilVedtaksbrev = null,
                 valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                 stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
+                stansTilOgMed = null,
             ),
         )
 

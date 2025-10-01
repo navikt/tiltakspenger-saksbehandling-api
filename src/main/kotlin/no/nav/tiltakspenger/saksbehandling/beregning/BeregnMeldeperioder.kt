@@ -470,23 +470,21 @@ fun Sak.beregnMeldekort(
     )
 }
 
-fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansFraOgMed: LocalDate): BehandlingBeregning? {
+fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode): BehandlingBeregning? {
     val behandling = hentBehandling(behandlingId)
 
     require(behandling is Revurdering && behandling.resultat is RevurderingResultat.Stans) {
         "Behandlingen på være en revurdering til stans"
     }
 
-    val stansPeriode = Periode(stansFraOgMed, this.sisteDagSomGirRett!!)
-
     val beregningerSomSkalOppdateres = this.meldeperiodeBeregninger
-        .sisteBeregningerForPeriode(stansPeriode)
+        .sisteBeregningerForPeriode(stansperiode)
         .map { beregning ->
             beregning.tilSkalBeregnes().copy(
                 dager = beregning.dager.map { dag ->
                     MeldekortDag(
                         dato = dag.dato,
-                        status = if (stansPeriode.contains(dag.dato)) {
+                        status = if (stansperiode.contains(dag.dato)) {
                             MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
                         } else {
                             dag.tilMeldekortDagStatus()

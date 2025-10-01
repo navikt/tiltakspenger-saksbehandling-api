@@ -32,7 +32,7 @@ class SendRevurderingTilBeslutningTest {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingStans(tac)
 
-            val stansdato = sak.vedtaksliste.førsteDagSomGirRett!!.plusDays(1)
+            val stansFraOgMed = sak.vedtaksliste.førsteDagSomGirRett!!.plusDays(1)
 
             oppdaterBehandling(
                 tac = tac,
@@ -42,7 +42,8 @@ class SendRevurderingTilBeslutningTest {
                     begrunnelseVilkårsvurdering = null,
                     fritekstTilVedtaksbrev = null,
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = stansdato,
+                    stansFraOgMed = stansFraOgMed,
+                    stansTilOgMed = null,
                 ),
             )
 

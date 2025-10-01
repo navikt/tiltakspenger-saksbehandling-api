@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbeh
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
@@ -75,7 +74,8 @@ class OppdaterBehandlingService(
 
             is OppdaterRevurderingKommando.Stans -> this.beregnRevurderingStans(
                 behandlingId = kommando.behandlingId,
-                stansFraOgMed = kommando.stansFraOgMed,
+                // Vi kan ikke stanse hvis vi ikke har en rettighetsperiode.
+                stansperiode = kommando.hentStansperiode(this.førsteDagSomGirRett!!, this.sisteDagSomGirRett!!),
             )
 
             is OppdaterSøknadsbehandlingKommando.Avslag,
@@ -127,10 +127,9 @@ class OppdaterBehandlingService(
             }
 
             is OppdaterRevurderingKommando.Stans -> {
-                validerStansDato(kommando.stansFraOgMed)
-
                 revurdering.oppdaterStans(
                     kommando = kommando,
+                    førsteDagSomGirRett = førsteDagSomGirRett!!,
                     sisteDagSomGirRett = sisteDagSomGirRett!!,
                     clock = clock,
                     utbetaling = utbetaling,

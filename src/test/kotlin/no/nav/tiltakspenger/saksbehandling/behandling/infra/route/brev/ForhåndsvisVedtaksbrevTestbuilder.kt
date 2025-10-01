@@ -28,14 +28,6 @@ import java.time.LocalDate
 
 /**
  * Gjelder for innvilgelse, avslag og stans.
- *
- *  val fritekst: String,
- *     val virkningsperiode: PeriodeDTO?,
- *     val stansDato: LocalDate?,
- *     val valgteHjemler: List<ValgtHjemmelForStansDTO>?,
- *     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
- *     val resultat: BehandlingResultatDTO,
- *     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
  */
 interface ForhåndsvisVedtaksbrevTestbuilder {
 
@@ -47,7 +39,8 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: String = "some_tekst",
         virkningsperiode: Periode? = null,
-        stansDato: LocalDate? = null,
+        stansFraOgMed: LocalDate? = null,
+        stansTilOgMed: LocalDate? = null,
         valgteHjemler: List<ValgtHjemmelForStansDTO>? = null,
         barnetillegg: List<BarnetilleggPeriodeDTO>? = null,
         resultat: BehandlingResultatDTO,
@@ -69,7 +62,8 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
                   {
                     "fritekst": "$fritekstTilVedtaksbrev",
                     "virkningsperiode": ${if (virkningsperiode != null) """{"fraOgMed":"${virkningsperiode.fraOgMed}","tilOgMed":"${virkningsperiode.tilOgMed}"}""" else null},
-                    "stansDato": ${if (stansDato != null) """"$stansDato"""" else null},
+                    "stansFraOgMed": ${if (stansFraOgMed != null) """"$stansFraOgMed"""" else null},
+                    "stansTilOgMed": ${if (stansTilOgMed != null) """"$stansTilOgMed"""" else null},
                     "valgteHjemler": ${valgteHjemler?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
                     "barnetillegg": ${
                 barnetillegg?.joinToString(

@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
-import java.time.LocalDate
 
 /**
  * Generell funksjon for å starte revurdering (både innvilgelse og stans)
@@ -61,6 +60,7 @@ private suspend fun Sak.startRevurderingStans(
             this.tiltaksdeltagelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
             false,
         ),
+
         clock = clock,
     )
 }
@@ -90,18 +90,4 @@ private suspend fun Sak.startRevurderingInnvilgelse(
         ),
         clock = clock,
     )
-}
-
-fun Sak.validerStansDato(stansDato: LocalDate?) {
-    if (stansDato == null) {
-        throw IllegalArgumentException("Stansdato er ikke satt")
-    }
-
-    if (stansDato.isBefore(this.førsteDagSomGirRett)) {
-        throw IllegalArgumentException("Kan ikke starte revurdering ($stansDato) før første innvilgetdato (${this.førsteDagSomGirRett})")
-    }
-
-    if (stansDato.isAfter(this.sisteDagSomGirRett)) {
-        throw IllegalArgumentException("Kan ikke starte revurdering med stansdato ($stansDato) etter siste innvilgetdato (${this.sisteDagSomGirRett})")
-    }
 }
