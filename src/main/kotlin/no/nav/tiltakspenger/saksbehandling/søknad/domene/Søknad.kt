@@ -66,7 +66,7 @@ sealed interface Søknad {
             manueltSattSøknadsperiode: Periode?,
             søknadstype: Søknadstype,
         ): Søknad =
-            if (manueltSattSøknadsperiode != null && søknadstiltak != null) {
+            if (søknadstiltak != null) {
                 InnvilgbarSøknad(
                     id = SøknadId.random(),
                     journalpostId = journalpostId,
