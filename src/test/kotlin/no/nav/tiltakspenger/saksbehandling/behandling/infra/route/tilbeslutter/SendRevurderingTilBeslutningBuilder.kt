@@ -62,6 +62,8 @@ interface SendRevurderingTilBeslutningBuilder {
                 valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                 stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
                 stansTilOgMed = null,
+                harValgtStansFraFørsteDagSomGirRett = false,
+                harValgtStansTilSisteDagSomGirRett = true,
             ),
         )
 

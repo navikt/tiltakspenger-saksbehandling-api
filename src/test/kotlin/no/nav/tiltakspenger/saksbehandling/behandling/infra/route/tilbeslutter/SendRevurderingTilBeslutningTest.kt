@@ -44,6 +44,8 @@ class SendRevurderingTilBeslutningTest {
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = stansFraOgMed,
                     stansTilOgMed = null,
+                    harValgtStansFraFørsteDagSomGirRett = false,
+                    harValgtStansTilSisteDagSomGirRett = true,
                 ),
             )
 

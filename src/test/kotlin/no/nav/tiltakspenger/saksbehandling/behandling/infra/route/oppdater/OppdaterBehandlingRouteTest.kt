@@ -203,6 +203,8 @@ class OppdaterBehandlingRouteTest {
                     valgteHjemler = listOf(ValgtHjemmelForStansDTO.DeltarIkkePåArbeidsmarkedstiltak),
                     stansFraOgMed = 9.april(2025),
                     stansTilOgMed = null,
+                    harValgtStansFraFørsteDagSomGirRett = false,
+                    harValgtStansTilSisteDagSomGirRett = true,
                 ),
             )
 
@@ -231,6 +233,8 @@ class OppdaterBehandlingRouteTest {
                     valgteHjemler = listOf(ValgtHjemmelForStansDTO.DeltarIkkePåArbeidsmarkedstiltak),
                     stansFraOgMed = 9.april(2025),
                     stansTilOgMed = null,
+                    harValgtStansFraFørsteDagSomGirRett = false,
+                    harValgtStansTilSisteDagSomGirRett = true,
                 ),
             )
 
@@ -317,6 +321,8 @@ class OppdaterBehandlingRouteTest {
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = stansFraOgMed,
                     stansTilOgMed = null,
+                    harValgtStansFraFørsteDagSomGirRett = false,
+                    harValgtStansTilSisteDagSomGirRett = true,
                 ),
                 forventetStatus = HttpStatusCode.InternalServerError,
             )
@@ -339,6 +345,8 @@ class OppdaterBehandlingRouteTest {
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = stansFraOgMed,
                     stansTilOgMed = null,
+                    harValgtStansFraFørsteDagSomGirRett = false,
+                    harValgtStansTilSisteDagSomGirRett = true,
                 ),
                 forventetStatus = HttpStatusCode.InternalServerError,
             )

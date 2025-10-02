@@ -90,6 +90,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val begrunnelseVilkårsvurdering: String?,
         override val fritekstTilVedtaksbrev: String?,
         val valgteHjemler: List<ValgtHjemmelForStansDTO>,
+        val harValgtStansFraFørsteDagSomGirRett: Boolean,
+        val harValgtStansTilSisteDagSomGirRett: Boolean,
         val stansFraOgMed: LocalDate?,
         val stansTilOgMed: LocalDate?,
     ) : OppdaterRevurderingDTO {

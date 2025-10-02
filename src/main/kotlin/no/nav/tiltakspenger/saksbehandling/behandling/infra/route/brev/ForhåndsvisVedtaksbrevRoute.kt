@@ -47,6 +47,8 @@ import java.time.LocalDate
 private data class Body(
     val fritekst: String,
     val virkningsperiode: PeriodeDTO?,
+    val harValgtStansFraFørsteDagSomGirRett: Boolean,
+    val harValgtStansTilSisteDagSomGirRett: Boolean,
     val stansFraOgMed: LocalDate?,
     val stansTilOgMed: LocalDate?,
     val valgteHjemler: List<ValgtHjemmelForStansDTO>?,

@@ -169,7 +169,9 @@ class UtbetalingerIT {
                     begrunnelseVilkårsvurdering = "what",
                     valgteHjemler = listOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = virkningsperiode.fraOgMed,
-                    stansTilOgMed = virkningsperiode.tilOgMed,
+                    stansTilOgMed = null,
+                    harValgtStansFraFørsteDagSomGirRett = false,
+                    harValgtStansTilSisteDagSomGirRett = true,
                 ),
             )
 
@@ -229,6 +231,8 @@ class UtbetalingerIT {
                     valgteHjemler = listOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = virkningsperiode.fraOgMed,
                     stansTilOgMed = null,
+                    harValgtStansFraFørsteDagSomGirRett = false,
+                    harValgtStansTilSisteDagSomGirRett = true,
                 ),
             )
 

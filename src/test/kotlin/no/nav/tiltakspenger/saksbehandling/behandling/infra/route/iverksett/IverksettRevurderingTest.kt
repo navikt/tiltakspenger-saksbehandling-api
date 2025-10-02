@@ -47,6 +47,8 @@ internal class IverksettRevurderingTest {
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
                     stansTilOgMed = null,
+                    harValgtStansFraFørsteDagSomGirRett = false,
+                    harValgtStansTilSisteDagSomGirRett = true,
                 ),
             )
 
@@ -173,6 +175,8 @@ internal class IverksettRevurderingTest {
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
                     stansTilOgMed = null,
+                    harValgtStansFraFørsteDagSomGirRett = false,
+                    harValgtStansTilSisteDagSomGirRett = true,
                 ),
             )
 
