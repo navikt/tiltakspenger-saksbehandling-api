@@ -36,6 +36,50 @@ class SøknadPostgresRepoTest {
         }
 
         @Test
+        fun `lagre og hente en innvilgbar søknad`() {
+            withMigratedDb { testDataHelper ->
+                val søknadRepo = testDataHelper.søknadRepo
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                val persistertSøknad = testDataHelper.persisterSakOgSøknad(
+                    fnr = fnr,
+                    sak = sak,
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
+                        fnr = fnr,
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+
+                søknadRepo.hentSøknaderForFnr(fnr).also { hentetSøknad ->
+                    hentetSøknad.singleOrNullOrThrow() shouldBe persistertSøknad
+                }
+            }
+        }
+
+        @Test
+        fun `lagre og hente en ikke innvilgbar søknad`() {
+            withMigratedDb { testDataHelper ->
+                val søknadRepo = testDataHelper.søknadRepo
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                val persistertSøknad = testDataHelper.persisterSakOgSøknad(
+                    fnr = fnr,
+                    sak = sak,
+                    søknad = ObjectMother.nyIkkeInnvilgbarSøknad(
+                        fnr = fnr,
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+
+                søknadRepo.hentSøknaderForFnr(fnr).also { hentetSøknad ->
+                    hentetSøknad.singleOrNullOrThrow() shouldBe persistertSøknad
+                }
+            }
+        }
+
+        @Test
         fun `søknad med nei på alle spørsmål`() {
             withMigratedDb { testDataHelper ->
                 val søknadRepo = testDataHelper.søknadRepo
@@ -43,8 +87,11 @@ class SøknadPostgresRepoTest {
                 val deltakelseFom = 1.januar(2023)
                 val deltakelseTom = 31.mars(2023)
                 val tiltak = ObjectMother.søknadstiltak(deltakelseFom = deltakelseFom, deltakelseTom = deltakelseTom)
+                val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
 
-                ObjectMother.nyInnvilgbarSøknad(
+                val søknad = ObjectMother.nyInnvilgbarSøknad(
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                     periode = Periode(deltakelseFom, deltakelseTom),
                     søknadstiltak = tiltak,
                     fnr = fnr,
@@ -61,7 +108,7 @@ class SøknadPostgresRepoTest {
                     jobbsjansen = periodeNei(),
                 )
 
-                val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr)
+                val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
 
                 søknadRepo.hentSøknaderForFnr(fnr).also { søknader ->
                     søknader.single().also { hentetSøknad ->

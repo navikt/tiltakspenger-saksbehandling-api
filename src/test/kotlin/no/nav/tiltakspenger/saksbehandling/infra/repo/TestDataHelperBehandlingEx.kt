@@ -218,7 +218,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
             automatiskSaksbehandlet = true,
             tiltaksdeltakelser = listOf(
                 Pair(
-                    behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+                    behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm()!!,
                     behandling.søknad.tiltak!!.id,
                 ),
             ),
@@ -226,7 +226,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
             barnetillegg = Barnetillegg.utenBarnetillegg(tiltaksOgVurderingsperiode),
             antallDagerPerMeldeperiode = SammenhengendePeriodisering(
                 AntallDagerForMeldeperiode(10),
-                behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+                behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm()!!,
             ),
         ),
         clock = clock,

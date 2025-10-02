@@ -35,6 +35,7 @@ data class SøknadDTO(
     val trygdOgPensjon: PeriodeDTO?,
     val antallVedlegg: Int,
     val avbrutt: AvbruttDTO?,
+    val kanInnvilges: Boolean,
 ) {
     data class TiltaksdeltagelseFraSøknadDTO(
         val id: String,
@@ -90,6 +91,7 @@ fun InnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         trygdOgPensjon = this.trygdOgPensjon?.toPeriodeDTO(),
         antallVedlegg = this.vedlegg,
         avbrutt = avbrutt?.toAvbruttDTO(),
+        kanInnvilges = this.kanInnvilges(),
     )
 }
 
@@ -114,6 +116,7 @@ fun IkkeInnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         trygdOgPensjon = this.trygdOgPensjon?.toPeriodeDTO(),
         antallVedlegg = this.vedlegg,
         avbrutt = avbrutt?.toAvbruttDTO(),
+        kanInnvilges = this.kanInnvilges(),
     )
 }
 

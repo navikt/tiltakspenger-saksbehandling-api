@@ -245,7 +245,7 @@ open class ApplicationContext(
             clock,
         )
     }
-    open val søknadContext by lazy { SøknadContext(sessionFactory, sakContext.sakService) }
+
     open val tiltakContext by lazy { TiltaksdeltagelseContext(texasClient) }
     open val profile by lazy { Configuration.applicationProfile() }
     open val sakContext by lazy {
@@ -311,6 +311,19 @@ open class ApplicationContext(
             tiltakspengerArenaClient = tiltakspengerArenaClient,
         )
     }
+
+    open val søknadContext by lazy {
+        SøknadContext(
+            sessionFactory = sessionFactory,
+            behandlingRepo = behandlingContext.behandlingRepo,
+            hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
+            sakService = sakContext.sakService,
+            statistikkSakRepo = statistikkContext.statistikkSakRepo,
+            statistikkSakService = statistikkContext.statistikkSakService,
+            clock = clock,
+        )
+    }
+
     open val benkOversiktContext by lazy {
         BenkOversiktContext(
             sessionFactory = sessionFactory,
