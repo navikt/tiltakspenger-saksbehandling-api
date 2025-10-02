@@ -39,14 +39,16 @@ import java.time.LocalDate
 /**
  * @param avslagsgrunner Brukes kun ved søknadsbehandling avslag
  * @param valgteHjemler Brukes kun ved revurdering til stans
- * @param stansDato Brukes kun ved revurdering til stans
+ * @param stansFraOgMed Brukes kun ved revurdering til stans
+ * @param stansTilOgMed Brukes kun ved revurdering til stans
  * @param barnetillegg Brukes ved innvilgelse (søknadsbehandling+revurdering). Kan inneholde hull. Må valideres basert på innsendt virkningsperiode eller virkningsperioden på behandlingen.
  * @param virkningsperiode Brukes ved avslag og innvilgelse (søknadsbehandling+revurdering). Brukes kun hvis den ikke er satt på behandlingen.
  */
 private data class Body(
     val fritekst: String,
     val virkningsperiode: PeriodeDTO?,
-    val stansDato: LocalDate?,
+    val stansFraOgMed: LocalDate?,
+    val stansTilOgMed: LocalDate?,
     val valgteHjemler: List<ValgtHjemmelForStansDTO>?,
     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
     val resultat: BehandlingResultatDTO,
@@ -73,7 +75,8 @@ private data class Body(
             saksbehandler = saksbehandler,
             virkningsperiode = virkningsperiode,
             valgteHjemler = valgteHjemler?.toDomain(),
-            stansDato = stansDato,
+            stansFraOgMed = stansFraOgMed,
+            stansTilOgMed = stansTilOgMed,
             barnetillegg = if (barnetillegg == null || barnetillegg.isEmpty()) null else (barnetillegg.tilPeriodisering() as IkkeTomPeriodisering),
             resultat = resultat,
             avslagsgrunner = this.avslagsgrunner?.toAvslagsgrunnlag(),

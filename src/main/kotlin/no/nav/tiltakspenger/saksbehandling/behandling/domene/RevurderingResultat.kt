@@ -5,8 +5,14 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
 sealed interface RevurderingResultat : BehandlingResultat {
+    /**
+     * @param harValgtStansFraFørsteDagSomGirRett Dersom saksbehandler har valgt at det skal stanses fra første dag som gir rett. Vil være null når man oppretter stansen.
+     * @param harValgtStansTilSisteDagSomGirRett Dersom saksbehandler har valgt at det skal stanses til siste dag som gir rett. Vil være null når man oppretter stansen.
+     */
     data class Stans(
         val valgtHjemmel: List<ValgtHjemmelForStans>,
+        val harValgtStansFraFørsteDagSomGirRett: Boolean?,
+        val harValgtStansTilSisteDagSomGirRett: Boolean?,
     ) : RevurderingResultat {
 
         fun valider() {

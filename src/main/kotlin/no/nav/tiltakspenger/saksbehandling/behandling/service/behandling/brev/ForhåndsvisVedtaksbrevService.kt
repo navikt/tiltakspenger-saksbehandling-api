@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
@@ -115,12 +114,7 @@ class ForhåndsvisVedtaksbrevService(
         kommando: ForhåndsvisVedtaksbrevKommando,
         behandling: Revurdering,
     ): PdfA {
-        sak.validerStansDato(kommando.stansDato)
-        val stansperiode = kommando.stansDato?.let { stansDato ->
-            sak.vedtaksliste.sisteDagSomGirRett?.let { sisteDagSomGirRett ->
-                Periode(stansDato, sisteDagSomGirRett)
-            }
-        }
+        val stansperiode = kommando.hentStansperiode(sak.førsteDagSomGirRett!!, sak.sisteDagSomGirRett!!)
 
         return genererStansbrevClient.genererStansvedtak(
             hentBrukersNavn = personService::hentNavn,

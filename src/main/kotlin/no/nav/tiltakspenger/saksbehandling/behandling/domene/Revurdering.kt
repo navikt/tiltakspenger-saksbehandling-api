@@ -125,6 +125,7 @@ data class Revurdering(
 
     fun oppdaterStans(
         kommando: OppdaterRevurderingKommando.Stans,
+        førsteDagSomGirRett: LocalDate,
         sisteDagSomGirRett: LocalDate,
         utbetaling: BehandlingUtbetaling?,
         clock: Clock,
@@ -137,10 +138,8 @@ data class Revurdering(
             sistEndret = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = Periode(kommando.stansFraOgMed, sisteDagSomGirRett),
-            resultat = Stans(
-                valgtHjemmel = kommando.valgteHjemler,
-            ),
+            virkningsperiode = kommando.hentStansperiode(førsteDagSomGirRett, sisteDagSomGirRett),
+            resultat = Stans(kommando.valgteHjemler, kommando.harValgtStansFraFørsteDagSomGirRett, kommando.harValgtStansTilSisteDagSomGirRett),
             utbetaling = utbetaling,
         ).right()
     }
@@ -183,6 +182,8 @@ data class Revurdering(
                 opprettet = nå(clock),
                 resultat = Stans(
                     valgtHjemmel = emptyList(),
+                    harValgtStansFraFørsteDagSomGirRett = null,
+                    harValgtStansTilSisteDagSomGirRett = null,
                 ),
             )
         }

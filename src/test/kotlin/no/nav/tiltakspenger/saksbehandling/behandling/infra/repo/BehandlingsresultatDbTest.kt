@@ -22,6 +22,8 @@ class BehandlingsresultatDbTest {
         )
         val revurderingStans = RevurderingResultat.Stans(
             valgtHjemmel = emptyList(),
+            harValgtStansFraFørsteDagSomGirRett = false,
+            harValgtStansTilSisteDagSomGirRett = true,
         )
 
         søknadsbehandlingInnvilgelse.toDb() shouldBe "INNVILGELSE"

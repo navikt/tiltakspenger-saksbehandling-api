@@ -202,6 +202,7 @@ class OppdaterBehandlingRouteTest {
                     begrunnelseVilkårsvurdering = "ny begrunnelse",
                     valgteHjemler = listOf(ValgtHjemmelForStansDTO.DeltarIkkePåArbeidsmarkedstiltak),
                     stansFraOgMed = 9.april(2025),
+                    stansTilOgMed = null,
                 ),
             )
 
@@ -229,6 +230,7 @@ class OppdaterBehandlingRouteTest {
                     begrunnelseVilkårsvurdering = "ny begrunnelse",
                     valgteHjemler = listOf(ValgtHjemmelForStansDTO.DeltarIkkePåArbeidsmarkedstiltak),
                     stansFraOgMed = 9.april(2025),
+                    stansTilOgMed = null,
                 ),
             )
 
@@ -299,11 +301,11 @@ class OppdaterBehandlingRouteTest {
     }
 
     @Test
-    fun `oppdater revurdering stans feiler hvis stansdato er før innvilgelsesperioden`() {
+    fun `oppdater revurdering stans feiler hvis stansFraOgMed er før innvilgelsesperioden`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingStans(tac)
 
-            val stansdato = sak.vedtaksliste.førsteDagSomGirRett!!.minusDays(2)
+            val stansFraOgMed = sak.vedtaksliste.førsteDagSomGirRett!!.minusDays(2)
 
             oppdaterBehandling(
                 tac = tac,
@@ -313,7 +315,8 @@ class OppdaterBehandlingRouteTest {
                     begrunnelseVilkårsvurdering = null,
                     fritekstTilVedtaksbrev = null,
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = stansdato,
+                    stansFraOgMed = stansFraOgMed,
+                    stansTilOgMed = null,
                 ),
                 forventetStatus = HttpStatusCode.InternalServerError,
             )
@@ -321,10 +324,10 @@ class OppdaterBehandlingRouteTest {
     }
 
     @Test
-    fun `send revurdering stans til beslutning feiler hvis stansdato er etter innvilgelsesperioden`() {
+    fun `send revurdering stans til beslutning feiler hvis stansFraOgMed er etter innvilgelsesperioden`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingStans(tac)
-            val stansdato = sak.sisteDagSomGirRett!!.plusDays(2)
+            val stansFraOgMed = sak.sisteDagSomGirRett!!.plusDays(2)
 
             oppdaterBehandling(
                 tac = tac,
@@ -334,7 +337,8 @@ class OppdaterBehandlingRouteTest {
                     begrunnelseVilkårsvurdering = null,
                     fritekstTilVedtaksbrev = null,
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = stansdato,
+                    stansFraOgMed = stansFraOgMed,
+                    stansTilOgMed = null,
                 ),
                 forventetStatus = HttpStatusCode.InternalServerError,
             )

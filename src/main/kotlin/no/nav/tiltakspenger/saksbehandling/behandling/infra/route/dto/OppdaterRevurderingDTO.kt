@@ -17,6 +17,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_T
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
@@ -88,7 +90,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val begrunnelseVilkårsvurdering: String?,
         override val fritekstTilVedtaksbrev: String?,
         val valgteHjemler: List<ValgtHjemmelForStansDTO>,
-        val stansFraOgMed: LocalDate,
+        val stansFraOgMed: LocalDate?,
+        val stansTilOgMed: LocalDate?,
     ) : OppdaterRevurderingDTO {
         override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.STANS
 
@@ -105,7 +108,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 correlationId = correlationId,
                 begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering(saniter(begrunnelseVilkårsvurdering ?: "")),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
-                stansFraOgMed = stansFraOgMed,
+                stansFraOgMed = ValgtStansFraOgMed.create(stansFraOgMed),
+                stansTilOgMed = ValgtStansTilOgMed.create(stansTilOgMed),
                 valgteHjemler = valgteHjemler.toDomain().toNonEmptyListOrThrow(),
             )
         }

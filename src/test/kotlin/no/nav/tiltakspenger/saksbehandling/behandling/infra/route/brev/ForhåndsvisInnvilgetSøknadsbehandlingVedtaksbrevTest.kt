@@ -40,7 +40,8 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     virkningsperiode = 1.januar(2025) til 31.mars(2025),
-                    stansDato = null,
+                    stansFraOgMed = null,
+                    stansTilOgMed = null,
                     valgteHjemler = null,
                     barnetillegg = null,
                     resultat = BehandlingResultatDTO.INNVILGELSE,
@@ -66,13 +67,14 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                 val behandlingId = behandling.id
                 val fritekstTilVedtaksbrev = "some_tekst"
                 val virkningsperiode = 1.januar(2025) til 31.mars(2025)
-                val (oppdatertSak, oppdatertBehandling, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
+                val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
                     tac = tac,
                     sakId = sak.id,
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     virkningsperiode = virkningsperiode,
-                    stansDato = null,
+                    stansFraOgMed = null,
+                    stansTilOgMed = null,
                     valgteHjemler = null,
                     barnetillegg = listOf(BarnetilleggPeriodeDTO(antallBarn = 1, periode = virkningsperiode.toDTO())),
                     resultat = BehandlingResultatDTO.INNVILGELSE,
@@ -103,7 +105,8 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     virkningsperiode = 1.januar(2025) til 31.mars(2025),
-                    stansDato = null,
+                    stansFraOgMed = null,
+                    stansTilOgMed = null,
                     valgteHjemler = null,
                     barnetillegg = listOf(
                         BarnetilleggPeriodeDTO(

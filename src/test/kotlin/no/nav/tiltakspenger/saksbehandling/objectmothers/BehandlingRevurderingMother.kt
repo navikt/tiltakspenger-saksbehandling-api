@@ -83,7 +83,9 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             tom = virkningsperiode.tilOgMed,
         ),
         valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
-        stansDato: LocalDate,
+        stansFraOgMed: LocalDate?,
+        stansTilOgMed: LocalDate?,
+        førsteDagSomGirRett: LocalDate,
         sisteDagSomGirRett: LocalDate,
         kommando: OppdaterRevurderingKommando.Stans = OppdaterRevurderingKommando.Stans(
             sakId = sakId,
@@ -93,7 +95,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             valgteHjemler = valgteHjemler,
-            stansFraOgMed = stansDato,
+            stansFraOgMed = OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed.create(stansFraOgMed),
+            stansTilOgMed = OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed.create(stansTilOgMed),
         ),
         utbetaling: BehandlingUtbetaling? = null,
     ): Revurdering {
@@ -107,6 +110,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             hentSaksopplysninger = { saksopplysninger },
         ).oppdaterStans(
             kommando = kommando,
+            førsteDagSomGirRett = førsteDagSomGirRett,
             sisteDagSomGirRett = sisteDagSomGirRett,
             clock = clock,
             utbetaling = utbetaling,
@@ -130,7 +134,9 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         ),
         valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         attestering: Attestering = godkjentAttestering(beslutter),
-        stansDato: LocalDate,
+        stansFraOgMed: LocalDate?,
+        stansTilOgMed: LocalDate?,
+        førsteDagSomGirRett: LocalDate,
         sisteDagSomGirRett: LocalDate,
     ): Revurdering {
         return nyRevurderingStansKlarTilBeslutning(
@@ -145,7 +151,9 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             virkningsperiode = virkningsperiode,
             saksopplysninger = saksopplysninger,
             valgteHjemler = valgteHjemler,
-            stansDato = stansDato,
+            stansFraOgMed = stansFraOgMed,
+            stansTilOgMed = stansTilOgMed,
+            førsteDagSomGirRett = førsteDagSomGirRett,
             sisteDagSomGirRett = sisteDagSomGirRett,
         ).taBehandling(beslutter).iverksett(
             utøvendeBeslutter = beslutter,
