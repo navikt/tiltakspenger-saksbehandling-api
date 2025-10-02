@@ -64,6 +64,8 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
                     "virkningsperiode": ${if (virkningsperiode != null) """{"fraOgMed":"${virkningsperiode.fraOgMed}","tilOgMed":"${virkningsperiode.tilOgMed}"}""" else null},
                     "stansFraOgMed": ${if (stansFraOgMed != null) """"$stansFraOgMed"""" else null},
                     "stansTilOgMed": ${if (stansTilOgMed != null) """"$stansTilOgMed"""" else null},
+                    "harValgtStansFraFørsteDagSomGirRett": ${stansFraOgMed == null},
+                    "harValgtStansTilSisteDagSomGirRett": ${stansTilOgMed == null},
                     "valgteHjemler": ${valgteHjemler?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
                     "barnetillegg": ${
                 barnetillegg?.joinToString(

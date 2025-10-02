@@ -56,6 +56,12 @@ private data class Body(
     val resultat: BehandlingResultatDTO,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 ) {
+    init {
+        if (harValgtStansFraFørsteDagSomGirRett) require(stansFraOgMed == null) { "stansFraOgMed må være null når harValgtStansFraFørsteDagSomGirRett er true" }
+        if (harValgtStansTilSisteDagSomGirRett) require(stansTilOgMed == null) { "stansTilOgMed må være null når harValgtStansTilSisteDagSomGirRett er true" }
+        if (!harValgtStansFraFørsteDagSomGirRett) requireNotNull(stansFraOgMed) { "stansFraOgMed kan ikke være null når harValgtStansFraFørsteDagSomGirRett er false" }
+        if (!harValgtStansTilSisteDagSomGirRett) requireNotNull(stansTilOgMed) { "stansTilOgMed kan ikke være null når harValgtStansTilSisteDagSomGirRett er false" }
+    }
     fun toDomain(
         sakId: SakId,
         behandlingId: BehandlingId,
