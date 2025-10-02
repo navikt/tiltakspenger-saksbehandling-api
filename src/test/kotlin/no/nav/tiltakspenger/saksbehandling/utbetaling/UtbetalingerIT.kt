@@ -228,6 +228,7 @@ class UtbetalingerIT {
                     begrunnelseVilkårsvurdering = "what",
                     valgteHjemler = listOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = virkningsperiode.fraOgMed,
+                    stansTilOgMed = null,
                 ),
             )
 
