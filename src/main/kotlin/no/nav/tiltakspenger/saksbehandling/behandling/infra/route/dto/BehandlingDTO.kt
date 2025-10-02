@@ -100,6 +100,8 @@ data class RevurderingDTO(
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
     val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
+    val harValgtStansFraFørsteDagSomGirRett: Boolean?,
+    val harValgtStansTilSisteDagSomGirRett: Boolean?,
 
 ) : BehandlingDTO {
     override val type = BehandlingstypeDTO.REVURDERING
@@ -202,6 +204,8 @@ fun Revurdering.tilRevurderingDTO(
         barnetillegg = null,
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
         utbetaling = utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingsstatus, utbetalinger),
+        harValgtStansFraFørsteDagSomGirRett = (this.resultat as? RevurderingResultat.Stans)?.let { this.resultat.harValgtStansFraFørsteDagSomGirRett },
+        harValgtStansTilSisteDagSomGirRett = (this.resultat as? RevurderingResultat.Stans)?.let { this.resultat.harValgtStansTilSisteDagSomGirRett },
     ).let {
         when (resultat) {
             is RevurderingResultat.Stans -> it.copy(
