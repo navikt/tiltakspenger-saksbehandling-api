@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes
 
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BeløpFørOgNåDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BeregningerSummertDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
@@ -49,8 +50,7 @@ data class SimulertBeregningDTO(
         val simuleringNyUtbetaling: Int?,
         val simuleringTotalJustering: Int?,
         val simuleringTotalTrekk: Int?,
-        val beregningEndring: BeløpDTO,
-        val beregning: BeløpDTO,
+        val beregning: BeregningerSummertDTO,
     ) {
         data class SimulertBeregningDagDTO(
             val dato: LocalDate,
@@ -61,7 +61,6 @@ data class SimulertBeregningDTO(
             val simuleringNyUtbetaling: Int?,
             val simuleringTotalJustering: Int?,
             val simuleringTotalTrekk: Int?,
-            val beregningEndring: BeløpDTO,
             val beregning: BeregningerSummertDTO,
         )
     }
@@ -90,20 +89,31 @@ fun SimulertBeregning.toSimulertBeregningDTO(): SimulertBeregningDTO {
 }
 
 fun SimulertBeregningPerMeldeperiode.toDTO(): SimulertBeregningDTO.SimulertBeregningPerMeldeperiodeDTO {
+    val dager = this.dager.map { it.toDTO() }.toList()
+    val tidligereBeregningDager = this.dager.mapNotNull { it.forrigeBeregningsdag }.toNonEmptyListOrNull()
+
     return SimulertBeregningDTO.SimulertBeregningPerMeldeperiodeDTO(
         meldeperiodeKjedeId = this.kjedeId.toString(),
-        dager = this.dager.map { it.toDTO() }.toList(),
+        dager = dager,
         simuleringFeilutbetaling = this.simuleringTotalFeilutbetaling,
         simuleringEtterbetaling = this.simuleringTotalEtterbetaling,
         simuleringTidligereUtbetalt = this.simuleringTidligereUtbetalt,
         simuleringNyUtbetaling = this.simuleringNyUtbetaling,
         simuleringTotalJustering = this.simuleringTotalJustering,
         simuleringTotalTrekk = this.simuleringTotalTrekk,
-        beregningEndring = this.beregningEndring.toDTO(),
-        beregning = BeløpDTO(
-            ordinært = this.beregningOrdinær,
-            barnetillegg = this.beregningBarnetillegg,
-            totalt = this.beregningTotal,
+        beregning = BeregningerSummertDTO(
+            totalt = BeløpFørOgNåDTO(
+                før = tidligereBeregningDager?.sumOf { it.totalBeløp },
+                nå = this.beregningTotal,
+            ),
+            ordinært = BeløpFørOgNåDTO(
+                før = tidligereBeregningDager?.sumOf { it.beløp },
+                nå = this.beregningOrdinær,
+            ),
+            barnetillegg = BeløpFørOgNåDTO(
+                før = tidligereBeregningDager?.sumOf { it.beløpBarnetillegg },
+                nå = this.beregningBarnetillegg,
+            ),
         ),
     )
 }
@@ -118,7 +128,6 @@ fun SimulertBeregningDag.toDTO(): SimulertBeregningDTO.SimulertBeregningPerMelde
         simuleringNyUtbetaling = this.simuleringsdag?.nyUtbetaling,
         simuleringTotalJustering = this.simuleringsdag?.totalJustering,
         simuleringTotalTrekk = this.simuleringsdag?.totalTrekk,
-        beregningEndring = this.beregningEndring.toDTO(),
         beregning = BeregningerSummertDTO(
             totalt = BeløpFørOgNåDTO(
                 før = this.forrigeBeregningsdag?.totalBeløp,
