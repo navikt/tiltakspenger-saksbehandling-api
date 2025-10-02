@@ -120,7 +120,7 @@ fun Sak.genererSimuleringFraBeregning(
                     Simuleringsdag(
                         dato = it.dato,
                         tidligereUtbetalt = it.forrigeTotalbeløp,
-                        nyUtbetaling = max(it.totalbeløpEndring, 0),
+                        nyUtbetaling = max(it.nyttTotalbeløp, 0),
                         totalEtterbetaling = max(it.totalbeløpEndring, 0),
                         totalFeilutbetaling = totalFeilutbetaling,
                         totalTrekk = 0,
