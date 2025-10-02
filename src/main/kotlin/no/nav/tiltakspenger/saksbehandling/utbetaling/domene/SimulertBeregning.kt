@@ -1,11 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.Nel
+import arrow.core.NonEmptyList
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning.SimulertBeregningPerMeldeperiode.SimulertBeregningDag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning.SimulertBeregningMeldeperiode.SimulertBeregningDag
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.Int
@@ -23,77 +25,57 @@ import kotlin.Int
  */
 data class SimulertBeregning(
     val beregningskilde: BeregningKilde,
-    val perMeldeperiode: Nel<SimulertBeregningPerMeldeperiode>,
+    val meldeperioder: Nel<SimulertBeregningMeldeperiode>,
     // TODO jah: Grav i hvorfor denne tilsynelatende ikke finnes.
     val beregningstidspunkt: LocalDateTime?,
     val simuleringstidspunkt: LocalDateTime?,
     val simuleringsdato: LocalDate?,
     val simuleringTotalBeløp: Int?,
 ) {
-    val simuleringTidligereUtbetalt: Int? by lazy {
-        perMeldeperiode.mapNotNull { it.simuleringTidligereUtbetalt }.ifEmpty { null }?.sumOf { it }
+    val simuleringsdager: NonEmptyList<Simuleringsdag>? by lazy {
+        meldeperioder.mapNotNull { it.simuleringsdager }.flatten().toNonEmptyListOrNull()
     }
-    val simuleringNyUtbetaling: Int? by lazy {
-        perMeldeperiode.mapNotNull { it.simuleringNyUtbetaling }.ifEmpty { null }?.sumOf { it }
+
+    val beregning: BeregningBeløp by lazy {
+        meldeperioder.map { it.beregning }.summer()
     }
-    val simuleringTotalEtterbetaling: Int? by lazy {
-        perMeldeperiode.mapNotNull { it.simuleringTotalEtterbetaling }.ifEmpty { null }?.sumOf { it }
+
+    val forrigeBeregning: BeregningBeløp? by lazy {
+        meldeperioder.mapNotNull { it.forrigeBeregning }.toNonEmptyListOrNull()?.summer()
     }
-    val simuleringTotalFeilutbetaling: Int? by lazy {
-        perMeldeperiode.mapNotNull { it.simuleringTotalFeilutbetaling }.ifEmpty { null }?.sumOf { it }
+
+    val beregningEndring: BeregningBeløp by lazy {
+        meldeperioder.map { it.beregningEndring }.summer()
     }
-    val simuleringTotalJustering: Int? by lazy {
-        perMeldeperiode.mapNotNull { it.simuleringTotalJustering }.ifEmpty { null }?.sumOf { it }
-    }
-    val simuleringTotalTrekk: Int? by lazy {
-        perMeldeperiode.mapNotNull { it.simuleringTotalTrekk }.ifEmpty { null }?.sumOf { it }
-    }
-    val beregningEndring by lazy {
-        SimulertBeregningDag.BeregningEndring(
-            total = perMeldeperiode.sumOf { it.beregningEndring.total },
-            barnetillegg = perMeldeperiode.sumOf { it.beregningEndring.barnetillegg },
-            ordinær = perMeldeperiode.sumOf { it.beregningEndring.ordinær },
-        )
-    }
+
+    data class BeregningBeløp(
+        val ordinær: Int,
+        val barnetillegg: Int,
+        val total: Int,
+    )
 
     /**
      * En simulering for en enkelt meldeperiode kan ikke både inneholde feilutbetaling og etterbetaling, siden de motposterer hverandre.
      */
-    data class SimulertBeregningPerMeldeperiode(
+    data class SimulertBeregningMeldeperiode(
         val kjedeId: MeldeperiodeKjedeId,
         val dager: Nel<SimulertBeregningDag>,
     ) {
-        private val simuleringsdager: List<Simuleringsdag> by lazy { dager.mapNotNull { it.simuleringsdag } }
-        val simuleringTidligereUtbetalt: Int? by lazy {
-            simuleringsdager.map { it.tidligereUtbetalt }.ifEmpty { null }?.sumOf { it }
-        }
-        val simuleringNyUtbetaling: Int? by lazy {
-            simuleringsdager.map { it.nyUtbetaling }.ifEmpty { null }?.sumOf { it }
-        }
-        val simuleringTotalEtterbetaling: Int? by lazy {
-            simuleringsdager.map { it.totalEtterbetaling }.ifEmpty { null }?.sumOf { it }
-        }
-        val simuleringTotalFeilutbetaling: Int? by lazy {
-            simuleringsdager.map { it.totalFeilutbetaling }.ifEmpty { null }?.sumOf { it }
-        }
-        val simuleringTotalJustering: Int? by lazy {
-            simuleringsdager.map { it.totalJustering }.ifEmpty { null }?.sumOf { it }
-        }
-        val simuleringTotalTrekk: Int? by lazy {
-            simuleringsdager.map { it.totalTrekk }.ifEmpty { null }?.sumOf { it }
+        val simuleringsdager: NonEmptyList<Simuleringsdag>? by lazy {
+            dager.mapNotNull { it.simuleringsdag }.toNonEmptyListOrNull()
         }
 
-        val beregningEndring: SimulertBeregningDag.BeregningEndring by lazy {
-            SimulertBeregningDag.BeregningEndring(
-                total = dager.sumOf { it.beregningEndring.total },
-                barnetillegg = dager.sumOf { it.beregningEndring.barnetillegg },
-                ordinær = dager.sumOf { it.beregningEndring.ordinær },
-            )
+        val beregning: BeregningBeløp by lazy {
+            dager.map { it.beregning }.summer()
         }
 
-        val beregningOrdinær: Int by lazy { dager.sumOf { it.beregningsdag.beløp } }
-        val beregningBarnetillegg: Int by lazy { dager.sumOf { it.beregningsdag.beløpBarnetillegg } }
-        val beregningTotal: Int by lazy { dager.sumOf { it.beregningsdag.totalBeløp } }
+        val forrigeBeregning: BeregningBeløp? by lazy {
+            dager.mapNotNull { it.forrigeBeregning }.toNonEmptyListOrNull()?.summer()
+        }
+
+        val beregningEndring: BeregningBeløp by lazy {
+            dager.map { it.beregningEndring }.summer()
+        }
 
         /**
          * En dag i en simulering, som kobler sammen data fra både simuleringen og beregningen.
@@ -106,21 +88,32 @@ data class SimulertBeregning(
             val forrigeBeregningsdag: MeldeperiodeBeregningDag?,
             val simuleringsdag: Simuleringsdag?,
         ) {
-            val beregningEndring: BeregningEndring by lazy {
-                beregningsdag.let {
-                    BeregningEndring(
-                        total = it.totalBeløp - (forrigeBeregningsdag?.totalBeløp ?: 0),
-                        barnetillegg = it.beløpBarnetillegg - (forrigeBeregningsdag?.beløpBarnetillegg ?: 0),
-                        ordinær = it.beløp - (forrigeBeregningsdag?.beløp ?: 0),
+
+            val beregning: BeregningBeløp by lazy {
+                BeregningBeløp(
+                    ordinær = beregningsdag.beløp,
+                    barnetillegg = beregningsdag.beløpBarnetillegg,
+                    total = beregningsdag.totalBeløp,
+                )
+            }
+
+            val forrigeBeregning: BeregningBeløp? by lazy {
+                forrigeBeregningsdag?.let {
+                    BeregningBeløp(
+                        ordinær = it.beløp,
+                        barnetillegg = it.beløpBarnetillegg,
+                        total = it.totalBeløp,
                     )
                 }
             }
 
-            data class BeregningEndring(
-                val total: Int,
-                val barnetillegg: Int,
-                val ordinær: Int,
-            )
+            val beregningEndring: BeregningBeløp by lazy {
+                BeregningBeløp(
+                    ordinær = beregning.ordinær - (forrigeBeregning?.ordinær ?: 0),
+                    barnetillegg = beregning.barnetillegg - (forrigeBeregning?.barnetillegg ?: 0),
+                    total = beregning.total - (forrigeBeregning?.total ?: 0),
+                )
+            }
         }
     }
 
@@ -130,9 +123,9 @@ data class SimulertBeregning(
             tidligereUtbetalinger: Utbetalinger,
             simulering: Simulering?,
         ): SimulertBeregning {
-            val perMeldeperiode: Nel<SimulertBeregningPerMeldeperiode> =
+            val perMeldeperiode: Nel<SimulertBeregningMeldeperiode> =
                 beregning.beregninger.map { meldeperiodeBeregning ->
-                    SimulertBeregningPerMeldeperiode(
+                    SimulertBeregningMeldeperiode(
                         kjedeId = meldeperiodeBeregning.kjedeId,
                         dager = meldeperiodeBeregning.dager.map { dag ->
                             SimulertBeregningDag(
@@ -147,7 +140,7 @@ data class SimulertBeregning(
 
             return SimulertBeregning(
                 beregningskilde = beregning.beregningKilde,
-                perMeldeperiode = perMeldeperiode,
+                meldeperioder = perMeldeperiode,
                 // TODO jah: Grav i hvorfor denne tilsynelatende ikke finnes.
                 beregningstidspunkt = null,
                 // TODO jah: Legg på denne på simuleringen i domenet+basen
@@ -157,4 +150,12 @@ data class SimulertBeregning(
             )
         }
     }
+}
+
+private fun NonEmptyList<SimulertBeregning.BeregningBeløp>.summer(): SimulertBeregning.BeregningBeløp {
+    return SimulertBeregning.BeregningBeløp(
+        ordinær = this.sumOf { it.ordinær },
+        barnetillegg = this.sumOf { it.barnetillegg },
+        total = this.sumOf { it.total },
+    )
 }
