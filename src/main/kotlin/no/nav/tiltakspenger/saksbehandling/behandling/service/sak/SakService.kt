@@ -77,6 +77,7 @@ class SakService(
         return sak
     }
 
+    /** Gjør ingen tilgangskontroll */
     fun hentForSakId(
         sakId: SakId,
     ): Sak {

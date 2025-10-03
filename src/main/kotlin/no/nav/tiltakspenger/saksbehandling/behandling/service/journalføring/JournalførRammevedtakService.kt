@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevFo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.Clock
@@ -24,6 +26,7 @@ class JournalførRammevedtakService(
     private val genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
+    private val sakService: SakService,
     private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
@@ -32,6 +35,7 @@ class JournalførRammevedtakService(
     suspend fun journalfør() {
         Either.catch {
             rammevedtakRepo.hentRammevedtakSomSkalJournalføres().forEach { vedtak ->
+                val sak: Sak = sakService.hentForSakId(vedtak.sakId)
                 val correlationId = CorrelationId.generate()
                 log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.vedtakstype}" }
                 Either.catch {
@@ -50,6 +54,8 @@ class JournalførRammevedtakService(
                             vedtak = vedtak,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            stansFraFørsteDagSomGirRett = sak.førsteDagSomGirRett == vedtak.periode.fraOgMed,
+                            stansTilSisteDagSomGirRett = sak.sisteDagSomGirRett == vedtak.periode.tilOgMed,
                         )
 
                         Vedtakstype.AVSLAG -> genererVedtaksbrevForAvslagKlient.genererAvslagsvVedtaksbrev(

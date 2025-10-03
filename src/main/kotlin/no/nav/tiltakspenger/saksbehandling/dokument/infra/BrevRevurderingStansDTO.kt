@@ -27,6 +27,8 @@ private data class BrevRevurderingStansDTO(
     val rammevedtakTilDato: String,
     val virkningsperiodeFraDato: String,
     val virkningsperiodeTilDato: String,
+    val stansFraFørsteDagSomGirRett: Boolean,
+    val stansTilSisteDagSomGirRett: Boolean,
     val kontor: String,
     val valgtHjemmelTekst: List<String>?,
 ) : BrevRammevedtakBaseDTO
@@ -35,6 +37,8 @@ suspend fun Rammevedtak.toRevurderingStans(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
+    stansFraFørsteDagSomGirRett: Boolean,
+    stansTilSisteDagSomGirRett: Boolean,
 ): String {
     require(behandling is Revurdering && behandling.resultat is RevurderingResultat.Stans)
 
@@ -45,11 +49,13 @@ suspend fun Rammevedtak.toRevurderingStans(
         fnr = fnr,
         saksbehandlerNavIdent = saksbehandler,
         beslutterNavIdent = beslutter,
-        virkningsperiode = this.periode,
+        stansperiode = this.periode,
         saksnummer = saksnummer,
         forhåndsvisning = false,
         valgteHjemler = behandling.resultat.valgtHjemmel,
         tilleggstekst = behandling.fritekstTilVedtaksbrev,
+        stansFraFørsteDagSomGirRett = stansFraFørsteDagSomGirRett,
+        stansTilSisteDagSomGirRett = stansTilSisteDagSomGirRett,
     )
 }
 
@@ -60,7 +66,9 @@ suspend fun genererStansbrev(
     fnr: Fnr,
     saksbehandlerNavIdent: String,
     beslutterNavIdent: String?,
-    virkningsperiode: Periode,
+    stansperiode: Periode,
+    stansFraFørsteDagSomGirRett: Boolean,
+    stansTilSisteDagSomGirRett: Boolean,
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
     valgteHjemler: List<ValgtHjemmelForStans>,
@@ -76,10 +84,12 @@ suspend fun genererStansbrev(
             fornavn = brukersNavn.fornavn,
             etternavn = brukersNavn.mellomnavnOgEtternavn,
         ),
-        rammevedtakFraDato = virkningsperiode.fraOgMed.format(norskDatoFormatter),
-        rammevedtakTilDato = virkningsperiode.tilOgMed.format(norskDatoFormatter),
-        virkningsperiodeFraDato = virkningsperiode.fraOgMed.format(norskDatoFormatter),
-        virkningsperiodeTilDato = virkningsperiode.tilOgMed.format(norskDatoFormatter),
+        rammevedtakFraDato = stansperiode.fraOgMed.format(norskDatoFormatter),
+        rammevedtakTilDato = stansperiode.tilOgMed.format(norskDatoFormatter),
+        virkningsperiodeFraDato = stansperiode.fraOgMed.format(norskDatoFormatter),
+        virkningsperiodeTilDato = stansperiode.tilOgMed.format(norskDatoFormatter),
+        stansFraFørsteDagSomGirRett = stansFraFørsteDagSomGirRett,
+        stansTilSisteDagSomGirRett = stansTilSisteDagSomGirRett,
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,

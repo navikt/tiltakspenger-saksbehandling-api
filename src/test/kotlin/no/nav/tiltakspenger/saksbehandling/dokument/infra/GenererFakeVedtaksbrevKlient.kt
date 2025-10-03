@@ -83,6 +83,8 @@ class GenererFakeVedtaksbrevKlient :
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        stansFraFørsteDagSomGirRett: Boolean,
+        stansTilSisteDagSomGirRett: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }
@@ -100,6 +102,8 @@ class GenererFakeVedtaksbrevKlient :
         forhåndsvisning: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: List<ValgtHjemmelForStans>,
+        stansFraFørsteDagSomGirRett: Boolean,
+        stansTilSisteDagSomGirRett: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }

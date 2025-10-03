@@ -19,6 +19,8 @@ interface GenererVedtaksbrevForStansKlient {
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        stansFraFørsteDagSomGirRett: Boolean,
+        stansTilSisteDagSomGirRett: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererStansvedtak(
@@ -34,5 +36,7 @@ interface GenererVedtaksbrevForStansKlient {
         forhåndsvisning: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: List<ValgtHjemmelForStans>,
+        stansFraFørsteDagSomGirRett: Boolean,
+        stansTilSisteDagSomGirRett: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }
