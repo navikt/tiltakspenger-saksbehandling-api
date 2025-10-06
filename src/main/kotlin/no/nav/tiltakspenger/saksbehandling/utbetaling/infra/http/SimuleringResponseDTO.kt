@@ -80,8 +80,11 @@ private data class SimuleringResponseDTO(
 
 fun String.toSimuleringFraHelvedResponse(
     meldeperiodeKjeder: MeldeperiodeKjeder,
-): Simulering.Endring {
+): Simulering {
     return deserialize<SimuleringResponseDTO>(this).let { res ->
+        if (res.detaljer.perioder.isEmpty()) {
+            return Simulering.IngenEndring
+        }
         check(Fnr.fromString(res.detaljer.gjelderId) == meldeperiodeKjeder.fnr) {
             "Simulering sin gjelderId er ulik behandlingens fnr. sakId: ${meldeperiodeKjeder.sakId}, saksnummer: ${meldeperiodeKjeder.saksnummer}"
         }

@@ -27,6 +27,24 @@ import java.time.LocalDate
 class OppsummeringGeneratorTest {
 
     @Test
+    fun `tom liste for oppsummering og detaljer`() {
+        //language=json
+        val helvedResponse = """
+            {
+              "oppsummeringer": [],
+              "detaljer": {
+                "gjelderId": "12345678910",
+                "datoBeregnet": "2024-05-12",
+                "totalBeløp": 0,
+                "perioder": []
+              }
+            }
+        """.trimIndent()
+        val meldeperiodeKjeder = MeldeperiodeKjeder(emptyList())
+        helvedResponse.toSimuleringFraHelvedResponse(meldeperiodeKjeder) shouldBe Simulering.IngenEndring
+    }
+
+    @Test
     fun `enkel YTELSE for en meldeperiode`() {
         // Meldeperiode mandag 14. oktober til søndag 27. oktober 2024
         // language=json
@@ -1015,7 +1033,7 @@ class OppsummeringGeneratorTest {
                 MeldeperiodeKjede(meldeperiode5),
             ),
         )
-        val actual = jsonFraHelved.toSimuleringFraHelvedResponse(meldeperiodeKjeder)
+        val actual = jsonFraHelved.toSimuleringFraHelvedResponse(meldeperiodeKjeder) as Simulering.Endring
         actual.totalBeløp shouldBe 3740
         actual.datoBeregnet shouldBe 16.september(2025)
         actual.simuleringPerMeldeperiode.size shouldBe 4
