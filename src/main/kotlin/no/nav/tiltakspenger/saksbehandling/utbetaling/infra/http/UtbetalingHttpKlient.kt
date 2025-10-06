@@ -36,6 +36,8 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Clock
+import java.time.LocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -50,6 +52,7 @@ class UtbetalingHttpKlient(
     private val getToken: suspend () -> AccessToken,
     connectTimeout: Duration = 5.seconds,
     private val timeout: Duration = 15.seconds,
+    private val clock: Clock,
 ) : Utbetalingsklient {
 
     private val client =
@@ -217,7 +220,7 @@ class UtbetalingHttpKlient(
                     return@catch KunneIkkeSimulere.Stengt.left()
                 }
                 if (status == 204) {
-                    return@catch SimuleringMedMetadata(simulering = Simulering.IngenEndring, httpResponseBody).right()
+                    return@catch SimuleringMedMetadata(simulering = Simulering.IngenEndring(LocalDateTime.now(clock)), httpResponseBody).right()
                 }
                 if (status != 200) {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved simulering. Status var ulik 200. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
@@ -228,6 +231,7 @@ class UtbetalingHttpKlient(
                     SimuleringMedMetadata(
                         httpResponseBody.toSimuleringFraHelvedResponse(
                             meldeperiodeKjeder = meldeperiodeKjeder,
+                            clock = clock,
                         ),
                         httpResponseBody,
                     ).right()

@@ -1,15 +1,20 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 sealed interface SimuleringDTO
 
 data class SimuleringIngenEndringDTO(
-    val type: String = "IngenEndring",
-) : SimuleringDTO
+    val simuleringstidspunkt: LocalDateTime?,
+) : SimuleringDTO {
+    @JsonInclude
+    val type: String = "IngenEndring"
+}
 
 /**
  * Kun ment brukt i routes mot frontend. Se SimuleringDBJson for hvordan vi lagrer simulering i databasen.
@@ -35,6 +40,7 @@ data class SimuleringEndringDTO(
     /** Som det kommer fra OS */
     val datoBeregnet: LocalDate,
     val type: String = "Endring",
+    val simuleringstidspunkt: LocalDateTime?,
 ) : SimuleringDTO {
     data class SimuleringForMeldeperiode(
         val meldeperiodeId: String,
@@ -71,8 +77,9 @@ data class SimuleringEndringDTO(
 
 fun Simulering.tilSimuleringDTO(): SimuleringDTO {
     return when (this) {
-        is Simulering.IngenEndring -> SimuleringIngenEndringDTO()
+        is Simulering.IngenEndring -> SimuleringIngenEndringDTO(this.simuleringstidspunkt)
         is Simulering.Endring -> SimuleringEndringDTO(
+            simuleringstidspunkt = this.simuleringstidspunkt,
             tidligereUtbetalt = this.tidligereUtbetalt,
             nyUtbetaling = this.nyUtbetaling,
             totalEtterbetaling = this.totalEtterbetaling,

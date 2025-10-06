@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -15,12 +16,15 @@ private val logger = KotlinLogging.logger {}
  */
 sealed interface Simulering {
 
+    /** Feltet ble innført 2025-10-06, så vi har ikke data før dette. */
+    val simuleringstidspunkt: LocalDateTime?
     fun hentDag(dato: LocalDate): Simuleringsdag?
 
     data class Endring(
         val simuleringPerMeldeperiode: NonEmptyList<SimuleringForMeldeperiode>,
         val datoBeregnet: LocalDate,
         val totalBeløp: Int,
+        override val simuleringstidspunkt: LocalDateTime?,
     ) : Simulering {
         val meldeperioder: NonEmptyList<Meldeperiode> by lazy { simuleringPerMeldeperiode.map { it.meldeperiode } }
         val perioder: NonEmptyList<Periode> by lazy { meldeperioder.map { it.periode } }
@@ -69,7 +73,9 @@ sealed interface Simulering {
         }
     }
 
-    data object IngenEndring : Simulering {
+    data class IngenEndring(
+        override val simuleringstidspunkt: LocalDateTime?,
+    ) : Simulering {
         override fun hentDag(dato: LocalDate) = null
     }
 }

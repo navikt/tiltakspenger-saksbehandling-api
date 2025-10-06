@@ -3,7 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.collections.filter
 import kotlin.math.abs
 
@@ -16,6 +18,7 @@ object OppsummeringGenerator {
         meldeperiodeKjeder: MeldeperiodeKjeder,
         datoBeregnet: LocalDate,
         totalBeløp: Int,
+        clock: Clock,
     ): Simulering.Endring {
         val simuleringsperiode = Periode(
             fraOgMed = posteringerPerDag.values.minOf { it.dato },
@@ -26,6 +29,7 @@ object OppsummeringGenerator {
         return Simulering.Endring(
             datoBeregnet = datoBeregnet,
             totalBeløp = totalBeløp,
+            simuleringstidspunkt = LocalDateTime.now(clock),
             simuleringPerMeldeperiode = aktuelleMeldeperioder.mapNotNull { meldeperiode ->
                 val simuleringsdager = meldeperiode.periode.tilDager().mapNotNull { dato ->
                     posteringerPerDag[dato]?.let { posteringerForDag ->

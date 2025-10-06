@@ -38,6 +38,7 @@ open class UtbetalingContext(
         UtbetalingHttpKlient(
             baseUrl = Configuration.utbetalingUrl,
             getToken = { texasClient.getSystemToken(Configuration.utbetalingScope, IdentityProvider.AZUREAD) },
+            clock = clock,
         )
     }
     open val meldekortVedtakRepo: MeldekortVedtakRepo by lazy {

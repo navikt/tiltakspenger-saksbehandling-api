@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjede
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -23,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toSimuleringFraHelvedResponse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class OppsummeringGeneratorTest {
 
@@ -41,7 +43,9 @@ class OppsummeringGeneratorTest {
             }
         """.trimIndent()
         val meldeperiodeKjeder = MeldeperiodeKjeder(emptyList())
-        helvedResponse.toSimuleringFraHelvedResponse(meldeperiodeKjeder) shouldBe Simulering.IngenEndring
+        helvedResponse.toSimuleringFraHelvedResponse(meldeperiodeKjeder, fixedClock) shouldBe Simulering.IngenEndring(
+            simuleringstidspunkt = LocalDateTime.now(fixedClock),
+        )
     }
 
     @Test
@@ -130,7 +134,8 @@ class OppsummeringGeneratorTest {
                 meldeperiode,
             ),
         )
-        helvedResponse.toSimuleringFraHelvedResponse(meldeperiodeKjeder) shouldBe Simulering.Endring(
+        val clock = fixedClock
+        helvedResponse.toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock) shouldBe Simulering.Endring(
             simuleringPerMeldeperiode = nonEmptyListOf(
                 SimuleringForMeldeperiode(
                     meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeId(meldeperiode.id)!!,
@@ -324,6 +329,7 @@ class OppsummeringGeneratorTest {
             ),
             datoBeregnet = LocalDate.parse("2025-05-12"),
             totalBeløp = 2280,
+            simuleringstidspunkt = LocalDateTime.now(fixedClock),
         )
     }
 
@@ -554,9 +560,11 @@ class OppsummeringGeneratorTest {
                 MeldeperiodeKjede(meldeperiode3),
             ),
         )
-        helvedResponse.toSimuleringFraHelvedResponse(meldeperiodeKjeder) shouldBe Simulering.Endring(
+        val clock = fixedClock
+        helvedResponse.toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock) shouldBe Simulering.Endring(
             totalBeløp = 0,
             datoBeregnet = 16.mai(2025),
+            simuleringstidspunkt = LocalDateTime.now(fixedClock),
             simuleringPerMeldeperiode = nonEmptyListOf(
                 SimuleringForMeldeperiode(
                     meldeperiode = meldeperiode2,
@@ -1033,7 +1041,8 @@ class OppsummeringGeneratorTest {
                 MeldeperiodeKjede(meldeperiode5),
             ),
         )
-        val actual = jsonFraHelved.toSimuleringFraHelvedResponse(meldeperiodeKjeder) as Simulering.Endring
+        val clock = fixedClock
+        val actual = jsonFraHelved.toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock) as Simulering.Endring
         actual.totalBeløp shouldBe 3740
         actual.datoBeregnet shouldBe 16.september(2025)
         actual.simuleringPerMeldeperiode.size shouldBe 4

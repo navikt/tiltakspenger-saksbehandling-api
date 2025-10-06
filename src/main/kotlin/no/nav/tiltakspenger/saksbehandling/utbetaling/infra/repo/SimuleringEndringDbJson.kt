@@ -13,10 +13,12 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringForMeldep
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 private data class SimuleringDbJson(
     val simulering: SimuleringEndringDbJson?,
     val type: Type,
+    val simuleringstidspunkt: LocalDateTime?,
 ) {
     init {
         if (type == Type.ENDRING) {
@@ -28,8 +30,8 @@ private data class SimuleringDbJson(
 
     fun toDomain(hentMeldeperiodekjederForSakId: MeldeperiodeKjeder): Simulering {
         return when (type) {
-            Type.ENDRING -> simulering!!.toEndring(hentMeldeperiodekjederForSakId)
-            Type.INGEN_ENDRING -> Simulering.IngenEndring
+            Type.ENDRING -> simulering!!.toEndring(hentMeldeperiodekjederForSakId, this.simuleringstidspunkt)
+            Type.INGEN_ENDRING -> Simulering.IngenEndring(simuleringstidspunkt)
         }
     }
 }
@@ -100,10 +102,14 @@ private data class SimuleringEndringDbJson(
         }
     }
 
-    fun toEndring(meldeperiodeKjeder: MeldeperiodeKjeder): Simulering.Endring {
+    fun toEndring(
+        meldeperiodeKjeder: MeldeperiodeKjeder,
+        simuleringstidspunkt: LocalDateTime?,
+    ): Simulering.Endring {
         return Simulering.Endring(
             datoBeregnet = this.datoBeregnet,
             totalBeløp = this.totalBeløp,
+            simuleringstidspunkt = simuleringstidspunkt,
             simuleringPerMeldeperiode = this.perMeldeperiode.map {
                 SimuleringForMeldeperiode(
                     meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeId(MeldeperiodeId.fromString(it.meldeperiodeId))!!,
@@ -143,8 +149,9 @@ internal fun SimuleringMedMetadata.toDbJson(): String {
         simulering = simulering.toSimuleringEndringDbJson(),
         type = when (simulering) {
             is Simulering.Endring -> Type.ENDRING
-            Simulering.IngenEndring -> Type.INGEN_ENDRING
+            is Simulering.IngenEndring -> Type.INGEN_ENDRING
         },
+        simuleringstidspunkt = simulering.simuleringstidspunkt,
     ).let { serialize(it) }
 }
 
@@ -153,8 +160,9 @@ internal fun Simulering.toDbJson(): String {
         simulering = this.toSimuleringEndringDbJson(),
         type = when (this) {
             is Simulering.Endring -> Type.ENDRING
-            Simulering.IngenEndring -> Type.INGEN_ENDRING
+            is Simulering.IngenEndring -> Type.INGEN_ENDRING
         },
+        simuleringstidspunkt = this.simuleringstidspunkt,
     ).let { serialize(it) }
 }
 
@@ -165,7 +173,7 @@ internal fun String.toSimuleringFraDbJson(hentMeldeperiodekjederForSakId: Meldep
 private fun Simulering.toSimuleringEndringDbJson(): SimuleringEndringDbJson? {
     return when (this) {
         is Simulering.Endring -> toDbJson()
-        Simulering.IngenEndring -> null
+        is Simulering.IngenEndring -> null
     }
 }
 

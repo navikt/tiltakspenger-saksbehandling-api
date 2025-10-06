@@ -39,16 +39,18 @@ internal class UtbetalingHttpClientTest {
                 body = response
             }
 
+            val clock = fixedClock
             val pdlClient = UtbetalingHttpKlient(
                 baseUrl = wiremock.baseUrl(),
                 getToken = { ObjectMother.accessToken() },
+                clock = clock,
             )
             val utbetaling = UtbetalingDetSkalHentesStatusFor(
                 sakId = sakId,
                 saksnummer = saksnummer,
-                opprettet = nå(fixedClock),
-                sendtTilUtbetalingstidspunkt = nå(fixedClock.plus(1, ChronoUnit.SECONDS)),
-                forsøkshistorikk = Forsøkshistorikk.opprett(clock = fixedClock.plus(2, ChronoUnit.SECONDS)),
+                opprettet = nå(clock),
+                sendtTilUtbetalingstidspunkt = nå(clock.plus(1, ChronoUnit.SECONDS)),
+                forsøkshistorikk = Forsøkshistorikk.opprett(clock = clock.plus(2, ChronoUnit.SECONDS)),
                 utbetalingId = utbetalingId,
             )
             runTest {

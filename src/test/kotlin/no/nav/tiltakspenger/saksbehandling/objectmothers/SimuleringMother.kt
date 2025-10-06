@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
+import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
@@ -19,7 +20,9 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
+import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -67,6 +70,8 @@ interface SimuleringMother {
                 ),
             ),
         ),
+        clock: Clock = fixedClock,
+        simuleringstidspunkt: LocalDateTime = LocalDateTime.now(clock),
     ): Simulering.Endring {
         return Simulering.Endring(
             datoBeregnet = periode.tilOgMed,
@@ -77,6 +82,7 @@ interface SimuleringMother {
                     simuleringsdager = simuleringsdager,
                 ),
             ),
+            simuleringstidspunkt = simuleringstidspunkt,
         )
     }
 }
@@ -100,6 +106,8 @@ fun Sak.genererSimuleringFraMeldekortBehandling(
 fun Sak.genererSimuleringFraBeregning(
     beregning: UtbetalingBeregning,
     meldeperiodeKjeder: MeldeperiodeKjeder = this.meldeperiodeKjeder,
+    clock: Clock = fixedClock,
+    simuleringstidspunkt: LocalDateTime = LocalDateTime.now(clock),
 ): SimuleringMedMetadata {
     val simuleringForMeldeperioder = beregning.beregninger.map { beregningEtter ->
         val beregningFør = this.meldeperiodeBeregninger.sisteBeregningFør(
@@ -150,13 +158,14 @@ fun Sak.genererSimuleringFraBeregning(
     }
     return SimuleringMedMetadata(
         simulering = if (simuleringForMeldeperioder.isEmpty()) {
-            Simulering.IngenEndring
+            Simulering.IngenEndring(simuleringstidspunkt)
         } else {
             Simulering.Endring(
                 simuleringPerMeldeperiode = simuleringForMeldeperioder,
                 datoBeregnet = LocalDate.now(),
                 // TODO jah: Litt usikker på hva denne kommer som fra OS.
                 totalBeløp = simuleringForMeldeperioder.sumOf { it.nyUtbetaling },
+                simuleringstidspunkt = simuleringstidspunkt,
             )
         },
         originalResponseBody = "{}",

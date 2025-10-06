@@ -11,7 +11,9 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringerForDag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.math.roundToInt
 
 /**
@@ -80,10 +82,11 @@ private data class SimuleringResponseDTO(
 
 fun String.toSimuleringFraHelvedResponse(
     meldeperiodeKjeder: MeldeperiodeKjeder,
+    clock: Clock,
 ): Simulering {
     return deserialize<SimuleringResponseDTO>(this).let { res ->
         if (res.detaljer.perioder.isEmpty()) {
-            return Simulering.IngenEndring
+            return Simulering.IngenEndring(LocalDateTime.now(clock))
         }
         check(Fnr.fromString(res.detaljer.gjelderId) == meldeperiodeKjeder.fnr) {
             "Simulering sin gjelderId er ulik behandlingens fnr. sakId: ${meldeperiodeKjeder.sakId}, saksnummer: ${meldeperiodeKjeder.saksnummer}"
@@ -95,10 +98,11 @@ fun String.toSimuleringFraHelvedResponse(
                 }
             }
         OppsummeringGenerator.lagOppsummering(
-            res.tilPosteringerPerDag(),
-            meldeperiodeKjeder,
-            res.detaljer.datoBeregnet,
-            res.detaljer.totalBeløp,
+            posteringerPerDag = res.tilPosteringerPerDag(),
+            meldeperiodeKjeder = meldeperiodeKjeder,
+            datoBeregnet = res.detaljer.datoBeregnet,
+            totalBeløp = res.detaljer.totalBeløp,
+            clock = clock,
         )
     }
 }

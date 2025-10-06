@@ -28,7 +28,7 @@ private fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverkset
                 }
             }
 
-            Simulering.IngenEndring -> Unit.right()
+            is Simulering.IngenEndring -> Unit.right()
             null -> KanIkkeIverksetteUtbetaling.SimuleringMangler.left()
         }
     } else {
