@@ -59,9 +59,11 @@ data class Rammevedtak(
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
 
     /** Vil være null for stans eller avslag */
-    val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>? = behandling.antallDagerPerMeldeperiode
+    val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>? =
+        behandling.antallDagerPerMeldeperiode
 
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = behandling.valgteTiltaksdeltakelser
+
     init {
         require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
         require(sakId == behandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${behandling.id}" }
@@ -119,7 +121,12 @@ fun Sak.opprettVedtak(
         sakId = this.id,
         behandling = behandling,
         vedtaksdato = null,
-        vedtakstype = this.utledVedtakstype(behandling),
+        vedtakstype = when (behandling.resultat!!) {
+            is SøknadsbehandlingResultat.Avslag -> Vedtakstype.AVSLAG
+            is SøknadsbehandlingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
+            is RevurderingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
+            is RevurderingResultat.Stans -> Vedtakstype.STANS
+        },
         periode = behandling.virkningsperiode!!,
         journalpostId = null,
         journalføringstidspunkt = null,
@@ -133,31 +140,4 @@ fun Sak.opprettVedtak(
     val oppdatertSak = this.copy(vedtaksliste = this.vedtaksliste.leggTilVedtak(vedtak))
 
     return oppdatertSak to vedtak
-}
-
-fun Sak.utledVedtakstype(behandling: Rammebehandling): Vedtakstype {
-    return when (behandling) {
-        is Søknadsbehandling -> {
-            when (behandling.resultat) {
-                is SøknadsbehandlingResultat.Avslag -> Vedtakstype.AVSLAG
-                is SøknadsbehandlingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
-                null -> throw IllegalArgumentException("Kan ikke lage et vedtak uten resultat. Behandlingen uten resultat er ${behandling.id}")
-            }
-        }
-
-        is Revurdering -> {
-            when (behandling.resultat) {
-                is RevurderingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
-                is RevurderingResultat.Stans -> {
-                    val revurderingTilOgmed = behandling.virkningsperiode!!.tilOgMed
-
-                    check(revurderingTilOgmed == sisteDagSomGirRett) {
-                        "Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed ($revurderingTilOgmed) må være lik sakens tilOgMed ($sisteDagSomGirRett)"
-                    }
-
-                    Vedtakstype.STANS
-                }
-            }
-        }
-    }
 }
