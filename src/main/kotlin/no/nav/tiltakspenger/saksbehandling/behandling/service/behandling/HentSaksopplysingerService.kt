@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.felles.min
-import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import java.time.Clock
@@ -18,7 +18,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class HentSaksopplysingerService(
-    private val hentPersonopplysninger: suspend (fnr: Fnr) -> PersonopplysningerSøker,
+    private val hentPersonopplysninger: suspend (fnr: Fnr) -> EnkelPerson,
     private val tiltaksdeltagelseKlient: TiltaksdeltagelseKlient,
     private val sokosUtbetaldataClient: SokosUtbetaldataClient,
     private val tiltakspengerArenaClient: TiltakspengerArenaClient,

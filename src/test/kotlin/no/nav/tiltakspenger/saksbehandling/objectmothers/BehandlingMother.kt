@@ -47,7 +47,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.personSøk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
-import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
@@ -500,7 +500,7 @@ fun TestApplicationContext.nyInnvilgbarSøknad(
         fornavn = fornavn,
         etternavn = etternavn,
     ),
-    personopplysningerForBrukerFraPdl: PersonopplysningerSøker = ObjectMother.personopplysningKjedeligFyr(
+    personopplysningerForBrukerFraPdl: EnkelPerson = ObjectMother.personopplysningKjedeligFyr(
         fnr = fnr,
     ),
     deltarPåIntroduksjonsprogram: Boolean = false,
@@ -537,7 +537,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     fødselsdato: LocalDate = 1.januar(2000),
-    personopplysningerForBrukerFraPdl: PersonopplysningerSøker = ObjectMother.personopplysningKjedeligFyr(
+    personopplysningerForBrukerFraPdl: EnkelPerson = ObjectMother.personopplysningKjedeligFyr(
         fnr = fnr,
         fødselsdato = fødselsdato,
     ),

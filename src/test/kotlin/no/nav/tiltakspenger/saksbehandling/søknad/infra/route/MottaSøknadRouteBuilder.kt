@@ -111,7 +111,7 @@ interface MottaSøknadRouteBuilder {
             )
             tac.leggTilPerson(
                 fnr = fnr,
-                personopplysningerForBruker = personopplysningerForBrukerFraPdl,
+                person = personopplysningerForBrukerFraPdl,
                 tiltaksdeltagelse = tiltaksdeltagelse,
             )
         }

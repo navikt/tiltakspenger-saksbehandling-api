@@ -35,7 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
-import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
@@ -257,17 +257,17 @@ class LocalApplicationContext(
         }
         leggTilPerson(
             fnr = fnr,
-            personopplysningerForBruker = ObjectMother.personopplysningKjedeligFyr(fnr = fnr),
+            person = ObjectMother.personopplysningKjedeligFyr(fnr = fnr),
         )
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun leggTilPerson(
         fnr: Fnr,
-        personopplysningerForBruker: PersonopplysningerSøker,
+        person: EnkelPerson,
     ) {
         fellesFakeSkjermingsklient.leggTil(fnr = fnr, skjermet = false)
-        personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
+        personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = person)
         tilgangsmaskinFakeClient.leggTil(fnr = fnr, harTilgang = true)
     }
 }

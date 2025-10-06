@@ -6,32 +6,20 @@ import arrow.atomic.Atomic
 import io.github.serpro69.kfaker.faker
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
-import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import java.time.Clock
 
 class PersonFakeKlient(private val clock: Clock) : PersonKlient {
-    private val data = Atomic(mutableMapOf<Fnr, PersonopplysningerSøker>())
+    private val data = Atomic(mutableMapOf<Fnr, EnkelPerson>())
 
     private val kall = Atomic(mutableListOf<Fnr>())
     val antallKall: Int get() = kall.get().size
     val alleKall: List<Fnr> get() = kall.get().toList()
 
-    override suspend fun hentPerson(fnr: Fnr): PersonopplysningerSøker =
+    override suspend fun hentEnkelPerson(fnr: Fnr): EnkelPerson =
         data.get()[fnr] ?: personopplysningerSøkerFake(fnr)
-
-    override suspend fun hentEnkelPerson(fnr: Fnr): EnkelPerson = data.get()[fnr]?.let {
-        EnkelPerson(
-            fnr = fnr,
-            fornavn = it.fornavn,
-            mellomnavn = it.mellomnavn,
-            etternavn = it.etternavn,
-            fortrolig = it.fortrolig,
-            strengtFortrolig = it.strengtFortrolig,
-            strengtFortroligUtland = it.strengtFortroligUtland,
-        )
-    } ?: enkelPersonFake(fnr)
 
     /**
      * Denne bør kalles av testoppsettet før vi lager en søknad.
@@ -39,7 +27,7 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
      */
     fun leggTilPersonopplysning(
         fnr: Fnr,
-        personopplysninger: PersonopplysningerSøker,
+        personopplysninger: EnkelPerson,
     ) {
         data.get()[fnr] = personopplysninger
     }
@@ -55,6 +43,7 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
         return EnkelPerson(
             fnr = fnr,
             fornavn = faker.name.firstName(),
+            fødselsdato = 16.oktober(1995),
             mellomnavn = null,
             etternavn = faker.name.lastName(),
             fortrolig = fnr.verdi.startsWith('2'),
@@ -63,10 +52,10 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
         )
     }
 
-    private fun personopplysningerSøkerFake(fnr: Fnr): PersonopplysningerSøker {
+    private fun personopplysningerSøkerFake(fnr: Fnr): EnkelPerson {
         val person = enkelPersonFake(fnr)
 
-        return PersonopplysningerSøker(
+        return EnkelPerson(
             fnr = fnr,
             fødselsdato = nå(clock).toLocalDate().minusYears(20),
             fornavn = person.fornavn,

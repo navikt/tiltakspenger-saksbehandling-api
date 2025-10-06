@@ -5,6 +5,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import java.time.LocalDate
 
@@ -23,8 +24,8 @@ interface PersonMother {
         strengtFortroligUtland: Boolean = false,
         kommune: String? = null,
         bydel: String? = null,
-    ): PersonopplysningerSøker =
-        PersonopplysningerSøker(
+    ): EnkelPerson =
+        EnkelPerson(
             fnr = fnr,
             fødselsdato = fødselsdato,
             fornavn = fornavn,
@@ -46,8 +47,8 @@ interface PersonMother {
         strengtFortroligUtland: Boolean = false,
         kommune: String? = "Oslo",
         bydel: String? = "3440",
-    ): PersonopplysningerSøker =
-        PersonopplysningerSøker(
+    ): EnkelPerson =
+        EnkelPerson(
             fnr = fnr,
             fødselsdato = fødselsdato,
             fornavn = fornavn,
