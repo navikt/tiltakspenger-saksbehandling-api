@@ -1,9 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.http
 
-import arrow.core.getOrElse
-import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.AdressebeskyttelseKunneIkkeAvklares
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.DeserializationException
@@ -15,41 +11,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.NavnKu
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.NetworkError
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.ResponsManglerData
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.UkjentFeil
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.AdressebeskyttelseGradering
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.GeografiskTilknytning
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.PdlPerson
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarFødsel
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarGradering
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarNavn
-import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 
-/**
- * Kopiert fra no.nav.tiltakspenger.saksbehandling.routes.rivers.PersonopplysningerRoutes.kt
- */
-internal fun mapPersonopplysninger(
-    json: String,
-    fnr: Fnr,
-): PersonopplysningerSøker {
-    val data: PdlResponseData = objectMapper.readValue<PdlResponseData>(json)
-    val person: PdlPerson = data.hentPerson
-    val navn = avklarNavn(person.navn).getOrElse { it.mapError() }
-    val fødsel = avklarFødsel(person.foedselsdato).getOrElse { it.mapError() }
-    val adressebeskyttelse: AdressebeskyttelseGradering = avklarGradering(person.adressebeskyttelse).getOrElse { it.mapError() }
-    return PersonopplysningerSøker(
-        fnr = fnr,
-        fødselsdato = fødsel.foedselsdato,
-        fornavn = navn.fornavn,
-        mellomnavn = navn.mellomnavn,
-        etternavn = navn.etternavn,
-        fortrolig = adressebeskyttelse.erFortrolig(),
-        strengtFortrolig = adressebeskyttelse.erStrengtFortrolig(),
-        strengtFortroligUtland = adressebeskyttelse.erStrengtFortroligUtland(),
-    )
-}
-private data class PdlResponseData(
-    val hentGeografiskTilknytning: GeografiskTilknytning?,
-    val hentPerson: PdlPerson,
-)
 internal fun FellesPersonklientError.mapError(): Nothing {
     when (this) {
         is AdressebeskyttelseKunneIkkeAvklares -> throw RuntimeException(

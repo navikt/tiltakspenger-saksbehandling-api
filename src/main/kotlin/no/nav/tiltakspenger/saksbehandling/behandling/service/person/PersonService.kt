@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
-import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 class PersonService(
@@ -66,7 +65,7 @@ class PersonService(
         }
     }
 
-    suspend fun hentPersonopplysninger(fnr: Fnr): PersonopplysningerSøker {
-        return personClient.hentPerson(fnr)
+    suspend fun hentPersonopplysninger(fnr: Fnr): EnkelPerson {
+        return personClient.hentEnkelPerson(fnr)
     }
 }

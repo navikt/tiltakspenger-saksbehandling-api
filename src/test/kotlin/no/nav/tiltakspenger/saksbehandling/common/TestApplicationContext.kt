@@ -32,7 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContex
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
-import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonFakeRepo
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
@@ -106,10 +106,10 @@ class TestApplicationContext(
 
     fun leggTilPerson(
         fnr: Fnr,
-        personopplysningerForBruker: PersonopplysningerSøker,
+        person: EnkelPerson,
         tiltaksdeltagelse: Tiltaksdeltagelse,
     ) {
-        personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
+        personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = person)
         tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
         tilgangsmaskinFakeClient.leggTil(fnr, true)
     }

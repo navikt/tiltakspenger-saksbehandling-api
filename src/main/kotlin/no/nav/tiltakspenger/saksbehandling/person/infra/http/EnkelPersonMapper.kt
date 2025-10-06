@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.Navn
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.PdlPerson
+import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarFødsel
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarGradering
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarNavn
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
@@ -32,10 +33,12 @@ fun String.toEnkelPerson(
     }
     val person: PdlPerson = data.hentPerson
     val navn: Navn = avklarNavn(person.navn).getOrElse { it.mapError() }
+    val fødsel = avklarFødsel(person.foedselsdato).getOrElse { it.mapError() }
     val adressebeskyttelse: AdressebeskyttelseGradering =
         avklarGradering(person.adressebeskyttelse).getOrElse { it.mapError() }
     return EnkelPerson(
         fnr = fnr,
+        fødselsdato = fødsel.foedselsdato,
         fornavn = navn.fornavn,
         mellomnavn = navn.mellomnavn,
         etternavn = navn.etternavn,

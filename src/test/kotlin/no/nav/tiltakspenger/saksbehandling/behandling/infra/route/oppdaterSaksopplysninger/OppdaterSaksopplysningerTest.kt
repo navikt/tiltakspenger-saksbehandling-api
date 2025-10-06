@@ -38,7 +38,7 @@ internal class OppdaterSaksopplysningerTest {
                 )
                 tac.leggTilPerson(
                     fnr = sak.fnr,
-                    personopplysningerForBruker = personopplysningerForBrukerFraPdl,
+                    person = personopplysningerForBrukerFraPdl,
                     tiltaksdeltagelse = Tiltaksdeltagelse(
                         eksternDeltagelseId = "TA12345",
                         gjennomføringId = null,

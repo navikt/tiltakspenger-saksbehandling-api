@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklient
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
-import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 
 class PersonHttpklient(
     endepunkt: String,
@@ -23,20 +22,12 @@ class PersonHttpklient(
     /**
      * Kommentar jah: Dersom vi ønsker og sende saksbehandler sitt OBO-token, kan vi lage en egen metode for dette.
      */
-    override suspend fun hentPerson(fnr: Fnr): PersonopplysningerSøker {
-        return withContext(Dispatchers.IO) {
-            val body = objectMapper.writeValueAsString(hentPersonQuery(fnr))
-            personklient
-                .hentPerson(fnr, getToken(), body)
-                .map { mapPersonopplysninger(it, fnr) }
-                .getOrElse { it.mapError() }
-        }
-    }
-
     override suspend fun hentEnkelPerson(fnr: Fnr): EnkelPerson {
         return withContext(Dispatchers.IO) {
             val body = objectMapper.writeValueAsString(hentEnkelPersonQuery(fnr))
-            personklient.hentPerson(fnr, getToken(), body).map { it.toEnkelPerson(fnr) }.getOrElse { it.mapError() }
+            personklient.hentPerson(fnr, getToken(), body)
+                .map { it.toEnkelPerson(fnr) }
+                .getOrElse { it.mapError() }
         }
     }
 }
