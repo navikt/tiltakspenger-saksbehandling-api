@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.BeløpDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeKorrigeringDTO
@@ -15,14 +15,14 @@ data class MeldekortBeregningDTO(
     val beregningerForPåfølgendePerioder: List<MeldeperiodeBeregningDTO>,
 )
 
-fun MeldekortBeregning.tilMeldekortBeregningDTO(): MeldekortBeregningDTO {
+fun Beregning.tilMeldekortBeregningDTO(): MeldekortBeregningDTO {
     return MeldekortBeregningDTO(
         totalBeløp = BeløpDTO(
             totalt = totalBeløp,
             ordinært = ordinærBeløp,
             barnetillegg = barnetilleggBeløp,
         ),
-        beregningForMeldekortetsPeriode = beregningForMeldekortetsPeriode.tilMeldeperiodeBeregningDTO(),
+        beregningForMeldekortetsPeriode = førsteMeldeperiodeBeregning.tilMeldeperiodeBeregningDTO(),
         beregningerForPåfølgendePerioder = beregningerForPåfølgendePerioder.map { it.tilMeldeperiodeBeregningDTO() },
     )
 }

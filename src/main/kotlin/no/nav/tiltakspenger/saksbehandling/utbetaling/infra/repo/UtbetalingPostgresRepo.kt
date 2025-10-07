@@ -10,10 +10,8 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
-import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraBehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
@@ -234,14 +232,14 @@ class UtbetalingPostgresRepo(
 
             val beregningJson = string("beregning")
 
-            val vedtakIdOgBeregning: Pair<VedtakId, UtbetalingBeregning> = meldekortVedtakId?.let {
+            val vedtakIdOgBeregning: Pair<VedtakId, Beregning> = meldekortVedtakId?.let {
                 val vedtakId = VedtakId.fromString(it)
                 val meldekortId = MeldekortId.fromString(string("meldekort_id"))
-                vedtakId to MeldekortBeregning(beregningJson.tilMeldeperiodeBeregningerFraMeldekort(meldekortId))
+                vedtakId to Beregning(beregningJson.tilMeldeperiodeBeregningerFraMeldekort(meldekortId))
             } ?: run {
                 val vedtakId = VedtakId.fromString(rammevedtakId!!)
                 val behandlingId = BehandlingId.fromString(string("behandling_id"))
-                vedtakId to BehandlingBeregning(beregningJson.tilMeldeperiodeBeregningerFraBehandling(behandlingId))
+                vedtakId to Beregning(beregningJson.tilMeldeperiodeBeregningerFraBehandling(behandlingId))
             }
 
             return VedtattUtbetaling(

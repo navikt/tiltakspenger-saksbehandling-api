@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.godkjentAttestering
@@ -210,7 +210,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
-        beregning: BehandlingBeregning? = null,
+        beregning: Beregning? = null,
         simulering: Simulering? = null,
     ): Revurdering {
         val kommando = OppdaterRevurderingKommando.Innvilgelse(
@@ -274,7 +274,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
-        beregning: BehandlingBeregning? = null,
+        beregning: Beregning? = null,
     ): Revurdering {
         return nyRevurderingInnvilgelseKlarTilBeslutning(
             id = id,

@@ -165,7 +165,7 @@ class BeregnRevurderingTest {
             barnetillegg = kommando.barnetillegg,
         )
 
-        nyBeregning.shouldBeInstanceOf<BehandlingBeregning>()
+        nyBeregning.shouldBeInstanceOf<Beregning>()
         nyBeregning.size shouldBe 1
 
         // 8 dager med rett i første meldeperiode for dette vedtaket

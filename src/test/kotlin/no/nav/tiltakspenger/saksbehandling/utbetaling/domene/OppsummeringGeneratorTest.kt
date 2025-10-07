@@ -413,7 +413,7 @@ class OppsummeringGeneratorTest {
             "sakId": "202504101001",
             "fom": "2024-11-11",
             "tom": "2024-11-11",
-            "beløp": -71,
+            "beløp": 71,
             "type": "MOTPOSTERING",
             "klassekode": "TBMOTOBS"
           },
@@ -503,7 +503,7 @@ class OppsummeringGeneratorTest {
             "sakId": "202504101001",
             "fom": "2024-12-05",
             "tom": "2024-12-05",
-            "beløp": -214,
+            "beløp": 214,
             "type": "MOTPOSTERING",
             "klassekode": "TBMOTOBS"
           },
@@ -577,7 +577,7 @@ class OppsummeringGeneratorTest {
                             totalFeilutbetaling = 71,
                             totalTrekk = 0,
                             totalJustering = 0,
-                            totalMotpostering = -71,
+                            totalMotpostering = 71,
                             harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = 11.november(2024),
@@ -606,7 +606,7 @@ class OppsummeringGeneratorTest {
                                     PosteringForDag(
                                         dato = 11.november(2024),
                                         fagområde = "TILTAKSPENGER",
-                                        beløp = -71,
+                                        beløp = 71,
                                         type = Posteringstype.MOTPOSTERING,
                                         klassekode = "TBMOTOBS",
                                     ),
@@ -700,7 +700,7 @@ class OppsummeringGeneratorTest {
                             totalFeilutbetaling = 214,
                             totalTrekk = 0,
                             totalJustering = 0,
-                            totalMotpostering = -214,
+                            totalMotpostering = 214,
                             harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = 5.desember(2024),
@@ -722,7 +722,7 @@ class OppsummeringGeneratorTest {
                                     PosteringForDag(
                                         dato = 5.desember(2024),
                                         fagområde = "TILTAKSPENGER",
-                                        beløp = -214,
+                                        beløp = 214,
                                         type = Posteringstype.MOTPOSTERING,
                                         klassekode = "TBMOTOBS",
                                     ),

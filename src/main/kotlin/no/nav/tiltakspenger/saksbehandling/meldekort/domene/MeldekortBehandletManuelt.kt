@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -56,7 +56,7 @@ data class MeldekortBehandletManuelt(
     override val type: MeldekortBehandlingType,
     override val begrunnelse: MeldekortBehandlingBegrunnelse?,
     override val attesteringer: Attesteringer,
-    override val beregning: MeldekortBeregning,
+    override val beregning: Beregning,
     override val simulering: Simulering?,
     override val dager: MeldekortDager,
 ) : MeldekortBehandling.Behandlet {

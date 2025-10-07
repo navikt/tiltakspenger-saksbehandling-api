@@ -7,9 +7,9 @@ import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -48,7 +48,7 @@ data class VedtattUtbetaling(
     override val opprettet: LocalDateTime,
     val saksbehandler: String,
     val beslutter: String,
-    val beregning: UtbetalingBeregning,
+    val beregning: Beregning,
     val forrigeUtbetalingId: UtbetalingId?,
     val sendtTilUtbetaling: LocalDateTime?,
     val status: Utbetalingsstatus?,

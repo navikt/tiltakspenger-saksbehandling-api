@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
@@ -443,7 +443,7 @@ class MeldekortBehandlingPostgresRepo(
 
             val beregning = row.stringOrNull("beregninger")
                 ?.tilMeldeperiodeBeregningerFraMeldekort(id)
-                ?.let { MeldekortBeregning(it) }
+                ?.let { Beregning(it) }
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> {

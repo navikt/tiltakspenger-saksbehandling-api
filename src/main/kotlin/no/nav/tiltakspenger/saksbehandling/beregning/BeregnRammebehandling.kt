@@ -27,13 +27,13 @@ fun Sak.beregnInnvilgelse(
     behandlingId: BehandlingId,
     virkningsperiode: Periode,
     barnetillegg: Barnetillegg,
-): BehandlingBeregning? {
+): Beregning? {
     return beregnMeldeperioderPåNytt(
         behandlingId = behandlingId,
         virkningsperiode = virkningsperiode,
         barnetillegg = barnetillegg,
     )?.let {
-        BehandlingBeregning(beregninger = it)
+        Beregning(beregninger = it)
     }
 }
 

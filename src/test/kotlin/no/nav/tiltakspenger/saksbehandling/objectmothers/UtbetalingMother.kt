@@ -17,13 +17,11 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.maksAntallDeltattTiltaksdagerIMeldekortperiode
@@ -54,7 +52,7 @@ interface UtbetalingMother : MotherOfAllMothers {
         opprettet: LocalDateTime = nå(clock),
         saksbehandler: String = saksbehandler().navIdent,
         beslutter: String = beslutter().navIdent,
-        beregning: UtbetalingBeregning = utbetalingBeregning(
+        beregning: Beregning = lagBeregning(
             beregningKilde = beregningKilde,
         ),
         forrigeUtbetalingId: UtbetalingId? = null,
@@ -80,7 +78,7 @@ interface UtbetalingMother : MotherOfAllMothers {
         )
     }
 
-    fun utbetalingBeregning(
+    fun lagBeregning(
         meldekortId: MeldekortId = MeldekortId.random(),
         beregningKilde: BeregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortId),
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
@@ -96,7 +94,7 @@ interface UtbetalingMother : MotherOfAllMothers {
             tiltakstype,
             barnetilleggsPerioder,
         ),
-    ): UtbetalingBeregning {
+    ): Beregning {
         val beregninger = nonEmptyListOf(
             MeldeperiodeBeregning(
                 id = BeregningId.random(),
@@ -108,12 +106,8 @@ interface UtbetalingMother : MotherOfAllMothers {
         )
 
         return when (beregningKilde) {
-            is BeregningKilde.BeregningKildeBehandling -> BehandlingBeregning(
-                beregninger = beregninger,
-            )
-            is BeregningKilde.BeregningKildeMeldekort -> MeldekortBeregning(
-                beregninger = beregninger,
-            )
+            is BeregningKilde.BeregningKildeBehandling -> Beregning(beregninger)
+            is BeregningKilde.BeregningKildeMeldekort -> Beregning(beregninger)
         }
     }
 

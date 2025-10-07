@@ -5,8 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
-import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -57,7 +56,7 @@ class SimulerService(
      */
     suspend fun simulerSøknadsbehandlingEllerRevurdering(
         behandling: Rammebehandling,
-        beregning: BehandlingBeregning,
+        beregning: Beregning,
         forrigeUtbetaling: VedtattUtbetaling?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
         saksbehandler: String,
@@ -81,7 +80,7 @@ class SimulerService(
         saksnummer: Saksnummer,
         behandlingId: Ulid,
         fnr: Fnr,
-        beregning: UtbetalingBeregning,
+        beregning: Beregning,
         forrigeUtbetaling: VedtattUtbetaling?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
         saksbehandler: String,

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning
@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
  * @param simulering Vi gjør bare en best-effort på å simulere.
  */
 data class BehandlingUtbetaling(
-    val beregning: BehandlingBeregning,
+    val beregning: Beregning,
     val navkontor: Navkontor,
     val simulering: Simulering?,
 ) {

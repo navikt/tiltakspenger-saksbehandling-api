@@ -32,7 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingT
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -420,7 +420,7 @@ class BehandlingPostgresRepo(
                         manueltBehandlesGrunner = manueltBehandlesGrunner,
                         utbetaling = stringOrNull("beregning")?.let {
                             BehandlingUtbetaling(
-                                beregning = BehandlingBeregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
+                                beregning = Beregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
                                 navkontor = Navkontor(
                                     kontornummer = string("navkontor"),
                                     kontornavn = stringOrNull("navkontor_navn"),
@@ -478,7 +478,7 @@ class BehandlingPostgresRepo(
                         resultat = resultat,
                         utbetaling = stringOrNull("beregning")?.let {
                             BehandlingUtbetaling(
-                                beregning = BehandlingBeregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
+                                beregning = Beregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
                                 navkontor = Navkontor(
                                     kontornummer = string("navkontor"),
                                     kontornavn = stringOrNull("navkontor_navn"),

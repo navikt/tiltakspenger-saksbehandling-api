@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
@@ -45,7 +45,7 @@ sealed interface MeldekortBehandling : Behandling {
     override val fnr: Fnr
     override val opprettet: LocalDateTime
     val dager: MeldekortDager
-    val beregning: MeldekortBeregning?
+    val beregning: Beregning?
 
     /** Vi ønsker å kunne utbetale selvom vi ikke får simulert; så denne vil i noen tilfeller være null. */
     val simulering: Simulering?
@@ -163,7 +163,7 @@ sealed interface MeldekortBehandling : Behandling {
     }
 
     sealed interface Behandlet : MeldekortBehandling {
-        override val beregning: MeldekortBeregning
+        override val beregning: Beregning
         override val beløpTotal: Int get() = beregning.totalBeløp
         override val ordinærBeløp: Int get() = beregning.ordinærBeløp
         override val barnetilleggBeløp: Int get() = beregning.barnetilleggBeløp

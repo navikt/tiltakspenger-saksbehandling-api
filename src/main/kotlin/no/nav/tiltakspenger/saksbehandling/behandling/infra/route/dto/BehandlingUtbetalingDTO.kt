@@ -12,9 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingsstatusDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimuleringDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimulertBeregningDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilSimuleringDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.toSimulertBeregningDTO
 
 data class BehandlingUtbetalingDTO(
@@ -23,7 +21,6 @@ data class BehandlingUtbetalingDTO(
     val status: UtbetalingsstatusDTO,
     val beregninger: List<MeldeperiodeBeregningDTO>,
     val beregningerSummert: BeregningerSummertDTO,
-    val simulering: SimuleringDTO?,
     val simulertBeregning: SimulertBeregningDTO,
 )
 
@@ -65,7 +62,6 @@ fun BehandlingUtbetaling.tilDTO(
                 nå = beregning.barnetilleggBeløp,
             ),
         ),
-        simulering = simulering?.tilSimuleringDTO(),
         simulertBeregning = this.toSimulertBeregning(tidligereUtbetalinger).toSimulertBeregningDTO(),
     )
 }

@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -40,7 +40,7 @@ class OppdaterSimuleringService(
     ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, MeldekortBehandling>>> {
         val sak: Sak = sakService.hentForSakId(sakId)
 
-        val simuler: suspend (beregning: UtbetalingBeregning, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata> =
+        val simuler: suspend (beregning: Beregning, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata> =
             { beregning, navkontor ->
                 simulerService.simuler(
                     sakId = sak.id,
@@ -72,7 +72,7 @@ class OppdaterSimuleringService(
     private suspend fun Sak.oppdaterRammebehandling(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
-        simuler: suspend (beregning: UtbetalingBeregning, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
+        simuler: suspend (beregning: Beregning, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
     ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, MeldekortBehandling>>> {
         val behandling: Rammebehandling = this.hentBehandling(behandlingId)!!
         require(saksbehandler.navIdent == behandling.saksbehandler) {
@@ -94,7 +94,7 @@ class OppdaterSimuleringService(
     private suspend fun Sak.oppdaterMeldekortbehandling(
         meldekortbehandlingId: MeldekortId,
         saksbehandler: Saksbehandler,
-        simuler: suspend (beregning: UtbetalingBeregning, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
+        simuler: suspend (beregning: Beregning, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
     ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, MeldekortBehandling>>> {
         val meldekortbehandling: MeldekortBehandling = this.hentMeldekortBehandling(meldekortbehandlingId)!!
         require(saksbehandler.navIdent == meldekortbehandling.saksbehandler) {

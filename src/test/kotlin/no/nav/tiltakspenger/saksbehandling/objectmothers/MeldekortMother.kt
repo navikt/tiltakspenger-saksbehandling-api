@@ -27,9 +27,9 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
@@ -149,7 +149,7 @@ interface MeldekortMother : MotherOfAllMothers {
             antallDagerForPeriode = antallDagerForPeriode,
         ),
         barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
-        meldekortperiodeBeregning: MeldekortBeregning =
+        meldekortperiodeBeregning: Beregning =
             meldekortBeregning(
                 meldekortId = id,
                 startDato = meldeperiode.periode.fraOgMed,
@@ -218,7 +218,7 @@ interface MeldekortMother : MotherOfAllMothers {
             mottatt = nå(clock),
 
         ),
-        beregning: MeldekortBeregning = brukersMeldekort.tilMeldekortBeregning(
+        beregning: Beregning = brukersMeldekort.tilMeldekortBeregning(
             meldekortBehandlingId = id,
             barnetilleggsPerioder = barnetilleggsPerioder,
         ),
@@ -277,8 +277,8 @@ interface MeldekortMother : MotherOfAllMothers {
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
         reduksjon: ReduksjonAvYtelsePåGrunnAvFravær = ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon,
-    ): MeldekortBeregning {
-        return MeldekortBeregning(
+    ): Beregning {
+        return Beregning(
             nonEmptyListOf(
                 MeldeperiodeBeregning(
                     id = BeregningId.random(),
@@ -347,8 +347,8 @@ interface MeldekortMother : MotherOfAllMothers {
             tiltakstype,
             barnetilleggsPerioder,
         ),
-    ): MeldekortBeregning {
-        return MeldekortBeregning(
+    ): Beregning {
+        return Beregning(
             nonEmptyListOf(
                 MeldeperiodeBeregning(
                     id = BeregningId.random(),
