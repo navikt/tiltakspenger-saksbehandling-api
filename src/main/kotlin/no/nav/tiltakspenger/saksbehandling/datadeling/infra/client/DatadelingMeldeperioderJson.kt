@@ -25,7 +25,7 @@ private data class DatadelingMeldeperioderJson(
 
 fun List<Meldeperiode>.toDatadelingJson(sak: Sak): String {
     return DatadelingMeldeperioderJson(
-        fnr = sak.fnr.toString(),
+        fnr = sak.fnr.verdi,
         sakId = sak.id.toString(),
         saksnummer = sak.saksnummer.verdi,
         meldeperioder = this.map { it.toDatadelingMeldeperiode() },
