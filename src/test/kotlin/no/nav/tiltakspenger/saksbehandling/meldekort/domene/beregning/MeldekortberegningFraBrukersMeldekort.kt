@@ -108,9 +108,9 @@ class MeldekortberegningFraBrukersMeldekort {
 
             listOf(
                 List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
                 List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             periodeSomStarterPåMandag,
@@ -129,9 +129,9 @@ class MeldekortberegningFraBrukersMeldekort {
 
             listOf(
                 List(5) { InnmeldtStatus.FRAVÆR_SYK },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
                 List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             periodeSomStarterPåMandag,
@@ -150,9 +150,9 @@ class MeldekortberegningFraBrukersMeldekort {
 
             listOf(
                 List(5) { InnmeldtStatus.FRAVÆR_SYKT_BARN },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
                 List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             periodeSomStarterPåMandag,
@@ -171,9 +171,9 @@ class MeldekortberegningFraBrukersMeldekort {
 
             listOf(
                 List(5) { InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
                 List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             periodeSomStarterPåMandag,
@@ -192,9 +192,9 @@ class MeldekortberegningFraBrukersMeldekort {
 
             listOf(
                 List(5) { InnmeldtStatus.FRAVÆR_ANNET },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
                 List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             periodeSomStarterPåMandag,
@@ -213,11 +213,11 @@ class MeldekortberegningFraBrukersMeldekort {
             ).flatten(),
 
             listOf(
-                List(3) { InnmeldtStatus.IKKE_BESVART },
+                List(3) { InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER },
                 List(2) { InnmeldtStatus.FRAVÆR_ANNET },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
                 List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { InnmeldtStatus.IKKE_BESVART },
+                List(2) { InnmeldtStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             periodeSomStarterPåTorsdag,

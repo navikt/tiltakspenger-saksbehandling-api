@@ -98,7 +98,7 @@ enum class InnmeldtStatus {
         // TODO jah: Rydd opp i disse i neste PR
         FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
         FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_ANNET
-        IKKE_BESVART -> MeldekortDagStatus.IKKE_TILTAKSDAG
+        IKKE_BESVART -> MeldekortDagStatus.IKKE_BESVART
         IKKE_TILTAKSDAG -> MeldekortDagStatus.IKKE_TILTAKSDAG
         IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
     }
