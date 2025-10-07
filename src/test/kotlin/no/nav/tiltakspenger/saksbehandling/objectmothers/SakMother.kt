@@ -16,19 +16,19 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
@@ -39,8 +39,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
 import java.time.LocalDate
@@ -51,17 +51,17 @@ interface SakMother {
         fnr: Fnr = Fnr.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         søknader: List<Søknad> = emptyList(),
-        behandlinger: Behandlinger = Behandlinger.empty(),
+        behandlinger: Rammebehandlinger = Rammebehandlinger.empty(),
     ): Sak = Sak(
         id = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
-        behandlinger = behandlinger,
-        vedtaksliste = Vedtaksliste.empty(),
-        meldekortBehandlinger = MeldekortBehandlinger.empty(),
+        rammebehandlinger = behandlinger,
+        rammevedtaksliste = Rammevedtaksliste.empty(),
+        meldekortbehandlinger = Meldekortbehandlinger.empty(),
         meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
         brukersMeldekort = emptyList(),
-        soknader = søknader,
+        søknader = søknader,
         meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
     )
 
@@ -161,12 +161,12 @@ interface SakMother {
             id = sakId,
             fnr = fnr,
             saksnummer = saksnummer,
-            behandlinger = Behandlinger(søknadsbehandling),
-            vedtaksliste = Vedtaksliste.empty(),
-            meldekortBehandlinger = MeldekortBehandlinger.empty(),
+            rammebehandlinger = Rammebehandlinger(søknadsbehandling),
+            rammevedtaksliste = Rammevedtaksliste.empty(),
+            meldekortbehandlinger = Meldekortbehandlinger.empty(),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
-            soknader = listOf(søknad),
+            søknader = listOf(søknad),
             meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
         ) to søknadsbehandling
     }
@@ -222,12 +222,12 @@ interface SakMother {
             id = sakId,
             fnr = fnr,
             saksnummer = saksnummer,
-            behandlinger = Behandlinger(søknadsbehandling),
-            vedtaksliste = Vedtaksliste.empty(),
-            meldekortBehandlinger = MeldekortBehandlinger.empty(),
+            rammebehandlinger = Rammebehandlinger(søknadsbehandling),
+            rammevedtaksliste = Rammevedtaksliste.empty(),
+            meldekortbehandlinger = Meldekortbehandlinger.empty(),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
-            soknader = listOf(søknad),
+            søknader = listOf(søknad),
             meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
         ) to søknadsbehandling
     }
@@ -280,7 +280,7 @@ interface SakMother {
                 clock = clock,
             )
 
-        val sakMedIverksattBehandling = sak.copy(behandlinger = Behandlinger(iverksattBehandling))
+        val sakMedIverksattBehandling = sak.copy(rammebehandlinger = Rammebehandlinger(iverksattBehandling))
         val sakMedVedtak = sakMedIverksattBehandling.opprettVedtak(iverksattBehandling, clock)
 
         return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)
@@ -325,7 +325,7 @@ interface SakMother {
                 clock = clock,
             )
 
-        val sakMedIverksattBehandling = sak.copy(behandlinger = Behandlinger(iverksattBehandling))
+        val sakMedIverksattBehandling = sak.copy(rammebehandlinger = Rammebehandlinger(iverksattBehandling))
         val sakMedVedtak = sakMedIverksattBehandling.opprettVedtak(iverksattBehandling, clock)
 
         return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)

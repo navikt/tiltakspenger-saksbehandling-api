@@ -30,8 +30,8 @@ class BehandlingerTest {
             sakId = sakId,
             clock = clock,
         )
-        val åpenOgAvbrutt = Behandlinger(listOf(åpenBehandling, avbruttBehandling))
-        val vedtattOgAvbrutt = Behandlinger(listOf(vedtattBehandling, avbruttBehandling))
+        val åpenOgAvbrutt = Rammebehandlinger(listOf(åpenBehandling, avbruttBehandling))
+        val vedtattOgAvbrutt = Rammebehandlinger(listOf(vedtattBehandling, avbruttBehandling))
 
         val actualÅpenOgAvbrutt = åpenOgAvbrutt.hentÅpneBehandlinger()
         actualÅpenOgAvbrutt.size shouldBe 1

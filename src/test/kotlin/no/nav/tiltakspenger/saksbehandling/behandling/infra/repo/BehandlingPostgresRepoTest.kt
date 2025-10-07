@@ -56,8 +56,8 @@ internal class BehandlingPostgresRepoTest {
                 ),
             )
             sakRepo.hentForSakId(sak.id) shouldBe sak
-            behandlingRepo.hent(sak.behandlinger.singleOrNullOrThrow()!!.id).also {
-                it shouldBe sak.behandlinger.singleOrNullOrThrow()
+            behandlingRepo.hent(sak.rammebehandlinger.singleOrNullOrThrow()!!.id).also {
+                it shouldBe sak.rammebehandlinger.singleOrNullOrThrow()
                 it.barnetillegg shouldNotBe null
             }
         }
@@ -83,8 +83,8 @@ internal class BehandlingPostgresRepoTest {
             val (sak1, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
             val (sak2, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
 
-            behandlingRepo.hentAlleForFnr(sak1.fnr) shouldBe sak1.behandlinger
-            behandlingRepo.hentAlleForFnr(sak2.fnr) shouldBe sak2.behandlinger
+            behandlingRepo.hentAlleForFnr(sak1.fnr) shouldBe sak1.rammebehandlinger
+            behandlingRepo.hentAlleForFnr(sak2.fnr) shouldBe sak2.rammebehandlinger
         }
     }
 

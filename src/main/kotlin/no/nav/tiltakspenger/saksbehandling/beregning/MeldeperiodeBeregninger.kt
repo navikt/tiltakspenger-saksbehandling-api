@@ -3,17 +3,17 @@ package no.nav.tiltakspenger.saksbehandling.beregning
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import java.time.LocalDateTime
 
 private typealias BeregningMedIverksattTidspunkt = Pair<MeldeperiodeBeregning, LocalDateTime>
 
 data class MeldeperiodeBeregninger(
-    private val meldekortBehandlinger: MeldekortBehandlinger,
-    private val behandlinger: Behandlinger,
+    private val meldekortBehandlinger: Meldekortbehandlinger,
+    private val behandlinger: Rammebehandlinger,
 ) {
     private val godkjenteMeldekort: List<MeldekortBehandling.Behandlet> = meldekortBehandlinger.godkjenteMeldekort
         .sortedBy { it.iverksattTidspunkt }

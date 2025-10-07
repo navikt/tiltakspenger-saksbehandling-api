@@ -12,7 +12,7 @@ suspend fun Sak.sendMeldekortTilBeslutter(
     simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
     clock: Clock,
 ): Either<KanIkkeSendeMeldekortTilBeslutter, Triple<Sak, MeldekortBehandletManuelt, SimuleringMedMetadata?>> {
-    return this.meldekortBehandlinger.sendTilBeslutter(
+    return this.meldekortbehandlinger.sendTilBeslutter(
         kommando = kommando,
         simuler = simuler,
         beregn = { meldeperiode ->

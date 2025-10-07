@@ -13,7 +13,7 @@ class SakDtoTest {
         val (sak) = ObjectMother.sakMedOpprettetBehandling()
         val nySøknad = ObjectMother.nyInnvilgbarSøknad()
         // TODO - burde muligens ha en sak.nySøknad()
-        val sakMedSøknadOgBehandling = sak.copy(soknader = sak.soknader + nySøknad)
+        val sakMedSøknadOgBehandling = sak.copy(søknader = sak.søknader + nySøknad)
 
         val actual = sakMedSøknadOgBehandling.toSakDTO(fixedClock)
         actual.behandlingsoversikt.size shouldBe 2

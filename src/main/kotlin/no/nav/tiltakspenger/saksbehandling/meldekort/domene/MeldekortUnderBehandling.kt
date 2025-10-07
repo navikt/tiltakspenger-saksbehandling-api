@@ -358,7 +358,7 @@ fun Sak.opprettManuellMeldekortBehandling(
 ): Triple<Sak, MeldekortUnderBehandling, SkalLagreEllerOppdatere> {
     validerOpprettMeldekortBehandling(kjedeId)
 
-    val åpenMeldekortBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling
+    val åpenMeldekortBehandling = this.meldekortbehandlinger.åpenMeldekortBehandling
 
     if (åpenMeldekortBehandling != null) {
         if (kjedeId == åpenMeldekortBehandling.kjedeId) {
@@ -382,7 +382,7 @@ fun Sak.opprettManuellMeldekortBehandling(
 
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
-    val behandlingerForKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
+    val behandlingerForKjede = this.meldekortbehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
     val type =
         if (behandlingerForKjede.isEmpty()) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
 

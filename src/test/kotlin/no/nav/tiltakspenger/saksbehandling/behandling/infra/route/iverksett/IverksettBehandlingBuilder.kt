@@ -146,7 +146,7 @@ interface IverksettBehandlingBuilder {
                 status shouldBe HttpStatusCode.OK
             }
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val behandling = sak.behandlinger.hentBehandling(behandlingId)!!
+            val behandling = sak.rammebehandlinger.hentBehandling(behandlingId)!!
             return Triple(sak, behandling, bodyAsText)
         }
     }

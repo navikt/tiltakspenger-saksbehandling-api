@@ -10,7 +10,7 @@ suspend fun Sak.oppdaterMeldekort(
     kommando: OppdaterMeldekortKommando,
     simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
 ): Either<KanIkkeOppdatereMeldekort, Triple<Sak, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
-    return this.meldekortBehandlinger.oppdaterMeldekort(
+    return this.meldekortbehandlinger.oppdaterMeldekort(
         kommando = kommando,
         beregn = { meldeperiode ->
             this.beregnMeldekort(

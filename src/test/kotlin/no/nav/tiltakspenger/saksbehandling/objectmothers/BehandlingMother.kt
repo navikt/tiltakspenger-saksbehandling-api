@@ -22,12 +22,12 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -592,8 +592,8 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
         this.behandlingContext.behandlingRepo.lagre(it)
     }
     return sak.copy(
-        behandlinger = Behandlinger(
-            sak.behandlinger.behandlinger + behandlingUnderBehandling,
+        rammebehandlinger = Rammebehandlinger(
+            sak.rammebehandlinger.behandlinger + behandlingUnderBehandling,
         ),
     )
 }
@@ -617,7 +617,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
         periode = periode,
         fnr = fnr,
     )
-    val behandling = sakMedSøknadsbehandling.behandlinger.singleOrNullOrThrow()!! as Søknadsbehandling
+    val behandling = sakMedSøknadsbehandling.rammebehandlinger.singleOrNullOrThrow()!! as Søknadsbehandling
     val tiltaksdeltakelser = listOf(
         Pair(
             periode,
@@ -688,7 +688,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
     )
     this.behandlingContext.taBehandlingService.taBehandling(
         vilkårsvurdert.id,
-        vilkårsvurdert.behandlinger.singleOrNullOrThrow()!!.id,
+        vilkårsvurdert.rammebehandlinger.singleOrNullOrThrow()!!.id,
         beslutter,
     )
     return this.sakContext.sakService.hentForSakId(
@@ -719,7 +719,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         barnetillegg = barnetillegg,
     )
     tac.behandlingContext.iverksettBehandlingService.iverksett(
-        behandlingId = underBeslutning.behandlinger.singleOrNullOrThrow()!!.id,
+        behandlingId = underBeslutning.rammebehandlinger.singleOrNullOrThrow()!!.id,
         beslutter = beslutter,
         sakId = underBeslutning.id,
     )
@@ -794,7 +794,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
         beslutter = beslutter,
     )
     tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-        sak.meldekortBehandlinger.first().tilSendMeldekortTilBeslutterKommando(
+        sak.meldekortbehandlinger.first().tilSendMeldekortTilBeslutterKommando(
             saksbehandler,
         ),
     )
@@ -820,12 +820,12 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
     )
     tac.meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
         sakId = sak.id,
-        meldekortId = sak.meldekortBehandlinger.first().id,
+        meldekortId = sak.meldekortbehandlinger.first().id,
         saksbehandler = beslutter,
     )
     tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
         IverksettMeldekortKommando(
-            meldekortId = sak.meldekortBehandlinger.first().id,
+            meldekortId = sak.meldekortbehandlinger.first().id,
             sakId = sak.id,
             beslutter = beslutter,
             correlationId = correlationId,

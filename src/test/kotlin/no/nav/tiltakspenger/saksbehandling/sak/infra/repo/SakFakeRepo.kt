@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -50,16 +50,16 @@ class SakFakeRepo(
     ): Sak? {
         val behandlinger = behandlingRepo.hentBehandlingerForSakId(sakId)
         val meldekortBehandlinger =
-            meldekortBehandlingRepo.hentForSakId(sakId) ?: MeldekortBehandlinger.empty()
+            meldekortBehandlingRepo.hentForSakId(sakId) ?: Meldekortbehandlinger.empty()
         val soknader = søknadFakeRepo.hentForSakId(sakId)
 
         return data.get()[sakId]?.copy(
-            behandlinger = behandlinger,
-            vedtaksliste = rammevedtakRepo.hentForSakId(sakId),
-            meldekortBehandlinger = meldekortBehandlinger,
+            rammebehandlinger = behandlinger,
+            rammevedtaksliste = rammevedtakRepo.hentForSakId(sakId),
+            meldekortbehandlinger = meldekortBehandlinger,
             meldekortVedtaksliste = meldekortVedtakRepo.hentForSakId(sakId),
             meldeperiodeKjeder = meldeperiodeRepo.hentForSakId(sakId),
-            soknader = soknader,
+            søknader = soknader,
         )
     }
 

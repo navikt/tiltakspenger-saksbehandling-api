@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDate
 
-data class Vedtaksliste(
+data class Rammevedtaksliste(
     val value: List<Rammevedtak>,
 ) : List<Vedtak> by value {
     constructor(value: Rammevedtak) : this(listOf(value))
@@ -131,7 +131,7 @@ data class Vedtaksliste(
         valgteTiltaksdeltakelser.mapVerdi { verdi, _ -> verdi.typeKode }
     }
 
-    fun leggTilVedtak(vedtak: Rammevedtak): Vedtaksliste = copy(value = this.value.plus(vedtak))
+    fun leggTilVedtak(vedtak: Rammevedtak): Rammevedtaksliste = copy(value = this.value.plus(vedtak))
 
     fun hentRammevedtakForId(rammevedtakId: VedtakId): Rammevedtak {
         return value.single { it.id == rammevedtakId }
@@ -150,6 +150,6 @@ data class Vedtaksliste(
     }
 
     companion object {
-        fun empty() = Vedtaksliste(emptyList())
+        fun empty() = Rammevedtaksliste(emptyList())
     }
 }

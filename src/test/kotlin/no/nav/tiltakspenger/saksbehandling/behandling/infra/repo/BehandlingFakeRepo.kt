@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -220,8 +220,8 @@ class BehandlingFakeRepo : BehandlingRepo {
         return true
     }
 
-    fun hentBehandlingerForSakId(sakId: SakId): Behandlinger {
-        return Behandlinger(
+    fun hentBehandlingerForSakId(sakId: SakId): Rammebehandlinger {
+        return Rammebehandlinger(
             data.get().values.filter { it.sakId == sakId },
         )
     }

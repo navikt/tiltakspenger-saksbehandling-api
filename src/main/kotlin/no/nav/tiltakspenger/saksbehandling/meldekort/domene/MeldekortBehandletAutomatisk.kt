@@ -97,7 +97,7 @@ suspend fun Sak.opprettAutomatiskMeldekortBehandling(
 
     val sisteMeldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
-    val behandlingerKnyttetTilKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
+    val behandlingerKnyttetTilKjede = this.meldekortbehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
 
     if (!brukersMeldekort.behandlesAutomatisk) {
         logger.error { "Brukers meldekort $meldekortId skal ikke behandles automatisk" }

@@ -38,7 +38,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             return@let null
         }
 
-        val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.beregningKilde.id)
+        val forrigeBehandling = meldekortbehandlinger.hentMeldekortBehandling(it.beregningKilde.id)
         if (forrigeBehandling !is MeldekortBehandletManuelt) {
             return@let null
         }
@@ -58,12 +58,12 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         id = meldeperiodeKjede.kjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
         status = toMeldeperiodeKjedeStatusDTO(kjedeId, clock),
-        periodeMedÅpenBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling?.periode?.toDTO(),
-        tiltaksnavn = this.vedtaksliste
+        periodeMedÅpenBehandling = this.meldekortbehandlinger.åpenMeldekortBehandling?.periode?.toDTO(),
+        tiltaksnavn = this.rammevedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
             .perioderMedVerdi.toList().map { it.verdi.typeNavn },
         meldeperioder = meldeperiodeKjede.map { it.toMeldeperiodeDTO() },
-        meldekortBehandlinger = this.meldekortBehandlinger
+        meldekortBehandlinger = this.meldekortbehandlinger
             .hentMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
             .map {
                 it.tilMeldekortBehandlingDTO(
@@ -73,7 +73,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             },
         brukersMeldekort = brukersMeldekort.map { it.toBrukersMeldekortDTO() },
         korrigeringFraTidligerePeriode = korrigering,
-        avbrutteMeldekortBehandlinger = this.meldekortBehandlinger
+        avbrutteMeldekortBehandlinger = this.meldekortbehandlinger
             .hentAvbrutteMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
             .map { it.tilMeldekortBehandlingDTO(beregninger = this.meldeperiodeBeregninger) },
         sisteBeregning = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.tilMeldeperiodeBeregningDTO(),

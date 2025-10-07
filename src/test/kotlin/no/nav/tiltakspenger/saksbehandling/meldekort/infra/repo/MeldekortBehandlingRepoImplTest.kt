@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraMeldekortBehandling
@@ -50,7 +50,7 @@ class MeldekortBehandlingRepoImplTest {
                     meldekortBehandling.id,
                     it,
                 )!! shouldBe meldekortBehandling
-                MeldekortBehandlingPostgresRepo.hentForSakId(sak.id, it)!! shouldBe MeldekortBehandlinger(
+                MeldekortBehandlingPostgresRepo.hentForSakId(sak.id, it)!! shouldBe Meldekortbehandlinger(
                     listOf(meldekortBehandling),
                 )
             }

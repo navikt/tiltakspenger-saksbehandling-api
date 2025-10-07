@@ -11,9 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
@@ -137,7 +135,7 @@ fun Sak.opprettVedtak(
         utbetaling = utbetaling,
     )
 
-    val oppdatertSak = this.copy(vedtaksliste = this.vedtaksliste.leggTilVedtak(vedtak))
+    val oppdatertSak = this.copy(rammevedtaksliste = this.rammevedtaksliste.leggTilVedtak(vedtak))
 
     return oppdatertSak to vedtak
 }

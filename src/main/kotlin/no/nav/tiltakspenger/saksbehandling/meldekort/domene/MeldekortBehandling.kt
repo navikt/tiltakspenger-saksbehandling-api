@@ -184,7 +184,7 @@ fun Sak.validerOpprettMeldekortBehandling(kjedeId: MeldeperiodeKjedeId) {
     val meldeperiodekjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)!!
     val meldeperiode = meldeperiodekjede.hentSisteMeldeperiode()
 
-    val åpenBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling
+    val åpenBehandling = this.meldekortbehandlinger.åpenMeldekortBehandling
 
     if (åpenBehandling != null && åpenBehandling.kjedeId != kjedeId) {
         throw IllegalStateException(
@@ -192,7 +192,7 @@ fun Sak.validerOpprettMeldekortBehandling(kjedeId: MeldeperiodeKjedeId) {
         )
     }
 
-    if (this.meldekortBehandlinger.isEmpty() &&
+    if (this.meldekortbehandlinger.isEmpty() &&
         meldeperiode != this.meldeperiodeKjeder.first()
             .hentSisteMeldeperiode()
     ) {
@@ -203,7 +203,7 @@ fun Sak.validerOpprettMeldekortBehandling(kjedeId: MeldeperiodeKjedeId) {
 
     this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
         ?.also { foregåendeMeldeperiodekjede ->
-            this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId)
+            this.meldekortbehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId)
                 .also { behandlinger ->
                     if (behandlinger.none { it.status == GODKJENT || it.status == AUTOMATISK_BEHANDLET }) {
                         throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")

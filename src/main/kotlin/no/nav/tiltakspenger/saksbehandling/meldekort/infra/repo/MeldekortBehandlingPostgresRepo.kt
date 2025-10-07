@@ -27,8 +27,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletMa
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -219,7 +219,7 @@ class MeldekortBehandlingPostgresRepo(
     override fun hentForSakId(
         sakId: SakId,
         sessionContext: SessionContext?,
-    ): MeldekortBehandlinger? {
+    ): Meldekortbehandlinger? {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForSakId(sakId, session)
         }
@@ -382,7 +382,7 @@ class MeldekortBehandlingPostgresRepo(
         internal fun hentForSakId(
             sakId: SakId,
             session: Session,
-        ): MeldekortBehandlinger? {
+        ): Meldekortbehandlinger? {
             return session.run(
                 sqlQuery(
                     """
@@ -399,7 +399,7 @@ class MeldekortBehandlingPostgresRepo(
                 ).map { fromRow(it, session) }.asList,
             ).let { behandlinger ->
                 behandlinger.toNonEmptyListOrNull()?.let {
-                    MeldekortBehandlinger(it)
+                    Meldekortbehandlinger(it)
                 }
             }
         }

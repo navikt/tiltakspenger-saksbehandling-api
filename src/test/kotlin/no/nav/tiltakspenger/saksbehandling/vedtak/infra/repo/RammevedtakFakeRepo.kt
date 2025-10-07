@@ -13,8 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -69,9 +69,9 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
         data.get()[id] = data.get()[id]!!.copy(sendtTilDatadeling = tidspunkt)
     }
 
-    fun hentForSakId(sakId: SakId): Vedtaksliste =
+    fun hentForSakId(sakId: SakId): Rammevedtaksliste =
         data.get().values.filter { it.behandling.sakId == sakId }.sortedBy { it.opprettet }.let {
-            Vedtaksliste(it)
+            Rammevedtaksliste(it)
         }
 
     fun hentForBehandlingId(behandlingId: BehandlingId): Rammevedtak? =

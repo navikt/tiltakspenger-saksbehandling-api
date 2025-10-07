@@ -32,18 +32,18 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     sakId = id.toString(),
     fnr = fnr.verdi,
     behandlingsoversikt = (
-        behandlinger.hentÅpneBehandlinger().toSaksoversiktDTO() +
-            this.soknader
+        rammebehandlinger.hentÅpneBehandlinger().toSaksoversiktDTO() +
+            this.søknader
                 .filter { soknad ->
-                    !soknad.erAvbrutt && behandlinger.søknadsbehandlinger.none { it.søknad.id == soknad.id }
+                    !soknad.erAvbrutt && rammebehandlinger.søknadsbehandlinger.none { it.søknad.id == soknad.id }
                 }
                 .toSaksoversiktDTO()
         ).sortedBy { it.opprettet },
     meldeperiodeKjeder = toMeldeperiodeKjederDTO(clock = clock),
     førsteDagSomGirRett = førsteDagSomGirRett,
     sisteDagSomGirRett = sisteDagSomGirRett,
-    søknader = soknader.toSøknadDTO(),
+    søknader = søknader.toSøknadDTO(),
     behandlinger = this.tilBehandlingerDTO(),
-    tidslinje = vedtaksliste.tidslinje.perioderMedVerdi.map { it.tilPeriodisertRammevedtakDTO() },
+    tidslinje = rammevedtaksliste.tidslinje.perioderMedVerdi.map { it.tilPeriodisertRammevedtakDTO() },
     utbetalingstidslinje = this.tilUtbetalingstidslinjeMeldeperiodeDTO(),
 )

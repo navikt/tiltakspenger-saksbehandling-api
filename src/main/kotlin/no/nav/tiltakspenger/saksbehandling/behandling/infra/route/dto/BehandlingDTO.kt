@@ -107,7 +107,7 @@ data class RevurderingDTO(
 }
 
 fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): BehandlingDTO {
-    val behandling = behandlinger.hentBehandling(behandlingId)
+    val behandling = rammebehandlinger.hentBehandling(behandlingId)
 
     requireNotNull(behandling) {
         "Fant ingen behandling med id $behandlingId"
@@ -126,7 +126,7 @@ fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): BehandlingDTO {
     }
 }
 
-fun Sak.tilBehandlingerDTO(): List<BehandlingDTO> = this.behandlinger.map { this.tilBehandlingDTO(it.id) }
+fun Sak.tilBehandlingerDTO(): List<BehandlingDTO> = this.rammebehandlinger.map { this.tilBehandlingDTO(it.id) }
 
 fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     utbetalingsstatus: Utbetalingsstatus?,

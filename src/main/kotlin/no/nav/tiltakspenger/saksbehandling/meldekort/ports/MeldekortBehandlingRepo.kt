@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 
 interface MeldekortBehandlingRepo {
@@ -37,7 +37,7 @@ interface MeldekortBehandlingRepo {
     fun hentForSakId(
         sakId: SakId,
         sessionContext: SessionContext? = null,
-    ): MeldekortBehandlinger?
+    ): Meldekortbehandlinger?
 
     fun hent(
         meldekortId: MeldekortId,

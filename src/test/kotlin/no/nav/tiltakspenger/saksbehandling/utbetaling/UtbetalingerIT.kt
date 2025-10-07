@@ -81,10 +81,10 @@ class UtbetalingerIT {
 
             oppdatertSak.utbetalinger shouldBe listOf(
                 oppdatertSak.meldekortVedtaksliste.first().utbetaling,
-                oppdatertSak.vedtaksliste.last().utbetaling,
+                oppdatertSak.rammevedtaksliste.last().utbetaling,
             )
 
-            val revurderingUtbetalingId = oppdatertSak.vedtaksliste.last().utbetaling!!.id
+            val revurderingUtbetalingId = oppdatertSak.rammevedtaksliste.last().utbetaling!!.id
 
             val utbetalingerSomVenter = tac.utbetalingContext.utbetalingRepo.hentForUtsjekk()
             utbetalingerSomVenter.size shouldBe 1
@@ -124,10 +124,10 @@ class UtbetalingerIT {
 
             oppdatertSak.utbetalinger shouldBe listOf(
                 oppdatertSak.meldekortVedtaksliste.first().utbetaling,
-                oppdatertSak.vedtaksliste.last().utbetaling,
+                oppdatertSak.rammevedtaksliste.last().utbetaling,
             )
 
-            val revurderingUtbetalingId = oppdatertSak.vedtaksliste.last().utbetaling!!.id
+            val revurderingUtbetalingId = oppdatertSak.rammevedtaksliste.last().utbetaling!!.id
 
             val utbetalinger = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.utbetalinger
             utbetalinger.size shouldBe 2
@@ -186,10 +186,10 @@ class UtbetalingerIT {
 
             oppdatertSak.utbetalinger shouldBe listOf(
                 oppdatertSak.meldekortVedtaksliste.first().utbetaling,
-                oppdatertSak.vedtaksliste.last().utbetaling,
+                oppdatertSak.rammevedtaksliste.last().utbetaling,
             )
 
-            val revurderingUtbetalingId = oppdatertSak.vedtaksliste.last().utbetaling!!.id
+            val revurderingUtbetalingId = oppdatertSak.rammevedtaksliste.last().utbetaling!!.id
 
             val utbetalingerSomVenter = tac.utbetalingContext.utbetalingRepo.hentForUtsjekk()
             utbetalingerSomVenter.size shouldBe 1

@@ -25,15 +25,15 @@ internal class VedtakslisteTest {
                 virkningsperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
             )
-            sak.vedtaksliste.antallDagerPerMeldeperiode shouldBe Periodisering(
+            sak.rammevedtaksliste.antallDagerPerMeldeperiode shouldBe Periodisering(
                 AntallDagerForMeldeperiode.default,
                 innvilgelsesperiode,
             )
-            sak.vedtaksliste.antallDagerForMeldeperiode(16.desember(2024) til 29.desember(2024)) shouldBe null
-            sak.vedtaksliste.antallDagerForMeldeperiode(30.desember(2024) til 12.januar(2025)) shouldBe AntallDagerForMeldeperiode.default
-            sak.vedtaksliste.antallDagerForMeldeperiode(13.januar(2025) til 26.januar(2025)) shouldBe AntallDagerForMeldeperiode.default
-            sak.vedtaksliste.antallDagerForMeldeperiode(27.januar(2025) til 9.februar(2025)) shouldBe AntallDagerForMeldeperiode.default
-            sak.vedtaksliste.antallDagerForMeldeperiode(10.februar(2025) til 23.februar(2025)) shouldBe null
+            sak.rammevedtaksliste.antallDagerForMeldeperiode(16.desember(2024) til 29.desember(2024)) shouldBe null
+            sak.rammevedtaksliste.antallDagerForMeldeperiode(30.desember(2024) til 12.januar(2025)) shouldBe AntallDagerForMeldeperiode.default
+            sak.rammevedtaksliste.antallDagerForMeldeperiode(13.januar(2025) til 26.januar(2025)) shouldBe AntallDagerForMeldeperiode.default
+            sak.rammevedtaksliste.antallDagerForMeldeperiode(27.januar(2025) til 9.februar(2025)) shouldBe AntallDagerForMeldeperiode.default
+            sak.rammevedtaksliste.antallDagerForMeldeperiode(10.februar(2025) til 23.februar(2025)) shouldBe null
         }
     }
 
@@ -52,9 +52,9 @@ internal class VedtakslisteTest {
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )
-            sak.vedtaksliste.antallDagerPerMeldeperiode shouldBe antallDagerPerMeldeperiode
-            sak.vedtaksliste.antallDagerForMeldeperiode(1 til 14.september(2025)) shouldBe AntallDagerForMeldeperiode(9)
-            sak.vedtaksliste.antallDagerForMeldeperiode(15 til 28.september(2025)) shouldBe AntallDagerForMeldeperiode(8)
+            sak.rammevedtaksliste.antallDagerPerMeldeperiode shouldBe antallDagerPerMeldeperiode
+            sak.rammevedtaksliste.antallDagerForMeldeperiode(1 til 14.september(2025)) shouldBe AntallDagerForMeldeperiode(9)
+            sak.rammevedtaksliste.antallDagerForMeldeperiode(15 til 28.september(2025)) shouldBe AntallDagerForMeldeperiode(8)
         }
     }
 
@@ -73,9 +73,9 @@ internal class VedtakslisteTest {
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )
-            sak.vedtaksliste.antallDagerPerMeldeperiode shouldBe antallDagerPerMeldeperiode
-            sak.vedtaksliste.antallDagerForMeldeperiode(1 til 14.september(2025)) shouldBe AntallDagerForMeldeperiode(9)
-            sak.vedtaksliste.antallDagerForMeldeperiode(15 til 28.september(2025)) shouldBe AntallDagerForMeldeperiode(9)
+            sak.rammevedtaksliste.antallDagerPerMeldeperiode shouldBe antallDagerPerMeldeperiode
+            sak.rammevedtaksliste.antallDagerForMeldeperiode(1 til 14.september(2025)) shouldBe AntallDagerForMeldeperiode(9)
+            sak.rammevedtaksliste.antallDagerForMeldeperiode(15 til 28.september(2025)) shouldBe AntallDagerForMeldeperiode(9)
         }
     }
 
@@ -94,9 +94,9 @@ internal class VedtakslisteTest {
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )
-            sak.vedtaksliste.antallDagerPerMeldeperiode shouldBe antallDagerPerMeldeperiode
-            sak.vedtaksliste.antallDagerForMeldeperiode(1 til 14.september(2025)) shouldBe AntallDagerForMeldeperiode(9)
-            sak.vedtaksliste.antallDagerForMeldeperiode(15 til 28.september(2025)) shouldBe AntallDagerForMeldeperiode(9)
+            sak.rammevedtaksliste.antallDagerPerMeldeperiode shouldBe antallDagerPerMeldeperiode
+            sak.rammevedtaksliste.antallDagerForMeldeperiode(1 til 14.september(2025)) shouldBe AntallDagerForMeldeperiode(9)
+            sak.rammevedtaksliste.antallDagerForMeldeperiode(15 til 28.september(2025)) shouldBe AntallDagerForMeldeperiode(9)
         }
     }
 }

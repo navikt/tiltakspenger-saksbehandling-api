@@ -20,7 +20,7 @@ data class Saker(
         saker.map { it.fnr }.also {
             require(it.toSet().size <= 1) { "Oppdaget flere enn 1 ident. En brukers saker må være knyttet til samme ident." }
         }
-        saker.flatMap { sak -> sak.behandlinger.map { it.id } }.also {
+        saker.flatMap { sak -> sak.rammebehandlinger.map { it.id } }.also {
             require(it.size == it.toSet().size) { "Saker inneholder duplikate behandlingsid'er: $it" }
         }
     }
