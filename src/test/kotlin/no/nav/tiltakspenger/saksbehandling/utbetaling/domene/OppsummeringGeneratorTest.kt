@@ -334,7 +334,7 @@ class OppsummeringGeneratorTest {
     }
 
     @Test
-    fun `feilutbetaling`() {
+    fun `feilutbetaling `() {
         /**
          * Endret en dag i første meldeperiode fra deltatt uten lønn til syk bruker. Så vi får påfølgende endringer på de på følgende periodene
          *
