@@ -65,9 +65,9 @@ sealed interface Simulering {
             }
 
             /** Abn: logger for nysgjerrighetens skyld om denne antagelsen stemmer! */
-            if (totalFeilutbetaling != -totalMotpostering) {
+            if (totalFeilutbetaling != totalMotpostering) {
                 logger.info {
-                    "Forventet at feilutbetaling og motpostering skal summere til 0 - fikk $totalFeilutbetaling / $totalMotpostering"
+                    "Forventet at feilutbetaling og motpostering skal være like - fikk $totalFeilutbetaling / $totalMotpostering"
                 }
             }
         }

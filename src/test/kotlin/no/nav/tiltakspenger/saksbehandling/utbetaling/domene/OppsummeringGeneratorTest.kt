@@ -577,7 +577,7 @@ class OppsummeringGeneratorTest {
                             totalFeilutbetaling = 71,
                             totalTrekk = 0,
                             totalJustering = 0,
-                            totalMotpostering = -71,
+                            totalMotpostering = 71,
                             harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = 11.november(2024),
@@ -700,7 +700,7 @@ class OppsummeringGeneratorTest {
                             totalFeilutbetaling = 214,
                             totalTrekk = 0,
                             totalJustering = 0,
-                            totalMotpostering = -214,
+                            totalMotpostering = 214,
                             harJustering = false,
                             posteringsdag = PosteringerForDag(
                                 dato = 5.desember(2024),

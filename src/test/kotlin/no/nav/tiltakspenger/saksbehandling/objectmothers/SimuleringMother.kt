@@ -133,7 +133,7 @@ fun Sak.genererSimuleringFraBeregning(
                         totalFeilutbetaling = totalFeilutbetaling,
                         totalTrekk = 0,
                         totalJustering = 0,
-                        totalMotpostering = -totalFeilutbetaling,
+                        totalMotpostering = totalFeilutbetaling,
                         harJustering = false,
                         posteringsdag = PosteringerForDag(
                             dato = it.dato,

@@ -58,8 +58,8 @@ private data class SimuleringEndringDbJson(
         val nyUtbetaling: Int,
         val totalEtterbetaling: Int,
         val totalFeilutbetaling: Int,
-        // Denne ble lagt til 30. sept, er antatt å alltid være lik minus totalFeilutbetaling
-        val totalMotpostering: Int = -totalFeilutbetaling,
+        // Denne ble lagt til 30. sept, er antatt å alltid være lik totalFeilutbetaling
+        val totalMotpostering: Int = totalFeilutbetaling,
         // Disse feltene ble lagt til 16. september 2025. Får vurdere og migrere de senere eller bare defaulte til 0. Vi har ikke fått noen simuleringer med typene TREKK eller JUSTERING enda.
         val totalTrekk: Int = 0,
         val totalJustering: Int = 0,
