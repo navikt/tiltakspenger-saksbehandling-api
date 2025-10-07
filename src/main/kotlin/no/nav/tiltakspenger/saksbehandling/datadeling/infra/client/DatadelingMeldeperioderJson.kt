@@ -38,6 +38,6 @@ private fun Meldeperiode.toDatadelingMeldeperiode() = DatadelingMeldeperioderJso
     opprettet = opprettet,
     fraOgMed = periode.fraOgMed,
     tilOgMed = periode.tilOgMed,
-    antallDagerForPeriode = antallDagerSomGirRett,
+    antallDagerForPeriode = maksAntallDagerForMeldeperiode,
     girRett = girRett,
 )
