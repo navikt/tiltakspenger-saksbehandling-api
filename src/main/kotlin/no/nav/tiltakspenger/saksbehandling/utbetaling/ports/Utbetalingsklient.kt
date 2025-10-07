@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Ulid
-import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -34,7 +34,7 @@ interface Utbetalingsklient {
         behandlingId: Ulid,
         fnr: Fnr,
         saksbehandler: String,
-        beregning: UtbetalingBeregning,
+        beregning: Beregning,
         brukersNavkontor: Navkontor,
         forrigeUtbetalingJson: String?,
         forrigeUtbetalingId: UtbetalingId?,

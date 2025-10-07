@@ -4,8 +4,8 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -49,7 +49,7 @@ fun VedtattUtbetaling.toUtbetalingRequestDTO(
 /**
  * Brukes både av simulering og iverksetting.
  */
-fun UtbetalingBeregning.tilUtbetalingerDTO(
+fun Beregning.tilUtbetalingerDTO(
     brukersNavkontor: Navkontor,
     forrigeUtbetalingJson: String?,
 ): List<UtbetalingV2Dto> {
@@ -68,7 +68,7 @@ fun UtbetalingBeregning.tilUtbetalingerDTO(
     return utbetalinger
 }
 
-private fun UtbetalingBeregning.toUtbetalingDto(
+private fun Beregning.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
 ): List<UtbetalingV2Dto> {
@@ -94,7 +94,7 @@ private fun List<UtbetalingV2Dto>.valider() {
     }
 }
 
-private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(beregning: UtbetalingBeregning): List<UtbetalingV2Dto> {
+private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(beregning: Beregning): List<UtbetalingV2Dto> {
     val oppdaterteKjeder = beregning.beregninger.map { it.kjedeId.verdi }.toSet()
     return this.vedtak.utbetalinger.filterNot { tidligereUtbetaling ->
         val stønadsdata = tidligereUtbetaling.stønadsdata as StønadsdataTiltakspengerV2Dto

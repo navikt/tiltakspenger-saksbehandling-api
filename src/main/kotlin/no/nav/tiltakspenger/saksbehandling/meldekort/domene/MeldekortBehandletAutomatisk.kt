@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -37,7 +37,7 @@ data class MeldekortBehandletAutomatisk(
     override val fnr: Fnr,
     override val opprettet: LocalDateTime,
     override val dager: MeldekortDager,
-    override val beregning: MeldekortBeregning,
+    override val beregning: Beregning,
     override val simulering: Simulering?,
     override val meldeperiode: Meldeperiode,
     override val brukersMeldekort: BrukersMeldekort,
@@ -132,7 +132,7 @@ suspend fun Sak.opprettAutomatiskMeldekortBehandling(
         brukersMeldekort = brukersMeldekort,
         meldeperiode = sisteMeldeperiode,
         dager = brukersMeldekort.tilMeldekortDager(),
-        beregning = MeldekortBeregning(beregninger),
+        beregning = Beregning(beregninger),
         type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         status = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
         simulering = null,

@@ -470,7 +470,7 @@ fun Sak.beregnMeldekort(
     )
 }
 
-fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode): BehandlingBeregning? {
+fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode): Beregning? {
     val behandling = hentBehandling(behandlingId)
 
     require(behandling is Revurdering && behandling.resultat is RevurderingResultat.Stans) {
@@ -504,7 +504,7 @@ fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode
         barnetilleggsPerioder = this.barnetilleggsperioder,
         tiltakstypePerioder = this.tiltakstypeperioder,
         meldeperiodeBeregninger = this.meldeperiodeBeregninger,
-    ).beregn().toNonEmptyListOrNull()?.let { BehandlingBeregning(it) }
+    ).beregn().toNonEmptyListOrNull()?.let { Beregning(it) }
 }
 
 fun beregnMeldekort(

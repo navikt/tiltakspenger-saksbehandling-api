@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
@@ -28,7 +28,7 @@ data class AvbruttMeldekortBehandling(
     override val fnr: Fnr,
     override val opprettet: LocalDateTime,
     override val dager: MeldekortDager,
-    override val beregning: MeldekortBeregning?,
+    override val beregning: Beregning?,
     override val simulering: Simulering?,
     override val meldeperiode: Meldeperiode,
     override val type: MeldekortBehandlingType,

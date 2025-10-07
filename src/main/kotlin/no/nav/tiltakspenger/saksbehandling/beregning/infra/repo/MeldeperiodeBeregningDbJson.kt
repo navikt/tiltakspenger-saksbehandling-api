@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
@@ -145,8 +146,8 @@ private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): MeldeperiodeBeregningDagD
         ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb.YtelsenFallerBort
     }
 
-fun List<MeldeperiodeBeregning>.tilBeregningerDbJson(): String {
-    return this.map {
+fun Beregning.tilBeregningerDbJson(): String {
+    return this.beregninger.map {
         MeldeperiodeBeregningDbJson(
             beregningId = it.id.toString(),
             kjedeId = it.kjedeId.toString(),

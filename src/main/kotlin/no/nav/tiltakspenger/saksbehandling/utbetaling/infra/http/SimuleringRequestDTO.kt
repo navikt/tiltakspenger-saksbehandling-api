@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
@@ -28,7 +28,7 @@ fun toSimuleringRequest(
     behandlingId: Ulid,
     fnr: Fnr,
     saksbehandler: String,
-    beregning: UtbetalingBeregning,
+    beregning: Beregning,
     brukersNavkontor: Navkontor,
     forrigeUtbetalingJson: String?,
     forrigeUtbetalingId: UtbetalingId?,

@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -55,7 +55,7 @@ data class MeldekortUnderBehandling(
     override val attesteringer: Attesteringer,
     override val sendtTilBeslutning: LocalDateTime?,
     override val dager: MeldekortDager,
-    override val beregning: MeldekortBeregning?,
+    override val beregning: Beregning?,
     override val simulering: Simulering?,
     override val status: MeldekortBehandlingStatus,
 ) : MeldekortBehandling {
@@ -77,7 +77,7 @@ data class MeldekortUnderBehandling(
         validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft {
             return it.tilKanIkkeOppdatereMeldekort().left()
         }
-        val beregning = MeldekortBeregning(beregn(meldeperiode))
+        val beregning = Beregning(beregn(meldeperiode))
 
         val oppdatertBehandling = this.copy(
             dager = kommando.dager.tilMeldekortDager(meldeperiode),

@@ -6,7 +6,7 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -104,7 +104,7 @@ fun Sak.genererSimuleringFraMeldekortBehandling(
  * Ment brukt både når man kjører lokalt og i testene for å lage litt mer realistiske testdata.
  */
 fun Sak.genererSimuleringFraBeregning(
-    beregning: UtbetalingBeregning,
+    beregning: Beregning,
     meldeperiodeKjeder: MeldeperiodeKjeder = this.meldeperiodeKjeder,
     clock: Clock = fixedClock,
     simuleringstidspunkt: LocalDateTime = LocalDateTime.now(clock),

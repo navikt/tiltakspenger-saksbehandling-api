@@ -4,9 +4,9 @@ import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning.SimulertBeregningMeldeperiode.SimulertBeregningDag
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -119,7 +119,7 @@ data class SimulertBeregning(
 
     companion object {
         fun create(
-            beregning: UtbetalingBeregning,
+            beregning: Beregning,
             tidligereUtbetalinger: Utbetalinger,
             simulering: Simulering?,
         ): SimulertBeregning {
