@@ -10,6 +10,8 @@ import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.FeilVedSendingTilDatadeling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.net.URI
 import java.net.http.HttpClient
@@ -35,6 +37,7 @@ class DatadelingHttpClient(
 
     private val behandlingsUri = URI.create("$baseUrl/behandling")
     private val vedtaksUri = URI.create("$baseUrl/vedtak")
+    private val meldeperioderUri = URI.create("$baseUrl/meldeperioder")
 
     override suspend fun send(
         rammevedtak: Rammevedtak,
@@ -80,6 +83,34 @@ class DatadelingHttpClient(
             // Either.catch slipper igjennom CancellationException som er ønskelig.
             log.error(it) { "Feil ved kall til pdfgen. Vedtak ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. Se sikkerlogg for detaljer." }
             Sikkerlogg.error(it) { "Feil ved kall til pdfgen. Vedtak ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. jsonPayload: $jsonPayload, uri: $behandlingsUri" }
+            FeilVedSendingTilDatadeling
+        }
+    }
+
+    override suspend fun send(
+        sak: Sak,
+        meldeperioder: List<Meldeperiode>,
+        correlationId: CorrelationId,
+    ): Either<FeilVedSendingTilDatadeling, Unit> {
+        require(meldeperioder.none { it.sakId != sak.id }) {
+            "Alle meldeperiodene må tilhøre innsendt sak, sakId ${sak.id}, correlationId $correlationId"
+        }
+        val jsonPayload = meldeperioder.toDatadelingJson(sak)
+        return Either.catch {
+            val request = createRequest(jsonPayload, meldeperioderUri)
+            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
+            val jsonResponse = httpResponse.body()
+            val status = httpResponse.statusCode()
+            if (status != 200) {
+                log.error { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for saksnummer ${sak.saksnummer}, sakId: ${sak.id}. Status: $status. uri: $meldeperioderUri. Se sikkerlogg for detaljer." }
+                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for saksnummer ${sak.saksnummer}, sakId: ${sak.id}. uri: $meldeperioderUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
+                return FeilVedSendingTilDatadeling.left()
+            }
+            Unit
+        }.mapLeft {
+            // Either.catch slipper igjennom CancellationException som er ønskelig.
+            log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for saksnummer ${sak.saksnummer}, sakId: ${sak.id}. uri: $meldeperioderUri. Se sikkerlogg for detaljer." }
+            Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for saksnummer ${sak.saksnummer}, sakId: ${sak.id}, uri: $meldeperioderUri, jsonPayload: $jsonPayload" }
             FeilVedSendingTilDatadeling
         }
     }

@@ -124,6 +124,20 @@ class SakService(
             sessionContext = sessionContext,
         )
     }
+
+    fun oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
+        sakId: SakId,
+        skalSendesTilMeldekortApi: Boolean,
+        skalSendeMeldeperioderTilDatadeling: Boolean,
+        sessionContext: SessionContext?,
+    ) {
+        sakRepo.oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
+            sakId = sakId,
+            skalSendesTilMeldekortApi = skalSendesTilMeldekortApi,
+            skalSendeMeldeperioderTilDatadeling = skalSendeMeldeperioderTilDatadeling,
+            sessionContext = sessionContext,
+        )
+    }
 }
 
 sealed interface KanIkkeBehandleSøknadPåNytt {

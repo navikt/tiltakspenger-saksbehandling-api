@@ -329,6 +329,7 @@ open class ApplicationContext(
         SendTilDatadelingService(
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             behandlingRepo = behandlingContext.behandlingRepo,
+            sakRepo = sakContext.sakRepo,
             datadelingClient = datadelingKlient,
             clock = clock,
         )

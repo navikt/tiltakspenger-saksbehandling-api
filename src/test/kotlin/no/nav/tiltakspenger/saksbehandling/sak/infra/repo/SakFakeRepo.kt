@@ -96,9 +96,28 @@ class SakFakeRepo(
         return emptyList()
     }
 
+    override fun hentForSendingAvMeldeperioderTilDatadeling(): List<Sak> {
+        return emptyList()
+    }
+
     override fun oppdaterSkalSendesTilMeldekortApi(
         sakId: SakId,
         skalSendesTilMeldekortApi: Boolean,
+        sessionContext: SessionContext?,
+    ) {
+    }
+
+    override fun oppdaterSkalSendeMeldeperioderTilDatadeling(
+        sakId: SakId,
+        skalSendeMeldeperioderTilDatadeling: Boolean,
+        sessionContext: SessionContext?,
+    ) {
+    }
+
+    override fun oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
+        sakId: SakId,
+        skalSendesTilMeldekortApi: Boolean,
+        skalSendeMeldeperioderTilDatadeling: Boolean,
         sessionContext: SessionContext?,
     ) {
     }
