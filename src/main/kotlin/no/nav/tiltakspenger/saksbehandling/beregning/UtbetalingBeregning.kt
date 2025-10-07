@@ -4,10 +4,14 @@ import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.collections.zipWithNext
 
 sealed interface UtbetalingBeregning {
     val beregninger: NonEmptyList<MeldeperiodeBeregning>
+
+    /** Feltet ble innført 2025-10-06, så vi har ikke data før dette. */
+    val beregningstidspunkt: LocalDateTime?
 
     val fraOgMed: LocalDate get() = beregninger.first().fraOgMed
     val tilOgMed: LocalDate get() = beregninger.last().tilOgMed

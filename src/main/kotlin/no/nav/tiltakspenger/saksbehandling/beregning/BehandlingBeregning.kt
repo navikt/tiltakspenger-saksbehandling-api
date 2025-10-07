@@ -3,9 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.beregning
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class BehandlingBeregning(
     override val beregninger: NonEmptyList<MeldeperiodeBeregning>,
+    override val beregningstidspunkt: LocalDateTime?,
 ) : UtbetalingBeregning,
     List<MeldeperiodeBeregning> by beregninger {
 

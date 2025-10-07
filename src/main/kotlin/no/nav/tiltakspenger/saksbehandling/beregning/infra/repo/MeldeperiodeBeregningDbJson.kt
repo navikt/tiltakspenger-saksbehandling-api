@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortstatusD
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakstypeSomGirRett
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * @property reduksjon null dersom den ikke er utfylt
@@ -109,6 +110,11 @@ private data class MeldeperiodeBeregningDagDbJson(
         }
     }
 }
+
+private data class MeldeperiodeBeregningerDbJson(
+    val beregninger: List<MeldeperiodeBeregningDbJson>,
+    val beregningstidspunkt: LocalDateTime?,
+)
 
 private data class MeldeperiodeBeregningDbJson(
     val beregningId: String,
