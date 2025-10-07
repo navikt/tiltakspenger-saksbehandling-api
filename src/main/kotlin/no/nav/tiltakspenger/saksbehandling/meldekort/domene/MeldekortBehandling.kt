@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
@@ -29,7 +30,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -153,11 +153,12 @@ sealed interface MeldekortBehandling : Behandling {
 
     fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
     fun oppdaterSimulering(simulering: Simulering?): MeldekortBehandling
-    fun toSimulertBeregning(tidligereUtbetalinger: Utbetalinger): SimulertBeregning? {
+
+    fun toSimulertBeregning(beregninger: MeldeperiodeBeregninger): SimulertBeregning? {
         return beregning?.let {
             SimulertBeregning.create(
                 beregning = it,
-                tidligereUtbetalinger = tidligereUtbetalinger,
+                eksisterendeBeregninger = beregninger,
                 simulering = simulering,
             )
         }

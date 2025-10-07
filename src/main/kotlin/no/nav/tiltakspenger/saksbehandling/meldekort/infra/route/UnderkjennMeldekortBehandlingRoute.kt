@@ -67,7 +67,7 @@ fun Route.underkjennMeldekortBehandlingRoute(
 
                             call.respond(
                                 HttpStatusCode.OK,
-                                behandling.tilMeldekortBehandlingDTO(tidligereUtbetalinger = sak.utbetalinger),
+                                behandling.tilMeldekortBehandlingDTO(beregninger = sak.meldeperiodeBeregninger),
                             )
                         },
                     )

@@ -68,14 +68,14 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             .map {
                 it.tilMeldekortBehandlingDTO(
                     this.meldekortVedtaksliste.hentForMeldekortBehandling(it.id),
-                    tidligereUtbetalinger = this.utbetalinger,
+                    beregninger = this.meldeperiodeBeregninger,
                 )
             },
         brukersMeldekort = brukersMeldekort.map { it.toBrukersMeldekortDTO() },
         korrigeringFraTidligerePeriode = korrigering,
         avbrutteMeldekortBehandlinger = this.meldekortBehandlinger
             .hentAvbrutteMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
-            .map { it.tilMeldekortBehandlingDTO(tidligereUtbetalinger = this.utbetalinger) },
+            .map { it.tilMeldekortBehandlingDTO(beregninger = this.meldeperiodeBeregninger) },
         sisteBeregning = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.tilMeldeperiodeBeregningDTO(),
     )
 }

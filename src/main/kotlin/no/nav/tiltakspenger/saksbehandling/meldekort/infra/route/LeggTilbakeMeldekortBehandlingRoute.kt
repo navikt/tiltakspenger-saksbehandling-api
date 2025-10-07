@@ -51,7 +51,7 @@ fun Route.leggTilbakeMeldekortBehandlingRoute(
 
                     call.respond(
                         status = HttpStatusCode.OK,
-                        message = behandling.tilMeldekortBehandlingDTO(tidligereUtbetalinger = sak.utbetalinger),
+                        message = behandling.tilMeldekortBehandlingDTO(beregninger = sak.meldeperiodeBeregninger),
                     )
                 }
             }

@@ -73,7 +73,7 @@ fun Route.avbrytMeldekortBehandlingRoute(
 
                             call.respond(
                                 status = HttpStatusCode.OK,
-                                behandling.tilMeldekortBehandlingDTO(tidligereUtbetalinger = sak.utbetalinger),
+                                behandling.tilMeldekortBehandlingDTO(beregninger = sak.meldeperiodeBeregninger),
                             )
                         },
                     )

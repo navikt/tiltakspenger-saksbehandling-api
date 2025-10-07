@@ -68,7 +68,7 @@ fun Route.behandleSøknadPåNyttRoute(
                             HttpStatusCode.OK,
                             søknadsbehandling.tilSøknadsbehandlingDTO(
                                 utbetalingsstatus = null,
-                                utbetalinger = sak.utbetalinger,
+                                beregninger = sak.meldeperiodeBeregninger,
                             ),
                         )
                     },
