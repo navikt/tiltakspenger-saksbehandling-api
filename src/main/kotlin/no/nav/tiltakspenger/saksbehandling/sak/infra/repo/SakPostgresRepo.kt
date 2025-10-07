@@ -125,14 +125,16 @@ class SakPostgresRepo(
                             saksnummer,
                             sist_endret,
                             opprettet,
-                            skal_sendes_til_meldekort_api
+                            skal_sendes_til_meldekort_api,
+                            skal_sende_meldeperioder_til_datadeling
                         ) values (
                             :id,
                             :fnr,
                             :saksnummer,
                             :sist_endret,
                             :opprettet,
-                            :skal_sendes_til_meldekort_api
+                            :skal_sendes_til_meldekort_api,
+                            :skal_sende_meldeperioder_til_datadeling
                         )
                         """,
                         "id" to sak.id.toString(),
@@ -141,6 +143,7 @@ class SakPostgresRepo(
                         "sist_endret" to nå,
                         "opprettet" to nå,
                         "skal_sendes_til_meldekort_api" to false,
+                        "skal_sende_meldeperioder_til_datadeling" to false,
                     ).asUpdate,
                 )
             }
@@ -194,6 +197,22 @@ class SakPostgresRepo(
         }
     }
 
+    override fun hentForSendingAvMeldeperioderTilDatadeling(): List<Sak> {
+        return sessionFactory.withSessionContext { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        """
+                            select * from sak where skal_sende_meldeperioder_til_datadeling = true
+                        """,
+                    ).map { row ->
+                        row.toSak(sessionContext)
+                    }.asList,
+                )
+            }
+        }
+    }
+
     override fun oppdaterSkalSendesTilMeldekortApi(
         sakId: SakId,
         skalSendesTilMeldekortApi: Boolean,
@@ -209,6 +228,53 @@ class SakPostgresRepo(
                             where id = :id
                         """,
                         "skal_sendes_til_meldekort_api" to skalSendesTilMeldekortApi,
+                        "id" to sakId.toString(),
+                    ).asUpdate,
+                )
+            }
+        }
+    }
+
+    override fun oppdaterSkalSendeMeldeperioderTilDatadeling(
+        sakId: SakId,
+        skalSendeMeldeperioderTilDatadeling: Boolean,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        """
+                            update sak
+                                set skal_sende_meldeperioder_til_datadeling = :skal_sende_meldeperioder_til_datadeling 
+                            where id = :id
+                        """,
+                        "skal_sende_meldeperioder_til_datadeling" to skalSendeMeldeperioderTilDatadeling,
+                        "id" to sakId.toString(),
+                    ).asUpdate,
+                )
+            }
+        }
+    }
+
+    override fun oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
+        sakId: SakId,
+        skalSendesTilMeldekortApi: Boolean,
+        skalSendeMeldeperioderTilDatadeling: Boolean,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        """
+                            update sak
+                            set skal_sendes_til_meldekort_api = :skal_sendes_til_meldekort_api,
+                                skal_sende_meldeperioder_til_datadeling = :skal_sende_meldeperioder_til_datadeling 
+                            where id = :id
+                        """,
+                        "skal_sendes_til_meldekort_api" to skalSendesTilMeldekortApi,
+                        "skal_sende_meldeperioder_til_datadeling" to skalSendeMeldeperioderTilDatadeling,
                         "id" to sakId.toString(),
                     ).asUpdate,
                 )

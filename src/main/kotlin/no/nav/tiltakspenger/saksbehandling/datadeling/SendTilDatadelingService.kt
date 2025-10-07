@@ -7,11 +7,13 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import java.time.Clock
 
 class SendTilDatadelingService(
     private val rammevedtakRepo: RammevedtakRepo,
     private val behandlingRepo: BehandlingRepo,
+    private val sakRepo: SakRepo,
     private val datadelingClient: DatadelingClient,
     private val clock: Clock,
 ) {
@@ -20,6 +22,7 @@ class SendTilDatadelingService(
     suspend fun send() {
         sendBehandlinger()
         sendVedtak()
+        sendMeldeperioder()
     }
 
     private suspend fun sendVedtak() {
@@ -67,6 +70,30 @@ class SendTilDatadelingService(
             }
         }.onLeft {
             logger.error(it) { "Ukjent feil skjedde under henting av behandling som skal sendes til datadeling." }
+        }
+    }
+
+    private suspend fun sendMeldeperioder() {
+        Either.catch {
+            sakRepo.hentForSendingAvMeldeperioderTilDatadeling().forEach { sak ->
+                val correlationId = CorrelationId.generate()
+                Either.catch {
+                    val meldeperioder = sak.meldeperiodeKjeder.sisteMeldeperiodePerKjede
+                    if (meldeperioder.isNotEmpty()) {
+                        datadelingClient.send(sak, meldeperioder, correlationId).onRight {
+                            logger.info { "Meldeperioder sendt til datadeling. SakId: ${sak.id}" }
+                            sakRepo.oppdaterSkalSendeMeldeperioderTilDatadeling(sak.id, skalSendeMeldeperioderTilDatadeling = false)
+                            logger.info { "Meldeperioder markert som sendt til datadeling. SakId: ${sak.id}" }
+                        }.onLeft {
+                            // Disse logges av klienten, trenger ikke duplikat logglinje.
+                        }
+                    }
+                }.onLeft {
+                    logger.error(it) { "Ukjent feil skjedde under sending av meldeperioder til datadeling. Saksnummer: ${sak.saksnummer}, sakId: ${sak.id}" }
+                }
+            }
+        }.onLeft {
+            logger.error(it) { "Ukjent feil skjedde under henting av saker med meldeperioder som skal sendes til datadeling." }
         }
     }
 }

@@ -553,9 +553,10 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     behandlingRepo.lagre(oppdatertBehandling)
     val vedtak = sak.opprettVedtak(oppdatertBehandling, clock).second
     vedtakRepo.lagre(vedtak)
-    sakRepo.oppdaterSkalSendesTilMeldekortApi(
+    sakRepo.oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
         sakId = vedtak.sakId,
         skalSendesTilMeldekortApi = true,
+        skalSendeMeldeperioderTilDatadeling = true,
     )
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
     val (_, meldeperioder) = oppdatertSak.genererMeldeperioder(clock)
