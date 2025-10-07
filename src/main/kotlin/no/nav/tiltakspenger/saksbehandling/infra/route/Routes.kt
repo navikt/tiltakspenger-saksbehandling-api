@@ -39,6 +39,7 @@ fun Route.routes(
             gjenopptaBehandlingService = applicationContext.behandlingContext.gjenopptaBehandlingService,
             oppdaterSimuleringService = applicationContext.behandlingContext.oppdaterSimuleringService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
+            clock = applicationContext.clock,
         )
         hentBenkRoute(
             benkOversiktService = applicationContext.benkOversiktContext.benkOversiktService,

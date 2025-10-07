@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRe
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
+import java.time.Clock
 
 fun Route.behandlingRoutes(
     behandlingService: BehandlingService,
@@ -38,6 +39,7 @@ fun Route.behandlingRoutes(
     gjenopptaBehandlingService: GjenopptaBehandlingService,
     oppdaterSimuleringService: OppdaterSimuleringService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     hentBehandlingRoute(behandlingService, auditService, tilgangskontrollService)
     behandleSøknadPåNyttRoute(behandleSøknadPåNyttService, auditService, tilgangskontrollService)
@@ -53,5 +55,5 @@ fun Route.behandlingRoutes(
     oppdaterBehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
     settBehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService)
     gjenopptaBehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService)
-    oppdaterSimuleringRoute(oppdaterSimuleringService, auditService, tilgangskontrollService)
+    oppdaterSimuleringRoute(oppdaterSimuleringService, auditService, tilgangskontrollService, clock)
 }

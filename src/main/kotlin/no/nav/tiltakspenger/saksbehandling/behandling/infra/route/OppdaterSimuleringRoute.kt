@@ -19,8 +19,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import java.time.Clock
 
 private const val OPPDATER_SIMULERING_PATH = "/sak/{sakId}/behandling/{behandlingId}/oppdaterSimulering"
 
@@ -28,6 +29,7 @@ fun Route.oppdaterSimuleringRoute(
     oppdaterSimuleringService: OppdaterSimuleringService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -88,7 +90,7 @@ fun Route.oppdaterSimuleringRoute(
                             )
                             call.respond(
                                 status = HttpStatusCode.OK,
-                                message = it.tilMeldekortBehandlingDTO(tidligereUtbetalinger = sak.utbetalinger),
+                                message = sak.toMeldeperiodeKjedeDTO(it.kjedeId, clock),
                             )
                         },
                     )

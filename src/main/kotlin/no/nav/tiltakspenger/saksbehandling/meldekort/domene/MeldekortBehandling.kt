@@ -154,12 +154,13 @@ sealed interface MeldekortBehandling : Behandling {
     fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
     fun oppdaterSimulering(simulering: Simulering?): MeldekortBehandling
     fun toSimulertBeregning(tidligereUtbetalinger: Utbetalinger): SimulertBeregning? {
-        if (beregning == null) return null
-        return SimulertBeregning.create(
-            beregning = beregning!!,
-            tidligereUtbetalinger = tidligereUtbetalinger,
-            simulering = simulering,
-        )
+        return beregning?.let {
+            SimulertBeregning.create(
+                beregning = it,
+                tidligereUtbetalinger = tidligereUtbetalinger,
+                simulering = simulering,
+            )
+        }
     }
 
     sealed interface Behandlet : MeldekortBehandling {
