@@ -334,7 +334,7 @@ class OppsummeringGeneratorTest {
     }
 
     @Test
-    fun `feilutbetaling `() {
+    fun `feilutbetaling`() {
         /**
          * Endret en dag i første meldeperiode fra deltatt uten lønn til syk bruker. Så vi får påfølgende endringer på de på følgende periodene
          *
@@ -413,7 +413,7 @@ class OppsummeringGeneratorTest {
             "sakId": "202504101001",
             "fom": "2024-11-11",
             "tom": "2024-11-11",
-            "beløp": -71,
+            "beløp": 71,
             "type": "MOTPOSTERING",
             "klassekode": "TBMOTOBS"
           },
@@ -503,7 +503,7 @@ class OppsummeringGeneratorTest {
             "sakId": "202504101001",
             "fom": "2024-12-05",
             "tom": "2024-12-05",
-            "beløp": -214,
+            "beløp": 214,
             "type": "MOTPOSTERING",
             "klassekode": "TBMOTOBS"
           },
@@ -606,7 +606,7 @@ class OppsummeringGeneratorTest {
                                     PosteringForDag(
                                         dato = 11.november(2024),
                                         fagområde = "TILTAKSPENGER",
-                                        beløp = -71,
+                                        beløp = 71,
                                         type = Posteringstype.MOTPOSTERING,
                                         klassekode = "TBMOTOBS",
                                     ),
@@ -722,7 +722,7 @@ class OppsummeringGeneratorTest {
                                     PosteringForDag(
                                         dato = 5.desember(2024),
                                         fagområde = "TILTAKSPENGER",
-                                        beløp = -214,
+                                        beløp = 214,
                                         type = Posteringstype.MOTPOSTERING,
                                         klassekode = "TBMOTOBS",
                                     ),
