@@ -27,7 +27,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgbarSøknad
@@ -39,8 +38,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
 import java.time.LocalDate
@@ -57,12 +56,11 @@ interface SakMother {
         fnr = fnr,
         saksnummer = saksnummer,
         rammebehandlinger = behandlinger,
-        rammevedtaksliste = Rammevedtaksliste.empty(),
+        vedtaksliste = Vedtaksliste.empty(),
         meldekortbehandlinger = Meldekortbehandlinger.empty(),
         meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
         brukersMeldekort = emptyList(),
         søknader = søknader,
-        meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
     )
 
     fun sakMedOpprettetBehandling(
@@ -162,12 +160,11 @@ interface SakMother {
             fnr = fnr,
             saksnummer = saksnummer,
             rammebehandlinger = Rammebehandlinger(søknadsbehandling),
-            rammevedtaksliste = Rammevedtaksliste.empty(),
+            vedtaksliste = Vedtaksliste.empty(),
             meldekortbehandlinger = Meldekortbehandlinger.empty(),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = listOf(søknad),
-            meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
         ) to søknadsbehandling
     }
 
@@ -223,12 +220,11 @@ interface SakMother {
             fnr = fnr,
             saksnummer = saksnummer,
             rammebehandlinger = Rammebehandlinger(søknadsbehandling),
-            rammevedtaksliste = Rammevedtaksliste.empty(),
+            vedtaksliste = Vedtaksliste.empty(),
             meldekortbehandlinger = Meldekortbehandlinger.empty(),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = listOf(søknad),
-            meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
         ) to søknadsbehandling
     }
 

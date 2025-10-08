@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -37,9 +38,8 @@ data class Sak(
     val fnr: Fnr,
     val saksnummer: Saksnummer,
     val rammebehandlinger: Rammebehandlinger,
-    val rammevedtaksliste: Rammevedtaksliste,
-    val meldekortVedtaksliste: MeldekortVedtaksliste,
     val meldekortbehandlinger: Meldekortbehandlinger,
+    val vedtaksliste: Vedtaksliste,
     val meldeperiodeKjeder: MeldeperiodeKjeder,
     val brukersMeldekort: List<BrukersMeldekort>,
     val søknader: List<Søknad>,
@@ -51,6 +51,8 @@ data class Sak(
                 .sortedBy { it.opprettet },
         )
     }
+    val rammevedtaksliste: Rammevedtaksliste = vedtaksliste.rammevedtaksliste
+    val meldekortVedtaksliste: MeldekortVedtaksliste = vedtaksliste.meldekortVedtaksliste
 
     val meldeperiodeBeregninger: MeldeperiodeBeregninger by lazy {
         MeldeperiodeBeregninger(
@@ -187,7 +189,11 @@ data class Sak(
     }
 
     fun leggTilMeldekortVedtak(meldekortVedtak: MeldekortVedtak): Sak {
-        return this.copy(meldekortVedtaksliste = this.meldekortVedtaksliste.leggTil(meldekortVedtak))
+        return this.copy(vedtaksliste = this.vedtaksliste.leggTilMeldekortvedtak(meldekortVedtak))
+    }
+
+    fun leggTilRammevedtak(rammevedtak: Rammevedtak): Sak {
+        return this.copy(vedtaksliste = this.vedtaksliste.leggTilRammevedtak(rammevedtak))
     }
 
     fun oppdaterBehandling(behandling: Rammebehandling): Sak {

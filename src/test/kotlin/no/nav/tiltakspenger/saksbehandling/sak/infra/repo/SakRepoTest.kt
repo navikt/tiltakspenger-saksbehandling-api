@@ -21,7 +21,7 @@ internal class SakRepoTest {
             val hentetSak = sakRepo.hentForFnr(opprettetSak.fnr).first()
 
             hentetSak.rammebehandlinger.behandlinger shouldBe emptyList()
-            hentetSak.rammevedtaksliste.value shouldBe emptyList()
+            hentetSak.rammevedtaksliste.verdi shouldBe emptyList()
             hentetSak.meldekortbehandlinger shouldBe emptyList()
             hentetSak.meldeperiodeKjeder.sisteMeldeperiodePerKjede shouldBe emptyList()
             hentetSak.brukersMeldekort shouldBe emptyList()

@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import org.intellij.lang.annotations.Language
 import java.time.Clock
@@ -309,7 +309,6 @@ class SakPostgresRepo(
             val id: SakId = SakId.fromString(string("id"))
             return sessionContext.withSession { session ->
                 val behandlinger = BehandlingPostgresRepo.hentForSakId(id, session)
-                val vedtaksliste: Rammevedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session)
                 val meldekortBehandlinger =
                     MeldekortBehandlingPostgresRepo.hentForSakId(id, session) ?: Meldekortbehandlinger.empty()
                 val meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(id, session)
@@ -320,9 +319,11 @@ class SakPostgresRepo(
                     saksnummer = Saksnummer(verdi = string("saksnummer")),
                     fnr = Fnr.fromString(string("fnr")),
                     rammebehandlinger = behandlinger,
-                    rammevedtaksliste = vedtaksliste,
+                    vedtaksliste = Vedtaksliste(
+                        rammevedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session),
+                        meldekortVedtaksliste = MeldekortVedtakPostgresRepo.hentForSakId(id, session),
+                    ),
                     meldekortbehandlinger = meldekortBehandlinger,
-                    meldekortVedtaksliste = MeldekortVedtakPostgresRepo.hentForSakId(id, session),
                     meldeperiodeKjeder = meldeperiodekjeder,
                     brukersMeldekort = BrukersMeldekortPostgresRepo.hentForSakId(id, session),
                     søknader = soknader,

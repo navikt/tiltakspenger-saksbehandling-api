@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
 import java.time.LocalDate
 
@@ -55,9 +56,11 @@ class SakFakeRepo(
 
         return data.get()[sakId]?.copy(
             rammebehandlinger = behandlinger,
-            rammevedtaksliste = rammevedtakRepo.hentForSakId(sakId),
+            vedtaksliste = Vedtaksliste(
+                rammevedtaksliste = rammevedtakRepo.hentForSakId(sakId),
+                meldekortVedtaksliste = meldekortVedtakRepo.hentForSakId(sakId),
+            ),
             meldekortbehandlinger = meldekortBehandlinger,
-            meldekortVedtaksliste = meldekortVedtakRepo.hentForSakId(sakId),
             meldeperiodeKjeder = meldeperiodeRepo.hentForSakId(sakId),
             søknader = soknader,
         )

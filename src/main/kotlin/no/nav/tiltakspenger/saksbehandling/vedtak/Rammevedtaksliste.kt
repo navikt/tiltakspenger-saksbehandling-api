@@ -15,21 +15,21 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDate
 
 data class Rammevedtaksliste(
-    val value: List<Rammevedtak>,
-) : List<Vedtak> by value {
+    val verdi: List<Rammevedtak>,
+) : List<Vedtak> by verdi {
     constructor(value: Rammevedtak) : this(listOf(value))
 
-    val fnr = value.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow()
-    val sakId = value.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow()
-    val saksnummer = value.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
+    val fnr = verdi.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow()
+    val sakId = verdi.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow()
+    val saksnummer = verdi.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
 
     /** Et førstegangsvedtak defineres som den første søknadsbehandlingen som førte til innvilgelse. */
     val harFørstegangsvedtak: Boolean by lazy {
-        value.any { it.behandling is Søknadsbehandling && it.vedtakstype == Vedtakstype.INNVILGELSE }
+        verdi.any { it.behandling is Søknadsbehandling && it.vedtakstype == Vedtakstype.INNVILGELSE }
     }
 
     val utbetalinger: List<VedtattUtbetaling> by lazy {
-        value.mapNotNull { it.utbetaling }
+        verdi.mapNotNull { it.utbetaling }
     }
 
     /**
@@ -45,7 +45,7 @@ data class Rammevedtaksliste(
      * Og [no.nav.tiltakspenger.libs.periodisering.IkkesammenhengendePeriodisering] dersom vi får en ny innvilgelse som ikke overlapper med den første.
      */
     val tidslinje: Periodisering<Rammevedtak> by lazy {
-        value.filter {
+        verdi.filter {
             when (it.vedtakstype) {
                 Vedtakstype.INNVILGELSE,
                 Vedtakstype.STANS,
@@ -131,21 +131,21 @@ data class Rammevedtaksliste(
         valgteTiltaksdeltakelser.mapVerdi { verdi, _ -> verdi.typeKode }
     }
 
-    fun leggTilVedtak(vedtak: Rammevedtak): Rammevedtaksliste = copy(value = this.value.plus(vedtak))
+    fun leggTil(vedtak: Rammevedtak): Rammevedtaksliste = copy(verdi = this.verdi.plus(vedtak))
 
     fun hentRammevedtakForId(rammevedtakId: VedtakId): Rammevedtak {
-        return value.single { it.id == rammevedtakId }
+        return verdi.single { it.id == rammevedtakId }
     }
 
     init {
-        value.map { it.id }.let {
+        verdi.map { it.id }.let {
             require(it.size == it.distinct().size) { "Vedtakene må ha unike IDer men var: $it" }
         }
-        value.map { it.behandling.id }.let {
+        verdi.map { it.behandling.id }.let {
             require(it.size == it.distinct().size) { "Behandlingene må ha unike IDer men var: $it" }
         }
-        value.zipWithNext().forEach {
-            require(it.first.opprettet.isBefore(it.second.opprettet)) { "Vedtakene må være sortert på opprettet-tidspunkt, men var: ${value.map { it.opprettet }}" }
+        verdi.zipWithNext().forEach {
+            require(it.first.opprettet.isBefore(it.second.opprettet)) { "Vedtakene må være sortert på opprettet-tidspunkt, men var: ${verdi.map { it.opprettet }}" }
         }
     }
 

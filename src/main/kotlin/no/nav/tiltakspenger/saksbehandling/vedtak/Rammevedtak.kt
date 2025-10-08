@@ -135,7 +135,7 @@ fun Sak.opprettVedtak(
         utbetaling = utbetaling,
     )
 
-    val oppdatertSak = this.copy(rammevedtaksliste = this.rammevedtaksliste.leggTilVedtak(vedtak))
+    val oppdatertSak = this.leggTilRammevedtak(vedtak)
 
     return oppdatertSak to vedtak
 }

@@ -268,7 +268,7 @@ interface MeldekortMother : MotherOfAllMothers {
 
         return this.copy(
             meldekortbehandlinger = meldekortbehandlinger.leggTil(meldekortBehandling),
-            meldekortVedtaksliste = this.meldekortVedtaksliste.leggTil(vedtak),
+            vedtaksliste = vedtaksliste.leggTilMeldekortvedtak(vedtak),
         ) to meldekortBehandling
     }
 

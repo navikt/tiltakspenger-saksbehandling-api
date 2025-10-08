@@ -39,7 +39,7 @@ class BehandleSøknadPåNyttService(
         correlationId: CorrelationId,
     ): Either<KanIkkeBehandleSøknadPåNytt, Pair<Sak, Søknadsbehandling>> {
         val sak = sakService.hentForSakId(sakId)
-        val avslåtteSøknadsbehandlinger = sak.rammevedtaksliste.value
+        val avslåtteSøknadsbehandlinger = sak.rammevedtaksliste.verdi
             .filter { it.vedtakstype == Vedtakstype.AVSLAG }
             .map { it.behandling }
             .filterIsInstance<Søknadsbehandling>()
