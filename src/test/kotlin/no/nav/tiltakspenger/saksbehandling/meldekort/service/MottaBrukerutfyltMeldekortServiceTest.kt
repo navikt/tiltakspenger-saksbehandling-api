@@ -94,10 +94,66 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
             val meldekortFraFørsteKommando = meldekortRepo.hentForMeldekortId(meldekortId)
 
-            service.mottaBrukerutfyltMeldekort(lagreKommando).shouldBe(KanIkkeLagreBrukersMeldekort.AlleredeLagretUtenDiff.left())
-            service.mottaBrukerutfyltMeldekort(lagreKommandoMedDiff).shouldBe(KanIkkeLagreBrukersMeldekort.AlleredeLagretMedDiff.left())
+            service.mottaBrukerutfyltMeldekort(lagreKommando)
+                .shouldBe(KanIkkeLagreBrukersMeldekort.AlleredeLagretUtenDiff.left())
+            service.mottaBrukerutfyltMeldekort(lagreKommandoMedDiff)
+                .shouldBe(KanIkkeLagreBrukersMeldekort.AlleredeLagretMedDiff.left())
 
             meldekortRepo.hentForMeldekortId(meldekortId) shouldBe meldekortFraFørsteKommando
+        }
+    }
+
+    @Test
+    fun `Skal ikke flagge korrigerte meldekort for automatisk behandling`() {
+        with(TestApplicationContext()) {
+            val mottaService = this.mottaBrukerutfyltMeldekortService
+
+            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+
+            val meldeperiode = ObjectMother.meldeperiode()
+            val meldekortId = MeldekortId.random()
+            val korrigertMeldekortId = MeldekortId.random()
+
+            meldeperiodeRepo.lagre(meldeperiode)
+
+            val lagreKommando = LagreBrukersMeldekortKommando(
+                id = meldekortId,
+                meldeperiodeId = meldeperiode.id,
+                sakId = meldeperiode.sakId,
+                mottatt = LocalDateTime.now(),
+                journalpostId = JournalpostId("asdf"),
+                dager = meldeperiode.girRett.entries.map {
+                    BrukersMeldekort.BrukersMeldekortDag(
+                        status = if (it.value) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
+                        dato = it.key,
+                    )
+                },
+            )
+
+            val lagreKommandoKorrigering = LagreBrukersMeldekortKommando(
+                id = korrigertMeldekortId,
+                meldeperiodeId = meldeperiode.id,
+                sakId = meldeperiode.sakId,
+                mottatt = lagreKommando.mottatt.plusDays(1),
+                journalpostId = JournalpostId("asdf2"),
+                dager = meldeperiode.girRett.entries.map {
+                    BrukersMeldekort.BrukersMeldekortDag(
+                        status = if (it.value) InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
+                        dato = it.key,
+                    )
+                },
+            )
+
+            mottaService.mottaBrukerutfyltMeldekort(lagreKommando).shouldBe(Unit.right())
+
+            mottaService.mottaBrukerutfyltMeldekort(lagreKommandoKorrigering).shouldBe(Unit.right())
+
+            val førsteMeldekort = meldekortRepo.hentForMeldekortId(meldekortId)
+            val korrigertMeldekort = meldekortRepo.hentForMeldekortId(korrigertMeldekortId)
+
+            førsteMeldekort!!.behandlesAutomatisk shouldBe true
+            korrigertMeldekort!!.behandlesAutomatisk shouldBe false
         }
     }
 }
