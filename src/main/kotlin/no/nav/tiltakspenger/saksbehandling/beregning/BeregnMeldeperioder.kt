@@ -165,22 +165,23 @@ private data class BeregnMeldeperioder(
     }
 }
 
-/** Vi utbetaler 100% de første 3 dagene med sykefravær, og 75% de 13 neste.
- *  Etter denne 16-dagers perioden må det gå minst 16 dager uten nytt sykefravær
- *  før telleren resettes og vi igjen utbetaler for sykedager.
+/** Vi utbetaler 100% de første 3 dagene med sykefravær, 75% de 13 neste, og 0% for de påfølgende dagene.
+ *  Etter en periode på minst 16 dager uten nytt sykefravær nullstilles telleren.
  *
  *  Samme regler gjelder for sykt barn eller barnepasser
  *
  *  Se Rundskriv om tiltakspenger til § 10 – Reduksjon av ytelse på grunn av fravær
  *  https://lovdata.no/nav/rundskriv/r76-13-02
+ *
+ *  @param førsteSykedag Hvis tolkningen over er korrekt så trenger vi ikke denne
  * */
 private class SykedagerPeriode {
-    private var startDag: LocalDate? = null
+    private var førsteSykedag: LocalDate? = null
     private var sisteSykedag: LocalDate? = null
     private var antallSykedager: Int = 0
 
     fun oppdaterOgFinnReduksjon(nySykedag: LocalDate): ReduksjonAvYtelsePåGrunnAvFravær {
-        if (startDag == null) {
+        if (sisteSykedag == null) {
             reset(nySykedag)
             return IngenReduksjon
         }
@@ -204,7 +205,7 @@ private class SykedagerPeriode {
     }
 
     private fun reset(dag: LocalDate) {
-        startDag = dag
+        førsteSykedag = dag
         sisteSykedag = dag
         antallSykedager = 1
     }
