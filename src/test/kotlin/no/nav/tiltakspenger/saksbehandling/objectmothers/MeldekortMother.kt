@@ -190,6 +190,7 @@ interface MeldekortMother : MotherOfAllMothers {
             begrunnelse = begrunnelse,
             attesteringer = attesteringer,
             dager = dager,
+            sendtTilDatadeling = null,
         )
     }
 
@@ -238,6 +239,7 @@ interface MeldekortMother : MotherOfAllMothers {
             type = type,
             status = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
             simulering = simulering,
+            sendtTilDatadeling = null,
         )
     }
 

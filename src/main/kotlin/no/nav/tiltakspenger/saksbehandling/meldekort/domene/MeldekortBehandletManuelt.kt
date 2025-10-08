@@ -59,6 +59,7 @@ data class MeldekortBehandletManuelt(
     override val beregning: Beregning,
     override val simulering: Simulering?,
     override val dager: MeldekortDager,
+    override val sendtTilDatadeling: LocalDateTime?,
 ) : MeldekortBehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
 

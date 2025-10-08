@@ -66,6 +66,7 @@ sealed interface MeldekortBehandling : Behandling {
     override val iverksattTidspunkt: LocalDateTime?
     override val sendtTilBeslutning: LocalDateTime?
     val begrunnelse: MeldekortBehandlingBegrunnelse?
+    val sendtTilDatadeling: LocalDateTime?
 
     override val attesteringer: Attesteringer
 
@@ -83,6 +84,12 @@ sealed interface MeldekortBehandling : Behandling {
         get() = when (status) {
             KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING, AVBRUTT -> false
             GODKJENT, AUTOMATISK_BEHANDLET, IKKE_RETT_TIL_TILTAKSPENGER -> true
+        }
+
+    val erGodkjent
+        get() = when (status) {
+            KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING, AVBRUTT, IKKE_RETT_TIL_TILTAKSPENGER -> false
+            GODKJENT, AUTOMATISK_BEHANDLET -> true
         }
 
     val beløpTotal: Int?

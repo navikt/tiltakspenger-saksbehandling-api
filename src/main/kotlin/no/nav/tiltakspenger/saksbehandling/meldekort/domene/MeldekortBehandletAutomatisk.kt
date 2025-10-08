@@ -44,6 +44,7 @@ data class MeldekortBehandletAutomatisk(
     override val navkontor: Navkontor,
     override val type: MeldekortBehandlingType,
     override val status: MeldekortBehandlingStatus,
+    override val sendtTilDatadeling: LocalDateTime?,
 ) : MeldekortBehandling.Behandlet {
     // Automatiske behandlinger iverksettes umiddelbart
     override val iverksattTidspunkt = opprettet
@@ -136,6 +137,7 @@ suspend fun Sak.opprettAutomatiskMeldekortBehandling(
         type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         status = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
         simulering = null,
+        sendtTilDatadeling = null,
     )
     return simuler(meldekortBehandletAutomatisk).mapLeft {
         // Simuleringsklienten logger feil selv. I førsteomgang ønsker vi ikke stoppe den automatiske ubtbetalingen selvom simuleringen feiler.

@@ -330,6 +330,7 @@ open class ApplicationContext(
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             behandlingRepo = behandlingContext.behandlingRepo,
             sakRepo = sakContext.sakRepo,
+            meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
             datadelingClient = datadelingKlient,
             clock = clock,
         )
