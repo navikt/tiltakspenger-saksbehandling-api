@@ -33,7 +33,7 @@ import java.time.LocalDate
 
 private const val ANTALL_EGENMELDINGSDAGER = 3
 private const val ANTALL_ARBEIDSGIVERDAGER = 13
-private const val DAGER_KARANTENE = 16L - 1
+private const val DAGER_KARANTENE = 16L
 
 /**
  * Beregner en eller flere meldeperioder, men kan potensielt påvirke påfølgende meldeperioder ved endring av sykefravær.
@@ -117,6 +117,9 @@ private data class BeregnMeldeperioder(
             }
         }
 
+        sjekkSykKarantene(dato)
+        sjekkSykBarnKarantene(dato)
+
         return when (status) {
             MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> ikkeRettTilTiltakspenger(dato)
             MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> deltattUtenLønn(
@@ -155,8 +158,6 @@ private data class BeregnMeldeperioder(
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): DeltattUtenLønnITiltaket {
-        sjekkSykKarantene(dag)
-        sjekkSykBarnKarantene(dag)
         return DeltattUtenLønnITiltaket.create(
             dato = dag,
             tiltakstype = tiltakstype,
@@ -169,8 +170,6 @@ private data class BeregnMeldeperioder(
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): FraværGodkjentAvNav {
-        sjekkSykKarantene(dag)
-        sjekkSykBarnKarantene(dag)
         return FraværGodkjentAvNav.create(
             dato = dag,
             tiltakstype = tiltakstype,
@@ -183,8 +182,6 @@ private data class BeregnMeldeperioder(
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): FraværAnnet {
-        sjekkSykKarantene(dag)
-        sjekkSykBarnKarantene(dag)
         return FraværAnnet.create(
             dato = dag,
             tiltakstype = tiltakstype,
@@ -197,8 +194,6 @@ private data class BeregnMeldeperioder(
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): MeldeperiodeBeregningDag.IkkeBesvart {
-        sjekkSykKarantene(dag)
-        sjekkSykBarnKarantene(dag)
         return MeldeperiodeBeregningDag.IkkeBesvart.create(
             dato = dag,
             tiltakstype = tiltakstype,
@@ -209,8 +204,6 @@ private data class BeregnMeldeperioder(
     private fun ikkeRettTilTiltakspenger(
         dag: LocalDate,
     ): IkkeRettTilTiltakspenger {
-        sjekkSykKarantene(dag)
-        sjekkSykBarnKarantene(dag)
         return IkkeRettTilTiltakspenger(dato = dag)
     }
 
@@ -219,8 +212,6 @@ private data class BeregnMeldeperioder(
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): IkkeDeltatt {
-        sjekkSykKarantene(dag)
-        sjekkSykBarnKarantene(dag)
         return IkkeDeltatt.create(
             dato = dag,
             tiltakstype = tiltakstype,
@@ -233,8 +224,6 @@ private data class BeregnMeldeperioder(
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): DeltattMedLønnITiltaket {
-        sjekkSykKarantene(dag)
-        sjekkSykBarnKarantene(dag)
         return DeltattMedLønnITiltaket.create(
             dato = dag,
             tiltakstype = tiltakstype,
@@ -296,8 +285,6 @@ private data class BeregnMeldeperioder(
             }
 
             SykTilstand.Karantene -> {
-                sjekkSykKarantene(dag)
-                sjekkSykBarnKarantene(dag)
                 sykKaranteneDag = dag.plusDays(DAGER_KARANTENE)
                 return SykBruker.create(
                     dato = dag,
@@ -314,7 +301,7 @@ private data class BeregnMeldeperioder(
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): SyktBarn {
-        sisteSykedag = dag
+        sisteSyktBarnSykedag = dag
         when (syktBarnTilstand) {
             SykTilstand.FullUtbetaling -> {
                 if (egenmeldingsdagerSyktBarn > 0) {
@@ -326,8 +313,7 @@ private data class BeregnMeldeperioder(
                         antallBarn = antallBarn,
                     )
                 } else {
-                    egenmeldingsdagerSyktBarn = ANTALL_ARBEIDSGIVERDAGER
-                    egenmeldingsdagerSyktBarn--
+                    egenmeldingsdagerSyktBarn = ANTALL_ARBEIDSGIVERDAGER - 1
                     syktBarnTilstand = SykTilstand.DelvisUtbetaling
                     return SyktBarn.create(
                         dag = dag,
@@ -364,8 +350,7 @@ private data class BeregnMeldeperioder(
             }
 
             SykTilstand.Karantene -> {
-                sjekkSykKarantene(dag)
-                sjekkSykBarnKarantene(dag)
+                syktBarnKaranteneDag = dag.plusDays(DAGER_KARANTENE)
                 return SyktBarn.create(
                     dag = dag,
                     tiltakstype = tiltakstype,
