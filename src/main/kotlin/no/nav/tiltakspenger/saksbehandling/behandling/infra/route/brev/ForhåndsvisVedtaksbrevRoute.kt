@@ -47,8 +47,8 @@ import java.time.LocalDate
 private data class Body(
     val fritekst: String,
     val virkningsperiode: PeriodeDTO?,
-    val harValgtStansFraFørsteDagSomGirRett: Boolean,
-    val harValgtStansTilSisteDagSomGirRett: Boolean,
+    val harValgtStansFraFørsteDagSomGirRett: Boolean?,
+    val harValgtStansTilSisteDagSomGirRett: Boolean?,
     val stansFraOgMed: LocalDate?,
     val stansTilOgMed: LocalDate?,
     val valgteHjemler: List<ValgtHjemmelForStansDTO>?,
@@ -57,10 +57,10 @@ private data class Body(
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 ) {
     init {
-        if (harValgtStansFraFørsteDagSomGirRett) require(stansFraOgMed == null) { "stansFraOgMed må være null når harValgtStansFraFørsteDagSomGirRett er true" }
-        if (harValgtStansTilSisteDagSomGirRett) require(stansTilOgMed == null) { "stansTilOgMed må være null når harValgtStansTilSisteDagSomGirRett er true" }
-        if (!harValgtStansFraFørsteDagSomGirRett) requireNotNull(stansFraOgMed) { "stansFraOgMed kan ikke være null når harValgtStansFraFørsteDagSomGirRett er false" }
-        if (!harValgtStansTilSisteDagSomGirRett) requireNotNull(stansTilOgMed) { "stansTilOgMed kan ikke være null når harValgtStansTilSisteDagSomGirRett er false" }
+        if (harValgtStansFraFørsteDagSomGirRett == true) require(stansFraOgMed == null) { "stansFraOgMed må være null når harValgtStansFraFørsteDagSomGirRett er true" }
+        if (harValgtStansTilSisteDagSomGirRett == true) require(stansTilOgMed == null) { "stansTilOgMed må være null når harValgtStansTilSisteDagSomGirRett er true" }
+        if (harValgtStansFraFørsteDagSomGirRett == false) requireNotNull(stansFraOgMed) { "stansFraOgMed kan ikke være null når harValgtStansFraFørsteDagSomGirRett er false" }
+        if (harValgtStansTilSisteDagSomGirRett == false) requireNotNull(stansTilOgMed) { "stansTilOgMed kan ikke være null når harValgtStansTilSisteDagSomGirRett er false" }
     }
     fun toDomain(
         sakId: SakId,
