@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -35,14 +35,14 @@ class SakTest {
 
         avbruttSøknad?.avbrutt shouldNotBe null
         behandling shouldBe null
-        sakMedAvbruttsøknad.soknader.size shouldBe 1
-        sakMedAvbruttsøknad.behandlinger.size shouldBe 0
+        sakMedAvbruttsøknad.søknader.size shouldBe 1
+        sakMedAvbruttsøknad.rammebehandlinger.size shouldBe 0
     }
 
     @Test
     fun `avbryter behandling`() {
         val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
-        val sak = ObjectMother.nySak(behandlinger = Behandlinger(behandling), søknader = listOf(behandling.søknad))
+        val sak = ObjectMother.nySak(behandlinger = Rammebehandlinger(behandling), søknader = listOf(behandling.søknad))
 
         val (sakMedAvbruttsøknad, avbruttSøknad, avbruttBehandling) = sak.avbrytSøknadOgBehandling(
             AvbrytSøknadOgBehandlingCommand(
@@ -57,8 +57,8 @@ class SakTest {
         )
         avbruttSøknad?.avbrutt shouldNotBe null
         avbruttBehandling?.avbrutt shouldNotBe null
-        sakMedAvbruttsøknad.soknader.size shouldBe 1
-        sakMedAvbruttsøknad.behandlinger.size shouldBe 1
+        sakMedAvbruttsøknad.søknader.size shouldBe 1
+        sakMedAvbruttsøknad.rammebehandlinger.size shouldBe 1
     }
 
     @Nested
@@ -118,8 +118,8 @@ class SakTest {
     fun `harSoknadUnderBehandling - har iverksatt søknadsbehandling og ny søknad - returnerer true`() {
         val sak = ObjectMother.nySakMedVedtak().first
         val soknad = ObjectMother.nyInnvilgbarSøknad(fnr = sak.fnr, sakId = sak.id)
-        val soknader = sak.soknader
-        val oppdatertSak = sak.copy(soknader = soknader + soknad)
+        val soknader = sak.søknader
+        val oppdatertSak = sak.copy(søknader = soknader + soknad)
 
         oppdatertSak.harSoknadUnderBehandling() shouldBe true
     }
@@ -134,12 +134,12 @@ class SakTest {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            søknad = sak.soknader.filterIsInstance<InnvilgbarSøknad>().first(),
+            søknad = sak.søknader.filterIsInstance<InnvilgbarSøknad>().first(),
             clock = clock,
         )
 
-        val behandlinger = sak.behandlinger
-        val oppdatertSak = sak.copy(behandlinger = Behandlinger(behandlinger + behandling))
+        val behandlinger = sak.rammebehandlinger
+        val oppdatertSak = sak.copy(rammebehandlinger = Rammebehandlinger(behandlinger + behandling))
 
         oppdatertSak.harSoknadUnderBehandling() shouldBe true
     }

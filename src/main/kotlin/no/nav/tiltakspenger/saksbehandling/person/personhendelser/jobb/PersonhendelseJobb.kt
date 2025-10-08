@@ -70,11 +70,11 @@ class PersonhendelseJobb(
         sak: Sak,
         dato: LocalDate = LocalDate.now(),
     ): Boolean =
-        sak.vedtaksliste.harInnvilgetTiltakspengerPaDato(dato) ||
-            sak.vedtaksliste.harInnvilgetTiltakspengerEtterDato(dato)
+        sak.rammevedtaksliste.harInnvilgetTiltakspengerPaDato(dato) ||
+            sak.rammevedtaksliste.harInnvilgetTiltakspengerEtterDato(dato)
 
     private fun harApenBehandling(sak: Sak): Boolean =
-        sak.behandlinger.hentÅpneBehandlinger().isNotEmpty()
+        sak.rammebehandlinger.hentÅpneBehandlinger().isNotEmpty()
 
     private fun PersonhendelseDb.finnOppgavebehov() =
         when (opplysningstype) {

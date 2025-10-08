@@ -45,7 +45,7 @@ class SendBehandlingTilBeslutningServiceTest {
             )
 
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
-            oppdatertSak.behandlinger.any { it.id == oppdatertBehandling.id } shouldBe true
+            oppdatertSak.rammebehandlinger.any { it.id == oppdatertBehandling.id } shouldBe true
         }
     }
 
@@ -89,7 +89,7 @@ class SendBehandlingTilBeslutningServiceTest {
             )
 
             innvilgetBehandlingSendtTilBeslutning.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
-            oppdatertSak.behandlinger.any { it.id == innvilgetBehandlingSendtTilBeslutning.id } shouldBe true
+            oppdatertSak.rammebehandlinger.any { it.id == innvilgetBehandlingSendtTilBeslutning.id } shouldBe true
         }
     }
 }

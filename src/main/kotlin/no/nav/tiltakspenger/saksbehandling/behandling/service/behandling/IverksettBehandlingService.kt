@@ -130,7 +130,7 @@ class IverksettBehandlingService(
 
         val (oppdatertSak, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
         val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
-            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder, clock)
+            this.meldekortbehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder, clock)
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
@@ -148,6 +148,6 @@ class IverksettBehandlingService(
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
         }
-        return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
+        return oppdatertSak.copy(meldekortbehandlinger = oppdaterteMeldekortbehandlinger)
     }
 }

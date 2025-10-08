@@ -12,7 +12,7 @@ class MeldekortBehandlingerTest {
     fun `kun 1 eller 0 meldekortbehandling kan være åpen om gangen`() {
         val sakId = SakId.random()
         assertThrows<IllegalArgumentException> {
-            MeldekortBehandlinger(
+            Meldekortbehandlinger(
                 verdi = listOf(
                     ObjectMother.meldekortUnderBehandling(
                         sakId = sakId,
@@ -25,8 +25,8 @@ class MeldekortBehandlingerTest {
         }
 
         assertDoesNotThrow {
-            MeldekortBehandlinger(verdi = listOf(ObjectMother.meldekortUnderBehandling()))
-            MeldekortBehandlinger(verdi = emptyList())
+            Meldekortbehandlinger(verdi = listOf(ObjectMother.meldekortUnderBehandling()))
+            Meldekortbehandlinger(verdi = emptyList())
         }
     }
 }

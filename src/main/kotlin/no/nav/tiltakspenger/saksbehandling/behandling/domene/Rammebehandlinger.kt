@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
  * første behandlingen.
  * Garanterer at første elementet er en søknadsbehandling og de resterende revurderinger.
  */
-data class Behandlinger(
+data class Rammebehandlinger(
     val behandlinger: List<Rammebehandling>,
 ) : List<Rammebehandling> by behandlinger {
 
@@ -19,13 +19,13 @@ data class Behandlinger(
 
     fun leggTilSøknadsbehandling(
         søknadsbehandling: Søknadsbehandling,
-    ): Behandlinger {
+    ): Rammebehandlinger {
         return this.copy(behandlinger = this.behandlinger + søknadsbehandling)
     }
 
     fun leggTilRevurdering(
         revurdering: Revurdering,
-    ): Behandlinger {
+    ): Rammebehandlinger {
         return this.copy(behandlinger = this.behandlinger + revurdering)
     }
 
@@ -37,7 +37,7 @@ data class Behandlinger(
         return behandlinger.filterNot { it.erAvsluttet }
     }
 
-    fun oppdaterBehandling(behandling: Rammebehandling): Behandlinger {
+    fun oppdaterBehandling(behandling: Rammebehandling): Rammebehandlinger {
         behandlinger.single { it.id == behandling.id }
         val behandlinger = this.behandlinger.map { if (it.id == behandling.id) behandling else it }
         return this.copy(behandlinger = behandlinger)
@@ -53,8 +53,8 @@ data class Behandlinger(
     }
 
     companion object {
-        fun empty(): Behandlinger {
-            return Behandlinger(emptyList())
+        fun empty(): Rammebehandlinger {
+            return Rammebehandlinger(emptyList())
         }
     }
 }

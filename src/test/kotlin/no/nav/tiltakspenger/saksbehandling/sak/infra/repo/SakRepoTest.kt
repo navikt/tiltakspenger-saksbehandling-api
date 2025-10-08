@@ -20,13 +20,13 @@ internal class SakRepoTest {
             val opprettetSak = testDataHelper.persisterSak()
             val hentetSak = sakRepo.hentForFnr(opprettetSak.fnr).first()
 
-            hentetSak.behandlinger.behandlinger shouldBe emptyList()
-            hentetSak.vedtaksliste.value shouldBe emptyList()
-            hentetSak.meldekortBehandlinger shouldBe emptyList()
+            hentetSak.rammebehandlinger.behandlinger shouldBe emptyList()
+            hentetSak.rammevedtaksliste.verdi shouldBe emptyList()
+            hentetSak.meldekortbehandlinger shouldBe emptyList()
             hentetSak.meldeperiodeKjeder.sisteMeldeperiodePerKjede shouldBe emptyList()
             hentetSak.brukersMeldekort shouldBe emptyList()
             hentetSak.utbetalinger.verdi shouldBe emptyList()
-            hentetSak.soknader shouldBe emptyList()
+            hentetSak.søknader shouldBe emptyList()
         }
     }
 

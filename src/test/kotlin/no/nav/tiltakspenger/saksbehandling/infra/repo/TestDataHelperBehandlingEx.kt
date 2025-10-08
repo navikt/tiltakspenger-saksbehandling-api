@@ -95,11 +95,11 @@ internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
             barnetillegg = barnetillegg,
             clock = clock,
         )
-    behandlingRepo.lagre(sakMedBehandling.behandlinger.singleOrNullOrThrow()!!)
+    behandlingRepo.lagre(sakMedBehandling.rammebehandlinger.singleOrNullOrThrow()!!)
 
     return Triple(
         sakRepo.hentForSakId(sakId)!!,
-        sakMedBehandling.behandlinger.singleOrNullOrThrow()!! as Søknadsbehandling,
+        sakMedBehandling.rammebehandlinger.singleOrNullOrThrow()!! as Søknadsbehandling,
         søknadRepo.hentForSøknadId(søknad.id)!!,
     )
 }
@@ -152,11 +152,11 @@ internal fun TestDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
             sakId = sak.id,
             clock = clock,
         )
-    behandlingRepo.lagre(sakMedBehandling.behandlinger.singleOrNullOrThrow()!!)
+    behandlingRepo.lagre(sakMedBehandling.rammebehandlinger.singleOrNullOrThrow()!!)
 
     return Triple(
         sakRepo.hentForSakId(sakId)!!,
-        sakMedBehandling.behandlinger.singleOrNullOrThrow()!! as Søknadsbehandling,
+        sakMedBehandling.rammebehandlinger.singleOrNullOrThrow()!! as Søknadsbehandling,
         søknadRepo.hentForSøknadId(søknad.id)!!,
     )
 }
@@ -459,7 +459,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
         clock = clock,
     )
     val søknadsbehandling =
-        sakMedSøknadsbehandling.behandlinger.filter { it is Søknadsbehandling && it.søknad.id == id }
+        sakMedSøknadsbehandling.rammebehandlinger.filter { it is Søknadsbehandling && it.søknad.id == id }
             .singleOrNullOrThrow()!!
     val avbruttBehandling = søknadsbehandling.avbryt(
         saksbehandler,

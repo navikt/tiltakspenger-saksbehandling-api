@@ -25,8 +25,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
@@ -57,11 +57,11 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager
@@ -269,8 +269,8 @@ interface MeldekortMother : MotherOfAllMothers {
         )
 
         return this.copy(
-            meldekortBehandlinger = meldekortBehandlinger.leggTil(meldekortBehandling),
-            meldekortVedtaksliste = this.meldekortVedtaksliste.leggTil(vedtak),
+            meldekortbehandlinger = meldekortbehandlinger.leggTil(meldekortBehandling),
+            vedtaksliste = vedtaksliste.leggTilMeldekortvedtak(vedtak),
         ) to meldekortBehandling
     }
 
@@ -458,7 +458,7 @@ interface MeldekortMother : MotherOfAllMothers {
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
-    ): MeldekortBehandlinger {
+    ): Meldekortbehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
             OppdaterMeldekortKommando(
                 sakId = sakId,
@@ -520,7 +520,7 @@ interface MeldekortMother : MotherOfAllMothers {
         attesteringer: Attesteringer = Attesteringer.empty(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         simulering: Simulering? = null,
-    ): Pair<MeldekortBehandlinger, MeldekortBehandletManuelt> {
+    ): Pair<Meldekortbehandlinger, MeldekortBehandletManuelt> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
             kjedeId = kjedeId,
@@ -533,7 +533,7 @@ interface MeldekortMother : MotherOfAllMothers {
         )
 
         val dager = kommando.dager.tilMeldekortDager(meldeperiode)
-        val meldekortBehandlinger = MeldekortBehandlinger(
+        val meldekortBehandlinger = Meldekortbehandlinger(
             verdi = nonEmptyListOf(
                 MeldekortUnderBehandling(
                     id = meldekortId,
@@ -567,7 +567,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     tiltakstypePerioder = tiltakstypePerioder,
-                    meldeperiodeBeregninger = MeldeperiodeBeregninger(meldekortBehandlinger, Behandlinger.empty()),
+                    meldeperiodeBeregninger = MeldeperiodeBeregninger(meldekortBehandlinger, Rammebehandlinger.empty()),
                 )
             },
             simuler = {
@@ -586,7 +586,7 @@ interface MeldekortMother : MotherOfAllMothers {
             .getOrFail()
     }
 
-    suspend fun MeldekortBehandlinger.beregnNesteMeldekort(
+    suspend fun Meldekortbehandlinger.beregnNesteMeldekort(
         kommando: OppdaterMeldekortKommando,
         vurderingsperiode: Periode,
         fnr: Fnr,
@@ -605,7 +605,7 @@ interface MeldekortMother : MotherOfAllMothers {
         antallDagerForPeriode: Int = girRett.count { it.value },
         attesteringer: Attesteringer = Attesteringer.empty(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-    ): MeldekortBehandlinger {
+    ): Meldekortbehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
         val meldeperiode = meldeperiode(
@@ -650,7 +650,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     tiltakstypePerioder = tiltakstypePerioder,
-                    meldeperiodeBeregninger = MeldeperiodeBeregninger(this, Behandlinger.empty()),
+                    meldeperiodeBeregninger = MeldeperiodeBeregninger(this, Rammebehandlinger.empty()),
                 )
             },
             simuler = { KunneIkkeSimulere.UkjentFeil.left() },

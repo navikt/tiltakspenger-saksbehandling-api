@@ -18,10 +18,10 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
@@ -67,7 +67,7 @@ class BehandlingPostgresRepo(
     }
 
     /**
-     * Denne returnerer ikke [Behandlinger] siden vi ikke har avklart om en person kan ha flere saker. I så fall vil dette bli en liste med [Behandlinger].
+     * Denne returnerer ikke [Rammebehandlinger] siden vi ikke har avklart om en person kan ha flere saker. I så fall vil dette bli en liste med [Rammebehandlinger].
      */
     override fun hentAlleForFnr(fnr: Fnr): List<Rammebehandling> {
         return sessionFactory.withSession { session ->
@@ -268,7 +268,7 @@ class BehandlingPostgresRepo(
         internal fun hentForSakId(
             sakId: SakId,
             session: Session,
-        ): Behandlinger =
+        ): Rammebehandlinger =
             session
                 .run(
                     sqlQuery(
@@ -276,7 +276,7 @@ class BehandlingPostgresRepo(
                         "sak_id" to sakId.toString(),
                     ).map { it.toBehandling(session) }.asList,
                 )
-                .let { Behandlinger(it) }
+                .let { Rammebehandlinger(it) }
 
         private fun oppdaterBehandling(
             sistEndret: LocalDateTime,
@@ -635,7 +635,7 @@ class BehandlingPostgresRepo(
             """.trimIndent()
     }
 
-    /** Siden dette er på tvers av saker, gir det ikke mening og bruke [Behandlinger] */
+    /** Siden dette er på tvers av saker, gir det ikke mening og bruke [Rammebehandlinger] */
     override fun hentSøknadsbehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
         return sessionFactory.withSession { session ->
             session.run(

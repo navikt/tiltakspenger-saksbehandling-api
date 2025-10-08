@@ -41,8 +41,8 @@ class ToBehandlingerIT {
                     )
 
                     sak.let {
-                        it.soknader.size shouldBe 1
-                        it.behandlinger.size shouldBe 1
+                        it.søknader.size shouldBe 1
+                        it.rammebehandlinger.size shouldBe 1
                         it.meldeperiodeKjeder.size shouldBe 2
                     }
 
@@ -53,8 +53,8 @@ class ToBehandlingerIT {
                     )
 
                     sakEtterAndreSøknadsbehandling.let {
-                        it.soknader.size shouldBe 2
-                        it.behandlinger.size shouldBe 2
+                        it.søknader.size shouldBe 2
+                        it.rammebehandlinger.size shouldBe 2
                         it.meldeperiodeKjeder.size shouldBe 3
                         it.meldeperiodeKjeder[2].periode shouldBe Periode(8.april(2024), 21.april(2024))
                     }

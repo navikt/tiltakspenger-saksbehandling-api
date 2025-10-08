@@ -60,12 +60,28 @@ class MottaBrukerutfyltMeldekortService(
         return Unit.right()
     }
 
-    private fun kanBehandlesAutomatisk(kommando: LagreBrukersMeldekortKommando, meldeperiode: Meldeperiode): Boolean {
+    private fun kanBehandlesAutomatisk(
+        kommando: LagreBrukersMeldekortKommando,
+        meldeperiode: Meldeperiode,
+    ): Boolean {
         val antallDagerMedRegistrering = kommando.antallDagerRegistrert
         val maksDagerMedRegistrering = meldeperiode.maksAntallDagerForMeldeperiode
 
         if (antallDagerMedRegistrering > maksDagerMedRegistrering) {
             logger.error { "Brukers meldekort ${kommando.id} har for mange dager registrert ($antallDagerMedRegistrering) - maks $maksDagerMedRegistrering" }
+            return false
+        }
+
+        val kjedeId = meldeperiode.kjedeId
+        val sakId = meldeperiode.sakId
+
+        /** Denne sjekken tar ikke hensyn til om det ble opprettet en manuell meldekortbehandling på meldeperiodekjeden
+         *  før første meldekort ble mottatt fra bruker. Dette tilfellet håndteres uansett av jobben som oppretter den
+         *  automatiske behandlingen. Kan evt vurdere å også sjekke om en behandling eksisterer på kjeden her, men dette
+         *  burde være et sjeldent tilfelle.
+         * */
+        if (brukersMeldekortRepo.hentForKjedeId(kjedeId, sakId).isNotEmpty()) {
+            logger.info { "Finnes allerede et meldekort for kjede $kjedeId på sak $sakId - behandler ikke meldekortet automatisk ${kommando.id} (antatt korrigering)" }
             return false
         }
 

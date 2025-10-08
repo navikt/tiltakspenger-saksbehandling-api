@@ -20,7 +20,7 @@ import java.time.LocalDate
  * Kun en behandling kan være under behandling (åpen) til enhver tid.
  * Merk at [verdi] inneholder alle meldekortbehandlinger, inkludert de som er avbrutt, og bør ikke brukes direkte!
  */
-data class MeldekortBehandlinger(
+data class Meldekortbehandlinger(
     private val verdi: List<MeldekortBehandling>,
 ) : List<MeldekortBehandling> by verdi {
 
@@ -76,7 +76,7 @@ data class MeldekortBehandlinger(
         kommando: OppdaterMeldekortKommando,
         beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
         simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
-    ): Either<KanIkkeOppdatereMeldekort, Triple<MeldekortBehandlinger, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
+    ): Either<KanIkkeOppdatereMeldekort, Triple<Meldekortbehandlinger, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
         val meldekort = hentMeldekortBehandling(kommando.meldekortId) as MeldekortUnderBehandling
         return meldekort.oppdater(
             kommando = kommando,
@@ -90,7 +90,7 @@ data class MeldekortBehandlinger(
         beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
         simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
         clock: Clock,
-    ): Either<KanIkkeSendeMeldekortTilBeslutter, Triple<MeldekortBehandlinger, MeldekortBehandletManuelt, SimuleringMedMetadata?>> {
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, Triple<Meldekortbehandlinger, MeldekortBehandletManuelt, SimuleringMedMetadata?>> {
         val meldekort = hentMeldekortBehandling(kommando.meldekortId) as MeldekortUnderBehandling
         return meldekort.sendTilBeslutter(
             kommando = kommando,
@@ -125,7 +125,7 @@ data class MeldekortBehandlinger(
         oppdaterteKjeder: MeldeperiodeKjeder,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
         clock: Clock,
-    ): Pair<MeldekortBehandlinger, List<MeldekortBehandling>> {
+    ): Pair<Meldekortbehandlinger, List<MeldekortBehandling>> {
         return verdi.filter { it.erÅpen() }
             .fold(Pair(this, emptyList())) { acc, meldekortBehandling ->
                 val meldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjede(
@@ -143,8 +143,8 @@ data class MeldekortBehandlinger(
     /**
      * Erstatt eksisterende meldekortbehandling med ny meldekortbehandling.
      */
-    fun oppdaterMeldekortbehandling(meldekortBehandling: MeldekortBehandling): MeldekortBehandlinger {
-        return MeldekortBehandlinger(
+    fun oppdaterMeldekortbehandling(meldekortBehandling: MeldekortBehandling): Meldekortbehandlinger {
+        return Meldekortbehandlinger(
             verdi = verdi.map {
                 if (it.id == meldekortBehandling.id) {
                     meldekortBehandling
@@ -155,14 +155,14 @@ data class MeldekortBehandlinger(
         )
     }
 
-    fun leggTil(behandling: MeldekortUnderBehandling): MeldekortBehandlinger {
-        return MeldekortBehandlinger(
+    fun leggTil(behandling: MeldekortUnderBehandling): Meldekortbehandlinger {
+        return Meldekortbehandlinger(
             verdi = verdi.plus(behandling).sortedBy { it.fraOgMed },
         )
     }
 
-    fun leggTil(behandling: MeldekortBehandletAutomatisk): MeldekortBehandlinger {
-        return MeldekortBehandlinger(
+    fun leggTil(behandling: MeldekortBehandletAutomatisk): Meldekortbehandlinger {
+        return Meldekortbehandlinger(
             verdi = verdi.plus(behandling).sortedBy { it.fraOgMed },
         )
     }
@@ -189,8 +189,8 @@ data class MeldekortBehandlinger(
     }
 
     companion object {
-        fun empty(): MeldekortBehandlinger {
-            return MeldekortBehandlinger(
+        fun empty(): Meldekortbehandlinger {
+            return Meldekortbehandlinger(
                 verdi = emptyList(),
             )
         }

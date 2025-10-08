@@ -74,7 +74,7 @@ class BeregnRevurderingTest {
         )
 
         return sak.copy(
-            behandlinger = sak.behandlinger.leggTilRevurdering(revurdering),
+            rammebehandlinger = sak.rammebehandlinger.leggTilRevurdering(revurdering),
         ) to revurdering
     }
 

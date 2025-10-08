@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
 import java.time.LocalDate
 
@@ -50,16 +51,18 @@ class SakFakeRepo(
     ): Sak? {
         val behandlinger = behandlingRepo.hentBehandlingerForSakId(sakId)
         val meldekortBehandlinger =
-            meldekortBehandlingRepo.hentForSakId(sakId) ?: MeldekortBehandlinger.empty()
+            meldekortBehandlingRepo.hentForSakId(sakId) ?: Meldekortbehandlinger.empty()
         val soknader = søknadFakeRepo.hentForSakId(sakId)
 
         return data.get()[sakId]?.copy(
-            behandlinger = behandlinger,
-            vedtaksliste = rammevedtakRepo.hentForSakId(sakId),
-            meldekortBehandlinger = meldekortBehandlinger,
-            meldekortVedtaksliste = meldekortVedtakRepo.hentForSakId(sakId),
+            rammebehandlinger = behandlinger,
+            vedtaksliste = Vedtaksliste(
+                rammevedtaksliste = rammevedtakRepo.hentForSakId(sakId),
+                meldekortVedtaksliste = meldekortVedtakRepo.hentForSakId(sakId),
+            ),
+            meldekortbehandlinger = meldekortBehandlinger,
             meldeperiodeKjeder = meldeperiodeRepo.hentForSakId(sakId),
-            soknader = soknader,
+            søknader = soknader,
         )
     }
 

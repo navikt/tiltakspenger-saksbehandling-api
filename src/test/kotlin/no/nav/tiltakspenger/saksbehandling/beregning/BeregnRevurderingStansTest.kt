@@ -49,7 +49,7 @@ class BeregnRevurderingStansTest {
         )
 
         return sakMedMeldekortBehandlinger.copy(
-            behandlinger = sak.behandlinger.leggTilRevurdering(revurdering),
+            rammebehandlinger = sak.rammebehandlinger.leggTilRevurdering(revurdering),
         ) to revurdering
     }
 
@@ -73,9 +73,9 @@ class BeregnRevurderingStansTest {
         beregning.size shouldBe 1
 
         beregning.beregningKilde.id shouldBe revurdering.id
-        beregning[0].meldekortId shouldBe sak.meldekortBehandlinger[1].id
+        beregning[0].meldekortId shouldBe sak.meldekortbehandlinger[1].id
 
-        beregning.totalBeløp shouldBe sak.meldekortBehandlinger[1].beløpTotal
+        beregning.totalBeløp shouldBe sak.meldekortbehandlinger[1].beløpTotal
     }
 
     @Test
@@ -88,8 +88,8 @@ class BeregnRevurderingStansTest {
         beregning.size shouldBe 2
 
         beregning.beregningKilde.id shouldBe revurdering.id
-        beregning[0].meldekortId shouldBe sak.meldekortBehandlinger[0].id
-        beregning[1].meldekortId shouldBe sak.meldekortBehandlinger[1].id
+        beregning[0].meldekortId shouldBe sak.meldekortbehandlinger[0].id
+        beregning[1].meldekortId shouldBe sak.meldekortbehandlinger[1].id
 
         beregning.ordinærBeløp shouldBe 0
         beregning.barnetilleggBeløp shouldBe 0
@@ -105,7 +105,7 @@ class BeregnRevurderingStansTest {
         beregning.size shouldBe 1
 
         beregning.beregningKilde.id shouldBe revurdering.id
-        beregning[0].meldekortId shouldBe sak.meldekortBehandlinger[1].id
+        beregning[0].meldekortId shouldBe sak.meldekortbehandlinger[1].id
 
         beregning.ordinærBeløp shouldBe 0
         beregning.barnetilleggBeløp shouldBe 0
@@ -121,7 +121,7 @@ class BeregnRevurderingStansTest {
         beregning.size shouldBe 1
 
         beregning.beregningKilde.id shouldBe revurdering.id
-        beregning[0].meldekortId shouldBe sak.meldekortBehandlinger[1].id
+        beregning[0].meldekortId shouldBe sak.meldekortbehandlinger[1].id
 
         beregning.ordinærBeløp shouldBe sats2025.sats * 5
         beregning.barnetilleggBeløp shouldBe sats2025.satsBarnetillegg * 5
@@ -137,8 +137,8 @@ class BeregnRevurderingStansTest {
         beregning.size shouldBe 2
 
         beregning.beregningKilde.id shouldBe revurdering.id
-        beregning[0].meldekortId shouldBe sak.meldekortBehandlinger[0].id
-        beregning[1].meldekortId shouldBe sak.meldekortBehandlinger[1].id
+        beregning[0].meldekortId shouldBe sak.meldekortbehandlinger[0].id
+        beregning[1].meldekortId shouldBe sak.meldekortbehandlinger[1].id
 
         beregning.ordinærBeløp shouldBe (sats2024.sats * 1) + (sats2025.sats * 3)
         beregning.barnetilleggBeløp shouldBe (sats2024.satsBarnetillegg * 1) + (sats2025.satsBarnetillegg * 3)

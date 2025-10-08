@@ -10,14 +10,13 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -47,13 +46,12 @@ class SakService(
             id = SakId.random(),
             fnr = fnr,
             saksnummer = sakRepo.hentNesteSaksnummer(),
-            behandlinger = Behandlinger.empty(),
+            rammebehandlinger = Rammebehandlinger.empty(),
             vedtaksliste = Vedtaksliste.empty(),
-            meldekortBehandlinger = MeldekortBehandlinger.empty(),
+            meldekortbehandlinger = Meldekortbehandlinger.empty(),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
-            soknader = emptyList(),
-            meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
+            søknader = emptyList(),
         )
         sakRepo.opprettSak(sak)
         logger.info { "Opprettet ny sak med saksnummer ${sak.saksnummer}, correlationId $correlationId" }

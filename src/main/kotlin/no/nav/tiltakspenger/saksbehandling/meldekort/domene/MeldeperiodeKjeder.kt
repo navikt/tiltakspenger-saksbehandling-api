@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.overlapperIkke
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -135,7 +135,7 @@ data class MeldeperiodeKjeder(
         }
 
     fun genererMeldeperioder(
-        vedtaksliste: Vedtaksliste,
+        vedtaksliste: Rammevedtaksliste,
         clock: Clock,
     ): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
         if (vedtaksliste.isEmpty()) {

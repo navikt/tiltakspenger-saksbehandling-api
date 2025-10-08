@@ -18,8 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -220,7 +220,7 @@ class RammevedtakPostgresRepo(
         fun hentForSakId(
             sakId: SakId,
             session: Session,
-        ): Vedtaksliste {
+        ): Rammevedtaksliste {
             return session.run(
                 queryOf(
                     "select * from rammevedtak where sak_id = :sak_id order by opprettet",
@@ -230,7 +230,7 @@ class RammevedtakPostgresRepo(
                 ).map { row ->
                     row.toVedtak(session)
                 }.asList,
-            ).let { Vedtaksliste(it) }
+            ).let { Rammevedtaksliste(it) }
         }
 
         private fun lagreVedtak(

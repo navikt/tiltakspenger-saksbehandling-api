@@ -46,7 +46,7 @@ interface MottaSøknadRouteBuilder {
         val saksnummer = hentEllerOpprettSak(tac, sak.fnr)
         mottaSøknad(tac, sak.fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltagelse)
         val oppdatertSak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
-        return oppdatertSak to oppdatertSak.soknader.single { it.id == søknadId }
+        return oppdatertSak to oppdatertSak.søknader.single { it.id == søknadId }
     }
 
     suspend fun ApplicationTestBuilder.opprettSakOgSøknad(
@@ -62,7 +62,7 @@ interface MottaSøknadRouteBuilder {
         val saksnummer = hentEllerOpprettSak(tac, fnr)
         mottaSøknad(tac, fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltagelse)
         val sak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
-        return sak to sak.soknader.single { it.id == søknadId }
+        return sak to sak.søknader.single { it.id == søknadId }
     }
 
     suspend fun ApplicationTestBuilder.mottaSøknad(

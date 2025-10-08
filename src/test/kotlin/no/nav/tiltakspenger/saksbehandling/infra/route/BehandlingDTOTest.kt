@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.route
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
@@ -28,7 +28,7 @@ class BehandlingDTOTest {
 
             behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 3
 
-            val sak = ObjectMother.nySak(behandlinger = Behandlinger(listOf(behandlingSattPåVent)))
+            val sak = ObjectMother.nySak(behandlinger = Rammebehandlinger(listOf(behandlingSattPåVent)))
 
             val dto = sak.tilBehandlingDTO(behandlingSattPåVent.id)
 

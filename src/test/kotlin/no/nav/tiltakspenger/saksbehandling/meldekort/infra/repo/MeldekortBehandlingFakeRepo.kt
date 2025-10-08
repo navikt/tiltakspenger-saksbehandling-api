@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import java.time.LocalDateTime
@@ -48,7 +48,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         lagre(meldekortBehandling, null, transactionContext)
     }
 
-    override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): MeldekortBehandlinger? =
+    override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): Meldekortbehandlinger? =
         data
             .get()
             .values
@@ -56,7 +56,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
             .sortedBy { it.opprettet }
             .let { meldekort ->
                 meldekort.firstOrNull()?.let {
-                    MeldekortBehandlinger(meldekort)
+                    Meldekortbehandlinger(meldekort)
                 }
             }
 

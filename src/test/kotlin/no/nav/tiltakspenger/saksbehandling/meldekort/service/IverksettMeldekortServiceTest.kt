@@ -19,16 +19,16 @@ internal class IverksettMeldekortServiceTest {
             val sak = this.andreMeldekortOpprettet()
             val sakId = sak.id
             meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                sak.meldekortBehandlinger[1].tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),
+                sak.meldekortbehandlinger[1].tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),
             )
             meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
                 sakId = sakId,
-                meldekortId = sak.meldekortBehandlinger[1].id,
+                meldekortId = sak.meldekortbehandlinger[1].id,
                 saksbehandler = ObjectMother.beslutter(),
             )
             meldekortContext.iverksettMeldekortService.iverksettMeldekort(
                 IverksettMeldekortKommando(
-                    meldekortId = sak.meldekortBehandlinger[1].id,
+                    meldekortId = sak.meldekortbehandlinger[1].id,
                     sakId = sakId,
                     beslutter = ObjectMother.beslutter(),
                     correlationId = CorrelationId.generate(),
