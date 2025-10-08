@@ -130,8 +130,13 @@ data class SimulertBeregning(
                      *  For nye beregninger hentes forrige beregning via [MeldeperiodeBeregninger.sisteBeregningPerKjede]
                      * */
                     val forrigeBeregning =
-                        eksisterendeBeregninger.sisteBeregningFør(meldeperiodeBeregning.id, meldeperiodeBeregning.kjedeId)
-                            ?: eksisterendeBeregninger.sisteBeregningPerKjede[meldeperiodeBeregning.kjedeId]
+                        eksisterendeBeregninger.sisteBeregningFør(
+                            meldeperiodeBeregning.id,
+                            meldeperiodeBeregning.kjedeId,
+                        )
+                            ?: eksisterendeBeregninger.sisteBeregningPerKjede[meldeperiodeBeregning.kjedeId]?.let {
+                                if (it.beregningKilde != beregning.beregningKilde) it else null
+                            }
 
                     SimulertBeregningMeldeperiode(
                         kjedeId = meldeperiodeBeregning.kjedeId,
