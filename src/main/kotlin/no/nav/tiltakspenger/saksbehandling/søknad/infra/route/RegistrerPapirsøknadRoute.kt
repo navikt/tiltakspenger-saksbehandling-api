@@ -59,9 +59,8 @@ fun Route.startBehandlingAvPapirsøknadRoute(
                 call.respond(
                     status = HttpStatusCode.OK,
                     message = søknad.tilSøknadsbehandlingDTO(
-                        meldeperiodeBeregninger = sak.meldeperiodeBeregninger,
                         utbetalingsstatus = null,
-                        utbetalinger = sak.utbetalinger,
+                        beregninger = sak.meldeperiodeBeregninger,
                     ),
                 )
             }
