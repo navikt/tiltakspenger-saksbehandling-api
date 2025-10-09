@@ -145,7 +145,7 @@ private data class BeregnMeldeperioder(
             )
 
             FRAVÆR_SYKT_BARN -> SyktBarn.create(
-                dag = dato,
+                dato = dato,
                 tiltakstype = tiltakstype,
                 reduksjon = barnSykeperiode.oppdaterOgFinnReduksjon(dato),
                 antallBarn = antallBarn,
@@ -174,24 +174,22 @@ private data class BeregnMeldeperioder(
     }
 }
 
-/** Vi utbetaler 100% de første 3 dagene med sykefravær, 75% de 13 neste, og 0% for de påfølgende dagene.
+/**
+ *  Vi utbetaler 100% de første 3 dagene med sykefravær, 75% de 13 neste, og 0% for de påfølgende dagene.
  *  Etter en periode på minst 16 dager uten nytt sykefravær nullstilles telleren.
  *
  *  Samme regler gjelder for sykt barn eller barnepasser
  *
  *  Se Rundskriv om tiltakspenger til § 10 – Reduksjon av ytelse på grunn av fravær
  *  https://lovdata.no/nav/rundskriv/r76-13-02
- *
- *  @param førsteSykedag Hvis tolkningen over er korrekt så trenger vi ikke denne
+ *  https://confluence.adeo.no/spaces/POAO/pages/553634914/Tiltakspengeforskriften+%C2%A7+10+-+reduksjon+pga+frav%C3%A6r
  * */
 private class SykedagerPeriode {
-    private var førsteSykedag: LocalDate? = null
     private var sisteSykedag: LocalDate? = null
     private var antallSykedager: Int = 0
 
     fun oppdaterOgFinnReduksjon(nySykedag: LocalDate): ReduksjonAvYtelsePåGrunnAvFravær {
         if (erFørsteDagINyPeriode(nySykedag)) {
-            førsteSykedag = nySykedag
             antallSykedager = 1
         } else {
             antallSykedager++
@@ -201,19 +199,19 @@ private class SykedagerPeriode {
 
         return when (antallSykedager) {
             in 1..ANTALL_EGENMELDINGSDAGER -> IngenReduksjon
-            in (ANTALL_EGENMELDINGSDAGER + 1)..DAGER_KARANTENE -> Reduksjon
-            in (DAGER_KARANTENE + 1)..Int.MAX_VALUE -> YtelsenFallerBort
+            in (ANTALL_EGENMELDINGSDAGER + 1)..ANTALL_ARBEIDSGIVERPERIODEDAGER -> Reduksjon
+            in (ANTALL_ARBEIDSGIVERPERIODEDAGER + 1)..Int.MAX_VALUE -> YtelsenFallerBort
             else -> throw IllegalStateException("Ugyldig antall sykedager: $antallSykedager")
         }
     }
 
     private fun erFørsteDagINyPeriode(nySykedag: LocalDate): Boolean {
-        return sisteSykedag == null || ChronoUnit.DAYS.between(sisteSykedag, nySykedag) > DAGER_KARANTENE
+        return sisteSykedag == null || ChronoUnit.DAYS.between(sisteSykedag, nySykedag) > ANTALL_ARBEIDSGIVERPERIODEDAGER
     }
 
     companion object {
         private const val ANTALL_EGENMELDINGSDAGER = 3
-        private const val DAGER_KARANTENE = 16
+        private const val ANTALL_ARBEIDSGIVERPERIODEDAGER = 16
     }
 }
 

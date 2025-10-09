@@ -181,15 +181,15 @@ sealed interface MeldeperiodeBeregningDag {
             ) : Syk {
                 companion object {
                     fun create(
-                        dag: LocalDate,
+                        dato: LocalDate,
                         reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                         tiltakstype: TiltakstypeSomGirRett,
                         antallBarn: AntallBarn,
                     ) = SyktBarn(
-                        dag,
+                        dato,
                         tiltakstype,
                         reduksjon,
-                        beregnDag(dag, reduksjon, antallBarn),
+                        beregnDag(dato, reduksjon, antallBarn),
                     )
 
                     fun fromDb(
