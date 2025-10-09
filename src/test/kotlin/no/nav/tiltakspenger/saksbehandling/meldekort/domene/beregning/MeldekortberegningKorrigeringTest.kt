@@ -163,6 +163,11 @@ internal class MeldekortberegningKorrigeringTest {
                 ),
             )
 
+            val korrigeringAvFørsteMeldekort = meldekortbehandlinger.sisteBehandledeMeldekortPerKjede.first()
+
+            // Skal inkludere alle beregninger frem til siste korrigerte meldeperiode
+            korrigeringAvFørsteMeldekort.beregning.size shouldBe 3
+
             val sisteKjedeId = meldekortbehandlinger.last().kjedeId
 
             MeldeperiodeBeregninger(meldekortbehandlinger, Rammebehandlinger.empty()).sisteBeregningPerKjede[sisteKjedeId]!!.totalBeløp shouldBe 0
