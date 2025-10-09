@@ -257,12 +257,6 @@ private data class MeldeperiodeSomSkalBeregnes(
 ) {
     val fraOgMed: LocalDate = dager.first().dato
     val tilOgMed: LocalDate = dager.last().dato
-
-    init {
-        require(dager.size == 14) {
-            "Meldeperioden som skal beregnes må være 14 dager"
-        }
-    }
 }
 
 private fun MeldekortDager.tilSkalBeregnes(meldekortId: MeldekortId): MeldeperiodeSomSkalBeregnes {
