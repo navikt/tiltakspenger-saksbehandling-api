@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Beregninge
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortDagStatusDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning.SimulertBeregningMeldeperiode
@@ -55,9 +56,26 @@ data class SimulertBeregningDTO(
         data class SimulertBeregningDag(
             val dato: LocalDate,
             val status: MeldekortDagStatusDTO,
-            val simulerteBeløp: SimulerteBeløp?,
             val beregning: BeregningerSummertDTO,
+            val simulerteBeløp: SimulerteBeløp?,
+            val posteringer: List<PosteringForDagDTO>?,
         )
+    }
+
+    data class PosteringForDagDTO(
+        val fagområde: String,
+        val beløp: Int,
+        val type: PosteringstypeDTO,
+        val klassekode: String,
+    )
+
+    enum class PosteringstypeDTO {
+        YTELSE,
+        FEILUTBETALING,
+        FORSKUDSSKATT,
+        JUSTERING,
+        TREKK,
+        MOTPOSTERING,
     }
 }
 
@@ -115,6 +133,16 @@ fun SimulertBeregningDag.toDTO(): SimulertBeregningDTO.SimulertBeregningMeldeper
                 nå = this.beregningsdag.beløpBarnetillegg,
             ),
         ),
+        posteringer = this.simuleringsdag?.let {
+            it.posteringsdag.posteringer.map { postering ->
+                SimulertBeregningDTO.PosteringForDagDTO(
+                    fagområde = postering.fagområde,
+                    beløp = postering.beløp,
+                    type = postering.type.tilDTO(),
+                    klassekode = postering.klassekode,
+                )
+            }
+        },
     )
 }
 
@@ -144,4 +172,15 @@ private fun SimulertBeregning.BeregningBeløp.tilBeregningerSummertDTO(forrigeBe
             nå = this.barnetillegg,
         ),
     )
+}
+
+private fun Posteringstype.tilDTO(): SimulertBeregningDTO.PosteringstypeDTO {
+    return when (this) {
+        Posteringstype.YTELSE -> SimulertBeregningDTO.PosteringstypeDTO.YTELSE
+        Posteringstype.FEILUTBETALING -> SimulertBeregningDTO.PosteringstypeDTO.FEILUTBETALING
+        Posteringstype.FORSKUDSSKATT -> SimulertBeregningDTO.PosteringstypeDTO.FORSKUDSSKATT
+        Posteringstype.JUSTERING -> SimulertBeregningDTO.PosteringstypeDTO.JUSTERING
+        Posteringstype.TREKK -> SimulertBeregningDTO.PosteringstypeDTO.TREKK
+        Posteringstype.MOTPOSTERING -> SimulertBeregningDTO.PosteringstypeDTO.MOTPOSTERING
+    }
 }

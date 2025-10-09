@@ -16,9 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehand
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingsstatusDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimuleringDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimulertBeregningDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilSimuleringDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.toSimulertBeregningDTO
 import java.time.LocalDateTime
 
@@ -43,7 +41,6 @@ data class MeldekortBehandlingDTO(
     val dager: List<MeldekortDagDTO>,
     val beregning: MeldekortBeregningDTO?,
     val avbrutt: AvbruttDTO?,
-    val simulering: SimuleringDTO?,
     val simulertBeregning: SimulertBeregningDTO?,
 )
 
@@ -76,7 +73,6 @@ fun MeldekortBehandling.tilMeldekortBehandlingDTO(
         dager = dager.tilMeldekortDagerDTO(),
         beregning = beregning?.tilMeldekortBeregningDTO(),
         avbrutt = avbrutt?.toAvbruttDTO(),
-        simulering = simulering?.tilSimuleringDTO(),
         simulertBeregning = this.toSimulertBeregning(beregninger)?.toSimulertBeregningDTO(),
     )
 }
