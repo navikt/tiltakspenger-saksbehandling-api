@@ -217,6 +217,7 @@ class PersonhendelseServiceTest {
                     fortrolig = false,
                     strengtFortrolig = true,
                     strengtFortroligUtland = false,
+                    dødsdato = null,
                 )
 
                 personhendelseService.behandlePersonhendelse(personhendelse)
@@ -278,6 +279,7 @@ class PersonhendelseServiceTest {
                 )
                 coEvery { personKlient.hentEnkelPerson(fnr) } returns EnkelPerson(
                     fnr = fnr,
+
                     fødselsdato = 16.oktober(1995),
                     fornavn = "Fornavn",
                     mellomnavn = null,
@@ -285,6 +287,7 @@ class PersonhendelseServiceTest {
                     fortrolig = false,
                     strengtFortrolig = false,
                     strengtFortroligUtland = false,
+                    dødsdato = null,
                 )
 
                 personhendelseService.behandlePersonhendelse(personhendelse)

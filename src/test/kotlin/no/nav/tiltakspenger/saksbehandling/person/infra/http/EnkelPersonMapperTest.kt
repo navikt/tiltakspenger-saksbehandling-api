@@ -12,6 +12,7 @@ internal class EnkelPersonMapperTest {
     @Test
     fun test() {
         val fnr = Fnr.random()
+        //language=JSON
         """
 {
   "hentPerson": {
@@ -79,6 +80,7 @@ internal class EnkelPersonMapperTest {
             fortrolig = false,
             strengtFortrolig = false,
             strengtFortroligUtland = false,
+            dødsdato = null,
         )
     }
 }

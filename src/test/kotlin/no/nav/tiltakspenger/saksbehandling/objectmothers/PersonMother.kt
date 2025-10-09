@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
-import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import java.time.LocalDate
 
 interface PersonMother {
@@ -34,6 +33,7 @@ interface PersonMother {
             fortrolig = fortrolig,
             strengtFortrolig = strengtFortrolig,
             strengtFortroligUtland = strengtFortroligUtland,
+            dødsdato = null,
         )
 
     fun personopplysningMaxFyr(
@@ -57,5 +57,6 @@ interface PersonMother {
             fortrolig = fortrolig,
             strengtFortrolig = strengtFortrolig,
             strengtFortroligUtland = strengtFortroligUtland,
+            dødsdato = null,
         )
 }
