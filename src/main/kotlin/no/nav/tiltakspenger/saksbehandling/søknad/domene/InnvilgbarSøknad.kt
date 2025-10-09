@@ -22,7 +22,7 @@ data class InnvilgbarSøknad(
     override val tidsstempelHosOss: LocalDateTime,
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
-    override val avbrutt: Avbrutt?,
+    override val avbrutt: Avbrutt? = null,
     override val kvp: Søknad.PeriodeSpm?,
     override val intro: Søknad.PeriodeSpm?,
     override val institusjon: Søknad.PeriodeSpm?,

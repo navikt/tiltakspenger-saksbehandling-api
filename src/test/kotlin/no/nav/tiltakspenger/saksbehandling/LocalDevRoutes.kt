@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper.mapBarnetilleggManuelle
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper.tilDomeneManuell
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySakMedNySøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySøknadForFnr
 
@@ -45,7 +45,7 @@ internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
                     etternavn = etternavn,
                     oppholderSegIEØS = it.oppholderSegIEØS,
                 )
-            }.map { mapBarnetilleggManuelle(it) }
+            }.map { it.tilDomeneManuell() }
 
             if (fnr == null) {
                 val saksnummer = nySakMedNySøknad(

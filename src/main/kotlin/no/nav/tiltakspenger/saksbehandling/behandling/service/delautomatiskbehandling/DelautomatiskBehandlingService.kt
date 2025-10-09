@@ -59,6 +59,7 @@ class DelautomatiskBehandlingService(
     }
 
     private suspend fun Sak.sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {
+        require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
         val innvilgelsesperiode = behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
         val barnetillegg = utledBarnetillegg(behandling)
         val tiltaksdeltakelser = utledTiltaksdeltakelser(behandling)
@@ -246,6 +247,7 @@ class DelautomatiskBehandlingService(
     }
 
     private fun utledBarnetillegg(behandling: Søknadsbehandling): Barnetillegg {
+        require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
         val periode = behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
 
         return if (behandling.søknad.barnetillegg.isNotEmpty()) {
@@ -265,21 +267,21 @@ class DelautomatiskBehandlingService(
     private fun utledTiltaksdeltakelser(
         behandling: Søknadsbehandling,
     ): List<Pair<Periode, String>> {
-        return behandling.søknad.tiltak?.let { tiltak ->
-            listOf(
-                Pair(
-                    behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
-                    tiltak.id,
-                ),
-            )
-        } ?: emptyList()
+        require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
+        return listOf(
+            Pair(
+                behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+                behandling.søknad.tiltak.id,
+            ),
+        )
     }
 
     private fun utledAntallDagerPerMeldeperiode(
         behandling: Søknadsbehandling,
     ): SammenhengendePeriodisering<AntallDagerForMeldeperiode> {
+        require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
         val soknadstiltakFraSaksopplysning = behandling.søknad.tiltak
-            ?.let { tiltak -> behandling.saksopplysninger?.getTiltaksdeltagelse(tiltak.id) }
+            .let { tiltak -> behandling.saksopplysninger?.getTiltaksdeltagelse(tiltak.id) }
             ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk")
         return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
             SammenhengendePeriodisering(

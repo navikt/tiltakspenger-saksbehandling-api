@@ -139,10 +139,7 @@ interface SøknadMother {
         opprettet: LocalDateTime = 1.januarDateTime(2022),
         barnetillegg: List<BarnetilleggFraSøknad> = listOf(),
         tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
-        søknadstiltak: Søknadstiltak = søknadstiltak(
-            deltakelseFom = periode.fraOgMed,
-            deltakelseTom = periode.tilOgMed,
-        ),
+        søknadstiltak: Søknadstiltak? = null,
         kvp: Søknad.PeriodeSpm = periodeNei(),
         intro: Søknad.PeriodeSpm = periodeNei(),
         institusjon: Søknad.PeriodeSpm = periodeNei(),

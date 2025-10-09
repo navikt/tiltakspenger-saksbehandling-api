@@ -1,54 +1,69 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
+package no.nav.tiltakspenger.saksbehandling.søknad.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvPapirsøknadCommand
 import java.time.Clock
 
-class BehandleSøknadPåNyttService(
+class StartBehandlingAvPapirsøknadService(
     private val clock: Clock,
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
+    private val søknadRepo: SøknadRepo,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
 ) {
     val logger = KotlinLogging.logger { }
 
-    suspend fun startSøknadsbehandlingPåNytt(
-        søknadId: SøknadId,
-        sakId: SakId,
+    suspend fun startBehandlingAvPapirsøknad(
+        kommando: StartBehandlingAvPapirsøknadCommand,
+        saksnummer: Saksnummer,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Pair<Sak, Søknadsbehandling> {
-        val sak = sakService.hentForSakId(sakId)
-        val avslåtteSøknadsbehandlinger = sak.rammevedtaksliste.verdi
-            .filter { it.vedtakstype == Vedtakstype.AVSLAG }
-            .map { it.behandling }
-            .filterIsInstance<Søknadsbehandling>()
-            .filter { it.søknad.id == søknadId }
-
-        if (avslåtteSøknadsbehandlinger.isEmpty()) {
-            throw IllegalStateException("Kan ikke behandle søknad på nytt fordi det finnes ikke vedtatte avslag på søknaden: $søknadId")
-        }
-
-        val søknad = avslåtteSøknadsbehandlinger.single().søknad
+        val sak = sakService.hentForSaksnummer(saksnummer)
+        val papirsøknad = Søknad.opprett(
+            sak = sak,
+            journalpostId = kommando.journalpostId.toString(),
+            kravtidspunkt = kommando.kravtidspunkt,
+            personopplysninger = kommando.personopplysninger,
+            søknadstiltak = kommando.søknadstiltak,
+            barnetillegg = kommando.barnetillegg,
+            kvp = kommando.kvp,
+            intro = kommando.intro,
+            institusjon = kommando.institusjon,
+            etterlønn = kommando.etterlønn,
+            gjenlevendepensjon = kommando.gjenlevendepensjon,
+            alderspensjon = kommando.alderspensjon,
+            sykepenger = kommando.sykepenger,
+            supplerendeStønadAlder = kommando.supplerendeStønadAlder,
+            supplerendeStønadFlyktning = kommando.supplerendeStønadFlyktning,
+            jobbsjansen = kommando.jobbsjansen,
+            trygdOgPensjon = kommando.trygdOgPensjon,
+            antallVedlegg = kommando.antallVedlegg,
+            manueltSattSøknadsperiode = kommando.manueltSattSøknadsperiode,
+            søknadstype = Søknadstype.PAPIR,
+        )
 
         val søknadsbehandling = Søknadsbehandling.opprett(
             sak = sak,
-            søknad = søknad,
+            søknad = papirsøknad,
             saksbehandler = saksbehandler,
             hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
             correlationId = correlationId,
@@ -59,23 +74,20 @@ class BehandleSøknadPåNyttService(
             behandling = søknadsbehandling,
         )
 
-        val opprettetBehandlingPåNyttStatistikk = statistikkSakService.genererStatistikkForSøknadSomBehandlesPåNytt(
-            behandling = søknadsbehandling,
-        )
-
         sessionFactory.withTransactionContext { tx ->
+            // TODO Statistikk for søknad?
+            søknadRepo.lagre(papirsøknad, tx)
             behandlingRepo.lagre(søknadsbehandling, tx)
             statistikkSakRepo.lagre(opprettetBehandlingStatistikk, tx)
-            statistikkSakRepo.lagre(opprettetBehandlingPåNyttStatistikk, tx)
             sakService.oppdaterSkalSendesTilMeldekortApi(
-                sakId = sakId,
+                sakId = sak.id,
                 skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
         }
         val oppdatertSak = sak.leggTilSøknadsbehandling(søknadsbehandling)
         MetricRegister.STARTET_BEHANDLING.inc()
-        MetricRegister.SØKNAD_BEHANDLET_PÅ_NYTT.inc()
+        MetricRegister.STARTET_BEHANDLING_PAPIRSØKNAD.inc()
         return (oppdatertSak to søknadsbehandling)
     }
 }

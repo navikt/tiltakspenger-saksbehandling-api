@@ -139,7 +139,12 @@ fun Tiltaksdeltagelse.toSøknadstiltak(): Søknadstiltak {
         id = this.eksternDeltagelseId,
         deltakelseFom = this.deltagelseFraOgMed!!,
         deltakelseTom = this.deltagelseTilOgMed!!,
-        typeKode = this.typeKode.name,
+        /**
+         * TODO hs: Dirty fiks for at vi i opprettelsen la inn GRUPPE_AMO tidligere, men ved lokal kjøring kjører man
+         * TiltakResponsDTO.TiltakType.valueOf(this.typeKode) [Søknadstiltak.toTiltak]
+         * https://trello.com/c/KtVPaugt/1663-gruppeamo-mappes-feil-i-lokalt-oppsett
+         */
+        typeKode = if (this.typeKode === TiltakstypeSomGirRett.GRUPPE_AMO) TiltakResponsDTO.TiltakType.GRUPPEAMO.name else this.typeKode.name,
         typeNavn = this.typeNavn,
     )
 }

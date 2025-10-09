@@ -199,7 +199,7 @@ data class Søknadsbehandling(
             hentSaksopplysninger: HentSaksopplysninger,
             correlationId: CorrelationId,
             clock: Clock,
-        ): Either<KanIkkeOppretteBehandling, Søknadsbehandling> {
+        ): Søknadsbehandling {
             val opprettet = nå(clock)
 
             val saksopplysninger = if (søknad.tiltak != null) {
@@ -239,7 +239,7 @@ data class Søknadsbehandling(
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,
-            ).right()
+            )
         }
 
         suspend fun opprettAutomatiskBehandling(
