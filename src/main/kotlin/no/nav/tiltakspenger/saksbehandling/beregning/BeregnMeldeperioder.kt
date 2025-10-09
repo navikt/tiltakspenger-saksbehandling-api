@@ -24,6 +24,15 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Ik
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.FRAVÆR_ANNET
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.FRAVÆR_SYK
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.FRAVÆR_SYKT_BARN
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_BESVART
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_TILTAKSDAG
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
@@ -110,57 +119,57 @@ private data class BeregnMeldeperioder(
         }
 
         return when (status) {
-            MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> DeltattUtenLønnITiltaket.create(
+            DELTATT_UTEN_LØNN_I_TILTAKET -> DeltattUtenLønnITiltaket.create(
                 dato = dato,
                 tiltakstype = tiltakstype,
                 antallBarn = antallBarn,
             )
 
-            MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> DeltattMedLønnITiltaket.create(
+            DELTATT_MED_LØNN_I_TILTAKET -> DeltattMedLønnITiltaket.create(
                 dato = dato,
                 tiltakstype = tiltakstype,
                 antallBarn = antallBarn,
             )
 
-            MeldekortDagStatus.IKKE_TILTAKSDAG -> IkkeDeltatt.create(
+            IKKE_TILTAKSDAG -> IkkeDeltatt.create(
                 dato = dato,
                 tiltakstype = tiltakstype,
                 antallBarn = antallBarn,
             )
 
-            MeldekortDagStatus.FRAVÆR_SYK -> SykBruker.create(
+            FRAVÆR_SYK -> SykBruker.create(
                 dato = dato,
                 tiltakstype = tiltakstype,
                 reduksjon = egenSykeperiode.oppdaterOgFinnReduksjon(dato),
                 antallBarn = antallBarn,
             )
 
-            MeldekortDagStatus.FRAVÆR_SYKT_BARN -> SyktBarn.create(
+            FRAVÆR_SYKT_BARN -> SyktBarn.create(
                 dag = dato,
                 tiltakstype = tiltakstype,
                 reduksjon = barnSykeperiode.oppdaterOgFinnReduksjon(dato),
                 antallBarn = antallBarn,
             )
 
-            MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> FraværGodkjentAvNav.create(
+            FRAVÆR_GODKJENT_AV_NAV -> FraværGodkjentAvNav.create(
                 dato = dato,
                 tiltakstype = tiltakstype,
                 antallBarn = antallBarn,
             )
 
-            MeldekortDagStatus.FRAVÆR_ANNET -> FraværAnnet.create(
+            FRAVÆR_ANNET -> FraværAnnet.create(
                 dato = dato,
                 tiltakstype = tiltakstype,
                 antallBarn = antallBarn,
             )
 
-            MeldekortDagStatus.IKKE_BESVART -> IkkeBesvart.create(
+            IKKE_BESVART -> IkkeBesvart.create(
                 dato = dato,
                 tiltakstype = tiltakstype,
                 antallBarn = antallBarn,
             )
 
-            MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> IkkeRettTilTiltakspenger(dato = dato)
+            IKKE_RETT_TIL_TILTAKSPENGER -> IkkeRettTilTiltakspenger(dato = dato)
         }
     }
 }
@@ -181,33 +190,25 @@ private class SykedagerPeriode {
     private var antallSykedager: Int = 0
 
     fun oppdaterOgFinnReduksjon(nySykedag: LocalDate): ReduksjonAvYtelsePåGrunnAvFravær {
-        if (sisteSykedag == null) {
-            reset(nySykedag)
-            return IngenReduksjon
-        }
-
-        val dagerSidenForrigeSykedag = ChronoUnit.DAYS.between(sisteSykedag, nySykedag)
-
-        if (dagerSidenForrigeSykedag > DAGER_KARANTENE) {
-            reset(nySykedag)
-            return IngenReduksjon
+        if (erFørsteDagINyPeriode(nySykedag)) {
+            førsteSykedag = nySykedag
+            antallSykedager = 1
+        } else {
+            antallSykedager++
         }
 
         sisteSykedag = nySykedag
-        antallSykedager++
 
         return when (antallSykedager) {
             in 1..ANTALL_EGENMELDINGSDAGER -> IngenReduksjon
-            in 4..DAGER_KARANTENE -> Reduksjon
-            in DAGER_KARANTENE + 1..Int.MAX_VALUE -> YtelsenFallerBort
+            in (ANTALL_EGENMELDINGSDAGER + 1)..DAGER_KARANTENE -> Reduksjon
+            in (DAGER_KARANTENE + 1)..Int.MAX_VALUE -> YtelsenFallerBort
             else -> throw IllegalStateException("Ugyldig antall sykedager: $antallSykedager")
         }
     }
 
-    private fun reset(dag: LocalDate) {
-        førsteSykedag = dag
-        sisteSykedag = dag
-        antallSykedager = 1
+    private fun erFørsteDagINyPeriode(nySykedag: LocalDate): Boolean {
+        return sisteSykedag == null || ChronoUnit.DAYS.between(sisteSykedag, nySykedag) > DAGER_KARANTENE
     }
 
     companion object {
@@ -280,7 +281,7 @@ fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode
                     MeldekortDag(
                         dato = dag.dato,
                         status = if (stansperiode.contains(dag.dato)) {
-                            MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
+                            IKKE_RETT_TIL_TILTAKSPENGER
                         } else {
                             dag.tilMeldekortDagStatus()
                         },
