@@ -54,8 +54,9 @@ private fun Sak.beregnMeldeperioderPåNytt(
             { dato -> it.hentVerdiForDag(dato) ?: AntallBarn.ZERO }
         } ?: { AntallBarn.ZERO }
 
-    val nyeBeregninger =
-        tidligereBeregninger.fold(emptyList<MeldeperiodeBeregning>()) { acc, beregning ->
+    // second == true hvis beregningen endres
+    val beregningerForBehandling: List<Pair<MeldeperiodeBeregning, Boolean>> =
+        tidligereBeregninger.map { beregning ->
             val eksisterendeDager = beregning.dager
 
             val nyeDager = eksisterendeDager.map { dag ->
@@ -90,7 +91,7 @@ private fun Sak.beregnMeldeperioderPåNytt(
             }
 
             if (nyeDager == eksisterendeDager) {
-                return@fold acc
+                return@map beregning to false
             }
 
             val nyBeregning = MeldeperiodeBeregning(
@@ -101,7 +102,13 @@ private fun Sak.beregnMeldeperioderPåNytt(
                 beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId),
             )
 
-            acc.plus(nyBeregning)
+            nyBeregning to true
         }
-    return nyeBeregninger.toNonEmptyListOrNull()
+
+    // Beholder alle beregninger mellom første og siste beregning med endring
+    return beregningerForBehandling
+        .dropWhile { (_, erEndret) -> !erEndret }
+        .dropLastWhile { (_, erEndret) -> !erEndret }
+        .map { it.first }
+        .toNonEmptyListOrNull()
 }

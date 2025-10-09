@@ -262,6 +262,7 @@ interface MeldekortMother : MotherOfAllMothers {
             barnetilleggsPerioder = barnetilleggsperioder,
             navkontor = navkontor,
             meldeperiode = meldeperiodeKjeder.hentMeldeperiode(periode)!!,
+            brukersMeldekort = brukersMeldekort,
         )
         val vedtak = meldekortBehandling.opprettVedtak(
             forrigeUtbetaling = utbetalinger.lastOrNull(),
