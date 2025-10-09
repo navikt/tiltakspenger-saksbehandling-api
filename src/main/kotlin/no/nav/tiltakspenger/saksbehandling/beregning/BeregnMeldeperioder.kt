@@ -59,47 +59,65 @@ private data class BeregnMeldeperioder(
     private val egenSykeperiode: SykedagerPeriode = SykedagerPeriode()
     private val barnSykeperiode: SykedagerPeriode = SykedagerPeriode()
 
+    init {
+        meldeperioderSomBeregnes.zipWithNext().forEach { (a, b) ->
+            require(a.tilOgMed.plusDays(1) == b.fraOgMed) {
+                "Meldeperioder som skal beregnes må være sammenhengede uten overlapp - fikk $meldeperioderSomBeregnes"
+            }
+        }
+    }
+
     /** Returnerer nye eller endrede beregninger for meldeperioder. Returnerer tom liste dersom ingen beregninger endres */
     fun beregn(): List<MeldeperiodeBeregning> {
-        val meldeperioderSomBeregnesFraOgMed = meldeperioderSomBeregnes.first().fraOgMed
+        val beregningsperiode = Periode(
+            meldeperioderSomBeregnes.first().fraOgMed,
+            meldeperioderSomBeregnes.last().tilOgMed,
+        )
 
         return meldeperiodeBeregninger.gjeldendeBeregninger
-            .partition { it.fraOgMed < meldeperioderSomBeregnesFraOgMed }
-            .let { (tidligereBeregninger, påfølgendeBeregninger) ->
+            .partition { it.fraOgMed < beregningsperiode.fraOgMed }
+            .let { (beregningerFørBeregningsperioden, beregningerUnderOgEtterBeregningsperioden) ->
                 /** Kjør gjennom tidligere beregninger for å sette riktig state for sykedager før vi gjør nye beregninger */
-                tidligereBeregninger.forEach { beregnDager(it.tilSkalBeregnes()) }
+                beregningerFørBeregningsperioden.forEach { beregnMeldeperiode(it.tilSkalBeregnes()) }
 
-                /** Meldeperiodene som skal beregnes erstatter evt. eksisterende beregninger på samme kjede */
-                val nyeOgEksisterendeMeldeperioder: List<MeldeperiodeSomSkalBeregnes> = meldeperioderSomBeregnes
-                    .plus(påfølgendeBeregninger.map { it.tilSkalBeregnes() })
-                    .distinctBy { it.kjedeId }.sortedBy { it.fraOgMed }
+                val beregningerForBeregningsperioden = meldeperioderSomBeregnes.map { beregnMeldeperiode(it) }
 
-                nyeOgEksisterendeMeldeperioder.mapNotNull { beregning ->
-                    val nyeBeregnedeDager = beregnDager(beregning)
+                val beregningerEtterBeregningsperioden = beregningerUnderOgEtterBeregningsperioden
+                    .dropWhile { it.tilOgMed <= beregningsperiode.tilOgMed }
+                    .map { it.tilSkalBeregnes() }
 
-                    if (beregning.eksisterendeBeregning != null && nyeBeregnedeDager == beregning.eksisterendeBeregning) {
-                        return@mapNotNull null
+                val beregningerEtterBeregningsperiodenOmberegnet = beregningerEtterBeregningsperioden
+                    .map { beregning ->
+                        val nyBeregning = beregnMeldeperiode(beregning)
+                        val harEndringer = nyBeregning.dager != beregning.eksisterendeBeregning
+
+                        nyBeregning to harEndringer
                     }
+                    /** Beregninger etter beregningsperioden skal i utgangspunktet kun med dersom de har endringer,
+                     *  men vi ønsker ikke "hull" i beregningene på en behandling, så vi dropper kun de etter siste
+                     *  meldeperiode uten endring
+                     * */
+                    .dropLastWhile { (_, harEndringer) -> !harEndringer }
+                    .map { it.first }
 
-                    MeldeperiodeBeregning(
-                        id = BeregningId.random(),
-                        kjedeId = beregning.kjedeId,
-                        beregningKilde = beregningKilde,
-                        meldekortId = beregning.meldekortId,
-                        dager = nyeBeregnedeDager,
-                    )
-                }
+                beregningerForBeregningsperioden.plus(beregningerEtterBeregningsperiodenOmberegnet)
             }
     }
 
-    private fun beregnDager(meldeperiode: MeldeperiodeSomSkalBeregnes): NonEmptyList<MeldeperiodeBeregningDag> {
-        return meldeperiode.dager.map {
-            beregnDag(
-                meldeperiode.meldekortId,
-                it.dato,
-                it.status,
-            ) { tiltakstypePerioder.hentVerdiForDag(it.dato) }
-        }.toNonEmptyListOrNull()!!
+    private fun beregnMeldeperiode(meldeperiode: MeldeperiodeSomSkalBeregnes): MeldeperiodeBeregning {
+        return MeldeperiodeBeregning(
+            id = BeregningId.random(),
+            beregningKilde = beregningKilde,
+            kjedeId = meldeperiode.kjedeId,
+            meldekortId = meldeperiode.meldekortId,
+            dager = meldeperiode.dager.map {
+                beregnDag(
+                    meldeperiode.meldekortId,
+                    it.dato,
+                    it.status,
+                ) { tiltakstypePerioder.hentVerdiForDag(it.dato) }
+            },
+        )
     }
 
     private fun beregnDag(
@@ -206,7 +224,10 @@ private class SykedagerPeriode {
     }
 
     private fun erFørsteDagINyPeriode(nySykedag: LocalDate): Boolean {
-        return sisteSykedag == null || ChronoUnit.DAYS.between(sisteSykedag, nySykedag) > ANTALL_ARBEIDSGIVERPERIODEDAGER
+        return sisteSykedag == null || ChronoUnit.DAYS.between(
+            sisteSykedag,
+            nySykedag,
+        ) > ANTALL_ARBEIDSGIVERPERIODEDAGER
     }
 
     companion object {
@@ -226,6 +247,7 @@ private data class MeldeperiodeSomSkalBeregnes(
     val eksisterendeBeregning: NonEmptyList<MeldeperiodeBeregningDag>?,
 ) {
     val fraOgMed: LocalDate = dager.first().dato
+    val tilOgMed: LocalDate = dager.last().dato
 }
 
 private fun MeldekortDager.tilSkalBeregnes(meldekortId: MeldekortId): MeldeperiodeSomSkalBeregnes {

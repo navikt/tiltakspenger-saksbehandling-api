@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -10,6 +11,7 @@ import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -191,7 +193,7 @@ class BeregnRevurderingTest {
     }
 
     @Test
-    fun `Skal ikke returnere ny beregning dersom det ikke er endringer i beregningen`() {
+    fun `Skal returnere ny beregning selv om det ikke er endringer på tidligere beregninger`() {
         val (sak, revurdering) = sakMedRevurdering()
 
         val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
@@ -206,28 +208,7 @@ class BeregnRevurderingTest {
             behandlingId = kommando.behandlingId,
             virkningsperiode = kommando.innvilgelsesperiode,
             barnetillegg = kommando.barnetillegg,
-        ).shouldBeNull()
-    }
-
-    @Test
-    fun `Skal ikke returnere beregning dersom det kun er endring i tiltakstype`() {
-        val (sak, revurdering) = sakMedRevurdering(
-            tiltakskodeForRevurdering = TiltakstypeSomGirRett.ARBEIDSTRENING,
-        )
-
-        val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
-            periode = sak.meldeperiodeKjeder.first().periode,
-        )
-
-        val kommando = tilBeslutningKommando(
-            revurdering = revurdering,
-        )
-
-        sakMedMeldekortBehandlinger.beregnInnvilgelse(
-            behandlingId = kommando.behandlingId,
-            virkningsperiode = kommando.innvilgelsesperiode,
-            barnetillegg = kommando.barnetillegg,
-        ).shouldBeNull()
+        )!!.size shouldBe 1
     }
 
     @Test
@@ -269,5 +250,68 @@ class BeregnRevurderingTest {
 
         beregning.dager.find { it.dato == førsteDagIMeldeperioden.dato } shouldBe førsteDagIMeldeperioden
         beregning.dager.find { it.dato == sisteDagIMeldeperioden.dato } shouldBe sisteDagIMeldeperioden
+    }
+
+    @Test
+    fun `Skal ha en sammenhengede beregningsperiode, selv om ikke alle meldeperioder har endringer`() {
+        val (sak, revurdering) = sakMedRevurdering()
+
+        val førstePeriode = sak.meldeperiodeKjeder[0].periode
+        val andrePeriode = sak.meldeperiodeKjeder[1].periode
+        val tredjePeriode = sak.meldeperiodeKjeder[2].periode
+
+        val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
+            periode = førstePeriode,
+        ).let { (sak) ->
+            sak.leggTilMeldekortBehandletAutomatisk(periode = andrePeriode)
+        }.let { (sak) ->
+            sak.leggTilMeldekortBehandletAutomatisk(periode = tredjePeriode)
+        }
+
+        val beløpFørRevurdering =
+            sakMedMeldekortBehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.beregnTotalBeløp()
+
+        val kommando = tilBeslutningKommando(
+            revurdering = revurdering,
+            barnetillegg = barnetillegg(
+                periodiseringAntallBarn = SammenhengendePeriodisering(
+                    PeriodeMedVerdi(
+                        AntallBarn(1),
+                        førstePeriode,
+                    ),
+                    PeriodeMedVerdi(
+                        AntallBarn(0),
+                        andrePeriode,
+                    ),
+                    PeriodeMedVerdi(
+                        AntallBarn(1),
+                        tredjePeriode,
+                    ),
+                ),
+            ),
+        )
+
+        val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
+            behandlingId = kommando.behandlingId,
+            virkningsperiode = kommando.innvilgelsesperiode,
+            barnetillegg = kommando.barnetillegg,
+        )
+
+        // 8 dager med rett i første meldeperiode for dette vedtaket
+        val forventetNyttBarnetillegg = sats2025.satsBarnetillegg * (8 + 10)
+
+        nyBeregning.shouldNotBeNull()
+
+        nyBeregning.dager.zipWithNext().all { (a, b) ->
+            a.dato.plusDays(1) == b.dato
+        }.shouldBeTrue()
+
+        nyBeregning.size shouldBe 3
+
+        nyBeregning.barnetilleggBeløp shouldBe forventetNyttBarnetillegg
+        nyBeregning.totalBeløp shouldBe beløpFørRevurdering + forventetNyttBarnetillegg
+
+        // Andre meldeperiode har ingen endringer på beregningen, 0 barn før og etter
+        nyBeregning[1].dager shouldBe sakMedMeldekortBehandlinger.meldekortbehandlinger[1].beregning!!.dager
     }
 }

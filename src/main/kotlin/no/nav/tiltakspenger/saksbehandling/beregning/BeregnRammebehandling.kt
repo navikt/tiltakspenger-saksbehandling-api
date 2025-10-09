@@ -49,16 +49,24 @@ private fun Sak.beregnMeldeperioderPåNytt(
 
     val tidligereBeregninger = this.meldeperiodeBeregninger.sisteBeregningerForPeriode(virkningsperiode)
 
+    if (tidligereBeregninger.isEmpty()) {
+        return null
+    }
+
     val antallBarnForDato: (dato: LocalDate) -> AntallBarn =
         barnetillegg?.periodisering?.let {
             { dato -> it.hentVerdiForDag(dato) ?: AntallBarn.ZERO }
         } ?: { AntallBarn.ZERO }
 
-    val nyeBeregninger =
-        tidligereBeregninger.fold(emptyList<MeldeperiodeBeregning>()) { acc, beregning ->
-            val eksisterendeDager = beregning.dager
+    val beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId)
 
-            val nyeDager = eksisterendeDager.map { dag ->
+    return tidligereBeregninger.map {
+        MeldeperiodeBeregning(
+            id = BeregningId.random(),
+            beregningKilde = beregningKilde,
+            meldekortId = it.meldekortId,
+            kjedeId = it.kjedeId,
+            dager = it.dager.map { dag ->
                 val dato = dag.dato
 
                 if (!virkningsperiode.inneholder(dato)) {
@@ -87,21 +95,7 @@ private fun Sak.beregnMeldeperioderPåNytt(
                     is IkkeDeltatt -> IkkeDeltatt.create(dato, dag.tiltakstype, antallBarn)
                     is IkkeRettTilTiltakspenger -> IkkeRettTilTiltakspenger(dato)
                 }
-            }
-
-            if (nyeDager == eksisterendeDager) {
-                return@fold acc
-            }
-
-            val nyBeregning = MeldeperiodeBeregning(
-                id = BeregningId.random(),
-                dager = nyeDager,
-                meldekortId = beregning.meldekortId,
-                kjedeId = beregning.kjedeId,
-                beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId),
-            )
-
-            acc.plus(nyBeregning)
-        }
-    return nyeBeregninger.toNonEmptyListOrNull()
+            },
+        )
+    }.toNonEmptyListOrNull()
 }
