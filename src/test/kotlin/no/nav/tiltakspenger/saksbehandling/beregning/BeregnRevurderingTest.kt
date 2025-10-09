@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -325,6 +326,11 @@ class BeregnRevurderingTest {
         val forventetNyttBarnetillegg = sats2025.satsBarnetillegg * (8 + 10)
 
         nyBeregning.shouldNotBeNull()
+
+        nyBeregning.dager.zipWithNext().all { (a, b) ->
+            a.dato.plusDays(1) == b.dato
+        }.shouldBeTrue()
+
         nyBeregning.size shouldBe 3
 
         nyBeregning.barnetilleggBeløp shouldBe forventetNyttBarnetillegg
