@@ -132,4 +132,70 @@ internal class MeldekortberegningKaranteneTest {
             ).assertForventning(vurderingsperiode = Periode(29.januar(2024), 7.april(2024)))
         }
     }
+
+    private val meldekortFørHull1 = nonEmptyListOf(
+        DagMedForventning(29.januar(2024), FRAVÆR_SYK, IngenReduksjon),
+        DagMedForventning(30.januar(2024), FRAVÆR_SYK, IngenReduksjon),
+        DagMedForventning(31.januar(2024), FRAVÆR_SYK, IngenReduksjon),
+        DagMedForventning(1.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(2.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(3.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+        DagMedForventning(4.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+
+        DagMedForventning(5.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(6.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(7.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(8.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(9.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(10.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+        DagMedForventning(11.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+    )
+
+    private val meldekortFørHull2 = nonEmptyListOf(
+        DagMedForventning(12.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(13.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(14.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(15.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(16.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(17.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+        DagMedForventning(18.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+
+        DagMedForventning(19.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(20.februar(2024), FRAVÆR_SYK, YtelsenFallerBort),
+        DagMedForventning(21.februar(2024), FRAVÆR_SYK, YtelsenFallerBort),
+        DagMedForventning(22.februar(2024), FRAVÆR_SYK, YtelsenFallerBort),
+        DagMedForventning(23.februar(2024), FRAVÆR_SYK, YtelsenFallerBort),
+        DagMedForventning(24.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+        DagMedForventning(25.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+    )
+
+    private val meldekortEtterHull = nonEmptyListOf(
+        // 17 kalenderdager etter forrige FRAVÆR_SYK
+        DagMedForventning(11.mars(2024), FRAVÆR_SYK, IngenReduksjon),
+        DagMedForventning(12.mars(2024), FRAVÆR_SYK, IngenReduksjon),
+        DagMedForventning(13.mars(2024), FRAVÆR_SYK, IngenReduksjon),
+        DagMedForventning(14.mars(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(15.mars(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(16.mars(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+        DagMedForventning(17.mars(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+
+        DagMedForventning(18.mars(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(19.mars(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(20.mars(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(21.mars(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(22.mars(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(23.mars(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+        DagMedForventning(24.mars(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+    )
+
+    @Test
+    fun `sjekk at karantene resettes ved hull mellom meldeperioder`() {
+        runTest {
+            nonEmptyListOf(
+                meldekortFørHull1,
+                meldekortFørHull2,
+                meldekortEtterHull,
+            ).assertForventning(vurderingsperiode = Periode(29.januar(2024), 24.mars(2024)))
+        }
+    }
 }
