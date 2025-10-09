@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
+import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjonRolle
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
@@ -52,6 +54,34 @@ class PersonService(
         // TODO post-mvp jah: Her burde klienten logget feilen og gitt en Left.
         return Either.catch {
             personClient.hentEnkelPerson(fnr)
+        }.mapLeft {
+            logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved kall mot PDL. Se sikkerlogg for mer kontekst." }
+            Sikkerlogg.error(it) { "Feil ved kall mot PDL for fnr: $fnr." }
+            KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl
+        }
+    }
+
+    suspend fun hentForeldrerBarnRelasjoner(fnr: Fnr): Either<KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl, List<ForelderBarnRelasjon>> {
+        return Either.catch {
+            personClient.hentPersonSineForelderBarnRelasjoner(fnr)
+        }.mapLeft {
+            logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved kall mot PDL. Se sikkerlogg for mer kontekst." }
+            Sikkerlogg.error(it) { "Feil ved kall mot PDL for fnr: $fnr." }
+            KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl
+        }
+    }
+
+    suspend fun hentPersoner(fnr: Fnr): Either<KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl, List<EnkelPerson>> {
+        return Either.catch {
+            val forelderBarnRelasjoener = personClient.hentPersonSineForelderBarnRelasjoner(fnr)
+            val barnasFnrs = forelderBarnRelasjoener
+                .filter { relasjon -> relasjon.relatertPersonsRolle == ForelderBarnRelasjonRolle.BARN }
+                .mapNotNull { barn ->
+                    barn.relatertPersonsIdent
+                        ?.let { ident -> Fnr.fromString(ident) }
+                }
+                .distinct()
+            personClient.hentPersonBolk(fnrs = barnasFnrs)
         }.mapLeft {
             logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved kall mot PDL. Se sikkerlogg for mer kontekst." }
             Sikkerlogg.error(it) { "Feil ved kall mot PDL for fnr: $fnr." }
