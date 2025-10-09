@@ -78,17 +78,9 @@ private data class BeregnMeldeperioder(
             .partition { it.fraOgMed < beregningsperiode.fraOgMed }
             .let { (beregningerFørBeregningsperioden, beregningerUnderOgEtterBeregningsperioden) ->
                 /** Kjør gjennom tidligere beregninger for å sette riktig state for sykedager før vi gjør nye beregninger */
-                beregningerFørBeregningsperioden.forEach { beregnDager(it.tilSkalBeregnes()) }
+                beregningerFørBeregningsperioden.forEach { beregnMeldeperiode(it.tilSkalBeregnes()) }
 
-                val beregningerForBeregningsperioden = meldeperioderSomBeregnes.map {
-                    MeldeperiodeBeregning(
-                        id = BeregningId.random(),
-                        beregningKilde = beregningKilde,
-                        kjedeId = it.kjedeId,
-                        meldekortId = it.meldekortId,
-                        dager = beregnDager(it),
-                    )
-                }
+                val beregningerForBeregningsperioden = meldeperioderSomBeregnes.map { beregnMeldeperiode(it) }
 
                 val beregningerEtterBeregningsperioden = beregningerUnderOgEtterBeregningsperioden
                     .dropWhile { it.tilOgMed <= beregningsperiode.tilOgMed }
@@ -96,17 +88,10 @@ private data class BeregnMeldeperioder(
 
                 val beregningerEtterBeregningsperiodenOmberegnet = beregningerEtterBeregningsperioden
                     .map { beregning ->
-                        val nyeBeregnedeDager = beregnDager(beregning)
+                        val nyBeregning = beregnMeldeperiode(beregning)
+                        val harEndringer = nyBeregning.dager != beregning.eksisterendeBeregning
 
-                        val harEndringer = nyeBeregnedeDager != beregning.eksisterendeBeregning
-
-                        MeldeperiodeBeregning(
-                            id = BeregningId.random(),
-                            beregningKilde = beregningKilde,
-                            kjedeId = beregning.kjedeId,
-                            meldekortId = beregning.meldekortId,
-                            dager = nyeBeregnedeDager,
-                        ) to harEndringer
+                        nyBeregning to harEndringer
                     }
                     /** Beregninger etter beregningsperioden skal i utgangspunktet kun med dersom de har endringer,
                      *  men vi ønsker ikke "hull" i beregningene på en behandling, så vi dropper kun de etter siste
@@ -119,14 +104,20 @@ private data class BeregnMeldeperioder(
             }
     }
 
-    private fun beregnDager(meldeperiode: MeldeperiodeSomSkalBeregnes): NonEmptyList<MeldeperiodeBeregningDag> {
-        return meldeperiode.dager.map {
-            beregnDag(
-                meldeperiode.meldekortId,
-                it.dato,
-                it.status,
-            ) { tiltakstypePerioder.hentVerdiForDag(it.dato) }
-        }.toNonEmptyListOrNull()!!
+    private fun beregnMeldeperiode(meldeperiode: MeldeperiodeSomSkalBeregnes): MeldeperiodeBeregning {
+        return MeldeperiodeBeregning(
+            id = BeregningId.random(),
+            beregningKilde = beregningKilde,
+            kjedeId = meldeperiode.kjedeId,
+            meldekortId = meldeperiode.meldekortId,
+            dager = meldeperiode.dager.map {
+                beregnDag(
+                    meldeperiode.meldekortId,
+                    it.dato,
+                    it.status,
+                ) { tiltakstypePerioder.hentVerdiForDag(it.dato) }
+            },
+        )
     }
 
     private fun beregnDag(
