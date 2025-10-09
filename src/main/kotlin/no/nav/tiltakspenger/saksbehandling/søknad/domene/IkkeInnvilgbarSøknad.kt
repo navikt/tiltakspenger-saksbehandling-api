@@ -41,12 +41,7 @@ data class IkkeInnvilgbarSøknad(
     override fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode? =
         if (tiltak != null) {
             Periode(tiltak.deltakelseFom, tiltak.deltakelseTom)
-        } else if (manueltSattSøknadsperiode != null) {
-            Periode(
-                manueltSattSøknadsperiode.fraOgMed,
-                manueltSattSøknadsperiode.tilOgMed,
-            )
         } else {
-            null
+            manueltSattSøknadsperiode
         }
 }
