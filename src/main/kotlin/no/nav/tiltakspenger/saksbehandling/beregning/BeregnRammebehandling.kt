@@ -49,6 +49,10 @@ private fun Sak.beregnMeldeperioderPåNytt(
 
     val tidligereBeregninger = this.meldeperiodeBeregninger.sisteBeregningerForPeriode(virkningsperiode)
 
+    if (tidligereBeregninger.isEmpty()) {
+        return null
+    }
+
     val antallBarnForDato: (dato: LocalDate) -> AntallBarn =
         barnetillegg?.periodisering?.let {
             { dato -> it.hentVerdiForDag(dato) ?: AntallBarn.ZERO }
@@ -56,12 +60,13 @@ private fun Sak.beregnMeldeperioderPåNytt(
 
     val beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId)
 
-    // second == true hvis beregningen endres
-    val beregningerForBehandling: List<Pair<MeldeperiodeBeregning, Boolean>> =
-        tidligereBeregninger.map { beregning ->
-            val eksisterendeDager = beregning.dager
-
-            val nyeDager = eksisterendeDager.map { dag ->
+    return tidligereBeregninger.map {
+        MeldeperiodeBeregning(
+            id = BeregningId.random(),
+            beregningKilde = beregningKilde,
+            meldekortId = it.meldekortId,
+            kjedeId = it.kjedeId,
+            dager = it.dager.map { dag ->
                 val dato = dag.dato
 
                 if (!virkningsperiode.inneholder(dato)) {
@@ -90,29 +95,7 @@ private fun Sak.beregnMeldeperioderPåNytt(
                     is IkkeDeltatt -> IkkeDeltatt.create(dato, dag.tiltakstype, antallBarn)
                     is IkkeRettTilTiltakspenger -> IkkeRettTilTiltakspenger(dato)
                 }
-            }
-
-            val id = BeregningId.random()
-
-            if (nyeDager == eksisterendeDager) {
-                return@map beregning.copy(id = id, beregningKilde = beregningKilde) to false
-            }
-
-            val nyBeregning = MeldeperiodeBeregning(
-                id = id,
-                dager = nyeDager,
-                meldekortId = beregning.meldekortId,
-                kjedeId = beregning.kjedeId,
-                beregningKilde = beregningKilde,
-            )
-
-            nyBeregning to true
-        }
-
-    // Beholder alle beregninger mellom første og siste beregning med endring
-    return beregningerForBehandling
-        .dropWhile { (_, erEndret) -> !erEndret }
-        .dropLastWhile { (_, erEndret) -> !erEndret }
-        .map { it.first }
-        .toNonEmptyListOrNull()
+            },
+        )
+    }.toNonEmptyListOrNull()
 }

@@ -193,7 +193,7 @@ class BeregnRevurderingTest {
     }
 
     @Test
-    fun `Skal ikke returnere ny beregning dersom det ikke er endringer i beregningen`() {
+    fun `Skal returnere ny beregning selv om det ikke er endringer på tidligere beregninger`() {
         val (sak, revurdering) = sakMedRevurdering()
 
         val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
@@ -208,28 +208,7 @@ class BeregnRevurderingTest {
             behandlingId = kommando.behandlingId,
             virkningsperiode = kommando.innvilgelsesperiode,
             barnetillegg = kommando.barnetillegg,
-        ).shouldBeNull()
-    }
-
-    @Test
-    fun `Skal ikke returnere beregning dersom det kun er endring i tiltakstype`() {
-        val (sak, revurdering) = sakMedRevurdering(
-            tiltakskodeForRevurdering = TiltakstypeSomGirRett.ARBEIDSTRENING,
-        )
-
-        val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
-            periode = sak.meldeperiodeKjeder.first().periode,
-        )
-
-        val kommando = tilBeslutningKommando(
-            revurdering = revurdering,
-        )
-
-        sakMedMeldekortBehandlinger.beregnInnvilgelse(
-            behandlingId = kommando.behandlingId,
-            virkningsperiode = kommando.innvilgelsesperiode,
-            barnetillegg = kommando.barnetillegg,
-        ).shouldBeNull()
+        )!!.size shouldBe 1
     }
 
     @Test
