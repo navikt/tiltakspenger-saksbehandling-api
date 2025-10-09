@@ -7,6 +7,7 @@ import io.github.serpro69.kfaker.faker
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.oktober
+import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import java.time.Clock
@@ -20,6 +21,13 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
 
     override suspend fun hentEnkelPerson(fnr: Fnr): EnkelPerson =
         data.get()[fnr] ?: personopplysningerSøkerFake(fnr)
+
+    override suspend fun hentPersonSineForelderBarnRelasjoner(fnr: Fnr): List<ForelderBarnRelasjon> {
+        return emptyList()
+    }
+
+    override suspend fun hentPersonBolk(fnrs: List<Fnr>): List<EnkelPerson> =
+        fnrs.map { fnr -> hentEnkelPerson(fnr) }
 
     /**
      * Denne bør kalles av testoppsettet før vi lager en søknad.
@@ -49,6 +57,7 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
             fortrolig = fnr.verdi.startsWith('2'),
             strengtFortrolig = fnr.verdi.startsWith('3'),
             strengtFortroligUtland = fnr.verdi.startsWith('4'),
+            dødsdato = null,
         )
     }
 
@@ -64,6 +73,7 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
             fortrolig = person.fortrolig,
             strengtFortrolig = person.strengtFortrolig,
             strengtFortroligUtland = person.strengtFortroligUtland,
+            dødsdato = null,
         )
     }
 }

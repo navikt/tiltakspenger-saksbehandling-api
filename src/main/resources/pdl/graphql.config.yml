@@ -1,0 +1,12 @@
+schema: https://pdl-api.dev.intern.nav.no/graphql
+documents: '**/*.graphql'
+extensions:
+  endpoints:
+    "PDL GraphQL Endppint":
+      url: https://pdl-api.dev.intern.nav.no/graphql
+      headers:
+        user-agent: 'pdl'
+        AUTHORIZATION: 'Bearer DITT_TOKEN_IKKE_COMMIT'
+        Tema: 'IND'
+        Behandlingsnummer: 'B470'
+      introspection: false

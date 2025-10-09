@@ -1,0 +1,60 @@
+query($identer: [ID!]!) {
+    hentPersonBolk(identer: $identer) {
+        ident,
+        person {
+            adressebeskyttelse(historikk: false) {
+                gradering
+                folkeregistermetadata {
+                    ...folkeregistermetadataDetails
+                }
+                metadata {
+                    ...metadataDetails
+                }
+            }
+            navn(historikk: false) {
+                fornavn
+                mellomnavn
+                etternavn
+                folkeregistermetadata {
+                    ...folkeregistermetadataDetails
+                }
+                metadata {
+                    ...metadataDetails
+                }
+            }
+            foedselsdato {
+                foedselsdato
+                folkeregistermetadata {
+                    ...folkeregistermetadataDetails
+                }
+                metadata {
+                    ...metadataDetails
+                }
+            }
+            doedsfall {
+                doedsdato
+            }
+        },
+        code
+    }
+}
+
+fragment folkeregistermetadataDetails on Folkeregistermetadata {
+    aarsak
+    ajourholdstidspunkt
+    gyldighetstidspunkt
+    kilde
+    opphoerstidspunkt
+    sekvens
+}
+
+fragment metadataDetails on Metadata {
+    endringer {
+        kilde
+        registrert
+        registrertAv
+        systemkilde
+        type
+    }
+    master
+}

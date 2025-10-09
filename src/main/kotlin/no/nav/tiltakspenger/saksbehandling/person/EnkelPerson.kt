@@ -12,4 +12,5 @@ data class EnkelPerson(
     val fortrolig: Boolean,
     val strengtFortrolig: Boolean,
     val strengtFortroligUtland: Boolean,
+    val dødsdato: LocalDate?,
 )
