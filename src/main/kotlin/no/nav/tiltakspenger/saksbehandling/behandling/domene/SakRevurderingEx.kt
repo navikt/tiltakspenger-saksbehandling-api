@@ -30,7 +30,7 @@ suspend fun Sak.startRevurdering(
         )
     }
     return Pair(
-        copy(rammebehandlinger = rammebehandlinger.leggTilRevurdering(revurdering)),
+        this.leggTilRevurdering(revurdering),
         revurdering,
     )
 }

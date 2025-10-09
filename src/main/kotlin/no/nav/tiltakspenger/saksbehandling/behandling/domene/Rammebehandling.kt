@@ -43,7 +43,7 @@ const val DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
  * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling] for behandling av meldekort innenfor et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak].
  */
 sealed interface Rammebehandling : Behandling {
-    val id: BehandlingId
+    override val id: BehandlingId
     val status: Rammebehandlingsstatus
     override val opprettet: LocalDateTime
 

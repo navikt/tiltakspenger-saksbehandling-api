@@ -31,7 +31,7 @@ class ForhåndsvisVedtaksbrevService(
         kommando: ForhåndsvisVedtaksbrevKommando,
     ): PdfA {
         val sak = sakService.hentForSakId(kommando.sakId)
-        val behandling = sak.hentBehandling(kommando.behandlingId)!!
+        val behandling = sak.hentRammebehandling(kommando.behandlingId)!!
         val virkningsperiode = when (behandling.status) {
             Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
             Rammebehandlingsstatus.UNDER_BEHANDLING,

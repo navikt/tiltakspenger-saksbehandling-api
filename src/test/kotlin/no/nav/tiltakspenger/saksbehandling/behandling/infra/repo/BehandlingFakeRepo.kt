@@ -220,7 +220,7 @@ class BehandlingFakeRepo : BehandlingRepo {
         return true
     }
 
-    fun hentBehandlingerForSakId(sakId: SakId): Rammebehandlinger {
+    fun hentRammebehandlingerForSakId(sakId: SakId): Rammebehandlinger {
         return Rammebehandlinger(
             data.get().values.filter { it.sakId == sakId },
         )

@@ -287,7 +287,7 @@ fun Sak.beregnMeldekort(
 }
 
 fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode): Beregning? {
-    val behandling = hentBehandling(behandlingId)
+    val behandling = hentRammebehandling(behandlingId)
 
     require(behandling is Revurdering && behandling.resultat is RevurderingResultat.Stans) {
         "Behandlingen på være en revurdering til stans"

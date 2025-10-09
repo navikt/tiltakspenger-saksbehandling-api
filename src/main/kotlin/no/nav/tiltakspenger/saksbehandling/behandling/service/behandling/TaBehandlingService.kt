@@ -32,7 +32,7 @@ class TaBehandlingService(
         )
 
         return behandling.taBehandling(saksbehandler).let {
-            val oppdatertSak = sak.oppdaterBehandling(it)
+            val oppdatertSak = sak.oppdaterRammebehandling(it)
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
             sessionFactory.withTransactionContext { tx ->

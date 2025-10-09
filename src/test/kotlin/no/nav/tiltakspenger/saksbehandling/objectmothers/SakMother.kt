@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
@@ -55,9 +56,11 @@ interface SakMother {
         id = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
-        rammebehandlinger = behandlinger,
+        behandlinger = Behandlinger(
+            rammebehandlinger = behandlinger,
+            meldekortbehandlinger = Meldekortbehandlinger.empty(),
+        ),
         vedtaksliste = Vedtaksliste.empty(),
-        meldekortbehandlinger = Meldekortbehandlinger.empty(),
         meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
         brukersMeldekort = emptyList(),
         søknader = søknader,
@@ -159,9 +162,11 @@ interface SakMother {
             id = sakId,
             fnr = fnr,
             saksnummer = saksnummer,
-            rammebehandlinger = Rammebehandlinger(søknadsbehandling),
+            behandlinger = Behandlinger(
+                rammebehandlinger = Rammebehandlinger(søknadsbehandling),
+                meldekortbehandlinger = Meldekortbehandlinger.empty(),
+            ),
             vedtaksliste = Vedtaksliste.empty(),
-            meldekortbehandlinger = Meldekortbehandlinger.empty(),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = listOf(søknad),
@@ -219,9 +224,11 @@ interface SakMother {
             id = sakId,
             fnr = fnr,
             saksnummer = saksnummer,
-            rammebehandlinger = Rammebehandlinger(søknadsbehandling),
+            behandlinger = Behandlinger(
+                rammebehandlinger = Rammebehandlinger(søknadsbehandling),
+                meldekortbehandlinger = Meldekortbehandlinger.empty(),
+            ),
             vedtaksliste = Vedtaksliste.empty(),
-            meldekortbehandlinger = Meldekortbehandlinger.empty(),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = listOf(søknad),
@@ -246,7 +253,7 @@ interface SakMother {
             saksbehandler = saksbehandler,
         )
 
-        val iverksattBehandling = søknadsbehandling.oppdater(
+        val iverksattBehandling: Rammebehandling = søknadsbehandling.oppdater(
             OppdaterSøknadsbehandlingKommando.Innvilgelse(
                 sakId = sakId,
                 behandlingId = søknadsbehandling.id,
@@ -276,7 +283,7 @@ interface SakMother {
                 clock = clock,
             )
 
-        val sakMedIverksattBehandling = sak.copy(rammebehandlinger = Rammebehandlinger(iverksattBehandling))
+        val sakMedIverksattBehandling = sak.oppdaterRammebehandling(iverksattBehandling)
         val sakMedVedtak = sakMedIverksattBehandling.opprettVedtak(iverksattBehandling, clock)
 
         return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)
@@ -321,7 +328,7 @@ interface SakMother {
                 clock = clock,
             )
 
-        val sakMedIverksattBehandling = sak.copy(rammebehandlinger = Rammebehandlinger(iverksattBehandling))
+        val sakMedIverksattBehandling = sak.oppdaterRammebehandling(iverksattBehandling)
         val sakMedVedtak = sakMedIverksattBehandling.opprettVedtak(iverksattBehandling, clock)
 
         return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)

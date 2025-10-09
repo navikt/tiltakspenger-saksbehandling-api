@@ -30,7 +30,7 @@ class GjenopptaBehandlingService(
             endretAv = saksbehandler,
             clock = clock,
         ).let {
-            val oppdatertSak = sak.oppdaterBehandling(it)
+            val oppdatertSak = sak.oppdaterRammebehandling(it)
 
             behandlingService.lagreMedStatistikk(
                 it,

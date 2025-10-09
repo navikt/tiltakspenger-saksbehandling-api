@@ -74,7 +74,7 @@ class OppdaterSimuleringService(
         saksbehandler: Saksbehandler,
         simuler: suspend (beregning: Beregning, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
     ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, MeldekortBehandling>>> {
-        val behandling: Rammebehandling = this.hentBehandling(behandlingId)!!
+        val behandling: Rammebehandling = this.hentRammebehandling(behandlingId)!!
         require(saksbehandler.navIdent == behandling.saksbehandler) {
             "Kan kun oppdatere simulering på en behandling dersom saksbehandler som ber om det er den samme som er satt på behandlingen"
         }
@@ -83,7 +83,7 @@ class OppdaterSimuleringService(
                 return it.left()
             }
         val oppdatertBehandling = behandling.oppdaterSimulering(simuleringMedMetadata.simulering)
-        val oppdatertSak = this.oppdaterBehandling(oppdatertBehandling)
+        val oppdatertSak = this.oppdaterRammebehandling(oppdatertBehandling)
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(oppdatertBehandling, tx)
             behandlingRepo.oppdaterSimuleringMetadata(behandlingId, simuleringMedMetadata.originalResponseBody, tx)

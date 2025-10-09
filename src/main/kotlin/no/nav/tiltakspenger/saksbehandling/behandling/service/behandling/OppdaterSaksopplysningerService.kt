@@ -26,7 +26,7 @@ class OppdaterSaksopplysningerService(
         correlationId: CorrelationId,
     ): Either<KunneIkkeOppdatereSaksopplysninger, Pair<Sak, Rammebehandling>> {
         val sak = sakService.hentForSakId(sakId)
-        val behandling = sak.hentBehandling(behandlingId)!!
+        val behandling = sak.hentRammebehandling(behandlingId)!!
         val oppdaterteSaksopplysninger: Saksopplysninger = hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
             fnr = sak.fnr,
             correlationId = correlationId,
@@ -42,7 +42,7 @@ class OppdaterSaksopplysningerService(
         )
 
         return behandling.oppdaterSaksopplysninger(saksbehandler, oppdaterteSaksopplysninger).map {
-            val oppdatertSak = sak.oppdaterBehandling(it)
+            val oppdatertSak = sak.oppdaterRammebehandling(it)
 
             behandlingRepo.lagre(it)
 

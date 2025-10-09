@@ -3,12 +3,15 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import java.time.Clock
@@ -25,6 +28,12 @@ data class Meldekortbehandlinger(
 ) : List<MeldekortBehandling> by verdi {
 
     val log = KotlinLogging.logger { }
+
+    val fnr: Fnr? by lazy { verdi.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow() }
+    val sakId: SakId? by lazy { verdi.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow() }
+    val saksnummer: Saksnummer? by lazy {
+        verdi.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
+    }
 
     val ikkeAvbrutteMeldekortBehandlinger: List<MeldekortBehandling> by lazy {
         verdi.filter { it !is AvbruttMeldekortBehandling }
@@ -140,9 +149,7 @@ data class Meldekortbehandlinger(
             }
     }
 
-    /**
-     * Erstatt eksisterende meldekortbehandling med ny meldekortbehandling.
-     */
+    /** Erstatt eksisterende meldekortbehandling med ny meldekortbehandling. */
     fun oppdaterMeldekortbehandling(meldekortBehandling: MeldekortBehandling): Meldekortbehandlinger {
         return Meldekortbehandlinger(
             verdi = verdi.map {
@@ -178,9 +185,6 @@ data class Meldekortbehandlinger(
             "Kun ett meldekort på saken kan være åpen om gangen"
         }
 
-        require(verdi.map { it.sakId }.distinct().size <= 1) {
-            "Alle meldekortperioder må tilhøre samme sak."
-        }
         verdi.map { it.id }.also {
             require(it.size == it.distinct().size) {
                 "Meldekort må ha unik id"

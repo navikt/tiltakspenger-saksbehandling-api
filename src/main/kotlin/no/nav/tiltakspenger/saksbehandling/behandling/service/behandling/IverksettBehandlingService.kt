@@ -49,7 +49,7 @@ class IverksettBehandlingService(
         sakId: SakId,
     ): Either<KanIkkeIverksetteBehandling, Pair<Sak, Rammebehandling>> {
         val sak = sakService.hentForSakId(sakId)
-        val behandling = sak.hentBehandling(behandlingId)!!
+        val behandling = sak.hentRammebehandling(behandlingId)!!
 
         if (behandling.beslutter != beslutter.navIdent) {
             // TODO jah: Fjern denne feilen? Skal vel mye til at denne skjer i praksis?
@@ -148,6 +148,6 @@ class IverksettBehandlingService(
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
         }
-        return oppdatertSak.copy(meldekortbehandlinger = oppdaterteMeldekortbehandlinger)
+        return oppdatertSak.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)
     }
 }

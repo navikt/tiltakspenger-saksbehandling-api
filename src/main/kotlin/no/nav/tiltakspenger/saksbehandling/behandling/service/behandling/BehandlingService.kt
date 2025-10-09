@@ -39,7 +39,7 @@ class BehandlingService(
         behandlingId: BehandlingId,
     ): Pair<Sak, Rammebehandling> {
         val sak = sakService.hentForSakId(sakId)
-        val behandling = sak.hentBehandling(behandlingId)
+        val behandling = sak.hentRammebehandling(behandlingId)
 
         requireNotNull(behandling) {
             "Fant ikke behandling $behandlingId på sak $sakId"
@@ -69,7 +69,7 @@ class BehandlingService(
 
         // Denne validerer saksbehandler
         return behandling.underkjenn(beslutter, attestering).let {
-            val oppdatertSak = sak.oppdaterBehandling(it)
+            val oppdatertSak = sak.oppdaterRammebehandling(it)
 
             val statistikk = statistikkSakService.genererStatistikkForUnderkjennBehandling(it)
 

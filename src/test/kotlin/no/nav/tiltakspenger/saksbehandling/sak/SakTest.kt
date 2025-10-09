@@ -137,9 +137,7 @@ class SakTest {
             søknad = sak.søknader.filterIsInstance<InnvilgbarSøknad>().first(),
             clock = clock,
         )
-
-        val behandlinger = sak.rammebehandlinger
-        val oppdatertSak = sak.copy(rammebehandlinger = Rammebehandlinger(behandlinger + behandling))
+        val oppdatertSak = sak.leggTilSøknadsbehandling(behandling)
 
         oppdatertSak.harSoknadUnderBehandling() shouldBe true
     }

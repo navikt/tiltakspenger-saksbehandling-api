@@ -39,7 +39,7 @@ import java.time.LocalDateTime
  * */
 
 sealed interface MeldekortBehandling : Behandling {
-    val id: MeldekortId
+    override val id: MeldekortId
     override val sakId: SakId
     override val saksnummer: Saksnummer
     override val fnr: Fnr

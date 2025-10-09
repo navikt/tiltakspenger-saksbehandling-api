@@ -32,7 +32,7 @@ class LeggTilbakeBehandlingService(
         )
 
         return behandling.leggTilbakeBehandling(saksbehandler).let {
-            val oppdatertSak = sak.oppdaterBehandling(it)
+            val oppdatertSak = sak.oppdaterRammebehandling(it)
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
             when (it.status) {

@@ -591,11 +591,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
     ).also {
         this.behandlingContext.behandlingRepo.lagre(it)
     }
-    return sak.copy(
-        rammebehandlinger = Rammebehandlinger(
-            sak.rammebehandlinger.behandlinger + behandlingUnderBehandling,
-        ),
-    )
+    return sak.leggTilSøknadsbehandling(behandlingUnderBehandling)
 }
 
 suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(

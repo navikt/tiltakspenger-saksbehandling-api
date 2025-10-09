@@ -32,7 +32,7 @@ class SendBehandlingTilBeslutningService(
             sakId = kommando.sakId,
         )
 
-        val behandling = sak.hentBehandling(kommando.behandlingId)
+        val behandling = sak.hentRammebehandling(kommando.behandlingId)
 
         requireNotNull(behandling) {
             "Fant ikke behandlingen ${kommando.behandlingId} på sak ${kommando.sakId}"
@@ -54,7 +54,7 @@ class SendBehandlingTilBeslutningService(
             kommando = kommando,
             clock = clock,
         ).map {
-            val oppdaterSak = sak.oppdaterBehandling(it)
+            val oppdaterSak = sak.oppdaterRammebehandling(it)
 
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
 

@@ -34,7 +34,7 @@ class OppdaterBehandlingService(
 
     suspend fun oppdater(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Pair<Sak, Rammebehandling>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
-        val behandling: Rammebehandling = sak.hentBehandling(kommando.behandlingId)!!
+        val behandling: Rammebehandling = sak.hentRammebehandling(kommando.behandlingId)!!
 
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
             return BehandlingenEiesAvAnnenSaksbehandler(behandling.saksbehandler).left()
@@ -45,7 +45,7 @@ class OppdaterBehandlingService(
             is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando, utbetaling)
             is OppdaterRevurderingKommando -> sak.oppdaterRevurdering(kommando, utbetaling)
         }.map { oppdatertBehandling: Rammebehandling ->
-            val oppdatertSak = sak.oppdaterBehandling(oppdatertBehandling)
+            val oppdatertSak = sak.oppdaterRammebehandling(oppdatertBehandling)
 
             sessionFactory.withTransactionContext { tx ->
                 behandlingRepo.lagre(oppdatertBehandling, tx)
@@ -106,7 +106,7 @@ class OppdaterBehandlingService(
         kommando: OppdaterSøknadsbehandlingKommando,
         utbetaling: BehandlingUtbetaling?,
     ): Either<KanIkkeOppdatereBehandling, Søknadsbehandling> {
-        val søknadsbehandling: Søknadsbehandling = this.hentBehandling(kommando.behandlingId) as Søknadsbehandling
+        val søknadsbehandling: Søknadsbehandling = this.hentRammebehandling(kommando.behandlingId) as Søknadsbehandling
 
         return søknadsbehandling.oppdater(kommando, clock, utbetaling)
     }
@@ -115,7 +115,7 @@ class OppdaterBehandlingService(
         kommando: OppdaterRevurderingKommando,
         utbetaling: BehandlingUtbetaling?,
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
-        val revurdering: Revurdering = this.hentBehandling(kommando.behandlingId) as Revurdering
+        val revurdering: Revurdering = this.hentRammebehandling(kommando.behandlingId) as Revurdering
 
         return when (kommando) {
             is OppdaterRevurderingKommando.Innvilgelse -> {

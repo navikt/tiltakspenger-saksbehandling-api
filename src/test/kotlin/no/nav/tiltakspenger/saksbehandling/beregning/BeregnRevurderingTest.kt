@@ -75,9 +75,7 @@ class BeregnRevurderingTest {
             },
         )
 
-        return sak.copy(
-            rammebehandlinger = sak.rammebehandlinger.leggTilRevurdering(revurdering),
-        ) to revurdering
+        return sak.leggTilRevurdering(revurdering) to revurdering
     }
 
     private fun tilBeslutningKommando(

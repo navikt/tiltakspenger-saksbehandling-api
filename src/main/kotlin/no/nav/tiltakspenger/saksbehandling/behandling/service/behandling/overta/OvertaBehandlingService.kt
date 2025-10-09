@@ -29,7 +29,7 @@ class OvertaBehandlingService(
         )
 
         return behandling.overta(saksbehandler, clock).map {
-            val oppdatertSak = sak.oppdaterBehandling(it)
+            val oppdatertSak = sak.oppdaterRammebehandling(it)
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
             sessionFactory.withTransactionContext { tx ->

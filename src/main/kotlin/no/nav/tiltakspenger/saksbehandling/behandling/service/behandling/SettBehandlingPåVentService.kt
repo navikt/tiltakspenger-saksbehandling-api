@@ -32,7 +32,7 @@ class SettBehandlingPåVentService(
             begrunnelse = begrunnelse,
             clock = clock,
         ).let {
-            val oppdaterSak = sak.oppdaterBehandling(it)
+            val oppdaterSak = sak.oppdaterRammebehandling(it)
 
             behandlingService.lagreMedStatistikk(
                 it,

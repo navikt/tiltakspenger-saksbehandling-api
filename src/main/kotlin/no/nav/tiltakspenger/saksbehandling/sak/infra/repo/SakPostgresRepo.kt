@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
@@ -308,9 +309,9 @@ class SakPostgresRepo(
         fun Row.toSak(sessionContext: SessionContext): Sak {
             val id: SakId = SakId.fromString(string("id"))
             return sessionContext.withSession { session ->
-                val behandlinger = BehandlingPostgresRepo.hentForSakId(id, session)
-                val meldekortBehandlinger =
-                    MeldekortBehandlingPostgresRepo.hentForSakId(id, session) ?: Meldekortbehandlinger.empty()
+                val rammebehandlinger = BehandlingPostgresRepo.hentForSakId(id, session)
+                val meldekortbehandlinger = MeldekortBehandlingPostgresRepo.hentForSakId(id, session)
+                    ?: Meldekortbehandlinger.empty()
                 val meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(id, session)
                 val soknader = SøknadDAO.hentForSakId(id, session)
 
@@ -318,12 +319,14 @@ class SakPostgresRepo(
                     id = id,
                     saksnummer = Saksnummer(verdi = string("saksnummer")),
                     fnr = Fnr.fromString(string("fnr")),
-                    rammebehandlinger = behandlinger,
+                    behandlinger = Behandlinger(
+                        rammebehandlinger = rammebehandlinger,
+                        meldekortbehandlinger = meldekortbehandlinger,
+                    ),
                     vedtaksliste = Vedtaksliste(
                         rammevedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session),
                         meldekortVedtaksliste = MeldekortVedtakPostgresRepo.hentForSakId(id, session),
                     ),
-                    meldekortbehandlinger = meldekortBehandlinger,
                     meldeperiodeKjeder = meldeperiodekjeder,
                     brukersMeldekort = BrukersMeldekortPostgresRepo.hentForSakId(id, session),
                     søknader = soknader,
