@@ -8,12 +8,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import java.time.Clock
 
 class SendTilDatadelingService(
     private val rammevedtakRepo: RammevedtakRepo,
     private val behandlingRepo: BehandlingRepo,
     private val sakRepo: SakRepo,
+    private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val datadelingClient: DatadelingClient,
     private val clock: Clock,
 ) {
@@ -23,6 +25,7 @@ class SendTilDatadelingService(
         sendBehandlinger()
         sendVedtak()
         sendMeldeperioder()
+        sendGodkjenteMeldekort()
     }
 
     private suspend fun sendVedtak() {
@@ -82,11 +85,16 @@ class SendTilDatadelingService(
                     if (meldeperioder.isNotEmpty()) {
                         datadelingClient.send(sak, meldeperioder, correlationId).onRight {
                             logger.info { "Meldeperioder sendt til datadeling. SakId: ${sak.id}" }
-                            sakRepo.oppdaterSkalSendeMeldeperioderTilDatadeling(sak.id, skalSendeMeldeperioderTilDatadeling = false)
+                            sakRepo.oppdaterSkalSendeMeldeperioderTilDatadeling(
+                                sak.id,
+                                skalSendeMeldeperioderTilDatadeling = false,
+                            )
                             logger.info { "Meldeperioder markert som sendt til datadeling. SakId: ${sak.id}" }
                         }.onLeft {
                             // Disse logges av klienten, trenger ikke duplikat logglinje.
                         }
+                    } else {
+                        logger.warn { "Sak med id ${sak.id} har ingen meldeperioder som kan deles" }
                     }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under sending av meldeperioder til datadeling. Saksnummer: ${sak.saksnummer}, sakId: ${sak.id}" }
@@ -94,6 +102,27 @@ class SendTilDatadelingService(
             }
         }.onLeft {
             logger.error(it) { "Ukjent feil skjedde under henting av saker med meldeperioder som skal sendes til datadeling." }
+        }
+    }
+
+    private suspend fun sendGodkjenteMeldekort() {
+        Either.catch {
+            meldekortBehandlingRepo.hentGodkjenteMeldekortTilDatadeling().forEach { godkjentMeldekort ->
+                val correlationId = CorrelationId.generate()
+                Either.catch {
+                    datadelingClient.send(godkjentMeldekort, clock, correlationId).onRight {
+                        logger.info { "Meldekort sendt til datadeling. MeldekortId: ${godkjentMeldekort.id}, sakId: ${godkjentMeldekort.sakId}" }
+                        meldekortBehandlingRepo.markerSendtTilDatadeling(godkjentMeldekort.id, nå(clock))
+                        logger.info { "Meldekort med id ${godkjentMeldekort.id} markert som sendt til datadeling. SakId: ${godkjentMeldekort.sakId}" }
+                    }.onLeft {
+                        // Disse logges av klienten, trenger ikke duplikat logglinje.
+                    }
+                }.onLeft {
+                    logger.error(it) { "Ukjent feil skjedde under sending av meldekort med id ${godkjentMeldekort.id} til datadeling. Saksnummer: ${godkjentMeldekort.saksnummer}, sakId: ${godkjentMeldekort.sakId}" }
+                }
+            }
+        }.onLeft {
+            logger.error(it) { "Ukjent feil skjedde under henting av meldekort som skal sendes til datadeling." }
         }
     }
 }

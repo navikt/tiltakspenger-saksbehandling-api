@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
+import java.time.LocalDateTime
 
 interface MeldekortBehandlingRepo {
 
@@ -85,4 +86,8 @@ interface MeldekortBehandlingRepo {
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
         sessionContext: SessionContext? = null,
     ): Boolean
+
+    fun hentGodkjenteMeldekortTilDatadeling(limit: Int = 10): List<MeldekortBehandling.Behandlet>
+
+    fun markerSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime)
 }

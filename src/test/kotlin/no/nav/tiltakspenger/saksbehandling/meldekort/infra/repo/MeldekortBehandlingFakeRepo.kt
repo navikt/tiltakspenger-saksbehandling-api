@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehand
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
+import java.time.LocalDateTime
 
 /**
  * [SimuleringMedMetadata] blir ikke lagret siden den kun brukes for debug (hentes ikke opp fra basen igjen).
@@ -185,6 +186,13 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         } else {
             throw IllegalStateException("Kan ikke endre beslutter for meldekort som ikke er manuelt behandlet")
         }
+    }
+
+    override fun hentGodkjenteMeldekortTilDatadeling(limit: Int): List<MeldekortBehandling.Behandlet> {
+        return emptyList()
+    }
+
+    override fun markerSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime) {
     }
 
     fun hentFnrForMeldekortId(
