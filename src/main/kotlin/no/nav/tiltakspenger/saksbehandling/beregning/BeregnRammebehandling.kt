@@ -54,6 +54,8 @@ private fun Sak.beregnMeldeperioderPåNytt(
             { dato -> it.hentVerdiForDag(dato) ?: AntallBarn.ZERO }
         } ?: { AntallBarn.ZERO }
 
+    val beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId)
+
     // second == true hvis beregningen endres
     val beregningerForBehandling: List<Pair<MeldeperiodeBeregning, Boolean>> =
         tidligereBeregninger.map { beregning ->
@@ -90,16 +92,18 @@ private fun Sak.beregnMeldeperioderPåNytt(
                 }
             }
 
+            val id = BeregningId.random()
+
             if (nyeDager == eksisterendeDager) {
-                return@map beregning to false
+                return@map beregning.copy(id = id, beregningKilde = beregningKilde) to false
             }
 
             val nyBeregning = MeldeperiodeBeregning(
-                id = BeregningId.random(),
+                id = id,
                 dager = nyeDager,
                 meldekortId = beregning.meldekortId,
                 kjedeId = beregning.kjedeId,
-                beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId),
+                beregningKilde = beregningKilde,
             )
 
             nyBeregning to true

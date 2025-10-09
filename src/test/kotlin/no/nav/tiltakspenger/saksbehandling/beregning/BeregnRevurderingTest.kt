@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -21,10 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.brukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.leggTilMeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyOpprettetRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
@@ -279,30 +277,16 @@ class BeregnRevurderingTest {
     fun `Skal ha en sammenhengede beregningsperiode, selv om ikke alle meldeperioder har endringer`() {
         val (sak, revurdering) = sakMedRevurdering()
 
+        val førstePeriode = sak.meldeperiodeKjeder[0].periode
+        val andrePeriode = sak.meldeperiodeKjeder[1].periode
+        val tredjePeriode = sak.meldeperiodeKjeder[2].periode
+
         val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
-            periode = sak.meldeperiodeKjeder.first().periode,
-        ).let { (sak, meldekortBehandling) ->
-            val periode = meldekortBehandling.periode.plus14Dager()
-
-            // Dette meldekortet vil ikke påvirkes av revurderingen (ingen utbetalte dager)
-            sak.leggTilMeldekortBehandletAutomatisk(
-                periode = periode,
-                brukersMeldekort = brukersMeldekort(
-                    sakId = sak.id,
-                    meldeperiode = sak.meldeperiodeKjeder.hentMeldeperiode(periode)!!,
-                    behandlesAutomatisk = true,
-                    dager = (0..13).map {
-                        BrukersMeldekortDag(
-                            status = InnmeldtStatus.IKKE_TILTAKSDAG,
-                            dato = periode.fraOgMed.plusDays(it.toLong()),
-                        )
-                    },
-                ),
-            )
-        }.let { (sak, meldekortBehandling) ->
-            val periode = meldekortBehandling.periode.plus14Dager()
-
-            sak.leggTilMeldekortBehandletAutomatisk(periode = periode)
+            periode = førstePeriode,
+        ).let { (sak) ->
+            sak.leggTilMeldekortBehandletAutomatisk(periode = andrePeriode)
+        }.let { (sak) ->
+            sak.leggTilMeldekortBehandletAutomatisk(periode = tredjePeriode)
         }
 
         val beløpFørRevurdering =
@@ -311,8 +295,20 @@ class BeregnRevurderingTest {
         val kommando = tilBeslutningKommando(
             revurdering = revurdering,
             barnetillegg = barnetillegg(
-                periode = virkningsperiodeRevurdering,
-                antallBarn = AntallBarn(1),
+                periodiseringAntallBarn = SammenhengendePeriodisering(
+                    PeriodeMedVerdi(
+                        AntallBarn(1),
+                        førstePeriode,
+                    ),
+                    PeriodeMedVerdi(
+                        AntallBarn(0),
+                        andrePeriode,
+                    ),
+                    PeriodeMedVerdi(
+                        AntallBarn(1),
+                        tredjePeriode,
+                    ),
+                ),
             ),
         )
 
@@ -336,6 +332,7 @@ class BeregnRevurderingTest {
         nyBeregning.barnetilleggBeløp shouldBe forventetNyttBarnetillegg
         nyBeregning.totalBeløp shouldBe beløpFørRevurdering + forventetNyttBarnetillegg
 
-        nyBeregning[1].totalBeløp shouldBe sakMedMeldekortBehandlinger.meldekortbehandlinger[1].beregning!!.totalBeløp
+        // Andre meldeperiode har ingen endringer på beregningen, 0 barn før og etter
+        nyBeregning[1].dager shouldBe sakMedMeldekortBehandlinger.meldekortbehandlinger[1].beregning!!.dager
     }
 }
