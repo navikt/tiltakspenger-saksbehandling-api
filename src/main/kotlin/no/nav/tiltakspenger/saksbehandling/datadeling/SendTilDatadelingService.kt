@@ -93,6 +93,8 @@ class SendTilDatadelingService(
                         }.onLeft {
                             // Disse logges av klienten, trenger ikke duplikat logglinje.
                         }
+                    } else {
+                        logger.warn { "Sak med id ${sak.id} har ingen meldeperioder som kan deles" }
                     }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under sending av meldeperioder til datadeling. Saksnummer: ${sak.saksnummer}, sakId: ${sak.id}" }
