@@ -296,6 +296,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         id = id,
         søknad = søknad,
         sak = sak,
+        clock = clock,
     )
 
     val tiltaksdeltakelser = listOf(
@@ -684,6 +685,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         saksnummer = sak.saksnummer,
         meldeperiode = meldeperioder.first(),
         periode = meldeperioder.first().periode,
+        clock = clock,
     )
     val meldekortVedtak = behandletMeldekort.opprettVedtak(sak.utbetalinger.lastOrNull(), clock)
     meldekortRepo.lagre(behandletMeldekort, null)

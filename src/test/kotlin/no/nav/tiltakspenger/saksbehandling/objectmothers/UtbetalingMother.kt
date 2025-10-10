@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
@@ -33,6 +34,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHe
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingRequestDTO
+import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -72,10 +75,19 @@ interface UtbetalingMother : MotherOfAllMothers {
             beslutter = beslutter,
             beregning = beregning,
             forrigeUtbetalingId = forrigeUtbetalingId,
-            sendtTilUtbetaling = sendtTilUtbetaling,
-            status = status,
+            sendtTilUtbetaling = null,
             statusMetadata = statusMetadata,
-        )
+        ).let {
+            sendtTilUtbetaling?.run {
+                it.copy(
+                    sendtTilUtbetaling = VedtattUtbetaling.SendtTilUtbetaling(
+                        sendtTidspunkt = sendtTilUtbetaling,
+                        requestDto = deserialize<IverksettV2Dto>(it.toUtbetalingRequestDTO(null)),
+                        status = status,
+                    ),
+                )
+            } ?: it
+        }
     }
 
     fun lagBeregning(

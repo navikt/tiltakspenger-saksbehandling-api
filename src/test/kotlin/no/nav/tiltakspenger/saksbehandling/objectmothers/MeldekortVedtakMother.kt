@@ -13,10 +13,10 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.utbetaling
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -54,7 +54,7 @@ interface MeldekortVedtakMother : MotherOfAllMothers {
             meldekortBehandling = meldekortBehandling,
             journalpostId = journalpostId,
             journalføringstidspunkt = journalføringstidspunkt,
-            utbetaling = VedtattUtbetaling(
+            utbetaling = utbetaling(
                 id = utbetalingId,
                 sendtTilUtbetaling = sendtTilUtbetaling,
                 status = status,
@@ -66,7 +66,7 @@ interface MeldekortVedtakMother : MotherOfAllMothers {
                 brukerNavkontor = meldekortBehandling.navkontor,
                 vedtakId = id,
                 opprettet = opprettet,
-                saksbehandler = meldekortBehandling.saksbehandler!!,
+                saksbehandler = meldekortBehandling.saksbehandler,
                 beslutter = meldekortBehandling.beslutter!!,
                 statusMetadata = statusMetadata,
             ),

@@ -42,7 +42,7 @@ class SendMeldekortTilBeslutterService(
             },
             clock = clock,
         ).map { (sak, meldekort, simulering) ->
-            meldekort.validerKanIverksetteUtbetaling().onLeft {
+            meldekort.validerKanIverksetteUtbetaling(sak.utbetalinger::harDag7IMånederForPeriode).onLeft {
                 return KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke(it).left()
             }
 

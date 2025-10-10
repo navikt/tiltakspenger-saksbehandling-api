@@ -76,7 +76,6 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
         beregning = this.beregning,
         brukerNavkontor = this.navkontor,
         sendtTilUtbetaling = null,
-        status = null,
         forrigeUtbetalingId = forrigeUtbetaling?.id,
         statusMetadata = Forsøkshistorikk.opprett(clock = clock),
     )

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import no.nav.tiltakspenger.libs.common.AccessToken
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
@@ -30,6 +31,7 @@ object ObjectMother :
     BarnetilleggMother,
     SimuleringMother,
     UtbetalingMother {
+    fun gyldigFnr() = Fnr.fromString("12345678911")
     fun navn() = Navn("Fornavn", "Mellomnavn", "Etternavn")
     fun navkontor() = Navkontor(kontornummer = "0220", kontornavn = "Nav Asker")
     fun oppgaveId(oppgaveId: OppgaveId = OppgaveId("100")) = oppgaveId
