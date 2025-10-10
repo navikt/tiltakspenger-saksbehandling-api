@@ -80,7 +80,7 @@ data class Utbetalinger(
     }
 
     fun harDag7IMånedForDato(dato: LocalDate): Boolean {
-        return harDag7IMånederForPeriode(
+        return harDag7IPeriode(
             Periode(
                 dato.with(TemporalAdjusters.firstDayOfMonth()),
                 dato.with(
