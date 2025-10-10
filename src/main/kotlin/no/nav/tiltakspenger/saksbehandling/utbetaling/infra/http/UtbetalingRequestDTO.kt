@@ -147,7 +147,7 @@ private fun MeldeperiodeBeregningDag.genererUtbetalingsperiode(
     // For å utbetale helgedager må vi bruke Satstype.DAGLIG_INKL_HELG. Denne er ikke stabil per nå.
     if (this.dato.erHelg()) {
         require(this.totalBeløp == 0) {
-            "Helgedager kan ikke ha et beregnet beløp, ettersom det ikke vil bli utbetalt"
+            "Helgedager kan ikke ha et beregnet beløp, ettersom det ikke vil bli utbetalt - dato: ${this.dato}"
         }
         return null
     }

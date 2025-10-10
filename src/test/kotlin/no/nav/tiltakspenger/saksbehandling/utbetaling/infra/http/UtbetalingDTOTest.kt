@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
 import io.kotest.assertions.json.shouldEqualJson
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -9,8 +10,11 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.meldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdager
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import org.junit.jupiter.api.Test
@@ -583,5 +587,53 @@ internal class UtbetalingDTOTest {
             }
             """.trimIndent(),
         )
+    }
+
+    @Test
+    fun `Skal feile ved utbetaling på helgedager`() {
+        val fnr = Fnr.fromString("09863149336")
+        val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
+        val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
+        val saksnummer = Saksnummer("202410011001")
+        val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
+        val periode = Periode(2.januar(2023), 15.januar(2023))
+        val meldekortVedtak = ObjectMother.meldekortVedtak(
+            periode = periode,
+            fnr = fnr,
+            id = id,
+            utbetalingId = utbetalingId,
+            saksnummer = saksnummer,
+            opprettet = opprettet,
+        )
+
+        val utbetalingMedHelger = meldekortVedtak.utbetaling.copy(
+            beregning = meldekortBeregning(
+                beregningDager = tiltaksdager(
+                    startDato = periode.fraOgMed,
+                    meldekortId = meldekortVedtak.meldekortId,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    antallDager = 5,
+                ) + tiltaksdager(
+                    startDato = periode.fraOgMed.plusDays(5),
+                    meldekortId = meldekortVedtak.meldekortId,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    antallDager = 2,
+                ) + tiltaksdager(
+                    startDato = periode.fraOgMed.plusDays(7),
+                    meldekortId = meldekortVedtak.meldekortId,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    antallDager = 5,
+                ) + tiltaksdager(
+                    startDato = periode.fraOgMed.plusDays(12),
+                    meldekortId = meldekortVedtak.meldekortId,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    antallDager = 2,
+                ),
+            ),
+        )
+
+        shouldThrow<IllegalArgumentException> {
+            utbetalingMedHelger.toUtbetalingRequestDTO(null)
+        }.message.shouldBe("Helgedager kan ikke ha et beregnet beløp, ettersom det ikke vil bli utbetalt - dato: 2023-01-07")
     }
 }
