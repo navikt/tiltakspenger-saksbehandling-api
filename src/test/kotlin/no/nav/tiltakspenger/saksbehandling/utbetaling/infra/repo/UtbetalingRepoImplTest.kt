@@ -9,8 +9,10 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingRequestDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import org.junit.jupiter.api.Test
@@ -67,6 +69,7 @@ class UtbetalingRepoImplTest {
             val (sak, _, meldekortVedtak, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
+                fnr = gyldigFnr(),
             )
             val utbetalingRepo = testDataHelper.utbetalingRepo
 
@@ -76,7 +79,7 @@ class UtbetalingRepoImplTest {
             utbetalingRepo.markerSendtTilUtbetaling(
                 utbetalingId = utbetaling.id,
                 tidspunkt = sendtTilUtbetalingTidspunkt,
-                utbetalingsrespons = SendtUtbetaling("myReq", "myRes", 202),
+                utbetalingsrespons = SendtUtbetaling(utbetaling.toUtbetalingRequestDTO(null), "myRes", 202),
             )
 
             fun expected(

@@ -169,7 +169,10 @@ class UtbetalingPostgresRepo(
             return session.run(
                 sqlQuery(
                     """
-                select * from utbetaling_full
+                select 
+                    *,
+                    (utbetaling_metadata->>'request') as req
+                from utbetaling_full
                 where id = :id 
                 """,
                     "id" to id.toString(),
@@ -209,7 +212,7 @@ class UtbetalingPostgresRepo(
                     "sak_id" to utbetaling.sakId.toString(),
                     "forrige_utbetaling_id" to utbetaling.forrigeUtbetalingId?.toString(),
                     "sendt_til_utbetaling_tidspunkt" to utbetaling.sendtTilUtbetaling?.toString(),
-                    "status" to utbetaling.status?.toString(),
+                    "status" to utbetaling.sendtTilUtbetaling?.status?.toString(),
                     "status_metadata" to utbetaling.statusMetadata.toDbJson(),
                     "opprettet" to utbetaling.opprettet,
                     when (utbetaling.beregningKilde) {
@@ -242,6 +245,14 @@ class UtbetalingPostgresRepo(
                 vedtakId to Beregning(beregningJson.tilMeldeperiodeBeregningerFraBehandling(behandlingId))
             }
 
+            val sendtUtbetaling: VedtattUtbetaling.SendtTilUtbetaling? = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt")?.let {
+                VedtattUtbetaling.SendtTilUtbetaling(
+                    sendtTidspunkt = it,
+                    requestDto = string("req").tilUtbetalingIverksettRequestDTO(),
+                    status = stringOrNull("status")?.toUtbetalingsstatus(),
+                )
+            }
+
             return VedtattUtbetaling(
                 id = UtbetalingId.fromString(string("id")),
                 vedtakId = vedtakIdOgBeregning.first,
@@ -258,8 +269,7 @@ class UtbetalingPostgresRepo(
                 beregning = vedtakIdOgBeregning.second,
                 forrigeUtbetalingId = stringOrNull("forrige_utbetaling_id")
                     ?.let { UtbetalingId.fromString(it) },
-                sendtTilUtbetaling = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt"),
-                status = stringOrNull("status")?.toUtbetalingsstatus(),
+                sendtTilUtbetaling = sendtUtbetaling,
                 statusMetadata = string("status_metadata").toForsøkshistorikk(),
             )
         }

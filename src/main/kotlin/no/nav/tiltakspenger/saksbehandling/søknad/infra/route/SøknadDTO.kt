@@ -62,11 +62,8 @@ data class SøknadDTO(
 
 fun Søknad.toSøknadDTO(): SøknadDTO {
     return when (this) {
-        is InnvilgbarSøknad -> return this.toSøknadDTO()
-        is IkkeInnvilgbarSøknad -> return this.toSøknadDTO()
-        else -> {
-            throw IllegalStateException("Ukjent søknadstype")
-        }
+        is InnvilgbarSøknad -> this.toSøknadDTO()
+        is IkkeInnvilgbarSøknad -> this.toSøknadDTO()
     }
 }
 

@@ -3,11 +3,15 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
+import no.nav.utsjekk.kontrakter.felles.Satstype
+import no.nav.utsjekk.kontrakter.iverksett.StønadsdataTiltakspengerV2Dto
 import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 
 /**
  * Inneholder alle utbetalinger (som er en konsekvens av et vedtak).
@@ -28,6 +32,23 @@ data class Utbetalinger(
 
     val tidslinje: Periodisering<VedtattUtbetaling> by lazy {
         verdi.toTidslinje()
+    }
+
+    private val satstypeTidslinje: Periodisering<Satstype> by lazy {
+        tidslinje
+            .mapNotNull { it.verdi.sendtTilUtbetaling?.requestDto?.vedtak?.utbetalinger }
+            .flatten()
+            .mapNotNull {
+                if ((it.stønadsdata as StønadsdataTiltakspengerV2Dto).barnetillegg) {
+                    return@mapNotNull null
+                }
+
+                PeriodeMedVerdi(
+                    verdi = it.satstype,
+                    periode = Periode(it.fraOgMedDato, it.tilOgMedDato),
+                )
+            }
+            .let { Periodisering(it) }
     }
 
     fun harUtbetalingIPeriode(periode: Periode): Boolean {
@@ -56,6 +77,32 @@ data class Utbetalinger(
 
     fun hentSisteBeregningdagForDato(dato: LocalDate): MeldeperiodeBeregningDag? {
         return hentSisteUtbetalingForDato(dato)?.hentBeregningsdagForDato(dato)
+    }
+
+    fun harDag7IMånedForDato(dato: LocalDate): Boolean {
+        return harDag7IMånederForPeriode(
+            Periode(
+                dato.with(TemporalAdjusters.firstDayOfMonth()),
+                dato.with(
+                    TemporalAdjusters.lastDayOfMonth(),
+                ),
+            ),
+        )
+    }
+
+    fun harDag7IMånederForPeriode(periode: Periode): Boolean {
+        val periodeForHeleMåneder = Periode(
+            periode.fraOgMed.with(TemporalAdjusters.firstDayOfMonth()),
+            periode.tilOgMed.with(TemporalAdjusters.lastDayOfMonth()),
+        )
+
+        return harDag7IPeriode(periodeForHeleMåneder)
+    }
+
+    private fun harDag7IPeriode(periode: Periode): Boolean {
+        return satstypeTidslinje.krymp(periode).perioderMedVerdi.any {
+            it.verdi == Satstype.DAGLIG_INKL_HELG
+        }
     }
 
     init {

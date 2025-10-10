@@ -158,7 +158,6 @@ interface RammevedtakMother : MotherOfAllMothers {
                 beregning = it.beregning,
                 forrigeUtbetalingId = forrigeUtbetalingId,
                 sendtTilUtbetaling = null,
-                status = null,
                 statusMetadata = Forsøkshistorikk.opprett(clock = clock),
             )
         }

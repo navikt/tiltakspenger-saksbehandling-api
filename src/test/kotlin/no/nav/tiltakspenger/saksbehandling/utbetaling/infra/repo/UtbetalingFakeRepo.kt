@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk.Companion.opprett
@@ -12,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingResponse
+import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.collections.set
@@ -32,7 +34,13 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         tidspunkt: LocalDateTime,
         utbetalingsrespons: SendtUtbetaling,
     ) {
-        data.get()[utbetalingId] = data.get()[utbetalingId]!!.copy(sendtTilUtbetaling = tidspunkt)
+        data.get()[utbetalingId] = data.get()[utbetalingId]!!.copy(
+            sendtTilUtbetaling = VedtattUtbetaling.SendtTilUtbetaling(
+                sendtTidspunkt = tidspunkt,
+                requestDto = deserialize<IverksettV2Dto>(utbetalingsrespons.request),
+                status = null,
+            ),
+        )
         response.get()[utbetalingId] = utbetalingsrespons
     }
 
@@ -57,7 +65,9 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         metadata: Forsøkshistorikk,
         context: TransactionContext?,
     ) {
-        data.get()[utbetalingId] = data.get()[utbetalingId]!!.copy(status = status)
+        val utbetaling = data.get()[utbetalingId]!!
+        data.get()[utbetalingId] =
+            utbetaling.copy(sendtTilUtbetaling = utbetaling.sendtTilUtbetaling!!.copy(status = status))
     }
 
     override fun hentDeSomSkalHentesUtbetalingsstatusFor(limit: Int): List<UtbetalingDetSkalHentesStatusFor> {
@@ -74,9 +84,9 @@ class UtbetalingFakeRepo : UtbetalingRepo {
                 sakId = it.sakId,
                 saksnummer = it.saksnummer,
                 opprettet = it.opprettet,
-                sendtTilUtbetalingstidspunkt = it.sendtTilUtbetaling!!,
+                sendtTilUtbetalingstidspunkt = it.sendtTilUtbetaling!!.sendtTidspunkt,
                 forsøkshistorikk = opprett(
-                    forrigeForsøk = it.sendtTilUtbetaling.plus(1, ChronoUnit.MICROS),
+                    forrigeForsøk = it.sendtTilUtbetaling.sendtTidspunkt.plus(1, ChronoUnit.MICROS),
                     antallForsøk = 1,
                     clock = fixedClock,
                 ),
