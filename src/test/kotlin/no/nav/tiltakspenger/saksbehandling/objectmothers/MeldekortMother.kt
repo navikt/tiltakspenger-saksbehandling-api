@@ -131,6 +131,7 @@ interface MeldekortMother : MotherOfAllMothers {
     }
 
     fun meldekortBehandletManuelt(
+        clock: Clock = this.clock,
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),

@@ -108,7 +108,6 @@ fun Sak.opprettVedtak(
             beregning = it.beregning,
             forrigeUtbetalingId = this.utbetalinger.lastOrNull()?.id,
             sendtTilUtbetaling = null,
-            status = null,
             statusMetadata = Forsøkshistorikk.opprett(clock = clock),
         )
     }

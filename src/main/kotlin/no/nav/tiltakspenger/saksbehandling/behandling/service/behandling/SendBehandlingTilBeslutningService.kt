@@ -39,7 +39,7 @@ class SendBehandlingTilBeslutningService(
         }
 
         behandling.utbetaling?.also { utbetaling ->
-            utbetaling.validerKanIverksetteUtbetaling().onLeft {
+            utbetaling.validerKanIverksetteUtbetaling(sak.utbetalinger::harDag7IMånederForPeriode).onLeft {
                 logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${kommando.behandlingId} / $it" }
                 return KanIkkeSendeTilBeslutter.UtbetalingStøttesIkke(it).left()
             }

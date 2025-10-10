@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
 import com.fasterxml.jackson.databind.node.TextNode
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
+import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 
 fun SendtUtbetaling.toJson(): String {
     return serialiserRequestResponse(
@@ -44,4 +46,8 @@ private fun String.toValidJson(): String {
         false
     }
     return if (isValidJson) this else TextNode(this).toString()
+}
+
+fun String.tilUtbetalingIverksettRequestDTO(): IverksettV2Dto {
+    return deserialize<IverksettV2Dto>(this)
 }

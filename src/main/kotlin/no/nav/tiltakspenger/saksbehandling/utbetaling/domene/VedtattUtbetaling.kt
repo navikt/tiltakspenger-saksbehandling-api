@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import ulid.ULID
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -50,9 +51,8 @@ data class VedtattUtbetaling(
     val beslutter: String,
     val beregning: Beregning,
     val forrigeUtbetalingId: UtbetalingId?,
-    val sendtTilUtbetaling: LocalDateTime?,
-    val status: Utbetalingsstatus?,
     val statusMetadata: Forsøkshistorikk,
+    val sendtTilUtbetaling: SendtTilUtbetaling?,
 ) : Periodiserbar {
     override val periode: Periode = beregning.periode
 
@@ -62,7 +62,15 @@ data class VedtattUtbetaling(
     val barnetilleggBeløp: Int = beregning.barnetilleggBeløp
     val totalBeløp: Int = beregning.totalBeløp
 
+    val status: Utbetalingsstatus? by lazy { sendtTilUtbetaling?.status }
+
     fun hentBeregningsdagForDato(dato: LocalDate): MeldeperiodeBeregningDag? {
         return beregning.hentDag(dato)
     }
+
+    data class SendtTilUtbetaling(
+        val sendtTidspunkt: LocalDateTime,
+        val requestDto: IverksettV2Dto,
+        val status: Utbetalingsstatus?,
+    )
 }
