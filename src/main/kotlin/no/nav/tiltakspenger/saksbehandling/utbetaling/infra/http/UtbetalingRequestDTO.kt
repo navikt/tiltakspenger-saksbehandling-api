@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -142,12 +143,21 @@ private fun MeldeperiodeBeregningDag.genererUtbetalingsperiode(
     // Vi ønsker ikke lage linjer for 0-beløp (safeguard).
     if (barnetillegg && this.beløpBarnetillegg == 0) return null
     if (!barnetillegg && this.beløp == 0) return null
+
+    // For å utbetale helgedager må vi bruke Satstype.DAGLIG_INKL_HELG. Denne er ikke stabil per nå.
+    if (this.dato.erHelg()) {
+        require(this.totalBeløp == 0) {
+            "Helgedager kan ikke ha et beregnet beløp, ettersom det ikke vil bli utbetalt"
+        }
+        return null
+    }
+
     return when (this.reduksjon) {
         ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> null
         ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon, ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon ->
             UtbetalingV2Dto(
                 beløp = (if (barnetillegg) this.beløpBarnetillegg else this.beløp).toUInt(),
-                satstype = Satstype.DAGLIG_INKL_HELG,
+                satstype = Satstype.DAGLIG,
                 fraOgMedDato = this.dato,
                 tilOgMedDato = this.dato,
                 stønadsdata =
