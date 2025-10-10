@@ -48,7 +48,7 @@ internal class UtbetalingDTOTest {
                 "utbetalinger": [
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-02",
                     "tilOgMedDato": "2023-01-06",
                     "stønadsdata": {
@@ -60,7 +60,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-09",
                     "tilOgMedDato": "2023-01-13",
                     "stønadsdata": {
@@ -120,7 +120,7 @@ internal class UtbetalingDTOTest {
                 "utbetalinger": [
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-02",
                     "tilOgMedDato": "2023-01-06",
                     "stønadsdata": {
@@ -132,7 +132,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 52,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-02",
                     "tilOgMedDato": "2023-01-06",
                     "stønadsdata": {
@@ -144,7 +144,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-09",
                     "tilOgMedDato": "2023-01-13",
                     "stønadsdata": {
@@ -156,7 +156,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 52,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-09",
                     "tilOgMedDato": "2023-01-13",
                     "stønadsdata": {
@@ -216,7 +216,7 @@ internal class UtbetalingDTOTest {
                 "utbetalinger": [
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-02",
                     "tilOgMedDato": "2023-01-06",
                     "stønadsdata": {
@@ -228,7 +228,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 104,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-02",
                     "tilOgMedDato": "2023-01-06",
                     "stønadsdata": {
@@ -240,7 +240,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-09",
                     "tilOgMedDato": "2023-01-13",
                     "stønadsdata": {
@@ -252,7 +252,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 104,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-09",
                     "tilOgMedDato": "2023-01-13",
                     "stønadsdata": {
@@ -313,7 +313,7 @@ internal class UtbetalingDTOTest {
                 "utbetalinger": [
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-02",
                     "tilOgMedDato": "2023-01-06",
                     "stønadsdata": {
@@ -325,7 +325,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 52,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-02",
                     "tilOgMedDato": "2023-01-06",
                     "stønadsdata": {
@@ -337,7 +337,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-09",
                     "tilOgMedDato": "2023-01-13",
                     "stønadsdata": {
@@ -349,7 +349,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 104,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-09",
                     "tilOgMedDato": "2023-01-13",
                     "stønadsdata": {
@@ -414,7 +414,7 @@ internal class UtbetalingDTOTest {
                 "utbetalinger": [
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-02",
                     "tilOgMedDato": "2023-01-06",
                     "stønadsdata": {
@@ -426,7 +426,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 52,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-03",
                     "tilOgMedDato": "2023-01-06",
                     "stønadsdata": {
@@ -438,7 +438,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-09",
                     "tilOgMedDato": "2023-01-13",
                     "stønadsdata": {
@@ -450,7 +450,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 52,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-09",
                     "tilOgMedDato": "2023-01-12",
                     "stønadsdata": {
@@ -519,7 +519,7 @@ internal class UtbetalingDTOTest {
                 "utbetalinger": [
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-02",
                     "tilOgMedDato": "2023-01-06",
                     "stønadsdata": {
@@ -531,7 +531,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 52,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-02",
                     "tilOgMedDato": "2023-01-03",
                     "stønadsdata": {
@@ -543,7 +543,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 52,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-05",
                     "tilOgMedDato": "2023-01-06",
                     "stønadsdata": {
@@ -555,7 +555,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-09",
                     "tilOgMedDato": "2023-01-13",
                     "stønadsdata": {
@@ -567,7 +567,7 @@ internal class UtbetalingDTOTest {
                   },
                   {
                     "beløp": 52,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2023-01-09",
                     "tilOgMedDato": "2023-01-13",
                     "stønadsdata": {
