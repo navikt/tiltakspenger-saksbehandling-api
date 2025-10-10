@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysni
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.vedtak.harInnvilgetTiltakspengerEtterDato
+import no.nav.tiltakspenger.saksbehandling.vedtak.harInnvilgetTiltakspengerPåDato
 import java.time.LocalDate
 
 class PersonhendelseJobb(
@@ -24,7 +26,7 @@ class PersonhendelseJobb(
                 val sakId = personhendelse.sakId
                 val sak = sakRepo.hentForSakId(sakId)!!
                 if ((!personhendelse.gjelderAdressebeskyttelse() && mottarTiltakspengerNaEllerIFremtiden(sak)) ||
-                    (personhendelse.gjelderAdressebeskyttelse() && harApenBehandling(sak))
+                    (personhendelse.gjelderAdressebeskyttelse() && sak.behandlinger.harEnEllerFlereÅpneBehandlinger)
                 ) {
                     log.info { "Oppretter oppgave for hendelse med id ${personhendelse.hendelseId}" }
                     val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
@@ -69,12 +71,7 @@ class PersonhendelseJobb(
     private fun mottarTiltakspengerNaEllerIFremtiden(
         sak: Sak,
         dato: LocalDate = LocalDate.now(),
-    ): Boolean =
-        sak.rammevedtaksliste.harInnvilgetTiltakspengerPaDato(dato) ||
-            sak.rammevedtaksliste.harInnvilgetTiltakspengerEtterDato(dato)
-
-    private fun harApenBehandling(sak: Sak): Boolean =
-        sak.rammebehandlinger.hentÅpneBehandlinger().isNotEmpty()
+    ): Boolean = sak.harInnvilgetTiltakspengerPåDato(dato) || sak.harInnvilgetTiltakspengerEtterDato(dato)
 
     private fun PersonhendelseDb.finnOppgavebehov() =
         when (opplysningstype) {

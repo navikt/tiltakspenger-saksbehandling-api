@@ -34,17 +34,8 @@ class BehandleSøknadPåNyttService(
         correlationId: CorrelationId,
     ): Pair<Sak, Søknadsbehandling> {
         val sak = sakService.hentForSakId(sakId)
-        val avslåtteSøknadsbehandlinger = sak.rammevedtaksliste.verdi
-            .filter { it.vedtakstype == Vedtakstype.AVSLAG }
-            .map { it.behandling }
-            .filterIsInstance<Søknadsbehandling>()
-            .filter { it.søknad.id == søknadId }
-
-        if (avslåtteSøknadsbehandlinger.isEmpty()) {
-            throw IllegalStateException("Kan ikke behandle søknad på nytt fordi det finnes ikke vedtatte avslag på søknaden: $søknadId")
-        }
-
-        val søknad = avslåtteSøknadsbehandlinger.single().søknad
+        // Merk at i teorien kan en søknad være knyttet til flere avslåtte behandlinger, men i praksis bør det tilnærmet ikke skje.
+        val søknad = sak.vedtaksliste.hentAvslåtteBehandlingerForSøknadId(søknadId).single().søknad
 
         val søknadsbehandling = Søknadsbehandling.opprett(
             sak = sak,

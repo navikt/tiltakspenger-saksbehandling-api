@@ -32,7 +32,7 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     sakId = id.toString(),
     fnr = fnr.verdi,
     behandlingsoversikt = (
-        rammebehandlinger.hentÅpneBehandlinger().toSaksoversiktDTO() +
+        rammebehandlinger.åpneBehandlinger.toSaksoversiktDTO() +
             this.søknader
                 .filter { soknad ->
                     !soknad.erAvbrutt && rammebehandlinger.søknadsbehandlinger.none { it.søknad.id == soknad.id }

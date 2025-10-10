@@ -81,6 +81,10 @@ data class Meldekortbehandlinger(
     /** Meldekort som er under behandling eller venter på beslutning */
     val åpenMeldekortBehandling: MeldekortBehandling? by lazy { this.singleOrNullOrThrow { it.erÅpen() } }
 
+    val harÅpenBehandling: Boolean by lazy {
+        åpenMeldekortBehandling != null
+    }
+
     suspend fun oppdaterMeldekort(
         kommando: OppdaterMeldekortKommando,
         beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,

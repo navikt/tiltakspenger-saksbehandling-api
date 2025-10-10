@@ -309,7 +309,7 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingStans(tac)
 
-            val stansFraOgMed = sak.rammevedtaksliste.førsteDagSomGirRett!!.minusDays(2)
+            val stansFraOgMed = sak.førsteDagSomGirRett!!.minusDays(2)
 
             oppdaterBehandling(
                 tac = tac,

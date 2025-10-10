@@ -26,6 +26,10 @@ data class Rammebehandlinger(
         behandlinger.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
     }
 
+    val harÅpenBehandling: Boolean by lazy { åpneBehandlinger.isNotEmpty() }
+
+    val åpneBehandlinger: List<Rammebehandling> by lazy { behandlinger.filterNot { it.erAvsluttet } }
+
     fun leggTilSøknadsbehandling(
         søknadsbehandling: Søknadsbehandling,
     ): Rammebehandlinger {
@@ -40,10 +44,6 @@ data class Rammebehandlinger(
 
     fun hentBehandling(behandlingId: BehandlingId): Rammebehandling? {
         return behandlinger.singleOrNullOrThrow { it.id == behandlingId }
-    }
-
-    fun hentÅpneBehandlinger(): List<Rammebehandling> {
-        return behandlinger.filterNot { it.erAvsluttet }
     }
 
     fun oppdaterBehandling(behandling: Rammebehandling): Rammebehandlinger {

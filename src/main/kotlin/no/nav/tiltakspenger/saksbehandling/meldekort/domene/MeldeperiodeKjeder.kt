@@ -157,7 +157,7 @@ data class MeldeperiodeKjeder(
                 continue
             }
             val girRett = nærmesteMeldeperiode.tilDager()
-                .associateWith { vedtaksliste.harInnvilgetTiltakspengerPaDato(it) }
+                .associateWith { vedtaksliste.harInnvilgetTiltakspengerPåDato(it) }
             val antallDagerSomGirRettForNærmesteMeldeperiode = girRett.count { it.value }
 
             val antallDagerForMeldeperiodeFraBehandling =

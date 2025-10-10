@@ -32,6 +32,10 @@ data class Rammevedtaksliste(
         verdi.mapNotNull { it.utbetaling }
     }
 
+    val avslagsvedtak: List<Rammevedtak> by lazy {
+        verdi.filter { it.vedtakstype == Vedtakstype.AVSLAG }
+    }
+
     /**
      * Vedtakstidslinjen tar kun for seg vedtak som kan påvirke en utbetaling ([Vedtakstype.INNVILGELSE] og [Vedtakstype.STANS]) og skal aldri inkludere [Vedtakstype.AVSLAG].
      * Dersom man ønsker å opphøre en tidligere innvilget periode, skal man bruke stans, aldri [Vedtakstype.AVSLAG].
@@ -106,7 +110,7 @@ data class Rammevedtaksliste(
         return valgteTiltaksdeltakelser.overlappendePeriode(periode)
     }
 
-    fun harInnvilgetTiltakspengerPaDato(dato: LocalDate): Boolean {
+    fun harInnvilgetTiltakspengerPåDato(dato: LocalDate): Boolean {
         return innvilgelsesperioder.any { it.inneholder(dato) }
     }
 

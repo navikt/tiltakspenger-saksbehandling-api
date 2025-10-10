@@ -77,7 +77,7 @@ data class Sak(
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy { rammevedtaksliste.tiltakstypeperioder }
 
     /** Et førstegangsvedtak defineres som den første søknadsbehandlingen som førte til innvilgelse. */
-    val harFørstegangsvedtak: Boolean by lazy { this.rammevedtaksliste.harFørstegangsvedtak }
+    val harFørstegangsvedtak: Boolean by lazy { this.vedtaksliste.harFørstegangsvedtak }
 
     val tiltaksdeltagelserDetErSøktTiltakspengerFor by lazy {
         TiltaksdeltagelserDetErSøktTiltakspengerFor(

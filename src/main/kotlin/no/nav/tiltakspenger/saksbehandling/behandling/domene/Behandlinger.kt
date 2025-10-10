@@ -22,6 +22,10 @@ data class Behandlinger(
         slåttSammen.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
     }
 
+    val harEnEllerFlereÅpneBehandlinger: Boolean by lazy {
+        rammebehandlinger.harÅpenBehandling || meldekortbehandlinger.harÅpenBehandling
+    }
+
     fun leggTilSøknadsbehandling(behandling: Søknadsbehandling): Behandlinger {
         return copy(rammebehandlinger = rammebehandlinger.leggTilSøknadsbehandling(behandling))
     }
@@ -65,7 +69,6 @@ data class Behandlinger(
 private fun slåSammenBehandlingene(
     rammebehandlinger: Rammebehandlinger,
     meldekortbehandlinger: Meldekortbehandlinger,
-
 ): List<Behandling> {
     return (rammebehandlinger + meldekortbehandlinger).sortedBy { it.opprettet }
 }

@@ -33,11 +33,11 @@ class BehandlingerTest {
         val åpenOgAvbrutt = Rammebehandlinger(listOf(åpenBehandling, avbruttBehandling))
         val vedtattOgAvbrutt = Rammebehandlinger(listOf(vedtattBehandling, avbruttBehandling))
 
-        val actualÅpenOgAvbrutt = åpenOgAvbrutt.hentÅpneBehandlinger()
+        val actualÅpenOgAvbrutt = åpenOgAvbrutt.åpneBehandlinger
         actualÅpenOgAvbrutt.size shouldBe 1
         actualÅpenOgAvbrutt.first() shouldBe åpenBehandling
 
-        val actualVedtattOgAvbrutt = vedtattOgAvbrutt.hentÅpneBehandlinger()
+        val actualVedtattOgAvbrutt = vedtattOgAvbrutt.åpneBehandlinger
         actualVedtattOgAvbrutt.size shouldBe 0
     }
 }
