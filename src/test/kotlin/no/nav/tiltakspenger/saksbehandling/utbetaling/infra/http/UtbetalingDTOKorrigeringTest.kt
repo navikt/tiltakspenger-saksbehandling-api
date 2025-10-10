@@ -127,7 +127,7 @@ class UtbetalingDTOKorrigeringTest {
                 "utbetalinger": [
                   {
                     "beløp": 298,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2025-01-06",
                     "tilOgMedDato": "2025-01-09",
                     "stønadsdata": {
@@ -139,7 +139,7 @@ class UtbetalingDTOKorrigeringTest {
                   },
                   {
                     "beløp": 298,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2025-01-13",
                     "tilOgMedDato": "2025-01-16",
                     "stønadsdata": {
@@ -247,7 +247,7 @@ class UtbetalingDTOKorrigeringTest {
                 "utbetalinger": [
                   {
                     "beløp": 298,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2025-01-06",
                     "tilOgMedDato": "2025-01-09",
                     "stønadsdata": {
@@ -259,7 +259,7 @@ class UtbetalingDTOKorrigeringTest {
                   },
                   {
                     "beløp": 298,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2025-01-13",
                     "tilOgMedDato": "2025-01-16",
                     "stønadsdata": {
@@ -271,7 +271,7 @@ class UtbetalingDTOKorrigeringTest {
                   },
                   {
                     "beløp": 298,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2025-01-20",
                     "tilOgMedDato": "2025-01-24",
                     "stønadsdata": {
@@ -283,7 +283,7 @@ class UtbetalingDTOKorrigeringTest {
                   },
                   {
                     "beløp": 298,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2025-01-27",
                     "tilOgMedDato": "2025-01-31",
                     "stønadsdata": {
@@ -375,7 +375,7 @@ class UtbetalingDTOKorrigeringTest {
                 "utbetalinger": [
                   {
                     "beløp": 298,
-                    "satstype": "DAGLIG_INKL_HELG",
+                    "satstype": "DAGLIG",
                     "fraOgMedDato": "2025-01-06",
                     "tilOgMedDato": "2025-01-10",
                     "stønadsdata": {
