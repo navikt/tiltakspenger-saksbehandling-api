@@ -16,7 +16,7 @@ fun Route.sakRoutes(
     clock: Clock,
     tilgangskontrollService: TilgangskontrollService,
 ) {
-    hentSakForFnrRoute(sakService, auditService, clock, tilgangskontrollService)
+    hentSakRoute(sakService, auditService, clock, tilgangskontrollService)
     hentSakForSaksnummerRoute(sakService, auditService, clock, tilgangskontrollService)
     hentEllerOpprettSakRoute(sakService)
     // TODO jah: Denne føles litt malplassert.

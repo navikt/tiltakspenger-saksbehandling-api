@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
@@ -9,6 +8,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.UgyldigFnrException
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
@@ -24,9 +24,14 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutte
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 
-fun Route.hentSakForFnrRoute(
+/**
+ *  Brukes i hovedsak til å slå opp sak på fnr fra frontend, men vi støtter også søk på saksnummer eller sak-id
+ * */
+fun Route.hentSakRoute(
     sakService: SakService,
     auditService: AuditService,
     clock: Clock,
@@ -39,39 +44,56 @@ fun Route.hentSakForFnrRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withBody<FnrDTO> { body ->
-            val fnr = Either.catch { Fnr.fromString(body.fnr) }.getOrElse {
-                when (it) {
-                    is UgyldigFnrException -> call.respond400BadRequest(
-                        melding = "Forventer at fødselsnummeret er 11 siffer",
-                        kode = "ugyldig_fnr",
-                    )
+            val fnrEllerSakIdEllerSaksnummer = body.fnr
 
-                    else -> call.respond500InternalServerError(
-                        melding = "Ukjent feil ved lesing av fødselsnummeret",
-                        kode = "fnr_parsing_feil",
-                    )
-                }
+            val sak: Sak? = Either.catch { Fnr.fromString(fnrEllerSakIdEllerSaksnummer) }.fold(
+                ifRight = { fnr ->
+                    sakService.hentForFnr(fnr)
+                },
+                ifLeft = {
+                    Either.catch {
+                        return@fold sakService.hentForSakId(SakId.fromString(fnrEllerSakIdEllerSaksnummer))
+                    }
+
+                    Either.catch {
+                        return@fold sakService.hentForSaksnummer(Saksnummer(fnrEllerSakIdEllerSaksnummer))
+                    }
+
+                    when (it) {
+                        is UgyldigFnrException -> call.respond400BadRequest(
+                            melding = "Forventer at fødselsnummeret er 11 siffer",
+                            kode = "ugyldig_fnr",
+                        )
+
+                        else -> call.respond500InternalServerError(
+                            melding = "Ukjent feil ved lesing av fødselsnummeret",
+                            kode = "fnr_parsing_feil",
+                        )
+                    }
+                    return@withBody
+                },
+            )
+
+            if (sak == null) {
+                call.respond404NotFound(Standardfeil.fantIkkeFnr())
                 return@withBody
             }
+
             val correlationId = call.correlationId()
+            val fnr = sak.fnr
+
             krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
             tilgangskontrollService.harTilgangTilPerson(fnr, token, saksbehandler)
 
-            sakService.hentForFnr(fnr).also {
-                auditService.logMedBrukerId(
-                    brukerId = fnr,
-                    navIdent = saksbehandler.navIdent,
-                    action = AuditLogEvent.Action.SEARCH,
-                    contextMessage = "Søker opp alle sakene til brukeren",
-                    correlationId = correlationId,
-                )
-                if (it == null) {
-                    call.respond404NotFound(Standardfeil.fantIkkeFnr())
-                } else {
-                    val sakDTO = it.toSakDTO(clock)
-                    call.respond(message = sakDTO, status = HttpStatusCode.OK)
-                }
-            }
+            auditService.logMedBrukerId(
+                brukerId = fnr,
+                navIdent = saksbehandler.navIdent,
+                action = AuditLogEvent.Action.SEARCH,
+                contextMessage = "Søker opp alle sakene til brukeren",
+                correlationId = correlationId,
+            )
+
+            call.respond(message = sak.toSakDTO(clock), status = HttpStatusCode.OK)
         }
     }
 }

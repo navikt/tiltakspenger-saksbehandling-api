@@ -75,7 +75,7 @@ class ExceptionHandlingTest {
                     setupAuthentication(texasClientMock)
                     routing {
                         authenticate(IdentityProvider.AZUREAD.value) {
-                            hentSakForFnrRoute(
+                            hentSakRoute(
                                 sakService = sakService,
                                 auditService = auditServiceMock,
                                 clock = fixedClock,
