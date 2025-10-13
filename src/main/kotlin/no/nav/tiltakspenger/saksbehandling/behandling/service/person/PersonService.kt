@@ -8,12 +8,13 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
+import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjonRolle
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
-import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 class PersonService(
@@ -60,13 +61,33 @@ class PersonService(
         }
     }
 
+    suspend fun hentForeldrerBarnRelasjoner(fnr: Fnr): Either<KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl, List<ForelderBarnRelasjon>> {
+        return Either.catch {
+            personClient.hentPersonSineForelderBarnRelasjoner(fnr)
+        }.mapLeft {
+            logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved kall mot PDL. Se sikkerlogg for mer kontekst." }
+            Sikkerlogg.error(it) { "Feil ved kall mot PDL for fnr: $fnr." }
+            KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl
+        }
+    }
+
+    suspend fun hentPersoner(fnrs: List<Fnr>): Either<KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl, List<EnkelPerson>> {
+        return Either.catch {
+            personClient.hentPersonBolk(fnrs = fnrs)
+        }.mapLeft {
+            logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved kall mot PDL. Se sikkerlogg for mer kontekst." }
+            Sikkerlogg.error(it) { "Feil ved kall mot PDL for fnr: $fnrs." }
+            KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl
+        }
+    }
+
     suspend fun hentNavn(fnr: Fnr): Navn {
         personClient.hentEnkelPerson(fnr).let {
             return Navn(it.fornavn, it.mellomnavn, it.etternavn)
         }
     }
 
-    suspend fun hentPersonopplysninger(fnr: Fnr): PersonopplysningerSøker {
-        return personClient.hentPerson(fnr)
+    suspend fun hentPersonopplysninger(fnr: Fnr): EnkelPerson {
+        return personClient.hentEnkelPerson(fnr)
     }
 }

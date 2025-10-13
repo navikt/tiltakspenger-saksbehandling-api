@@ -107,7 +107,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.behandlingContext.behandlingRepo.lagre(behandling)
                 tac.leggTilPerson(
                     fnr = sak.fnr,
-                    personopplysningerForBruker = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
+                    person = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
                     tiltaksdeltagelse = behandling.saksopplysninger!!.tiltaksdeltagelser.first(),
                 )
 
@@ -190,7 +190,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.behandlingContext.behandlingRepo.lagre(behandling)
                 tac.leggTilPerson(
                     fnr = sak.fnr,
-                    personopplysningerForBruker = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
+                    person = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
                     tiltaksdeltagelse = behandling.saksopplysninger!!.tiltaksdeltagelser.first(),
                 )
 

@@ -14,6 +14,7 @@ import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.forelderbarnrelasjon.ForelderBarnRelasjon
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
@@ -209,12 +210,14 @@ class PersonhendelseServiceTest {
                 )
                 coEvery { personKlient.hentEnkelPerson(fnr) } returns EnkelPerson(
                     fnr = fnr,
+                    fødselsdato = 16.oktober(1995),
                     fornavn = "Fornavn",
                     mellomnavn = null,
                     etternavn = "Etternavn",
                     fortrolig = false,
                     strengtFortrolig = true,
                     strengtFortroligUtland = false,
+                    dødsdato = null,
                 )
 
                 personhendelseService.behandlePersonhendelse(personhendelse)
@@ -276,12 +279,15 @@ class PersonhendelseServiceTest {
                 )
                 coEvery { personKlient.hentEnkelPerson(fnr) } returns EnkelPerson(
                     fnr = fnr,
+
+                    fødselsdato = 16.oktober(1995),
                     fornavn = "Fornavn",
                     mellomnavn = null,
                     etternavn = "Etternavn",
                     fortrolig = false,
                     strengtFortrolig = false,
                     strengtFortroligUtland = false,
+                    dødsdato = null,
                 )
 
                 personhendelseService.behandlePersonhendelse(personhendelse)
