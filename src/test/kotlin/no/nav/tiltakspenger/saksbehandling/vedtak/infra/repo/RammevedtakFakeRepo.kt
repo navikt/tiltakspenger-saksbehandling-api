@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
@@ -67,6 +68,14 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
 
     override fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime) {
         data.get()[id] = data.get()[id]!!.copy(sendtTilDatadeling = tidspunkt)
+    }
+
+    override fun markerOmgjortAv(
+        vedtakId: VedtakId,
+        omgjortAvRammevedtakId: VedtakId,
+        sessionContext: SessionContext?,
+    ) {
+        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(omgjortAvRammevedtakId = omgjortAvRammevedtakId)
     }
 
     fun hentForSakId(sakId: SakId): Rammevedtaksliste =

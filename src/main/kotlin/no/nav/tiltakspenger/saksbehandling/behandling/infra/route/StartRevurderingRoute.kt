@@ -9,6 +9,7 @@ import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -68,6 +69,7 @@ fun Route.startRevurderingRoute(
 
 private data class StartRevurderingBody(
     val revurderingType: BehandlingResultatDTO,
+    val rammevedtakIdSomOmgjøres: String? = null,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -79,6 +81,7 @@ private data class StartRevurderingBody(
             correlationId = correlationId,
             saksbehandler = saksbehandler,
             revurderingType = revurderingType.tilRevurderingType(),
+            vedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres?.let { VedtakId.fromString(it) },
         )
     }
 }

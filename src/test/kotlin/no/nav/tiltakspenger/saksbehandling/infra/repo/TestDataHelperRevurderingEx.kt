@@ -6,6 +6,7 @@ import arrow.core.nonEmptyListOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
@@ -51,6 +52,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
         s ?: this.persisterIverksattSøknadsbehandling().first
     },
     revurderingType: RevurderingType = RevurderingType.STANS,
+    vedtakIdSomOmgjøres: VedtakId? = null,
 ): Pair<Sak, Revurdering> {
     val sakMedVedtak = genererSak(sak)
 
@@ -61,6 +63,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
                 revurderingType = revurderingType,
+                vedtakIdSomOmgjøres = vedtakIdSomOmgjøres,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,

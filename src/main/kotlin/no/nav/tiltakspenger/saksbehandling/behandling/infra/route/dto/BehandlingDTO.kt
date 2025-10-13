@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -25,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.Tiltaks
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import java.time.LocalDateTime
 
 sealed interface BehandlingDTO {
@@ -101,7 +103,8 @@ data class RevurderingDTO(
     val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
     val harValgtStansFraFørsteDagSomGirRett: Boolean?,
     val harValgtStansTilSisteDagSomGirRett: Boolean?,
-
+    val omgjørVedtak: String?,
+    val innvilgelsesperiode: PeriodeDTO?,
 ) : BehandlingDTO {
     override val type = BehandlingstypeDTO.REVURDERING
 }
@@ -197,23 +200,29 @@ fun Revurdering.tilRevurderingDTO(
         valgteTiltaksdeltakelser = null,
         antallDagerPerMeldeperiode = null,
         barnetillegg = null,
+        omgjørVedtak = null,
+        innvilgelsesperiode = null,
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
         harValgtStansFraFørsteDagSomGirRett = (this.resultat as? RevurderingResultat.Stans)?.let { this.resultat.harValgtStansFraFørsteDagSomGirRett },
         harValgtStansTilSisteDagSomGirRett = (this.resultat as? RevurderingResultat.Stans)?.let { this.resultat.harValgtStansTilSisteDagSomGirRett },
     ).let {
         when (resultat) {
+            is RevurderingResultat.Omgjøring -> it.copy(
+                barnetillegg = resultat.barnetillegg?.toBarnetilleggDTO(),
+                valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser?.tilDTO(),
+                antallDagerPerMeldeperiode = resultat.antallDagerPerMeldeperiode?.toDTO(),
+                omgjørVedtak = resultat.omgjørRammevedtak.id.toString(),
+                innvilgelsesperiode = resultat.innvilgelsesperiode.toDTO(),
+                virkningsperiode = resultat.omgjøringsperiode.toDTO(),
+            )
+
             is RevurderingResultat.Stans -> it.copy(
                 valgtHjemmelHarIkkeRettighet = resultat.valgtHjemmel.toDTO(this.behandlingstype),
             )
 
             is RevurderingResultat.Innvilgelse -> it.copy(
-                antallDagerPerMeldeperiode = resultat.antallDagerPerMeldeperiode?.perioderMedVerdi?.map {
-                    AntallDagerPerMeldeperiodeDTO(
-                        antallDagerPerMeldeperiode = it.verdi.value,
-                        periode = it.periode.toDTO(),
-                    )
-                },
+                antallDagerPerMeldeperiode = resultat.antallDagerPerMeldeperiode?.toDTO(),
                 barnetillegg = resultat.barnetillegg?.toBarnetilleggDTO(),
                 valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser?.tilDTO(),
             )

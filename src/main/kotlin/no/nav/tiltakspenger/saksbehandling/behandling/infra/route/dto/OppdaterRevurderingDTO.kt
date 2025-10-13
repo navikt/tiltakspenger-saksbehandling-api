@@ -30,6 +30,7 @@ import kotlin.collections.List
 @JsonSubTypes(
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.Innvilgelse::class, name = "REVURDERING_INNVILGELSE"),
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.Stans::class, name = "STANS"),
+    JsonSubTypes.Type(value = OppdaterRevurderingDTO.Omgjøring::class, name = "OMGJØRING"),
 )
 sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
 
@@ -81,7 +82,51 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                         it.periode.toDomain(),
                     )
                 }.tilSammenhengendePeriodisering(),
+            )
+        }
+    }
 
+    data class Omgjøring(
+        override val fritekstTilVedtaksbrev: String?,
+        override val begrunnelseVilkårsvurdering: String?,
+        val innvilgelsesperiode: PeriodeDTO,
+        val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+        val barnetillegg: BarnetilleggDTO,
+        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO> = listOf(
+            AntallDagerPerMeldeperiodeDTO(
+                periode = innvilgelsesperiode,
+                antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+            ),
+        ),
+    ) : OppdaterRevurderingDTO {
+        override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.REVURDERING_INNVILGELSE
+
+        override fun tilDomene(
+            sakId: SakId,
+            behandlingId: BehandlingId,
+            saksbehandler: Saksbehandler,
+            correlationId: CorrelationId,
+        ): OppdaterRevurderingKommando.Omgjøring {
+            val innvilgelsesperiode = innvilgelsesperiode.toDomain()
+
+            return OppdaterRevurderingKommando.Omgjøring(
+                sakId = sakId,
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering(saniter(begrunnelseVilkårsvurdering ?: "")),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
+                innvilgelsesperiode = innvilgelsesperiode,
+                tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
+                    Pair(it.periode.toDomain(), it.eksternDeltagelseId)
+                },
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode),
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.map {
+                    PeriodeMedVerdi(
+                        AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
+                        it.periode.toDomain(),
+                    )
+                }.tilSammenhengendePeriodisering(),
             )
         }
     }
@@ -128,6 +173,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
 fun BehandlingResultatDTO.tilRevurderingType(): RevurderingType = when (this) {
     BehandlingResultatDTO.REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
     BehandlingResultatDTO.STANS -> RevurderingType.STANS
+    BehandlingResultatDTO.OMGJØRING -> RevurderingType.OMGJØRING
 
     BehandlingResultatDTO.AVSLAG,
     BehandlingResultatDTO.INNVILGELSE,
@@ -138,4 +184,5 @@ fun BehandlingResultatDTO.tilRevurderingType(): RevurderingType = when (this) {
 fun RevurderingType.tilDTO(): BehandlingResultatDTO = when (this) {
     RevurderingType.STANS -> BehandlingResultatDTO.STANS
     RevurderingType.INNVILGELSE -> BehandlingResultatDTO.REVURDERING_INNVILGELSE
+    RevurderingType.OMGJØRING -> BehandlingResultatDTO.OMGJØRING
 }

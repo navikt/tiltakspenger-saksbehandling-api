@@ -2,13 +2,13 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 
-/**
- * Generell funksjon for å starte revurdering (både innvilgelse og stans)
- */
+/** Generell funksjon for å starte revurdering (stans, forlengelse, omgjøring og opphør) */
 suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
     clock: Clock,
@@ -26,6 +26,14 @@ suspend fun Sak.startRevurdering(
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
+            clock = clock,
+        )
+
+        RevurderingType.OMGJØRING -> startRevurderingOmgjøring(
+            saksbehandler = kommando.saksbehandler,
+            hentSaksopplysninger = hentSaksopplysninger,
+            correlationId = kommando.correlationId,
+            rammevedtakIdSomOmgjøres = kommando.vedtakIdSomOmgjøres!!,
             clock = clock,
         )
     }
@@ -60,6 +68,7 @@ private suspend fun Sak.startRevurderingStans(
     )
 }
 
+// TODO forlengelse jah: Konverter til forlengelse.
 private suspend fun Sak.startRevurderingInnvilgelse(
     saksbehandler: Saksbehandler,
     hentSaksopplysninger: HentSaksopplysninger,
@@ -84,5 +93,32 @@ private suspend fun Sak.startRevurderingInnvilgelse(
             false,
         ),
         clock = clock,
+    )
+}
+
+private suspend fun Sak.startRevurderingOmgjøring(
+    saksbehandler: Saksbehandler,
+    hentSaksopplysninger: HentSaksopplysninger,
+    correlationId: CorrelationId,
+    rammevedtakIdSomOmgjøres: VedtakId,
+    clock: Clock,
+): Revurdering {
+    require(this.erRammevedtakGjeldendeForHeleSinPeriode(rammevedtakIdSomOmgjøres)) {
+        "I første versjon, kan man kun omgjøre et rammevedtak som er gjeldende for hele sin periode."
+    }
+    val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
+    return Revurdering.opprettOmgjøring(
+        saksbehandler = saksbehandler,
+        saksopplysninger = hentSaksopplysninger(
+            fnr,
+            correlationId,
+            this.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+            // TODO jah: På sikt er det mer presist at saksbehandler velger disse når hen starter en revurdering innvilgelse.
+            //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
+            this.tiltaksdeltagelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
+            false,
+        ),
+        clock = clock,
+        omgjørRammevedtak = gjeldendeRammevedtak,
     )
 }

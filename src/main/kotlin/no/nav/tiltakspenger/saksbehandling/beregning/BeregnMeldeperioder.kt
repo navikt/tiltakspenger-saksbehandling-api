@@ -309,6 +309,26 @@ fun Sak.beregnInnvilgelse(
 }
 
 /**
+ *  Beregner en behandling der kun deler av virkningsperioden er innvilget.
+ *
+ *  @param behandlingId Søknadsbehandling eller revurdering.
+ *  @param virkningsperiode innvilgelseperioden for søknadsbehandling/endrings-revurdering
+ */
+fun Sak.beregnOmgjøring(
+    behandlingId: BehandlingId,
+    virkningsperiode: Periode,
+    innvilgelsesperiode: Periode,
+    barnetilleggsperioder: Periodisering<AntallBarn>,
+): Beregning? {
+    return beregnRammebehandling(
+        behandlingId = behandlingId,
+        virkningsperiode = virkningsperiode,
+        innvilgelsesperioder = listOf(innvilgelsesperiode),
+        nyeBarnetilleggsperioder = barnetilleggsperioder,
+    )
+}
+
+/**
  *  Beregner perioden for en rammebehandling på nytt
  *
  *  @param virkningsperiode Hele perioden som omfattes av behandlingen.

@@ -2,13 +2,18 @@ package no.nav.tiltakspenger.saksbehandling.vedtak
 
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.felles.max
+import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -50,6 +55,9 @@ data class Rammevedtaksliste(
      */
     val tidslinje: Periodisering<Rammevedtak> by lazy {
         verdi.filter {
+            // Fjerner alle vedtak som er omgjort av et annet vedtak.
+            it.omgjortAvRammevedtakId == null
+        }.filter {
             when (it.vedtakstype) {
                 Vedtakstype.INNVILGELSE,
                 Vedtakstype.STANS,
@@ -71,7 +79,19 @@ data class Rammevedtaksliste(
     }
 
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
-        tidslinje.filter { it.verdi.vedtakstype == Vedtakstype.INNVILGELSE }
+        tidslinje.filter {
+            it.verdi.vedtakstype == Vedtakstype.INNVILGELSE
+        }.perioderMedVerdi.map {
+            // TODO jah: Mangler en mapKeys (perioden) i libs.
+            PeriodeMedVerdi(
+                it.verdi,
+                Periode(
+                    // I en omgjøring kan innvilgelsesperioden være mindre enn vedtaksperioden/virkningsperioden (resten av perioden vil implisitt være opphørt/ikke gi rett), dette må vi ta høyde for.
+                    max(it.periode.fraOgMed, it.verdi.innvilgelsesperiode!!.fraOgMed),
+                    min(it.periode.tilOgMed, it.verdi.innvilgelsesperiode!!.tilOgMed),
+                ),
+            )
+        }.tilPeriodisering()
     }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den første innvilget dagen. */

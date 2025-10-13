@@ -8,7 +8,10 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -16,7 +19,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
@@ -31,10 +36,14 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
@@ -350,6 +359,82 @@ class OppdaterBehandlingRouteTest {
                 ),
                 forventetStatus = HttpStatusCode.InternalServerError,
             )
+        }
+    }
+
+    @Test
+    fun `revurdering til omgjøring - kan oppdatere behandlingen etter saksopplysninger har endret seg`() {
+        withTestApplicationContext { tac ->
+            // Omgjøringen starter med at tiltaksdeltagelsesperioden er endret siden søknadsvedtaket.
+            val (sak, _, søknadsbehandling, revurdering) = startRevurderingOmgjøring(tac)
+            val tiltaksdeltagelseVedOpprettelseAvRevurdering = revurdering.saksopplysninger.tiltaksdeltagelser.first()
+            val nyOmgjøringsperiodeEtterOppdatering = (3 til 9.april(2025))
+            val avbruttTiltaksdeltagelse = tiltaksdeltagelseVedOpprettelseAvRevurdering.copy(
+                deltagelseFraOgMed = tiltaksdeltagelseVedOpprettelseAvRevurdering.deltagelseFraOgMed!!,
+                deltagelseTilOgMed = tiltaksdeltagelseVedOpprettelseAvRevurdering.deltagelseTilOgMed!!.minusDays(1),
+                deltakelseStatus = TiltakDeltakerstatus.Avbrutt,
+            )
+            // Under behandlingen endrer tiltaksdeltakelsen seg igjen.
+            tac.oppdaterTiltaksdeltagelse(fnr = sak.fnr, tiltaksdeltagelse = avbruttTiltaksdeltagelse)
+            val (_, revurderingMedOppdatertSaksopplysninger: Rammebehandling) = oppdaterSaksopplysningerForBehandlingId(
+                tac,
+                sak.id,
+                revurdering.id,
+            )
+            (revurderingMedOppdatertSaksopplysninger as Revurdering).erFerdigutfylt() shouldBe false
+            val antallDagerPerMeldeperiodeForPerioder = listOf(
+                AntallDagerPerMeldeperiodeDTO(
+                    periode = nyOmgjøringsperiodeEtterOppdatering.toDTO(),
+                    antallDagerPerMeldeperiode = 10,
+                ),
+            )
+            val barnetillegg = Barnetillegg.utenBarnetillegg((3 til 9.april(2025))).toBarnetilleggDTO()
+            val valgteTiltaksdeltakelser = listOf(
+                TiltaksdeltakelsePeriodeDTO(
+                    eksternDeltagelseId = avbruttTiltaksdeltagelse.eksternDeltagelseId,
+                    periode = nyOmgjøringsperiodeEtterOppdatering.toDTO(),
+                ),
+            )
+            val (_, oppdatertRevurdering) = oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Omgjøring(
+                    fritekstTilVedtaksbrev = "asdf",
+                    begrunnelseVilkårsvurdering = null,
+                    valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
+                    innvilgelsesperiode = nyOmgjøringsperiodeEtterOppdatering.toDTO(),
+                    barnetillegg = barnetillegg,
+                    antallDagerPerMeldeperiodeForPerioder = antallDagerPerMeldeperiodeForPerioder,
+                ),
+                forventetStatus = HttpStatusCode.OK,
+            )
+            (oppdatertRevurdering as Revurdering).erFerdigutfylt() shouldBe true
+            // Forventer at saksopplysningene er oppdatert, mens resultatet er ubesudlet.
+            oppdatertRevurdering.saksopplysninger.tiltaksdeltagelser.single() shouldBe avbruttTiltaksdeltagelse
+            val resultat = oppdatertRevurdering.resultat as RevurderingResultat.Omgjøring
+            // Kommentar jah: Beklager for alt todomain-greiene. Her bør det expectes på eksplisitte verdier uten å bruke domenekode for mapping.
+            resultat.barnetillegg shouldBe barnetillegg.tilBarnetillegg(oppdatertRevurdering.innvilgelsesperiode!!)
+            resultat.antallDagerPerMeldeperiode shouldBe antallDagerPerMeldeperiodeForPerioder.map {
+                PeriodeMedVerdi(
+                    AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
+                    it.periode.toDomain(),
+                )
+            }.tilSammenhengendePeriodisering()
+            resultat.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser.periodiser(
+                tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
+                    Pair(it.periode.toDomain(), it.eksternDeltagelseId)
+                },
+                behandling = oppdatertRevurdering,
+            )
+            oppdatertRevurdering.virkningsperiode shouldBe søknadsbehandling.virkningsperiode
+            resultat.virkningsperiode shouldBe søknadsbehandling.virkningsperiode
+            resultat.omgjøringsperiode shouldBe søknadsbehandling.virkningsperiode
+            resultat.innvilgelsesperiode shouldBe nyOmgjøringsperiodeEtterOppdatering
+            oppdatertRevurdering.utbetaling shouldBe null
+
+            // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
+            tac.sakContext.sakService.hentForSakId(sakId = revurdering.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering
         }
     }
 }

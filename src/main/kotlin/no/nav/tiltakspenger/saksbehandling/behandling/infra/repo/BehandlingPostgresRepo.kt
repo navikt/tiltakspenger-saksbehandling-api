@@ -9,6 +9,8 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -38,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeB
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
@@ -48,6 +51,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFraDbJson
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 
@@ -458,6 +462,19 @@ class BehandlingPostgresRepo(
                             antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
                             innvilgelsesperiode = virkningsperiode,
                         )
+
+                        RevurderingType.OMGJØRING -> RevurderingResultat.Omgjøring(
+                            omgjøringsperiode = virkningsperiode!!,
+                            innvilgelsesperiode = deserialize<PeriodeDbJson>("innvilgelsesperiode").toDomain(),
+                            valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
+                                .toValgteTiltaksdeltakelser(saksopplysninger),
+                            barnetillegg = string("barnetillegg").toBarnetillegg(),
+                            antallDagerPerMeldeperiode = string("antall_dager_per_meldeperiode").toAntallDagerForMeldeperiode(),
+                            omgjørRammevedtak = RammevedtakPostgresRepo.hentForVedtakId(
+                                vedtakId = VedtakId.fromString(string("omgjør_rammevedtak_id")),
+                                session = session,
+                            )!!,
+                        )
                     }
 
                     return Revurdering(
@@ -542,7 +559,9 @@ class BehandlingPostgresRepo(
                 navkontor,
                 navkontor_navn,
                 har_valgt_stans_fra_første_dag_som_gir_rett,
-                har_valgt_stans_til_siste_dag_som_gir_rett
+                har_valgt_stans_til_siste_dag_som_gir_rett,
+                innvilgelsesperiode,
+                omgjør_rammevedtak_id
             ) values (
                 :id,
                 :sak_id,
@@ -581,7 +600,9 @@ class BehandlingPostgresRepo(
                 :navkontor,
                 :navkontor_navn,
                 :har_valgt_stans_fra_forste_dag_som_gir_rett,
-                :har_valgt_stans_til_siste_dag_som_gir_rett
+                :har_valgt_stans_til_siste_dag_som_gir_rett,
+                to_jsonb(:innvilgelsesperiode::jsonb),
+                :omgjorRammevedtak
             )
             """.trimIndent()
 
@@ -623,7 +644,9 @@ class BehandlingPostgresRepo(
                 navkontor = :navkontor,
                 navkontor_navn = :navkontor_navn,
                 har_valgt_stans_fra_første_dag_som_gir_rett = :har_valgt_stans_fra_forste_dag_som_gir_rett,
-                har_valgt_stans_til_siste_dag_som_gir_rett = :har_valgt_stans_til_siste_dag_som_gir_rett
+                har_valgt_stans_til_siste_dag_som_gir_rett = :har_valgt_stans_til_siste_dag_som_gir_rett,
+                innvilgelsesperiode = to_jsonb(:innvilgelsesperiode::jsonb),
+                omgjør_rammevedtak_id = :omgjorRammevedtak
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -757,6 +780,7 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "simulering" to this.utbetaling?.simulering?.toDbJson(),
         "navkontor" to this.utbetaling?.navkontor?.kontornummer,
         "navkontor_navn" to this.utbetaling?.navkontor?.kontornavn,
+
         *this.resultat.tilDbParams(),
     )
 }
@@ -764,6 +788,14 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
 private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when (this) {
     is SøknadsbehandlingResultat.Avslag -> arrayOf(
         "avslagsgrunner" to this.avslagsgrunner.toDb(),
+    )
+
+    is RevurderingResultat.Omgjøring -> arrayOf(
+        "barnetillegg" to this.barnetillegg?.toDbJson(),
+        "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
+        "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode?.toDbJson(),
+        "innvilgelsesperiode" to this.innvilgelsesperiode.toDbJson(),
+        "omgjorRammevedtak" to this.omgjørRammevedtak.id.toString(),
     )
 
     is BehandlingResultat.Innvilgelse -> arrayOf(

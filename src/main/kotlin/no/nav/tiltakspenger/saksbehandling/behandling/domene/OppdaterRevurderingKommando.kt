@@ -115,4 +115,18 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse
+
+    data class Omgjøring(
+        override val sakId: SakId,
+        override val behandlingId: BehandlingId,
+        override val saksbehandler: Saksbehandler,
+        override val correlationId: CorrelationId,
+        override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
+        override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+        override val innvilgelsesperiode: Periode,
+        override val tiltaksdeltakelser: List<Pair<Periode, String>>,
+        override val barnetillegg: Barnetillegg,
+        override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
+    ) : OppdaterRevurderingKommando,
+        OppdaterBehandlingKommando.Innvilgelse
 }

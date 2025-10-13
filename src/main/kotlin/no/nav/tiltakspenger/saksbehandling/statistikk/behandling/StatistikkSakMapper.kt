@@ -42,6 +42,7 @@ fun genererSaksstatistikkForRammevedtak(
         // TODO jah: I følge confluence-dokken så finner jeg ikke dette feltet. Burde det heller vært AVSLUTTET?
         behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,
         behandlingResultat = when (vedtak.vedtakstype) {
+            // I førsteomgang mapper vi bare delvis til innvilgelse.
             Vedtakstype.INNVILGELSE -> StatistikkBehandlingResultat.INNVILGET
             Vedtakstype.STANS -> StatistikkBehandlingResultat.STANS
             Vedtakstype.AVSLAG -> StatistikkBehandlingResultat.AVSLAG

@@ -65,6 +65,9 @@ data class Søknadsbehandling(
 
     override val virkningsperiode = resultat?.virkningsperiode
 
+    /** Vil være null ved avslag og ved innvilgelse frem til saksbehandler har valgt innvilgelsesperioden */
+    override val innvilgelsesperiode = (resultat as? Innvilgelse)?.innvilgelsesperiode
+
     override val antallDagerPerMeldeperiode = resultat?.antallDagerPerMeldeperiode
 
     override val barnetillegg = resultat?.barnetillegg
@@ -80,7 +83,7 @@ data class Søknadsbehandling(
             KLAR_TIL_BESLUTNING,
             UNDER_BESLUTNING,
             VEDTATT,
-            -> require(resultat!!.erFerdigutfylt) {
+            -> require(resultat!!.erFerdigutfylt(saksopplysninger)) {
                 "Behandlingsresultatet må være ferdigutfylt når status er $status"
             }
 
@@ -127,7 +130,7 @@ data class Søknadsbehandling(
             automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
             utbetaling = utbetaling,
         ).also {
-            require(it.resultat?.erFerdigutfylt != false) {
+            require(it.resultat?.erFerdigutfylt(saksopplysninger) != false) {
                 "Behandlingsresultatet må være ferdigutfylt etter vi oppdaterer søknadsbehandlingen"
             }
         }.right()

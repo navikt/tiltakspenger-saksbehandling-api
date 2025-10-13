@@ -44,6 +44,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         sendtTilDatadeling: LocalDateTime? = null,
         brevJson: String? = null,
         forrigeUtbetalingId: UtbetalingId? = null,
+        omgjortAvRammevedtakId: VedtakId? = null,
     ) = Rammevedtak(
         id = id,
         opprettet = opprettet,
@@ -63,6 +64,7 @@ interface RammevedtakMother : MotherOfAllMothers {
             opprettet = opprettet,
             forrigeUtbetalingId = forrigeUtbetalingId,
         ),
+        omgjortAvRammevedtakId = omgjortAvRammevedtakId,
     )
 
     fun nyRammevedtakInnvilgelse(

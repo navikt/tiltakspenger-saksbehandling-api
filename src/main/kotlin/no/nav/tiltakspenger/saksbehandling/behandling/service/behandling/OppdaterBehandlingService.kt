@@ -12,10 +12,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnOmgjøring
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -71,6 +73,13 @@ class OppdaterBehandlingService(
                 virkningsperiode = kommando.innvilgelsesperiode,
                 barnetilleggsperioder = kommando.barnetillegg.periodisering,
             )
+            is OppdaterRevurderingKommando.Omgjøring,
+            -> this.beregnOmgjøring(
+                behandlingId = kommando.behandlingId,
+                virkningsperiode = (behandling.resultat as RevurderingResultat.Omgjøring).omgjøringsperiode,
+                innvilgelsesperiode = kommando.innvilgelsesperiode,
+                barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            )
 
             is OppdaterRevurderingKommando.Stans -> this.beregnRevurderingStans(
                 behandlingId = kommando.behandlingId,
@@ -119,6 +128,13 @@ class OppdaterBehandlingService(
         val revurdering: Revurdering = this.hentRammebehandling(kommando.behandlingId) as Revurdering
 
         return when (kommando) {
+            is OppdaterRevurderingKommando.Omgjøring -> {
+                revurdering.oppdaterOmgjøring(
+                    kommando = kommando,
+                    utbetaling = utbetaling,
+                    clock = clock,
+                )
+            }
             is OppdaterRevurderingKommando.Innvilgelse -> {
                 revurdering.oppdaterInnvilgelse(
                     kommando = kommando,

@@ -69,6 +69,7 @@ sealed interface Rammebehandling : Behandling {
     val venterTil: LocalDateTime?
     val resultat: BehandlingResultat?
     val virkningsperiode: Periode?
+    val innvilgelsesperiode: Periode?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
 
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
