@@ -83,7 +83,7 @@ class PersonHttpklient(
     private fun hentPersonBolkQuery(fnrs: List<Fnr>): GraphqlQuery {
         return GraphqlQuery(
             query = getResource("/pdl/hentPersonBolk.graphql"),
-            variables = mapOf("identer" to fnrs.joinToString(separator = ",", prefix = "[", postfix = "]")),
+            variables = mapOf("identer" to fnrs.joinToString(separator = ",")),
         )
     }
 
