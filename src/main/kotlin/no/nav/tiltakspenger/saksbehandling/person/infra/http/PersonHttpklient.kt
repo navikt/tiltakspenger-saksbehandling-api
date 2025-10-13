@@ -80,10 +80,10 @@ class PersonHttpklient(
     /**
      * Query for å hente informasjon om en forelder/barn relasjoner for person fra PersonDataLøsningen (PDL)
      */
-    private fun hentPersonBolkQuery(fnrs: List<Fnr>): GraphqlQuery {
-        return GraphqlQuery(
+    private fun hentPersonBolkQuery(fnrs: List<Fnr>): GraphqlBolkQuery {
+        return GraphqlBolkQuery(
             query = getResource("/pdl/hentPersonBolk.graphql"),
-            variables = mapOf("identer" to fnrs.joinToString(separator = ",")),
+            variables = mapOf("identer" to fnrs.map { it.verdi }),
         )
     }
 
@@ -91,3 +91,8 @@ class PersonHttpklient(
         return requireNotNull(PersonHttpklient::class.java.getResource(path)).readText()
     }
 }
+
+data class GraphqlBolkQuery(
+    val query: String,
+    val variables: Map<String, List<String>>,
+)

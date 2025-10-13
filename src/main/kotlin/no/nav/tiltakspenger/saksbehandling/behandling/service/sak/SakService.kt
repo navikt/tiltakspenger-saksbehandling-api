@@ -112,7 +112,6 @@ class SakService(
             .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }
 
         logger.debug { "Fant ${forelderBarnRelasjoner.size} relasjoner for person" }
-
         val barnasFnrs = forelderBarnRelasjoner
             .filter { it.relatertPersonsRolle == ForelderBarnRelasjonRolle.BARN }
             .mapNotNull { it.relatertPersonsIdent?.let { ident -> Fnr.fromString(ident) } }
