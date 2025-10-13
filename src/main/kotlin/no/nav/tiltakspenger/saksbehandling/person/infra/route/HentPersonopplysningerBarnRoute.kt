@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
 
-fun Route.hentBarnRoute(
+fun Route.hentPersonopplysningerBarnRoute(
     sakService: SakService,
     auditService: AuditService,
 ) {

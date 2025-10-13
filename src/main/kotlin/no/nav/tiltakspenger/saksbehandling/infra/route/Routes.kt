@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.healthRoutes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.meldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonRoute
+import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonopplysningerBarnRoute
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.sakRoutes
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.route.meRoute
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.søknadRoutes
@@ -45,6 +46,10 @@ fun Route.routes(
             benkOversiktService = applicationContext.benkOversiktContext.benkOversiktService,
         )
         hentPersonRoute(
+            applicationContext.sakContext.sakService,
+            applicationContext.personContext.auditService,
+        )
+        hentPersonopplysningerBarnRoute(
             applicationContext.sakContext.sakService,
             applicationContext.personContext.auditService,
         )
