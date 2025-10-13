@@ -111,6 +111,8 @@ class SakService(
         val forelderBarnRelasjoner = personService.hentForeldrerBarnRelasjoner(fnr)
             .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }
 
+        logger.debug { "Fant ${forelderBarnRelasjoner.size} relasjoner for person" }
+
         val barnasFnrs = forelderBarnRelasjoner
             .filter { it.relatertPersonsRolle == ForelderBarnRelasjonRolle.BARN }
             .mapNotNull { it.relatertPersonsIdent?.let { ident -> Fnr.fromString(ident) } }
@@ -120,12 +122,15 @@ class SakService(
         if (barnasFnrs.isNullOrEmpty()) {
             return emptyList<BarnMedSkjerming>().right()
         }
+        logger.debug { "Fant ${barnasFnrs.size} unike barn for person" }
 
         val erBarnSkjermet = fellesSkjermingsklient.erSkjermetPersoner(barnasFnrs, correlationId)
             .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotSkjerming.left() }
 
-        val barn = personService.hentPersoner(fnr)
+        val barn = personService.hentPersoner(barnasFnrs)
             .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }
+
+        logger.debug { "Fant ${barn.size} barn for person" }
 
         val barnMedSkjerming = barn.map { barn ->
             val erSkjermet = erBarnSkjermet[barn.fnr] ?: false

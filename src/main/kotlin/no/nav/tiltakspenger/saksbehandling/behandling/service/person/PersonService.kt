@@ -71,20 +71,12 @@ class PersonService(
         }
     }
 
-    suspend fun hentPersoner(fnr: Fnr): Either<KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl, List<EnkelPerson>> {
+    suspend fun hentPersoner(fnrs: List<Fnr>): Either<KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl, List<EnkelPerson>> {
         return Either.catch {
-            val forelderBarnRelasjoener = personClient.hentPersonSineForelderBarnRelasjoner(fnr)
-            val barnasFnrs = forelderBarnRelasjoener
-                .filter { relasjon -> relasjon.relatertPersonsRolle == ForelderBarnRelasjonRolle.BARN }
-                .mapNotNull { barn ->
-                    barn.relatertPersonsIdent
-                        ?.let { ident -> Fnr.fromString(ident) }
-                }
-                .distinct()
-            personClient.hentPersonBolk(fnrs = barnasFnrs)
+            personClient.hentPersonBolk(fnrs = fnrs)
         }.mapLeft {
             logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved kall mot PDL. Se sikkerlogg for mer kontekst." }
-            Sikkerlogg.error(it) { "Feil ved kall mot PDL for fnr: $fnr." }
+            Sikkerlogg.error(it) { "Feil ved kall mot PDL for fnr: $fnrs." }
             KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl
         }
     }
