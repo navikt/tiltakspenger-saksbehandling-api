@@ -31,4 +31,6 @@ interface RammevedtakRepo {
     fun hentRammevedtakTilDatadeling(limit: Int = 10): List<Rammevedtak>
 
     fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime)
+
+    fun markerOmgjortAv(vedtakId: VedtakId, omgjortAvRammevedtakId: VedtakId)
 }

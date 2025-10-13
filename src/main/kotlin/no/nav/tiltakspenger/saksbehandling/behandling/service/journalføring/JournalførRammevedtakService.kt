@@ -41,7 +41,7 @@ class JournalførRammevedtakService(
                 Either.catch {
                     val vedtaksdato = LocalDate.now()
                     val pdfOgJson = when (vedtak.vedtakstype) {
-                        Vedtakstype.INNVILGELSE -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+                        Vedtakstype.INNVILGELSE, Vedtakstype.DELVIS_INNVILGELSE -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
                             tilleggstekst = vedtak.behandling.fritekstTilVedtaksbrev,

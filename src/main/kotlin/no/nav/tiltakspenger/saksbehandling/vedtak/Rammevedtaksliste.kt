@@ -2,11 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.vedtak
 
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
@@ -49,10 +52,14 @@ data class Rammevedtaksliste(
      * Og [no.nav.tiltakspenger.libs.periodisering.IkkesammenhengendePeriodisering] dersom vi får en ny innvilgelse som ikke overlapper med den første.
      */
     val tidslinje: Periodisering<Rammevedtak> by lazy {
-        verdi.filter {
+        verdi.filterNot {
+            // Fjerner alle vedtak som er omgjort av et annet vedtak.
+            it.omgjortAvRammevedtakId != null
+        }.filter {
             when (it.vedtakstype) {
                 Vedtakstype.INNVILGELSE,
                 Vedtakstype.STANS,
+                Vedtakstype.DELVIS_INNVILGELSE,
                 -> true
 
                 Vedtakstype.AVSLAG -> false
@@ -71,7 +78,17 @@ data class Rammevedtaksliste(
     }
 
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
-        tidslinje.filter { it.verdi.vedtakstype == Vedtakstype.INNVILGELSE }
+        tidslinje.filter {
+            it.verdi.vedtakstype == Vedtakstype.INNVILGELSE || it.verdi.vedtakstype == Vedtakstype.DELVIS_INNVILGELSE
+        }.perioderMedVerdi.map {
+            // TODO jah: Mangler en mapKeys (perioden) i libs.
+            if (it.verdi.vedtakstype == Vedtakstype.DELVIS_INNVILGELSE) {
+                // For delvis innvilgelse, krymper vi perioden til kun innvilgede dager.
+                PeriodeMedVerdi(it.verdi, it.verdi.innvilgelsesperiode!!)
+            } else {
+                it
+            }
+        }.tilPeriodisering()
     }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den første innvilget dagen. */

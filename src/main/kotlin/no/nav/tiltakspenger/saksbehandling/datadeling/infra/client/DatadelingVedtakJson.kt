@@ -24,6 +24,7 @@ private data class DatadelingVedtakJson(
     val opprettet: String,
     val barnetillegg: Barnetillegg?,
     val valgteHjemlerHarIkkeRettighet: List<String>?,
+    val omgjørRammevedtakId: String?,
 ) {
     data class Barnetillegg(
         val perioder: List<BarnetilleggPeriode>,
@@ -57,10 +58,12 @@ fun Rammevedtak.toDatadelingJson(): String {
         vedtakId = this.id.toString(),
         sakId = this.sakId.toString(),
         saksnummer = this.saksnummer.verdi,
+        // TODO omgjøring jah: Hvis vi under omgjøring krymper innvilgelsesperioden, vil den være mindre enn vedtaksperioden som det refereres til her.
         fom = periode.fraOgMed,
         tom = periode.tilOgMed,
+        omgjørRammevedtakId = this.omgjortRammevedtak?.toString(),
         rettighet = when (this.vedtakstype) {
-            Vedtakstype.INNVILGELSE -> {
+            Vedtakstype.INNVILGELSE, Vedtakstype.DELVIS_INNVILGELSE -> {
                 if (barnetillegg?.harBarnetillegg == true) {
                     "TILTAKSPENGER_OG_BARNETILLEGG"
                 } else {
@@ -96,7 +99,7 @@ private fun Barnetillegg.toDatadelingBarnetillegg(): DatadelingVedtakJson.Barnet
 
 private fun Rammevedtak.toValgteHjemlerHarIkkeRettighetListe(): List<String>? {
     return when (this.vedtakstype) {
-        Vedtakstype.INNVILGELSE -> null
+        Vedtakstype.INNVILGELSE, Vedtakstype.DELVIS_INNVILGELSE -> null
         Vedtakstype.STANS -> (this.behandling as Revurdering).toValgteHjemlerHarIkkeRettighetListe()
         Vedtakstype.AVSLAG -> (this.behandling as Søknadsbehandling).toValgteHjemlerHarIkkeRettighetListe()
     }

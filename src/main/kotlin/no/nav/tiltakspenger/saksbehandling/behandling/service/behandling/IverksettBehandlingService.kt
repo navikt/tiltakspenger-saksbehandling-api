@@ -98,6 +98,7 @@ class IverksettBehandlingService(
     ): Sak {
         return when (vedtak.vedtakstype) {
             Vedtakstype.INNVILGELSE -> iverksett(vedtak, sakStatistikk, stønadStatistikk)
+            Vedtakstype.DELVIS_INNVILGELSE -> iverksett(vedtak, sakStatistikk, stønadStatistikk)
 
             Vedtakstype.AVSLAG -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
@@ -124,7 +125,7 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        require(vedtak.vedtakstype == Vedtakstype.INNVILGELSE || vedtak.vedtakstype == Vedtakstype.STANS) {
+        require(vedtak.vedtakstype == Vedtakstype.INNVILGELSE || vedtak.vedtakstype == Vedtakstype.STANS || vedtak.vedtakstype == Vedtakstype.DELVIS_INNVILGELSE) {
             "Kan kun iverksette innvilgelse eller stans"
         }
 
@@ -147,6 +148,11 @@ class IverksettBehandlingService(
             meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
+
+            if (vedtak.omgjortRammevedtak != null) {
+                // Oppdaterer omgjort vedtak slik at det peker på dette vedtaket
+                rammevedtakRepo.markerOmgjortAv(vedtak.omgjortRammevedtak.id, vedtak.id)
+            }
         }
         return oppdatertSak.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)
     }

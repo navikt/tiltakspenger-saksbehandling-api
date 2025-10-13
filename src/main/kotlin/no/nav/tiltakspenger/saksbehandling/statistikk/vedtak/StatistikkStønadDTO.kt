@@ -55,7 +55,8 @@ enum class VedtakStatistikkResultat {
 
     companion object {
         fun Vedtakstype.toVedtakStatistikkResultat(): VedtakStatistikkResultat = when (this) {
-            Vedtakstype.INNVILGELSE -> Innvilgelse
+            // TODO omgjøring jah: Bør vi skille på innvilgelse og omgjøring til delvis innvilgelse her?
+            Vedtakstype.INNVILGELSE, Vedtakstype.DELVIS_INNVILGELSE -> Innvilgelse
             Vedtakstype.AVSLAG -> Avslag
             Vedtakstype.STANS -> Stans
         }

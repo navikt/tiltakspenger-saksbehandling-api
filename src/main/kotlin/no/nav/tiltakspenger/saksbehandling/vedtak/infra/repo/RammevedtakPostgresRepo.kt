@@ -30,16 +30,7 @@ class RammevedtakPostgresRepo(
 
     override fun hentForVedtakId(vedtakId: VedtakId): Rammevedtak? {
         return sessionFactory.withSession { session ->
-            session.run(
-                queryOf(
-                    "select * from rammevedtak where id = :id",
-                    mapOf(
-                        "id" to vedtakId.toString(),
-                    ),
-                ).map { row ->
-                    row.toVedtak(session)
-                }.asSingle,
-            )
+            hentForVedtakId(vedtakId, session)
         }
     }
 
@@ -216,6 +207,24 @@ class RammevedtakPostgresRepo(
         }
     }
 
+    override fun markerOmgjortAv(vedtakId: VedtakId, omgjortAvRammevedtakId: VedtakId) {
+        sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    """
+                    update rammevedtak
+                    set omgjort_av_rammevedtak_id = :omgjort_av_rammevedtak_id
+                    where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "id" to vedtakId.toString(),
+                        "omgjort_av_rammevedtak_id" to omgjortAvRammevedtakId.toString(),
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
     companion object {
         fun hentForSakId(
             sakId: SakId,
@@ -231,6 +240,22 @@ class RammevedtakPostgresRepo(
                     row.toVedtak(session)
                 }.asList,
             ).let { Rammevedtaksliste(it) }
+        }
+
+        fun hentForVedtakId(
+            vedtakId: VedtakId,
+            session: Session,
+        ): Rammevedtak? {
+            return session.run(
+                queryOf(
+                    "select * from rammevedtak where id = :id",
+                    mapOf(
+                        "id" to vedtakId.toString(),
+                    ),
+                ).map { row ->
+                    row.toVedtak(session)
+                }.asSingle,
+            )
         }
 
         private fun lagreVedtak(
@@ -307,6 +332,7 @@ class RammevedtakPostgresRepo(
                 brevJson = stringOrNull("brev_json"),
                 opprettet = localDateTime("opprettet"),
                 utbetaling = utbetaling,
+                omgjortAvRammevedtakId = stringOrNull("omgjort_av_rammevedtak_id")?.let { VedtakId.fromString(it) },
             )
         }
     }

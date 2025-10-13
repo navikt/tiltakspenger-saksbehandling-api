@@ -14,6 +14,7 @@ enum class BehandlingResultatDTO {
     AVSLAG,
     STANS,
     REVURDERING_INNVILGELSE,
+    OMGJØRING,
     IKKE_VALGT,
     ;
 
@@ -22,6 +23,7 @@ enum class BehandlingResultatDTO {
         AVSLAG -> SøknadsbehandlingType.AVSLAG
         STANS -> RevurderingType.STANS
         REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
+        OMGJØRING -> RevurderingType.OMGJØRING
         IKKE_VALGT -> null
     }
 }
@@ -34,6 +36,7 @@ fun SøknadsbehandlingResultat.tilBehandlingResultatDTO(): BehandlingResultatDTO
 fun RevurderingResultat.tilBehandlingResultatDTO(): BehandlingResultatDTO = when (this) {
     is RevurderingResultat.Stans -> BehandlingResultatDTO.STANS
     is RevurderingResultat.Innvilgelse -> BehandlingResultatDTO.REVURDERING_INNVILGELSE
+    is RevurderingResultat.Omgjøring -> BehandlingResultatDTO.OMGJØRING
 }
 
 fun Rammebehandling.tilBehandlingResultatDTO(): BehandlingResultatDTO? = when (this) {

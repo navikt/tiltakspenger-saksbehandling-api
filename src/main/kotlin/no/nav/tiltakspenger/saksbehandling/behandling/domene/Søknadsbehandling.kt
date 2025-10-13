@@ -79,7 +79,7 @@ data class Søknadsbehandling(
             KLAR_TIL_BESLUTNING,
             UNDER_BESLUTNING,
             VEDTATT,
-            -> require(resultat!!.erFerdigutfylt) {
+            -> require(resultat!!.erFerdigutfylt(saksopplysninger)) {
                 "Behandlingsresultatet må være ferdigutfylt når status er $status"
             }
 
@@ -126,7 +126,7 @@ data class Søknadsbehandling(
             automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
             utbetaling = utbetaling,
         ).also {
-            require(it.resultat?.erFerdigutfylt != false) {
+            require(it.resultat?.erFerdigutfylt(saksopplysninger) != false) {
                 "Behandlingsresultatet må være ferdigutfylt etter vi oppdaterer søknadsbehandlingen"
             }
         }.right()
