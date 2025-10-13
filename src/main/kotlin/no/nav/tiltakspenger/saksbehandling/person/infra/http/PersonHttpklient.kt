@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklient
+import no.nav.tiltakspenger.libs.personklient.pdl.GraphqlBolkQuery
 import no.nav.tiltakspenger.libs.personklient.pdl.GraphqlQuery
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
@@ -91,8 +92,3 @@ class PersonHttpklient(
         return requireNotNull(PersonHttpklient::class.java.getResource(path)).readText()
     }
 }
-
-data class GraphqlBolkQuery(
-    val query: String,
-    val variables: Map<String, List<String>>,
-)
