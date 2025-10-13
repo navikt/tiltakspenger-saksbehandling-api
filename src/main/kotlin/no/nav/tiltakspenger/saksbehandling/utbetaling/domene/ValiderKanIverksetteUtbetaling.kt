@@ -20,7 +20,10 @@ fun MeldekortBehandling.validerKanIverksetteUtbetaling(harDag7Utbetaling: SjekkO
 private fun Simulering?.validerKanIverksetteUtbetaling(harDag7Utbetaling: SjekkOmMånederHarDag7): Either<KanIkkeIverksetteUtbetaling, Unit> =
     when (this) {
         is Simulering.Endring -> {
-            if ((totalFeilutbetaling != 0 || totalMotpostering != 0) && harDag7Utbetaling(totalPeriode)) {
+            // TODO: sjekk denne også når vi vil støtte feilutbetaling igjen
+            val harDag7 = harDag7Utbetaling(totalPeriode)
+
+            if ((totalFeilutbetaling != 0 || totalMotpostering != 0)) {
                 KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke.left()
             } else if (harJustering) {
                 KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left()

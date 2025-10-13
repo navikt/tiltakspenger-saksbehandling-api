@@ -3,13 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.utsjekk.kontrakter.felles.Satstype
-import no.nav.utsjekk.kontrakter.iverksett.StønadsdataTiltakspengerV2Dto
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 
@@ -35,19 +33,7 @@ data class Utbetalinger(
     }
 
     private val satstypeTidslinje: Periodisering<Satstype> by lazy {
-        tidslinje
-            .mapNotNull { it.verdi.sendtTilUtbetaling?.requestDto?.vedtak?.utbetalinger }
-            .flatten()
-            .mapNotNull {
-                if ((it.stønadsdata as StønadsdataTiltakspengerV2Dto).barnetillegg) {
-                    return@mapNotNull null
-                }
-
-                PeriodeMedVerdi(
-                    verdi = it.satstype,
-                    periode = Periode(it.fraOgMedDato, it.tilOgMedDato),
-                )
-            }
+        tidslinje.mapNotNull { it.verdi.sendtTilUtbetaling?.satstype?.perioderMedVerdi }.flatten()
             .let { Periodisering(it) }
     }
 

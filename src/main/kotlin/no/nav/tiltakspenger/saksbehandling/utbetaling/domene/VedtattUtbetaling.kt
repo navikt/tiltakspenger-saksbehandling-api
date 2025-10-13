@@ -7,13 +7,14 @@ import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
+import no.nav.utsjekk.kontrakter.felles.Satstype
 import ulid.ULID
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -70,7 +71,17 @@ data class VedtattUtbetaling(
 
     data class SendtTilUtbetaling(
         val sendtTidspunkt: LocalDateTime,
-        val requestDto: IverksettV2Dto,
+        val satstype: Periodisering<Satstype>,
         val status: Utbetalingsstatus?,
     )
+
+    init {
+        if (sendtTilUtbetaling != null) {
+            val satstypePeriode = sendtTilUtbetaling.satstype.totalPeriode
+
+            require(periode.inneholderHele(satstypePeriode)) {
+                "Periodisering av satstype kan ikke gå utenfor utbetalingsperioden - $satstypePeriode - $periode"
+            }
+        }
+    }
 }

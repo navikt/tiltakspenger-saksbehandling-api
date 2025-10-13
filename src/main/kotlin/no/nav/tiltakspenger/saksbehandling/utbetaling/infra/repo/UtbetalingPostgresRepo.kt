@@ -171,7 +171,7 @@ class UtbetalingPostgresRepo(
                     """
                 select 
                     *,
-                    (utbetaling_metadata->>'request') as req
+                    (utbetaling_metadata->'request'->'vedtak'->'utbetalinger') as helved_utbetalinger
                 from utbetaling_full
                 where id = :id 
                 """,
@@ -245,13 +245,14 @@ class UtbetalingPostgresRepo(
                 vedtakId to Beregning(beregningJson.tilMeldeperiodeBeregningerFraBehandling(behandlingId))
             }
 
-            val sendtUtbetaling: VedtattUtbetaling.SendtTilUtbetaling? = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt")?.let {
-                VedtattUtbetaling.SendtTilUtbetaling(
-                    sendtTidspunkt = it,
-                    requestDto = string("req").tilUtbetalingIverksettRequestDTO(),
-                    status = stringOrNull("status")?.toUtbetalingsstatus(),
-                )
-            }
+            val sendtUtbetaling: VedtattUtbetaling.SendtTilUtbetaling? =
+                localDateTimeOrNull("sendt_til_utbetaling_tidspunkt")?.let {
+                    VedtattUtbetaling.SendtTilUtbetaling(
+                        sendtTidspunkt = it,
+                        satstype = string("helved_utbetalinger").tilSatstypePeriodisering(vedtakIdOgBeregning.second.periode),
+                        status = stringOrNull("status")?.toUtbetalingsstatus(),
+                    )
+                }
 
             return VedtattUtbetaling(
                 id = UtbetalingId.fromString(string("id")),

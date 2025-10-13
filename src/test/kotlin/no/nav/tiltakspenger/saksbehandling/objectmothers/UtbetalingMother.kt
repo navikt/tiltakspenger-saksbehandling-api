@@ -35,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingRequestDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.tilSatstypePeriodisering
 import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -82,7 +83,11 @@ interface UtbetalingMother : MotherOfAllMothers {
                 it.copy(
                     sendtTilUtbetaling = VedtattUtbetaling.SendtTilUtbetaling(
                         sendtTidspunkt = sendtTilUtbetaling,
-                        requestDto = deserialize<IverksettV2Dto>(it.toUtbetalingRequestDTO(null)),
+                        satstype = deserialize<IverksettV2Dto>(
+                            it.toUtbetalingRequestDTO(null),
+                        ).vedtak.utbetalinger.tilSatstypePeriodisering(
+                            beregning.periode,
+                        ),
                         status = status,
                     ),
                 )

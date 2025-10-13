@@ -34,10 +34,14 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         tidspunkt: LocalDateTime,
         utbetalingsrespons: SendtUtbetaling,
     ) {
-        data.get()[utbetalingId] = data.get()[utbetalingId]!!.copy(
+        val utbetaling = data.get()[utbetalingId]!!
+
+        data.get()[utbetalingId] = utbetaling.copy(
             sendtTilUtbetaling = VedtattUtbetaling.SendtTilUtbetaling(
                 sendtTidspunkt = tidspunkt,
-                requestDto = deserialize<IverksettV2Dto>(utbetalingsrespons.request),
+                satstype = deserialize<IverksettV2Dto>(utbetalingsrespons.request).vedtak.utbetalinger.tilSatstypePeriodisering(
+                    utbetaling.periode,
+                ),
                 status = null,
             ),
         )

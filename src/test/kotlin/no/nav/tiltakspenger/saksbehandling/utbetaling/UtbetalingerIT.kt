@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling
 
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
@@ -31,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRev
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
@@ -236,12 +238,22 @@ class UtbetalingerIT {
                 ),
             )
 
-            sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+            val bodyAsText = sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventetStatus = HttpStatusCode.BadRequest,
             )
+
+            @Language("JSON")
+            val expected = """
+                {
+                  "melding": "Behandling med feilutbetaling støttes ikke på nåværende tidspunkt",
+                  "kode": "støtter_ikke_feilutbetaling"
+                }                
+            """.trimIndent()
+
+            bodyAsText shouldEqualJson expected
 
             tac.behandlingContext.behandlingRepo.hent(revurdering.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
         }

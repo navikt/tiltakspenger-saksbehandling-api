@@ -4,7 +4,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 
-fun KanIkkeIverksetteUtbetaling.toErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+fun KanIkkeIverksetteUtbetaling.tilUtbetalingErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
         KanIkkeIverksetteUtbetaling.SimuleringMangler -> HttpStatusCode.InternalServerError to ErrorJson(
             "Behandling med utbetaling må simuleres for å kunne sende til beslutning",
