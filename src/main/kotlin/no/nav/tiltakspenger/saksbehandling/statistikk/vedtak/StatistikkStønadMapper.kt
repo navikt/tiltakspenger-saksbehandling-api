@@ -15,14 +15,9 @@ fun genererStønadsstatistikkForRammevedtak(
     val erSøknadsbehandling = vedtak.behandling is Søknadsbehandling
 
     val søknad = if (erSøknadsbehandling) vedtak.behandling.søknad else null
-    val tiltaksdeltakelser =
-        if (erSøknadsbehandling) {
-            vedtak.behandling.valgteTiltaksdeltakelser?.let { valgteTiltaksdeltakelser ->
-                valgteTiltaksdeltakelser.getTiltaksdeltakelser().map { it.eksternDeltagelseId }
-            }
-        } else {
-            null
-        }
+    val tiltaksdeltakelser = vedtak.behandling.valgteTiltaksdeltakelser?.let { valgteTiltaksdeltakelser ->
+        valgteTiltaksdeltakelser.getTiltaksdeltakelser().map { it.eksternDeltagelseId }
+    }
 
     val barnetillegg = vedtak.barnetillegg?.periodisering?.mapNotNull { bt ->
         if (bt.verdi.value > 0) {
