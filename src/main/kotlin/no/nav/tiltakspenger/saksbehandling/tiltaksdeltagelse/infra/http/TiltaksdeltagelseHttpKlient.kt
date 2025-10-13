@@ -45,7 +45,8 @@ class TiltaksdeltagelseHttpKlient(
         }.execute()
         return when (httpResponse.status) {
             HttpStatusCode.OK -> httpResponse.call.response.body<List<TiltakTilSaksbehandlingDTO>>().let { dto ->
-                val relevanteTiltak = dto.filter { it.harFomOgTomEllerRelevantStatus() }
+                val relevanteTiltak = dto
+                    .filter { it.harFomOgTomEllerRelevantStatus() }
                     .filter { it.rettPaTiltakspenger() }
                 Tiltaksdeltagelser(mapTiltak(relevanteTiltak))
             }
