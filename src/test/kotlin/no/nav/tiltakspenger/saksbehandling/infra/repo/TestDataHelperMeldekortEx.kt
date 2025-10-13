@@ -99,6 +99,43 @@ internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling
     return this.sakRepo.hentForSakId(manuellMeldekortBehandling.sakId)!! to manuellMeldekortBehandling
 }
 
+/**
+ * OBS: Prøver å avslutte siste meldekortbehandling i [sak], hvis den er i tilstanden [MeldekortUnderBehandling].
+ * (enklere å begynne med :) )
+ */
+internal fun TestDataHelper.persisterAvsluttetMeldekortBehandling(
+    sak: Sak? = null,
+    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    periode: Periode = Periode(
+        2.januar(2023),
+        15.januar(2023),
+    ),
+    begrunnelse: String = "TestDataHelper.persisterAvsluttetMeldekortBehandling",
+    clock: Clock = this.clock,
+    genererSak: (Sak?) -> Sak = { s ->
+        s ?: this.persisterKlarTilBehandlingManuellMeldekortBehandling(
+            s,
+            periode = periode,
+            clock = clock,
+        ).first
+    },
+): Pair<Sak, MeldekortBehandling> {
+    val generertSak = genererSak(sak)
+    val meldekortBehandling = generertSak.meldekortbehandlinger
+        .filterIsInstance<MeldekortUnderBehandling>()
+        .last { it.meldeperiode.periode == periode }
+
+    val avbruttMeldekortbehandling = meldekortBehandling.avbryt(
+        avbruttAv = saksbehandler,
+        begrunnelse = begrunnelse,
+        tidspunkt = LocalDateTime.now(clock),
+    ).getOrFail()
+
+    this.meldekortRepo.oppdater(avbruttMeldekortbehandling, null, null)
+
+    return this.sakRepo.hentForSakId(avbruttMeldekortbehandling.sakId)!! to avbruttMeldekortbehandling
+}
+
 internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),

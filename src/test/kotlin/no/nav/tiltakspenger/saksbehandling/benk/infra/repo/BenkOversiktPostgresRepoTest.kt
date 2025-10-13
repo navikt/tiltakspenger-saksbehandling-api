@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvsluttetMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterBrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurderingStans
@@ -389,6 +390,71 @@ class BenkOversiktPostgresRepoTest {
 
             totalAntallEtterIverksettingIgjen shouldBe 0
             actualEtterIverksettingIgjen shouldBe emptyList()
+        }
+    }
+
+    @Test
+    fun `henter ikke meldekort der en behandling i ettertid har blitt avsluttet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val periode = Periode(4.august(2025), 17.august(2025))
+            val (sakMedInnsendtBrukersMeldekort, brukersMeldekort) = testDataHelper.persisterBrukersMeldekort(
+                periode = periode,
+            )
+
+            val (actualFørBehandling, totalAntallFørBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(),
+            )
+            totalAntallFørBehandling shouldBe 1
+            actualFørBehandling shouldBe listOf(
+                Behandlingssammendrag(
+                    sakId = sakMedInnsendtBrukersMeldekort.id,
+                    fnr = sakMedInnsendtBrukersMeldekort.fnr,
+                    saksnummer = sakMedInnsendtBrukersMeldekort.saksnummer,
+                    startet = brukersMeldekort.mottatt,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.INNSENDT_MELDEKORT,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                    saksbehandler = null,
+                    beslutter = null,
+                    sistEndret = null,
+                    erSattPåVent = false,
+                ),
+            )
+
+            val (sakEtterBehandling, behandling) = testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling(
+                sak = sakMedInnsendtBrukersMeldekort,
+                periode = brukersMeldekort.periode,
+                kjedeId = brukersMeldekort.kjedeId,
+            )
+
+            val (actualEtterBehandling, totalAntallEtterBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(),
+            )
+            totalAntallEtterBehandling shouldBe 1
+            actualEtterBehandling shouldBe listOf(
+                Behandlingssammendrag(
+                    sakId = sakEtterBehandling.id,
+                    fnr = sakEtterBehandling.fnr,
+                    saksnummer = sakEtterBehandling.saksnummer,
+                    startet = behandling.opprettet,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
+                    status = BehandlingssammendragStatus.UNDER_BEHANDLING,
+                    saksbehandler = behandling.saksbehandler,
+                    beslutter = null,
+                    sistEndret = null,
+                    erSattPåVent = false,
+                ),
+            )
+
+            testDataHelper.persisterAvsluttetMeldekortBehandling(sak = sakEtterBehandling, periode = behandling.periode)
+
+            val (actualEtterAvbrytelse, totalAntallEtterAvbrytelse) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(),
+            )
+
+            totalAntallEtterAvbrytelse shouldBe 0
+            actualEtterAvbrytelse shouldBe emptyList()
         }
     }
 

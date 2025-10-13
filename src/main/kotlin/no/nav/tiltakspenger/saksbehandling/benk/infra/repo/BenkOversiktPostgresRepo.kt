@@ -119,7 +119,6 @@ class BenkOversiktPostgresRepo(
                                                           MAX(mbh.opprettet) AS opprettet_tidspunkt
                                                    FROM meldekortbehandling mbh
                                                             join sak s on mbh.sak_id = s.id
-                                                   WHERE mbh.avbrutt IS NULL
                                                    group by sak_id, meldeperiode_kjede_id)
          SELECT s.id                           AS sakId,
                 s.fnr                          AS fnr,
