@@ -55,13 +55,14 @@ data class Søknadsbehandling(
     override val avbrutt: Avbrutt?,
     override val ventestatus: Ventestatus,
     override val resultat: SøknadsbehandlingResultat?,
-    override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val søknad: Søknad,
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
     override val utbetaling: BehandlingUtbetaling?,
 ) : Rammebehandling {
+
+    override val virkningsperiode = resultat?.virkningsperiode
 
     override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
         get() = when (resultat) {
@@ -120,15 +121,9 @@ data class Søknadsbehandling(
     ): Either<KanIkkeOppdatereBehandling, Søknadsbehandling> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
 
-        val virkningsperiode = when (kommando) {
-            is OppdaterSøknadsbehandlingKommando.Avslag -> this.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
-            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> kommando.innvilgelsesperiode
-            is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat -> null
-        }
-
         val resultat = when (kommando) {
             is OppdaterSøknadsbehandlingKommando.Avslag -> {
-                Avslag(avslagsgrunner = kommando.avslagsgrunner)
+                Avslag(avslagsgrunner = kommando.avslagsgrunner, avslagsperiode = this.søknad.tiltaksdeltagelseperiodeDetErSøktOm())
             }
 
             is OppdaterSøknadsbehandlingKommando.Innvilgelse -> {
@@ -136,6 +131,7 @@ data class Søknadsbehandling(
                     valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
                     barnetillegg = kommando.barnetillegg,
                     antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                    innvilgelsesperiode = kommando.innvilgelsesperiode,
                 )
             }
 
@@ -145,7 +141,6 @@ data class Søknadsbehandling(
         return this.copy(
             sistEndret = nå(clock),
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = virkningsperiode,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             resultat = resultat,
             automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
@@ -234,7 +229,6 @@ data class Søknadsbehandling(
                 avbrutt = null,
                 ventestatus = Ventestatus(),
                 resultat = null,
-                virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
@@ -277,7 +271,6 @@ data class Søknadsbehandling(
                 avbrutt = null,
                 ventestatus = Ventestatus(),
                 resultat = null,
-                virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
