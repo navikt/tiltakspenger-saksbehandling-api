@@ -7,14 +7,15 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltak
 
 sealed interface BehandlingResultat {
 
-    /* Denne benyttes både i søknadsbehandlinger og revurderinger */
+    val virkningsperiode: Periode?
+
+    /** Denne benyttes både i søknadsbehandlinger og revurderinger */
     sealed interface Innvilgelse {
         val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
         val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>?
         val barnetillegg: Barnetillegg?
 
         fun valider(virkningsperiode: Periode?) {
-            // TODO - Disse sjekkene er veldig lite intuitivt fra saksbehandlers side fordi det bare fører til en exception
             requireNotNull(virkningsperiode) {
                 "Virkningsperiode må være satt for innvilget behandling"
             }

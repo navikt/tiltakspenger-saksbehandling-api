@@ -50,10 +50,11 @@ data class Revurdering(
     override val avbrutt: Avbrutt?,
     override val ventestatus: Ventestatus,
     override val resultat: RevurderingResultat,
-    override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     override val utbetaling: BehandlingUtbetaling?,
 ) : Rammebehandling {
+
+    override val virkningsperiode: Periode? = resultat.virkningsperiode
 
     override val barnetillegg: Barnetillegg? = when (resultat) {
         is Innvilgelse -> resultat.barnetillegg
@@ -108,14 +109,14 @@ data class Revurdering(
             sistEndret = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = kommando.innvilgelsesperiode,
-            resultat = this.resultat.copy(
+            resultat = Innvilgelse(
                 valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
                     tiltaksdeltakelser = kommando.tiltaksdeltakelser,
                     behandling = this,
                 ),
                 barnetillegg = kommando.barnetillegg,
                 antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                innvilgelsesperiode = kommando.innvilgelsesperiode,
             ),
             utbetaling = utbetaling,
         ).also {
@@ -138,8 +139,12 @@ data class Revurdering(
             sistEndret = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = kommando.hentStansperiode(førsteDagSomGirRett, sisteDagSomGirRett),
-            resultat = Stans(kommando.valgteHjemler, kommando.harValgtStansFraFørsteDagSomGirRett, kommando.harValgtStansTilSisteDagSomGirRett),
+            resultat = Stans(
+                valgtHjemmel = kommando.valgteHjemler,
+                harValgtStansFraFørsteDagSomGirRett = kommando.harValgtStansFraFørsteDagSomGirRett,
+                harValgtStansTilSisteDagSomGirRett = kommando.harValgtStansTilSisteDagSomGirRett,
+                stansperiode = kommando.utledStansperiode(førsteDagSomGirRett, sisteDagSomGirRett),
+            ),
             utbetaling = utbetaling,
         ).right()
     }
@@ -180,11 +185,7 @@ data class Revurdering(
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
-                resultat = Stans(
-                    valgtHjemmel = emptyList(),
-                    harValgtStansFraFørsteDagSomGirRett = null,
-                    harValgtStansTilSisteDagSomGirRett = null,
-                ),
+                resultat = Stans.empty,
             )
         }
 
@@ -203,12 +204,7 @@ data class Revurdering(
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
-                resultat = Innvilgelse(
-                    valgteTiltaksdeltakelser = null,
-                    barnetillegg = null,
-                    // TODO John + Anders: Siden vi ikke har en virkningsperiode på dette tidspunktet, gir det ikke noen mening og sette antallDagerPerMeldeperiode
-                    antallDagerPerMeldeperiode = null,
-                ),
+                resultat = Innvilgelse.empty,
             )
         }
 
@@ -233,7 +229,6 @@ data class Revurdering(
                 sistEndret = opprettet,
                 resultat = resultat,
                 attesteringer = Attesteringer.empty(),
-                virkningsperiode = null,
                 sendtTilBeslutning = null,
                 beslutter = null,
                 fritekstTilVedtaksbrev = null,

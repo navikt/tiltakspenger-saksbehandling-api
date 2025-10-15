@@ -36,7 +36,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         /** Dersom saksbehandler har valgt at det skal stanses til siste dag som gir rett */
         val harValgtStansTilSisteDagSomGirRett: Boolean get() = stansTilOgMed is ValgtStansTilOgMed.StansTilSisteDagSomGirRett
 
-        fun hentStansperiode(førsteDagSomGirRett: LocalDate, sisteDagSomGirRett: LocalDate): Periode {
+        fun utledStansperiode(førsteDagSomGirRett: LocalDate, sisteDagSomGirRett: LocalDate): Periode {
             if (stansFraOgMed.stansFraOgMed != null) {
                 require(stansFraOgMed.stansFraOgMed!! >= førsteDagSomGirRett) {
                     "Stans fra og med ${stansFraOgMed.stansFraOgMed} kan ikke være før første dag som gir rett $førsteDagSomGirRett"
