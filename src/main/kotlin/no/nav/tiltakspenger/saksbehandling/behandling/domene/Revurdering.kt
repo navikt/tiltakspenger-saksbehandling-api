@@ -56,21 +56,11 @@ data class Revurdering(
 
     override val virkningsperiode: Periode? = resultat.virkningsperiode
 
-    override val barnetillegg: Barnetillegg? = when (resultat) {
-        is Innvilgelse -> resultat.barnetillegg
-        is Stans -> null
-    }
+    override val barnetillegg = resultat.barnetillegg
 
-    override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>? =
-        when (resultat) {
-            is Innvilgelse -> resultat.antallDagerPerMeldeperiode
-            is Stans -> null
-        }
+    override val antallDagerPerMeldeperiode = resultat.antallDagerPerMeldeperiode
 
-    override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (resultat) {
-        is Innvilgelse -> resultat.valgteTiltaksdeltakelser
-        is Stans -> null
-    }
+    override val valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser
 
     init {
         super.init()

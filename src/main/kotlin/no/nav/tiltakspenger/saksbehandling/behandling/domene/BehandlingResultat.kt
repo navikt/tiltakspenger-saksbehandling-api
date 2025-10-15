@@ -2,18 +2,26 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
 sealed interface BehandlingResultat {
 
+    /** Kan være null ved sære tilfeller av avslag, og når behandlingen er uferdig */
     val virkningsperiode: Periode?
 
+    /** Vil være null ved stans og når behandlingen er uferdig */
+    val barnetillegg: Barnetillegg?
+
+    /** Vil være null ved stans og når behandlingen er uferdig */
+    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
+
+    /** Vil være null ved stans og når behandlingen er uferdig */
+    val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
+
     /** Denne benyttes både i søknadsbehandlinger og revurderinger */
-    sealed interface Innvilgelse {
-        val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
-        val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>?
-        val barnetillegg: Barnetillegg?
+    sealed interface Innvilgelse : BehandlingResultat {
 
         fun valider(virkningsperiode: Periode?) {
             requireNotNull(virkningsperiode) {

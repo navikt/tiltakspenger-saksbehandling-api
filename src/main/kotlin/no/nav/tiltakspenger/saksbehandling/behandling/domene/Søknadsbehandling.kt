@@ -64,25 +64,11 @@ data class Søknadsbehandling(
 
     override val virkningsperiode = resultat?.virkningsperiode
 
-    override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
-        get() = when (resultat) {
-            is Avslag -> null
-            is Innvilgelse -> resultat.antallDagerPerMeldeperiode
-            null -> null
-        }
+    override val antallDagerPerMeldeperiode = resultat?.antallDagerPerMeldeperiode
 
-    override val barnetillegg: Barnetillegg?
-        get() = when (resultat) {
-            is Avslag -> null
-            is Innvilgelse -> resultat.barnetillegg
-            null -> null
-        }
+    override val barnetillegg = resultat?.barnetillegg
 
-    override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (resultat) {
-        is Avslag -> null
-        is Innvilgelse -> resultat.valgteTiltaksdeltakelser
-        null -> null
-    }
+    override val valgteTiltaksdeltakelser = resultat?.valgteTiltaksdeltakelser
 
     val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
 

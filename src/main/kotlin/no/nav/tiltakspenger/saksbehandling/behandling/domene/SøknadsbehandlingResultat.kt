@@ -18,6 +18,9 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         val avslagsperiode: Periode?,
     ) : SøknadsbehandlingResultat {
         override val virkningsperiode = avslagsperiode
+        override val barnetillegg = null
+        override val valgteTiltaksdeltakelser = null
+        override val antallDagerPerMeldeperiode = null
     }
 
     /**

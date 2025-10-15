@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
@@ -24,6 +25,9 @@ sealed interface RevurderingResultat : BehandlingResultat {
     ) : RevurderingResultat {
 
         override val virkningsperiode = stansperiode
+        override val barnetillegg = null
+        override val valgteTiltaksdeltakelser = null
+        override val antallDagerPerMeldeperiode = null
 
         fun valider() {
             require(valgtHjemmel.isNotEmpty()) {
