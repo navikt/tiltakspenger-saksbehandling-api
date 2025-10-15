@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
+import no.nav.utsjekk.kontrakter.felles.Satstype
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -107,8 +108,10 @@ fun Sak.opprettVedtak(
             beslutter = behandling.beslutter!!,
             beregning = it.beregning,
             forrigeUtbetalingId = this.utbetalinger.lastOrNull()?.id,
-            sendtTilUtbetaling = null,
             statusMetadata = Forsøkshistorikk.opprett(clock = clock),
+            satstype = Satstype.DAGLIG,
+            sendtTilUtbetaling = null,
+            status = null,
         )
     }
 

@@ -32,11 +32,6 @@ data class Utbetalinger(
         verdi.toTidslinje()
     }
 
-    private val satstypeTidslinje: Periodisering<Satstype> by lazy {
-        tidslinje.mapNotNull { it.verdi.sendtTilUtbetaling?.satstype?.perioderMedVerdi }.flatten()
-            .let { Periodisering(it) }
-    }
-
     fun harUtbetalingIPeriode(periode: Periode): Boolean {
         return perioder.any { it.overlapperMed(periode) }
     }
@@ -86,8 +81,8 @@ data class Utbetalinger(
     }
 
     private fun harDag7IPeriode(periode: Periode): Boolean {
-        return satstypeTidslinje.krymp(periode).perioderMedVerdi.any {
-            it.verdi == Satstype.DAGLIG_INKL_HELG
+        return tidslinje.krymp(periode).perioderMedVerdi.any {
+            it.verdi.satstype == Satstype.DAGLIG_INKL_HELG
         }
     }
 

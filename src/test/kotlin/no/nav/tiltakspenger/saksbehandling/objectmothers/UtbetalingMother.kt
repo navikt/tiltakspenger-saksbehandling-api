@@ -34,9 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHe
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingRequestDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.tilSatstypePeriodisering
-import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
+import no.nav.utsjekk.kontrakter.felles.Satstype
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -63,6 +61,7 @@ interface UtbetalingMother : MotherOfAllMothers {
         sendtTilUtbetaling: LocalDateTime? = null,
         status: Utbetalingsstatus? = null,
         statusMetadata: Forsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
+        satstype: Satstype = Satstype.DAGLIG,
     ): VedtattUtbetaling {
         return VedtattUtbetaling(
             id = id,
@@ -76,23 +75,11 @@ interface UtbetalingMother : MotherOfAllMothers {
             beslutter = beslutter,
             beregning = beregning,
             forrigeUtbetalingId = forrigeUtbetalingId,
-            sendtTilUtbetaling = null,
             statusMetadata = statusMetadata,
-        ).let {
-            sendtTilUtbetaling?.run {
-                it.copy(
-                    sendtTilUtbetaling = VedtattUtbetaling.SendtTilUtbetaling(
-                        sendtTidspunkt = sendtTilUtbetaling,
-                        satstype = deserialize<IverksettV2Dto>(
-                            it.toUtbetalingRequestDTO(null),
-                        ).vedtak.utbetalinger.tilSatstypePeriodisering(
-                            beregning.periode,
-                        ),
-                        status = status,
-                    ),
-                )
-            } ?: it
-        }
+            satstype = satstype,
+            sendtTilUtbetaling = sendtTilUtbetaling,
+            status = status,
+        )
     }
 
     fun lagBeregning(

@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
@@ -53,7 +53,9 @@ data class VedtattUtbetaling(
     val beregning: Beregning,
     val forrigeUtbetalingId: UtbetalingId?,
     val statusMetadata: Forsøkshistorikk,
-    val sendtTilUtbetaling: SendtTilUtbetaling?,
+    val satstype: Satstype,
+    val sendtTilUtbetaling: LocalDateTime?,
+    val status: Utbetalingsstatus?,
 ) : Periodiserbar {
     override val periode: Periode = beregning.periode
 
@@ -63,25 +65,7 @@ data class VedtattUtbetaling(
     val barnetilleggBeløp: Int = beregning.barnetilleggBeløp
     val totalBeløp: Int = beregning.totalBeløp
 
-    val status: Utbetalingsstatus? by lazy { sendtTilUtbetaling?.status }
-
     fun hentBeregningsdagForDato(dato: LocalDate): MeldeperiodeBeregningDag? {
         return beregning.hentDag(dato)
-    }
-
-    data class SendtTilUtbetaling(
-        val sendtTidspunkt: LocalDateTime,
-        val satstype: Periodisering<Satstype>,
-        val status: Utbetalingsstatus?,
-    )
-
-    init {
-        if (sendtTilUtbetaling != null) {
-            val satstypePeriode = sendtTilUtbetaling.satstype.totalPeriode
-
-            require(periode.inneholderHele(satstypePeriode)) {
-                "Periodisering av satstype kan ikke gå utenfor utbetalingsperioden - $satstypePeriode - $periode"
-            }
-        }
     }
 }

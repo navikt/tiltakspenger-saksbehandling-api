@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingResponse
-import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.collections.set
@@ -36,15 +35,7 @@ class UtbetalingFakeRepo : UtbetalingRepo {
     ) {
         val utbetaling = data.get()[utbetalingId]!!
 
-        data.get()[utbetalingId] = utbetaling.copy(
-            sendtTilUtbetaling = VedtattUtbetaling.SendtTilUtbetaling(
-                sendtTidspunkt = tidspunkt,
-                satstype = deserialize<IverksettV2Dto>(utbetalingsrespons.request).vedtak.utbetalinger.tilSatstypePeriodisering(
-                    utbetaling.periode,
-                ),
-                status = null,
-            ),
-        )
+        data.get()[utbetalingId] = utbetaling.copy(sendtTilUtbetaling = tidspunkt)
         response.get()[utbetalingId] = utbetalingsrespons
     }
 
@@ -69,9 +60,7 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         metadata: Forsøkshistorikk,
         context: TransactionContext?,
     ) {
-        val utbetaling = data.get()[utbetalingId]!!
-        data.get()[utbetalingId] =
-            utbetaling.copy(sendtTilUtbetaling = utbetaling.sendtTilUtbetaling!!.copy(status = status))
+        data.get()[utbetalingId] = data.get()[utbetalingId]!!.copy(status = status)
     }
 
     override fun hentDeSomSkalHentesUtbetalingsstatusFor(limit: Int): List<UtbetalingDetSkalHentesStatusFor> {
@@ -88,9 +77,9 @@ class UtbetalingFakeRepo : UtbetalingRepo {
                 sakId = it.sakId,
                 saksnummer = it.saksnummer,
                 opprettet = it.opprettet,
-                sendtTilUtbetalingstidspunkt = it.sendtTilUtbetaling!!.sendtTidspunkt,
+                sendtTilUtbetalingstidspunkt = it.sendtTilUtbetaling!!,
                 forsøkshistorikk = opprett(
-                    forrigeForsøk = it.sendtTilUtbetaling.sendtTidspunkt.plus(1, ChronoUnit.MICROS),
+                    forrigeForsøk = it.sendtTilUtbetaling.plus(1, ChronoUnit.MICROS),
                     antallForsøk = 1,
                     clock = fixedClock,
                 ),
