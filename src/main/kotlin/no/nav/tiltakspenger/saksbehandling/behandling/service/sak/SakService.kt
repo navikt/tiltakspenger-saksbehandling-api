@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjonRolle
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
@@ -28,6 +29,7 @@ class SakService(
     private val sakRepo: SakRepo,
     private val personService: PersonService,
     private val fellesSkjermingsklient: FellesSkjermingsklient,
+    private val sessionFactory: SessionFactory,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -52,6 +54,7 @@ class SakService(
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = emptyList(),
+            kanSendeInnHelgForMeldekort = false,
         )
         sakRepo.opprettSak(sak)
         logger.info { "Opprettet ny sak med saksnummer ${sak.saksnummer}, correlationId $correlationId" }
@@ -147,7 +150,8 @@ class SakService(
     }
 
     fun hentFnrForSaksnummer(saksnummer: Saksnummer): Fnr {
-        return sakRepo.hentFnrForSaksnummer(saksnummer) ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
+        return sakRepo.hentFnrForSaksnummer(saksnummer)
+            ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
     }
 
     fun oppdaterSkalSendesTilMeldekortApi(
@@ -174,5 +178,23 @@ class SakService(
             skalSendeMeldeperioderTilDatadeling = skalSendeMeldeperioderTilDatadeling,
             sessionContext = sessionContext,
         )
+    }
+
+    fun oppdaterKanSendeInnHelgForMeldekort(saksnummer: Saksnummer, kanSendeHelg: Boolean): Sak {
+        val sak = sakRepo.hentForSaksnummer(saksnummer)
+            ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
+
+        val oppdatertSak = sak.oppdaterKanSendeInnHelgForMeldekort(kanSendeHelg)
+
+        sessionFactory.withTransactionContext {
+            sakRepo.oppdaterKanSendeInnHelgForMeldekort(sak = oppdatertSak, it)
+            sakRepo.oppdaterSkalSendesTilMeldekortApi(
+                sakId = oppdatertSak.id,
+                skalSendesTilMeldekortApi = true,
+                sessionContext = it,
+            )
+        }
+
+        return oppdatertSak
     }
 }

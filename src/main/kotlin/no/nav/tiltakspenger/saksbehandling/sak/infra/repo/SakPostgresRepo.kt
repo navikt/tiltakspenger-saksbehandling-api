@@ -283,6 +283,27 @@ class SakPostgresRepo(
         }
     }
 
+    override fun oppdaterKanSendeInnHelgForMeldekort(
+        sak: Sak,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        """
+                            update sak
+                                set kan_sende_inn_helg_for_meldekort = :kan_sende_inn_helg_for_meldekort 
+                            where id = :id
+                        """,
+                        "kan_sende_inn_helg_for_meldekort" to sak.kanSendeInnHelgForMeldekort,
+                        "id" to sak.id.toString(),
+                    ).asUpdate,
+                )
+            }
+        }
+    }
+
     private fun sakFinnes(
         sakId: SakId,
         session: Session,
@@ -314,6 +335,7 @@ class SakPostgresRepo(
                     ?: Meldekortbehandlinger.empty()
                 val meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(id, session)
                 val soknader = SøknadDAO.hentForSakId(id, session)
+                val kanSendeInnHelgForMeldekort = boolean("kan_sende_inn_helg_for_meldekort")
 
                 Sak(
                     id = id,
@@ -330,6 +352,7 @@ class SakPostgresRepo(
                     meldeperiodeKjeder = meldeperiodekjeder,
                     brukersMeldekort = BrukersMeldekortPostgresRepo.hentForSakId(id, session),
                     søknader = soknader,
+                    kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
                 )
             }
         }

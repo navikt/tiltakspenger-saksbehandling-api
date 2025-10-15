@@ -44,6 +44,7 @@ data class Sak(
     val meldeperiodeKjeder: MeldeperiodeKjeder,
     val brukersMeldekort: List<BrukersMeldekort>,
     val søknader: List<Søknad>,
+    val kanSendeInnHelgForMeldekort: Boolean,
 ) {
     val utbetalinger: Utbetalinger by lazy {
         Utbetalinger(
@@ -219,4 +220,7 @@ data class Sak(
     fun hentRammevedtakForId(rammevedtakId: VedtakId): Rammevedtak {
         return rammevedtaksliste.hentRammevedtakForId(rammevedtakId)
     }
+
+    fun oppdaterKanSendeInnHelgForMeldekort(kanSendeInnHelgForMeldekort: Boolean): Sak =
+        this.copy(kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort)
 }
