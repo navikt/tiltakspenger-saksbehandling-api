@@ -20,45 +20,25 @@ sealed interface BehandlingResultat {
     /** Vil være null ved stans og når behandlingen er uferdig */
     val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
 
+    /** Sier noe om tilstanden til resultatet. Om det er klart for å sendes til beslutter og/eller iverksettes. */
+    val erFerdigutfylt: Boolean
+
     /** Denne benyttes både i søknadsbehandlinger og revurderinger */
     sealed interface Innvilgelse : BehandlingResultat {
+        val innvilgelsesperiode: Periode?
 
-        fun valider(virkningsperiode: Periode?) {
-            requireNotNull(virkningsperiode) {
-                "Virkningsperiode må være satt for innvilget behandling"
-            }
-
-            valgteTiltaksdeltakelser.also {
-                requireNotNull(it) {
-                    "Valgte tiltaksdeltakelser må være satt for innvilget behandling"
-                }
-
-                require(it.periodisering.totalPeriode == virkningsperiode) {
-                    "Total periode for valgte tiltaksdeltakelser (${it.periodisering.totalPeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
-                }
-            }
-
-            barnetillegg.also {
-                requireNotNull(it) {
-                    "Barnetillegg må være satt for innvilget behandling"
-                }
-
-                val barnetilleggsperiode = it.periodisering.totalPeriode
-                require(barnetilleggsperiode == virkningsperiode) {
-                    "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)"
-                }
-            }
-
-            antallDagerPerMeldeperiode.also {
-                requireNotNull(it) {
-                    "antallDagerPerMeldeperiode må være satt for innvilget behandling"
-                }
-
-                require(it.totalPeriode == virkningsperiode) {
-                    "Innvilgelsesperioden ($virkningsperiode) må være lik som antallDagerPerMeldeperiode sin totale periode (${it.totalPeriode})"
-                }
-            }
-        }
+        /**
+         * True dersom disse ikke er null: [innvilgelsesperiode], [valgteTiltaksdeltakelser], [barnetillegg] og [antallDagerPerMeldeperiode]
+         * Sjekker også at periodene til [valgteTiltaksdeltakelser], [barnetillegg] og [antallDagerPerMeldeperiode] er lik [innvilgelsesperiode].
+         */
+        override val erFerdigutfylt: Boolean
+            get() = innvilgelsesperiode != null &&
+                valgteTiltaksdeltakelser != null &&
+                barnetillegg != null &&
+                antallDagerPerMeldeperiode != null &&
+                antallDagerPerMeldeperiode!!.totalPeriode == innvilgelsesperiode &&
+                valgteTiltaksdeltakelser!!.periodisering.totalPeriode == innvilgelsesperiode &&
+                barnetillegg!!.periodisering.totalPeriode == innvilgelsesperiode
     }
 }
 

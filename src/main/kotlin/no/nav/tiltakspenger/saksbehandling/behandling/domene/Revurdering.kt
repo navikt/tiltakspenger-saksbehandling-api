@@ -69,20 +69,15 @@ data class Revurdering(
             KLAR_TIL_BESLUTNING,
             UNDER_BESLUTNING,
             VEDTATT,
-            -> validerResultat()
+            -> require(resultat.erFerdigutfylt) {
+                "For tilstandene $KLAR_TIL_BESLUTNING, $UNDER_BESLUTNING og $VEDTATT må resultatet være ferdigutfylt."
+            }
 
             UNDER_AUTOMATISK_BEHANDLING,
             KLAR_TIL_BEHANDLING,
             UNDER_BEHANDLING,
             AVBRUTT,
             -> Unit
-        }
-    }
-
-    private fun validerResultat() {
-        when (resultat) {
-            is Innvilgelse -> resultat.valider(virkningsperiode)
-            is Stans -> resultat.valider()
         }
     }
 
@@ -110,7 +105,7 @@ data class Revurdering(
             ),
             utbetaling = utbetaling,
         ).also {
-            it.validerResultat()
+            require(it.resultat.erFerdigutfylt)
         }.right()
     }
 

@@ -29,11 +29,8 @@ sealed interface RevurderingResultat : BehandlingResultat {
         override val valgteTiltaksdeltakelser = null
         override val antallDagerPerMeldeperiode = null
 
-        fun valider() {
-            require(valgtHjemmel.isNotEmpty()) {
-                "Valgt hjemmel må ha minst ett element"
-            }
-        }
+        /** True dersom [valgtHjemmel] ikke er tom og [stansperiode] ikke er null. */
+        override val erFerdigutfylt: Boolean = valgtHjemmel.isNotEmpty() && stansperiode != null
 
         companion object {
             val empty: Stans = Stans(
@@ -52,10 +49,10 @@ sealed interface RevurderingResultat : BehandlingResultat {
      * Virkningsperioden/vedtaksperioden og innvilgelsesperioden vil være 1-1 ved denne revurderingstypen.
      */
     data class Innvilgelse(
+        override val innvilgelsesperiode: Periode?,
         override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
         override val barnetillegg: Barnetillegg?,
         override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
-        val innvilgelsesperiode: Periode?,
     ) : BehandlingResultat.Innvilgelse,
         RevurderingResultat {
         override val virkningsperiode = innvilgelsesperiode

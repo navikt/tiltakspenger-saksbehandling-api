@@ -79,21 +79,15 @@ data class Søknadsbehandling(
             KLAR_TIL_BESLUTNING,
             UNDER_BESLUTNING,
             VEDTATT,
-            -> validerResultat()
+            -> require(resultat!!.erFerdigutfylt) {
+                "Behandlingsresultatet må være ferdigutfylt når status er $status"
+            }
 
             UNDER_AUTOMATISK_BEHANDLING,
             KLAR_TIL_BEHANDLING,
             UNDER_BEHANDLING,
             AVBRUTT,
             -> Unit
-        }
-    }
-
-    private fun validerResultat() {
-        when (resultat) {
-            is Innvilgelse -> resultat.valider(virkningsperiode)
-            is Avslag -> Unit
-            null -> Unit
         }
     }
 
@@ -132,7 +126,9 @@ data class Søknadsbehandling(
             automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
             utbetaling = utbetaling,
         ).also {
-            it.validerResultat()
+            require(it.resultat?.erFerdigutfylt != false) {
+                "Behandlingsresultatet må være ferdigutfylt etter vi oppdaterer søknadsbehandlingen"
+            }
         }.right()
     }
 

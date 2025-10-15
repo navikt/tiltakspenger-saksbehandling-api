@@ -21,6 +21,9 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         override val barnetillegg = null
         override val valgteTiltaksdeltakelser = null
         override val antallDagerPerMeldeperiode = null
+
+        /** True dersom [avslagsgrunner] ikke er tom. Vi må støtte at [avslagsperiode] er null for særdeles mangelfulle søknader. */
+        override val erFerdigutfylt: Boolean = avslagsgrunner.isNotEmpty()
     }
 
     /**
@@ -29,10 +32,10 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
      * Når saksbehandler velger at en søknadsbehandling skal innvilges, får de ikke lagret før de har valgt [innvilgelsesperiode] og [valgteTiltaksdeltakelser]
      */
     data class Innvilgelse(
+        override val innvilgelsesperiode: Periode,
         override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
         override val barnetillegg: Barnetillegg?,
         override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
-        val innvilgelsesperiode: Periode,
     ) : BehandlingResultat.Innvilgelse,
         SøknadsbehandlingResultat {
         override val virkningsperiode = innvilgelsesperiode
