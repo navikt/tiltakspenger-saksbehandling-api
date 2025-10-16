@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
-import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk.Companion.opprett
@@ -33,9 +32,7 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         tidspunkt: LocalDateTime,
         utbetalingsrespons: SendtUtbetaling,
     ) {
-        val utbetaling = data.get()[utbetalingId]!!
-
-        data.get()[utbetalingId] = utbetaling.copy(sendtTilUtbetaling = tidspunkt)
+        data.get()[utbetalingId] = data.get()[utbetalingId]!!.copy(sendtTilUtbetaling = tidspunkt)
         response.get()[utbetalingId] = utbetalingsrespons
     }
 

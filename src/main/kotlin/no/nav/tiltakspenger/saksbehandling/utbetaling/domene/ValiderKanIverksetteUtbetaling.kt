@@ -21,7 +21,7 @@ private fun Simulering?.validerKanIverksetteUtbetaling(harDag7Utbetaling: SjekkO
     when (this) {
         is Simulering.Endring -> {
             // TODO: sjekk denne også når vi vil støtte feilutbetaling igjen
-            val harDag7 = harDag7Utbetaling(totalPeriode)
+            // val harDag7 = harDag7Utbetaling(totalPeriode)
 
             if ((totalFeilutbetaling != 0 || totalMotpostering != 0)) {
                 KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke.left()

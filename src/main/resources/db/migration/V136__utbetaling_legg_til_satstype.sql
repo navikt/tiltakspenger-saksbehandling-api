@@ -21,8 +21,7 @@ END;
 ALTER TABLE utbetaling
     ALTER COLUMN satstype SET NOT NULL;
 
--- Oppdaterer viewet med satstyper
--- Kanskje TODO: ikke bruk view allikevel :D
+-- Oppdaterer viewet med satstype
 DROP VIEW utbetaling_full;
 
 CREATE VIEW utbetaling_full as

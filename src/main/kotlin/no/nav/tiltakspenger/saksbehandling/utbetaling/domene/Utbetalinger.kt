@@ -81,9 +81,7 @@ data class Utbetalinger(
     }
 
     private fun harDag7IPeriode(periode: Periode): Boolean {
-        return tidslinje.krymp(periode).perioderMedVerdi.any {
-            it.verdi.satstype == Satstype.DAGLIG_INKL_HELG
-        }
+        return hentUtbetalingerFraPeriode(periode).any { it.satstype == Satstype.DAGLIG_INKL_HELG }
     }
 
     init {
