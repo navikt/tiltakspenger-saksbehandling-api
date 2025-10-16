@@ -10,7 +10,7 @@ val ktorVersion = "3.3.1"
 val testContainersVersion = "1.21.3"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 val confluentVersion = "8.0.2"
-val avroVersion = "1.12.0"
+val avroVersion = "1.12.1"
 val prometeusVersion = "1.15.5"
 
 dependencies {
