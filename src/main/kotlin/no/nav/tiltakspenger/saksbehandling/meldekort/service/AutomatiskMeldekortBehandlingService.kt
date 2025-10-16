@@ -121,7 +121,7 @@ class AutomatiskMeldekortBehandlingService(
 
         val meldekortvedtak = meldekortBehandling.opprettVedtak(
             forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
-            skalUtbetaleHelgPåFredag = sak.kanSendeInnHelgForMeldekort,
+            kanUtbetaleHelgPåFredag = sak.kanSendeInnHelgForMeldekort,
             clock = clock,
         )
 

@@ -41,7 +41,7 @@ fun VedtattUtbetaling.toUtbetalingRequestDTO(
             beslutterId = beslutter,
             utbetalinger = beregning.tilUtbetalingerDTO(
                 brukersNavkontor = brukerNavkontor,
-                skalUtbetaleHelgPåFredag = skalUtbetaleHelgPåFredag,
+                kanUtbetaleHelgPåFredag = kanUtbetaleHelgPåFredag,
                 forrigeUtbetalingJson = forrigeUtbetalingJson,
             ),
         ),
@@ -54,11 +54,11 @@ fun VedtattUtbetaling.toUtbetalingRequestDTO(
  */
 fun Beregning.tilUtbetalingerDTO(
     brukersNavkontor: Navkontor,
-    skalUtbetaleHelgPåFredag: Boolean,
+    kanUtbetaleHelgPåFredag: Boolean,
     forrigeUtbetalingJson: String?,
 ): List<UtbetalingV2Dto> {
     val meldeperioderTilOppdrag = this.beregninger.map {
-        MeldeperiodeTilOppdrag(it, skalUtbetaleHelgPåFredag)
+        MeldeperiodeTilOppdrag(it, kanUtbetaleHelgPåFredag)
     }
 
     val utbetalingerStønad = meldeperioderTilOppdrag.toUtbetalingDto(brukersNavkontor, barnetillegg = false)
@@ -231,12 +231,19 @@ private fun TiltakstypeSomGirRett.mapStønadstype(): StønadTypeTiltakspenger =
 
 private data class MeldeperiodeTilOppdrag(
     private val meldeperiodeBeregning: MeldeperiodeBeregning,
-    private val skalUtbetaleHelgPåFredag: Boolean,
+    private val kanUtbetaleHelgPåFredag: Boolean,
 ) {
     val kjedeId = meldeperiodeBeregning.kjedeId
 
-    val dager = meldeperiodeBeregning.dager.map { BeregnetDag.fraBeregningDag(it) }.let {
-        if (skalUtbetaleHelgPåFredag) {
+    val dager = meldeperiodeBeregning.dager.map {
+        BeregnetDag(
+            dato = it.dato,
+            beløp = it.beløp,
+            beløpBarnetillegg = it.beløpBarnetillegg,
+            tiltakstype = it.tiltakstype!!,
+        )
+    }.let {
+        if (kanUtbetaleHelgPåFredag) {
             it.chunked(7).flatMap { uke -> tilUkeMedUtbetaltHelgPåFredag(uke) }
         } else {
             it
@@ -263,19 +270,5 @@ private data class MeldeperiodeTilOppdrag(
         val beløp: Int,
         val beløpBarnetillegg: Int,
         val tiltakstype: TiltakstypeSomGirRett,
-    ) {
-
-        companion object {
-            fun fraBeregningDag(
-                beregningDag: MeldeperiodeBeregningDag,
-            ): BeregnetDag {
-                return BeregnetDag(
-                    dato = beregningDag.dato,
-                    beløp = beregningDag.beløp,
-                    beløpBarnetillegg = beregningDag.beløpBarnetillegg,
-                    tiltakstype = beregningDag.tiltakstype!!,
-                )
-            }
-        }
-    }
+    )
 }

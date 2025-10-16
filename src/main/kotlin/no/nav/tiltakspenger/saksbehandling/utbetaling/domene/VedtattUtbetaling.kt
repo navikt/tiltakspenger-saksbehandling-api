@@ -53,7 +53,7 @@ data class VedtattUtbetaling(
     val forrigeUtbetalingId: UtbetalingId?,
     val statusMetadata: Forsøkshistorikk,
     val satstype: Satstype,
-    val skalUtbetaleHelgPåFredag: Boolean,
+    val kanUtbetaleHelgPåFredag: Boolean,
     val sendtTilUtbetaling: LocalDateTime?,
     val status: Utbetalingsstatus?,
 ) : Periodiserbar {

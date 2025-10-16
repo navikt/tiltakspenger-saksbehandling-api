@@ -1,11 +1,13 @@
--- Oppdaterer viewet med kan_sende_inn_helg_for_meldekort
+ALTER TABLE utbetaling
+    ADD COLUMN kan_utbetale_helg_på_fredag BOOLEAN NOT NULL DEFAULT false;
+
+-- Oppdaterer viewet med kan_utbetale_helg_på_fredag
 DROP VIEW utbetaling_full;
 
 CREATE VIEW utbetaling_full as
 select u.*,
     s.saksnummer,
     s.fnr,
-    s.kan_sende_inn_helg_for_meldekort,
     r.behandling_id,
     m.meldekort_id,
     COALESCE(b.saksbehandler, mb.saksbehandler)   as saksbehandler,

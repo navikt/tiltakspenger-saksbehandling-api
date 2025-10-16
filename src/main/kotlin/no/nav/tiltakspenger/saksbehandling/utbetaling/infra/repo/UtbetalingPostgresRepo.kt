@@ -195,7 +195,8 @@ class UtbetalingPostgresRepo(
                         status,
                         status_metadata,
                         opprettet,
-                        satstype
+                        satstype,
+                        kan_utbetale_helg_på_fredag
                     ) values(
                         :id,
                         :sak_id,
@@ -206,7 +207,8 @@ class UtbetalingPostgresRepo(
                         :status,
                         to_jsonb(:status_metadata::jsonb),
                         :opprettet,
-                        :satstype
+                        :satstype,
+                        :kan_utbetale_helg_på_fredag
                     )
                     """,
                     "id" to utbetaling.id.toString(),
@@ -217,6 +219,7 @@ class UtbetalingPostgresRepo(
                     "status_metadata" to utbetaling.statusMetadata.toDbJson(),
                     "opprettet" to utbetaling.opprettet,
                     "satstype" to utbetaling.satstype.tilDb(),
+                    "kan_utbetale_helg_på_fredag" to utbetaling.kanUtbetaleHelgPåFredag,
                     when (utbetaling.beregningKilde) {
                         is BeregningKilde.BeregningKildeBehandling -> "rammevedtak_id" to utbetaling.vedtakId.toString()
                         is BeregningKilde.BeregningKildeMeldekort -> "meldekortvedtak_id" to utbetaling.vedtakId.toString()
@@ -267,7 +270,7 @@ class UtbetalingPostgresRepo(
                 satstype = string("satstype").tilSatstype(),
                 status = stringOrNull("status")?.toUtbetalingsstatus(),
                 sendtTilUtbetaling = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt"),
-                skalUtbetaleHelgPåFredag = boolean("kan_sende_inn_helg_for_meldekort"),
+                kanUtbetaleHelgPåFredag = boolean("kan_utbetale_helg_på_fredag"),
             )
         }
     }

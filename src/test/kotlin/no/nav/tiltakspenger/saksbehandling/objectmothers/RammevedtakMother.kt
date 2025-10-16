@@ -167,7 +167,7 @@ interface RammevedtakMother : MotherOfAllMothers {
                 status = null,
                 statusMetadata = Forsøkshistorikk.opprett(clock = clock),
                 satstype = Satstype.DAGLIG,
-                skalUtbetaleHelgPåFredag = kanSendeInnHelgForMeldekort,
+                kanUtbetaleHelgPåFredag = kanSendeInnHelgForMeldekort,
             )
         }
     }

@@ -43,7 +43,7 @@ fun toSimuleringRequest(
         utbetalinger = beregning.tilUtbetalingerDTO(
             brukersNavkontor = brukersNavkontor,
             forrigeUtbetalingJson = forrigeUtbetalingJson,
-            skalUtbetaleHelgPåFredag = kanSendeInnHelgForMeldekort,
+            kanUtbetaleHelgPåFredag = kanSendeInnHelgForMeldekort,
         ),
         forrigeIverksetting = forrigeUtbetalingId?.uuidPart()?.let { ForrigeIverksettingV2Dto(it) },
     ).let { serialize(it) }
