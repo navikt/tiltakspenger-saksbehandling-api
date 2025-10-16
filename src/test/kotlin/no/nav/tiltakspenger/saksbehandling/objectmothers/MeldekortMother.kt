@@ -73,10 +73,14 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import kotlin.collections.emptyList
+import kotlin.collections.mapNotNull
 import kotlin.math.ceil
 
 interface MeldekortMother : MotherOfAllMothers {
@@ -586,7 +590,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     tiltakstypePerioder = tiltakstypePerioder,
-                    meldeperiodeBeregninger = MeldeperiodeBeregninger(meldekortBehandlinger, Rammebehandlinger.empty()),
+                    meldeperiodeBeregninger = meldekortBehandlinger.tilMeldeperiodeBeregninger(clock),
                 )
             },
             simuler = {
@@ -669,7 +673,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     tiltakstypePerioder = tiltakstypePerioder,
-                    meldeperiodeBeregninger = MeldeperiodeBeregninger(this, Rammebehandlinger.empty()),
+                    meldeperiodeBeregninger = this.tilMeldeperiodeBeregninger(clock),
                 )
             },
             simuler = { KunneIkkeSimulere.UkjentFeil.left() },
@@ -941,4 +945,14 @@ fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): Dager {
             )
         }.toNonEmptyListOrNull()!!,
     )
+}
+
+fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): MeldeperiodeBeregninger {
+    return this.fold(emptyList<VedtattUtbetaling>()) { acc, mkb ->
+        if (mkb !is MeldekortBehandling.Behandlet) {
+            return@fold acc
+        }
+
+        acc.plus(mkb.opprettVedtak(acc.lastOrNull(), clock).utbetaling)
+    }.let { MeldeperiodeBeregninger.fraUtbetalinger(Utbetalinger(it)) }
 }

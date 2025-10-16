@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.utsjekk.kontrakter.felles.Satstype
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 
@@ -30,6 +31,10 @@ data class Utbetalinger(
 
     val tidslinje: Periodisering<VedtattUtbetaling> by lazy {
         verdi.toTidslinje()
+    }
+
+    val meldeperiodeBeregninger: MeldeperiodeBeregninger by lazy {
+        MeldeperiodeBeregninger.fraUtbetalinger(this)
     }
 
     fun harUtbetalingIPeriode(periode: Periode): Boolean {
