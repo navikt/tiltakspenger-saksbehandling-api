@@ -13,7 +13,7 @@ class SakPostgresRepoTest {
             val opprettetSak = testDataHelper.persisterSak()
             sakRepo.hentForSaksnummer(opprettetSak.saksnummer)?.kanSendeInnHelgForMeldekort shouldBe false
             val oppdatertSak = opprettetSak.oppdaterKanSendeInnHelgForMeldekort(true)
-            sakRepo.oppdaterKanSendeInnHelgForMeldekort(oppdatertSak)
+            sakRepo.oppdaterKanSendeInnHelgForMeldekort(oppdatertSak.id, oppdatertSak.kanSendeInnHelgForMeldekort)
             sakRepo.hentForSaksnummer(opprettetSak.saksnummer)?.kanSendeInnHelgForMeldekort shouldBe true
         }
     }

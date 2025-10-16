@@ -16,10 +16,11 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
+import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSaksnummer
 import java.time.Clock
 
-private const val TOGGLE_HELG_MELDEKORT_PATH = "$SAK_PATH/{saksnummer}/toggle-helg-meldekort"
+private const val TOGGLE_HELG_MELDEKORT_PATH = "$SAK_PATH/{sakId}/toggle-helg-meldekort"
 
 private data class ToggleKanSendeHelgForMeldekortBody(val kanSendeHelg: Boolean)
 
@@ -35,20 +36,20 @@ fun Route.toggleKanSendeHelgForMeldekortSakRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
 
-        call.withSaksnummer { saksnummer ->
+        call.withSakId { sakId ->
             krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-            tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, token)
+            tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
 
             call.withBody<ToggleKanSendeHelgForMeldekortBody> { body ->
-                auditService.logMedSaksnummer(
-                    saksnummer = saksnummer,
+                auditService.logMedSakId(
+                    sakId = sakId,
                     navIdent = saksbehandler.navIdent,
-                    action = AuditLogEvent.Action.ACCESS,
-                    contextMessage = "Henter hele saken til brukeren",
+                    action = AuditLogEvent.Action.UPDATE,
+                    contextMessage = "Oppdaterer brukerens mulighet til å melde helg",
                     correlationId = call.correlationId(),
                 )
                 sakService.oppdaterKanSendeInnHelgForMeldekort(
-                    saksnummer = saksnummer,
+                    sakId = sakId,
                     kanSendeHelg = body.kanSendeHelg,
                 )
                     .also { sak ->

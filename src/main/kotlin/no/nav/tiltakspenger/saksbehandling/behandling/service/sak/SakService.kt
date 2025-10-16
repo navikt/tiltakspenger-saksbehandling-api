@@ -180,14 +180,14 @@ class SakService(
         )
     }
 
-    fun oppdaterKanSendeInnHelgForMeldekort(saksnummer: Saksnummer, kanSendeHelg: Boolean): Sak {
-        val sak = sakRepo.hentForSaksnummer(saksnummer)
-            ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
+    fun oppdaterKanSendeInnHelgForMeldekort(sakId: SakId, kanSendeHelg: Boolean): Sak {
+        val sak = sakRepo.hentForSakId(sakId)
+            ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $sakId")
 
         val oppdatertSak = sak.oppdaterKanSendeInnHelgForMeldekort(kanSendeHelg)
 
         sessionFactory.withTransactionContext {
-            sakRepo.oppdaterKanSendeInnHelgForMeldekort(sak = oppdatertSak, it)
+            sakRepo.oppdaterKanSendeInnHelgForMeldekort(sakId = oppdatertSak.id, oppdatertSak.kanSendeInnHelgForMeldekort, it)
             sakRepo.oppdaterSkalSendesTilMeldekortApi(
                 sakId = oppdatertSak.id,
                 skalSendesTilMeldekortApi = true,

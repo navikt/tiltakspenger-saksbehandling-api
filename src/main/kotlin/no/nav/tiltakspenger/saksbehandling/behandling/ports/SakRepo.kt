@@ -58,5 +58,9 @@ interface SakRepo {
         sessionContext: SessionContext? = null,
     )
 
-    fun oppdaterKanSendeInnHelgForMeldekort(sak: Sak, sessionContext: SessionContext? = null)
+    fun oppdaterKanSendeInnHelgForMeldekort(
+        sakId: SakId,
+        kanSendeInnHelgForMeldekort: Boolean,
+        sessionContext: SessionContext? = null,
+    )
 }

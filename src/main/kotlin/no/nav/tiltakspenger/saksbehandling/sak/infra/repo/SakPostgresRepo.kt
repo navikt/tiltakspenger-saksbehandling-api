@@ -284,7 +284,8 @@ class SakPostgresRepo(
     }
 
     override fun oppdaterKanSendeInnHelgForMeldekort(
-        sak: Sak,
+        sakId: SakId,
+        kanSendeInnHelgForMeldekort: Boolean,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSessionContext(sessionContext) { sessionContext ->
@@ -296,8 +297,8 @@ class SakPostgresRepo(
                                 set kan_sende_inn_helg_for_meldekort = :kan_sende_inn_helg_for_meldekort 
                             where id = :id
                         """,
-                        "kan_sende_inn_helg_for_meldekort" to sak.kanSendeInnHelgForMeldekort,
-                        "id" to sak.id.toString(),
+                        "kan_sende_inn_helg_for_meldekort" to kanSendeInnHelgForMeldekort,
+                        "id" to sakId.toString(),
                     ).asUpdate,
                 )
             }
