@@ -55,7 +55,6 @@ data class Søknadsbehandling(
     override val avbrutt: Avbrutt?,
     override val ventestatus: Ventestatus,
     override val resultat: SøknadsbehandlingResultat?,
-    override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val søknad: Søknad,
     val automatiskSaksbehandlet: Boolean,
@@ -63,25 +62,13 @@ data class Søknadsbehandling(
     override val utbetaling: BehandlingUtbetaling?,
 ) : Rammebehandling {
 
-    override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
-        get() = when (resultat) {
-            is Avslag -> null
-            is Innvilgelse -> resultat.antallDagerPerMeldeperiode
-            null -> null
-        }
+    override val virkningsperiode = resultat?.virkningsperiode
 
-    override val barnetillegg: Barnetillegg?
-        get() = when (resultat) {
-            is Avslag -> null
-            is Innvilgelse -> resultat.barnetillegg
-            null -> null
-        }
+    override val antallDagerPerMeldeperiode = resultat?.antallDagerPerMeldeperiode
 
-    override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (resultat) {
-        is Avslag -> null
-        is Innvilgelse -> resultat.valgteTiltaksdeltakelser
-        null -> null
-    }
+    override val barnetillegg = resultat?.barnetillegg
+
+    override val valgteTiltaksdeltakelser = resultat?.valgteTiltaksdeltakelser
 
     val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
 
@@ -92,21 +79,15 @@ data class Søknadsbehandling(
             KLAR_TIL_BESLUTNING,
             UNDER_BESLUTNING,
             VEDTATT,
-            -> validerResultat()
+            -> require(resultat!!.erFerdigutfylt) {
+                "Behandlingsresultatet må være ferdigutfylt når status er $status"
+            }
 
             UNDER_AUTOMATISK_BEHANDLING,
             KLAR_TIL_BEHANDLING,
             UNDER_BEHANDLING,
             AVBRUTT,
             -> Unit
-        }
-    }
-
-    private fun validerResultat() {
-        when (resultat) {
-            is Innvilgelse -> resultat.valider(virkningsperiode)
-            is Avslag -> Unit
-            null -> Unit
         }
     }
 
@@ -120,15 +101,9 @@ data class Søknadsbehandling(
     ): Either<KanIkkeOppdatereBehandling, Søknadsbehandling> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
 
-        val virkningsperiode = when (kommando) {
-            is OppdaterSøknadsbehandlingKommando.Avslag -> this.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
-            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> kommando.innvilgelsesperiode
-            is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat -> null
-        }
-
         val resultat = when (kommando) {
             is OppdaterSøknadsbehandlingKommando.Avslag -> {
-                Avslag(avslagsgrunner = kommando.avslagsgrunner)
+                Avslag(avslagsgrunner = kommando.avslagsgrunner, avslagsperiode = this.søknad.tiltaksdeltagelseperiodeDetErSøktOm())
             }
 
             is OppdaterSøknadsbehandlingKommando.Innvilgelse -> {
@@ -136,6 +111,7 @@ data class Søknadsbehandling(
                     valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
                     barnetillegg = kommando.barnetillegg,
                     antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                    innvilgelsesperiode = kommando.innvilgelsesperiode,
                 )
             }
 
@@ -145,13 +121,14 @@ data class Søknadsbehandling(
         return this.copy(
             sistEndret = nå(clock),
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = virkningsperiode,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             resultat = resultat,
             automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
             utbetaling = utbetaling,
         ).also {
-            it.validerResultat()
+            require(it.resultat?.erFerdigutfylt != false) {
+                "Behandlingsresultatet må være ferdigutfylt etter vi oppdaterer søknadsbehandlingen"
+            }
         }.right()
     }
 
@@ -234,7 +211,6 @@ data class Søknadsbehandling(
                 avbrutt = null,
                 ventestatus = Ventestatus(),
                 resultat = null,
-                virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
@@ -277,7 +253,6 @@ data class Søknadsbehandling(
                 avbrutt = null,
                 ventestatus = Ventestatus(),
                 resultat = null,
-                virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),

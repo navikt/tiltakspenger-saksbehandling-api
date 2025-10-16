@@ -95,6 +95,7 @@ class SendRevurderingTilBeslutningTest {
                     AntallDagerForMeldeperiode.default,
                     revurderingInnvilgelsesperiode,
                 ),
+                innvilgelsesperiode = revurderingInnvilgelsesperiode,
             )
 
             revurdering.virkningsperiode shouldBe revurderingInnvilgelsesperiode

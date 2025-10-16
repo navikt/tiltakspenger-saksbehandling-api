@@ -75,7 +75,7 @@ class OppdaterBehandlingService(
             is OppdaterRevurderingKommando.Stans -> this.beregnRevurderingStans(
                 behandlingId = kommando.behandlingId,
                 // Vi kan ikke stanse hvis vi ikke har en rettighetsperiode.
-                stansperiode = kommando.hentStansperiode(this.førsteDagSomGirRett!!, this.sisteDagSomGirRett!!),
+                stansperiode = kommando.utledStansperiode(this.førsteDagSomGirRett!!, this.sisteDagSomGirRett!!),
             )
 
             is OppdaterSøknadsbehandlingKommando.Avslag,
@@ -127,7 +127,7 @@ class OppdaterBehandlingService(
             }
 
             is OppdaterRevurderingKommando.Stans -> {
-                val stansperiode = kommando.hentStansperiode(førsteDagSomGirRett!!, sisteDagSomGirRett!!)
+                val stansperiode = kommando.utledStansperiode(førsteDagSomGirRett!!, sisteDagSomGirRett!!)
                 val overlappendeperiode = this.vedtaksliste.rammevedtaksliste.innvilgetTidslinje.overlappendePeriode(stansperiode)
                 if (!overlappendeperiode.erSammenhengende) {
                     throw IllegalStateException("Stansperioden $stansperiode må være sammenhengende med eksisterende innvilgede perioder på saken. Finnes ikke sammenhengende periode i ${this.vedtaksliste.rammevedtaksliste.innvilgelsesperioder} for sakId=$id")

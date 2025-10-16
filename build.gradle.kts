@@ -3,14 +3,14 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val jvmVersion = JvmTarget.JVM_21
 val kotlinxCoroutinesVersion = "1.10.2"
-val kotestVersion = "6.0.3"
+val kotestVersion = "6.0.4"
 val felleslibVersion = "0.0.596"
 val mockkVersion = "1.14.6"
 val ktorVersion = "3.3.1"
 val testContainersVersion = "1.21.3"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
-val confluentVersion = "8.0.2"
-val avroVersion = "1.12.0"
+val confluentVersion = "8.1.0"
+val avroVersion = "1.12.1"
 val prometeusVersion = "1.15.5"
 
 dependencies {
@@ -76,7 +76,7 @@ dependencies {
     api("com.auth0:jwks-rsa:0.23.0")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:11.14.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.14.1")
     implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.postgresql:postgresql:42.7.8")
     implementation("com.github.seratch:kotliquery:1.9.1")

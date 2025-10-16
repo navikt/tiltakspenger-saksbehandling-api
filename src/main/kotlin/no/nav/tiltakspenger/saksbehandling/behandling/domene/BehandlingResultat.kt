@@ -2,54 +2,43 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
 sealed interface BehandlingResultat {
 
-    /* Denne benyttes både i søknadsbehandlinger og revurderinger */
-    sealed interface Innvilgelse {
-        val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
-        val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>?
-        val barnetillegg: Barnetillegg?
+    /** Kan være null ved sære tilfeller av avslag, og når behandlingen er uferdig */
+    val virkningsperiode: Periode?
 
-        fun valider(virkningsperiode: Periode?) {
-            // TODO - Disse sjekkene er veldig lite intuitivt fra saksbehandlers side fordi det bare fører til en exception
-            requireNotNull(virkningsperiode) {
-                "Virkningsperiode må være satt for innvilget behandling"
-            }
+    /** Vil være null ved stans og når behandlingen er uferdig */
+    val barnetillegg: Barnetillegg?
 
-            valgteTiltaksdeltakelser.also {
-                requireNotNull(it) {
-                    "Valgte tiltaksdeltakelser må være satt for innvilget behandling"
-                }
+    /** Vil være null ved stans og når behandlingen er uferdig */
+    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
 
-                require(it.periodisering.totalPeriode == virkningsperiode) {
-                    "Total periode for valgte tiltaksdeltakelser (${it.periodisering.totalPeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
-                }
-            }
+    /** Vil være null ved stans og når behandlingen er uferdig */
+    val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
 
-            barnetillegg.also {
-                requireNotNull(it) {
-                    "Barnetillegg må være satt for innvilget behandling"
-                }
+    /** Sier noe om tilstanden til resultatet. Om det er klart for å sendes til beslutter og/eller iverksettes. */
+    val erFerdigutfylt: Boolean
 
-                val barnetilleggsperiode = it.periodisering.totalPeriode
-                require(barnetilleggsperiode == virkningsperiode) {
-                    "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)"
-                }
-            }
+    /** Denne benyttes både i søknadsbehandlinger og revurderinger */
+    sealed interface Innvilgelse : BehandlingResultat {
+        val innvilgelsesperiode: Periode?
 
-            antallDagerPerMeldeperiode.also {
-                requireNotNull(it) {
-                    "antallDagerPerMeldeperiode må være satt for innvilget behandling"
-                }
-
-                require(it.totalPeriode == virkningsperiode) {
-                    "Innvilgelsesperioden ($virkningsperiode) må være lik som antallDagerPerMeldeperiode sin totale periode (${it.totalPeriode})"
-                }
-            }
-        }
+        /**
+         * True dersom disse ikke er null: [innvilgelsesperiode], [valgteTiltaksdeltakelser], [barnetillegg] og [antallDagerPerMeldeperiode]
+         * Sjekker også at periodene til [valgteTiltaksdeltakelser], [barnetillegg] og [antallDagerPerMeldeperiode] er lik [innvilgelsesperiode].
+         */
+        override val erFerdigutfylt: Boolean
+            get() = innvilgelsesperiode != null &&
+                valgteTiltaksdeltakelser != null &&
+                barnetillegg != null &&
+                antallDagerPerMeldeperiode != null &&
+                antallDagerPerMeldeperiode!!.totalPeriode == innvilgelsesperiode &&
+                valgteTiltaksdeltakelser!!.periodisering.totalPeriode == innvilgelsesperiode &&
+                barnetillegg!!.periodisering.totalPeriode == innvilgelsesperiode
     }
 }
 

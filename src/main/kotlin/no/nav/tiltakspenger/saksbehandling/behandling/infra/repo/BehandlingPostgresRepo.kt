@@ -384,10 +384,12 @@ class BehandlingPostgresRepo(
                                 .toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
+                            innvilgelsesperiode = virkningsperiode!!,
                         )
 
                         SøknadsbehandlingType.AVSLAG -> SøknadsbehandlingResultat.Avslag(
                             avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag(),
+                            avslagsperiode = virkningsperiode,
                         )
 
                         null -> null
@@ -406,7 +408,6 @@ class BehandlingPostgresRepo(
                         saksopplysninger = saksopplysninger,
                         søknad = søknadId?.let { SøknadDAO.hentForSøknadId(it, session) } as InnvilgbarSøknad?
                             ?: throw IllegalStateException("Fant ikke søknad for søknadsbehandling, behandlingsid $id"),
-                        virkningsperiode = virkningsperiode,
                         saksbehandler = saksbehandler,
                         sendtTilBeslutning = sendtTilBeslutning,
                         beslutter = beslutter,
@@ -445,6 +446,7 @@ class BehandlingPostgresRepo(
                                 ?: emptyList(),
                             harValgtStansFraFørsteDagSomGirRett = booleanOrNull("har_valgt_stans_fra_første_dag_som_gir_rett"),
                             harValgtStansTilSisteDagSomGirRett = booleanOrNull("har_valgt_stans_til_siste_dag_som_gir_rett"),
+                            stansperiode = virkningsperiode,
                         )
 
                         RevurderingType.INNVILGELSE -> RevurderingResultat.Innvilgelse(
@@ -452,6 +454,7 @@ class BehandlingPostgresRepo(
                                 ?.toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
+                            innvilgelsesperiode = virkningsperiode,
                         )
                     }
 
@@ -466,7 +469,6 @@ class BehandlingPostgresRepo(
                         saksnummer = saksnummer,
                         fnr = fnr,
                         saksopplysninger = saksopplysninger,
-                        virkningsperiode = virkningsperiode,
                         saksbehandler = saksbehandler,
                         sendtTilBeslutning = sendtTilBeslutning,
                         beslutter = beslutter,
