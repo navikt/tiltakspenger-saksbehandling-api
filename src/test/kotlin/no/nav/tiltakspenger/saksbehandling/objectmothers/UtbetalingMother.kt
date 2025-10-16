@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
@@ -33,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHe
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
+import no.nav.utsjekk.kontrakter.felles.Satstype
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -59,6 +61,7 @@ interface UtbetalingMother : MotherOfAllMothers {
         sendtTilUtbetaling: LocalDateTime? = null,
         status: Utbetalingsstatus? = null,
         statusMetadata: Forsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
+        satstype: Satstype = Satstype.DAGLIG,
     ): VedtattUtbetaling {
         return VedtattUtbetaling(
             id = id,
@@ -72,9 +75,10 @@ interface UtbetalingMother : MotherOfAllMothers {
             beslutter = beslutter,
             beregning = beregning,
             forrigeUtbetalingId = forrigeUtbetalingId,
+            statusMetadata = statusMetadata,
+            satstype = satstype,
             sendtTilUtbetaling = sendtTilUtbetaling,
             status = status,
-            statusMetadata = statusMetadata,
         )
     }
 

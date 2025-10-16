@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilUtbetalingErrorJson
 
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutning"
 
@@ -81,5 +82,5 @@ private fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJs
         "må_være_under_behandling_eller_automatisk",
     )
 
-    is KanIkkeSendeTilBeslutter.UtbetalingStøttesIkke -> this.toErrorJson()
+    is KanIkkeSendeTilBeslutter.UtbetalingStøttesIkke -> this.feil.tilUtbetalingErrorJson()
 }

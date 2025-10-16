@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
+import no.nav.utsjekk.kontrakter.felles.Satstype
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -75,10 +76,11 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
         beslutter = this.beslutter!!,
         beregning = this.beregning,
         brukerNavkontor = this.navkontor,
-        sendtTilUtbetaling = null,
-        status = null,
         forrigeUtbetalingId = forrigeUtbetaling?.id,
         statusMetadata = Forsøkshistorikk.opprett(clock = clock),
+        satstype = Satstype.DAGLIG,
+        sendtTilUtbetaling = null,
+        status = null,
     )
 
     return MeldekortVedtak(

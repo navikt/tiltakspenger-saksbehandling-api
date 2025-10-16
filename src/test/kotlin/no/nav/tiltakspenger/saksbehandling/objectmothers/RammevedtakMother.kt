@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
+import no.nav.utsjekk.kontrakter.felles.Satstype
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -160,6 +161,7 @@ interface RammevedtakMother : MotherOfAllMothers {
                 sendtTilUtbetaling = null,
                 status = null,
                 statusMetadata = Forsøkshistorikk.opprett(clock = clock),
+                satstype = Satstype.DAGLIG,
             )
         }
     }

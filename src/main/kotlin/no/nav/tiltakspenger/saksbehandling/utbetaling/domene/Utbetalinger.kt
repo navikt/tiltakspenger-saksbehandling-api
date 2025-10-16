@@ -7,7 +7,9 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
+import no.nav.utsjekk.kontrakter.felles.Satstype
 import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 
 /**
  * Inneholder alle utbetalinger (som er en konsekvens av et vedtak).
@@ -56,6 +58,30 @@ data class Utbetalinger(
 
     fun hentSisteBeregningdagForDato(dato: LocalDate): MeldeperiodeBeregningDag? {
         return hentSisteUtbetalingForDato(dato)?.hentBeregningsdagForDato(dato)
+    }
+
+    fun harDag7IMånedForDato(dato: LocalDate): Boolean {
+        return harDag7IPeriode(
+            Periode(
+                dato.with(TemporalAdjusters.firstDayOfMonth()),
+                dato.with(
+                    TemporalAdjusters.lastDayOfMonth(),
+                ),
+            ),
+        )
+    }
+
+    fun harDag7IMånederForPeriode(periode: Periode): Boolean {
+        val periodeForHeleMåneder = Periode(
+            periode.fraOgMed.with(TemporalAdjusters.firstDayOfMonth()),
+            periode.tilOgMed.with(TemporalAdjusters.lastDayOfMonth()),
+        )
+
+        return harDag7IPeriode(periodeForHeleMåneder)
+    }
+
+    private fun harDag7IPeriode(periode: Periode): Boolean {
+        return hentUtbetalingerFraPeriode(periode).any { it.satstype == Satstype.DAGLIG_INKL_HELG }
     }
 
     init {
