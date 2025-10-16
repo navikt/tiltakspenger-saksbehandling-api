@@ -53,6 +53,7 @@ class IverksettMeldekortService(
         return meldekortBehandling.iverksettMeldekort(kommando.beslutter, clock).map { iverksattMeldekortbehandling ->
             val meldekortVedtak = iverksattMeldekortbehandling.opprettVedtak(
                 forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
+                skalUtbetaleHelgPåFredag = sak.kanSendeInnHelgForMeldekort,
                 clock = clock,
             )
 

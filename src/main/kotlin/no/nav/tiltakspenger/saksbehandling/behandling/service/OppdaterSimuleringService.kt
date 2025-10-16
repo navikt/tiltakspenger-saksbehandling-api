@@ -52,6 +52,7 @@ class OppdaterSimuleringService(
                     meldeperiodeKjeder = sak.meldeperiodeKjeder,
                     saksbehandler = saksbehandler.navIdent,
                     brukersNavkontor = { navkontor },
+                    kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort,
                 )
             }
         return if (behandlingId.erBehandlingId()) {

@@ -107,13 +107,21 @@ class AutomatiskMeldekortBehandlingService(
             brukersMeldekort = meldekort,
             navkontor = navkontor,
             clock = clock,
-            simuler = { behandling -> simulerService.simulerMeldekort(behandling, sak.utbetalinger.lastOrNull(), sak.meldeperiodeKjeder) { navkontor } },
+            simuler = { behandling ->
+                simulerService.simulerMeldekort(
+                    behandling,
+                    sak.utbetalinger.lastOrNull(),
+                    sak.meldeperiodeKjeder,
+                    sak.kanSendeInnHelgForMeldekort,
+                ) { navkontor }
+            },
         ).getOrElse {
             return it.left()
         }
 
         val meldekortvedtak = meldekortBehandling.opprettVedtak(
             forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
+            skalUtbetaleHelgPåFredag = sak.kanSendeInnHelgForMeldekort,
             clock = clock,
         )
 

@@ -144,7 +144,12 @@ interface RammevedtakMother : MotherOfAllMothers {
         brevJson = brevJson,
     )
 
-    fun Rammebehandling.tilRammevedtakUtbetaling(vedtakId: VedtakId, opprettet: LocalDateTime, forrigeUtbetalingId: UtbetalingId? = null): VedtattUtbetaling? {
+    fun Rammebehandling.tilRammevedtakUtbetaling(
+        vedtakId: VedtakId,
+        opprettet: LocalDateTime,
+        forrigeUtbetalingId: UtbetalingId? = null,
+        kanSendeInnHelgForMeldekort: Boolean = false,
+    ): VedtattUtbetaling? {
         return this.utbetaling?.let {
             VedtattUtbetaling(
                 id = UtbetalingId.random(),
@@ -162,6 +167,7 @@ interface RammevedtakMother : MotherOfAllMothers {
                 status = null,
                 statusMetadata = Forsøkshistorikk.opprett(clock = clock),
                 satstype = Satstype.DAGLIG,
+                skalUtbetaleHelgPåFredag = kanSendeInnHelgForMeldekort,
             )
         }
     }

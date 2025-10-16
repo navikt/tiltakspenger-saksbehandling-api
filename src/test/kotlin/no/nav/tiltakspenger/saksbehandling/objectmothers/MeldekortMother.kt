@@ -267,6 +267,7 @@ interface MeldekortMother : MotherOfAllMothers {
         )
         val vedtak = meldekortBehandling.opprettVedtak(
             forrigeUtbetaling = utbetalinger.lastOrNull(),
+            skalUtbetaleHelgPåFredag = kanSendeInnHelgForMeldekort,
             clock = clock,
         )
 

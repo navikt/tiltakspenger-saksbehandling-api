@@ -687,7 +687,12 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         periode = meldeperioder.first().periode,
         clock = clock,
     )
-    val meldekortVedtak = behandletMeldekort.opprettVedtak(sak.utbetalinger.lastOrNull(), clock)
+    val meldekortVedtak =
+        behandletMeldekort.opprettVedtak(
+            sak.utbetalinger.lastOrNull(),
+            sak.kanSendeInnHelgForMeldekort,
+            clock,
+        )
     meldekortRepo.lagre(behandletMeldekort, null)
     meldekortVedtakRepo.lagre(meldekortVedtak)
     return Tuple4(sakRepo.hentForSakId(sakId)!!, rammevedtak, meldekortVedtak, behandletMeldekort)

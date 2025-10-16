@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
@@ -54,6 +53,7 @@ data class VedtattUtbetaling(
     val forrigeUtbetalingId: UtbetalingId?,
     val statusMetadata: Forsøkshistorikk,
     val satstype: Satstype,
+    val skalUtbetaleHelgPåFredag: Boolean,
     val sendtTilUtbetaling: LocalDateTime?,
     val status: Utbetalingsstatus?,
 ) : Periodiserbar {

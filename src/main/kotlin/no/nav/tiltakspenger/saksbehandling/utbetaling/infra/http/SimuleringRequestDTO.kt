@@ -30,6 +30,7 @@ fun toSimuleringRequest(
     saksbehandler: String,
     beregning: Beregning,
     brukersNavkontor: Navkontor,
+    kanSendeInnHelgForMeldekort: Boolean,
     forrigeUtbetalingJson: String?,
     forrigeUtbetalingId: UtbetalingId?,
 ): String {
@@ -42,6 +43,7 @@ fun toSimuleringRequest(
         utbetalinger = beregning.tilUtbetalingerDTO(
             brukersNavkontor = brukersNavkontor,
             forrigeUtbetalingJson = forrigeUtbetalingJson,
+            skalUtbetaleHelgPåFredag = kanSendeInnHelgForMeldekort,
         ),
         forrigeIverksetting = forrigeUtbetalingId?.uuidPart()?.let { ForrigeIverksettingV2Dto(it) },
     ).let { serialize(it) }

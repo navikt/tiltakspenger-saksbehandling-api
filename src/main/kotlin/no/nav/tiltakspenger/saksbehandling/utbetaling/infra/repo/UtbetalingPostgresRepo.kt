@@ -267,6 +267,7 @@ class UtbetalingPostgresRepo(
                 satstype = string("satstype").tilSatstype(),
                 status = stringOrNull("status")?.toUtbetalingsstatus(),
                 sendtTilUtbetaling = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt"),
+                skalUtbetaleHelgPåFredag = boolean("kan_sende_inn_helg_for_meldekort"),
             )
         }
     }

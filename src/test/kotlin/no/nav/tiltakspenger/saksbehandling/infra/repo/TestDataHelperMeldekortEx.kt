@@ -220,6 +220,7 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
 
     val meldekortVedtak = iverksattMeldekortBehandling.opprettVedtak(
         forrigeUtbetaling = sakMedMeldekortbehandlingTilBeslutning.utbetalinger.lastOrNull(),
+        skalUtbetaleHelgPåFredag = sakMedMeldekortbehandlingTilBeslutning.kanSendeInnHelgForMeldekort,
         clock = clock,
     )
 
