@@ -51,6 +51,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltagelseKlient = object : TiltaksdeltagelseKlient {
                 override suspend fun hentTiltaksdeltagelser(
                     fnr: Fnr,
+                    tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
                 ) = Tiltaksdeltagelser(tiltaksdeltagelser.first)
             }
@@ -123,6 +124,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltagelseKlient = object : TiltaksdeltagelseKlient {
                 override suspend fun hentTiltaksdeltagelser(
                     fnr: Fnr,
+                    tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
                 ) = Tiltaksdeltagelser(tiltaksdeltagelser.first)
             }
@@ -187,6 +189,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltagelseKlient = object : TiltaksdeltagelseKlient {
                 override suspend fun hentTiltaksdeltagelser(
                     fnr: Fnr,
+                    tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
                 ) = Tiltaksdeltagelser(tiltaksdeltagelser.first)
             }
@@ -279,6 +282,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltagelseKlient = object : TiltaksdeltagelseKlient {
                 override suspend fun hentTiltaksdeltagelser(
                     fnr: Fnr,
+                    tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
                 ) = Tiltaksdeltagelser(listOf(tiltak1.first, tiltak2.first))
             }
@@ -358,6 +362,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltagelseKlient = object : TiltaksdeltagelseKlient {
                 override suspend fun hentTiltaksdeltagelser(
                     fnr: Fnr,
+                    tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
                 ) = Tiltaksdeltagelser(listOf(tiltak1.first, tiltak2.first))
             }

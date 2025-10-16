@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VURDE
 import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus.Deltar
@@ -85,7 +86,12 @@ fun DeltakerStatusDTO.toDomain(): TiltakDeltakerstatus {
     }
 }
 
-fun TiltakTilSaksbehandlingDTO.harFomOgTomEllerRelevantStatus(): Boolean {
+fun TiltakTilSaksbehandlingDTO.harFomOgTomEllerRelevantStatus(
+    tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
+): Boolean {
+    if (tiltaksdeltagelserDetErSøktTiltakspengerFor.ider.contains(id)) {
+        return true
+    }
     if (deltakelseFom != null || deltakelseTom != null) {
         return true
     }

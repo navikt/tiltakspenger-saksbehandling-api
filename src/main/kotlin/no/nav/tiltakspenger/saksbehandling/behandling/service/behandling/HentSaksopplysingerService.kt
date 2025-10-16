@@ -75,6 +75,7 @@ class HentSaksopplysingerService(
     ): Tiltaksdeltagelser {
         val tiltaksdeltagelserSomKanGiRettTilTiltakspenger = tiltaksdeltagelseKlient.hentTiltaksdeltagelser(
             fnr = fnr,
+            tiltaksdeltagelserDetErSøktTiltakspengerFor = tiltaksdeltagelserDetErSøktTiltakspengerFor,
             correlationId = correlationId,
         )
         // Henter oppdaterte tiltaksdeltagelser det er søkt på, ved forlengelse kan flere overlappe enn på søknadstidspunktet.
