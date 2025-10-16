@@ -25,6 +25,7 @@ open class SakContext(
             sakRepo = sakRepo,
             fellesSkjermingsklient = fellesSkjermingsklient,
             personService = personService,
+            sessionFactory = sessionFactory,
         )
     }
     open val saksnummerGenerator: SaksnummerGenerator by lazy {

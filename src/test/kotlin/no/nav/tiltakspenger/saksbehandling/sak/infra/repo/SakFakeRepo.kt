@@ -128,4 +128,10 @@ class SakFakeRepo(
         sessionContext: SessionContext?,
     ) {
     }
+
+    override fun oppdaterKanSendeInnHelgForMeldekort(
+        sakId: SakId,
+        kanSendeInnHelgForMeldekort: Boolean,
+        sessionContext: SessionContext?,
+    ) {}
 }

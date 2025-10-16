@@ -57,4 +57,10 @@ interface SakRepo {
         skalSendeMeldeperioderTilDatadeling: Boolean,
         sessionContext: SessionContext? = null,
     )
+
+    fun oppdaterKanSendeInnHelgForMeldekort(
+        sakId: SakId,
+        kanSendeInnHelgForMeldekort: Boolean,
+        sessionContext: SessionContext? = null,
+    )
 }

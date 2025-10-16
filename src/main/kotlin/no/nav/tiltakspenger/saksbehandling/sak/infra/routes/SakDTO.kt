@@ -25,6 +25,7 @@ data class SakDTO(
     val behandlinger: List<BehandlingDTO>,
     val tidslinje: List<RammevedtakDTO>,
     val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
+    val kanSendeInnHelgForMeldekort: Boolean,
 )
 
 fun Sak.toSakDTO(clock: Clock) = SakDTO(
@@ -46,4 +47,5 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     behandlinger = this.tilBehandlingerDTO(),
     tidslinje = rammevedtaksliste.tidslinje.perioderMedVerdi.map { it.tilPeriodisertRammevedtakDTO() },
     utbetalingstidslinje = this.tilUtbetalingstidslinjeMeldeperiodeDTO(),
+    kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
 )

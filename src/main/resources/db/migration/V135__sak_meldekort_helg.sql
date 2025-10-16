@@ -1,0 +1,2 @@
+ALTER TABLE sak
+  ADD COLUMN IF NOT EXISTS kan_sende_inn_helg_for_meldekort BOOLEAN NOT NULL DEFAULT FALSE;

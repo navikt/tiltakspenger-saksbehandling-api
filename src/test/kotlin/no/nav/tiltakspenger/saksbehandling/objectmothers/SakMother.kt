@@ -52,6 +52,7 @@ interface SakMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         søknader: List<Søknad> = emptyList(),
         behandlinger: Rammebehandlinger = Rammebehandlinger.empty(),
+        kanSendeInnHelgForMeldekort: Boolean = false,
     ): Sak = Sak(
         id = sakId,
         fnr = fnr,
@@ -64,6 +65,7 @@ interface SakMother {
         meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
         brukersMeldekort = emptyList(),
         søknader = søknader,
+        kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
     )
 
     fun sakMedOpprettetBehandling(
@@ -170,6 +172,7 @@ interface SakMother {
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = listOf(søknad),
+            kanSendeInnHelgForMeldekort = false,
         ) to søknadsbehandling
     }
 
@@ -232,6 +235,7 @@ interface SakMother {
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = listOf(søknad),
+            kanSendeInnHelgForMeldekort = false,
         ) to søknadsbehandling
     }
 
