@@ -33,6 +33,7 @@ class SimulerService(
         behandling: MeldekortBehandling,
         forrigeUtbetaling: VedtattUtbetaling?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
+        kanSendeInnHelgForMeldekort: Boolean,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         return simuler(
@@ -45,6 +46,7 @@ class SimulerService(
             forrigeUtbetaling = forrigeUtbetaling,
             meldeperiodeKjeder = meldeperiodeKjeder,
             brukersNavkontor = brukersNavkontor,
+            kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         )
     }
 
@@ -60,6 +62,7 @@ class SimulerService(
         forrigeUtbetaling: VedtattUtbetaling?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
         saksbehandler: String,
+        kanSendeInnHelgForMeldekort: Boolean,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         return simuler(
@@ -72,6 +75,7 @@ class SimulerService(
             forrigeUtbetaling = forrigeUtbetaling,
             meldeperiodeKjeder = meldeperiodeKjeder,
             brukersNavkontor = brukersNavkontor,
+            kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         )
     }
 
@@ -84,6 +88,7 @@ class SimulerService(
         forrigeUtbetaling: VedtattUtbetaling?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
         saksbehandler: String,
+        kanSendeInnHelgForMeldekort: Boolean,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         return utbetalingsklient.simuler(
@@ -99,6 +104,7 @@ class SimulerService(
             },
             forrigeUtbetalingId = forrigeUtbetaling?.id,
             meldeperiodeKjeder = meldeperiodeKjeder,
+            kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         )
     }
 }

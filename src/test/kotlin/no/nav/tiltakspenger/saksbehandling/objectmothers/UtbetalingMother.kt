@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
@@ -62,6 +61,7 @@ interface UtbetalingMother : MotherOfAllMothers {
         status: Utbetalingsstatus? = null,
         statusMetadata: Forsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
         satstype: Satstype = Satstype.DAGLIG,
+        kanUtbetaleHelgPåFredag: Boolean = false,
     ): VedtattUtbetaling {
         return VedtattUtbetaling(
             id = id,
@@ -79,6 +79,7 @@ interface UtbetalingMother : MotherOfAllMothers {
             satstype = satstype,
             sendtTilUtbetaling = sendtTilUtbetaling,
             status = status,
+            kanUtbetaleHelgPåFredag = kanUtbetaleHelgPåFredag,
         )
     }
 

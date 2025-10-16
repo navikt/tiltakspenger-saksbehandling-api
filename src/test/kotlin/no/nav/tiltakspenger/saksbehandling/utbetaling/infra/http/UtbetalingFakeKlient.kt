@@ -55,6 +55,7 @@ class UtbetalingFakeKlient(
         saksbehandler: String,
         beregning: Beregning,
         brukersNavkontor: Navkontor,
+        kanSendeInnHelgForMeldekort: Boolean,
         forrigeUtbetalingJson: String?,
         forrigeUtbetalingId: UtbetalingId?,
         meldeperiodeKjeder: MeldeperiodeKjeder,

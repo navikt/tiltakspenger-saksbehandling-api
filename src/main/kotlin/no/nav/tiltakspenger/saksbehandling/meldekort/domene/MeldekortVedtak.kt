@@ -60,6 +60,7 @@ data class MeldekortVedtak(
 
 fun MeldekortBehandling.Behandlet.opprettVedtak(
     forrigeUtbetaling: VedtattUtbetaling?,
+    kanUtbetaleHelgPåFredag: Boolean,
     clock: Clock,
 ): MeldekortVedtak {
     val vedtakId = VedtakId.random()
@@ -79,6 +80,7 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
         forrigeUtbetalingId = forrigeUtbetaling?.id,
         statusMetadata = Forsøkshistorikk.opprett(clock = clock),
         satstype = Satstype.DAGLIG,
+        kanUtbetaleHelgPåFredag = kanUtbetaleHelgPåFredag,
         sendtTilUtbetaling = null,
         status = null,
     )
