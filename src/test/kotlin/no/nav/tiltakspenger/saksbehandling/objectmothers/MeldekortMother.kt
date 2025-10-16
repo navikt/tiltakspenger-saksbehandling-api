@@ -450,6 +450,20 @@ interface MeldekortMother : MotherOfAllMothers {
         }.toNonEmptyListOrNull()!!
     }
 
+    fun ikkeRettDager(
+        startDato: LocalDate,
+        meldekortId: MeldekortId,
+        antallDager: Int = 2,
+    ): NonEmptyList<IkkeRettTilTiltakspenger> {
+        require(antallDager in 1..14) {
+            "Antall sammenhengende dager i en meldeperiode vil aldri være mer mindre enn 1 eller mer enn 14, men var $antallDager"
+        }
+        return List(antallDager) { index ->
+            val dato = startDato.plusDays(index.toLong())
+            IkkeRettTilTiltakspenger(dato = dato)
+        }.toNonEmptyListOrNull()!!
+    }
+
     suspend fun beregnMeldekortperioder(
         clock: Clock = TikkendeKlokke(),
         vurderingsperiode: Periode,

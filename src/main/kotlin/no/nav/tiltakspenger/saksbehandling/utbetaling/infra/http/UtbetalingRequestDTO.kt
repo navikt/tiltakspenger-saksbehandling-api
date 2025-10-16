@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -166,7 +165,7 @@ private fun MeldeperiodeTilOppdrag.BeregnetDag.genererUtbetalingsperiode(
         tilOgMedDato = this.dato,
         stønadsdata =
         StønadsdataTiltakspengerV2Dto(
-            stønadstype = this.tiltakstype.mapStønadstype(),
+            stønadstype = this.tiltakstype!!.mapStønadstype(),
             barnetillegg = barnetillegg,
             brukersNavKontor = brukersNavKontor.kontornummer,
             meldekortId = kjedeId.verdi,
@@ -240,7 +239,8 @@ private data class MeldeperiodeTilOppdrag(
             dato = it.dato,
             beløp = it.beløp,
             beløpBarnetillegg = it.beløpBarnetillegg,
-            tiltakstype = it.tiltakstype!!,
+            totalBeløp = it.totalBeløp,
+            tiltakstype = it.tiltakstype,
         )
     }.let {
         if (kanUtbetaleHelgPåFredag) {
@@ -251,10 +251,17 @@ private data class MeldeperiodeTilOppdrag(
     }
 
     private fun tilUkeMedUtbetaltHelgPåFredag(uke: List<BeregnetDag>): List<BeregnetDag> {
-        val mandagTilTorsdag = uke.take(4)
         val (fredag, lørdag, søndag) = uke.takeLast(3)
 
+        if (lørdag.totalBeløp + søndag.totalBeløp == 0) {
+            return uke
+        }
+
+        val mandagTilTorsdag = uke.take(4)
+
         val superFredag = fredag.copy(
+            // Vi utbetaler helg på fredag selv om fredag ikke gir rett (og dermed ikke har noen tiltakstype)
+            tiltakstype = fredag.tiltakstype ?: lørdag.tiltakstype ?: søndag.tiltakstype,
             beløp = fredag.beløp + lørdag.beløp + søndag.beløp,
             beløpBarnetillegg = fredag.beløpBarnetillegg + lørdag.beløpBarnetillegg + søndag.beløpBarnetillegg,
         )
@@ -269,6 +276,7 @@ private data class MeldeperiodeTilOppdrag(
         val dato: LocalDate,
         val beløp: Int,
         val beløpBarnetillegg: Int,
-        val tiltakstype: TiltakstypeSomGirRett,
+        val totalBeløp: Int,
+        val tiltakstype: TiltakstypeSomGirRett?,
     )
 }
