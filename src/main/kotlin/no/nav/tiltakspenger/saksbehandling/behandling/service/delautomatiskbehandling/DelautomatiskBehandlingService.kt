@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
@@ -181,6 +182,8 @@ class DelautomatiskBehandlingService(
 
         if (soknadstiltakFraSaksopplysning == null) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_FANT_IKKE_TILTAK)
+        } else if (tiltakManglerPeriodeOgVenterIkkePaOppstart(soknadstiltakFraSaksopplysning)) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_TILTAK_MANGLER_PERIODE)
         } else if (tiltakFraSoknadHarEndretPeriode(behandling.søknad.tiltak, soknadstiltakFraSaksopplysning)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ULIK_TILTAKSPERIODE)
         }
@@ -229,6 +232,13 @@ class DelautomatiskBehandlingService(
         }
 
         return manueltBehandlesGrunner
+    }
+
+    private fun tiltakManglerPeriodeOgVenterIkkePaOppstart(
+        tiltakFraSaksopplysning: Tiltaksdeltagelse,
+    ): Boolean {
+        return tiltakFraSaksopplysning.deltagelseFraOgMed == null && tiltakFraSaksopplysning.deltagelseTilOgMed == null &&
+            tiltakFraSaksopplysning.deltakelseStatus != TiltakDeltakerstatus.VenterPåOppstart
     }
 
     private fun tiltakFraSoknadHarEndretPeriode(

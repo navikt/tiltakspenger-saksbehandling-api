@@ -5,7 +5,9 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toTiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
@@ -18,6 +20,7 @@ class TiltaksdeltagelseFakeKlient(
 
     override suspend fun hentTiltaksdeltagelser(
         fnr: Fnr,
+        tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
     ): Tiltaksdeltagelser {
         return data.get()[fnr] ?: hentTiltaksdeltagelseFraSøknad(fnr)
