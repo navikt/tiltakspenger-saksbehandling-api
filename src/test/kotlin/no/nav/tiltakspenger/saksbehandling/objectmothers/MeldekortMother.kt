@@ -202,6 +202,7 @@ interface MeldekortMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         opprettet: LocalDateTime = nå(clock),
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         navkontor: Navkontor = ObjectMother.navkontor(),
         meldeperiode: Meldeperiode = meldeperiode(
             periode = Periode(6.januar(2025), 19.januar(2025)),
@@ -248,6 +249,7 @@ interface MeldekortMother : MotherOfAllMothers {
         periode: Periode,
         opprettet: LocalDateTime = nå(clock),
         navkontor: Navkontor = ObjectMother.navkontor(),
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         brukersMeldekort: BrukersMeldekort = brukersMeldekort(
             sakId = id,
             meldeperiode = meldeperiodeKjeder.hentMeldeperiode(periode)!!,
@@ -264,6 +266,7 @@ interface MeldekortMother : MotherOfAllMothers {
             navkontor = navkontor,
             meldeperiode = meldeperiodeKjeder.hentMeldeperiode(periode)!!,
             brukersMeldekort = brukersMeldekort,
+            tiltakstype = tiltakstype,
         )
         val vedtak = meldekortBehandling.opprettVedtak(
             forrigeUtbetaling = utbetalinger.lastOrNull(),

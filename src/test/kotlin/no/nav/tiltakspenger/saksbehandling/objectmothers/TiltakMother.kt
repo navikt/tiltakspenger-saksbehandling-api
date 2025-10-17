@@ -24,7 +24,7 @@ interface TiltakMother {
      */
     fun tiltaksdeltagelseTac(
         eksternTiltaksdeltagelseId: String = "TA12345",
-        typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.JOBBKLUBB,
+        typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn: String = "Testnavn",
         eksternTiltaksgjennomføringsId: String? = null,
         fom: LocalDate,

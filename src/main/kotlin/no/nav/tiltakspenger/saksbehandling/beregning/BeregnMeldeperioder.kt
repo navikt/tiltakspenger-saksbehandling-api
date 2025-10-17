@@ -52,8 +52,8 @@ import java.time.temporal.ChronoUnit
 private data class BeregnMeldeperioder(
     val beregningKilde: BeregningKilde,
     val meldeperioderSomBeregnes: NonEmptyList<MeldeperiodeSomSkalBeregnes>,
-    val barnetilleggsPerioder: Periodisering<AntallBarn>,
-    val tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+    val hentAntallBarn: (dato: LocalDate) -> AntallBarn?,
+    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett>,
     val meldeperiodeBeregninger: MeldeperiodeBeregninger,
 ) {
     private val egenSykeperiode: SykedagerPeriode = SykedagerPeriode()
@@ -67,8 +67,8 @@ private data class BeregnMeldeperioder(
         }
     }
 
-    /** Returnerer nye eller endrede beregninger for meldeperioder. Returnerer tom liste dersom ingen beregninger endres */
-    fun beregn(): List<MeldeperiodeBeregning> {
+    /** Returnerer oppdaterte beregninger for meldeperioder */
+    fun beregn(): NonEmptyList<MeldeperiodeBeregning> {
         val beregningsperiode = Periode(
             meldeperioderSomBeregnes.first().fraOgMed,
             meldeperioderSomBeregnes.last().tilOgMed,
@@ -115,7 +115,7 @@ private data class BeregnMeldeperioder(
                     meldeperiode.meldekortId,
                     it.dato,
                     it.status,
-                ) { tiltakstypePerioder.hentVerdiForDag(it.dato) }
+                ) { tiltakstypeperioder.hentVerdiForDag(it.dato) }
             },
         )
     }
@@ -126,7 +126,7 @@ private data class BeregnMeldeperioder(
         status: MeldekortDagStatus,
         hentTiltakstype: () -> TiltakstypeSomGirRett?,
     ): MeldeperiodeBeregningDag {
-        val antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO
+        val antallBarn = hentAntallBarn(dato) ?: AntallBarn.ZERO
 
         val tiltakstype by lazy {
             hentTiltakstype() ?: run {
@@ -259,18 +259,92 @@ private fun MeldekortDager.tilSkalBeregnes(meldekortId: MeldekortId): Meldeperio
     )
 }
 
-private fun MeldeperiodeBeregning.tilSkalBeregnes(): MeldeperiodeSomSkalBeregnes {
+private fun MeldeperiodeBeregning.tilSkalBeregnes(
+    harMistetRett: (dag: LocalDate) -> Boolean = { false },
+): MeldeperiodeSomSkalBeregnes {
     return MeldeperiodeSomSkalBeregnes(
         kjedeId = this.kjedeId,
         meldekortId = this.meldekortId,
         dager = this.dager.map { dag ->
             MeldekortDag(
                 dato = dag.dato,
-                status = dag.tilMeldekortDagStatus(),
+                status = if (harMistetRett(dag.dato)) IKKE_RETT_TIL_TILTAKSPENGER else dag.tilMeldekortDagStatus(),
             )
         },
         eksisterendeBeregning = this.dager,
     )
+}
+
+fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode): Beregning? {
+    val behandling = hentRammebehandling(behandlingId)
+
+    require(behandling is Revurdering && behandling.resultat is RevurderingResultat.Stans) {
+        "Behandlingen på være en revurdering til stans"
+    }
+
+    return beregnRammebehandling(behandlingId, stansperiode, emptyList())
+}
+
+/**
+ *  Beregner en behandling der hele virkningsperioden er innvilget
+ *  @param behandlingId Søknadsbehandling eller revurdering.
+ *  @param virkningsperiode innvilgelseperiode ved innvilgelse (søknadsbehandling/endrings-revurdering). Stansperiode ved stans.
+ */
+fun Sak.beregnInnvilgelse(
+    behandlingId: BehandlingId,
+    virkningsperiode: Periode,
+    barnetilleggsperioder: Periodisering<AntallBarn>,
+): Beregning? {
+    return beregnRammebehandling(
+        behandlingId = behandlingId,
+        virkningsperiode = virkningsperiode,
+        innvilgelsesperioder = listOf(virkningsperiode),
+        nyeBarnetilleggsperioder = barnetilleggsperioder,
+    )
+}
+
+/**
+ *  Beregner perioden for en rammebehandling på nytt
+ *
+ *  @param virkningsperiode Hele perioden som omfattes av behandlingen.
+ *  @param innvilgelsesperioder Perioder med rett til tiltakspenger innenfor virkningsperioden
+ * */
+private fun Sak.beregnRammebehandling(
+    behandlingId: BehandlingId,
+    virkningsperiode: Periode,
+    innvilgelsesperioder: List<Periode>,
+    nyeBarnetilleggsperioder: Periodisering<AntallBarn>? = null,
+): Beregning? {
+    require(innvilgelsesperioder.all { virkningsperiode.inneholderHele(it) }) {
+        "Virkningsperioden $virkningsperiode må inneholde alle innvilgelsesperiodene $innvilgelsesperioder"
+    }
+
+    val eksisterendeBeregninger = meldeperiodeBeregninger
+        .sisteBeregningerForPeriode(virkningsperiode)
+        .map { beregning ->
+            beregning.tilSkalBeregnes(
+                harMistetRett = { dato ->
+                    virkningsperiode.contains(dato) && innvilgelsesperioder.none {
+                        it.contains(dato)
+                    }
+                },
+            )
+        }.toNonEmptyListOrNull()
+
+    if (eksisterendeBeregninger == null) {
+        return null
+    }
+
+    return BeregnMeldeperioder(
+        beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId),
+        meldeperioderSomBeregnes = eksisterendeBeregninger,
+        hentAntallBarn = {
+            nyeBarnetilleggsperioder?.hentVerdiForDag(it)
+                ?: this.barnetilleggsperioder.hentVerdiForDag(it)
+        },
+        tiltakstypeperioder = this.tiltakstypeperioder,
+        meldeperiodeBeregninger = this.meldeperiodeBeregninger,
+    ).beregn().toNonEmptyListOrNull()?.let { Beregning(it) }
 }
 
 fun Sak.beregnMeldekort(
@@ -286,43 +360,6 @@ fun Sak.beregnMeldekort(
     )
 }
 
-fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode): Beregning? {
-    val behandling = hentRammebehandling(behandlingId)
-
-    require(behandling is Revurdering && behandling.resultat is RevurderingResultat.Stans) {
-        "Behandlingen på være en revurdering til stans"
-    }
-
-    val beregningerSomSkalOppdateres = this.meldeperiodeBeregninger
-        .sisteBeregningerForPeriode(stansperiode)
-        .map { beregning ->
-            beregning.tilSkalBeregnes().copy(
-                dager = beregning.dager.map { dag ->
-                    MeldekortDag(
-                        dato = dag.dato,
-                        status = if (stansperiode.contains(dag.dato)) {
-                            IKKE_RETT_TIL_TILTAKSPENGER
-                        } else {
-                            dag.tilMeldekortDagStatus()
-                        },
-                    )
-                },
-            )
-        }.toNonEmptyListOrNull()
-
-    if (beregningerSomSkalOppdateres == null) {
-        return null
-    }
-
-    return BeregnMeldeperioder(
-        beregningKilde = BeregningKilde.BeregningKildeBehandling(behandling.id),
-        meldeperioderSomBeregnes = beregningerSomSkalOppdateres,
-        barnetilleggsPerioder = this.barnetilleggsperioder,
-        tiltakstypePerioder = this.tiltakstypeperioder,
-        meldeperiodeBeregninger = this.meldeperiodeBeregninger,
-    ).beregn().toNonEmptyListOrNull()?.let { Beregning(it) }
-}
-
 fun beregnMeldekort(
     meldekortIdSomBeregnes: MeldekortId,
     meldeperiodeSomBeregnes: MeldekortDager,
@@ -332,8 +369,8 @@ fun beregnMeldekort(
 ): NonEmptyList<MeldeperiodeBeregning> {
     return BeregnMeldeperioder(
         meldeperioderSomBeregnes = nonEmptyListOf(meldeperiodeSomBeregnes.tilSkalBeregnes(meldekortIdSomBeregnes)),
-        barnetilleggsPerioder = barnetilleggsPerioder,
-        tiltakstypePerioder = tiltakstypePerioder,
+        hentAntallBarn = { barnetilleggsPerioder.hentVerdiForDag(it) },
+        tiltakstypeperioder = tiltakstypePerioder,
         beregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortIdSomBeregnes),
         meldeperiodeBeregninger = meldeperiodeBeregninger,
     ).beregn().toNonEmptyListOrThrow()

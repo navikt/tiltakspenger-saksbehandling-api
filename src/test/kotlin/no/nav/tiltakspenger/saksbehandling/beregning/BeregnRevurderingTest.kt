@@ -125,7 +125,7 @@ class BeregnRevurderingTest {
         val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
             virkningsperiode = kommando.innvilgelsesperiode,
-            barnetillegg = kommando.barnetillegg,
+            barnetilleggsperioder = kommando.barnetillegg.periodisering,
         )
 
         nyBeregning.shouldNotBeNull()
@@ -162,7 +162,7 @@ class BeregnRevurderingTest {
         val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
             virkningsperiode = kommando.innvilgelsesperiode,
-            barnetillegg = kommando.barnetillegg,
+            barnetilleggsperioder = kommando.barnetillegg.periodisering,
         )
 
         nyBeregning.shouldBeInstanceOf<Beregning>()
@@ -186,7 +186,7 @@ class BeregnRevurderingTest {
         sak.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
             virkningsperiode = kommando.innvilgelsesperiode,
-            barnetillegg = kommando.barnetillegg,
+            barnetilleggsperioder = kommando.barnetillegg.periodisering,
         ).shouldBeNull()
     }
 
@@ -205,7 +205,7 @@ class BeregnRevurderingTest {
         sakMedMeldekortBehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
             virkningsperiode = kommando.innvilgelsesperiode,
-            barnetillegg = kommando.barnetillegg,
+            barnetilleggsperioder = kommando.barnetillegg.periodisering,
         )!!.size shouldBe 1
     }
 
@@ -241,7 +241,7 @@ class BeregnRevurderingTest {
         val beregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
             virkningsperiode = kommando.innvilgelsesperiode,
-            barnetillegg = kommando.barnetillegg,
+            barnetilleggsperioder = kommando.barnetillegg.periodisering,
         )
 
         beregning.shouldNotBeNull()
@@ -292,7 +292,7 @@ class BeregnRevurderingTest {
         val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
             virkningsperiode = kommando.innvilgelsesperiode,
-            barnetillegg = kommando.barnetillegg,
+            barnetilleggsperioder = kommando.barnetillegg.periodisering,
         )
 
         // 8 dager med rett i første meldeperiode for dette vedtaket

@@ -25,8 +25,8 @@ interface SøknadMother {
         id: String = UUID.randomUUID().toString(),
         deltakelseFom: LocalDate = 1.januar(2022),
         deltakelseTom: LocalDate = 31.januar(2022),
-        typeKode: String = "JOBBK",
-        typeNavn: String = "Jobbklubb",
+        typeKode: String = "GRUPPEAMO",
+        typeNavn: String = "Gruppe AMO",
     ): Søknadstiltak =
         Søknadstiltak(
             id = id,
