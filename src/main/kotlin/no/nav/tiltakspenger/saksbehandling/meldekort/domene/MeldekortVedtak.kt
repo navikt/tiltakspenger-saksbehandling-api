@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -30,11 +29,12 @@ data class MeldekortVedtak(
     override val fnr: Fnr,
     override val utbetaling: VedtattUtbetaling,
     val meldekortBehandling: MeldekortBehandling.Behandlet,
-) : Vedtak,
-    Periodiserbar {
+) : Vedtak {
 
     override val saksbehandler: String = meldekortBehandling.saksbehandler!!
     override val beslutter: String = meldekortBehandling.beslutter!!
+
+    val meldeperiode: Meldeperiode = meldekortBehandling.meldeperiode
 
     val meldekortId: MeldekortId = meldekortBehandling.id
     val automatiskBehandlet: Boolean = meldekortBehandling is MeldekortBehandletAutomatisk
@@ -42,9 +42,9 @@ data class MeldekortVedtak(
     val begrunnelse: String? = meldekortBehandling.begrunnelse?.verdi
     val rammevedtak: List<VedtakId> = meldekortBehandling.rammevedtak
     val beregningsperiode: Periode = meldekortBehandling.beregning.periode
-    override val periode: Periode = beregningsperiode
+    val periode: Periode = meldeperiode.periode
 
-    val antallDagerPerMeldeperiode: Int = meldekortBehandling.meldeperiode.maksAntallDagerForMeldeperiode
+    val antallDagerPerMeldeperiode: Int = meldeperiode.maksAntallDagerForMeldeperiode
 
     init {
         require(id == utbetaling.vedtakId)
