@@ -36,6 +36,7 @@ data class RammevedtakDTO(
 
 enum class VedtakstypeDTO {
     INNVILGELSE,
+    DELVIS_INNVILGELSE,
     AVSLAG,
     STANS,
 }
@@ -52,6 +53,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
             Vedtakstype.INNVILGELSE -> VedtakstypeDTO.INNVILGELSE
             Vedtakstype.AVSLAG -> VedtakstypeDTO.AVSLAG
             Vedtakstype.STANS -> VedtakstypeDTO.STANS
+            Vedtakstype.DELVIS_INNVILGELSE -> VedtakstypeDTO.DELVIS_INNVILGELSE
         },
         periode = periodeDTO,
         gjeldendePeriode = periodeDTO,

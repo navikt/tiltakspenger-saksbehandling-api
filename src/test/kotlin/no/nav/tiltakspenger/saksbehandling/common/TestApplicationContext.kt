@@ -114,7 +114,7 @@ class TestApplicationContext(
         tilgangsmaskinFakeClient.leggTil(fnr, true)
     }
 
-    fun leggTilTiltaksdeltagelse(fnr: Fnr, tiltaksdeltagelse: Tiltaksdeltagelse) {
+    fun oppdaterTiltaksdeltagelse(fnr: Fnr, tiltaksdeltagelse: Tiltaksdeltagelse) {
         tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
     }
 

@@ -69,6 +69,13 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
         data.get()[id] = data.get()[id]!!.copy(sendtTilDatadeling = tidspunkt)
     }
 
+    override fun markerOmgjortAv(
+        vedtakId: VedtakId,
+        omgjortAvRammevedtakId: VedtakId,
+    ) {
+        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(omgjortAvRammevedtakId = omgjortAvRammevedtakId)
+    }
+
     fun hentForSakId(sakId: SakId): Rammevedtaksliste =
         data.get().values.filter { it.behandling.sakId == sakId }.sortedBy { it.opprettet }.let {
             Rammevedtaksliste(it)

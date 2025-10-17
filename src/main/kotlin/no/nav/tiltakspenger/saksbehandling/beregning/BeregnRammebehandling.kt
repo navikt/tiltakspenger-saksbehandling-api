@@ -37,6 +37,15 @@ fun Sak.beregnInnvilgelse(
     }
 }
 
+fun Sak.beregnOmgjøring(
+    behandlingId: BehandlingId,
+    omgjøringsperiode: Periode,
+    innvilgelsesperiode: Periode,
+    barnetillegg: Barnetillegg,
+): Beregning? {
+    TODO("Anders fikser du?")
+}
+
 private fun Sak.beregnMeldeperioderPåNytt(
     behandlingId: BehandlingId,
     virkningsperiode: Periode,

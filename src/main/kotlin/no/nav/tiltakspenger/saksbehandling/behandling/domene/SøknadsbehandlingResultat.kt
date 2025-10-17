@@ -4,6 +4,7 @@ import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
 sealed interface SøknadsbehandlingResultat : BehandlingResultat {
@@ -22,8 +23,11 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         override val valgteTiltaksdeltakelser = null
         override val antallDagerPerMeldeperiode = null
 
-        /** True dersom [avslagsgrunner] ikke er tom. Vi må støtte at [avslagsperiode] er null for særdeles mangelfulle søknader. */
-        override val erFerdigutfylt: Boolean = avslagsgrunner.isNotEmpty()
+        /**
+         * True dersom [avslagsgrunner] ikke er tom. Vi må støtte at [avslagsperiode] er null for særdeles mangelfulle søknader.
+         * Må kunne avslå en søknad selv om det ikke er søkt på et tiltak.
+         */
+        override fun erFerdigutfylt(saksopplysninger: Saksopplysninger?): Boolean = avslagsgrunner.isNotEmpty()
     }
 
     /**

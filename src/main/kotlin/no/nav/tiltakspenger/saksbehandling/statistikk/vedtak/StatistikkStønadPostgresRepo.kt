@@ -37,6 +37,7 @@ class StatistikkStønadPostgresRepo(
             queryOf(
                 lagreSql,
                 mapOf(
+                    // TODO omgjøring jah: Må prate litt med stønadsstatistikk om hvordan de skal lage tidslinjer av omgjøringer. Bør ha med vedtaket som omgjøres + innvilgelsesperiode i tillegg til vedtaksperiode dersom delvis innvilgelse.
                     "id" to dto.id.toString(),
                     "brukerId" to dto.brukerId,
                     "sakId" to dto.sakId,

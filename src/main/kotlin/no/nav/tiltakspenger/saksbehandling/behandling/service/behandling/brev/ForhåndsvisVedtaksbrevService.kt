@@ -71,7 +71,8 @@ class ForhåndsvisVedtaksbrevService(
             is Revurdering -> {
                 when (resultat) {
                     RevurderingType.STANS -> genererRevurderingStansbrev(sak, kommando, behandling)
-                    RevurderingType.INNVILGELSE -> genererRevurderingInnvilgelsesbrev(
+                    // Kommentar jah: Første iterasjon av omgjøring vil kun endre innvilgelsesperioden, så vi kan gjenbruke innvilgelsesbrevet.
+                    RevurderingType.INNVILGELSE, RevurderingType.OMGJØRING -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
                         virkningsperiode = virkningsperiode,

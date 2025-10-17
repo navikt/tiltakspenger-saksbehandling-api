@@ -30,6 +30,7 @@ import java.time.LocalDateTime
  * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
  * @param periode Stansperiode eller innvilgelsesperiode (ikke nødvendigvis det samme som vurderingsperiode.)
  * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
+ * @param omgjortAv Dersom vedtaket i sin helhet er omgjort av et annen vedtak. Vedtaket som erstattet dette er master for dette feltet.
  */
 data class Rammevedtak(
     override val id: VedtakId = VedtakId.random(),
@@ -46,6 +47,7 @@ data class Rammevedtak(
     val distribusjonstidspunkt: LocalDateTime?,
     val sendtTilDatadeling: LocalDateTime?,
     val brevJson: String?,
+    val omgjortAvRammevedtakId: VedtakId? = null,
 ) : Vedtak,
     Periodiserbar {
 
@@ -54,19 +56,30 @@ data class Rammevedtak(
     override val saksbehandler: String = behandling.saksbehandler!!
     override val beslutter: String = behandling.beslutter!!
 
-    /** Vil være null dersom bruker ikke har rett på barnetillegg  */
+    /** Vil være null for stans, avslag eller dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
 
-    /** Vil være null for stans eller avslag */
+    /** Vil være null for stans og avslag */
     val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>? =
         behandling.antallDagerPerMeldeperiode
 
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = behandling.valgteTiltaksdeltakelser
 
+    /** Dersom dette vedtaket i sin helhet omgjør et annet vedtak. */
+    val omgjortRammevedtak: Rammevedtak? = (behandling.resultat as? RevurderingResultat.Omgjøring)?.omgjørRammevedtak
+
+    val innvilgelsesperiode: Periode?
+        get() = when (vedtakstype) {
+            Vedtakstype.DELVIS_INNVILGELSE -> (behandling.resultat as RevurderingResultat.Omgjøring).innvilgelsesperiode
+            Vedtakstype.INNVILGELSE, Vedtakstype.AVSLAG, Vedtakstype.STANS -> periode
+        }
+
     init {
         require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
         require(sakId == behandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${behandling.id}" }
         require(periode == behandling.virkningsperiode) { "Periode i vedtak ($periode) og behandlingens virkningsperiode (${behandling.virkningsperiode}) må være lik. SakId: $sakId, Saksnummer: ${behandling.saksnummer} BehandlingId: ${behandling.id}" }
+        require(id != omgjortRammevedtak)
+        require(id != omgjortAvRammevedtakId)
 
         utbetaling?.also {
             require(id == it.vedtakId)
@@ -77,6 +90,14 @@ data class Rammevedtak(
             require(beslutter == it.beslutter)
             require(behandling.id == it.beregningKilde.id)
         }
+        if (vedtakstype == Vedtakstype.DELVIS_INNVILGELSE) {
+            require(behandling.resultat is RevurderingResultat.Omgjøring) {
+                "Ved delvis innvilgelse må resultat i behandling være Omgjøring. SakId: ${behandling.sakId}, Saksnummer: ${behandling.saksnummer}, BehandlingId: ${behandling.id}"
+            }
+            require((behandling.resultat as RevurderingResultat.Omgjøring).omgjøringsperiode == periode) {
+                "Ved delvis innvilgelse må vedtaksperiode være lik omgjøringsperiode i resultat. SakId: ${behandling.sakId}, Saksnummer: ${behandling.saksnummer}, BehandlingId: ${behandling.id}"
+            }
+        }
     }
 }
 
@@ -84,6 +105,7 @@ enum class Vedtakstype {
     INNVILGELSE,
     AVSLAG,
     STANS,
+    DELVIS_INNVILGELSE, // Kun for omgjøring
 }
 
 fun Sak.opprettVedtak(
@@ -122,11 +144,12 @@ fun Sak.opprettVedtak(
         sakId = this.id,
         behandling = behandling,
         vedtaksdato = null,
-        vedtakstype = when (behandling.resultat!!) {
+        vedtakstype = when (val r = behandling.resultat!!) {
             is SøknadsbehandlingResultat.Avslag -> Vedtakstype.AVSLAG
             is SøknadsbehandlingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
             is RevurderingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
             is RevurderingResultat.Stans -> Vedtakstype.STANS
+            is RevurderingResultat.Omgjøring -> if (r.erFullstendigInnvilgelse) Vedtakstype.INNVILGELSE else Vedtakstype.DELVIS_INNVILGELSE
         },
         periode = behandling.virkningsperiode!!,
         journalpostId = null,

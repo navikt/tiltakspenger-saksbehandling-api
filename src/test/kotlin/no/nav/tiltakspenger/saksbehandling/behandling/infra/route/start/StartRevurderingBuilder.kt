@@ -15,9 +15,11 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -38,7 +40,10 @@ interface StartRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
-        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(tac = tac, virkningsperiode = virkningsperiode)
+        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
+            tac = tac,
+            virkningsperiode = virkningsperiode,
+        )
         val revurdering = startRevurderingForSakId(tac, sak.id, RevurderingType.STANS)
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
         return Tuple4(
@@ -56,7 +61,10 @@ interface StartRevurderingBuilder {
         søknadsbehandlingVirkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         revurderingVirkningsperiode: Periode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
-        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(tac, virkningsperiode = søknadsbehandlingVirkningsperiode)
+        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
+            tac,
+            virkningsperiode = søknadsbehandlingVirkningsperiode,
+        )
 
         val tiltaksdeltagelseFakeKlient =
             tac.tiltakContext.tiltaksdeltagelseKlient as TiltaksdeltagelseFakeKlient
@@ -83,12 +91,50 @@ interface StartRevurderingBuilder {
         )
     }
 
+    /**
+     * Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering til omgjøring.
+     * Default: Tiltaksdeltagelsen har endret seg fra 1. til 3. april.
+     * */
+    suspend fun ApplicationTestBuilder.startRevurderingOmgjøring(
+        tac: TestApplicationContext,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        søknadsbehandlingVirkningsperiode: Periode = 1 til 10.april(2025),
+        oppdaterTiltaksdeltagelsesperiode: Periode = 3 til 10.april(2025),
+    ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
+        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
+            tac,
+            virkningsperiode = søknadsbehandlingVirkningsperiode,
+        )
+        val oppdatertTiltaksdeltagelse = søknadsbehandling.saksopplysninger
+            ?.getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
+            deltagelseFraOgMed = oppdaterTiltaksdeltagelsesperiode.fraOgMed,
+            deltagelseTilOgMed = oppdaterTiltaksdeltagelsesperiode.tilOgMed,
+        )
+        tac.oppdaterTiltaksdeltagelse(sak.fnr, oppdatertTiltaksdeltagelse)
+
+        val revurdering = startRevurderingForSakId(
+            tac = tac,
+            sakId = sak.id,
+            type = RevurderingType.OMGJØRING,
+            rammevedtakIdSomOmgjøres = sak.vedtaksliste.single().id,
+        )
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+
+        return Tuple4(
+            oppdatertSak,
+            søknad,
+            søknadsbehandling,
+            revurdering,
+        )
+    }
+
     /** Forventer at det allerede finnes en sak og søknad. */
     suspend fun ApplicationTestBuilder.startRevurderingForSakId(
         tac: TestApplicationContext,
         sakId: SakId,
         type: RevurderingType,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        rammevedtakIdSomOmgjøres: VedtakId? = null,
     ): Revurdering {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.texasClient.leggTilBruker(jwt, saksbehandler)
@@ -100,7 +146,14 @@ interface StartRevurderingBuilder {
             },
             jwt = jwt,
         ) {
-            setBody("""{"revurderingType": "${type.tilDTO()}"}""")
+            setBody(
+                """
+                {
+                "revurderingType": "${type.tilDTO()}", 
+                "rammevedtakIdSomOmgjøres": ${if (rammevedtakIdSomOmgjøres != null) """"$rammevedtakIdSomOmgjøres"""" else null}
+                }
+                """.trimIndent(),
+            )
         }
             .apply {
                 val bodyAsText = this.bodyAsText()
