@@ -239,7 +239,6 @@ private data class MeldeperiodeTilOppdrag(
             dato = it.dato,
             beløp = it.beløp,
             beløpBarnetillegg = it.beløpBarnetillegg,
-            totalBeløp = it.totalBeløp,
             tiltakstype = it.tiltakstype,
         )
     }.let {
@@ -276,7 +275,8 @@ private data class MeldeperiodeTilOppdrag(
         val dato: LocalDate,
         val beløp: Int,
         val beløpBarnetillegg: Int,
-        val totalBeløp: Int,
         val tiltakstype: TiltakstypeSomGirRett?,
-    )
+    ) {
+        val totalBeløp: Int = beløp + beløpBarnetillegg
+    }
 }
