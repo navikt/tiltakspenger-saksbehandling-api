@@ -287,8 +287,9 @@ fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode
 
 /**
  *  Beregner en behandling der hele virkningsperioden er innvilget
+ *
  *  @param behandlingId Søknadsbehandling eller revurdering.
- *  @param virkningsperiode innvilgelseperiode ved innvilgelse (søknadsbehandling/endrings-revurdering). Stansperiode ved stans.
+ *  @param virkningsperiode innvilgelseperioden for søknadsbehandling/endrings-revurdering
  */
 fun Sak.beregnInnvilgelse(
     behandlingId: BehandlingId,
