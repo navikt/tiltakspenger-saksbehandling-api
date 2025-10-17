@@ -38,6 +38,7 @@ class SendMeldekortTilBeslutterService(
                     forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
                     meldeperiodeKjeder = sak.meldeperiodeKjeder,
                     brukersNavkontor = { behandling.navkontor },
+                    kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort,
                 )
             },
             clock = clock,

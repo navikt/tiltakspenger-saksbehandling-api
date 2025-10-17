@@ -92,6 +92,7 @@ class DelautomatiskBehandlingService(
                 forrigeUtbetaling = this.utbetalinger.lastOrNull(),
                 meldeperiodeKjeder = this.meldeperiodeKjeder,
                 saksbehandler = saksbehandler.navIdent,
+                kanSendeInnHelgForMeldekort = this.kanSendeInnHelgForMeldekort,
             ) { navkontor }.getOrElse { null }
 
             BehandlingUtbetaling(

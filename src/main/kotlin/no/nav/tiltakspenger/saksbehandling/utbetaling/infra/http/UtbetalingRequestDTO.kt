@@ -5,9 +5,8 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.utsjekk.kontrakter.felles.Personident
@@ -18,6 +17,7 @@ import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.StønadsdataTiltakspengerV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.VedtaksdetaljerV2Dto
+import java.time.LocalDate
 import kotlin.collections.fold
 
 /**
@@ -40,6 +40,7 @@ fun VedtattUtbetaling.toUtbetalingRequestDTO(
             beslutterId = beslutter,
             utbetalinger = beregning.tilUtbetalingerDTO(
                 brukersNavkontor = brukerNavkontor,
+                kanUtbetaleHelgPåFredag = kanUtbetaleHelgPåFredag,
                 forrigeUtbetalingJson = forrigeUtbetalingJson,
             ),
         ),
@@ -52,10 +53,15 @@ fun VedtattUtbetaling.toUtbetalingRequestDTO(
  */
 fun Beregning.tilUtbetalingerDTO(
     brukersNavkontor: Navkontor,
+    kanUtbetaleHelgPåFredag: Boolean,
     forrigeUtbetalingJson: String?,
 ): List<UtbetalingV2Dto> {
-    val utbetalingerStønad = this.toUtbetalingDto(brukersNavkontor, barnetillegg = false)
-    val utbetalingerBarnetillegg = this.toUtbetalingDto(brukersNavkontor, barnetillegg = true)
+    val meldeperioderTilOppdrag = this.beregninger.map {
+        MeldeperiodeTilOppdrag(it, kanUtbetaleHelgPåFredag)
+    }
+
+    val utbetalingerStønad = meldeperioderTilOppdrag.toUtbetalingDto(brukersNavkontor, barnetillegg = false)
+    val utbetalingerBarnetillegg = meldeperioderTilOppdrag.toUtbetalingDto(brukersNavkontor, barnetillegg = true)
 
     val nyeOgOppdaterteUtbetalinger = utbetalingerStønad.plus(utbetalingerBarnetillegg)
 
@@ -69,11 +75,11 @@ fun Beregning.tilUtbetalingerDTO(
     return utbetalinger
 }
 
-private fun Beregning.toUtbetalingDto(
+private fun List<MeldeperiodeTilOppdrag>.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
 ): List<UtbetalingV2Dto> {
-    return this.beregninger.map {
+    return this.map {
         it.dager.toUtbetalingDto(
             brukersNavKontor,
             barnetillegg,
@@ -103,7 +109,7 @@ private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(beregning: Beregning):
     }
 }
 
-private fun List<MeldeperiodeBeregningDag>.toUtbetalingDto(
+private fun List<MeldeperiodeTilOppdrag.BeregnetDag>.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
     kjedeId: MeldeperiodeKjedeId,
@@ -135,41 +141,40 @@ private fun List<MeldeperiodeBeregningDag>.toUtbetalingDto(
     }
 }
 
-private fun MeldeperiodeBeregningDag.genererUtbetalingsperiode(
+private fun MeldeperiodeTilOppdrag.BeregnetDag.genererUtbetalingsperiode(
     kjedeId: MeldeperiodeKjedeId,
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
 ): UtbetalingV2Dto? {
+    val beløp = if (barnetillegg) this.beløpBarnetillegg else this.beløp
+
     // Vi ønsker ikke lage linjer for 0-beløp (safeguard).
-    if (barnetillegg && this.beløpBarnetillegg == 0) return null
-    if (!barnetillegg && this.beløp == 0) return null
+    if (beløp == 0) {
+        return null
+    }
 
     // For å utbetale helgedager må vi bruke Satstype.DAGLIG_INKL_HELG. Denne er ikke stabil per nå.
     if (this.dato.erHelg()) {
         throw IllegalArgumentException("Helgedager kan ikke ha et beregnet beløp, ettersom det ikke vil bli utbetalt - dato: ${this.dato}")
     }
 
-    return when (this.reduksjon) {
-        ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> null
-        ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon, ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon ->
-            UtbetalingV2Dto(
-                beløp = (if (barnetillegg) this.beløpBarnetillegg else this.beløp).toUInt(),
-                satstype = Satstype.DAGLIG,
-                fraOgMedDato = this.dato,
-                tilOgMedDato = this.dato,
-                stønadsdata =
-                StønadsdataTiltakspengerV2Dto(
-                    stønadstype = this.tiltakstype!!.mapStønadstype(),
-                    barnetillegg = barnetillegg,
-                    brukersNavKontor = brukersNavKontor.kontornummer,
-                    meldekortId = kjedeId.verdi,
-                ),
-            )
-    }
+    return UtbetalingV2Dto(
+        beløp = beløp.toUInt(),
+        satstype = Satstype.DAGLIG,
+        fraOgMedDato = this.dato,
+        tilOgMedDato = this.dato,
+        stønadsdata =
+        StønadsdataTiltakspengerV2Dto(
+            stønadstype = this.tiltakstype!!.mapStønadstype(),
+            barnetillegg = barnetillegg,
+            brukersNavKontor = brukersNavKontor.kontornummer,
+            meldekortId = kjedeId.verdi,
+        ),
+    )
 }
 
 private fun UtbetalingV2Dto.leggTil(
-    meldeperiodeDag: MeldeperiodeBeregningDag,
+    meldeperiodeDag: MeldeperiodeTilOppdrag.BeregnetDag,
     kjedeId: MeldeperiodeKjedeId,
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
@@ -222,3 +227,56 @@ private fun TiltakstypeSomGirRett.mapStønadstype(): StønadTypeTiltakspenger =
         TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_OPPLÆRING -> StønadTypeTiltakspenger.UTVIDET_OPPFØLGING_I_OPPLÆRING
         TiltakstypeSomGirRett.FORSØK_OPPLÆRING_LENGRE_VARIGHET -> StønadTypeTiltakspenger.FORSØK_OPPLÆRING_LENGRE_VARIGHET
     }
+
+private data class MeldeperiodeTilOppdrag(
+    private val meldeperiodeBeregning: MeldeperiodeBeregning,
+    private val kanUtbetaleHelgPåFredag: Boolean,
+) {
+    val kjedeId = meldeperiodeBeregning.kjedeId
+
+    val dager = meldeperiodeBeregning.dager.map {
+        BeregnetDag(
+            dato = it.dato,
+            beløp = it.beløp,
+            beløpBarnetillegg = it.beløpBarnetillegg,
+            totalBeløp = it.totalBeløp,
+            tiltakstype = it.tiltakstype,
+        )
+    }.let {
+        if (kanUtbetaleHelgPåFredag) {
+            it.chunked(7).flatMap { uke -> tilUkeMedUtbetaltHelgPåFredag(uke) }
+        } else {
+            it
+        }
+    }
+
+    private fun tilUkeMedUtbetaltHelgPåFredag(uke: List<BeregnetDag>): List<BeregnetDag> {
+        val (fredag, lørdag, søndag) = uke.takeLast(3)
+
+        if (lørdag.totalBeløp + søndag.totalBeløp == 0) {
+            return uke
+        }
+
+        val mandagTilTorsdag = uke.take(4)
+
+        val superFredag = fredag.copy(
+            // Vi utbetaler helg på fredag selv om fredag ikke gir rett (og dermed ikke har noen tiltakstype)
+            tiltakstype = fredag.tiltakstype ?: lørdag.tiltakstype ?: søndag.tiltakstype,
+            beløp = fredag.beløp + lørdag.beløp + søndag.beløp,
+            beløpBarnetillegg = fredag.beløpBarnetillegg + lørdag.beløpBarnetillegg + søndag.beløpBarnetillegg,
+        )
+
+        val nullLørdag = lørdag.copy(beløp = 0, beløpBarnetillegg = 0)
+        val nullSøndag = søndag.copy(beløp = 0, beløpBarnetillegg = 0)
+
+        return mandagTilTorsdag.plus(listOf(superFredag, nullLørdag, nullSøndag))
+    }
+
+    data class BeregnetDag(
+        val dato: LocalDate,
+        val beløp: Int,
+        val beløpBarnetillegg: Int,
+        val totalBeløp: Int,
+        val tiltakstype: TiltakstypeSomGirRett?,
+    )
+}

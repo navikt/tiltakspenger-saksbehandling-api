@@ -33,6 +33,7 @@ class OppdaterMeldekortService(
                     forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
                     meldeperiodeKjeder = sak.meldeperiodeKjeder,
                     brukersNavkontor = { behandling.navkontor },
+                    kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort,
                 )
             },
         ).map { (sak, meldekort, simulering) ->

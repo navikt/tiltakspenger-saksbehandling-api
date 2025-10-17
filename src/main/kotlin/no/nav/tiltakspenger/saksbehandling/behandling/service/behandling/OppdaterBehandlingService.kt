@@ -92,6 +92,7 @@ class OppdaterBehandlingService(
                 forrigeUtbetaling = this.utbetalinger.lastOrNull(),
                 meldeperiodeKjeder = this.meldeperiodeKjeder,
                 saksbehandler = kommando.saksbehandler.navIdent,
+                kanSendeInnHelgForMeldekort = this.kanSendeInnHelgForMeldekort,
             ) { navkontor }.getOrElse { null }
 
             BehandlingUtbetaling(
