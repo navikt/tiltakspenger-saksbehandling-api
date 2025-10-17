@@ -282,7 +282,11 @@ fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode
         "Behandlingen på være en revurdering til stans"
     }
 
-    return beregnRammebehandling(behandlingId, stansperiode, emptyList())
+    return beregnRammebehandling(
+        behandlingId = behandlingId,
+        virkningsperiode = stansperiode,
+        innvilgelsesperioder = emptyList(),
+    )
 }
 
 /**
@@ -345,7 +349,7 @@ private fun Sak.beregnRammebehandling(
         },
         tiltakstypeperioder = this.tiltakstypeperioder,
         meldeperiodeBeregninger = this.meldeperiodeBeregninger,
-    ).beregn().toNonEmptyListOrNull()?.let { Beregning(it) }
+    ).beregn().let { Beregning(it) }
 }
 
 fun Sak.beregnMeldekort(
@@ -374,5 +378,5 @@ fun beregnMeldekort(
         tiltakstypeperioder = tiltakstypePerioder,
         beregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortIdSomBeregnes),
         meldeperiodeBeregninger = meldeperiodeBeregninger,
-    ).beregn().toNonEmptyListOrThrow()
+    ).beregn()
 }
