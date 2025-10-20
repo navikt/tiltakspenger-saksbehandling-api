@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -109,7 +110,7 @@ fun Sak.genererSimuleringFraBeregning(
     clock: Clock = fixedClock,
     simuleringstidspunkt: LocalDateTime = LocalDateTime.now(clock),
 ): SimuleringMedMetadata {
-    val simuleringForMeldeperioder = beregning.beregninger.map { beregningEtter ->
+    val simuleringForMeldeperioder = beregning.beregninger.mapNotNull { beregningEtter ->
         val beregningFør = this.meldeperiodeBeregninger.sisteBeregningFør(
             beregningEtter.id,
             beregningEtter.kjedeId,
@@ -118,50 +119,53 @@ fun Sak.genererSimuleringFraBeregning(
             forrigeBeregning = beregningFør,
             gjeldendeBeregning = beregningEtter,
         )
-        SimuleringForMeldeperiode(
-            // TODO jah: [MeldeperiodeBeregning] bør ha en meldeperiodeId. Blir mer riktig å bruke den enn kjedeId.
-            meldeperiode = meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(beregningEtter.kjedeId),
-            simuleringsdager = sammenligning.dager.mapNotNull {
-                if (it.erEndret) {
-                    val erFeilutbetaling = it.totalbeløpEndring < 0
-                    val totalFeilutbetaling = if (erFeilutbetaling) abs(it.totalbeløpEndring) else 0
-                    Simuleringsdag(
+
+        sammenligning.dager.mapNotNull {
+            if (it.erEndret) {
+                val erFeilutbetaling = it.totalbeløpEndring < 0
+                val totalFeilutbetaling = if (erFeilutbetaling) abs(it.totalbeløpEndring) else 0
+                Simuleringsdag(
+                    dato = it.dato,
+                    tidligereUtbetalt = it.forrigeTotalbeløp,
+                    nyUtbetaling = max(it.nyttTotalbeløp, 0),
+                    totalEtterbetaling = max(it.totalbeløpEndring, 0),
+                    totalFeilutbetaling = totalFeilutbetaling,
+                    totalTrekk = 0,
+                    totalJustering = 0,
+                    totalMotpostering = totalFeilutbetaling,
+                    harJustering = false,
+                    posteringsdag = PosteringerForDag(
                         dato = it.dato,
-                        tidligereUtbetalt = it.forrigeTotalbeløp,
-                        nyUtbetaling = max(it.nyttTotalbeløp, 0),
-                        totalEtterbetaling = max(it.totalbeløpEndring, 0),
-                        totalFeilutbetaling = totalFeilutbetaling,
-                        totalTrekk = 0,
-                        totalJustering = 0,
-                        totalMotpostering = totalFeilutbetaling,
-                        harJustering = false,
-                        posteringsdag = PosteringerForDag(
-                            dato = it.dato,
-                            posteringer = nonEmptyListOf(
-                                PosteringForDag(
-                                    dato = it.dato,
-                                    fagområde = "TILTAKSPENGER",
-                                    beløp = it.nyttTotalbeløp,
-                                    // Kommentar jah: Holden denne enkel enn så lenge. Kan utvide med mer logikk ala. https://github.com/navikt/helved-utbetaling/blob/main/dokumentasjon/simulering.md når vi trenger det.
-                                    type = if (erFeilutbetaling) Posteringstype.FEILUTBETALING else Posteringstype.YTELSE,
-                                    // Kommentar jah: Holder denne fake enn så lenge. Kan utvides med en riktigere klassekode når vi trenger det.
-                                    klassekode = "test_klassekode",
-                                ),
+                        posteringer = nonEmptyListOf(
+                            PosteringForDag(
+                                dato = it.dato,
+                                fagområde = "TILTAKSPENGER",
+                                beløp = it.nyttTotalbeløp,
+                                // Kommentar jah: Holden denne enkel enn så lenge. Kan utvide med mer logikk ala. https://github.com/navikt/helved-utbetaling/blob/main/dokumentasjon/simulering.md når vi trenger det.
+                                type = if (erFeilutbetaling) Posteringstype.FEILUTBETALING else Posteringstype.YTELSE,
+                                // Kommentar jah: Holder denne fake enn så lenge. Kan utvides med en riktigere klassekode når vi trenger det.
+                                klassekode = "test_klassekode",
                             ),
                         ),
-                    )
-                } else {
-                    null
-                }
-            }.toNonEmptyListOrNull()!!,
-        )
+                    ),
+                )
+            } else {
+                null
+            }
+        }.toNonEmptyListOrNull()?.let {
+            SimuleringForMeldeperiode(
+                meldeperiode = meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(beregningEtter.kjedeId),
+                simuleringsdager = it,
+            )
+        }
     }
+
     return SimuleringMedMetadata(
         simulering = if (simuleringForMeldeperioder.isEmpty()) {
             Simulering.IngenEndring(simuleringstidspunkt)
         } else {
             Simulering.Endring(
-                simuleringPerMeldeperiode = simuleringForMeldeperioder,
+                simuleringPerMeldeperiode = simuleringForMeldeperioder.toNonEmptyListOrThrow(),
                 datoBeregnet = LocalDate.now(),
                 // TODO jah: Litt usikker på hva denne kommer som fra OS.
                 totalBeløp = simuleringForMeldeperioder.sumOf { it.nyUtbetaling },
