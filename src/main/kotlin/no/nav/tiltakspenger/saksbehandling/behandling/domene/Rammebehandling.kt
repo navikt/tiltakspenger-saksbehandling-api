@@ -64,6 +64,7 @@ sealed interface Rammebehandling : Behandling {
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
     val ventestatus: Ventestatus
+    val venterTil: LocalDateTime?
     val resultat: BehandlingResultat?
     val virkningsperiode: Periode?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
@@ -100,8 +101,10 @@ sealed interface Rammebehandling : Behandling {
         endretAv: Saksbehandler,
         begrunnelse: String,
         clock: Clock,
+        venterTil: LocalDateTime? = null,
     ): Rammebehandling {
         when (status) {
+            UNDER_AUTOMATISK_BEHANDLING,
             UNDER_BEHANDLING,
             UNDER_BESLUTNING,
             -> {
@@ -124,6 +127,7 @@ sealed interface Rammebehandling : Behandling {
                             erSattPåVent = true,
                             status = status,
                         ),
+                        venterTil = venterTil,
                         sistEndret = nå(clock),
                     )
 
@@ -135,13 +139,13 @@ sealed interface Rammebehandling : Behandling {
                             erSattPåVent = true,
                             status = status,
                         ),
+                        venterTil = venterTil,
                         sistEndret = nå(clock),
                     )
                 }
             }
 
             KLAR_TIL_BEHANDLING,
-            UNDER_AUTOMATISK_BEHANDLING,
             KLAR_TIL_BESLUTNING,
             VEDTATT,
             AVBRUTT,
@@ -171,6 +175,7 @@ sealed interface Rammebehandling : Behandling {
                     erSattPåVent = false,
                     status = status,
                 ),
+                venterTil = null,
                 sistEndret = nå(clock),
             )
 
@@ -181,6 +186,7 @@ sealed interface Rammebehandling : Behandling {
                     erSattPåVent = false,
                     status = status,
                 ),
+                venterTil = null,
                 sistEndret = nå(clock),
             )
         }

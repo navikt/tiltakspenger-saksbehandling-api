@@ -341,6 +341,7 @@ class BehandlingPostgresRepo(
             val sistEndret = localDateTime("sist_endret")
             val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
             val ventestatus = stringOrNull("ventestatus")?.toVentestatus() ?: Ventestatus()
+            val venterTil = localDateTimeOrNull("venter_til")
             val sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling")
             val fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) }
             val begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let {
@@ -416,6 +417,7 @@ class BehandlingPostgresRepo(
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
                         ventestatus = ventestatus,
+                        venterTil = venterTil,
                         resultat = resultat,
                         automatiskSaksbehandlet = automatiskSaksbehandlet,
                         manueltBehandlesGrunner = manueltBehandlesGrunner,
@@ -477,6 +479,7 @@ class BehandlingPostgresRepo(
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
                         ventestatus = ventestatus,
+                        venterTil = venterTil,
                         resultat = resultat,
                         utbetaling = stringOrNull("beregning")?.let {
                             BehandlingUtbetaling(
@@ -527,6 +530,7 @@ class BehandlingPostgresRepo(
                 valgte_tiltaksdeltakelser,
                 avbrutt,
                 ventestatus,
+                venter_til,
                 antall_dager_per_meldeperiode,
                 avslagsgrunner,
                 resultat,
@@ -565,6 +569,7 @@ class BehandlingPostgresRepo(
                 to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 to_jsonb(:avbrutt::jsonb),
                 to_jsonb(:ventestatus::jsonb),
+                :venter_til,
                 to_jsonb(:antall_dager_per_meldeperiode::jsonb),
                 to_jsonb(:avslagsgrunner::jsonb),
                 :resultat,
@@ -605,6 +610,7 @@ class BehandlingPostgresRepo(
                 valgte_tiltaksdeltakelser = to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 avbrutt = to_jsonb(:avbrutt::jsonb),
                 ventestatus = to_jsonb(:ventestatus::jsonb),
+                venter_til = :venter_til,
                 antall_dager_per_meldeperiode = to_jsonb(:antall_dager_per_meldeperiode::jsonb),
                 avslagsgrunner = to_jsonb(:avslagsgrunner::jsonb),
                 resultat = :resultat,
@@ -690,11 +696,13 @@ class BehandlingPostgresRepo(
                     join sak on sak.id = b.sak_id
                     where
                       b.behandlingstype = 'SØKNADSBEHANDLING' and
-                      b.status = 'UNDER_AUTOMATISK_BEHANDLING'
+                      b.status = 'UNDER_AUTOMATISK_BEHANDLING' and
+                      (b.venter_til is null or b.venter_til < :now)
                     order by b.opprettet
                     limit :limit
                     """.trimIndent(),
                     mapOf(
+                        "now" to LocalDateTime.now(),
                         "limit" to limit,
                     ),
                 ).map { it.toBehandling(session) }.asList,
@@ -737,6 +745,7 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode?.tilOgMed,
         "avbrutt" to this.avbrutt?.toDbJson(),
         "ventestatus" to this.ventestatus.toDbJson(),
+        "venter_til" to this.venterTil,
         "resultat" to this.resultat?.toDb(),
         "opprettet" to this.opprettet,
         "sak_id" to this.sakId.toString(),

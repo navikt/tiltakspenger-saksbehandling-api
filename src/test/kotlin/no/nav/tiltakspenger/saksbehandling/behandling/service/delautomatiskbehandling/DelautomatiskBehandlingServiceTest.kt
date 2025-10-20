@@ -30,8 +30,10 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class DelautomatiskBehandlingServiceTest {
     @Test
@@ -73,6 +75,48 @@ class DelautomatiskBehandlingServiceTest {
                         virkningsperiode,
                     ),
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `behandleAutomatisk - behandling der deltakelsen ikke har startet settes på vent`() {
+        with(TestApplicationContext()) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    configureExceptions()
+                    setupAuthentication(texasClient)
+                    routing { routes(tac) }
+                }
+                val virkningsperiode = Periode(fraOgMed = LocalDate.now().plusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
+                val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                    tac = tac,
+                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                        fom = virkningsperiode.fraOgMed,
+                        tom = virkningsperiode.tilOgMed,
+                        status = TiltakDeltakerstatus.VenterPåOppstart,
+                    ),
+                )
+                tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                    it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                    it.venterTil shouldBe null
+                }
+
+                soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
+
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+
+                val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                oppdatertBehandling.venterTil?.toLocalDate() shouldBe virkningsperiode.fraOgMed
+                oppdatertBehandling.ventestatus.erSattPåVent shouldBe true
+                oppdatertBehandling.automatiskSaksbehandlet shouldBe false
+                oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
             }
         }
     }

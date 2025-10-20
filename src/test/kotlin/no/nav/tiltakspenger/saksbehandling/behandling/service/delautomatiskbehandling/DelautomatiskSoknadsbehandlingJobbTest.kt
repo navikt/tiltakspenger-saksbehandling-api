@@ -5,12 +5,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetAutomatiskSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import org.junit.jupiter.api.Test
@@ -146,11 +148,71 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     delautomatiskBehandlingService,
                 )
 
-                testDataHelper.persisterOpprettetSøknadsbehandling()
+                delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
+
+                coVerify(exactly = 0) { delautomatiskBehandlingService.behandleAutomatisk(any(), any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `behandleSoknaderAutomatisk - behandler ikke automatisk behandling der venter til ikke er passert`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val soknadRepo = testDataHelper.søknadRepo
+                val behandlingRepo = testDataHelper.behandlingRepo
+                val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
+                val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
+                val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
+                    soknadRepo,
+                    behandlingRepo,
+                    startSøknadsbehandlingService,
+                    delautomatiskBehandlingService,
+                )
+
+                val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
+                val behandlingPaVent = automatiskBehandling.settPåVent(
+                    endretAv = AUTOMATISK_SAKSBEHANDLER,
+                    begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                    clock = clock,
+                    venterTil = LocalDateTime.now().plusDays(1),
+                ) as Søknadsbehandling
+                behandlingRepo.lagre(behandlingPaVent)
 
                 delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
 
                 coVerify(exactly = 0) { delautomatiskBehandlingService.behandleAutomatisk(any(), any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `behandleSoknaderAutomatisk - behandler automatisk behandling der venter til er passert`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val soknadRepo = testDataHelper.søknadRepo
+                val behandlingRepo = testDataHelper.behandlingRepo
+                val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
+                val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
+                val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
+                    soknadRepo,
+                    behandlingRepo,
+                    startSøknadsbehandlingService,
+                    delautomatiskBehandlingService,
+                )
+
+                val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
+                val behandlingPaVent = automatiskBehandling.settPåVent(
+                    endretAv = AUTOMATISK_SAKSBEHANDLER,
+                    begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                    clock = clock,
+                    venterTil = LocalDateTime.now().minusDays(1),
+                ) as Søknadsbehandling
+                behandlingRepo.lagre(behandlingPaVent)
+
+                delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
+
+                coVerify { delautomatiskBehandlingService.behandleAutomatisk(behandlingPaVent, any()) }
             }
         }
     }

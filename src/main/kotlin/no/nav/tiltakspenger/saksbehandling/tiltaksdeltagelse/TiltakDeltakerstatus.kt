@@ -81,4 +81,7 @@ enum class TiltakDeltakerstatus(
     fun deltar(): Boolean = this == Deltar
 
     fun harDeltattOgSluttet(): Boolean = this == HarSluttet || this == Avbrutt || this == Fullført
+
+    fun harIkkeStartet(): Boolean =
+        this == VenterPåOppstart || this == PåbegyntRegistrering || this == SøktInn || this == Venteliste || this == Vurderes
 }

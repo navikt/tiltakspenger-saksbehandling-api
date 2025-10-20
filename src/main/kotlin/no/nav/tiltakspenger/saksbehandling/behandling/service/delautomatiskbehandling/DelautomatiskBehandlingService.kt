@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbeha
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -45,6 +46,20 @@ class DelautomatiskBehandlingService(
     private val log = KotlinLogging.logger {}
 
     suspend fun behandleAutomatisk(behandling: Søknadsbehandling, correlationId: CorrelationId) {
+        if (skalSettePaVent(behandling, correlationId)) {
+            val startdatoForTiltak = getSoknadstiltakFraSaksopplysning(behandling)?.deltagelseFraOgMed
+            behandling.settPåVent(
+                endretAv = AUTOMATISK_SAKSBEHANDLER,
+                begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                clock = clock,
+                venterTil = startdatoForTiltak?.atTime(10, 0) ?: nå(clock).plusDays(1),
+            ).let {
+                behandlingRepo.lagre(it)
+            }
+            log.info { "Har satt behandling med id ${behandling.id} på vent. CorrelationId: $correlationId" }
+            return
+        }
+
         val manueltBehandlesGrunner = kanBehandleAutomatisk(behandling)
 
         if (manueltBehandlesGrunner.isEmpty()) {
@@ -57,6 +72,22 @@ class DelautomatiskBehandlingService(
             sendTilManuellBehandling(behandling, manueltBehandlesGrunner, correlationId)
             SOKNAD_IKKE_BEHANDLET_AUTOMATISK.inc()
         }
+    }
+
+    private fun skalSettePaVent(behandling: Søknadsbehandling, correlationId: CorrelationId): Boolean {
+        val soknadstiltakFraSaksopplysning = getSoknadstiltakFraSaksopplysning(behandling) ?: return false
+
+        if (!soknadstiltakFraSaksopplysning.deltakelseStatus.harIkkeStartet()) {
+            return false
+        }
+        if (soknadstiltakFraSaksopplysning.deltagelseFraOgMed == null) {
+            log.info { "Deltakelse for behandling ${behandling.id} har status ${soknadstiltakFraSaksopplysning.deltakelseStatus} og mangler startdato, setter på vent. CorrelationId: $correlationId" }
+            return true
+        } else if (soknadstiltakFraSaksopplysning.deltagelseFraOgMed.isAfter(nå(clock).toLocalDate())) {
+            log.info { "Startdato for deltakelse for behandling ${behandling.id} er ikke passert, setter på vent. CorrelationId: $correlationId" }
+            return true
+        }
+        return false
     }
 
     private suspend fun Sak.sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {
@@ -177,8 +208,7 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_INSTITUSJONSOPPHOLD)
         }
 
-        val soknadstiltakFraSaksopplysning =
-            behandling.saksopplysninger.getTiltaksdeltagelse(behandling.søknad.tiltak.id)
+        val soknadstiltakFraSaksopplysning = getSoknadstiltakFraSaksopplysning(behandling)
 
         if (soknadstiltakFraSaksopplysning == null) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_FANT_IKKE_TILTAK)
@@ -232,6 +262,15 @@ class DelautomatiskBehandlingService(
         }
 
         return manueltBehandlesGrunner
+    }
+
+    private fun getSoknadstiltakFraSaksopplysning(behandling: Søknadsbehandling): Tiltaksdeltagelse? {
+        require(
+            behandling.søknad is InnvilgbarSøknad &&
+                behandling.søknad.erDigitalSøknad() &&
+                behandling.saksopplysninger != null,
+        ) { "Kan ikke automatisk behandle papirsøknad ${behandling.søknad.id}" }
+        return behandling.saksopplysninger.getTiltaksdeltagelse(behandling.søknad.tiltak.id)
     }
 
     private fun tiltakManglerPeriodeOgVenterIkkePaOppstart(

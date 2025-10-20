@@ -49,6 +49,7 @@ data class Revurdering(
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val avbrutt: Avbrutt?,
     override val ventestatus: Ventestatus,
+    override val venterTil: LocalDateTime?,
     override val resultat: RevurderingResultat,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     override val utbetaling: BehandlingUtbetaling?,
@@ -221,6 +222,7 @@ data class Revurdering(
                 sendtTilDatadeling = null,
                 avbrutt = null,
                 ventestatus = Ventestatus(),
+                venterTil = null,
                 begrunnelseVilkårsvurdering = null,
                 utbetaling = null,
             )
