@@ -28,10 +28,10 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
+import java.time.LocalDate
 
 class DelautomatiskBehandlingService(
     private val behandlingRepo: BehandlingRepo,
@@ -83,7 +83,7 @@ class DelautomatiskBehandlingService(
         if (soknadstiltakFraSaksopplysning.deltagelseFraOgMed == null) {
             log.info { "Deltakelse for behandling ${behandling.id} har status ${soknadstiltakFraSaksopplysning.deltakelseStatus} og mangler startdato, setter på vent. CorrelationId: $correlationId" }
             return true
-        } else if (soknadstiltakFraSaksopplysning.deltagelseFraOgMed.isAfter(nå(clock).toLocalDate())) {
+        } else if (soknadstiltakFraSaksopplysning.deltagelseFraOgMed.isAfter(LocalDate.now())) {
             log.info { "Startdato for deltakelse for behandling ${behandling.id} er ikke passert, setter på vent. CorrelationId: $correlationId" }
             return true
         }
@@ -212,10 +212,14 @@ class DelautomatiskBehandlingService(
 
         if (soknadstiltakFraSaksopplysning == null) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_FANT_IKKE_TILTAK)
-        } else if (tiltakManglerPeriodeOgVenterIkkePaOppstart(soknadstiltakFraSaksopplysning)) {
+        } else if (tiltakManglerPeriode(soknadstiltakFraSaksopplysning)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_TILTAK_MANGLER_PERIODE)
         } else if (tiltakFraSoknadHarEndretPeriode(behandling.søknad.tiltak, soknadstiltakFraSaksopplysning)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ULIK_TILTAKSPERIODE)
+        }
+
+        if (soknadstiltakFraSaksopplysning != null && (!soknadstiltakFraSaksopplysning.deltakelseStatus.deltarEllerHarDeltatt())) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_IKKE_DELTATT_PA_TILTAK)
         }
 
         val tiltaksid = behandling.søknad.tiltak.id
@@ -273,11 +277,10 @@ class DelautomatiskBehandlingService(
         return behandling.saksopplysninger.getTiltaksdeltagelse(behandling.søknad.tiltak.id)
     }
 
-    private fun tiltakManglerPeriodeOgVenterIkkePaOppstart(
+    private fun tiltakManglerPeriode(
         tiltakFraSaksopplysning: Tiltaksdeltagelse,
     ): Boolean {
-        return tiltakFraSaksopplysning.deltagelseFraOgMed == null && tiltakFraSaksopplysning.deltagelseTilOgMed == null &&
-            tiltakFraSaksopplysning.deltakelseStatus != TiltakDeltakerstatus.VenterPåOppstart
+        return tiltakFraSaksopplysning.deltagelseFraOgMed == null || tiltakFraSaksopplysning.deltagelseTilOgMed == null
     }
 
     private fun tiltakFraSoknadHarEndretPeriode(

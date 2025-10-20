@@ -122,6 +122,47 @@ class DelautomatiskBehandlingServiceTest {
     }
 
     @Test
+    fun `behandleAutomatisk - har ikke deltatt - sendes til manuell behandling`() {
+        with(TestApplicationContext()) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    configureExceptions()
+                    setupAuthentication(texasClient)
+                    routing { routes(tac) }
+                }
+                val virkningsperiode = Periode(fraOgMed = LocalDate.now().minusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
+                val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                    tac = tac,
+                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                        fom = virkningsperiode.fraOgMed,
+                        tom = virkningsperiode.tilOgMed,
+                        status = TiltakDeltakerstatus.Venteliste,
+                    ),
+                )
+                tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                    it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                }
+
+                soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
+
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+
+                val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+                oppdatertBehandling.saksbehandler shouldBe null
+                oppdatertBehandling.automatiskSaksbehandlet shouldBe false
+                oppdatertBehandling.venterTil shouldBe null
+                oppdatertBehandling.ventestatus.erSattPåVent shouldBe false
+                oppdatertBehandling.manueltBehandlesGrunner shouldBe listOf(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_IKKE_DELTATT_PA_TILTAK)
+            }
+        }
+    }
+
+    @Test
     fun `behandleAutomatisk - har andre ytelser (søknad) - manuell behandling`() {
         with(TestApplicationContext()) {
             val tac = this
