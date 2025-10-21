@@ -47,29 +47,31 @@ class DelautomatiskBehandlingService(
 
     suspend fun behandleAutomatisk(behandling: Søknadsbehandling, correlationId: CorrelationId) {
         if (skalSettePaVent(behandling, correlationId)) {
-            val startdatoForTiltak = getSoknadstiltakFraSaksopplysning(behandling)?.deltagelseFraOgMed
-            behandling.settPåVent(
-                endretAv = AUTOMATISK_SAKSBEHANDLER,
-                begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
-                clock = clock,
-                venterTil = startdatoForTiltak?.atTime(10, 0) ?: nå(clock).plusDays(1),
-            ).let {
-                behandlingRepo.lagre(it)
-            }
-            log.info { "Har satt behandling med id ${behandling.id} på vent. CorrelationId: $correlationId" }
+            settBehandlingPaVent(behandling, correlationId)
             return
         }
+        val oppdatertBehandling = if (behandling.ventestatus.erSattPåVent) {
+            log.info { "Gjenopptar behandling med id ${behandling.id}. CorrelationId: $correlationId" }
+            val gjenopptattBehandling = behandling.gjenoppta(
+                endretAv = AUTOMATISK_SAKSBEHANDLER,
+                clock = clock,
+            )
+            behandlingRepo.lagre(gjenopptattBehandling)
+            gjenopptattBehandling as Søknadsbehandling
+        } else {
+            behandling
+        }
 
-        val manueltBehandlesGrunner = kanBehandleAutomatisk(behandling)
+        val manueltBehandlesGrunner = kanBehandleAutomatisk(oppdatertBehandling)
 
         if (manueltBehandlesGrunner.isEmpty()) {
             log.info { "Kan behandle behandling med id ${behandling.id} automatisk, sender til beslutning, correlationId $correlationId" }
             val sak = sakService.hentForSakId(behandling.sakId)
-            sak.sendTilBeslutning(behandling, correlationId)
+            sak.sendTilBeslutning(oppdatertBehandling, correlationId)
             SOKNAD_BEHANDLET_DELVIS_AUTOMATISK.inc()
         } else {
             log.info { "Kan ikke behandle behandling med id ${behandling.id} automatisk, sender til manuell behandling, correlationId $correlationId" }
-            sendTilManuellBehandling(behandling, manueltBehandlesGrunner, correlationId)
+            sendTilManuellBehandling(oppdatertBehandling, manueltBehandlesGrunner, correlationId)
             SOKNAD_IKKE_BEHANDLET_AUTOMATISK.inc()
         }
     }
@@ -88,6 +90,29 @@ class DelautomatiskBehandlingService(
             return true
         }
         return false
+    }
+
+    private fun settBehandlingPaVent(behandling: Søknadsbehandling, correlationId: CorrelationId) {
+        val startdatoForTiltak = getSoknadstiltakFraSaksopplysning(behandling)?.deltagelseFraOgMed
+        if (behandling.ventestatus.erSattPåVent) {
+            behandling.oppdaterVenterTil(
+                nyVenterTil = startdatoForTiltak?.atTime(10, 0) ?: nå(clock).plusDays(1),
+                clock = clock,
+            ).let {
+                behandlingRepo.lagre(it)
+            }
+            log.info { "Har oppdatert venterTil for behandling med id ${behandling.id} som allerede var på vent. CorrelationId: $correlationId" }
+        } else {
+            behandling.settPåVent(
+                endretAv = AUTOMATISK_SAKSBEHANDLER,
+                begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                clock = clock,
+                venterTil = startdatoForTiltak?.atTime(10, 0) ?: nå(clock).plusDays(1),
+            ).let {
+                behandlingRepo.lagre(it)
+            }
+            log.info { "Har satt behandling med id ${behandling.id} på vent. CorrelationId: $correlationId" }
+        }
     }
 
     private suspend fun Sak.sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {

@@ -169,6 +169,22 @@ data class Søknadsbehandling(
         return this.copy(utbetaling = utbetaling!!.oppdaterSimulering(nySimulering))
     }
 
+    fun oppdaterVenterTil(
+        nyVenterTil: LocalDateTime,
+        clock: Clock,
+    ): Søknadsbehandling {
+        require(status == UNDER_AUTOMATISK_BEHANDLING && saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID) {
+            "Kun behandlinger under automatisk behandling kan oppdatere venterTil-tidspunkt"
+        }
+        require(ventestatus.erSattPåVent && venterTil != null) {
+            "Kan ikke oppdatere venterTil hvis behandlingen ikke allerede er satt på vent"
+        }
+        return this.copy(
+            venterTil = nyVenterTil,
+            sistEndret = nå(clock),
+        )
+    }
+
     companion object {
         suspend fun opprett(
             sak: Sak,

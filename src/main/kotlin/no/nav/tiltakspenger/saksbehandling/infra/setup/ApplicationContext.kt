@@ -232,6 +232,7 @@ open class ApplicationContext(
             behandlingRepo = behandlingContext.behandlingRepo,
             startSøknadsbehandlingService = behandlingContext.startSøknadsbehandlingService,
             delautomatiskBehandlingService = behandlingContext.delautomatiskBehandlingService,
+            oppdaterSaksopplysningerService = behandlingContext.oppdaterSaksopplysningerService,
         )
     }
 

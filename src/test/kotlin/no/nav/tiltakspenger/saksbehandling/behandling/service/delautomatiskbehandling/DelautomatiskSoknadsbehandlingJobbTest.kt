@@ -1,11 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
+import arrow.core.right
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetAutomatiskSøknadsbehandling
@@ -26,12 +28,14 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
                 val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
+                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
                 val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
                 val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
                     soknadRepo,
                     behandlingRepo,
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
+                    oppdaterSaksopplysningerService,
                 )
 
                 val soknad = testDataHelper.persisterSakOgSøknad()
@@ -57,12 +61,14 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
                 val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
+                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
                 val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
                 val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
                     soknadRepo,
                     behandlingRepo,
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
+                    oppdaterSaksopplysningerService,
                 )
 
                 val soknad = testDataHelper.persisterSakOgSøknad()
@@ -92,12 +98,14 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
                 val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
+                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
                 val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
                 val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
                     soknadRepo,
                     behandlingRepo,
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
+                    oppdaterSaksopplysningerService,
                 )
 
                 testDataHelper.persisterOpprettetSøknadsbehandling()
@@ -116,12 +124,14 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
                 val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
+                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
                 val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
                 val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
                     soknadRepo,
                     behandlingRepo,
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
+                    oppdaterSaksopplysningerService,
                 )
 
                 val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
@@ -129,6 +139,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
 
                 coVerify { delautomatiskBehandlingService.behandleAutomatisk(automatiskBehandling, any()) }
+                coVerify(exactly = 0) { oppdaterSaksopplysningerService.oppdaterSaksopplysninger(any(), any(), any(), any()) }
             }
         }
     }
@@ -140,12 +151,14 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
                 val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
+                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
                 val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
                 val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
                     soknadRepo,
                     behandlingRepo,
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
+                    oppdaterSaksopplysningerService,
                 )
 
                 delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
@@ -162,12 +175,14 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
                 val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
+                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
                 val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
                 val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
                     soknadRepo,
                     behandlingRepo,
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
+                    oppdaterSaksopplysningerService,
                 )
 
                 val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
@@ -187,21 +202,23 @@ class DelautomatiskSoknadsbehandlingJobbTest {
     }
 
     @Test
-    fun `behandleSoknaderAutomatisk - behandler automatisk behandling der venter til er passert`() {
+    fun `behandleSoknaderAutomatisk - behandler automatisk behandling der venter til er passert, oppdaterer saksopplysninger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
                 val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
+                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
                 val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
                 val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
                     soknadRepo,
                     behandlingRepo,
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
+                    oppdaterSaksopplysningerService,
                 )
 
-                val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
+                val (sak, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
                 val behandlingPaVent = automatiskBehandling.settPåVent(
                     endretAv = AUTOMATISK_SAKSBEHANDLER,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
@@ -209,10 +226,12 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     venterTil = LocalDateTime.now().minusDays(1),
                 ) as Søknadsbehandling
                 behandlingRepo.lagre(behandlingPaVent)
+                coEvery { oppdaterSaksopplysningerService.oppdaterSaksopplysninger(any(), any(), any(), any()) } returns (sak to behandlingPaVent).right()
 
                 delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
 
-                coVerify { delautomatiskBehandlingService.behandleAutomatisk(behandlingPaVent, any()) }
+                coVerify { delautomatiskBehandlingService.behandleAutomatisk(match { it.id == behandlingPaVent.id }, any()) }
+                coVerify { oppdaterSaksopplysningerService.oppdaterSaksopplysninger(automatiskBehandling.sakId, automatiskBehandling.id, AUTOMATISK_SAKSBEHANDLER, any()) }
             }
         }
     }

@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class DelautomatiskBehandlingServiceTest {
     @Test
@@ -115,6 +116,105 @@ class DelautomatiskBehandlingServiceTest {
                 oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 oppdatertBehandling.venterTil?.toLocalDate() shouldBe virkningsperiode.fraOgMed
                 oppdatertBehandling.ventestatus.erSattPåVent shouldBe true
+                oppdatertBehandling.automatiskSaksbehandlet shouldBe false
+                oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
+            }
+        }
+    }
+
+    @Test
+    fun `behandleAutomatisk - behandling der deltakelsen ikke lenger er på vent kan gjenopptas og behandles`() {
+        with(TestApplicationContext()) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    configureExceptions()
+                    setupAuthentication(texasClient)
+                    routing { routes(tac) }
+                }
+                val virkningsperiode = Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
+                val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                    tac = tac,
+                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                        fom = virkningsperiode.fraOgMed,
+                        tom = virkningsperiode.tilOgMed,
+                        status = TiltakDeltakerstatus.Deltar,
+                    ),
+                )
+                val behandlingPaVent = behandling.settPåVent(
+                    endretAv = AUTOMATISK_SAKSBEHANDLER,
+                    begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                    clock = clock,
+                    venterTil = virkningsperiode.fraOgMed.atStartOfDay(),
+                ) as Søknadsbehandling
+                tac.behandlingContext.behandlingRepo.lagre(behandlingPaVent)
+                tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                    it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                    it.venterTil shouldNotBe null
+                }
+
+                soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
+
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandlingPaVent, CorrelationId.generate())
+
+                val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                oppdatertBehandling.venterTil?.toLocalDate() shouldBe null
+                oppdatertBehandling.ventestatus.erSattPåVent shouldBe false
+                oppdatertBehandling.automatiskSaksbehandlet shouldBe true
+                oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
+            }
+        }
+    }
+
+    @Test
+    fun `behandleAutomatisk - behandling var på vent og skal fortsatt vente - oppdaterer venter_til`() {
+        with(TestApplicationContext()) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    configureExceptions()
+                    setupAuthentication(texasClient)
+                    routing { routes(tac) }
+                }
+                val virkningsperiode = Periode(fraOgMed = LocalDate.now().plusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
+                val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                    tac = tac,
+                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                        fom = virkningsperiode.fraOgMed,
+                        tom = virkningsperiode.tilOgMed,
+                        status = TiltakDeltakerstatus.VenterPåOppstart,
+                    ),
+                )
+                val behandlingPaVent = behandling.settPåVent(
+                    endretAv = AUTOMATISK_SAKSBEHANDLER,
+                    begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                    clock = clock,
+                    venterTil = LocalDateTime.now(),
+                ) as Søknadsbehandling
+                tac.behandlingContext.behandlingRepo.lagre(behandlingPaVent)
+                tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                    it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                    it.venterTil?.toLocalDate() shouldBe LocalDate.now()
+                }
+
+                soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
+
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandlingPaVent, CorrelationId.generate())
+
+                val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                oppdatertBehandling.venterTil?.toLocalDate() shouldBe virkningsperiode.fraOgMed
+                oppdatertBehandling.ventestatus.erSattPåVent shouldBe true
+                oppdatertBehandling.ventestatus.ventestatusHendelser.size shouldBe 1
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe false
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
             }
