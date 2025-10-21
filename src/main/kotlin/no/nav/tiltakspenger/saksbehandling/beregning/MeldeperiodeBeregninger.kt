@@ -1,5 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
+import arrow.core.Either
+import arrow.core.NonEmptyList
+import arrow.core.left
+import arrow.core.right
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -39,8 +44,10 @@ data class MeldeperiodeBeregninger(
         meldeperiodeBeregningerMedTidspunkt.map { it.first }
     }
 
-    val beregningerPerKjede: Map<MeldeperiodeKjedeId, List<MeldeperiodeBeregning>> by lazy {
-        meldeperiodeBeregninger.groupBy { it.kjedeId }
+    val beregningerPerKjede: Map<MeldeperiodeKjedeId, NonEmptyList<MeldeperiodeBeregning>> by lazy {
+        meldeperiodeBeregninger
+            .groupBy { it.kjedeId }
+            .mapValues { it.value.toNonEmptyListOrThrow() }
     }
 
     val sisteBeregningPerKjede: Map<MeldeperiodeKjedeId, MeldeperiodeBeregning> by lazy {
@@ -51,8 +58,25 @@ data class MeldeperiodeBeregninger(
         sisteBeregningPerKjede.values.toList()
     }
 
-    fun sisteBeregningFør(beregningId: BeregningId, kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
-        return beregningerPerKjede[kjedeId]?.takeWhile { it.id != beregningId }?.lastOrNull()
+    fun hentForrigeBeregning(
+        beregningId: BeregningId,
+        kjedeId: MeldeperiodeKjedeId,
+    ): Either<ForrigeBeregningFinnesIkke, MeldeperiodeBeregning> {
+        val beregningerForKjede =
+            beregningerPerKjede[kjedeId] ?: return ForrigeBeregningFinnesIkke.IngenBeregningerForKjede.left()
+
+        // Finnes ingen forrige beregning hvis dette er den første på kjeden
+        if (beregningerForKjede.first().id == beregningId) {
+            return ForrigeBeregningFinnesIkke.IngenTidligereBeregninger.left()
+        }
+
+        return beregningerForKjede.takeWhile { it.id != beregningId }.let {
+            if (it.isEmpty()) {
+                ForrigeBeregningFinnesIkke.BeregningFinnesIkke.left()
+            } else {
+                it.last().right()
+            }
+        }
     }
 
     fun sisteBeregningerForPeriode(periode: Periode): List<MeldeperiodeBeregning> {
@@ -70,5 +94,13 @@ data class MeldeperiodeBeregninger(
         require(duplikater.isEmpty()) {
             "Fant duplikate meldeperiodeberegninger: $duplikater"
         }
+    }
+
+    // Tanken var å bruke disse til tester for å skille mellom ulike null-resultater.
+    // TODO etter omskrivning av MeldeperiodeBeregninger :D
+    enum class ForrigeBeregningFinnesIkke {
+        IngenBeregningerForKjede,
+        IngenTidligereBeregninger,
+        BeregningFinnesIkke,
     }
 }

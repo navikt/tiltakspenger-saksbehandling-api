@@ -6,6 +6,7 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning.SimulertBeregningMeldeperiode.SimulertBeregningDag
@@ -126,17 +127,10 @@ data class SimulertBeregning(
         ): SimulertBeregning {
             val perMeldeperiode: Nel<SimulertBeregningMeldeperiode> =
                 beregning.beregninger.map { meldeperiodeBeregning ->
-                    /** Dersom dette er beregning av en utbetaling som allerede er iverksatt, hentes forrige beregning via [MeldeperiodeBeregninger.sisteBeregningFør]
-                     *  For nye beregninger hentes forrige beregning via [MeldeperiodeBeregninger.sisteBeregningPerKjede]
-                     * */
-                    val forrigeBeregning =
-                        eksisterendeBeregninger.sisteBeregningFør(
-                            meldeperiodeBeregning.id,
-                            meldeperiodeBeregning.kjedeId,
-                        )
-                            ?: eksisterendeBeregninger.sisteBeregningPerKjede[meldeperiodeBeregning.kjedeId]?.let {
-                                if (it.beregningKilde != beregning.beregningKilde) it else null
-                            }
+                    val forrigeBeregning = eksisterendeBeregninger.hentForrigeBeregning(
+                        meldeperiodeBeregning.id,
+                        meldeperiodeBeregning.kjedeId,
+                    ).getOrNull()
 
                     SimulertBeregningMeldeperiode(
                         kjedeId = meldeperiodeBeregning.kjedeId,

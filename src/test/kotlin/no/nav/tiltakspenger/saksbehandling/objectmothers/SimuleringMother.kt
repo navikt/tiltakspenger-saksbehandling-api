@@ -111,10 +111,10 @@ fun Sak.genererSimuleringFraBeregning(
     simuleringstidspunkt: LocalDateTime = LocalDateTime.now(clock),
 ): SimuleringMedMetadata {
     val simuleringForMeldeperioder = beregning.beregninger.mapNotNull { beregningEtter ->
-        val beregningFør = this.meldeperiodeBeregninger.sisteBeregningFør(
+        val beregningFør = this.meldeperiodeBeregninger.hentForrigeBeregning(
             beregningEtter.id,
             beregningEtter.kjedeId,
-        )
+        ).getOrNull()
         val sammenligning = sammenlign(
             forrigeBeregning = beregningFør,
             gjeldendeBeregning = beregningEtter,

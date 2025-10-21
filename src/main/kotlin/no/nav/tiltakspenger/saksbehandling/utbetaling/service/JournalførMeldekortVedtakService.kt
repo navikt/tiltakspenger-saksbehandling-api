@@ -40,10 +40,10 @@ class JournalførMeldekortVedtakService(
                 Either.catch {
                     val sak = sakRepo.hentForSakId(meldekortVedtak.sakId)!!
                     val sammenligning = { beregningEtter: MeldeperiodeBeregning ->
-                        val beregningFør = sak.meldeperiodeBeregninger.sisteBeregningFør(
+                        val beregningFør = sak.meldeperiodeBeregninger.hentForrigeBeregning(
                             beregningEtter.id,
                             beregningEtter.kjedeId,
-                        )
+                        ).getOrNull()
                         sammenlign(beregningFør, beregningEtter)
                     }
                     // Et meldeperiode har ikke informasjon om tiltaksdeltagelsen, så vi må hente det fra rammevedtakene som gjelder for dette meldekortvedtaket.
