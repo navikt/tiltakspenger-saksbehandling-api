@@ -151,7 +151,7 @@ sealed interface Rammebehandling : Behandling {
             KLAR_TIL_BESLUTNING,
             VEDTATT,
             AVBRUTT,
-            -> throw IllegalStateException("Kan bare sette behandling på vent dersom den er UNDER_BESLUTNING")
+            -> throw IllegalStateException("Kan ikke sette behandling på vent som har status ${status.name}")
         }
     }
 
