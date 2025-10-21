@@ -8,40 +8,21 @@ import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.LocalDateTime
 
+/** Abn: kanskje [MeldeperiodeBeregning] kunne holde på iverksatt tidspunkt selv? */
 private typealias BeregningMedIverksattTidspunkt = Pair<MeldeperiodeBeregning, LocalDateTime>
 
-data class MeldeperiodeBeregninger(
-    private val meldekortBehandlinger: Meldekortbehandlinger,
-    private val behandlinger: Rammebehandlinger,
+/**
+ *  Denne skal kun omfatte beregninger som er en del av et vedtak
+ * */
+data class MeldeperiodeBeregningerVedtatt private constructor(
+    private val meldeperiodeBeregningerMedTidspunkt: List<BeregningMedIverksattTidspunkt>,
 ) {
-    private val godkjenteMeldekort: List<MeldekortBehandling.Behandlet> = meldekortBehandlinger.godkjenteMeldekort
-        .sortedBy { it.iverksattTidspunkt }
-
-    private val iverksatteBehandlinger: List<Rammebehandling> = behandlinger.filter { it.erVedtatt }
-
-    private val meldeperiodeBeregningerMedTidspunkt: List<BeregningMedIverksattTidspunkt> by lazy {
-        val beregningerFraMeldekort = godkjenteMeldekort.flatMap { meldekort ->
-            meldekort.beregning.beregninger.map { BeregningMedIverksattTidspunkt(it, meldekort.iverksattTidspunkt!!) }
-        }
-
-        val beregningerFraBehandlinger = iverksatteBehandlinger
-            .mapNotNull { behandling ->
-                behandling.utbetaling?.beregning?.beregninger?.map {
-                    BeregningMedIverksattTidspunkt(it, behandling.iverksattTidspunkt!!)
-                }?.toList()
-            }.flatten()
-
-        beregningerFraMeldekort.plus(beregningerFraBehandlinger).sortedBy { it.second }
-    }
 
     private val meldeperiodeBeregninger: List<MeldeperiodeBeregning> by lazy {
-        meldeperiodeBeregningerMedTidspunkt.map { it.first }
+        meldeperiodeBeregningerMedTidspunkt.sortedBy { it.second }.map { it.first }
     }
 
     val beregningerPerKjede: Map<MeldeperiodeKjedeId, NonEmptyList<MeldeperiodeBeregning>> by lazy {
@@ -84,20 +65,23 @@ data class MeldeperiodeBeregninger(
     }
 
     init {
-        meldeperiodeBeregningerMedTidspunkt.zipWithNext { a, b ->
-            require(a.second <= b.second) {
-                "Meldeperiodeberegningene må være sorterte - Fant ${a.first} ${a.second} / ${b.first} ${b.second}"
-            }
-        }
-
         val duplikater = meldeperiodeBeregninger.nonDistinctBy { it.id }
         require(duplikater.isEmpty()) {
             "Fant duplikate meldeperiodeberegninger: $duplikater"
         }
     }
 
-    // Tanken var å bruke disse til tester for å skille mellom ulike null-resultater.
-    // TODO etter omskrivning av MeldeperiodeBeregninger :D
+    companion object {
+
+        fun fraVedtaksliste(vedtaksliste: Vedtaksliste): MeldeperiodeBeregningerVedtatt {
+            return MeldeperiodeBeregningerVedtatt(
+                vedtaksliste.flatMap { vedtak ->
+                    vedtak.beregning?.beregninger?.map { it to vedtak.opprettet } ?: emptyList()
+                },
+            )
+        }
+    }
+
     enum class ForrigeBeregningFinnesIkke {
         IngenBeregningerForKjede,
         IngenTidligereBeregninger,

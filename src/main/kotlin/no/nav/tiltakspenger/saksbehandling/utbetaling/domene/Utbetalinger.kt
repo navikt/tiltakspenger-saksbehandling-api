@@ -6,9 +6,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.utsjekk.kontrakter.felles.Satstype
-import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 
 /**
@@ -32,10 +30,6 @@ data class Utbetalinger(
         verdi.toTidslinje()
     }
 
-    fun harUtbetalingIPeriode(periode: Periode): Boolean {
-        return perioder.any { it.overlapperMed(periode) }
-    }
-
     private val utbetalingerMap: Map<Ulid, VedtattUtbetaling> by lazy {
         verdi.associateBy { it.beregningKilde.id }
     }
@@ -50,25 +44,6 @@ data class Utbetalinger(
 
     fun hentUtbetalingerFraPeriode(periode: Periode): List<VedtattUtbetaling> {
         return verdi.filter { periode.overlapperMed(it.periode) }
-    }
-
-    fun hentSisteUtbetalingForDato(dato: LocalDate): VedtattUtbetaling? {
-        return tidslinje.hentVerdiForDag(dato)
-    }
-
-    fun hentSisteBeregningdagForDato(dato: LocalDate): MeldeperiodeBeregningDag? {
-        return hentSisteUtbetalingForDato(dato)?.hentBeregningsdagForDato(dato)
-    }
-
-    fun harDag7IMånedForDato(dato: LocalDate): Boolean {
-        return harDag7IPeriode(
-            Periode(
-                dato.with(TemporalAdjusters.firstDayOfMonth()),
-                dato.with(
-                    TemporalAdjusters.lastDayOfMonth(),
-                ),
-            ),
-        )
     }
 
     fun harDag7IMånederForPeriode(periode: Periode): Boolean {

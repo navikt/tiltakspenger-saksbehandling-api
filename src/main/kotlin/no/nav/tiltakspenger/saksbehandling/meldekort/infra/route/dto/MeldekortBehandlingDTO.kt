@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
@@ -46,7 +46,7 @@ data class MeldekortBehandlingDTO(
 
 fun MeldekortBehandling.tilMeldekortBehandlingDTO(
     vedtak: MeldekortVedtak? = null,
-    beregninger: MeldeperiodeBeregninger,
+    beregninger: MeldeperiodeBeregningerVedtatt,
 ): MeldekortBehandlingDTO {
     require(status != MeldekortBehandlingStatus.GODKJENT || vedtak != null) {
         "Meldekortvedtak må være satt for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id"
