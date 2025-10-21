@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
@@ -26,8 +26,8 @@ data class Vedtaksliste(
         avslagsvedtak.map { it.behandling as Søknadsbehandling }
     }
 
-    val meldeperiodeBeregninger: MeldeperiodeBeregninger by lazy {
-        MeldeperiodeBeregninger.fraVedtaksliste(this)
+    val meldeperiodeBeregninger: MeldeperiodeBeregningerVedtatt by lazy {
+        MeldeperiodeBeregningerVedtatt.fraVedtaksliste(this)
     }
 
     fun hentAvslåtteBehandlingerForSøknadId(søknadId: SøknadId): List<Søknadsbehandling> {

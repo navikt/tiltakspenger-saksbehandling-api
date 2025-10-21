@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
@@ -130,7 +130,7 @@ fun Sak.tilBehandlingerDTO(): List<BehandlingDTO> = this.rammebehandlinger.map {
 
 fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     utbetalingsstatus: Utbetalingsstatus?,
-    beregninger: MeldeperiodeBeregninger,
+    beregninger: MeldeperiodeBeregningerVedtatt,
 ): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
         id = this.id.toString(),
@@ -175,7 +175,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
 
 fun Revurdering.tilRevurderingDTO(
     utbetalingsstatus: Utbetalingsstatus?,
-    beregninger: MeldeperiodeBeregninger,
+    beregninger: MeldeperiodeBeregningerVedtatt,
 ): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),

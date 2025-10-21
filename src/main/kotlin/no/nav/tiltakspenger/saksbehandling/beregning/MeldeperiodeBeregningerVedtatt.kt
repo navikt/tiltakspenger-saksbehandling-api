@@ -11,13 +11,13 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.LocalDateTime
 
-/** Abn: kanskje [MeldeperiodeBeregning] burde holde på iverksatt tidspunkt selv */
+/** Abn: kanskje [MeldeperiodeBeregning] kunne holde på iverksatt tidspunkt selv? */
 private typealias BeregningMedIverksattTidspunkt = Pair<MeldeperiodeBeregning, LocalDateTime>
 
 /**
- *  Denne skal kun omfatte beregninger som er en del av en vedtatt utbetaling.
+ *  Denne skal kun omfatte beregninger som er en del av et vedtak
  * */
-data class MeldeperiodeBeregninger private constructor(
+data class MeldeperiodeBeregningerVedtatt private constructor(
     private val meldeperiodeBeregningerMedTidspunkt: List<BeregningMedIverksattTidspunkt>,
 ) {
 
@@ -71,22 +71,20 @@ data class MeldeperiodeBeregninger private constructor(
         }
     }
 
-    // Tanken var å bruke disse til tester for å skille mellom ulike null-resultater.
-    // TODO etter omskrivning av MeldeperiodeBeregninger :D
-    enum class ForrigeBeregningFinnesIkke {
-        IngenBeregningerForKjede,
-        IngenTidligereBeregninger,
-        BeregningFinnesIkke,
-    }
-
     companion object {
 
-        fun fraVedtaksliste(vedtaksliste: Vedtaksliste): MeldeperiodeBeregninger {
-            return MeldeperiodeBeregninger(
+        fun fraVedtaksliste(vedtaksliste: Vedtaksliste): MeldeperiodeBeregningerVedtatt {
+            return MeldeperiodeBeregningerVedtatt(
                 vedtaksliste.flatMap { vedtak ->
                     vedtak.beregning?.beregninger?.map { it to vedtak.opprettet } ?: emptyList()
                 },
             )
         }
+    }
+
+    enum class ForrigeBeregningFinnesIkke {
+        IngenBeregningerForKjede,
+        IngenTidligereBeregninger,
+        BeregningFinnesIkke,
     }
 }

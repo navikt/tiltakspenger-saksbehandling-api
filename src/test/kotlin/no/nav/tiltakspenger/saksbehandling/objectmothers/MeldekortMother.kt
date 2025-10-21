@@ -40,7 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fr
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
@@ -947,7 +947,7 @@ fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): Dager {
     )
 }
 
-fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): MeldeperiodeBeregninger {
+fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): MeldeperiodeBeregningerVedtatt {
     return this.sortedBy { it.iverksattTidspunkt }.fold(emptyList<MeldekortVedtak>()) { acc, mkb ->
         if (mkb !is MeldekortBehandling.Behandlet) {
             return@fold acc
@@ -955,7 +955,7 @@ fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): Meldeperiode
 
         acc.plus(mkb.opprettVedtak(acc.lastOrNull()?.utbetaling, clock))
     }.let {
-        MeldeperiodeBeregninger.fraVedtaksliste(
+        MeldeperiodeBeregningerVedtatt.fraVedtaksliste(
             Vedtaksliste(
                 Rammevedtaksliste(emptyList()),
                 MeldekortVedtaksliste(

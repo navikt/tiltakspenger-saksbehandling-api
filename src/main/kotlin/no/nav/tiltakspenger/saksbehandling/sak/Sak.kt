@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -58,7 +58,7 @@ data class Sak(
     val rammebehandlinger: Rammebehandlinger = behandlinger.rammebehandlinger
     val meldekortbehandlinger: Meldekortbehandlinger = behandlinger.meldekortbehandlinger
 
-    val meldeperiodeBeregninger: MeldeperiodeBeregninger by lazy {
+    val meldeperiodeBeregninger: MeldeperiodeBeregningerVedtatt by lazy {
         vedtaksliste.meldeperiodeBeregninger
     }
 
