@@ -46,6 +46,7 @@ sealed interface BehandlingDTO {
     val iverksattTidspunkt: LocalDateTime?
     val ventestatus: VentestatusHendelseDTO?
     val utbetaling: BehandlingUtbetalingDTO?
+    val barnetillegg: BarnetilleggDTO?
 }
 
 data class SøknadsbehandlingDTO(
@@ -66,8 +67,8 @@ data class SøknadsbehandlingDTO(
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
+    override val barnetillegg: BarnetilleggDTO?,
     val søknad: SøknadDTO?,
-    val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
     val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
@@ -95,8 +96,8 @@ data class RevurderingDTO(
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
+    override val barnetillegg: BarnetilleggDTO?,
     val valgtHjemmelHarIkkeRettighet: List<String>?,
-    val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
     val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
     val harValgtStansFraFørsteDagSomGirRett: Boolean?,
