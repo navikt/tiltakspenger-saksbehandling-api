@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -21,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -64,6 +66,7 @@ sealed interface Rammebehandling : Behandling {
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
     val ventestatus: Ventestatus
+    val venterTil: LocalDateTime?
     val resultat: BehandlingResultat?
     val virkningsperiode: Periode?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
@@ -100,8 +103,10 @@ sealed interface Rammebehandling : Behandling {
         endretAv: Saksbehandler,
         begrunnelse: String,
         clock: Clock,
+        venterTil: LocalDateTime? = null,
     ): Rammebehandling {
         when (status) {
+            UNDER_AUTOMATISK_BEHANDLING,
             UNDER_BEHANDLING,
             UNDER_BESLUTNING,
             -> {
@@ -124,6 +129,7 @@ sealed interface Rammebehandling : Behandling {
                             erSattPåVent = true,
                             status = status,
                         ),
+                        venterTil = venterTil,
                         sistEndret = nå(clock),
                     )
 
@@ -135,17 +141,17 @@ sealed interface Rammebehandling : Behandling {
                             erSattPåVent = true,
                             status = status,
                         ),
+                        venterTil = venterTil,
                         sistEndret = nå(clock),
                     )
                 }
             }
 
             KLAR_TIL_BEHANDLING,
-            UNDER_AUTOMATISK_BEHANDLING,
             KLAR_TIL_BESLUTNING,
             VEDTATT,
             AVBRUTT,
-            -> throw IllegalStateException("Kan bare sette behandling på vent dersom den er UNDER_BESLUTNING")
+            -> throw IllegalStateException("Kan ikke sette behandling på vent som har status ${status.name}")
         }
     }
 
@@ -153,6 +159,24 @@ sealed interface Rammebehandling : Behandling {
         endretAv: Saksbehandler,
         clock: Clock,
     ): Rammebehandling {
+        if (status == UNDER_AUTOMATISK_BEHANDLING && endretAv != AUTOMATISK_SAKSBEHANDLER) {
+            krevSaksbehandlerRolle(endretAv)
+            require(saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID) { "Kan ikke gjenoppta automatisk behandling som ikke eies av tp-sak" }
+            require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
+            require(this is Søknadsbehandling) { "Kun søknadsbehandlinger kan være under automatisk behandling" }
+            val oppdatertBehandling = overta(endretAv, clock)
+                .getOrElse { IllegalStateException("Kan ikke gjenoppta automatisk behandling: Kunne ikke overta behandlingen") } as Søknadsbehandling
+            return oppdatertBehandling.copy(
+                ventestatus = ventestatus.leggTil(
+                    tidspunkt = nå(clock),
+                    endretAv = endretAv.navIdent,
+                    erSattPåVent = false,
+                    status = oppdatertBehandling.status,
+                ),
+                venterTil = null,
+                sistEndret = nå(clock),
+            )
+        }
         if (status == UNDER_BEHANDLING) {
             krevSaksbehandlerRolle(endretAv)
             require(this.saksbehandler == endretAv.navIdent) { "Du må være saksbehandler på behandlingen for å kunne gjenoppta den." }
@@ -171,6 +195,7 @@ sealed interface Rammebehandling : Behandling {
                     erSattPåVent = false,
                     status = status,
                 ),
+                venterTil = null,
                 sistEndret = nå(clock),
             )
 
@@ -181,6 +206,7 @@ sealed interface Rammebehandling : Behandling {
                     erSattPåVent = false,
                     status = status,
                 ),
+                venterTil = null,
                 sistEndret = nå(clock),
             )
         }
@@ -328,7 +354,20 @@ sealed interface Rammebehandling : Behandling {
 
             KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
-            UNDER_AUTOMATISK_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
+            UNDER_AUTOMATISK_BEHANDLING -> {
+                if (this.saksbehandler != AUTOMATISK_SAKSBEHANDLER_ID || !ventestatus.erSattPåVent) {
+                    return KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
+                }
+                krevSaksbehandlerRolle(saksbehandler)
+                return when (this) {
+                    is Søknadsbehandling -> this.copy(
+                        status = UNDER_BEHANDLING,
+                        saksbehandler = saksbehandler.navIdent,
+                        sistEndret = oppdatertSistEndret,
+                    )
+                    is Revurdering -> return KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
+                }.right()
+            }
 
             VEDTATT,
             AVBRUTT,

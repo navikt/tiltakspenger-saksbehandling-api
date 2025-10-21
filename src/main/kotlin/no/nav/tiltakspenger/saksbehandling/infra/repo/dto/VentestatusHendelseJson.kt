@@ -14,6 +14,7 @@ data class VentestatusHendelseJson(
     enum class Behandlingsstatus {
         UNDER_BEHANDLING,
         UNDER_BESLUTNING,
+        UNDER_AUTOMATISK_BEHANDLING,
     }
 }
 
@@ -26,6 +27,7 @@ fun VentestatusHendelseJson.toSattPåVentBegrunnelse(): VentestatusHendelse {
         status = when (status) {
             VentestatusHendelseJson.Behandlingsstatus.UNDER_BEHANDLING -> Rammebehandlingsstatus.UNDER_BEHANDLING
             VentestatusHendelseJson.Behandlingsstatus.UNDER_BESLUTNING -> Rammebehandlingsstatus.UNDER_BESLUTNING
+            VentestatusHendelseJson.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
         },
     )
 }
@@ -38,6 +40,7 @@ fun VentestatusHendelse.toDbJson(): VentestatusHendelseJson = VentestatusHendels
     status = when (this.status) {
         Rammebehandlingsstatus.UNDER_BEHANDLING -> VentestatusHendelseJson.Behandlingsstatus.UNDER_BEHANDLING
         Rammebehandlingsstatus.UNDER_BESLUTNING -> VentestatusHendelseJson.Behandlingsstatus.UNDER_BESLUTNING
+        Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> VentestatusHendelseJson.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
         else -> throw IllegalArgumentException("Ugyldig behandlingsstatus for VentestatusHendelse: ${this.status}")
     },
 )
