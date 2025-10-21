@@ -26,7 +26,6 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
@@ -80,7 +79,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.collections.emptyList
-import kotlin.collections.mapNotNull
 import kotlin.math.ceil
 
 interface MeldekortMother : MotherOfAllMothers {
@@ -948,11 +946,15 @@ fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): Dager {
 }
 
 fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): MeldeperiodeBeregninger {
-    return this.fold(emptyList<VedtattUtbetaling>()) { acc, mkb ->
+    return this.sortedBy { it.iverksattTidspunkt }.fold(emptyList<VedtattUtbetaling>()) { acc, mkb ->
         if (mkb !is MeldekortBehandling.Behandlet) {
             return@fold acc
         }
 
         acc.plus(mkb.opprettVedtak(acc.lastOrNull(), clock).utbetaling)
-    }.let { MeldeperiodeBeregninger.fraUtbetalinger(Utbetalinger(it)) }
+    }.let {
+        val test = MeldeperiodeBeregninger.fraUtbetalinger(Utbetalinger(it))
+
+        test
+    }
 }

@@ -7,8 +7,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
-import no.nav.utsjekk.kontrakter.felles.Satstype
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
+import no.nav.utsjekk.kontrakter.felles.Satstype
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 
