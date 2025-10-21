@@ -9,6 +9,7 @@ data class UtbetalingstidslinjeMeldeperiodeDTO(
     val kjedeId: String,
     val periode: PeriodeDTO,
     val beløp: BeløpDTO,
+    // TODO - denne kan være utbetalingsstatusDTO
     val status: String?,
 )
 
