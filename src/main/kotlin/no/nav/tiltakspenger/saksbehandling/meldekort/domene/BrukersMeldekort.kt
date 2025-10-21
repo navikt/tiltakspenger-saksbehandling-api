@@ -40,7 +40,23 @@ data class BrukersMeldekort(
     data class BrukersMeldekortDag(
         val status: InnmeldtStatus,
         val dato: LocalDate,
-    )
+    ) {
+
+        fun harRegistrert(): Boolean = when (status) {
+            InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
+            InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET,
+            InnmeldtStatus.FRAVÆR_SYK,
+            InnmeldtStatus.FRAVÆR_SYKT_BARN,
+            InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV,
+            InnmeldtStatus.FRAVÆR_ANNET,
+            InnmeldtStatus.IKKE_TILTAKSDAG,
+            -> true
+
+            InnmeldtStatus.IKKE_BESVART,
+            InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER,
+            -> false
+        }
+    }
 
     init {
         dager.zipWithNext().forEach { (dag, nesteDag) ->
@@ -105,20 +121,5 @@ enum class InnmeldtStatus {
 }
 
 fun List<BrukersMeldekortDag>.antallDagerRegistrert(): Int {
-    return this.count {
-        when (it.status) {
-            InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
-            InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET,
-            InnmeldtStatus.FRAVÆR_SYK,
-            InnmeldtStatus.FRAVÆR_SYKT_BARN,
-            InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV,
-            InnmeldtStatus.FRAVÆR_ANNET,
-            InnmeldtStatus.IKKE_TILTAKSDAG,
-            -> true
-
-            InnmeldtStatus.IKKE_BESVART,
-            InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER,
-            -> false
-        }
-    }
+    return this.count { it.harRegistrert() }
 }

@@ -44,7 +44,6 @@ interface MeldekortVedtakMother : MotherOfAllMothers {
         opprettet: LocalDateTime = nå(clock),
         status: Utbetalingsstatus? = null,
         statusMetadata: Forsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
-        kanUtbetaleHelgPåFredag: Boolean = false,
     ): MeldekortVedtak {
         return MeldekortVedtak(
             id = id,
@@ -70,7 +69,6 @@ interface MeldekortVedtakMother : MotherOfAllMothers {
                 saksbehandler = meldekortBehandling.saksbehandler,
                 beslutter = meldekortBehandling.beslutter!!,
                 statusMetadata = statusMetadata,
-                kanUtbetaleHelgPåFredag = kanUtbetaleHelgPåFredag,
             ),
         )
     }

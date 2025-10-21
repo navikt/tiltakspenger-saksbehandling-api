@@ -148,7 +148,6 @@ interface RammevedtakMother : MotherOfAllMothers {
         vedtakId: VedtakId,
         opprettet: LocalDateTime,
         forrigeUtbetalingId: UtbetalingId? = null,
-        kanSendeInnHelgForMeldekort: Boolean = false,
     ): VedtattUtbetaling? {
         return this.utbetaling?.let {
             VedtattUtbetaling(
@@ -167,7 +166,6 @@ interface RammevedtakMother : MotherOfAllMothers {
                 status = null,
                 statusMetadata = Forsøkshistorikk.opprett(clock = clock),
                 satstype = Satstype.DAGLIG,
-                kanUtbetaleHelgPåFredag = kanSendeInnHelgForMeldekort,
             )
         }
     }

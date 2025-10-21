@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -23,7 +24,11 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
             val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
             val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
 
-            val meldeperiode = ObjectMother.meldeperiode()
+            val sakRepo = this.sakContext.sakRepo
+            val (sak) = nySakMedVedtak()
+            sakRepo.opprettSak(sak)
+
+            val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
             val meldekortId = MeldekortId.random()
 
             meldeperiodeRepo.lagre(meldeperiode)
@@ -57,7 +62,11 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
             val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
             val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
 
-            val meldeperiode = ObjectMother.meldeperiode()
+            val sakRepo = this.sakContext.sakRepo
+            val (sak) = nySakMedVedtak()
+            sakRepo.opprettSak(sak)
+
+            val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
             val meldekortId = MeldekortId.random()
 
             meldeperiodeRepo.lagre(meldeperiode)
@@ -111,7 +120,11 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
             val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
             val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
 
-            val meldeperiode = ObjectMother.meldeperiode()
+            val sakRepo = this.sakContext.sakRepo
+            val (sak) = nySakMedVedtak()
+            sakRepo.opprettSak(sak)
+
+            val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
             val meldekortId = MeldekortId.random()
             val korrigertMeldekortId = MeldekortId.random()
 
@@ -154,6 +167,84 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
             førsteMeldekort!!.behandlesAutomatisk shouldBe true
             korrigertMeldekort!!.behandlesAutomatisk shouldBe false
+        }
+    }
+
+    @Test
+    fun `Skal flagge meldekort for automatisk behandling ved melding på helgedager dersom saken tillater det`() {
+        with(TestApplicationContext()) {
+            val service = this.mottaBrukerutfyltMeldekortService
+            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+
+            val sakRepo = this.sakContext.sakRepo
+            val (sak) = nySakMedVedtak(kanSendeInnHelgForMeldekort = true)
+            sakRepo.opprettSak(sak)
+
+            val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id, girRettIHelg = true)
+            val meldekortId = MeldekortId.random()
+
+            meldeperiodeRepo.lagre(meldeperiode)
+
+            val lagreKommando = LagreBrukersMeldekortKommando(
+                id = meldekortId,
+                meldeperiodeId = meldeperiode.id,
+                sakId = meldeperiode.sakId,
+                mottatt = LocalDateTime.now(),
+                journalpostId = JournalpostId("asdf"),
+                dager = meldeperiode.girRett.entries.mapIndexed { index, entry ->
+                    BrukersMeldekort.BrukersMeldekortDag(
+                        status = if (index < 7) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
+                        dato = entry.key,
+                    )
+                },
+            )
+
+            service.mottaBrukerutfyltMeldekort(lagreKommando)
+
+            val meldekort = meldekortRepo.hentForMeldekortId(meldekortId)
+
+            meldekort.shouldNotBeNull()
+            meldekort.behandlesAutomatisk shouldBe true
+        }
+    }
+
+    @Test
+    fun `Skal ikke flagge meldekort for automatisk behandling ved melding på helgedager uten flagg på saken`() {
+        with(TestApplicationContext()) {
+            val service = this.mottaBrukerutfyltMeldekortService
+            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+
+            val sakRepo = this.sakContext.sakRepo
+            val (sak) = nySakMedVedtak(kanSendeInnHelgForMeldekort = false)
+            sakRepo.opprettSak(sak)
+
+            val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id, girRettIHelg = true)
+            val meldekortId = MeldekortId.random()
+
+            meldeperiodeRepo.lagre(meldeperiode)
+
+            val lagreKommando = LagreBrukersMeldekortKommando(
+                id = meldekortId,
+                meldeperiodeId = meldeperiode.id,
+                sakId = meldeperiode.sakId,
+                mottatt = LocalDateTime.now(),
+                journalpostId = JournalpostId("asdf"),
+                dager = meldeperiode.girRett.entries.mapIndexed { index, entry ->
+                    BrukersMeldekort.BrukersMeldekortDag(
+                        status = if (index < 7) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
+                        dato = entry.key,
+                    )
+                },
+            )
+
+            service.mottaBrukerutfyltMeldekort(lagreKommando)
+
+            val meldekort = meldekortRepo.hentForMeldekortId(meldekortId)
+
+            meldekort.shouldNotBeNull()
+            meldekort.behandlesAutomatisk shouldBe false
         }
     }
 }

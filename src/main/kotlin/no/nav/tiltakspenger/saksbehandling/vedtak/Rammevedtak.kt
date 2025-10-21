@@ -110,7 +110,6 @@ fun Sak.opprettVedtak(
             forrigeUtbetalingId = this.utbetalinger.lastOrNull()?.id,
             statusMetadata = Forsøkshistorikk.opprett(clock = clock),
             satstype = Satstype.DAGLIG,
-            kanUtbetaleHelgPåFredag = this.kanSendeInnHelgForMeldekort,
             sendtTilUtbetaling = null,
             status = null,
         )

@@ -116,7 +116,14 @@ interface SakMother {
             AntallDagerForMeldeperiode((DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
             virkningsperiode,
         ),
-        sak: Sak = ObjectMother.nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
+        kanSendeInnHelgForMeldekort: Boolean = false,
+        sak: Sak = ObjectMother.nySak(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            søknader = listOf(søknad),
+            kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
+        ),
         correlationId: CorrelationId = CorrelationId.generate(),
     ): Pair<Sak, Søknadsbehandling> {
         val søknadsbehandling =
@@ -172,7 +179,7 @@ interface SakMother {
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = listOf(søknad),
-            kanSendeInnHelgForMeldekort = false,
+            kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         ) to søknadsbehandling
     }
 
@@ -209,9 +216,16 @@ interface SakMother {
                 iDag.atStartOfDay(),
             ),
         ),
+        kanSendeInnHelgForMeldekort: Boolean = false,
         clock: Clock = fixedClock,
         correlationId: CorrelationId = CorrelationId.generate(),
-        sak: Sak = nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
+        sak: Sak = nySak(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            søknader = listOf(søknad),
+            kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
+        ),
     ): Pair<Sak, Søknadsbehandling> {
         val søknadsbehandling =
             runBlocking {
@@ -235,7 +249,7 @@ interface SakMother {
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = listOf(søknad),
-            kanSendeInnHelgForMeldekort = false,
+            kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         ) to søknadsbehandling
     }
 
@@ -247,6 +261,7 @@ interface SakMother {
         virkningsperiode: Periode = virkningsperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
+        kanSendeInnHelgForMeldekort: Boolean = false,
         clock: Clock = fixedClock,
     ): Triple<Sak, Vedtak, Rammebehandling> {
         val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(
@@ -255,6 +270,7 @@ interface SakMother {
             saksnummer = saksnummer,
             virkningsperiode = virkningsperiode,
             saksbehandler = saksbehandler,
+            kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         )
 
         val iverksattBehandling: Rammebehandling = søknadsbehandling.oppdater(
@@ -300,6 +316,7 @@ interface SakMother {
         saksbehandler: Saksbehandler = saksbehandler(),
         virkningsperiode: Periode = virkningsperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
+        kanSendeInnHelgForMeldekort: Boolean = false,
         clock: Clock = fixedClock,
     ): Triple<Sak, Rammevedtak, Rammebehandling> {
         val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(
@@ -308,6 +325,7 @@ interface SakMother {
             saksnummer = saksnummer,
             virkningsperiode = virkningsperiode,
             saksbehandler = saksbehandler,
+            kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         )
 
         val iverksattBehandling = søknadsbehandling.oppdater(

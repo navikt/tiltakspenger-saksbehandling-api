@@ -199,7 +199,6 @@ class UtbetalingHttpKlient(
                 brukersNavkontor = brukersNavkontor,
                 forrigeUtbetalingJson = forrigeUtbetalingJson,
                 forrigeUtbetalingId = forrigeUtbetalingId,
-                kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
             )
             Either.catch {
                 val token = getToken().token

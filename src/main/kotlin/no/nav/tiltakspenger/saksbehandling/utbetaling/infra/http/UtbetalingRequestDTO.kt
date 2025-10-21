@@ -40,7 +40,6 @@ fun VedtattUtbetaling.toUtbetalingRequestDTO(
             beslutterId = beslutter,
             utbetalinger = beregning.tilUtbetalingerDTO(
                 brukersNavkontor = brukerNavkontor,
-                kanUtbetaleHelgPåFredag = kanUtbetaleHelgPåFredag,
                 forrigeUtbetalingJson = forrigeUtbetalingJson,
             ),
         ),
@@ -53,12 +52,9 @@ fun VedtattUtbetaling.toUtbetalingRequestDTO(
  */
 fun Beregning.tilUtbetalingerDTO(
     brukersNavkontor: Navkontor,
-    kanUtbetaleHelgPåFredag: Boolean,
     forrigeUtbetalingJson: String?,
 ): List<UtbetalingV2Dto> {
-    val meldeperioderTilOppdrag = this.beregninger.map {
-        MeldeperiodeTilOppdrag(it, kanUtbetaleHelgPåFredag)
-    }
+    val meldeperioderTilOppdrag = this.beregninger.map { MeldeperiodeTilOppdrag(it) }
 
     val utbetalingerStønad = meldeperioderTilOppdrag.toUtbetalingDto(brukersNavkontor, barnetillegg = false)
     val utbetalingerBarnetillegg = meldeperioderTilOppdrag.toUtbetalingDto(brukersNavkontor, barnetillegg = true)
@@ -230,7 +226,6 @@ private fun TiltakstypeSomGirRett.mapStønadstype(): StønadTypeTiltakspenger =
 
 private data class MeldeperiodeTilOppdrag(
     private val meldeperiodeBeregning: MeldeperiodeBeregning,
-    private val kanUtbetaleHelgPåFredag: Boolean,
 ) {
     val kjedeId = meldeperiodeBeregning.kjedeId
 
@@ -242,11 +237,7 @@ private data class MeldeperiodeTilOppdrag(
             tiltakstype = it.tiltakstype,
         )
     }.let {
-        if (kanUtbetaleHelgPåFredag) {
-            it.chunked(7).flatMap { uke -> tilUkeMedUtbetaltHelgPåFredag(uke) }
-        } else {
-            it
-        }
+        it.chunked(7).flatMap { uke -> tilUkeMedUtbetaltHelgPåFredag(uke) }
     }
 
     private fun tilUkeMedUtbetaltHelgPåFredag(uke: List<BeregnetDag>): List<BeregnetDag> {
