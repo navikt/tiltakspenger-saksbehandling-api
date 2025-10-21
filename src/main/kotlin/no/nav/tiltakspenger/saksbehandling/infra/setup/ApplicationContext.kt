@@ -354,6 +354,7 @@ open class ApplicationContext(
         MottaBrukerutfyltMeldekortService(
             brukersMeldekortRepo = meldekortContext.brukersMeldekortRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
+            sakService = sakContext.sakService,
         )
     }
 

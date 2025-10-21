@@ -690,7 +690,6 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
     val meldekortVedtak =
         behandletMeldekort.opprettVedtak(
             sak.utbetalinger.lastOrNull(),
-            sak.kanSendeInnHelgForMeldekort,
             clock,
         )
     meldekortRepo.lagre(behandletMeldekort, null)

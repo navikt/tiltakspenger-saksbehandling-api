@@ -61,7 +61,6 @@ interface UtbetalingMother : MotherOfAllMothers {
         status: Utbetalingsstatus? = null,
         statusMetadata: Forsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
         satstype: Satstype = Satstype.DAGLIG,
-        kanUtbetaleHelgPåFredag: Boolean = false,
     ): VedtattUtbetaling {
         return VedtattUtbetaling(
             id = id,
@@ -79,7 +78,6 @@ interface UtbetalingMother : MotherOfAllMothers {
             satstype = satstype,
             sendtTilUtbetaling = sendtTilUtbetaling,
             status = status,
-            kanUtbetaleHelgPåFredag = kanUtbetaleHelgPåFredag,
         )
     }
 

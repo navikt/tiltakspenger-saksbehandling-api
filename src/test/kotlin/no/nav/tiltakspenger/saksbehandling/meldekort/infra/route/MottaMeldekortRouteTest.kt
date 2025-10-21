@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.frameldekortapi.mottaMeldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -69,7 +70,11 @@ internal class MottaMeldekortRouteTest {
         val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
         val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
 
-        val meldeperiode = ObjectMother.meldeperiode()
+        val sakRepo = tac.sakContext.sakRepo
+        val (sak) = nySakMedVedtak()
+        sakRepo.opprettSak(sak)
+
+        val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
         meldeperiodeRepo.lagre(meldeperiode)
 
         val dto = utfyltMeldekortDTO(meldeperiode)
@@ -103,7 +108,11 @@ internal class MottaMeldekortRouteTest {
         val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
         val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
 
-        val meldeperiode = ObjectMother.meldeperiode()
+        val sakRepo = tac.sakContext.sakRepo
+        val (sak) = nySakMedVedtak()
+        sakRepo.opprettSak(sak)
+
+        val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
         meldeperiodeRepo.lagre(meldeperiode)
 
         val dto = utfyltMeldekortDTO(meldeperiode)
@@ -147,7 +156,11 @@ internal class MottaMeldekortRouteTest {
         val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
         val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
 
-        val meldeperiode = ObjectMother.meldeperiode()
+        val sakRepo = tac.sakContext.sakRepo
+        val (sak) = nySakMedVedtak()
+        sakRepo.opprettSak(sak)
+
+        val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
         meldeperiodeRepo.lagre(meldeperiode)
 
         val dto = utfyltMeldekortDTO(meldeperiode)

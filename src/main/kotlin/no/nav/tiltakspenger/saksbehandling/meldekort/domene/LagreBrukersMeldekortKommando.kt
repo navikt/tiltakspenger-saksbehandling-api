@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
+import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import java.time.LocalDateTime
@@ -51,5 +52,9 @@ data class LagreBrukersMeldekortKommando(
             this.sakId == brukersMeldekort.sakId &&
             this.dager == brukersMeldekort.dager &&
             this.journalpostId == brukersMeldekort.journalpostId
+    }
+
+    fun harRegistrertHelg(): Boolean {
+        return dager.any { it.dato.erHelg() && it.harRegistrert() }
     }
 }

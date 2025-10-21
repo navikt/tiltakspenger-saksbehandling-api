@@ -270,7 +270,6 @@ interface MeldekortMother : MotherOfAllMothers {
         )
         val vedtak = meldekortBehandling.opprettVedtak(
             forrigeUtbetaling = utbetalinger.lastOrNull(),
-            kanUtbetaleHelgPåFredag = kanSendeInnHelgForMeldekort,
             clock = clock,
         )
 
@@ -694,6 +693,7 @@ interface MeldekortMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         opprettet: LocalDateTime = nå(clock),
         antallDagerForPeriode: Int = 10,
+        girRettIHelg: Boolean = false,
         girRett: Map<LocalDate, Boolean> = buildMap {
             val perUke = ceil(antallDagerForPeriode / 2.0).toInt()
             val helg = 7 - perUke
@@ -701,13 +701,13 @@ interface MeldekortMother : MotherOfAllMothers {
                 put(periode.fraOgMed.plusDays(day.toLong()), true)
             }
             (perUke until 7).forEach { day ->
-                put(periode.fraOgMed.plusDays(day.toLong()), false)
+                put(periode.fraOgMed.plusDays(day.toLong()), girRettIHelg)
             }
             (7 until 14).forEach { day ->
                 put(periode.fraOgMed.plusDays(day.toLong()), true)
             }
             ((14 - helg) until 14).forEach { day ->
-                put(periode.fraOgMed.plusDays(day.toLong()), false)
+                put(periode.fraOgMed.plusDays(day.toLong()), girRettIHelg)
             }
         },
         rammevedtak: IkkeTomPeriodisering<VedtakId> = SammenhengendePeriodisering(VedtakId.random(), periode),

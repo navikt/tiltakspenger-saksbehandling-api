@@ -5,18 +5,22 @@ import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 class MottaBrukerutfyltMeldekortService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val meldeperiodeRepo: MeldeperiodeRepo,
+    private val sakService: SakService,
 ) {
     val logger = KotlinLogging.logger { }
 
     fun mottaBrukerutfyltMeldekort(kommando: LagreBrukersMeldekortKommando): Either<KanIkkeLagreBrukersMeldekort, Unit> {
+        val sakId = kommando.sakId
         val meldekortId = kommando.id
         val meldeperiodeId = kommando.meldeperiodeId
 
@@ -26,9 +30,11 @@ class MottaBrukerutfyltMeldekortService(
             "Fant ikke meldeperioden $meldeperiodeId for meldekortet $meldekortId"
         }
 
+        val sak = sakService.hentForSakId(sakId)
+
         val nyttMeldekort = kommando.tilBrukersMeldekort(
             meldeperiode,
-            kanBehandlesAutomatisk(kommando, meldeperiode),
+            sak.kanBehandlesAutomatisk(kommando, meldeperiode),
         )
 
         Either.catch {
@@ -60,7 +66,7 @@ class MottaBrukerutfyltMeldekortService(
         return Unit.right()
     }
 
-    private fun kanBehandlesAutomatisk(
+    private fun Sak.kanBehandlesAutomatisk(
         kommando: LagreBrukersMeldekortKommando,
         meldeperiode: Meldeperiode,
     ): Boolean {
@@ -69,6 +75,11 @@ class MottaBrukerutfyltMeldekortService(
 
         if (antallDagerMedRegistrering > maksDagerMedRegistrering) {
             logger.error { "Brukers meldekort ${kommando.id} har for mange dager registrert ($antallDagerMedRegistrering) - maks $maksDagerMedRegistrering" }
+            return false
+        }
+
+        if (kommando.harRegistrertHelg() && !this.kanSendeInnHelgForMeldekort) {
+            logger.error { "Brukers meldekort ${kommando.id} har registret helgedager, men saken tillater ikke helg på meldekort" }
             return false
         }
 
