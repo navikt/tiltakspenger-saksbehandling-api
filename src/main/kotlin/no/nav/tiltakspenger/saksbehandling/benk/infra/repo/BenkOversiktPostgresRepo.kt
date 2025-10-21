@@ -67,7 +67,7 @@ class BenkOversiktPostgresRepo(
                                  where b.avbrutt is null
                                    and b.behandlingstype = 'SØKNADSBEHANDLING'
                                    and b.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
-                                                    'UNDER_BESLUTNING')),
+                                                    'UNDER_BESLUTNING', 'UNDER_AUTOMATISK_BEHANDLING')),
      åpneRevurderinger AS (select sa.id           as sakId,
                                   sa.fnr          as fnr,
                                   sa.saksnummer   as saksnummer,
@@ -190,6 +190,7 @@ and (
                         },
                         "status" to if (command.åpneBehandlingerFiltrering.status == null) {
                             arrayOf(
+                                "UNDER_AUTOMATISK_BEHANDLING",
                                 "KLAR_TIL_BEHANDLING",
                                 "UNDER_BEHANDLING",
                                 "KLAR_TIL_BESLUTNING",
