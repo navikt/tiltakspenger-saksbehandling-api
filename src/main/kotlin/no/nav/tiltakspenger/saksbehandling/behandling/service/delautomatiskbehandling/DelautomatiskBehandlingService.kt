@@ -79,13 +79,10 @@ class DelautomatiskBehandlingService(
     private fun skalSettePaVent(behandling: Søknadsbehandling, correlationId: CorrelationId): Boolean {
         val soknadstiltakFraSaksopplysning = getSoknadstiltakFraSaksopplysning(behandling) ?: return false
 
-        if (!soknadstiltakFraSaksopplysning.deltakelseStatus.harIkkeStartet()) {
+        if (!soknadstiltakFraSaksopplysning.deltakelseStatus.harIkkeStartet() || soknadstiltakFraSaksopplysning.deltagelseFraOgMed == null) {
             return false
         }
-        if (soknadstiltakFraSaksopplysning.deltagelseFraOgMed == null) {
-            log.info { "Deltakelse for behandling ${behandling.id} har status ${soknadstiltakFraSaksopplysning.deltakelseStatus} og mangler startdato, setter på vent. CorrelationId: $correlationId" }
-            return true
-        } else if (soknadstiltakFraSaksopplysning.deltagelseFraOgMed.isAfter(LocalDate.now())) {
+        if (soknadstiltakFraSaksopplysning.deltagelseFraOgMed.isAfter(LocalDate.now())) {
             log.info { "Startdato for deltakelse for behandling ${behandling.id} er ikke passert, setter på vent. CorrelationId: $correlationId" }
             return true
         }
@@ -94,9 +91,11 @@ class DelautomatiskBehandlingService(
 
     private fun settBehandlingPaVent(behandling: Søknadsbehandling, correlationId: CorrelationId) {
         val startdatoForTiltak = getSoknadstiltakFraSaksopplysning(behandling)?.deltagelseFraOgMed
+            ?: throw IllegalStateException("Skal ikke sette behandling med id ${behandling.id} på vent siden startdato mangler")
+        val venterTil = startdatoForTiltak.atTime(10, 0)
         if (behandling.ventestatus.erSattPåVent) {
             behandling.oppdaterVenterTil(
-                nyVenterTil = startdatoForTiltak?.atTime(10, 0) ?: nå(clock).plusDays(1),
+                nyVenterTil = venterTil,
                 clock = clock,
             ).let {
                 behandlingRepo.lagre(it)
@@ -107,7 +106,7 @@ class DelautomatiskBehandlingService(
                 endretAv = AUTOMATISK_SAKSBEHANDLER,
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                 clock = clock,
-                venterTil = startdatoForTiltak?.atTime(10, 0) ?: nå(clock).plusDays(1),
+                venterTil = venterTil,
             ).let {
                 behandlingRepo.lagre(it)
             }
