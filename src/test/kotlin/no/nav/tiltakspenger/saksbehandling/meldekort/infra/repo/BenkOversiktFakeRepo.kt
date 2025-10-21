@@ -40,6 +40,7 @@ class BenkOversiktFakeRepo(
     }
 
     private fun BehandlingssammendragStatus.toBehandlingsstatus(): Rammebehandlingsstatus = when (this) {
+        BehandlingssammendragStatus.UNDER_AUTOMATISK_BEHANDLING -> Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
         BehandlingssammendragStatus.KLAR_TIL_BEHANDLING -> Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
         BehandlingssammendragStatus.UNDER_BEHANDLING -> Rammebehandlingsstatus.UNDER_BEHANDLING
         BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -56,7 +57,7 @@ class BenkOversiktFakeRepo(
         Rammebehandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
         Rammebehandlingsstatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatus.KLAR_TIL_BESLUTNING
         Rammebehandlingsstatus.UNDER_BESLUTNING -> BehandlingssammendragStatus.UNDER_BESLUTNING
-        Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> throw IllegalStateException("Behandlinger som behandles automatisk skal ikke være åpne")
+        Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> BehandlingssammendragStatus.UNDER_AUTOMATISK_BEHANDLING
         Rammebehandlingsstatus.VEDTATT -> throw IllegalStateException("Vedtatte behandlinger skal ikke være åpne")
         Rammebehandlingsstatus.AVBRUTT -> throw IllegalStateException("Avbrutte behandlinger skal ikke være åpne")
     }
@@ -151,6 +152,7 @@ class BenkOversiktFakeRepo(
     }
 
     private fun BehandlingssammendragStatus.toMeldekortBehandlingStatus(): MeldekortBehandlingStatus = when (this) {
+        BehandlingssammendragStatus.UNDER_AUTOMATISK_BEHANDLING -> throw IllegalStateException("UNDER_AUTOMATISK_BEHANDLING er ikke en tillatt status for meldekortbehandling")
         BehandlingssammendragStatus.KLAR_TIL_BEHANDLING -> MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING
         BehandlingssammendragStatus.UNDER_BEHANDLING -> MeldekortBehandlingStatus.UNDER_BEHANDLING
         BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
