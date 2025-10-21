@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -53,6 +54,8 @@ data class Rammevedtak(
     override val saksnummer: Saksnummer = behandling.saksnummer
     override val saksbehandler: String = behandling.saksbehandler!!
     override val beslutter: String = behandling.beslutter!!
+
+    override val beregning: Beregning? = behandling.utbetaling?.beregning
 
     /** Vil være null dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }

@@ -59,7 +59,7 @@ data class Sak(
     val meldekortbehandlinger: Meldekortbehandlinger = behandlinger.meldekortbehandlinger
 
     val meldeperiodeBeregninger: MeldeperiodeBeregninger by lazy {
-        utbetalinger.meldeperiodeBeregninger
+        vedtaksliste.meldeperiodeBeregninger
     }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */

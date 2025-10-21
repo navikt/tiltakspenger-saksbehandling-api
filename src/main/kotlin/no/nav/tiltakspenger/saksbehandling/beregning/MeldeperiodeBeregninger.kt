@@ -8,7 +8,7 @@ import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.LocalDateTime
 
 /** Abn: kanskje [MeldeperiodeBeregning] burde holde på iverksatt tidspunkt selv */
@@ -81,10 +81,10 @@ data class MeldeperiodeBeregninger private constructor(
 
     companion object {
 
-        fun fraUtbetalinger(utbetalinger: Utbetalinger): MeldeperiodeBeregninger {
+        fun fraVedtaksliste(vedtaksliste: Vedtaksliste): MeldeperiodeBeregninger {
             return MeldeperiodeBeregninger(
-                utbetalinger.verdi.flatMap { utbetaling ->
-                    utbetaling.beregning.map { it to utbetaling.opprettet }
+                vedtaksliste.flatMap { vedtak ->
+                    vedtak.beregning?.beregninger?.map { it to vedtak.opprettet } ?: emptyList()
                 },
             )
         }

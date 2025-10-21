@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
@@ -16,7 +17,6 @@ import java.time.LocalDate
 data class Vedtaksliste(
     val rammevedtaksliste: Rammevedtaksliste,
     val meldekortVedtaksliste: MeldekortVedtaksliste,
-
 ) : List<Vedtak> by slåSammenVedtakslistene(rammevedtaksliste, meldekortVedtaksliste) {
 
     val avslagsvedtak: List<Rammevedtak> by lazy {
@@ -24,6 +24,10 @@ data class Vedtaksliste(
     }
     val avslåtteBehandlinger: List<Søknadsbehandling> by lazy {
         avslagsvedtak.map { it.behandling as Søknadsbehandling }
+    }
+
+    val meldeperiodeBeregninger: MeldeperiodeBeregninger by lazy {
+        MeldeperiodeBeregninger.fraVedtaksliste(this)
     }
 
     fun hentAvslåtteBehandlingerForSøknadId(søknadId: SøknadId): List<Søknadsbehandling> {

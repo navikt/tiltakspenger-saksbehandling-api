@@ -60,6 +60,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
@@ -72,8 +74,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -946,15 +948,20 @@ fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): Dager {
 }
 
 fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): MeldeperiodeBeregninger {
-    return this.sortedBy { it.iverksattTidspunkt }.fold(emptyList<VedtattUtbetaling>()) { acc, mkb ->
+    return this.sortedBy { it.iverksattTidspunkt }.fold(emptyList<MeldekortVedtak>()) { acc, mkb ->
         if (mkb !is MeldekortBehandling.Behandlet) {
             return@fold acc
         }
 
-        acc.plus(mkb.opprettVedtak(acc.lastOrNull(), clock).utbetaling)
+        acc.plus(mkb.opprettVedtak(acc.lastOrNull()?.utbetaling, clock))
     }.let {
-        val test = MeldeperiodeBeregninger.fraUtbetalinger(Utbetalinger(it))
-
-        test
+        MeldeperiodeBeregninger.fraVedtaksliste(
+            Vedtaksliste(
+                Rammevedtaksliste(emptyList()),
+                MeldekortVedtaksliste(
+                    it,
+                ),
+            ),
+        )
     }
 }
