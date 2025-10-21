@@ -2,10 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.Nel
 import arrow.core.NonEmptyList
+import arrow.core.getOrElse
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning.SimulertBeregningMeldeperiode.SimulertBeregningDag
@@ -126,13 +128,28 @@ data class SimulertBeregning(
         ): SimulertBeregning {
             val perMeldeperiode: Nel<SimulertBeregningMeldeperiode> =
                 beregning.beregninger.map { meldeperiodeBeregning ->
-                    val forrigeBeregning = eksisterendeBeregninger.hentForrigeBeregning(
+                    val kjedeId = meldeperiodeBeregning.kjedeId
+
+                    val forrigeBeregning: MeldeperiodeBeregning? = eksisterendeBeregninger.hentForrigeBeregning(
                         meldeperiodeBeregning.id,
-                        meldeperiodeBeregning.kjedeId,
-                    ).getOrNull()
+                        kjedeId,
+                    ).getOrElse {
+                        when (it) {
+                            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenBeregningerForKjede,
+                            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenTidligereBeregninger,
+                            -> null
+
+                            /**
+                             *  Dersom beregningen vi prøvde å finne forrige beregning til ikke finnes (men det finnes andre beregninger på kjeden),
+                             *  betyr det at denne beregningen ikke er iverksatt ennå, og forrige beregning er den gjeldende/sist iverksatte beregningen
+                             * */
+                            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.BeregningFinnesIkke,
+                            -> eksisterendeBeregninger.gjeldendeBeregningPerKjede[kjedeId]
+                        }
+                    }
 
                     SimulertBeregningMeldeperiode(
-                        kjedeId = meldeperiodeBeregning.kjedeId,
+                        kjedeId = kjedeId,
                         dager = meldeperiodeBeregning.dager.map { dag ->
                             SimulertBeregningDag(
                                 dato = dag.dato,

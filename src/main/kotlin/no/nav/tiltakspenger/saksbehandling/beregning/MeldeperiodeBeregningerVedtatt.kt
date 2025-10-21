@@ -31,14 +31,20 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
             .mapValues { it.value.toNonEmptyListOrThrow() }
     }
 
-    val sisteBeregningPerKjede: Map<MeldeperiodeKjedeId, MeldeperiodeBeregning> by lazy {
+    val gjeldendeBeregningPerKjede: Map<MeldeperiodeKjedeId, MeldeperiodeBeregning> by lazy {
         beregningerPerKjede.entries.associate { it.key to it.value.last() }
     }
 
     val gjeldendeBeregninger: List<MeldeperiodeBeregning> by lazy {
-        sisteBeregningPerKjede.values.toList()
+        gjeldendeBeregningPerKjede.values.toList()
     }
 
+    /**
+     *  Henter siste beregning før [beregningId] på [kjedeId]
+     *
+     *  @return [ForrigeBeregningFinnesIkke.IngenTidligereBeregninger] dersom beregningen til [beregningId] er første beregning på kjeden.
+     *  [ForrigeBeregningFinnesIkke.BeregningFinnesIkke] dersom beregningen til [beregningId] ikke finnes på kjeden
+     * */
     fun hentForrigeBeregning(
         beregningId: BeregningId,
         kjedeId: MeldeperiodeKjedeId,
@@ -61,7 +67,7 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
     }
 
     fun sisteBeregningerForPeriode(periode: Periode): List<MeldeperiodeBeregning> {
-        return sisteBeregningPerKjede.values.filter { it.periode.overlapperMed(periode) }
+        return gjeldendeBeregningPerKjede.values.filter { it.periode.overlapperMed(periode) }
     }
 
     init {

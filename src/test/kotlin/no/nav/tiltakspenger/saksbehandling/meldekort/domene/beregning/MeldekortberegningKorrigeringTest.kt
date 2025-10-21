@@ -172,7 +172,7 @@ internal class MeldekortberegningKorrigeringTest {
 
             val beregninger = meldekortbehandlinger.tilMeldeperiodeBeregninger(clock)
 
-            beregninger.sisteBeregningPerKjede[sisteKjedeId]!!.totalBeløp shouldBe 0
+            beregninger.gjeldendeBeregningPerKjede[sisteKjedeId]!!.totalBeløp shouldBe 0
         }
     }
 

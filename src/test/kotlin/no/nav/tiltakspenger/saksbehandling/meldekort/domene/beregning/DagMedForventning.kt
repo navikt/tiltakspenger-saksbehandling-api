@@ -25,7 +25,7 @@ suspend fun NonEmptyList<NonEmptyList<DagMedForventning>>.assertForventning(vurd
         meldeperioder = this.map { outer -> outer.map { OppdaterMeldekortKommando.Dager.Dag(it.dag, it.status) } },
     )
 
-    meldekortBehandlinger.tilMeldeperiodeBeregninger(clock).sisteBeregningPerKjede.values
+    meldekortBehandlinger.tilMeldeperiodeBeregninger(clock).gjeldendeBeregningPerKjede.values
         .flatMap { it.dager }
         .forEachIndexed { index, it ->
             (it.dato to it.reduksjon) shouldBe (this.flatten()[index].dag to flatten()[index].forventning)

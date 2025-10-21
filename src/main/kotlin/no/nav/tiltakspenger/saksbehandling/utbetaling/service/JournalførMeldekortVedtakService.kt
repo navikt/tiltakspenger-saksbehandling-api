@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
@@ -43,7 +44,18 @@ class JournalførMeldekortVedtakService(
                         val beregningFør = sak.meldeperiodeBeregninger.hentForrigeBeregning(
                             beregningEtter.id,
                             beregningEtter.kjedeId,
-                        ).getOrNull()
+                        ).getOrElse {
+                            when (it) {
+                                MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenTidligereBeregninger -> null
+                                MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenBeregningerForKjede,
+                                MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.BeregningFinnesIkke,
+                                -> {
+                                    // TODO abn: kanskje vi burde kaste exception her?
+                                    log.error { "Fant ikke beregningen ${beregningEtter.id} på kjede ${beregningEtter.kjedeId} - Dette er sannsynligvis en feil!" }
+                                    null
+                                }
+                            }
+                        }
                         sammenlign(beregningFør, beregningEtter)
                     }
                     // Et meldeperiode har ikke informasjon om tiltaksdeltagelsen, så vi må hente det fra rammevedtakene som gjelder for dette meldekortvedtaket.
