@@ -85,7 +85,7 @@ internal fun start(
             { applicationContext.delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk() },
             { applicationContext.utbetalingContext.sendUtbetalingerService.send() },
             { applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus() },
-            { applicationContext.utbetalingContext.journalførMeldekortVedtakService.journalfør() },
+            { applicationContext.utbetalingContext.journalførMeldekortvedtakService.journalfør() },
             { applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør() },
             { applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer() },
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },

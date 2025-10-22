@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.utbetaling
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
@@ -20,9 +20,9 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-interface MeldekortVedtakMother : MotherOfAllMothers {
+interface MeldekortvedtakMother : MotherOfAllMothers {
 
-    fun meldekortVedtak(
+    fun meldekortvedtak(
         id: VedtakId = VedtakId.random(),
         utbetalingId: UtbetalingId = UtbetalingId.random(),
         sakId: SakId = SakId.random(),
@@ -44,8 +44,8 @@ interface MeldekortVedtakMother : MotherOfAllMothers {
         opprettet: LocalDateTime = nå(clock),
         status: Utbetalingsstatus? = null,
         statusMetadata: Forsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
-    ): MeldekortVedtak {
-        return MeldekortVedtak(
+    ): Meldekortvedtak {
+        return Meldekortvedtak(
             id = id,
             opprettet = opprettet,
             sakId = sakId,

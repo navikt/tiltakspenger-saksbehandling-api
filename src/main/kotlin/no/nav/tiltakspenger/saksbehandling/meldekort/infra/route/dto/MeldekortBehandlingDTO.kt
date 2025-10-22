@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletMa
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimulertBeregningDTO
@@ -45,7 +45,7 @@ data class MeldekortBehandlingDTO(
 )
 
 fun MeldekortBehandling.tilMeldekortBehandlingDTO(
-    vedtak: MeldekortVedtak? = null,
+    vedtak: Meldekortvedtak? = null,
     beregninger: MeldeperiodeBeregningerVedtatt,
 ): MeldekortBehandlingDTO {
     require(status != MeldekortBehandlingStatus.GODKJENT || vedtak != null) {

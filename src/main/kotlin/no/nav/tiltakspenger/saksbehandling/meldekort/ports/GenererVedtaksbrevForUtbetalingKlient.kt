@@ -6,11 +6,11 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 
 interface GenererVedtaksbrevForUtbetalingKlient {
-    suspend fun genererMeldekortVedtakBrev(
-        meldekortVedtak: MeldekortVedtak,
+    suspend fun genererMeldekortvedtakBrev(
+        meldekortvedtak: Meldekortvedtak,
         tiltaksdeltagelser: Tiltaksdeltagelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,

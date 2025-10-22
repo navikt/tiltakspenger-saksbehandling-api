@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
@@ -32,7 +32,7 @@ class AutomatiskMeldekortBehandlingService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakRepo: SakRepo,
-    private val meldekortVedtakRepo: MeldekortVedtakRepo,
+    private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val navkontorService: NavkontorService,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
@@ -132,7 +132,7 @@ class AutomatiskMeldekortBehandlingService(
         }
 
         Either.catch {
-            sak.leggTilMeldekortVedtak(meldekortvedtak)
+            sak.leggTilMeldekortvedtak(meldekortvedtak)
         }.onLeft {
             logger.error(it) { "Vedtak for automatisk behandling av brukers meldekort $meldekortId kunne ikke legges til sak ${sak.id}" }
             return BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK.left()
@@ -140,7 +140,7 @@ class AutomatiskMeldekortBehandlingService(
 
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortBehandling, simulering, tx)
-            meldekortVedtakRepo.lagre(meldekortvedtak, tx)
+            meldekortvedtakRepo.lagre(meldekortvedtak, tx)
             brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                 meldekortId = meldekortId,
                 status = BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET,

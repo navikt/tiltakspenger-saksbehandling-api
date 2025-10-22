@@ -13,16 +13,16 @@ import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import java.time.Clock
 
 /**
  * Har ansvar for å generere pdf og sende meldekortvedtak til journalføring.
  * Denne er kun ment og kalles fra en jobb.
  */
-class JournalførMeldekortVedtakService(
+class JournalførMeldekortvedtakService(
     private val journalførMeldekortKlient: JournalførMeldekortKlient,
-    private val meldekortVedtakRepo: MeldekortVedtakRepo,
+    private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
     private val navIdentClient: NavIdentClient,
     private val sakRepo: SakRepo,
@@ -32,14 +32,14 @@ class JournalførMeldekortVedtakService(
 
     suspend fun journalfør() {
         Either.catch {
-            meldekortVedtakRepo.hentDeSomSkalJournalføres().forEach { meldekortVedtak ->
+            meldekortvedtakRepo.hentDeSomSkalJournalføres().forEach { meldekortvedtak ->
                 val correlationId = CorrelationId.generate()
                 log.info {
-                    "Journalfører meldekortvedtak. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, meldekortvedtakId: ${meldekortVedtak.id}"
+                    "Journalfører meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}"
                 }
 
                 Either.catch {
-                    val sak = sakRepo.hentForSakId(meldekortVedtak.sakId)!!
+                    val sak = sakRepo.hentForSakId(meldekortvedtak.sakId)!!
                     val sammenligning = { beregningEtter: MeldeperiodeBeregning ->
                         val beregningFør = sak.meldeperiodeBeregninger.hentForrigeBeregning(
                             beregningEtter.id,
@@ -62,7 +62,7 @@ class JournalførMeldekortVedtakService(
                     // Det er mulig at flere rammevedtak gjelder for samme meldekortvedtak, f.eks. ved revurdering.
                     // Ved flere rammevedtak kan de inneholde de samme tiltaksdeltagelsene.
                     // Derfor må vi gruppere på eksternDeltagelseId og ta den nyeste.
-                    val tiltak: Tiltaksdeltagelser = meldekortVedtak.rammevedtak
+                    val tiltak: Tiltaksdeltagelser = meldekortvedtak.rammevedtak
                         .map { sak.hentRammevedtakForId(it) }
                         .mapNotNull { vedtak -> vedtak.valgteTiltaksdeltakelser?.let { vedtak.opprettet to it } }
                         .flatMap { (opprettet, deltakelser) -> deltakelser.verdier.map { opprettet to it } }
@@ -75,30 +75,30 @@ class JournalførMeldekortVedtakService(
                     }
 
                     val hentSaksbehandlersNavn: suspend (String) -> String =
-                        if (meldekortVedtak.automatiskBehandlet) {
+                        if (meldekortvedtak.automatiskBehandlet) {
                             { "Automatisk behandlet" }
                         } else {
                             navIdentClient::hentNavnForNavIdent
                         }
 
                     val pdfOgJson =
-                        genererVedtaksbrevForUtbetalingKlient.genererMeldekortVedtakBrev(
-                            meldekortVedtak,
+                        genererVedtaksbrevForUtbetalingKlient.genererMeldekortvedtakBrev(
+                            meldekortvedtak,
                             sammenligning = sammenligning,
                             hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                             tiltaksdeltagelser = tiltak,
                         ).getOrElse { return@forEach }
-                    log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, meldekortvedtakId: ${meldekortVedtak.id}" }
-                    val journalpostId = journalførMeldekortKlient.journalførMeldekortBehandling(
-                        meldekortBehandling = sak.hentMeldekortBehandling(meldekortVedtak.meldekortId)!!,
+                    log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
+                    val journalpostId = journalførMeldekortKlient.journalførMeldekortvedtak(
+                        meldekortvedtak = meldekortvedtak,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
                     )
-                    log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, meldekortvedtakId: ${meldekortVedtak.id}. JournalpostId: $journalpostId" }
-                    meldekortVedtakRepo.markerJournalført(meldekortVedtak.id, journalpostId, nå(clock))
-                    log.info { "Meldekortvedtak markert som journalført. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, meldekortvedtakId: ${meldekortVedtak.id}. JournalpostId: $journalpostId" }
+                    log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
+                    meldekortvedtakRepo.markerJournalført(meldekortvedtak.id, journalpostId, nå(clock))
+                    log.info { "Meldekortvedtak markert som journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
                 }.onLeft {
-                    log.error(it) { "Ukjent feil skjedde under generering av brev og journalføring av meldekortvedtak. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, meldekortvedtakId: ${meldekortVedtak.id}" }
+                    log.error(it) { "Ukjent feil skjedde under generering av brev og journalføring av meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
                 }
             }
         }.onLeft {

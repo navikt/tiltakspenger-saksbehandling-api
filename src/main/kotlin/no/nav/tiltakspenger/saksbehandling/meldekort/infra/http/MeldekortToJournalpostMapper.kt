@@ -6,17 +6,16 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JoarkRequest
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JoarkRequest.JournalpostDokument.DokumentVariant.ArkivPDF
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JoarkRequest.JournalpostDokument.DokumentVariant.OriginalJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 
 /** Denne ligger nærmere meldekort enn journalføring strukturmessig */
-// TODO jah: Denne bør basere seg på vedtaket, heller enn behandlingen.
-internal fun MeldekortBehandling.toJournalpostRequest(
+fun Meldekortvedtak.toJournalpostRequest(
     pdfOgJson: PdfOgJson,
 ): String {
-    val tittel = lagMeldekortTittel(this.periode, this.type)
+    val tittel = lagMeldekortTittel(this.periode, this.meldekortBehandling.type)
     return JoarkRequest(
         tittel = tittel,
         journalpostType = JoarkRequest.JournalPostType.NOTAT,

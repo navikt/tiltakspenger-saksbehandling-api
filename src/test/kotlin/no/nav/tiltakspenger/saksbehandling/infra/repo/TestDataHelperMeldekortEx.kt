@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletMa
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.oppdaterMeldekort
@@ -211,20 +211,20 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
             clock = clock,
         )
     },
-): Pair<Sak, MeldekortVedtak> {
+): Pair<Sak, Meldekortvedtak> {
     val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = genererSak(sak)
 
     val iverksattMeldekortBehandling =
         (meldekortbehandlingTilBeslutning.taMeldekortBehandling(beslutter) as MeldekortBehandletManuelt)
             .iverksettMeldekort(beslutter, clock).getOrFail()
 
-    val meldekortVedtak = iverksattMeldekortBehandling.opprettVedtak(
+    val meldekortvedtak = iverksattMeldekortBehandling.opprettVedtak(
         forrigeUtbetaling = sakMedMeldekortbehandlingTilBeslutning.utbetalinger.lastOrNull(),
         clock = clock,
     )
 
     meldekortRepo.oppdater(iverksattMeldekortBehandling)
-    meldekortVedtakRepo.lagre(meldekortVedtak)
+    meldekortvedtakRepo.lagre(meldekortvedtak)
 
-    return sakRepo.hentForSakId(sakMedMeldekortbehandlingTilBeslutning.id)!! to meldekortVedtak
+    return sakRepo.hentForSakId(sakMedMeldekortbehandlingTilBeslutning.id)!! to meldekortvedtak
 }

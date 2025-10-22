@@ -228,16 +228,16 @@ class UtbetalingPostgresRepo(
         private fun Row.tilUtbetaling(): VedtattUtbetaling {
             val id = UtbetalingId.fromString(string("id"))
 
-            val meldekortVedtakId = stringOrNull("meldekortvedtak_id")
+            val meldekortvedtakId = stringOrNull("meldekortvedtak_id")
             val rammevedtakId = stringOrNull("rammevedtak_id")
 
-            require((meldekortVedtakId != null).xor(rammevedtakId != null)) {
-                "VedtakId for meldekortvedtak ELLER rammevedtak må være satt - Utbetalingen $id hadde $meldekortVedtakId / $rammevedtakId"
+            require((meldekortvedtakId != null).xor(rammevedtakId != null)) {
+                "VedtakId for meldekortvedtak ELLER rammevedtak må være satt - Utbetalingen $id hadde $meldekortvedtakId / $rammevedtakId"
             }
 
             val beregningJson = string("beregning")
 
-            val vedtakIdOgBeregning: Pair<VedtakId, Beregning> = meldekortVedtakId?.let {
+            val vedtakIdOgBeregning: Pair<VedtakId, Beregning> = meldekortvedtakId?.let {
                 val vedtakId = VedtakId.fromString(it)
                 val meldekortId = MeldekortId.fromString(string("meldekort_id"))
                 vedtakId to Beregning(beregningJson.tilMeldeperiodeBeregningerFraMeldekort(meldekortId))

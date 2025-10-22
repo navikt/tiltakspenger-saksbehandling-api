@@ -31,14 +31,14 @@ internal class UtbetalingDTOTest {
         val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
-        val meldekortVedtak = ObjectMother.meldekortVedtak(
+        val meldekortvedtak = ObjectMother.meldekortvedtak(
             fnr = fnr,
             id = id,
             utbetalingId = utbetalingId,
             saksnummer = saksnummer,
             opprettet = opprettet,
         )
-        meldekortVedtak.utbetaling.toUtbetalingRequestDTO(null).shouldEqualJson(
+        meldekortvedtak.utbetaling.toUtbetalingRequestDTO(null).shouldEqualJson(
             """
             {
               "sakId": "202410011001",
@@ -92,7 +92,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val meldekortVedtak = ObjectMother.meldekortVedtak(
+        val meldekortvedtak = ObjectMother.meldekortvedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -104,12 +104,12 @@ internal class UtbetalingDTOTest {
                 antallBarn = AntallBarn(1),
             ),
         )
-        meldekortVedtak.utbetaling.beregning.dager.map { it.beregningsdag }.forEach {
+        meldekortvedtak.utbetaling.beregning.dager.map { it.beregningsdag }.forEach {
             withClue("Beregningsdag $it") {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 52
             }
         }
-        val actual = meldekortVedtak.utbetaling.toUtbetalingRequestDTO(null)
+        val actual = meldekortvedtak.utbetaling.toUtbetalingRequestDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -188,7 +188,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val meldekortVedtak = ObjectMother.meldekortVedtak(
+        val meldekortvedtak = ObjectMother.meldekortvedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -200,12 +200,12 @@ internal class UtbetalingDTOTest {
                 antallBarn = AntallBarn(2),
             ),
         )
-        meldekortVedtak.utbetaling.beregning.dager.map { it.beregningsdag }.forEach {
+        meldekortvedtak.utbetaling.beregning.dager.map { it.beregningsdag }.forEach {
             withClue("Beregningsdag $it") {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 104
             }
         }
-        val actual = meldekortVedtak.utbetaling.toUtbetalingRequestDTO(null)
+        val actual = meldekortvedtak.utbetaling.toUtbetalingRequestDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -284,7 +284,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val meldekortVedtak = ObjectMother.meldekortVedtak(
+        val meldekortvedtak = ObjectMother.meldekortvedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -302,7 +302,7 @@ internal class UtbetalingDTOTest {
                 ),
             ),
         )
-        val actual = meldekortVedtak.utbetaling.toUtbetalingRequestDTO(null)
+        val actual = meldekortvedtak.utbetaling.toUtbetalingRequestDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -381,7 +381,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val meldekortVedtak = ObjectMother.meldekortVedtak(
+        val meldekortvedtak = ObjectMother.meldekortvedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -403,7 +403,7 @@ internal class UtbetalingDTOTest {
                 ),
             ),
         )
-        val actual = meldekortVedtak.utbetaling.toUtbetalingRequestDTO(null)
+        val actual = meldekortvedtak.utbetaling.toUtbetalingRequestDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -482,7 +482,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val meldekortVedtak = ObjectMother.meldekortVedtak(
+        val meldekortvedtak = ObjectMother.meldekortvedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -508,7 +508,7 @@ internal class UtbetalingDTOTest {
                 ),
             ),
         )
-        val actual = meldekortVedtak.utbetaling.toUtbetalingRequestDTO(null)
+        val actual = meldekortvedtak.utbetaling.toUtbetalingRequestDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -599,7 +599,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val meldekortVedtak = ObjectMother.meldekortVedtak(
+        val meldekortvedtak = ObjectMother.meldekortvedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -608,26 +608,26 @@ internal class UtbetalingDTOTest {
             opprettet = opprettet,
         )
 
-        val utbetalingMedHelger = meldekortVedtak.utbetaling.copy(
+        val utbetalingMedHelger = meldekortvedtak.utbetaling.copy(
             beregning = meldekortBeregning(
                 beregningDager = tiltaksdager(
                     startDato = periode.fraOgMed,
-                    meldekortId = meldekortVedtak.meldekortId,
+                    meldekortId = meldekortvedtak.meldekortId,
                     tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 5,
                 ) + tiltaksdager(
                     startDato = periode.fraOgMed.plusDays(5),
-                    meldekortId = meldekortVedtak.meldekortId,
+                    meldekortId = meldekortvedtak.meldekortId,
                     tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 2,
                 ) + tiltaksdager(
                     startDato = periode.fraOgMed.plusDays(7),
-                    meldekortId = meldekortVedtak.meldekortId,
+                    meldekortId = meldekortvedtak.meldekortId,
                     tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 5,
                 ) + tiltaksdager(
                     startDato = periode.fraOgMed.plusDays(12),
-                    meldekortId = meldekortVedtak.meldekortId,
+                    meldekortId = meldekortvedtak.meldekortId,
                     tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 2,
                 ),
@@ -715,7 +715,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val meldekortVedtak = ObjectMother.meldekortVedtak(
+        val meldekortvedtak = ObjectMother.meldekortvedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -724,16 +724,16 @@ internal class UtbetalingDTOTest {
             opprettet = opprettet,
         )
 
-        val utbetalingLørdagOgSøndag = meldekortVedtak.utbetaling.copy(
+        val utbetalingLørdagOgSøndag = meldekortvedtak.utbetaling.copy(
             beregning = meldekortBeregning(
                 beregningDager = ikkeRettDager(
                     startDato = periode.fraOgMed,
-                    meldekortId = meldekortVedtak.meldekortId,
+                    meldekortId = meldekortvedtak.meldekortId,
                     antallDager = 12,
                 ).plus(
                     tiltaksdager(
                         startDato = periode.fraOgMed.plusDays(12),
-                        meldekortId = meldekortVedtak.meldekortId,
+                        meldekortId = meldekortvedtak.meldekortId,
                         tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                         antallDager = 2,
                     ),

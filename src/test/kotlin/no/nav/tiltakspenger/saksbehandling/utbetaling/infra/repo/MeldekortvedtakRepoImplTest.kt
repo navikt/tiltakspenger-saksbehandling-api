@@ -10,29 +10,29 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import org.junit.jupiter.api.Test
 
-class MeldekortVedtakRepoImplTest {
+class MeldekortvedtakRepoImplTest {
 
     @Test
     fun `kan lagre og hente`() {
         val tidspunkt = nå(fixedClock)
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (sak, _, meldekortVedtak, meldekort) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+            val (sak, _, meldekortvedtak, meldekort) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            val meldekortVedtakRepo = testDataHelper.meldekortVedtakRepo as MeldekortVedtakPostgresRepo
+            val meldekortvedtakRepo = testDataHelper.meldekortvedtakRepo as MeldekortvedtakPostgresRepo
 
             // Journalføring
             val oppdatertMedUtbetalingsdata = testDataHelper.sessionFactory.withSession { session ->
-                MeldekortVedtakPostgresRepo.hentForSakId(sak.id, session)
+                MeldekortvedtakPostgresRepo.hentForSakId(sak.id, session)
             }
-            meldekortVedtakRepo.hentDeSomSkalJournalføres() shouldBe oppdatertMedUtbetalingsdata
-            meldekortVedtakRepo.markerJournalført(
-                vedtakId = meldekortVedtak.id,
+            meldekortvedtakRepo.hentDeSomSkalJournalføres() shouldBe oppdatertMedUtbetalingsdata
+            meldekortvedtakRepo.markerJournalført(
+                vedtakId = meldekortvedtak.id,
                 journalpostId = JournalpostId("123"),
                 tidspunkt = tidspunkt,
             )
-            meldekortVedtakRepo.hentDeSomSkalJournalføres() shouldBe emptyList()
+            meldekortvedtakRepo.hentDeSomSkalJournalføres() shouldBe emptyList()
         }
     }
 }

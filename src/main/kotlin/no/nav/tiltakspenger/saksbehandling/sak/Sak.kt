@@ -22,9 +22,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -49,12 +49,12 @@ data class Sak(
     val utbetalinger: Utbetalinger by lazy {
         Utbetalinger(
             rammevedtaksliste.utbetalinger
-                .plus(meldekortVedtaksliste.utbetalinger)
+                .plus(meldekortvedtaksliste.utbetalinger)
                 .sortedBy { it.opprettet },
         )
     }
     val rammevedtaksliste: Rammevedtaksliste = vedtaksliste.rammevedtaksliste
-    val meldekortVedtaksliste: MeldekortVedtaksliste = vedtaksliste.meldekortVedtaksliste
+    val meldekortvedtaksliste: Meldekortvedtaksliste = vedtaksliste.meldekortvedtaksliste
     val rammebehandlinger: Rammebehandlinger = behandlinger.rammebehandlinger
     val meldekortbehandlinger: Meldekortbehandlinger = behandlinger.meldekortbehandlinger
 
@@ -206,7 +206,7 @@ data class Sak(
         return this.oppdaterRammebehandling(behandling)
     }
 
-    fun leggTilMeldekortVedtak(vedtak: MeldekortVedtak): Sak {
+    fun leggTilMeldekortvedtak(vedtak: Meldekortvedtak): Sak {
         return this.copy(vedtaksliste = this.vedtaksliste.leggTilMeldekortvedtak(vedtak))
     }
 
