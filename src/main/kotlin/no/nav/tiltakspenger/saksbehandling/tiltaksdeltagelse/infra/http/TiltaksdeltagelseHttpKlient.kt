@@ -18,9 +18,11 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientGeneric
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 
 class TiltaksdeltagelseHttpKlient(
@@ -40,6 +42,38 @@ class TiltaksdeltagelseHttpKlient(
         tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
     ): Tiltaksdeltagelser {
+        return doRequest(
+            fnr = fnr,
+            tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltagelserDetErSøktTiltakspengerFor,
+            correlationId = correlationId,
+            mapper = { mapTiltak(it) },
+        )
+    }
+
+    override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
+        fnr: Fnr,
+        harAdressebeskyttelse: Boolean,
+        correlationId: CorrelationId,
+    ): List<TiltaksdeltakelseMedArrangørnavn> {
+        return doRequest(
+            fnr = fnr,
+            tiltaksdeltakelserDetErSøktTiltakspengerFor = emptyList<TiltaksdeltagelseDetErSøktTiltakspengerFor>() as TiltaksdeltagelserDetErSøktTiltakspengerFor,
+            correlationId = correlationId,
+            mapper = {
+                mapTiltakMedArrangørnavn(
+                    harAdressebeskyttelse = harAdressebeskyttelse,
+                    tiltakDTOListe = it,
+                )
+            },
+        )
+    }
+
+    private suspend fun <T> doRequest(
+        fnr: Fnr,
+        tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
+        correlationId: CorrelationId,
+        mapper: suspend (List<TiltakTilSaksbehandlingDTO>) -> T,
+    ): T {
         val token = getToken()
         val httpResponse = httpClient.preparePost("$baseUrl/azure/tiltak") {
             header(NAV_CALL_ID_HEADER, correlationId.value)
@@ -50,9 +84,10 @@ class TiltaksdeltagelseHttpKlient(
         }.execute()
         return when (httpResponse.status) {
             HttpStatusCode.OK -> httpResponse.call.response.body<List<TiltakTilSaksbehandlingDTO>>().let { dto ->
-                val relevanteTiltak = dto.filter { it.harFomOgTomEllerRelevantStatus(tiltaksdeltagelserDetErSøktTiltakspengerFor) }
-                    .filter { it.rettPaTiltakspenger() }
-                Tiltaksdeltagelser(mapTiltak(relevanteTiltak))
+                val relevanteTiltak =
+                    dto.filter { it.harFomOgTomEllerRelevantStatus(tiltaksdeltakelserDetErSøktTiltakspengerFor) }
+                        .filter { it.rettPaTiltakspenger() }
+                mapper(relevanteTiltak)
             }
 
             else -> {

@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonopplysni
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.sakRoutes
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.route.meRoute
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.søknadRoutes
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.hentTiltakdeltagelserRoute
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.hentTiltakdeltakelserRoute
 
 fun Route.routes(
     applicationContext: ApplicationContext,
@@ -86,8 +86,8 @@ fun Route.routes(
             clock = applicationContext.clock,
         )
 
-        hentTiltakdeltagelserRoute(
-            tiltaksdeltagelseService = applicationContext.tiltakContext.tiltaksdeltagelseService,
+        hentTiltakdeltakelserRoute(
+            tiltaksdeltakelseService = applicationContext.tiltakContext.tiltaksdeltakelseService,
             auditService = applicationContext.personContext.auditService,
         )
     }

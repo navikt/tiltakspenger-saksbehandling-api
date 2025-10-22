@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
@@ -13,30 +14,42 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutte
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.service.TiltaksdeltagelseService
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.service.KunneIkkeHenteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.service.TiltaksdeltakelseService
 
-fun Route.hentTiltakdeltagelserRoute(
-    tiltaksdeltagelseService: TiltaksdeltagelseService,
+fun Route.hentTiltakdeltakelserRoute(
+    tiltaksdeltakelseService: TiltaksdeltakelseService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}
-    get("$SAK_PATH/{sakId}/tiltaksdeltagelser") {
-        logger.debug { "Mottatt get-request på '$SAK_PATH/{sakId}/tiltaksdeltagelser' - henter tiltaksdeltagelser for en sak" }
+    get("$SAK_PATH/{sakId}/tiltaksdeltakelser") {
+        logger.debug { "Mottatt get-request på '$SAK_PATH/{sakId}/tiltaksdeltakelser' - henter tiltaksdeltakelser for en sak" }
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get
         call.withSakId { sakId ->
             val correlationId = call.correlationId()
             krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-            val tiltaksdeltagelser = tiltaksdeltagelseService.hentTiltaksdeltagelserForSak(sakId, correlationId).map {
-                it.toDTO()
-            }
-            auditService.logMedSakId(
-                sakId = sakId,
-                navIdent = saksbehandler.navIdent,
-                action = AuditLogEvent.Action.ACCESS,
-                contextMessage = "Henter tiltaksdeltagelser for en sak",
-                correlationId = correlationId,
-            )
-            call.respond(status = HttpStatusCode.OK, tiltaksdeltagelser)
+            tiltaksdeltakelseService.hentTiltaksdeltakelserForSak(sakId, correlationId)
+                .map { tiltaksdeltakelser -> tiltaksdeltakelser.map { deltakelse -> deltakelse.toDTO() } }
+                .fold(
+                    {
+                        when (it) {
+                            KunneIkkeHenteTiltaksdeltakelser.FeilVedKallMotPdl -> call.respond500InternalServerError(
+                                melding = "Feil ved kall mot PDL",
+                                kode = "feil_ved_kall_mot_pdl",
+                            )
+                        }
+                    },
+                    { tiltaksdeltakelser ->
+                        auditService.logMedSakId(
+                            sakId = sakId,
+                            navIdent = saksbehandler.navIdent,
+                            action = AuditLogEvent.Action.ACCESS,
+                            contextMessage = "Henter tiltaksdeltakelser for en sak",
+                            correlationId = correlationId,
+                        )
+                        call.respond(status = HttpStatusCode.OK, tiltaksdeltakelser)
+                    },
+                )
         }
     }
 }

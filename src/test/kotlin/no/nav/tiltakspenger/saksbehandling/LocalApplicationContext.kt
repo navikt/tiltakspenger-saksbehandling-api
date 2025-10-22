@@ -140,7 +140,11 @@ class LocalApplicationContext(
     }
 
     override val tiltakContext by lazy {
-        object : TiltaksdeltagelseContext(texasClient, sakContext.sakService) {
+        object : TiltaksdeltagelseContext(
+            texasClient = texasClient,
+            sakService = sakContext.sakService,
+            personService = personContext.personService,
+        ) {
             override val tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient
         }
     }

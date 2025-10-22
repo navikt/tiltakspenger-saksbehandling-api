@@ -252,6 +252,7 @@ open class ApplicationContext(
     open val tiltakContext: TiltaksdeltagelseContext by lazy {
         TiltaksdeltagelseContext(
             texasClient = texasClient,
+            personService = personContext.personService,
             sakService = sakContext.sakService,
         )
     }
