@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.NonEmptyList
+import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import arrow.core.toNonEmptyListOrThrow
@@ -8,6 +9,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -21,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.hentForrigeBeregningForSimulering
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -111,10 +114,7 @@ fun Sak.genererSimuleringFraBeregning(
     simuleringstidspunkt: LocalDateTime = LocalDateTime.now(clock),
 ): SimuleringMedMetadata {
     val simuleringForMeldeperioder = beregning.beregninger.mapNotNull { beregningEtter ->
-        val beregningFør = this.meldeperiodeBeregninger.hentForrigeBeregning(
-            beregningEtter.id,
-            beregningEtter.kjedeId,
-        ).getOrNull()
+        val beregningFør = this.meldeperiodeBeregninger.hentForrigeBeregningForSimulering(beregningEtter)
         val sammenligning = sammenlign(
             forrigeBeregning = beregningFør,
             gjeldendeBeregning = beregningEtter,
