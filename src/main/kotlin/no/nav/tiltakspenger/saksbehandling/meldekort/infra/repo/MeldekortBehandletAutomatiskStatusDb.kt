@@ -15,7 +15,6 @@ private enum class MeldekortBehandletAutomatiskStatusDb {
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
     KAN_IKKE_MELDE_HELG,
-    ER_KORRIGERING,
 }
 
 fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
@@ -31,7 +30,6 @@ fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING
     MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT
     MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_MELDE_HELG
-    MeldekortBehandletAutomatiskStatus.ER_KORRIGERING -> MeldekortBehandletAutomatiskStatusDb.ER_KORRIGERING
 }.toString()
 
 fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatiskStatus =
@@ -48,5 +46,4 @@ fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatisk
         MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING
         MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT
         MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG
-        MeldekortBehandletAutomatiskStatusDb.ER_KORRIGERING -> MeldekortBehandletAutomatiskStatus.ER_KORRIGERING
     }

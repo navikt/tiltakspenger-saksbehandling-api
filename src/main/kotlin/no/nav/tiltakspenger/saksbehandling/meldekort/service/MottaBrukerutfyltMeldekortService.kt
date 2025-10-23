@@ -100,7 +100,7 @@ class MottaBrukerutfyltMeldekortService(
          * */
         if (brukersMeldekortRepo.hentForKjedeId(kjedeId, sakId).isNotEmpty()) {
             logger.info { "Finnes allerede et meldekort for kjede $kjedeId på sak $sakId - behandler ikke meldekortet automatisk ${kommando.id} (antatt korrigering)" }
-            return MeldekortBehandletAutomatiskStatus.ER_KORRIGERING.left()
+            return MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
         }
 
         return Unit.right()

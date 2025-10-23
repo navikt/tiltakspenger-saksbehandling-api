@@ -13,5 +13,4 @@ enum class MeldekortBehandletAutomatiskStatus {
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
     KAN_IKKE_MELDE_HELG,
-    ER_KORRIGERING,
 }
