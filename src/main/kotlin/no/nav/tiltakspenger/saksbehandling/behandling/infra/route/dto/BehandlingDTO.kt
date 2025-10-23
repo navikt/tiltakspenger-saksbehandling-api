@@ -223,7 +223,7 @@ fun Revurdering.tilRevurderingDTO(
                 antallDagerPerMeldeperiode = resultat.antallDagerPerMeldeperiode?.toDTO(),
                 omgjørVedtak = resultat.omgjørRammevedtak.id.toString(),
                 innvilgelsesperiode = resultat.innvilgelsesperiode.toDTO(),
-                virkningsperiode = resultat.omgjøringsperiode.toDTO(),
+                virkningsperiode = resultat.virkningsperiode.toDTO(),
             )
 
             is RevurderingResultat.Stans -> it.copy(

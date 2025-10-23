@@ -464,8 +464,8 @@ class BehandlingPostgresRepo(
                         )
 
                         RevurderingType.OMGJØRING -> RevurderingResultat.Omgjøring(
-                            omgjøringsperiode = virkningsperiode!!,
-                            innvilgelsesperiode = deserialize<PeriodeDbJson>("innvilgelsesperiode").toDomain(),
+                            virkningsperiode = virkningsperiode!!,
+                            innvilgelsesperiode = deserialize<PeriodeDbJson>(string("innvilgelsesperiode")).toDomain(),
                             valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
                                 .toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = string("barnetillegg").toBarnetillegg(),

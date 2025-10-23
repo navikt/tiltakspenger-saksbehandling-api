@@ -78,7 +78,7 @@ internal class StartRevurderingTest {
             revurdering.saksbehandler shouldBe "Z12345"
             revurdering.saksnummer shouldBe sak.saksnummer
             revurdering.virkningsperiode shouldBe søknadsvedtak.periode
-            revurdering.resultat.omgjøringsperiode shouldBe søknadsvedtakResultat.virkningsperiode
+            revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.virkningsperiode
             revurdering.resultat.innvilgelsesperiode shouldBe søknadsvedtakResultat.innvilgelsesperiode
             revurdering.barnetillegg shouldBe søknadsvedtak.barnetillegg
             revurdering.antallDagerPerMeldeperiode shouldBe søknadsvedtak.antallDagerPerMeldeperiode

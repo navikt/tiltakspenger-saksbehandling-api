@@ -76,7 +76,7 @@ class OppdaterBehandlingService(
             is OppdaterRevurderingKommando.Omgjøring,
             -> this.beregnOmgjøring(
                 behandlingId = kommando.behandlingId,
-                virkningsperiode = (behandling.resultat as RevurderingResultat.Omgjøring).omgjøringsperiode,
+                virkningsperiode = (behandling.resultat as RevurderingResultat.Omgjøring).virkningsperiode,
                 innvilgelsesperiode = kommando.innvilgelsesperiode,
                 barnetilleggsperioder = kommando.barnetillegg.periodisering,
             )

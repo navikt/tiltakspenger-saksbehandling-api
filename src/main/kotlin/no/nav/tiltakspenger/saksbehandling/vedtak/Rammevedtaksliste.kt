@@ -82,16 +82,13 @@ data class Rammevedtaksliste(
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
         tidslinje.filter {
             it.verdi.vedtakstype == Vedtakstype.INNVILGELSE
-        }.perioderMedVerdi.map {
-            // TODO jah: Mangler en mapKeys (perioden) i libs.
-            PeriodeMedVerdi(
-                it.verdi,
-                Periode(
-                    // I en omgjøring kan innvilgelsesperioden være mindre enn vedtaksperioden/virkningsperioden (resten av perioden vil implisitt være opphørt/ikke gi rett), dette må vi ta høyde for.
-                    max(it.periode.fraOgMed, it.verdi.innvilgelsesperiode!!.fraOgMed),
-                    min(it.periode.tilOgMed, it.verdi.innvilgelsesperiode!!.tilOgMed),
-                ),
-            )
+        }.perioderMedVerdi.mapNotNull { (vedtak, gjeldendePeriode) ->
+            gjeldendePeriode.overlappendePeriode(vedtak.innvilgelsesperiode!!)?.let { overlappendePeriode ->
+                PeriodeMedVerdi(
+                    vedtak,
+                    overlappendePeriode,
+                )
+            }
         }.tilPeriodisering()
     }
 

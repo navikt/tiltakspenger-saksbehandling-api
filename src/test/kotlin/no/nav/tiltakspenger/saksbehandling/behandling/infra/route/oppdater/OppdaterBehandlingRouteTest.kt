@@ -429,7 +429,6 @@ class OppdaterBehandlingRouteTest {
             )
             oppdatertRevurdering.virkningsperiode shouldBe søknadsbehandling.virkningsperiode
             resultat.virkningsperiode shouldBe søknadsbehandling.virkningsperiode
-            resultat.omgjøringsperiode shouldBe søknadsbehandling.virkningsperiode
             resultat.innvilgelsesperiode shouldBe nyOmgjøringsperiodeEtterOppdatering
             oppdatertRevurdering.utbetaling shouldBe null
 
