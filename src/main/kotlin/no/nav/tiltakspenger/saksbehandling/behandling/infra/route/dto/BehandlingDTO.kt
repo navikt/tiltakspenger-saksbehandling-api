@@ -48,6 +48,7 @@ sealed interface BehandlingDTO {
     val iverksattTidspunkt: LocalDateTime?
     val ventestatus: VentestatusHendelseDTO?
     val utbetaling: BehandlingUtbetalingDTO?
+    val rammevedtakId: String?
 }
 
 data class SøknadsbehandlingDTO(
@@ -68,6 +69,7 @@ data class SøknadsbehandlingDTO(
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
+    override val rammevedtakId: String?,
     val søknad: SøknadDTO?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
@@ -97,6 +99,7 @@ data class RevurderingDTO(
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
+    override val rammevedtakId: String?,
     val valgtHjemmelHarIkkeRettighet: List<String>?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
@@ -111,7 +114,7 @@ data class RevurderingDTO(
 
 fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): BehandlingDTO {
     val behandling = rammebehandlinger.hentBehandling(behandlingId)
-
+    val rammevedakForBehandling = rammevedtaksliste.finnRammevedtakForBehandling(behandlingId)
     requireNotNull(behandling) {
         "Fant ingen behandling med id $behandlingId"
     }
@@ -120,11 +123,13 @@ fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): BehandlingDTO {
         is Revurdering -> behandling.tilRevurderingDTO(
             utbetalingsstatus = utbetalinger.hentUtbetalingForBehandlingId(behandlingId)?.status,
             beregninger = meldeperiodeBeregninger,
+            rammevedtakId = rammevedakForBehandling?.id?.toString(),
         )
 
         is Søknadsbehandling -> behandling.tilSøknadsbehandlingDTO(
             utbetalingsstatus = utbetalinger.hentUtbetalingForBehandlingId(behandlingId)?.status,
             beregninger = meldeperiodeBeregninger,
+            rammevedtakId = rammevedakForBehandling?.id?.toString(),
         )
     }
 }
@@ -134,6 +139,7 @@ fun Sak.tilBehandlingerDTO(): List<BehandlingDTO> = this.rammebehandlinger.map {
 fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     utbetalingsstatus: Utbetalingsstatus?,
     beregninger: MeldeperiodeBeregninger,
+    rammevedtakId: String?,
 ): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
         id = this.id.toString(),
@@ -160,6 +166,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
+        rammevedtakId = rammevedtakId,
     ).let {
         when (resultat) {
             is SøknadsbehandlingResultat.Innvilgelse -> it.copy(
@@ -179,6 +186,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
 fun Revurdering.tilRevurderingDTO(
     utbetalingsstatus: Utbetalingsstatus?,
     beregninger: MeldeperiodeBeregninger,
+    rammevedtakId: String?,
 ): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),
@@ -206,6 +214,7 @@ fun Revurdering.tilRevurderingDTO(
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
         harValgtStansFraFørsteDagSomGirRett = (this.resultat as? RevurderingResultat.Stans)?.let { this.resultat.harValgtStansFraFørsteDagSomGirRett },
         harValgtStansTilSisteDagSomGirRett = (this.resultat as? RevurderingResultat.Stans)?.let { this.resultat.harValgtStansTilSisteDagSomGirRett },
+        rammevedtakId = rammevedtakId,
     ).let {
         when (resultat) {
             is RevurderingResultat.Omgjøring -> it.copy(

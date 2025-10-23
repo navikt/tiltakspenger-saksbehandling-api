@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
@@ -21,7 +22,7 @@ import java.time.LocalDate
 
 data class Rammevedtaksliste(
     val verdi: List<Rammevedtak>,
-) : List<Vedtak> by verdi {
+) : List<Rammevedtak> by verdi {
     constructor(value: Rammevedtak) : this(listOf(value))
 
     val fnr = verdi.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow()
@@ -159,6 +160,10 @@ data class Rammevedtaksliste(
 
     fun hentRammevedtakForId(rammevedtakId: VedtakId): Rammevedtak {
         return verdi.single { it.id == rammevedtakId }
+    }
+
+    fun finnRammevedtakForBehandling(id: BehandlingId): Rammevedtak? {
+        return this.singleOrNullOrThrow { vedtak -> vedtak.behandling.id == id }
     }
 
     init {
