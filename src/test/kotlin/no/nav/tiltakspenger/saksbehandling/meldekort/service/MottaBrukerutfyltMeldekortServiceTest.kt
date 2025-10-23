@@ -8,8 +8,10 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
 import org.junit.jupiter.api.Test
@@ -167,6 +169,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
             førsteMeldekort!!.behandlesAutomatisk shouldBe true
             korrigertMeldekort!!.behandlesAutomatisk shouldBe false
+            korrigertMeldekort.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
         }
     }
 
@@ -206,6 +209,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
             meldekort.shouldNotBeNull()
             meldekort.behandlesAutomatisk shouldBe true
+            meldekort.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING
         }
     }
 
@@ -245,6 +249,93 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
             meldekort.shouldNotBeNull()
             meldekort.behandlesAutomatisk shouldBe false
+            meldekort.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG
+        }
+    }
+
+    @Test
+    fun `Skal ikke flagge meldekort for automatisk behandling ved for mange sammenhengende dager godkjent fravær`() {
+        with(TestApplicationContext()) {
+            val service = this.mottaBrukerutfyltMeldekortService
+            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+
+            val sakRepo = this.sakContext.sakRepo
+            val (sak) = nySakMedVedtak(kanSendeInnHelgForMeldekort = true)
+            sakRepo.opprettSak(sak)
+
+            val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id, girRettIHelg = true)
+            val meldekortId = MeldekortId.random()
+
+            meldeperiodeRepo.lagre(meldeperiode)
+
+            val lagreKommando = LagreBrukersMeldekortKommando(
+                id = meldekortId,
+                meldeperiodeId = meldeperiode.id,
+                sakId = meldeperiode.sakId,
+                mottatt = LocalDateTime.now(),
+                journalpostId = JournalpostId("asdf"),
+                dager = meldeperiode.girRett.entries.chunked(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER)
+                    .mapIndexed { index, dager ->
+                        dager.map {
+                            BrukersMeldekort.BrukersMeldekortDag(
+                                status = if (index % 2 == 0) InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV else InnmeldtStatus.IKKE_BESVART,
+                                dato = it.key,
+                            )
+                        }
+                    }.flatten(),
+            )
+
+            service.mottaBrukerutfyltMeldekort(lagreKommando)
+
+            val meldekort = meldekortRepo.hentForMeldekortId(meldekortId)
+
+            meldekort.shouldNotBeNull()
+            meldekort.behandlesAutomatisk shouldBe false
+            meldekort.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
+        }
+    }
+
+    @Test
+    fun `Skal flagge meldekort for automatisk behandling ved akseptabelt antall sammenhengende dager godkjent fravær`() {
+        with(TestApplicationContext()) {
+            val service = this.mottaBrukerutfyltMeldekortService
+            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+
+            val sakRepo = this.sakContext.sakRepo
+            val (sak) = nySakMedVedtak(kanSendeInnHelgForMeldekort = true)
+            sakRepo.opprettSak(sak)
+
+            val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id, girRettIHelg = true)
+            val meldekortId = MeldekortId.random()
+
+            meldeperiodeRepo.lagre(meldeperiode)
+
+            val lagreKommando = LagreBrukersMeldekortKommando(
+                id = meldekortId,
+                meldeperiodeId = meldeperiode.id,
+                sakId = meldeperiode.sakId,
+                mottatt = LocalDateTime.now(),
+                journalpostId = JournalpostId("asdf"),
+                dager = meldeperiode.girRett.entries.chunked(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER - 1)
+                    .mapIndexed { index, dager ->
+                        dager.map {
+                            BrukersMeldekort.BrukersMeldekortDag(
+                                status = if (index % 2 == 0) InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV else InnmeldtStatus.IKKE_BESVART,
+                                dato = it.key,
+                            )
+                        }
+                    }.flatten(),
+            )
+
+            service.mottaBrukerutfyltMeldekort(lagreKommando)
+
+            val meldekort = meldekortRepo.hentForMeldekortId(meldekortId)
+
+            meldekort.shouldNotBeNull()
+            meldekort.behandlesAutomatisk shouldBe true
+            meldekort.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING
         }
     }
 }

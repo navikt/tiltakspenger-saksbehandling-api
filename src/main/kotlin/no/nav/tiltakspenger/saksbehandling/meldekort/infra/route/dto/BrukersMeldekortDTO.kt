@@ -31,6 +31,7 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
     KAN_IKKE_MELDE_HELG,
+    FOR_MANGE_DAGER_GODKJENT_FRAVÆR,
 }
 
 data class BrukersMeldekortDTO(
@@ -73,6 +74,7 @@ private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO()
         MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDTO.ER_UNDER_REVURDERING
         MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDTO.FOR_MANGE_DAGER_REGISTRERT
         MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatusDTO.KAN_IKKE_MELDE_HELG
+        MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR -> MeldekortBehandletAutomatiskStatusDTO.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
     }
 }
 
