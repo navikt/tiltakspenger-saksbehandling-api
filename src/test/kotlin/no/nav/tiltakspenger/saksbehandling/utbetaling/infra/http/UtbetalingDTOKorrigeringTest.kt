@@ -35,7 +35,7 @@ class UtbetalingDTOKorrigeringTest {
         periode: Periode,
         opprettet: LocalDateTime,
         dager: NonEmptyList<MeldeperiodeBeregningDag>,
-    ) = ObjectMother.meldekortVedtak(
+    ) = ObjectMother.meldekortvedtak(
         sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,

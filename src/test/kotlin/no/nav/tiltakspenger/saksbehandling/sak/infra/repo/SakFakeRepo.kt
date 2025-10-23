@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
 import java.time.LocalDate
@@ -28,7 +28,7 @@ class SakFakeRepo(
     private val rammevedtakRepo: RammevedtakFakeRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingFakeRepo,
     private val meldeperiodeRepo: MeldeperiodeFakeRepo,
-    private val meldekortVedtakRepo: MeldekortVedtakFakeRepo,
+    private val meldekortvedtakRepo: MeldekortvedtakFakeRepo,
     private val søknadFakeRepo: SøknadFakeRepo,
 ) : SakRepo {
     val data = Atomic(mutableMapOf<SakId, Sak>())
@@ -63,7 +63,7 @@ class SakFakeRepo(
             ),
             vedtaksliste = Vedtaksliste(
                 rammevedtaksliste = rammevedtakRepo.hentForSakId(sakId),
-                meldekortVedtaksliste = meldekortVedtakRepo.hentForSakId(sakId),
+                meldekortvedtaksliste = meldekortvedtakRepo.hentForSakId(sakId),
             ),
             meldeperiodeKjeder = meldeperiodeRepo.hentForSakId(sakId),
             søknader = soknader,

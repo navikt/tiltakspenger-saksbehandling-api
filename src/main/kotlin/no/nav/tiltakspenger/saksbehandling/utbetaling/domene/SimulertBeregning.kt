@@ -130,23 +130,8 @@ data class SimulertBeregning(
                 beregning.beregninger.map { meldeperiodeBeregning ->
                     val kjedeId = meldeperiodeBeregning.kjedeId
 
-                    val forrigeBeregning: MeldeperiodeBeregning? = eksisterendeBeregninger.hentForrigeBeregning(
-                        meldeperiodeBeregning.id,
-                        kjedeId,
-                    ).getOrElse {
-                        when (it) {
-                            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenBeregningerForKjede,
-                            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenTidligereBeregninger,
-                            -> null
-
-                            /**
-                             *  Dersom beregningen vi prøvde å finne forrige beregning til ikke finnes (men det finnes andre beregninger på kjeden),
-                             *  betyr det at denne beregningen ikke er iverksatt ennå, og forrige beregning er den gjeldende/sist iverksatte beregningen
-                             * */
-                            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.BeregningFinnesIkke,
-                            -> eksisterendeBeregninger.gjeldendeBeregningPerKjede[kjedeId]
-                        }
-                    }
+                    val forrigeBeregning: MeldeperiodeBeregning? =
+                        eksisterendeBeregninger.hentForrigeBeregningForSimulering(meldeperiodeBeregning)
 
                     SimulertBeregningMeldeperiode(
                         kjedeId = kjedeId,
@@ -171,6 +156,26 @@ data class SimulertBeregning(
                 simuleringsdato = (simulering as? Simulering.Endring)?.datoBeregnet,
                 simuleringTotalBeløp = (simulering as? Simulering.Endring)?.totalBeløp,
             )
+        }
+    }
+}
+
+fun MeldeperiodeBeregningerVedtatt.hentForrigeBeregningForSimulering(meldeperiodeBeregning: MeldeperiodeBeregning): MeldeperiodeBeregning? {
+    return hentForrigeBeregning(
+        meldeperiodeBeregning.id,
+        meldeperiodeBeregning.kjedeId,
+    ).getOrElse {
+        when (it) {
+            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenBeregningerForKjede,
+            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenTidligereBeregninger,
+            -> null
+
+            /**
+             *  Dersom beregningen vi prøvde å finne forrige beregning til ikke finnes (men det finnes andre beregninger på kjeden),
+             *  betyr det at denne beregningen ikke er iverksatt ennå, og forrige beregning er den gjeldende/sist iverksatte beregningen
+             * */
+            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.BeregningFinnesIkke,
+            -> gjeldendeBeregningPerKjede[meldeperiodeBeregning.kjedeId]
         }
     }
 }

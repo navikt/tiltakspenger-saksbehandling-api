@@ -28,7 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingT
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
@@ -663,7 +663,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
             saksnummer = sak.saksnummer,
         ),
     clock: Clock = this.clock,
-): Tuple4<Sak, Rammevedtak, MeldekortVedtak, MeldekortBehandletManuelt> {
+): Tuple4<Sak, Rammevedtak, Meldekortvedtak, MeldekortBehandletManuelt> {
     val (sak, rammevedtak) = persisterIverksattSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
@@ -687,14 +687,14 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         periode = meldeperioder.first().periode,
         clock = clock,
     )
-    val meldekortVedtak =
+    val meldekortvedtak =
         behandletMeldekort.opprettVedtak(
             sak.utbetalinger.lastOrNull(),
             clock,
         )
     meldekortRepo.lagre(behandletMeldekort, null)
-    meldekortVedtakRepo.lagre(meldekortVedtak)
-    return Tuple4(sakRepo.hentForSakId(sakId)!!, rammevedtak, meldekortVedtak, behandletMeldekort)
+    meldekortvedtakRepo.lagre(meldekortvedtak)
+    return Tuple4(sakRepo.hentForSakId(sakId)!!, rammevedtak, meldekortvedtak, behandletMeldekort)
 }
 
 internal fun TestDataHelper.persisterRammevedtakAvslag(

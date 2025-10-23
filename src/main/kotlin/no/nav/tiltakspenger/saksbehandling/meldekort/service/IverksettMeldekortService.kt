@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import java.time.Clock
 
@@ -25,7 +25,7 @@ class IverksettMeldekortService(
     val utbetalingRepo: UtbetalingRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
     val sessionFactory: SessionFactory,
-    private val meldekortVedtakRepo: MeldekortVedtakRepo,
+    private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val clock: Clock,
     private val statistikkMeldekortRepo: StatistikkMeldekortRepo,
 ) {
@@ -51,18 +51,18 @@ class IverksettMeldekortService(
         }
 
         return meldekortBehandling.iverksettMeldekort(kommando.beslutter, clock).map { iverksattMeldekortbehandling ->
-            val meldekortVedtak = iverksattMeldekortbehandling.opprettVedtak(
+            val meldekortvedtak = iverksattMeldekortbehandling.opprettVedtak(
                 forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
                 clock = clock,
             )
 
             sessionFactory.withTransactionContext { tx ->
                 meldekortBehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
-                meldekortVedtakRepo.lagre(meldekortVedtak, tx)
+                meldekortvedtakRepo.lagre(meldekortvedtak, tx)
                 statistikkMeldekortRepo.lagre(iverksattMeldekortbehandling.tilStatistikkMeldekortDTO(clock), tx)
             }
             sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
-                .leggTilMeldekortVedtak(meldekortVedtak) to iverksattMeldekortbehandling
+                .leggTilMeldekortvedtak(meldekortvedtak) to iverksattMeldekortbehandling
         }
     }
 }

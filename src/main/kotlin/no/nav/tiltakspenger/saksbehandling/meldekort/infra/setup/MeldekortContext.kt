@@ -31,7 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
@@ -42,7 +42,7 @@ import java.time.Clock
 open class MeldekortContext(
     sessionFactory: SessionFactory,
     sakService: SakService,
-    meldekortVedtakRepo: MeldekortVedtakRepo,
+    meldekortvedtakRepo: MeldekortvedtakRepo,
     texasClient: TexasClient,
     navkontorService: NavkontorService,
     oppgaveKlient: OppgaveKlient,
@@ -79,7 +79,7 @@ open class MeldekortContext(
             meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
             sakService = sakService,
-            meldekortVedtakRepo = meldekortVedtakRepo,
+            meldekortvedtakRepo = meldekortvedtakRepo,
             utbetalingRepo = utbetalingRepo,
             clock = clock,
             statistikkMeldekortRepo = statistikkMeldekortRepo,
@@ -106,7 +106,7 @@ open class MeldekortContext(
             brukersMeldekortRepo = brukersMeldekortRepo,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakRepo = sakRepo,
-            meldekortVedtakRepo = meldekortVedtakRepo,
+            meldekortvedtakRepo = meldekortvedtakRepo,
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,
             clock = clock,

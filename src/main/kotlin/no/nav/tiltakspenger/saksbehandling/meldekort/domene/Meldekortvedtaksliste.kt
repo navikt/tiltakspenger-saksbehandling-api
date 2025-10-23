@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 
-data class MeldekortVedtaksliste(val verdi: List<MeldekortVedtak>) : List<MeldekortVedtak> by verdi {
+data class Meldekortvedtaksliste(val verdi: List<Meldekortvedtak>) : List<Meldekortvedtak> by verdi {
 
     val utbetalinger: List<VedtattUtbetaling> by lazy {
         verdi.map { it.utbetaling }
@@ -44,17 +44,17 @@ data class MeldekortVedtaksliste(val verdi: List<MeldekortVedtak>) : List<Meldek
         }
     }
 
-    fun hentForMeldekortBehandling(id: MeldekortId): MeldekortVedtak? {
+    fun hentForMeldekortBehandling(id: MeldekortId): Meldekortvedtak? {
         return verdi.find { it.meldekortId == id }
     }
 
-    fun leggTil(meldekortVedtak: MeldekortVedtak): MeldekortVedtaksliste {
-        return MeldekortVedtaksliste(verdi + meldekortVedtak)
+    fun leggTil(meldekortvedtak: Meldekortvedtak): Meldekortvedtaksliste {
+        return Meldekortvedtaksliste(verdi + meldekortvedtak)
     }
 
     companion object {
-        fun empty(): MeldekortVedtaksliste {
-            return MeldekortVedtaksliste(emptyList())
+        fun empty(): Meldekortvedtaksliste {
+            return Meldekortvedtaksliste(emptyList())
         }
     }
 }

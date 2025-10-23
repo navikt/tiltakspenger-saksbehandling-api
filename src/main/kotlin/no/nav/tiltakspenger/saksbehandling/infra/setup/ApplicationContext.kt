@@ -277,7 +277,7 @@ open class ApplicationContext(
         MeldekortContext(
             sessionFactory = sessionFactory,
             sakService = sakContext.sakService,
-            meldekortVedtakRepo = utbetalingContext.meldekortVedtakRepo,
+            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
             texasClient = texasClient,
             navkontorService = navkontorService,
             oppgaveKlient = oppgaveKlient,

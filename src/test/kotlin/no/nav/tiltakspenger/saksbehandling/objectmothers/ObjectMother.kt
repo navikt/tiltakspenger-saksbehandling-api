@@ -24,7 +24,7 @@ object ObjectMother :
     SakMother,
     PersonMother,
     MeldekortMother,
-    MeldekortVedtakMother,
+    MeldekortvedtakMother,
     RammevedtakMother,
     TiltakMother,
     SaksopplysningerMother,

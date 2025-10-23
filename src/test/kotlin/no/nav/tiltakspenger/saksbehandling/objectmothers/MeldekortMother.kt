@@ -60,9 +60,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager
@@ -948,7 +948,7 @@ fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): Dager {
 }
 
 fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): MeldeperiodeBeregningerVedtatt {
-    return this.sortedBy { it.iverksattTidspunkt }.fold(emptyList<MeldekortVedtak>()) { acc, mkb ->
+    return this.sortedBy { it.iverksattTidspunkt }.fold(emptyList<Meldekortvedtak>()) { acc, mkb ->
         if (mkb !is MeldekortBehandling.Behandlet) {
             return@fold acc
         }
@@ -958,7 +958,7 @@ fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): Meldeperiode
         MeldeperiodeBeregningerVedtatt.fraVedtaksliste(
             Vedtaksliste(
                 Rammevedtaksliste(emptyList()),
-                MeldekortVedtaksliste(
+                Meldekortvedtaksliste(
                     it,
                 ),
             ),

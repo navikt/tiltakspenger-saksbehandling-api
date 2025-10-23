@@ -6,6 +6,7 @@ import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
@@ -69,18 +70,18 @@ class MottaBrukerutfyltMeldekortService(
     private fun Sak.kanBehandlesAutomatisk(
         kommando: LagreBrukersMeldekortKommando,
         meldeperiode: Meldeperiode,
-    ): Boolean {
+    ): Either<BrukersMeldekortBehandletAutomatiskStatus, Unit> {
         val antallDagerMedRegistrering = kommando.antallDagerRegistrert
         val maksDagerMedRegistrering = meldeperiode.maksAntallDagerForMeldeperiode
 
         if (antallDagerMedRegistrering > maksDagerMedRegistrering) {
             logger.error { "Brukers meldekort ${kommando.id} har for mange dager registrert ($antallDagerMedRegistrering) - maks $maksDagerMedRegistrering" }
-            return false
+            return BrukersMeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT.left()
         }
 
         if (kommando.harRegistrertHelg() && !this.kanSendeInnHelgForMeldekort) {
             logger.error { "Brukers meldekort ${kommando.id} har registret helgedager, men saken tillater ikke helg på meldekort" }
-            return false
+            return BrukersMeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG.left()
         }
 
         val kjedeId = meldeperiode.kjedeId
@@ -93,10 +94,10 @@ class MottaBrukerutfyltMeldekortService(
          * */
         if (brukersMeldekortRepo.hentForKjedeId(kjedeId, sakId).isNotEmpty()) {
             logger.info { "Finnes allerede et meldekort for kjede $kjedeId på sak $sakId - behandler ikke meldekortet automatisk ${kommando.id} (antatt korrigering)" }
-            return false
+            return BrukersMeldekortBehandletAutomatiskStatus.ER_KORRIGERING.left()
         }
 
-        return true
+        return Unit.right()
     }
 }
 

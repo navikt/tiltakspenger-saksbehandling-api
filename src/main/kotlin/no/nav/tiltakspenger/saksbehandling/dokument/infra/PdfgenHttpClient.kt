@@ -27,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -66,7 +66,7 @@ internal class PdfgenHttpClient(
 
     private val vedtakInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
     private val vedtakAvslagUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakAvslag")
-    private val meldekortVedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
+    private val meldekortvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
     private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/stansvedtak")
     private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
 
@@ -188,22 +188,22 @@ internal class PdfgenHttpClient(
         )
     }
 
-    override suspend fun genererMeldekortVedtakBrev(
-        meldekortVedtak: MeldekortVedtak,
+    override suspend fun genererMeldekortvedtakBrev(
+        meldekortvedtak: Meldekortvedtak,
         tiltaksdeltagelser: Tiltaksdeltagelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
-                meldekortVedtak.toJsonRequest(
+                meldekortvedtak.toJsonRequest(
                     hentSaksbehandlersNavn,
                     tiltaksdeltagelser,
                     sammenligning,
                 )
             },
-            errorContext = "SakId: ${meldekortVedtak.sakId}, saksnummer: ${meldekortVedtak.saksnummer}, vedtakId: ${meldekortVedtak.id}",
-            uri = meldekortVedtakUri,
+            errorContext = "SakId: ${meldekortvedtak.sakId}, saksnummer: ${meldekortvedtak.saksnummer}, vedtakId: ${meldekortvedtak.id}",
+            uri = meldekortvedtakUri,
         )
     }
 

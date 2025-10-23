@@ -9,21 +9,13 @@ import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
-import java.time.LocalDateTime
-
-/** Abn: kanskje [MeldeperiodeBeregning] kunne holde på iverksatt tidspunkt selv? */
-private typealias BeregningMedIverksattTidspunkt = Pair<MeldeperiodeBeregning, LocalDateTime>
 
 /**
  *  Denne skal kun omfatte beregninger som er en del av et vedtak
  * */
 data class MeldeperiodeBeregningerVedtatt private constructor(
-    private val meldeperiodeBeregningerMedTidspunkt: List<BeregningMedIverksattTidspunkt>,
+    private val meldeperiodeBeregninger: List<MeldeperiodeBeregning>,
 ) {
-
-    private val meldeperiodeBeregninger: List<MeldeperiodeBeregning> by lazy {
-        meldeperiodeBeregningerMedTidspunkt.sortedBy { it.second }.map { it.first }
-    }
 
     val beregningerPerKjede: Map<MeldeperiodeKjedeId, NonEmptyList<MeldeperiodeBeregning>> by lazy {
         meldeperiodeBeregninger
@@ -42,7 +34,8 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
     /**
      *  Henter siste beregning før [beregningId] på [kjedeId]
      *
-     *  @return [ForrigeBeregningFinnesIkke.IngenTidligereBeregninger] dersom beregningen til [beregningId] er første beregning på kjeden.
+     *  @return
+     *  [ForrigeBeregningFinnesIkke.IngenTidligereBeregninger] dersom beregningen til [beregningId] er første beregning på kjeden.
      *  [ForrigeBeregningFinnesIkke.BeregningFinnesIkke] dersom beregningen til [beregningId] ikke finnes på kjeden
      * */
     fun hentForrigeBeregning(
@@ -52,18 +45,17 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
         val beregningerForKjede =
             beregningerPerKjede[kjedeId] ?: return ForrigeBeregningFinnesIkke.IngenBeregningerForKjede.left()
 
-        // Finnes ingen forrige beregning hvis dette er den første på kjeden
-        if (beregningerForKjede.first().id == beregningId) {
+        val beregningIndex = beregningerForKjede.indexOfFirst { it.id == beregningId }
+
+        if (beregningIndex == -1) {
+            return ForrigeBeregningFinnesIkke.BeregningFinnesIkke.left()
+        }
+
+        if (beregningIndex == 0) {
             return ForrigeBeregningFinnesIkke.IngenTidligereBeregninger.left()
         }
 
-        return beregningerForKjede.takeWhile { it.id != beregningId }.let {
-            if (it.isEmpty()) {
-                ForrigeBeregningFinnesIkke.BeregningFinnesIkke.left()
-            } else {
-                it.last().right()
-            }
-        }
+        return beregningerForKjede[beregningIndex - 1].right()
     }
 
     fun sisteBeregningerForPeriode(periode: Periode): List<MeldeperiodeBeregning> {
@@ -81,9 +73,9 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
 
         fun fraVedtaksliste(vedtaksliste: Vedtaksliste): MeldeperiodeBeregningerVedtatt {
             return MeldeperiodeBeregningerVedtatt(
-                vedtaksliste.flatMap { vedtak ->
-                    vedtak.beregning?.beregninger?.map { it to vedtak.opprettet } ?: emptyList()
-                },
+                vedtaksliste
+                    .sortedBy { it.opprettet }
+                    .flatMap { it.beregning?.beregninger ?: emptyList() },
             )
         }
     }
