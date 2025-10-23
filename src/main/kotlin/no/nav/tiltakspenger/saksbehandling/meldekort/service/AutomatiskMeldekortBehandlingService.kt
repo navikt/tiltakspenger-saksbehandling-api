@@ -13,8 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettAutomatiskMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
@@ -73,7 +73,7 @@ class AutomatiskMeldekortBehandlingService(
                     opprettOppgaveForAdressebeskyttetBruker(sak.fnr, meldekort.journalpostId)
                     brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                         meldekort.id,
-                        BrukersMeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
+                        MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
                         false,
                     )
                 }
@@ -86,11 +86,11 @@ class AutomatiskMeldekortBehandlingService(
     private suspend fun opprettMeldekortBehandling(
         meldekort: BrukersMeldekort,
         sak: Sak,
-    ): Either<BrukersMeldekortBehandletAutomatiskStatus, MeldekortBehandletAutomatisk> {
+    ): Either<MeldekortBehandletAutomatiskStatus, MeldekortBehandletAutomatisk> {
         val meldekortId = meldekort.id
 
         if (sak.revurderinger.harÅpenRevurdering()) {
-            return BrukersMeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING.left()
+            return MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING.left()
         }
 
         val navkontor = Either.catch {
@@ -100,7 +100,7 @@ class AutomatiskMeldekortBehandlingService(
                 logger.error(it) { this }
                 Sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
             }
-            return BrukersMeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET.left()
+            return MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET.left()
         }
 
         val (meldekortBehandling, simulering) = sak.opprettAutomatiskMeldekortBehandling(
@@ -128,14 +128,14 @@ class AutomatiskMeldekortBehandlingService(
             sak.leggTilMeldekortbehandling(meldekortBehandling)
         }.onLeft {
             logger.error(it) { "Automatisk behandling av brukers meldekort $meldekortId kunne ikke legges til sak ${sak.id}" }
-            return BrukersMeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK.left()
+            return MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK.left()
         }
 
         Either.catch {
             sak.leggTilMeldekortvedtak(meldekortvedtak)
         }.onLeft {
             logger.error(it) { "Vedtak for automatisk behandling av brukers meldekort $meldekortId kunne ikke legges til sak ${sak.id}" }
-            return BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK.left()
+            return MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK.left()
         }
 
         sessionFactory.withTransactionContext { tx ->
@@ -143,7 +143,7 @@ class AutomatiskMeldekortBehandlingService(
             meldekortvedtakRepo.lagre(meldekortvedtak, tx)
             brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                 meldekortId = meldekortId,
-                status = BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET,
+                status = MeldekortBehandletAutomatiskStatus.BEHANDLET,
                 behandlesAutomatisk = true,
                 tx,
             )

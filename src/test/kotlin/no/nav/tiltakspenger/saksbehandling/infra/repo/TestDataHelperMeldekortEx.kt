@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
@@ -45,6 +46,13 @@ internal fun TestDataHelper.persisterBrukersMeldekort(
             clock = clock,
         ).first
     },
+    behandlesAutomatisk: Boolean = false,
+    behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus =
+        if (behandlesAutomatisk) {
+            MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING
+        } else {
+            MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
+        },
 ): Pair<Sak, BrukersMeldekort> {
     val generertSak = genererSak(sak)
 
@@ -55,8 +63,8 @@ internal fun TestDataHelper.persisterBrukersMeldekort(
         mottatt = LocalDateTime.now(clock),
         sakId = generertSak.id,
         meldeperiode = valgtMeldeperiode,
-        behandlesAutomatisk = false,
-        behandletAutomatiskStatus = null,
+        behandlesAutomatisk = behandlesAutomatisk,
+        behandletAutomatiskStatus = behandletAutomatiskStatus,
     )
 
     this.meldekortBrukerRepo.lagre(

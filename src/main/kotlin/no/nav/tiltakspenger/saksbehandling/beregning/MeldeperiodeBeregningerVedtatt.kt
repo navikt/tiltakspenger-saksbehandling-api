@@ -35,8 +35,9 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
      *  Henter siste beregning før [beregningId] på [kjedeId]
      *
      *  @return
+     *  [ForrigeBeregningFinnesIkke.IngenBeregningerForKjede] dersom kjeden til [kjedeId] ikke har noen beregninger.
      *  [ForrigeBeregningFinnesIkke.IngenTidligereBeregninger] dersom beregningen til [beregningId] er første beregning på kjeden.
-     *  [ForrigeBeregningFinnesIkke.BeregningFinnesIkke] dersom beregningen til [beregningId] ikke finnes på kjeden
+     *  [ForrigeBeregningFinnesIkke.BeregningFinnesIkke] dersom beregningen til [beregningId] ikke finnes på kjeden.
      * */
     fun hentForrigeBeregning(
         beregningId: BeregningId,

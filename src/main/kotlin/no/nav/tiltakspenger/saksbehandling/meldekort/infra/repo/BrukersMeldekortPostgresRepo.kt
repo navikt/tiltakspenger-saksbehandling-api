@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 
@@ -60,7 +60,7 @@ class BrukersMeldekortPostgresRepo(
                     "journalpost_id" to brukersMeldekort.journalpostId.toString(),
                     "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
                     "behandles_automatisk" to brukersMeldekort.behandlesAutomatisk,
-                    "behandlet_automatisk_status" to brukersMeldekort.behandletAutomatiskStatus?.tilDb(),
+                    "behandlet_automatisk_status" to brukersMeldekort.behandletAutomatiskStatus.tilDb(),
                 ).asUpdate,
             )
         }
@@ -114,7 +114,7 @@ class BrukersMeldekortPostgresRepo(
                     order by mk.sak_id, mp.fra_og_med
                     limit 100
                     """,
-                    "erBehandletStatus" to BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET.tilDb(),
+                    "erBehandletStatus" to MeldekortBehandletAutomatiskStatus.BEHANDLET.tilDb(),
                 ).map { row -> fromRow(row, session) }.asList,
             )
         }
@@ -122,7 +122,7 @@ class BrukersMeldekortPostgresRepo(
 
     override fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
-        status: BrukersMeldekortBehandletAutomatiskStatus,
+        status: MeldekortBehandletAutomatiskStatus,
         behandlesAutomatisk: Boolean,
         sessionContext: SessionContext?,
     ) {
@@ -226,8 +226,8 @@ class BrukersMeldekortPostgresRepo(
                 journalpostId = JournalpostId(row.string("journalpost_id")),
                 oppgaveId = row.stringOrNull("oppgave_id")?.let { OppgaveId(it) },
                 behandlesAutomatisk = row.boolean("behandles_automatisk"),
-                behandletAutomatiskStatus = row.stringOrNull("behandlet_automatisk_status")
-                    ?.tilMeldekortBehandletAutomatiskStatus(),
+                behandletAutomatiskStatus = row.string("behandlet_automatisk_status")
+                    .tilMeldekortBehandletAutomatiskStatus(),
             )
         }
     }

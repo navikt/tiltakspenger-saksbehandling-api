@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
-enum class BrukersMeldekortBehandletAutomatiskStatus {
+enum class MeldekortBehandletAutomatiskStatus {
+    VENTER_BEHANDLING,
     BEHANDLET,
     UKJENT_FEIL,
     HENTE_NAVKONTOR_FEILET,

@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 
 interface BrukersMeldekortRepo {
     fun lagre(
@@ -41,7 +41,7 @@ interface BrukersMeldekortRepo {
 
     fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
-        status: BrukersMeldekortBehandletAutomatiskStatus,
+        status: MeldekortBehandletAutomatiskStatus,
         behandlesAutomatisk: Boolean,
         sessionContext: SessionContext? = null,
     )

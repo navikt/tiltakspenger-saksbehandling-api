@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
-import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
@@ -30,7 +29,8 @@ data class LagreBrukersMeldekortKommando(
 
     fun tilBrukersMeldekort(
         meldeperiode: Meldeperiode,
-        behandlesAutomatisk: Either<BrukersMeldekortBehandletAutomatiskStatus, Unit>,
+        behandlesAutomatisk: Boolean,
+        behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus,
     ): BrukersMeldekort {
         require(meldeperiode.id == meldeperiodeId) {
             "Meldeperioden må matche meldekortets meldeperiodeId - Forventet ${meldeperiode.id} - fikk $meldeperiodeId"
@@ -44,8 +44,8 @@ data class LagreBrukersMeldekortKommando(
             dager = dager,
             journalpostId = journalpostId,
             oppgaveId = null,
-            behandlesAutomatisk = behandlesAutomatisk.isRight(),
-            behandletAutomatiskStatus = behandlesAutomatisk.leftOrNull(),
+            behandlesAutomatisk = behandlesAutomatisk,
+            behandletAutomatiskStatus = behandletAutomatiskStatus,
         )
     }
 

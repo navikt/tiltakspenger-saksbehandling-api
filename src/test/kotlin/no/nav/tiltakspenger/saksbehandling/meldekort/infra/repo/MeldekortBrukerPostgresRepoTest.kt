@@ -1,8 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
@@ -11,7 +8,7 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
@@ -20,14 +17,15 @@ import java.time.temporal.ChronoUnit
 class MeldekortBrukerPostgresRepoTest {
     private fun lagBrukersMeldekort(
         meldeperiode: Meldeperiode,
-        behandlesAutomatisk: Either<BrukersMeldekortBehandletAutomatiskStatus, Unit>,
+        behandlesAutomatisk: Boolean,
+        behandlesAutomatiskStatus: MeldekortBehandletAutomatiskStatus,
     ): BrukersMeldekort {
         return ObjectMother.lagreBrukersMeldekortKommando(
             meldeperiodeId = meldeperiode.id,
             mottatt = meldeperiode.opprettet.plus(1, ChronoUnit.MILLIS),
             sakId = meldeperiode.sakId,
             periode = meldeperiode.periode,
-        ).tilBrukersMeldekort(meldeperiode, behandlesAutomatisk)
+        ).tilBrukersMeldekort(meldeperiode, behandlesAutomatisk, behandlesAutomatiskStatus)
     }
 
     @Test
@@ -40,8 +38,11 @@ class MeldekortBrukerPostgresRepoTest {
             val meldeperiode = sak.meldeperiodeKjeder.first().first()
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
 
-            val nyttBrukersMeldekort =
-                lagBrukersMeldekort(meldeperiode, BrukersMeldekortBehandletAutomatiskStatus.UKJENT_FEIL.left())
+            val nyttBrukersMeldekort = lagBrukersMeldekort(
+                meldeperiode,
+                false,
+                MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK,
+            )
 
             meldekortBrukerRepo.lagre(nyttBrukersMeldekort)
 
@@ -55,7 +56,7 @@ class MeldekortBrukerPostgresRepoTest {
                     journalpostId = nyttBrukersMeldekort.journalpostId,
                     oppgaveId = nyttBrukersMeldekort.oppgaveId,
                     behandlesAutomatisk = false,
-                    behandletAutomatiskStatus = BrukersMeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
+                    behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK,
                 ),
             )
         }
@@ -77,15 +78,27 @@ class MeldekortBrukerPostgresRepoTest {
             )
 
             val sak1meldeperiode1 = sak1.meldeperiodeKjeder[0].first()
-            val sak1brukersMeldekort1 = lagBrukersMeldekort(sak1meldeperiode1, Unit.right())
+            val sak1brukersMeldekort1 = lagBrukersMeldekort(
+                sak1meldeperiode1,
+                true,
+                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            )
             meldekortBrukerRepo.lagre(sak1brukersMeldekort1)
 
             val sak1meldeperiode2 = sak1.meldeperiodeKjeder[1].first()
-            val sak1brukersMeldekort2 = lagBrukersMeldekort(sak1meldeperiode2, Unit.right())
+            val sak1brukersMeldekort2 = lagBrukersMeldekort(
+                sak1meldeperiode2,
+                true,
+                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            )
             meldekortBrukerRepo.lagre(sak1brukersMeldekort2)
 
             val sak2meldeperiode1 = sak2.meldeperiodeKjeder[0].first()
-            val sak2brukersMeldekort1 = lagBrukersMeldekort(sak2meldeperiode1, Unit.right())
+            val sak2brukersMeldekort1 = lagBrukersMeldekort(
+                sak2meldeperiode1,
+                true,
+                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            )
             meldekortBrukerRepo.lagre(sak2brukersMeldekort1)
 
             meldekortBrukerRepo.hentMeldekortSomSkalBehandlesAutomatisk() shouldBe listOf(
@@ -105,11 +118,19 @@ class MeldekortBrukerPostgresRepoTest {
                 deltakelseTom = 31.mars(2024),
             )
 
-            val meldekort1 = lagBrukersMeldekort(sak.meldeperiodeKjeder[0].first(), Unit.right())
-                .copy(behandletAutomatiskStatus = BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET)
+            val meldekort1 = lagBrukersMeldekort(
+                sak.meldeperiodeKjeder[0].first(),
+                true,
+                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            )
+                .copy(behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.BEHANDLET)
             meldekortBrukerRepo.lagre(meldekort1)
 
-            val meldekort2 = lagBrukersMeldekort(sak.meldeperiodeKjeder[1].first(), Unit.right())
+            val meldekort2 = lagBrukersMeldekort(
+                sak.meldeperiodeKjeder[1].first(),
+                true,
+                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            )
             meldekortBrukerRepo.lagre(meldekort2)
 
             meldekortBrukerRepo.hentMeldekortSomSkalBehandlesAutomatisk() shouldBe listOf(meldekort2)

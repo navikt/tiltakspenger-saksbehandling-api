@@ -6,8 +6,8 @@ import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
@@ -33,9 +33,15 @@ class MottaBrukerutfyltMeldekortService(
 
         val sak = sakService.hentForSakId(sakId)
 
+        val kanBehandlesAutomatisk = sak.kanBehandlesAutomatisk(kommando, meldeperiode)
+
         val nyttMeldekort = kommando.tilBrukersMeldekort(
             meldeperiode,
-            sak.kanBehandlesAutomatisk(kommando, meldeperiode),
+            behandlesAutomatisk = kanBehandlesAutomatisk.isRight(),
+            behandletAutomatiskStatus = kanBehandlesAutomatisk.fold(
+                ifLeft = { it },
+                ifRight = { MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING },
+            ),
         )
 
         Either.catch {
@@ -70,18 +76,18 @@ class MottaBrukerutfyltMeldekortService(
     private fun Sak.kanBehandlesAutomatisk(
         kommando: LagreBrukersMeldekortKommando,
         meldeperiode: Meldeperiode,
-    ): Either<BrukersMeldekortBehandletAutomatiskStatus, Unit> {
+    ): Either<MeldekortBehandletAutomatiskStatus, Unit> {
         val antallDagerMedRegistrering = kommando.antallDagerRegistrert
         val maksDagerMedRegistrering = meldeperiode.maksAntallDagerForMeldeperiode
 
         if (antallDagerMedRegistrering > maksDagerMedRegistrering) {
             logger.error { "Brukers meldekort ${kommando.id} har for mange dager registrert ($antallDagerMedRegistrering) - maks $maksDagerMedRegistrering" }
-            return BrukersMeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT.left()
+            return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT.left()
         }
 
         if (kommando.harRegistrertHelg() && !this.kanSendeInnHelgForMeldekort) {
             logger.error { "Brukers meldekort ${kommando.id} har registret helgedager, men saken tillater ikke helg på meldekort" }
-            return BrukersMeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG.left()
+            return MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG.left()
         }
 
         val kjedeId = meldeperiode.kjedeId
@@ -94,7 +100,7 @@ class MottaBrukerutfyltMeldekortService(
          * */
         if (brukersMeldekortRepo.hentForKjedeId(kjedeId, sakId).isNotEmpty()) {
             logger.info { "Finnes allerede et meldekort for kjede $kjedeId på sak $sakId - behandler ikke meldekortet automatisk ${kommando.id} (antatt korrigering)" }
-            return BrukersMeldekortBehandletAutomatiskStatus.ER_KORRIGERING.left()
+            return MeldekortBehandletAutomatiskStatus.ER_KORRIGERING.left()
         }
 
         return Unit.right()

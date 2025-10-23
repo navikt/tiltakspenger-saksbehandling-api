@@ -47,10 +47,10 @@ import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
@@ -747,7 +747,12 @@ interface MeldekortMother : MotherOfAllMothers {
             )
         },
         behandlesAutomatisk: Boolean = false,
-        behandletAutomatiskStatus: BrukersMeldekortBehandletAutomatiskStatus? = null,
+        behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus =
+            if (behandlesAutomatisk) {
+                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING
+            } else {
+                MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
+            },
     ): BrukersMeldekort {
         return BrukersMeldekort(
             id = id,
