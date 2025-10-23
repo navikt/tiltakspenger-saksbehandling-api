@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus.Deltar
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde.Komet
 import java.time.LocalDate
@@ -112,6 +113,38 @@ interface TiltakMother {
             deltakelseTom = søknadTilOgMed,
             typeKode = typeKode.name,
             typeNavn = typeNavn,
+        )
+    }
+
+    fun tiltaksdeltagelseMedArrangørnavn(
+        eksternTiltaksdeltakelseId: String = UUID.randomUUID().toString(),
+        typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+        typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
+        eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
+        arrangørnavn: String? = "Testarrangør med geolokaliserende navn",
+        fom: LocalDate = 1.januar(2023),
+        tom: LocalDate = 31.mars(2023),
+        status: TiltakDeltakerstatus = Deltar,
+        dagerPrUke: Float? = 5F,
+        prosent: Float? = 100F,
+        rettPåTiltakspenger: Boolean = true,
+        kilde: Tiltakskilde = Komet,
+        harAdressebeskyttelse: Boolean = false,
+    ): TiltaksdeltakelseMedArrangørnavn {
+        return TiltaksdeltakelseMedArrangørnavn(
+            eksternDeltakelseId = eksternTiltaksdeltakelseId,
+            gjennomføringId = eksternTiltaksgjennomføringsId,
+            typeKode = typeKode,
+            typeNavn = typeNavn,
+            arrangørnavnFørSensur = arrangørnavn,
+            rettPåTiltakspenger = rettPåTiltakspenger,
+            deltakelseFraOgMed = fom,
+            deltakelseTilOgMed = tom,
+            deltakelseStatus = status,
+            deltakelseProsent = prosent,
+            kilde = kilde,
+            antallDagerPerUke = dagerPrUke,
+            harAdressebeskyttelse = harAdressebeskyttelse,
         )
     }
 }
