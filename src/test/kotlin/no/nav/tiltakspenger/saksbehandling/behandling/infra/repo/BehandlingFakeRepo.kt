@@ -63,7 +63,7 @@ class BehandlingFakeRepo : BehandlingRepo {
 
     override fun hentAlleAutomatiskeSoknadsbehandlinger(limit: Int): List<Søknadsbehandling> {
         return data.get().values.filter {
-            it.status == Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+            it.erUnderAutomatiskBehandling
         }.filterIsInstance<Søknadsbehandling>()
     }
 

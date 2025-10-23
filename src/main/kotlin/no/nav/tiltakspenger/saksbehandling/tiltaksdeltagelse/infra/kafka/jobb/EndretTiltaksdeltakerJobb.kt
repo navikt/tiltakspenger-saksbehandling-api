@@ -4,17 +4,23 @@ import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import java.time.Clock
 import java.time.LocalDateTime
 
 class EndretTiltaksdeltakerJobb(
     private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
     private val sakRepo: SakRepo,
     private val oppgaveKlient: OppgaveKlient,
+    private val behandlingRepo: BehandlingRepo,
+    private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -25,42 +31,46 @@ class EndretTiltaksdeltakerJobb(
             )
 
             endredeDeltakere.forEach { deltaker ->
-                val deltagelseId = deltaker.id
+                val deltakerId = deltaker.id
                 val sakId = deltaker.sakId
 
                 Either.catch {
                     val sak = sakRepo.hentForSakId(sakId)!!
-                    val nyesteIverksatteBehandling = finnNyesteIverksatteBehandlingForDeltakelse(sak, deltagelseId)
-                    if (nyesteIverksatteBehandling == null) {
-                        log.info { "Fant ingen iverksatt behandling for sakId $sakId og ekstern deltakerId $deltagelseId, sletter deltakerinnslag" }
-                        tiltaksdeltakerKafkaRepository.slett(deltagelseId)
+                    val apneBehandlingerForDeltakelse = finnApneBehandlingerForDeltakelse(sak, deltakerId)
+                    val automatiskeBehandlingerPaVent = apneBehandlingerForDeltakelse.filter { it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
+
+                    behandleAutomatiskeBehandlingerPaVentPaNytt(automatiskeBehandlingerPaVent, deltakerId)
+
+                    val apneManuelleBehandlinger = apneBehandlingerForDeltakelse.filter { !it.erUnderAutomatiskBehandling }
+                    val nyesteIverksatteBehandling = finnNyesteIverksatteBehandlingForDeltakelse(sak, deltakerId)
+
+                    if (nyesteIverksatteBehandling == null && apneManuelleBehandlinger.isEmpty()) {
+                        log.info { "Fant ingen åpen manuell behandling eller iverksatt behandling for sakId $sakId og ekstern deltakerId $deltakerId, sletter deltakerinnslag" }
+                        tiltaksdeltakerKafkaRepository.slett(deltakerId)
                         return@forEach
                     }
-                    log.info { "Fant behandling ${nyesteIverksatteBehandling.id} for sakId $sakId og deltakerId $deltagelseId" }
 
-                    val tiltaksdeltakelseFraBehandling = nyesteIverksatteBehandling.getTiltaksdeltagelse(deltagelseId)
-                        ?: throw IllegalStateException("Fant ikke deltaker med id $deltagelseId på behandling ${nyesteIverksatteBehandling.id}, skal ikke kunne skje")
-                    val endringer = deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)
+                    val endringer = finnEndringer(apneManuelleBehandlinger, nyesteIverksatteBehandling, deltaker)
                     if (endringer.isNotEmpty()) {
-                        log.info { "Tiltaksdeltakelse $deltagelseId er endret, oppretter oppgave" }
+                        log.info { "Tiltaksdeltakelse $deltakerId er endret, oppretter oppgave" }
                         val oppgaveId =
                             oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                                 sak.fnr,
                                 Oppgavebehov.ENDRET_TILTAKDELTAKER,
                                 endringer.getOppgaveTilleggstekst(),
                             )
-                        tiltaksdeltakerKafkaRepository.lagreOppgaveId(deltagelseId, oppgaveId)
-                        log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $deltagelseId" }
+                        tiltaksdeltakerKafkaRepository.lagreOppgaveId(deltakerId, oppgaveId)
+                        log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $deltakerId" }
                     } else {
-                        log.info { "Tiltaksdeltakelse $deltagelseId er ikke endret, sletter innslag" }
-                        tiltaksdeltakerKafkaRepository.slett(deltagelseId)
+                        log.info { "Tiltaksdeltakelse $deltakerId er ikke endret, sletter innslag" }
+                        tiltaksdeltakerKafkaRepository.slett(deltakerId)
                     }
                 }.onLeft {
-                    log.error(it) { "Feil ved opprettelse av oppgave for endret tiltaksdeltagelse (deltagelseId $deltagelseId - sakId $sakId" }
+                    log.error(it) { "Feil ved opprettelse av oppgave for endret tiltaksdeltakelse (deltakelseId $deltakerId - sakId $sakId" }
                 }
             }
         }.onLeft {
-            log.error(it) { "Feil ved opprettelse av oppgaver for endret tiltaksdeltagelse" }
+            log.error(it) { "Feil ved opprettelse av oppgaver for endret tiltaksdeltakelse" }
         }
     }
 
@@ -69,27 +79,31 @@ class EndretTiltaksdeltakerJobb(
             val deltakereMedOppgave = tiltaksdeltakerKafkaRepository.hentAlleMedOppgave()
 
             deltakereMedOppgave.forEach {
-                val deltagelseId = it.id
+                val deltakerId = it.id
                 val oppgaveId = it.oppgaveId
 
                 Either.catch {
                     if (oppgaveId != null) {
                         val ferdigstilt = oppgaveKlient.erFerdigstilt(oppgaveId)
                         if (ferdigstilt) {
-                            log.info { "Oppgave med id $oppgaveId er ferdigstilt, sletter innslag for tiltaksdeltakelse $deltagelseId" }
-                            tiltaksdeltakerKafkaRepository.slett(deltagelseId)
+                            log.info { "Oppgave med id $oppgaveId er ferdigstilt, sletter innslag for tiltaksdeltakelse $deltakerId" }
+                            tiltaksdeltakerKafkaRepository.slett(deltakerId)
                         } else {
-                            log.info { "Oppgave med id $oppgaveId er ikke ferdigstilt, oppdaterer sist sjekket for tiltaksdeltakelse $deltagelseId" }
-                            tiltaksdeltakerKafkaRepository.oppdaterOppgaveSistSjekket(deltagelseId)
+                            log.info { "Oppgave med id $oppgaveId er ikke ferdigstilt, oppdaterer sist sjekket for tiltaksdeltakelse $deltakerId" }
+                            tiltaksdeltakerKafkaRepository.oppdaterOppgaveSistSjekket(deltakerId)
                         }
                     }
                 }.onLeft {
-                    log.error(it) { "Feil ved opprydning av oppgave for tiltaksdeltagelse (deltagelseId $deltagelseId - oppgaveId $oppgaveId)" }
+                    log.error(it) { "Feil ved opprydning av oppgave for tiltaksdeltakelse (deltakerId $deltakerId - oppgaveId $oppgaveId)" }
                 }
             }
         }.onLeft {
-            log.error(it) { "Feil ved opprydning av oppgaver for tiltaksdeltagelse" }
+            log.error(it) { "Feil ved opprydning av oppgaver for tiltaksdeltakelse" }
         }
+    }
+
+    private fun finnApneBehandlingerForDeltakelse(sak: Sak, tiltaksdeltakerId: String): List<Søknadsbehandling> {
+        return sak.apneSoknadsbehandlinger.filter { it.søknad.tiltak?.id == tiltaksdeltakerId }
     }
 
     private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: String): Rammebehandling? {
@@ -98,5 +112,47 @@ class EndretTiltaksdeltakerJobb(
             .map { it.verdi.behandling }
 
         return iverksatteBehandlingerForDeltakelse.verdier.maxByOrNull { it.iverksattTidspunkt!! }
+    }
+
+    private fun behandleAutomatiskeBehandlingerPaVentPaNytt(
+        automatiskeBehandlingerPaVent: List<Søknadsbehandling>,
+        tiltaksdeltakerId: String,
+    ) {
+        automatiskeBehandlingerPaVent.forEach {
+            it.oppdaterVenterTil(
+                nyVenterTil = LocalDateTime.now().plusMinutes(15), // venter i 15 minutter i tilfelle det kommer flere endringer
+                clock = clock,
+            ).let {
+                behandlingRepo.lagre(it)
+            }
+            log.info { "Har oppdatert venterTil for automatisk behandling med id ${it.id} pga endring på deltaker med id $tiltaksdeltakerId" }
+        }
+    }
+
+    private fun finnEndringer(
+        apneManuelleBehandlinger: List<Søknadsbehandling>,
+        nyesteIverksatteBehandling: Rammebehandling?,
+        deltaker: TiltaksdeltakerKafkaDb,
+    ): List<TiltaksdeltakerEndring> {
+        val tidligstEndredeApneBehandling = apneManuelleBehandlinger.minByOrNull { it.sistEndret }
+
+        return if (nyesteIverksatteBehandling != null) {
+            finnEndringerForBehandling(nyesteIverksatteBehandling, deltaker)
+        } else if (tidligstEndredeApneBehandling != null) {
+            finnEndringerForBehandling(tidligstEndredeApneBehandling, deltaker)
+        } else {
+            throw IllegalStateException("Skal ikke komme hit hvis det ikke finnes åpne eller iverksatte behandlinger")
+        }
+    }
+
+    private fun finnEndringerForBehandling(
+        behandling: Rammebehandling,
+        deltaker: TiltaksdeltakerKafkaDb,
+    ): List<TiltaksdeltakerEndring> {
+        log.info { "Fant behandling ${behandling.id} for sakId ${behandling.sakId} og deltakerId ${deltaker.id}" }
+
+        val tiltaksdeltakelseFraBehandling = behandling.getTiltaksdeltagelse(deltaker.id)
+            ?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id} på behandling ${behandling.id}, skal ikke kunne skje")
+        return deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)
     }
 }

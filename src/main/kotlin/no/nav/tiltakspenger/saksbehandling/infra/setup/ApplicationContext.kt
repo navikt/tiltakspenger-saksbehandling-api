@@ -140,6 +140,8 @@ open class ApplicationContext(
             tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
             sakRepo = sakContext.sakRepo,
             oppgaveKlient = oppgaveKlient,
+            behandlingRepo = behandlingContext.behandlingRepo,
+            clock = clock,
         )
     }
 
