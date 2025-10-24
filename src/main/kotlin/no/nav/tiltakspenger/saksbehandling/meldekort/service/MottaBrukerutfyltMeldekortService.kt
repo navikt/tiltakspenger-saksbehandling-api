@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import kotlin.math.max
 
 class MottaBrukerutfyltMeldekortService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
@@ -106,17 +105,11 @@ class MottaBrukerutfyltMeldekortService(
             return MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG.left()
         }
 
-        // first er teller for dager i nåværende sammenhengende periode, second er hittil lengste periode
-        val antallDagerSammenhengendeGodkjentFravær = kommando.dager.fold(Pair(0, 0)) { acc, dag ->
-            if (dag.status == InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV) {
-                val nyTeller = acc.first + 1
-                nyTeller to max(nyTeller, acc.second)
-            } else {
-                0 to acc.second
-            }
-        }.second
+        val harForMangeDagerSammenhengendeGodkjentFravær = kommando.dager
+            .windowed(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER + 1)
+            .any { forMangeDager -> forMangeDager.all { it.status == InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV } }
 
-        if (antallDagerSammenhengendeGodkjentFravær >= MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER) {
+        if (harForMangeDagerSammenhengendeGodkjentFravær) {
             return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR.left()
         }
 

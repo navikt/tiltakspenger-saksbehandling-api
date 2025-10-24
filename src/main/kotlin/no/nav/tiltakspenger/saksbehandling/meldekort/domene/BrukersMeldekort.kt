@@ -78,7 +78,7 @@ data class BrukersMeldekort(
          *  Maks antall dager med sammenhengende godkjent fravær for automatisk behandling.
          *  Dersom antallet er høyere, skal meldekortet sendes til manuell behandling for kontroll.
          *  */
-        const val MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER = 3
+        const val MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER = 2
     }
 
     fun tilMeldekortDager(): MeldekortDager {
