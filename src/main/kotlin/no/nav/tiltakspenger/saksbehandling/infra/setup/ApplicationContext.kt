@@ -42,13 +42,13 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.Personhen
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.setup.TiltaksdeltagelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClient
@@ -249,7 +249,13 @@ open class ApplicationContext(
         )
     }
 
-    open val tiltakContext by lazy { TiltaksdeltagelseContext(texasClient) }
+    open val tiltakContext: TiltaksdeltagelseContext by lazy {
+        TiltaksdeltagelseContext(
+            texasClient = texasClient,
+            personService = personContext.personService,
+            sakService = sakContext.sakService,
+        )
+    }
     open val profile by lazy { Configuration.applicationProfile() }
     open val sakContext by lazy {
         SakContext(

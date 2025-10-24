@@ -5,12 +5,13 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toTiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 
 class TiltaksdeltagelseFakeKlient(
@@ -24,6 +25,14 @@ class TiltaksdeltagelseFakeKlient(
         correlationId: CorrelationId,
     ): Tiltaksdeltagelser {
         return data.get()[fnr] ?: hentTiltaksdeltagelseFraSøknad(fnr)
+    }
+
+    override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
+        fnr: Fnr,
+        harAdressebeskyttelse: Boolean,
+        correlationId: CorrelationId,
+    ): List<TiltaksdeltakelseMedArrangørnavn> {
+        return listOf(ObjectMother.tiltaksdeltagelseMedArrangørnavn())
     }
 
     fun lagre(

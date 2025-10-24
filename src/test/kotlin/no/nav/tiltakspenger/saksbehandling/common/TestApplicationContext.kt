@@ -45,8 +45,8 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadFa
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.setup.TiltaksdeltagelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
@@ -179,7 +179,11 @@ class TestApplicationContext(
     }
 
     override val tiltakContext by lazy {
-        object : TiltaksdeltagelseContext(texasClient) {
+        object : TiltaksdeltagelseContext(
+            texasClient = texasClient,
+            sakService = sakContext.sakService,
+            personService = personContext.personService,
+        ) {
             override val tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient
         }
     }
