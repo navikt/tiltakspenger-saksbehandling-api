@@ -293,3 +293,28 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
         sakRepo.hentForSakId(sakMedRevurdering.id)!! to it as Revurdering
     }
 }
+
+internal fun TestDataHelper.persisterOpprettetOmgjøring(
+    genererSak: Triple<Sak, Rammevedtak, Rammebehandling> = { this.persisterIverksattSøknadsbehandling() }(),
+    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> genererSak.second.behandling.saksopplysninger!! },
+    clock: Clock = this.clock,
+): Pair<Sak, Revurdering> {
+    val (sakMedVedtak, _, _) = genererSak
+
+    return runBlocking {
+        sakMedVedtak.startRevurdering(
+            kommando = StartRevurderingKommando(
+                sakId = sakMedVedtak.id,
+                correlationId = CorrelationId.generate(),
+                saksbehandler = saksbehandler,
+                revurderingType = RevurderingType.OMGJØRING,
+                vedtakIdSomOmgjøres = sakMedVedtak.vedtaksliste.single().id,
+            ),
+            hentSaksopplysninger = hentSaksopplysninger,
+            clock = clock,
+        )
+    }.also {
+        behandlingRepo.lagre(it.second)
+    }
+}

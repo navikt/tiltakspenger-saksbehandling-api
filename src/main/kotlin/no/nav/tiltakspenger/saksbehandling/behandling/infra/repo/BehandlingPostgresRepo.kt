@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserialize
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -794,7 +795,7 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
         "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode?.toDbJson(),
-        "innvilgelsesperiode" to this.innvilgelsesperiode.toDbJson(),
+        "innvilgelsesperiode" to serialize(this.innvilgelsesperiode.toDbJson()),
         "omgjorRammevedtak" to this.omgjørRammevedtak.id.toString(),
     )
 
