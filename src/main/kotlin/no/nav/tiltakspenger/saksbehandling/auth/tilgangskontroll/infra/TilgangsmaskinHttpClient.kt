@@ -27,8 +27,8 @@ class TilgangsmaskinHttpClient(
     baseUrl: String,
     private val scope: String,
     private val texasClient: TexasClient,
-    connectTimeout: Duration = 1.seconds,
-    private val timeout: Duration = 1.seconds,
+    connectTimeout: Duration = 5.seconds,
+    private val timeout: Duration = 10.seconds,
 ) : TilgangsmaskinClient {
     private val client = HttpClient
         .newBuilder()
