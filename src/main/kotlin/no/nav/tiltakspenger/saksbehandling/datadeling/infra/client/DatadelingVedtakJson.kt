@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -19,6 +21,10 @@ private data class DatadelingVedtakJson(
     val saksnummer: String,
     val fom: LocalDate,
     val tom: LocalDate,
+    val virkningsperiode: PeriodeDTO,
+    val innvilgelsesperiode: PeriodeDTO?,
+    val omgjørRammevedtakId: String?,
+    val omgjortAvRammevedtakId: String?,
     val rettighet: String,
     val fnr: String,
     val opprettet: String,
@@ -57,8 +63,13 @@ fun Rammevedtak.toDatadelingJson(): String {
         vedtakId = this.id.toString(),
         sakId = this.sakId.toString(),
         saksnummer = this.saksnummer.verdi,
+        // Kommentar jah: Deprekerer fom og tom (erstattes av virkningsperiode+innvilgelsesperiode).
         fom = periode.fraOgMed,
         tom = periode.tilOgMed,
+        virkningsperiode = periode.toDTO(),
+        innvilgelsesperiode = innvilgelsesperiode?.toDTO(),
+        omgjørRammevedtakId = this.omgjørRammevedtak?.toString(),
+        omgjortAvRammevedtakId = this.omgjortAvRammevedtakId?.toString(),
         rettighet = when (this.vedtakstype) {
             Vedtakstype.INNVILGELSE -> {
                 if (barnetillegg?.harBarnetillegg == true) {

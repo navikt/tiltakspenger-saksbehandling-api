@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
@@ -12,6 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
+/**
+ * Erstattes på sikt av [StartOmgjøringService]
+ */
 class StartRevurderingService(
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
@@ -26,8 +30,8 @@ class StartRevurderingService(
     suspend fun startRevurdering(
         kommando: StartRevurderingKommando,
     ): Pair<Sak, Revurdering> {
-        val (sakId, _, _) = kommando
-        val sak = sakService.hentForSakId(sakId)
+        val (sakId: SakId) = kommando
+        val sak: Sak = sakService.hentForSakId(sakId)
 
         val (oppdatertSak, revurdering) = sak.startRevurdering(
             kommando = kommando,

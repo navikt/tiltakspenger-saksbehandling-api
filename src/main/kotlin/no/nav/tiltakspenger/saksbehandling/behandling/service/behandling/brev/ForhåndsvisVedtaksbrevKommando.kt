@@ -72,7 +72,7 @@ data class ForhåndsvisVedtaksbrevKommando(
                 require(avslagsgrunner == null) { "Kan ikke sende inn avslagsgrunner ved stans" }
                 require(barnetillegg == null) { "Kan ikke sende inn barnetillegg ved stans" }
             }
-            RevurderingType.INNVILGELSE, SøknadsbehandlingType.INNVILGELSE -> {
+            RevurderingType.INNVILGELSE, SøknadsbehandlingType.INNVILGELSE, RevurderingType.OMGJØRING -> {
                 requireNotNull(virkningsperiode)
                 require(avslagsgrunner == null) { "Kan ikke sende inn avslagsgrunner ved innvilgelse" }
                 require(stansFraOgMed == null && stansTilOgMed == null) { "Kan ikke sende inn stansFraOgMed/stansTilOgMed ved innvilgelse" }

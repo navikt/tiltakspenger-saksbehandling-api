@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -25,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.Tiltaks
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import java.time.LocalDateTime
 
 sealed interface BehandlingDTO {
@@ -47,6 +49,8 @@ sealed interface BehandlingDTO {
     val ventestatus: VentestatusHendelseDTO?
     val utbetaling: BehandlingUtbetalingDTO?
     val barnetillegg: BarnetilleggDTO?
+    val rammevedtakId: String?
+    val innvilgelsesperiode: PeriodeDTO?
 }
 
 data class SøknadsbehandlingDTO(
@@ -68,6 +72,8 @@ data class SøknadsbehandlingDTO(
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
     override val barnetillegg: BarnetilleggDTO?,
+    override val rammevedtakId: String?,
+    override val innvilgelsesperiode: PeriodeDTO?,
     val søknad: SøknadDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
     val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
@@ -97,19 +103,21 @@ data class RevurderingDTO(
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
     override val barnetillegg: BarnetilleggDTO?,
+    override val rammevedtakId: String?,
+    override val innvilgelsesperiode: PeriodeDTO?,
     val valgtHjemmelHarIkkeRettighet: List<String>?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
     val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
     val harValgtStansFraFørsteDagSomGirRett: Boolean?,
     val harValgtStansTilSisteDagSomGirRett: Boolean?,
-
+    val omgjørVedtak: String?,
 ) : BehandlingDTO {
     override val type = BehandlingstypeDTO.REVURDERING
 }
 
 fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): BehandlingDTO {
     val behandling = rammebehandlinger.hentBehandling(behandlingId)
-
+    val rammevedakForBehandling = rammevedtaksliste.finnRammevedtakForBehandling(behandlingId)
     requireNotNull(behandling) {
         "Fant ingen behandling med id $behandlingId"
     }
@@ -118,11 +126,13 @@ fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): BehandlingDTO {
         is Revurdering -> behandling.tilRevurderingDTO(
             utbetalingsstatus = utbetalinger.hentUtbetalingForBehandlingId(behandlingId)?.status,
             beregninger = meldeperiodeBeregninger,
+            rammevedtakId = rammevedakForBehandling?.id?.toString(),
         )
 
         is Søknadsbehandling -> behandling.tilSøknadsbehandlingDTO(
             utbetalingsstatus = utbetalinger.hentUtbetalingForBehandlingId(behandlingId)?.status,
             beregninger = meldeperiodeBeregninger,
+            rammevedtakId = rammevedakForBehandling?.id?.toString(),
         )
     }
 }
@@ -132,6 +142,7 @@ fun Sak.tilBehandlingerDTO(): List<BehandlingDTO> = this.rammebehandlinger.map {
 fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     utbetalingsstatus: Utbetalingsstatus?,
     beregninger: MeldeperiodeBeregningerVedtatt,
+    rammevedtakId: String?,
 ): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
         id = this.id.toString(),
@@ -158,6 +169,8 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
+        rammevedtakId = rammevedtakId,
+        innvilgelsesperiode = this.innvilgelsesperiode?.toDTO(),
     ).let {
         when (resultat) {
             is SøknadsbehandlingResultat.Innvilgelse -> it.copy(
@@ -177,6 +190,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
 fun Revurdering.tilRevurderingDTO(
     utbetalingsstatus: Utbetalingsstatus?,
     beregninger: MeldeperiodeBeregningerVedtatt,
+    rammevedtakId: String?,
 ): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),
@@ -195,29 +209,27 @@ fun Revurdering.tilRevurderingDTO(
         iverksattTidspunkt = this.iverksattTidspunkt,
         resultat = this.resultat.tilBehandlingResultatDTO(),
         valgtHjemmelHarIkkeRettighet = null,
-        valgteTiltaksdeltakelser = null,
-        antallDagerPerMeldeperiode = null,
-        barnetillegg = null,
+        valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.tilDTO(),
+        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode?.toDTO(),
+        barnetillegg = this.barnetillegg?.toBarnetilleggDTO(),
+        omgjørVedtak = null,
+        innvilgelsesperiode = this.innvilgelsesperiode?.toDTO(),
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
         harValgtStansFraFørsteDagSomGirRett = (this.resultat as? RevurderingResultat.Stans)?.let { this.resultat.harValgtStansFraFørsteDagSomGirRett },
         harValgtStansTilSisteDagSomGirRett = (this.resultat as? RevurderingResultat.Stans)?.let { this.resultat.harValgtStansTilSisteDagSomGirRett },
+        rammevedtakId = rammevedtakId,
     ).let {
         when (resultat) {
+            is RevurderingResultat.Omgjøring -> it.copy(
+                omgjørVedtak = resultat.omgjørRammevedtak.id.toString(),
+            )
+
             is RevurderingResultat.Stans -> it.copy(
                 valgtHjemmelHarIkkeRettighet = resultat.valgtHjemmel.toDTO(this.behandlingstype),
             )
 
-            is RevurderingResultat.Innvilgelse -> it.copy(
-                antallDagerPerMeldeperiode = resultat.antallDagerPerMeldeperiode?.perioderMedVerdi?.map {
-                    AntallDagerPerMeldeperiodeDTO(
-                        antallDagerPerMeldeperiode = it.verdi.value,
-                        periode = it.periode.toDTO(),
-                    )
-                },
-                barnetillegg = resultat.barnetillegg?.toBarnetilleggDTO(),
-                valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser?.tilDTO(),
-            )
+            is RevurderingResultat.Innvilgelse -> it
         }
     }
 }

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.VedtakStatistikkResultat.Companion.toVedtakStatistikkResultat
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -39,9 +40,15 @@ fun genererStønadsstatistikkForRammevedtak(
         // vår sak har ikke resultat, så bruker vedtak sin resultat
         resultat = vedtak.vedtakstype.toVedtakStatistikkResultat(),
         sakDato = vedtak.saksnummer.dato,
+        vedtakFom = vedtak.periode.fraOgMed,
+        vedtakTom = vedtak.periode.tilOgMed,
         // sak har ikke periode lengre, så bruker vedtak sin periode
         sakFraDato = vedtak.periode.fraOgMed,
         sakTilDato = vedtak.periode.tilOgMed,
+        virkningsperiodeFraOgMed = vedtak.periode.fraOgMed,
+        virkningsperiodeTilOgMed = vedtak.periode.tilOgMed,
+        innvilgelsesperioder = listOfNotNull(vedtak.innvilgelsesperiode).map { it.toDTO() },
+        omgjørRammevedtakId = vedtak.omgjørRammevedtak?.toString(),
         ytelse = "IND",
 
         søknadId = søknad?.id?.toString(),
@@ -53,8 +60,7 @@ fun genererStønadsstatistikkForRammevedtak(
         vedtaksType = "Ny Rettighet",
         // TODO post-mvp: Denne skal kanskje egentlig være datoen fra brevet. Ta en prat med statistikk.
         vedtakDato = vedtak.opprettet.toLocalDate(),
-        vedtakFom = vedtak.periode.fraOgMed,
-        vedtakTom = vedtak.periode.tilOgMed,
+
         tiltaksdeltakelser = tiltaksdeltakelser ?: emptyList(),
         barnetillegg = barnetillegg,
         harBarnetillegg = barnetillegg.isNotEmpty(),

@@ -147,6 +147,11 @@ class IverksettBehandlingService(
             meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
+
+            if (vedtak.omgjørRammevedtak != null) {
+                // Oppdaterer omgjort vedtak slik at det peker på dette vedtaket
+                rammevedtakRepo.markerOmgjortAv(vedtak.omgjørRammevedtak.id, vedtak.id, tx)
+            }
         }
         return oppdatertSak.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)
     }

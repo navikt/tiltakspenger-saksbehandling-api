@@ -6,6 +6,7 @@ import arrow.core.nonEmptyListOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
@@ -51,6 +52,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
         s ?: this.persisterIverksattSøknadsbehandling().first
     },
     revurderingType: RevurderingType = RevurderingType.STANS,
+    vedtakIdSomOmgjøres: VedtakId? = null,
 ): Pair<Sak, Revurdering> {
     val sakMedVedtak = genererSak(sak)
 
@@ -61,6 +63,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
                 revurderingType = revurderingType,
+                vedtakIdSomOmgjøres = vedtakIdSomOmgjøres,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
@@ -288,5 +291,30 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
     ).let {
         behandlingRepo.lagre(it)
         sakRepo.hentForSakId(sakMedRevurdering.id)!! to it as Revurdering
+    }
+}
+
+internal fun TestDataHelper.persisterOpprettetOmgjøring(
+    genererSak: Triple<Sak, Rammevedtak, Rammebehandling> = { this.persisterIverksattSøknadsbehandling() }(),
+    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> genererSak.second.behandling.saksopplysninger!! },
+    clock: Clock = this.clock,
+): Pair<Sak, Revurdering> {
+    val (sakMedVedtak, _, _) = genererSak
+
+    return runBlocking {
+        sakMedVedtak.startRevurdering(
+            kommando = StartRevurderingKommando(
+                sakId = sakMedVedtak.id,
+                correlationId = CorrelationId.generate(),
+                saksbehandler = saksbehandler,
+                revurderingType = RevurderingType.OMGJØRING,
+                vedtakIdSomOmgjøres = sakMedVedtak.vedtaksliste.single().id,
+            ),
+            hentSaksopplysninger = hentSaksopplysninger,
+            clock = clock,
+        )
+    }.also {
+        behandlingRepo.lagre(it.second)
     }
 }

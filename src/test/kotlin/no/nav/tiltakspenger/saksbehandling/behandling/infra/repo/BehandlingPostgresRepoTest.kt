@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.NonBlankString
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.plus
@@ -16,12 +17,15 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAutomatiskSøknadsbehandlingUnderBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetOmgjøring
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingStansTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSøknadsbehandling
@@ -64,6 +68,19 @@ internal class BehandlingPostgresRepoTest {
     }
 
     @Test
+    fun `lagre og hente en opprettet revurdering`() {
+        withMigratedDb { testDataHelper ->
+            val behandlingRepo = testDataHelper.behandlingRepo
+            val sakRepo = testDataHelper.sakRepo
+
+            val (sak, revurdering) = testDataHelper.persisterOpprettetRevurdering()
+
+            sakRepo.hentForSakId(sak.id) shouldBe sak
+            behandlingRepo.hent(sak.revurderinger.single().id) shouldBe revurdering
+        }
+    }
+
+    @Test
     fun `lagre og hente en behandlet revurdering`() {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo
@@ -72,6 +89,19 @@ internal class BehandlingPostgresRepoTest {
             val (sak, behandling) = testDataHelper.persisterRevurderingStansTilBeslutning()
             sakRepo.hentForSakId(sak.id) shouldBe sak
             behandlingRepo.hent(sak.revurderinger.last().id) shouldBe behandling
+        }
+    }
+
+    @Test
+    fun `lagrer og henter en omgjøring`() {
+        withMigratedDb { testDataHelper ->
+            val behandlingRepo = testDataHelper.behandlingRepo
+            val sakRepo = testDataHelper.sakRepo
+
+            val (sak, omgjøring) = testDataHelper.persisterOpprettetOmgjøring()
+
+            sakRepo.hentForSakId(sak.id) shouldBe sak
+            behandlingRepo.hent(sak.revurderinger.single().id) shouldBe omgjøring
         }
     }
 

@@ -1,13 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
@@ -61,6 +60,10 @@ class StatistikkStønadPostgresRepo(
                     "tiltaksdeltakelser" to toPGObject(dto.tiltaksdeltakelser),
                     "barnetillegg" to toPGObject(dto.barnetillegg),
                     "harBarnetillegg" to dto.harBarnetillegg,
+                    "virkningsperiodeFraOgMed" to dto.virkningsperiodeFraOgMed,
+                    "virkningsperiodeTilOgMed" to dto.virkningsperiodeTilOgMed,
+                    "innvilgelsesperioder" to toPGObject(dto.innvilgelsesperioder),
+                    "omgjorRammevedtakId" to dto.omgjørRammevedtakId,
                 ),
             ).asUpdate,
         )
@@ -196,7 +199,11 @@ class StatistikkStønadPostgresRepo(
         opprettet,
         tiltaksdeltakelser,
         barnetillegg,
-        har_barnetillegg
+        har_barnetillegg,
+        virkningsperiode_fra_og_med,
+        virkningsperiode_til_og_med,
+        innvilgelsesperioder,
+        omgjor_rammevedtak_id
         ) values (
         :id,
         :brukerId,
@@ -221,7 +228,11 @@ class StatistikkStønadPostgresRepo(
         :opprettet,
         :tiltaksdeltakelser,
         :barnetillegg,
-        :harBarnetillegg
+        :harBarnetillegg,
+        :virkningsperiodeFraOgMed,
+        :virkningsperiodeTilOgMed,
+        :innvilgelsesperioder,
+        :omgjorRammevedtakId
         )
         """.trimIndent()
 
@@ -284,8 +295,12 @@ class StatistikkStønadPostgresRepo(
             vedtakFom = localDate("fra_og_med"),
             vedtakTom = localDate("til_og_med"),
             fagsystem = string("fagsystem"),
-            tiltaksdeltakelser = objectMapper.readValue(string("tiltaksdeltakelser")),
-            barnetillegg = objectMapper.readValue(string("barnetillegg")),
+            tiltaksdeltakelser = deserialize(string("tiltaksdeltakelser")),
+            barnetillegg = deserialize(string("barnetillegg")),
             harBarnetillegg = boolean("har_barnetillegg"),
+            virkningsperiodeFraOgMed = localDateOrNull("virkningsperiodeFraOgMed"),
+            virkningsperiodeTilOgMed = localDateOrNull("virkningsperiodeTilOgMed"),
+            innvilgelsesperioder = stringOrNull("innvilgelsesperioder")?.let { deserialize(it) },
+            omgjørRammevedtakId = stringOrNull("omgjor_rammevedtak_id"),
         )
 }

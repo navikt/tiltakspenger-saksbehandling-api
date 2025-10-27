@@ -1,14 +1,20 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.felles.max
+import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -16,7 +22,7 @@ import java.time.LocalDate
 
 data class Rammevedtaksliste(
     val verdi: List<Rammevedtak>,
-) : List<Vedtak> by verdi {
+) : List<Rammevedtak> by verdi {
     constructor(value: Rammevedtak) : this(listOf(value))
 
     val fnr = verdi.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow()
@@ -50,6 +56,9 @@ data class Rammevedtaksliste(
      */
     val tidslinje: Periodisering<Rammevedtak> by lazy {
         verdi.filter {
+            // Fjerner alle vedtak som er omgjort av et annet vedtak.
+            it.omgjortAvRammevedtakId == null
+        }.filter {
             when (it.vedtakstype) {
                 Vedtakstype.INNVILGELSE,
                 Vedtakstype.STANS,
@@ -71,7 +80,16 @@ data class Rammevedtaksliste(
     }
 
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
-        tidslinje.filter { it.verdi.vedtakstype == Vedtakstype.INNVILGELSE }
+        tidslinje.filter {
+            it.verdi.vedtakstype == Vedtakstype.INNVILGELSE
+        }.perioderMedVerdi.mapNotNull { (vedtak, gjeldendePeriode) ->
+            gjeldendePeriode.overlappendePeriode(vedtak.innvilgelsesperiode!!)?.let { overlappendePeriode ->
+                PeriodeMedVerdi(
+                    vedtak,
+                    overlappendePeriode,
+                )
+            }
+        }.tilPeriodisering()
     }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den første innvilget dagen. */
@@ -139,6 +157,10 @@ data class Rammevedtaksliste(
 
     fun hentRammevedtakForId(rammevedtakId: VedtakId): Rammevedtak {
         return verdi.single { it.id == rammevedtakId }
+    }
+
+    fun finnRammevedtakForBehandling(id: BehandlingId): Rammevedtak? {
+        return this.singleOrNullOrThrow { vedtak -> vedtak.behandling.id == id }
     }
 
     init {

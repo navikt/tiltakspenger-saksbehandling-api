@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.ports
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -31,4 +32,6 @@ interface RammevedtakRepo {
     fun hentRammevedtakTilDatadeling(limit: Int = 10): List<Rammevedtak>
 
     fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime)
+
+    fun markerOmgjortAv(vedtakId: VedtakId, omgjortAvRammevedtakId: VedtakId, sessionContext: SessionContext?)
 }

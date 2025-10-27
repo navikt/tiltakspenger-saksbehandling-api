@@ -61,6 +61,7 @@ fun Route.startBehandlingAvPapirsøknadRoute(
                     message = søknad.tilSøknadsbehandlingDTO(
                         utbetalingsstatus = null,
                         beregninger = sak.meldeperiodeBeregninger,
+                        rammevedtakId = null,
                     ),
                 )
             }

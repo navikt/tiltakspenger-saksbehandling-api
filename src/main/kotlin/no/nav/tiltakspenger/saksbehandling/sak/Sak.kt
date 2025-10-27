@@ -221,4 +221,13 @@ data class Sak(
 
     fun oppdaterKanSendeInnHelgForMeldekort(kanSendeInnHelgForMeldekort: Boolean): Sak =
         this.copy(kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort)
+
+    fun erRammevedtakGjeldendeForHeleSinPeriode(rammevedtakId: VedtakId): Boolean {
+        val rammevedtak = hentRammevedtakForId(rammevedtakId)
+        val treff = this.rammevedtaksliste.innvilgetTidslinje.filter {
+            it.verdi.id == rammevedtakId
+        }
+        if (treff.size != 1) return false
+        return treff.single().periode == rammevedtak.periode
+    }
 }

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
@@ -19,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Omgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -27,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -56,6 +59,7 @@ data class Revurdering(
 ) : Rammebehandling {
 
     override val virkningsperiode: Periode? = resultat.virkningsperiode
+    override val innvilgelsesperiode: Periode? = resultat.innvilgelsesperiode
 
     override val barnetillegg = resultat.barnetillegg
 
@@ -70,7 +74,7 @@ data class Revurdering(
             KLAR_TIL_BESLUTNING,
             UNDER_BESLUTNING,
             VEDTATT,
-            -> require(resultat.erFerdigutfylt) {
+            -> require(erFerdigutfylt()) {
                 "For tilstandene $KLAR_TIL_BESLUTNING, $UNDER_BESLUTNING og $VEDTATT må resultatet være ferdigutfylt."
             }
 
@@ -79,6 +83,18 @@ data class Revurdering(
             UNDER_BEHANDLING,
             AVBRUTT,
             -> Unit
+        }
+    }
+
+    /**
+     * Sier noe om tilstanden til behandlingen. Er den klar til å sendes til beslutter og/eller iverksettes?
+     * Dette er uavhengig av [status], som sier noe om hvor i prosessen behandlingen er.
+     */
+    fun erFerdigutfylt(): Boolean {
+        return when {
+            !resultat.erFerdigutfylt(saksopplysninger) -> false
+            saksbehandler == null -> false
+            else -> true
         }
     }
 
@@ -106,8 +122,35 @@ data class Revurdering(
             ),
             utbetaling = utbetaling,
         ).also {
-            require(it.resultat.erFerdigutfylt)
+            // TODO jah: Etter omgjøring, fjern denne sjekken, fjern nullstill resultat og påse at dette gjøres ved send til beslutter + iverksett.
+            require(it.resultat.erFerdigutfylt(saksopplysninger))
         }.right()
+    }
+
+    fun oppdaterOmgjøring(
+        kommando: OppdaterRevurderingKommando.Omgjøring,
+        utbetaling: BehandlingUtbetaling?,
+        clock: Clock,
+    ): Either<KanIkkeOppdatereBehandling, Revurdering> {
+        validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
+
+        require(this.resultat is Omgjøring)
+
+        return this.copy(
+            sistEndret = nå(clock),
+            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
+            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+            resultat = resultat.oppdater(
+                innvilgelsesperiode = kommando.innvilgelsesperiode,
+                valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
+                    tiltaksdeltakelser = kommando.tiltaksdeltakelser,
+                    behandling = this,
+                ),
+                barnetillegg = kommando.barnetillegg,
+                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+            ),
+            utbetaling = utbetaling,
+        ).right()
     }
 
     fun oppdaterStans(
@@ -191,6 +234,26 @@ data class Revurdering(
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
                 resultat = Innvilgelse.empty,
+            )
+        }
+
+        /**
+         * @param omgjørRammevedtak Rammevedtaket som erstattes i sin helhet.
+         */
+        fun opprettOmgjøring(
+            saksbehandler: Saksbehandler,
+            saksopplysninger: Saksopplysninger,
+            omgjørRammevedtak: Rammevedtak,
+            clock: Clock,
+        ): Revurdering {
+            return opprett(
+                sakId = omgjørRammevedtak.sakId,
+                saksnummer = omgjørRammevedtak.saksnummer,
+                fnr = omgjørRammevedtak.fnr,
+                saksbehandler = saksbehandler,
+                saksopplysninger = saksopplysninger,
+                opprettet = nå(clock),
+                resultat = Omgjøring(omgjørRammevedtak),
             )
         }
 

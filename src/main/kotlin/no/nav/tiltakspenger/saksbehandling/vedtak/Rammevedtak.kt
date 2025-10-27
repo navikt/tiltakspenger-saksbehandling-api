@@ -31,6 +31,7 @@ import java.time.LocalDateTime
  * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
  * @param periode Stansperiode eller innvilgelsesperiode (ikke nødvendigvis det samme som vurderingsperiode.)
  * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
+ * @param omgjortAvRammevedtakId Dersom vedtaket i sin helhet er omgjort av et annen vedtak. Vedtaket som erstattet dette er master for dette feltet.
  */
 data class Rammevedtak(
     override val id: VedtakId = VedtakId.random(),
@@ -47,6 +48,7 @@ data class Rammevedtak(
     val distribusjonstidspunkt: LocalDateTime?,
     val sendtTilDatadeling: LocalDateTime?,
     val brevJson: String?,
+    val omgjortAvRammevedtakId: VedtakId?,
 ) : Vedtak,
     Periodiserbar {
 
@@ -57,19 +59,26 @@ data class Rammevedtak(
 
     override val beregning: Beregning? = behandling.utbetaling?.beregning
 
-    /** Vil være null dersom bruker ikke har rett på barnetillegg  */
+    /** Vil være null for stans, avslag eller dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
 
-    /** Vil være null for stans eller avslag */
+    /** Vil være null for stans og avslag */
     val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>? =
         behandling.antallDagerPerMeldeperiode
 
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = behandling.valgteTiltaksdeltakelser
 
+    /** Dersom dette vedtaket i sin helhet omgjør et annet vedtak. */
+    val omgjørRammevedtak: Rammevedtak? = (behandling.resultat as? RevurderingResultat.Omgjøring)?.omgjørRammevedtak
+
+    val innvilgelsesperiode = behandling.innvilgelsesperiode
+
     init {
         require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
         require(sakId == behandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${behandling.id}" }
         require(periode == behandling.virkningsperiode) { "Periode i vedtak ($periode) og behandlingens virkningsperiode (${behandling.virkningsperiode}) må være lik. SakId: $sakId, Saksnummer: ${behandling.saksnummer} BehandlingId: ${behandling.id}" }
+        require(id != omgjørRammevedtak?.id)
+        require(id != omgjortAvRammevedtakId)
 
         utbetaling?.also {
             require(id == it.vedtakId)
@@ -79,6 +88,29 @@ data class Rammevedtak(
             require(saksbehandler == it.saksbehandler)
             require(beslutter == it.beslutter)
             require(behandling.id == it.beregningKilde.id)
+        }
+        when (vedtakstype) {
+            Vedtakstype.INNVILGELSE -> {
+                require(
+                    behandling.resultat is SøknadsbehandlingResultat.Innvilgelse ||
+                        behandling.resultat is RevurderingResultat.Innvilgelse ||
+                        behandling.resultat is RevurderingResultat.Omgjøring,
+                ) {
+                    "Ved innvilgelse må resultat i behandling være Innvilgelse eller Omgjøring. SakId: ${behandling.sakId}, Saksnummer: ${behandling.saksnummer}, BehandlingId: ${behandling.id}"
+                }
+            }
+
+            Vedtakstype.AVSLAG -> {
+                require(behandling.resultat is SøknadsbehandlingResultat.Avslag) {
+                    "Ved avslag må resultat i behandling være Avslag. SakId: ${behandling.sakId}, Saksnummer: ${behandling.saksnummer}, BehandlingId: ${behandling.id}"
+                }
+            }
+
+            Vedtakstype.STANS -> {
+                require(behandling.resultat is RevurderingResultat.Stans) {
+                    "Ved stans må resultat i behandling være Stans. SakId: ${behandling.sakId}, Saksnummer: ${behandling.saksnummer}, BehandlingId: ${behandling.id}"
+                }
+            }
         }
     }
 }
@@ -123,21 +155,23 @@ fun Sak.opprettVedtak(
         opprettet = opprettet,
         sakId = this.id,
         behandling = behandling,
-        vedtaksdato = null,
         vedtakstype = when (behandling.resultat!!) {
             is SøknadsbehandlingResultat.Avslag -> Vedtakstype.AVSLAG
             is SøknadsbehandlingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
             is RevurderingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
             is RevurderingResultat.Stans -> Vedtakstype.STANS
+            is RevurderingResultat.Omgjøring -> Vedtakstype.INNVILGELSE
         },
         periode = behandling.virkningsperiode!!,
+        omgjortAvRammevedtakId = null,
+        utbetaling = utbetaling,
+        vedtaksdato = null,
         journalpostId = null,
         journalføringstidspunkt = null,
         distribusjonId = null,
         distribusjonstidspunkt = null,
         sendtTilDatadeling = null,
         brevJson = null,
-        utbetaling = utbetaling,
     )
 
     val oppdatertSak = this.leggTilRammevedtak(vedtak)
