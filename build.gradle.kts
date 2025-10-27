@@ -42,7 +42,7 @@ dependencies {
 
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
     implementation("ch.qos.logback:logback-classic:1.5.19")
-    implementation("net.logstash.logback:logstash-logback-encoder:8.1")
+    implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
     implementation("com.aallam.ulid:ulid-kotlin:1.5.0")
 
