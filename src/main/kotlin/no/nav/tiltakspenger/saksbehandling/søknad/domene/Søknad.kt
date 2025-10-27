@@ -39,7 +39,7 @@ sealed interface Søknad {
     val vedlegg: Int
     val søknadstype: Søknadstype
 
-    // Blir ikke satt for digitale søknader
+    // Blir kun satt på ikke-innvilgbare papirsøknader
     val manueltSattSøknadsperiode: Periode?
 
     companion object {
@@ -89,7 +89,6 @@ sealed interface Søknad {
                     jobbsjansen = jobbsjansen,
                     trygdOgPensjon = trygdOgPensjon,
                     vedlegg = antallVedlegg,
-                    manueltSattSøknadsperiode = manueltSattSøknadsperiode,
                     søknadstype = søknadstype,
                 )
             } else {
@@ -122,10 +121,14 @@ sealed interface Søknad {
     }
 
     fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode?
+
     fun erPapirsøknad() = søknadstype == Søknadstype.PAPIR
     fun erDigitalSøknad() = søknadstype == Søknadstype.DIGITAL
-    fun kanInnvilges() =
-        (erDigitalSøknad() && tiltak != null) || (erPapirsøknad() && tiltak != null && manueltSattSøknadsperiode != null)
+
+    fun kanInnvilges() = when (this) {
+        is InnvilgbarSøknad -> true
+        is IkkeInnvilgbarSøknad -> false
+    }
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknad {
         if (this.avbrutt != null) {
@@ -139,8 +142,8 @@ sealed interface Søknad {
         )
 
         return when (this) {
-            is InnvilgbarSøknad -> this.copy(avbrutt = avbrutt)
             is IkkeInnvilgbarSøknad -> this.copy(avbrutt = avbrutt)
+            is InnvilgbarSøknad -> this.copy(avbrutt = avbrutt)
         }
     }
 

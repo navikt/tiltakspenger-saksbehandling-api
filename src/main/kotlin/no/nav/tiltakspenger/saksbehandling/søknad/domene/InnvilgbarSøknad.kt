@@ -35,11 +35,12 @@ data class InnvilgbarSøknad(
     override val jobbsjansen: Søknad.PeriodeSpm?,
     override val trygdOgPensjon: Søknad.PeriodeSpm?,
     override val vedlegg: Int,
-    override val manueltSattSøknadsperiode: Periode? = null,
     override val søknadstype: Søknadstype,
 ) : Søknad {
     val kravdato: LocalDate = tidsstempelHosOss.toLocalDate()
     override val fnr: Fnr = personopplysninger.fnr
+    override val manueltSattSøknadsperiode: Periode? = null
+
     override val erAvbrutt: Boolean by lazy { avbrutt != null }
 
     /**
