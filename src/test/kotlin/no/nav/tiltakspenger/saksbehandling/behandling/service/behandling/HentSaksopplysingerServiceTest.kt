@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
@@ -54,6 +55,14 @@ internal class HentSaksopplysingerServiceTest {
                     tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
                 ) = Tiltaksdeltagelser(tiltaksdeltagelser.first)
+
+                override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
+                    fnr: Fnr,
+                    harAdressebeskyttelse: Boolean,
+                    correlationId: CorrelationId,
+                ): List<TiltaksdeltakelseMedArrangørnavn> {
+                    return emptyList()
+                }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(
@@ -127,6 +136,14 @@ internal class HentSaksopplysingerServiceTest {
                     tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
                 ) = Tiltaksdeltagelser(tiltaksdeltagelser.first)
+
+                override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
+                    fnr: Fnr,
+                    harAdressebeskyttelse: Boolean,
+                    correlationId: CorrelationId,
+                ): List<TiltaksdeltakelseMedArrangørnavn> {
+                    return emptyList()
+                }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(
@@ -192,6 +209,14 @@ internal class HentSaksopplysingerServiceTest {
                     tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
                 ) = Tiltaksdeltagelser(tiltaksdeltagelser.first)
+
+                override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
+                    fnr: Fnr,
+                    harAdressebeskyttelse: Boolean,
+                    correlationId: CorrelationId,
+                ): List<TiltaksdeltakelseMedArrangørnavn> {
+                    return emptyList()
+                }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(
@@ -285,6 +310,14 @@ internal class HentSaksopplysingerServiceTest {
                     tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
                 ) = Tiltaksdeltagelser(listOf(tiltak1.first, tiltak2.first))
+
+                override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
+                    fnr: Fnr,
+                    harAdressebeskyttelse: Boolean,
+                    correlationId: CorrelationId,
+                ): List<TiltaksdeltakelseMedArrangørnavn> {
+                    return emptyList()
+                }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(
@@ -365,6 +398,14 @@ internal class HentSaksopplysingerServiceTest {
                     tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
                 ) = Tiltaksdeltagelser(listOf(tiltak1.first, tiltak2.first))
+
+                override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
+                    fnr: Fnr,
+                    harAdressebeskyttelse: Boolean,
+                    correlationId: CorrelationId,
+                ): List<TiltaksdeltakelseMedArrangørnavn> {
+                    return emptyList()
+                }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(

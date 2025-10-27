@@ -17,14 +17,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -49,20 +49,17 @@ data class Sak(
     val utbetalinger: Utbetalinger by lazy {
         Utbetalinger(
             rammevedtaksliste.utbetalinger
-                .plus(meldekortVedtaksliste.utbetalinger)
+                .plus(meldekortvedtaksliste.utbetalinger)
                 .sortedBy { it.opprettet },
         )
     }
     val rammevedtaksliste: Rammevedtaksliste = vedtaksliste.rammevedtaksliste
-    val meldekortVedtaksliste: MeldekortVedtaksliste = vedtaksliste.meldekortVedtaksliste
+    val meldekortvedtaksliste: Meldekortvedtaksliste = vedtaksliste.meldekortvedtaksliste
     val rammebehandlinger: Rammebehandlinger = behandlinger.rammebehandlinger
     val meldekortbehandlinger: Meldekortbehandlinger = behandlinger.meldekortbehandlinger
 
-    val meldeperiodeBeregninger: MeldeperiodeBeregninger by lazy {
-        MeldeperiodeBeregninger(
-            meldekortBehandlinger = meldekortbehandlinger,
-            behandlinger = rammebehandlinger,
-        )
+    val meldeperiodeBeregninger: MeldeperiodeBeregningerVedtatt by lazy {
+        vedtaksliste.meldeperiodeBeregninger
     }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
@@ -90,6 +87,10 @@ data class Sak(
         )
     }
 
+    val apneSoknadsbehandlinger = rammebehandlinger
+        .filterIsInstance<Søknadsbehandling>()
+        .filterNot { it.erAvsluttet }
+
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortbehandlinger.hentMeldekortBehandling(meldekortId)
     }
@@ -105,9 +106,6 @@ data class Sak(
         val avsluttedeSoknadsbehandlinger = rammebehandlinger
             .filterIsInstance<Søknadsbehandling>()
             .filter { it.erAvsluttet }
-        val apneSoknadsbehandlinger = rammebehandlinger
-            .filterIsInstance<Søknadsbehandling>()
-            .filterNot { it.erAvsluttet }
         val apneSoknader = søknader.filterNot { it.erAvbrutt }
         return apneSoknader.any { soknad ->
             avsluttedeSoknadsbehandlinger.find { it.søknad.id == soknad.id } == null ||
@@ -209,7 +207,7 @@ data class Sak(
         return this.oppdaterRammebehandling(behandling)
     }
 
-    fun leggTilMeldekortVedtak(vedtak: MeldekortVedtak): Sak {
+    fun leggTilMeldekortvedtak(vedtak: Meldekortvedtak): Sak {
         return this.copy(vedtaksliste = this.vedtaksliste.leggTilMeldekortvedtak(vedtak))
     }
 

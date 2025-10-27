@@ -26,7 +26,6 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
@@ -41,17 +40,17 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fr
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
@@ -62,6 +61,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager
@@ -73,10 +74,13 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import kotlin.collections.emptyList
 import kotlin.math.ceil
 
 interface MeldekortMother : MotherOfAllMothers {
@@ -586,7 +590,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     tiltakstypePerioder = tiltakstypePerioder,
-                    meldeperiodeBeregninger = MeldeperiodeBeregninger(meldekortBehandlinger, Rammebehandlinger.empty()),
+                    meldeperiodeBeregninger = meldekortBehandlinger.tilMeldeperiodeBeregninger(clock),
                 )
             },
             simuler = {
@@ -669,7 +673,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     tiltakstypePerioder = tiltakstypePerioder,
-                    meldeperiodeBeregninger = MeldeperiodeBeregninger(this, Rammebehandlinger.empty()),
+                    meldeperiodeBeregninger = this.tilMeldeperiodeBeregninger(clock),
                 )
             },
             simuler = { KunneIkkeSimulere.UkjentFeil.left() },
@@ -743,7 +747,12 @@ interface MeldekortMother : MotherOfAllMothers {
             )
         },
         behandlesAutomatisk: Boolean = false,
-        behandletAutomatiskStatus: BrukersMeldekortBehandletAutomatiskStatus? = null,
+        behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus =
+            if (behandlesAutomatisk) {
+                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING
+            } else {
+                MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
+            },
     ): BrukersMeldekort {
         return BrukersMeldekort(
             id = id,
@@ -941,4 +950,23 @@ fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): Dager {
             )
         }.toNonEmptyListOrNull()!!,
     )
+}
+
+fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): MeldeperiodeBeregningerVedtatt {
+    return this.sortedBy { it.iverksattTidspunkt }.fold(emptyList<Meldekortvedtak>()) { acc, mkb ->
+        if (mkb !is MeldekortBehandling.Behandlet) {
+            return@fold acc
+        }
+
+        acc.plus(mkb.opprettVedtak(acc.lastOrNull()?.utbetaling, clock))
+    }.let {
+        MeldeperiodeBeregningerVedtatt.fraVedtaksliste(
+            Vedtaksliste(
+                Rammevedtaksliste(emptyList()),
+                Meldekortvedtaksliste(
+                    it,
+                ),
+            ),
+        )
+    }
 }

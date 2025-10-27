@@ -19,6 +19,7 @@ import java.time.LocalDateTime
  * @param meldeperiode En gitt versjon av meldeperioden, slik som den var da bruker sendte inn meldekortet.
  * @param mottatt Tidspunktet mottatt fra bruker
  * @param dager Et innslag per dag i meldeperioden. Må være sortert.
+ * @param behandletAutomatiskStatus Status for automatisk behandling. null dersom meldekortet er flagget for automatisk behandling, men jobben for behandling ikke har kjørt ennå
  */
 data class BrukersMeldekort(
     val id: MeldekortId,
@@ -29,7 +30,7 @@ data class BrukersMeldekort(
     val journalpostId: JournalpostId,
     val oppgaveId: OppgaveId?,
     val behandlesAutomatisk: Boolean,
-    val behandletAutomatiskStatus: BrukersMeldekortBehandletAutomatiskStatus?,
+    val behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus,
 ) {
     val kjedeId: MeldeperiodeKjedeId = meldeperiode.kjedeId
     val meldeperiodeId: MeldeperiodeId = meldeperiode.id
@@ -70,6 +71,14 @@ data class BrukersMeldekort(
                 "Brukers meldekort kan ikke ha registrering på dager uten rett - $id har registrering $dag"
             }
         }
+    }
+
+    companion object {
+        /**
+         *  Maks antall dager med sammenhengende godkjent fravær for automatisk behandling.
+         *  Dersom antallet er høyere, skal meldekortet sendes til manuell behandling for kontroll.
+         *  */
+        const val MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER = 2
     }
 
     fun tilMeldekortDager(): MeldekortDager {

@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKo
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.andreMeldekortOpprettet
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilSendMeldekortTilBeslutterKommando
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import org.junit.jupiter.api.Test
 
 internal class IverksettMeldekortServiceTest {
@@ -34,7 +34,7 @@ internal class IverksettMeldekortServiceTest {
                     correlationId = CorrelationId.generate(),
                 ),
             )
-            (utbetalingContext.meldekortVedtakRepo as MeldekortVedtakFakeRepo).hentForSakId(sakId).let {
+            (utbetalingContext.meldekortvedtakRepo as MeldekortvedtakFakeRepo).hentForSakId(sakId).let {
                 it.size shouldBe 2
                 it[0].utbetaling.forrigeUtbetalingId shouldBe null
                 it[1].utbetaling.forrigeUtbetalingId shouldBe it[0].utbetaling.id

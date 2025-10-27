@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -18,7 +18,7 @@ private enum class InnmeldtStatusDTO {
     IKKE_RETT_TIL_TILTAKSPENGER,
 }
 
-enum class BrukersMeldekortBehandletAutomatiskStatusDTO {
+enum class MeldekortBehandletAutomatiskStatusDTO {
     VENTER_BEHANDLING,
     BEHANDLET,
     UKJENT_FEIL,
@@ -30,13 +30,15 @@ enum class BrukersMeldekortBehandletAutomatiskStatusDTO {
     UTDATERT_MELDEPERIODE,
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
+    KAN_IKKE_MELDE_HELG,
+    FOR_MANGE_DAGER_GODKJENT_FRAVÆR,
 }
 
 data class BrukersMeldekortDTO(
     val id: String,
     val mottatt: LocalDateTime,
     val dager: List<DagDTO>,
-    val behandletAutomatiskStatus: BrukersMeldekortBehandletAutomatiskStatusDTO?,
+    val behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatusDTO,
 ) {
     data class DagDTO(
         val status: String,
@@ -54,28 +56,25 @@ fun BrukersMeldekort.toBrukersMeldekortDTO(): BrukersMeldekortDTO {
                 dato = it.dato,
             )
         },
-        behandletAutomatiskStatus = tilBehandletAutomatiskStatusDTO(),
+        behandletAutomatiskStatus = behandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO(),
     )
 }
 
-fun BrukersMeldekort.tilBehandletAutomatiskStatusDTO(): BrukersMeldekortBehandletAutomatiskStatusDTO? {
-    return when (this.behandletAutomatiskStatus) {
-        BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET -> BrukersMeldekortBehandletAutomatiskStatusDTO.BEHANDLET
-        BrukersMeldekortBehandletAutomatiskStatus.UKJENT_FEIL -> BrukersMeldekortBehandletAutomatiskStatusDTO.UKJENT_FEIL
-        BrukersMeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET -> BrukersMeldekortBehandletAutomatiskStatusDTO.HENTE_NAVKONTOR_FEILET
-        BrukersMeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK -> BrukersMeldekortBehandletAutomatiskStatusDTO.BEHANDLING_FEILET_PÅ_SAK
-        BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK -> BrukersMeldekortBehandletAutomatiskStatusDTO.UTBETALING_FEILET_PÅ_SAK
-        BrukersMeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK -> BrukersMeldekortBehandletAutomatiskStatusDTO.SKAL_IKKE_BEHANDLES_AUTOMATISK
-        BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET -> BrukersMeldekortBehandletAutomatiskStatusDTO.ALLEREDE_BEHANDLET
-        BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> BrukersMeldekortBehandletAutomatiskStatusDTO.UTDATERT_MELDEPERIODE
-        BrukersMeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> BrukersMeldekortBehandletAutomatiskStatusDTO.ER_UNDER_REVURDERING
-        BrukersMeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> BrukersMeldekortBehandletAutomatiskStatusDTO.FOR_MANGE_DAGER_REGISTRERT
-        null ->
-            if (this.behandlesAutomatisk) {
-                BrukersMeldekortBehandletAutomatiskStatusDTO.VENTER_BEHANDLING
-            } else {
-                null
-            }
+private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO(): MeldekortBehandletAutomatiskStatusDTO {
+    return when (this) {
+        MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatusDTO.VENTER_BEHANDLING
+        MeldekortBehandletAutomatiskStatus.BEHANDLET -> MeldekortBehandletAutomatiskStatusDTO.BEHANDLET
+        MeldekortBehandletAutomatiskStatus.UKJENT_FEIL -> MeldekortBehandletAutomatiskStatusDTO.UKJENT_FEIL
+        MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET -> MeldekortBehandletAutomatiskStatusDTO.HENTE_NAVKONTOR_FEILET
+        MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDTO.BEHANDLING_FEILET_PÅ_SAK
+        MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDTO.UTBETALING_FEILET_PÅ_SAK
+        MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDTO.SKAL_IKKE_BEHANDLES_AUTOMATISK
+        MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET -> MeldekortBehandletAutomatiskStatusDTO.ALLEREDE_BEHANDLET
+        MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatusDTO.UTDATERT_MELDEPERIODE
+        MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDTO.ER_UNDER_REVURDERING
+        MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDTO.FOR_MANGE_DAGER_REGISTRERT
+        MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatusDTO.KAN_IKKE_MELDE_HELG
+        MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR -> MeldekortBehandletAutomatiskStatusDTO.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
     }
 }
 

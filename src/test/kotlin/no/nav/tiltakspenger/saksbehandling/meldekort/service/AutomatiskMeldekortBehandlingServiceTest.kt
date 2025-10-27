@@ -12,9 +12,9 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
 import org.junit.jupiter.api.Test
@@ -220,9 +220,9 @@ class AutomatiskMeldekortBehandlingServiceTest {
 
         brukersMeldekortRepo
             .hentForMeldekortId(brukersMeldekort.id)!!
-            .behandletAutomatiskStatus shouldBe BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET
+            .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
         brukersMeldekortRepo
             .hentForMeldekortId(brukersMeldekortDuplikat.id)!!
-            .behandletAutomatiskStatus shouldBe BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+            .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
     }
 }

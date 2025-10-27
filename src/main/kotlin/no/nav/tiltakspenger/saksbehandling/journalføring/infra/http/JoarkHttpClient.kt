@@ -25,7 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedt
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientWithRetry
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.toJournalpostRequest
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -55,12 +55,12 @@ internal class JoarkHttpClient(
         return opprettJournalpost(jsonBody, correlationId)
     }
 
-    override suspend fun journalførMeldekortBehandling(
-        meldekortBehandling: MeldekortBehandling,
+    override suspend fun journalførMeldekortvedtak(
+        meldekortvedtak: Meldekortvedtak,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
     ): JournalpostId {
-        val jsonBody = meldekortBehandling.toJournalpostRequest(pdfOgJson)
+        val jsonBody = meldekortvedtak.toJournalpostRequest(pdfOgJson)
         return opprettJournalpost(jsonBody, correlationId)
     }
 

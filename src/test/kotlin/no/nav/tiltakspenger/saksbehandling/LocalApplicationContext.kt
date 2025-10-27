@@ -43,8 +43,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.setup.TiltaksdeltagelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
@@ -140,7 +140,11 @@ class LocalApplicationContext(
     }
 
     override val tiltakContext by lazy {
-        object : TiltaksdeltagelseContext(texasClient) {
+        object : TiltaksdeltagelseContext(
+            texasClient = texasClient,
+            sakService = sakContext.sakService,
+            personService = personContext.personService,
+        ) {
             override val tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient
         }
     }
@@ -169,7 +173,7 @@ class LocalApplicationContext(
         object : MeldekortContext(
             sessionFactory = sessionFactory,
             sakService = sakContext.sakService,
-            meldekortVedtakRepo = utbetalingContext.meldekortVedtakRepo,
+            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
             texasClient = texasClient,
             navkontorService = navkontorService,
             oppgaveKlient = oppgaveKlient,

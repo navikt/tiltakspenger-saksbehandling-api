@@ -12,11 +12,11 @@ class PdfgenHttpClientTest {
     @Test
     fun genererMeldekortPdf() {
         runTest {
-            val meldekortVedtak = ObjectMother.meldekortVedtak()
-            PdfgenHttpClient("unused").genererMeldekortVedtakBrev(
-                meldekortVedtak,
+            val meldekortvedtak = ObjectMother.meldekortvedtak()
+            PdfgenHttpClient("unused").genererMeldekortvedtakBrev(
+                meldekortvedtak,
                 tiltaksdeltagelser = Tiltaksdeltagelser(listOf(ObjectMother.tiltaksdeltagelse())),
-                sammenligning = { sammenlign(meldekortVedtak.utbetaling.beregning.beregninger.first()) },
+                sammenligning = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
                 hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
             )
         }

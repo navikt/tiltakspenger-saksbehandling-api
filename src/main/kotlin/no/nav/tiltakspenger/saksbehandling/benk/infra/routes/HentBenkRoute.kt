@@ -94,6 +94,7 @@ private fun Behandlingssammendrag.toDTO() = BehandlingssammendragDTO(
 
 private fun BehandlingssammendragStatus.toBehandlingssammendragStatusDto(): BehandlingssammendragStatusDto =
     when (this) {
+        BehandlingssammendragStatus.UNDER_AUTOMATISK_BEHANDLING -> BehandlingssammendragStatusDto.UNDER_AUTOMATISK_BEHANDLING
         BehandlingssammendragStatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatusDto.KLAR_TIL_BEHANDLING
         BehandlingssammendragStatus.UNDER_BEHANDLING -> BehandlingssammendragStatusDto.UNDER_BEHANDLING
         BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatusDto.KLAR_TIL_BESLUTNING

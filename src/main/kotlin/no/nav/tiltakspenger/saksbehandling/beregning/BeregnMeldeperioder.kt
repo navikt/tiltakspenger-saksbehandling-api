@@ -54,7 +54,7 @@ private data class BeregnMeldeperioder(
     val meldeperioderSomBeregnes: NonEmptyList<MeldeperiodeSomSkalBeregnes>,
     val hentAntallBarn: (dato: LocalDate) -> AntallBarn?,
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett>,
-    val meldeperiodeBeregninger: MeldeperiodeBeregninger,
+    val meldeperiodeBeregninger: MeldeperiodeBeregningerVedtatt,
 ) {
     private val egenSykeperiode: SykedagerPeriode = SykedagerPeriode()
     private val barnSykeperiode: SykedagerPeriode = SykedagerPeriode()
@@ -390,7 +390,7 @@ fun beregnMeldekort(
     meldeperiodeSomBeregnes: MeldekortDager,
     barnetilleggsPerioder: Periodisering<AntallBarn>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
-    meldeperiodeBeregninger: MeldeperiodeBeregninger,
+    meldeperiodeBeregninger: MeldeperiodeBeregningerVedtatt,
 ): NonEmptyList<MeldeperiodeBeregning> {
     return BeregnMeldeperioder(
         meldeperioderSomBeregnes = nonEmptyListOf(meldeperiodeSomBeregnes.tilSkalBeregnes(meldekortIdSomBeregnes)),

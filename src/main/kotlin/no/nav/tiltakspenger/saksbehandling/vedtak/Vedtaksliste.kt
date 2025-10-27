@@ -4,20 +4,20 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
 
 /**
- * En kombinasjon av [no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak] og [Rammevedtak].
+ * En kombinasjon av [no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak] og [Rammevedtak].
  */
 data class Vedtaksliste(
     val rammevedtaksliste: Rammevedtaksliste,
-    val meldekortVedtaksliste: MeldekortVedtaksliste,
-
-) : List<Vedtak> by slåSammenVedtakslistene(rammevedtaksliste, meldekortVedtaksliste) {
+    val meldekortvedtaksliste: Meldekortvedtaksliste,
+) : List<Vedtak> by slåSammenVedtakslistene(rammevedtaksliste, meldekortvedtaksliste) {
 
     val avslagsvedtak: List<Rammevedtak> by lazy {
         rammevedtaksliste.avslagsvedtak
@@ -26,11 +26,15 @@ data class Vedtaksliste(
         avslagsvedtak.map { it.behandling as Søknadsbehandling }
     }
 
+    val meldeperiodeBeregninger: MeldeperiodeBeregningerVedtatt by lazy {
+        MeldeperiodeBeregningerVedtatt.fraVedtaksliste(this)
+    }
+
     fun hentAvslåtteBehandlingerForSøknadId(søknadId: SøknadId): List<Søknadsbehandling> {
         return avslåtteBehandlinger.filter { it.søknad.id == søknadId }
     }
 
-    val slåttSammen: List<Vedtak> by lazy { slåSammenVedtakslistene(rammevedtaksliste, meldekortVedtaksliste) }
+    val slåttSammen: List<Vedtak> by lazy { slåSammenVedtakslistene(rammevedtaksliste, meldekortvedtaksliste) }
 
     val fnr: Fnr? by lazy { slåttSammen.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow() }
     val sakId: SakId? by lazy { slåttSammen.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow() }
@@ -54,8 +58,8 @@ data class Vedtaksliste(
         return copy(rammevedtaksliste = rammevedtaksliste.leggTil(rammevedtak))
     }
 
-    fun leggTilMeldekortvedtak(meldekortVedtak: MeldekortVedtak): Vedtaksliste {
-        return copy(meldekortVedtaksliste = meldekortVedtaksliste.leggTil(meldekortVedtak))
+    fun leggTilMeldekortvedtak(meldekortvedtak: Meldekortvedtak): Vedtaksliste {
+        return copy(meldekortvedtaksliste = meldekortvedtaksliste.leggTil(meldekortvedtak))
     }
 
     init {
@@ -71,7 +75,7 @@ data class Vedtaksliste(
         fun empty(): Vedtaksliste {
             return Vedtaksliste(
                 rammevedtaksliste = Rammevedtaksliste.empty(),
-                meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
+                meldekortvedtaksliste = Meldekortvedtaksliste.empty(),
             )
         }
     }
@@ -79,8 +83,8 @@ data class Vedtaksliste(
 
 private fun slåSammenVedtakslistene(
     rammevedtaksliste: Rammevedtaksliste,
-    meldekortVedtaksliste: MeldekortVedtaksliste,
+    meldekortvedtaksliste: Meldekortvedtaksliste,
 
 ): List<Vedtak> {
-    return (rammevedtaksliste.verdi + meldekortVedtaksliste.verdi).sortedBy { it.opprettet }
+    return (rammevedtaksliste.verdi + meldekortvedtaksliste.verdi).sortedBy { it.opprettet }
 }

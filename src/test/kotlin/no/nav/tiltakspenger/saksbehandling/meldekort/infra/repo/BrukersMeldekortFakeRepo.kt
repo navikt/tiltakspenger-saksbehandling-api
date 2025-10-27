@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 
 class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) : BrukersMeldekortRepo {
@@ -57,13 +57,14 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
     }
 
     override fun hentMeldekortSomSkalBehandlesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
-        return data.get().values.filter { it.behandlesAutomatisk && it.behandletAutomatiskStatus == null }
+        return data.get().values
+            .filter { it.behandlesAutomatisk && it.behandletAutomatiskStatus != MeldekortBehandletAutomatiskStatus.BEHANDLET }
             .sortedBy { it.periode.fraOgMed }.distinctBy { it.sakId }
     }
 
     override fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
-        status: BrukersMeldekortBehandletAutomatiskStatus,
+        status: MeldekortBehandletAutomatiskStatus,
         behandlesAutomatisk: Boolean,
         sessionContext: SessionContext?,
     ) {

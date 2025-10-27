@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
@@ -48,6 +48,7 @@ sealed interface BehandlingDTO {
     val iverksattTidspunkt: LocalDateTime?
     val ventestatus: VentestatusHendelseDTO?
     val utbetaling: BehandlingUtbetalingDTO?
+    val barnetillegg: BarnetilleggDTO?
     val rammevedtakId: String?
     val innvilgelsesperiode: PeriodeDTO?
 }
@@ -70,10 +71,10 @@ data class SøknadsbehandlingDTO(
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
+    override val barnetillegg: BarnetilleggDTO?,
     override val rammevedtakId: String?,
     override val innvilgelsesperiode: PeriodeDTO?,
     val søknad: SøknadDTO?,
-    val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
     val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
@@ -101,10 +102,10 @@ data class RevurderingDTO(
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
+    override val barnetillegg: BarnetilleggDTO?,
     override val rammevedtakId: String?,
     override val innvilgelsesperiode: PeriodeDTO?,
     val valgtHjemmelHarIkkeRettighet: List<String>?,
-    val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
     val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
     val harValgtStansFraFørsteDagSomGirRett: Boolean?,
@@ -140,7 +141,7 @@ fun Sak.tilBehandlingerDTO(): List<BehandlingDTO> = this.rammebehandlinger.map {
 
 fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     utbetalingsstatus: Utbetalingsstatus?,
-    beregninger: MeldeperiodeBeregninger,
+    beregninger: MeldeperiodeBeregningerVedtatt,
     rammevedtakId: String?,
 ): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
@@ -188,7 +189,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
 
 fun Revurdering.tilRevurderingDTO(
     utbetalingsstatus: Utbetalingsstatus?,
-    beregninger: MeldeperiodeBeregninger,
+    beregninger: MeldeperiodeBeregningerVedtatt,
     rammevedtakId: String?,
 ): RevurderingDTO {
     return RevurderingDTO(

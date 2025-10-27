@@ -11,11 +11,12 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.oppdaterMeldekort
@@ -45,6 +46,13 @@ internal fun TestDataHelper.persisterBrukersMeldekort(
             clock = clock,
         ).first
     },
+    behandlesAutomatisk: Boolean = false,
+    behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus =
+        if (behandlesAutomatisk) {
+            MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING
+        } else {
+            MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
+        },
 ): Pair<Sak, BrukersMeldekort> {
     val generertSak = genererSak(sak)
 
@@ -55,8 +63,8 @@ internal fun TestDataHelper.persisterBrukersMeldekort(
         mottatt = LocalDateTime.now(clock),
         sakId = generertSak.id,
         meldeperiode = valgtMeldeperiode,
-        behandlesAutomatisk = false,
-        behandletAutomatiskStatus = null,
+        behandlesAutomatisk = behandlesAutomatisk,
+        behandletAutomatiskStatus = behandletAutomatiskStatus,
     )
 
     this.meldekortBrukerRepo.lagre(
@@ -211,20 +219,20 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
             clock = clock,
         )
     },
-): Pair<Sak, MeldekortVedtak> {
+): Pair<Sak, Meldekortvedtak> {
     val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = genererSak(sak)
 
     val iverksattMeldekortBehandling =
         (meldekortbehandlingTilBeslutning.taMeldekortBehandling(beslutter) as MeldekortBehandletManuelt)
             .iverksettMeldekort(beslutter, clock).getOrFail()
 
-    val meldekortVedtak = iverksattMeldekortBehandling.opprettVedtak(
+    val meldekortvedtak = iverksattMeldekortBehandling.opprettVedtak(
         forrigeUtbetaling = sakMedMeldekortbehandlingTilBeslutning.utbetalinger.lastOrNull(),
         clock = clock,
     )
 
     meldekortRepo.oppdater(iverksattMeldekortBehandling)
-    meldekortVedtakRepo.lagre(meldekortVedtak)
+    meldekortvedtakRepo.lagre(meldekortvedtak)
 
-    return sakRepo.hentForSakId(sakMedMeldekortbehandlingTilBeslutning.id)!! to meldekortVedtak
+    return sakRepo.hentForSakId(sakMedMeldekortbehandlingTilBeslutning.id)!! to meldekortvedtak
 }

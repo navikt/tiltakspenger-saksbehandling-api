@@ -6,7 +6,10 @@ import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
@@ -32,9 +35,15 @@ class MottaBrukerutfyltMeldekortService(
 
         val sak = sakService.hentForSakId(sakId)
 
+        val kanBehandlesAutomatisk = sak.kanBehandlesAutomatisk(kommando, meldeperiode)
+
         val nyttMeldekort = kommando.tilBrukersMeldekort(
             meldeperiode,
-            sak.kanBehandlesAutomatisk(kommando, meldeperiode),
+            behandlesAutomatisk = kanBehandlesAutomatisk.isRight(),
+            behandletAutomatiskStatus = kanBehandlesAutomatisk.fold(
+                ifLeft = { it },
+                ifRight = { MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING },
+            ),
         )
 
         Either.catch {
@@ -69,20 +78,7 @@ class MottaBrukerutfyltMeldekortService(
     private fun Sak.kanBehandlesAutomatisk(
         kommando: LagreBrukersMeldekortKommando,
         meldeperiode: Meldeperiode,
-    ): Boolean {
-        val antallDagerMedRegistrering = kommando.antallDagerRegistrert
-        val maksDagerMedRegistrering = meldeperiode.maksAntallDagerForMeldeperiode
-
-        if (antallDagerMedRegistrering > maksDagerMedRegistrering) {
-            logger.error { "Brukers meldekort ${kommando.id} har for mange dager registrert ($antallDagerMedRegistrering) - maks $maksDagerMedRegistrering" }
-            return false
-        }
-
-        if (kommando.harRegistrertHelg() && !this.kanSendeInnHelgForMeldekort) {
-            logger.error { "Brukers meldekort ${kommando.id} har registret helgedager, men saken tillater ikke helg på meldekort" }
-            return false
-        }
-
+    ): Either<MeldekortBehandletAutomatiskStatus, Unit> {
         val kjedeId = meldeperiode.kjedeId
         val sakId = meldeperiode.sakId
 
@@ -93,10 +89,31 @@ class MottaBrukerutfyltMeldekortService(
          * */
         if (brukersMeldekortRepo.hentForKjedeId(kjedeId, sakId).isNotEmpty()) {
             logger.info { "Finnes allerede et meldekort for kjede $kjedeId på sak $sakId - behandler ikke meldekortet automatisk ${kommando.id} (antatt korrigering)" }
-            return false
+            return MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
         }
 
-        return true
+        val antallDagerMedRegistrering = kommando.antallDagerRegistrert
+        val maksDagerMedRegistrering = meldeperiode.maksAntallDagerForMeldeperiode
+
+        if (antallDagerMedRegistrering > maksDagerMedRegistrering) {
+            logger.error { "Brukers meldekort ${kommando.id} har for mange dager registrert ($antallDagerMedRegistrering) - maks $maksDagerMedRegistrering" }
+            return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT.left()
+        }
+
+        if (kommando.harRegistrertHelg() && !this.kanSendeInnHelgForMeldekort) {
+            logger.error { "Brukers meldekort ${kommando.id} har registret helgedager, men saken tillater ikke helg på meldekort" }
+            return MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG.left()
+        }
+
+        val harForMangeDagerSammenhengendeGodkjentFravær = kommando.dager
+            .windowed(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER + 1)
+            .any { forMangeDager -> forMangeDager.all { it.status == InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV } }
+
+        if (harForMangeDagerSammenhengendeGodkjentFravær) {
+            return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR.left()
+        }
+
+        return Unit.right()
     }
 }
 

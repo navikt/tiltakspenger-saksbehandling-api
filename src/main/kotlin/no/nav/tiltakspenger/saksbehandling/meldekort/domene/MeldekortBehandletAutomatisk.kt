@@ -90,7 +90,7 @@ suspend fun Sak.opprettAutomatiskMeldekortBehandling(
     navkontor: Navkontor,
     clock: Clock,
     simuler: suspend (behandling: MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
-): Either<BrukersMeldekortBehandletAutomatiskStatus, Pair<MeldekortBehandletAutomatisk, SimuleringMedMetadata?>> {
+): Either<MeldekortBehandletAutomatiskStatus, Pair<MeldekortBehandletAutomatisk, SimuleringMedMetadata?>> {
     val meldekortId = brukersMeldekort.id
     val kjedeId = brukersMeldekort.kjedeId
 
@@ -102,19 +102,19 @@ suspend fun Sak.opprettAutomatiskMeldekortBehandling(
 
     if (!brukersMeldekort.behandlesAutomatisk) {
         logger.error { "Brukers meldekort $meldekortId skal ikke behandles automatisk" }
-        return BrukersMeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK.left()
+        return MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK.left()
     }
     if (behandlingerKnyttetTilKjede.isNotEmpty()) {
         logger.error { "Meldeperiodekjeden $kjedeId har allerede minst en behandling. Vi støtter ikke automatisk korrigering fra bruker (meldekort id $meldekortId)" }
-        return BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
+        return MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
     }
     if (brukersMeldekort.meldeperiode != sisteMeldeperiode) {
         logger.error { "Meldeperioden for brukers meldekort må være like siste meldeperiode på kjeden for å kunne behandles (meldekort id $meldekortId)" }
-        return BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE.left()
+        return MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE.left()
     }
     if (brukersMeldekort.antallDagerRegistrert > sisteMeldeperiode.maksAntallDagerForMeldeperiode) {
         logger.error { "Brukers meldekort $meldekortId har for mange dager registret" }
-        return BrukersMeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT.left()
+        return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT.left()
     }
 
     val meldekortBehandlingId = MeldekortId.random()

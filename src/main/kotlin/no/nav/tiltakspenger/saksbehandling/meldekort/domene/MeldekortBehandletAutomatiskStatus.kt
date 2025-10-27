@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
-enum class BrukersMeldekortBehandletAutomatiskStatus {
+enum class MeldekortBehandletAutomatiskStatus {
+    VENTER_BEHANDLING,
     BEHANDLET,
     UKJENT_FEIL,
     HENTE_NAVKONTOR_FEILET,
@@ -11,4 +12,6 @@ enum class BrukersMeldekortBehandletAutomatiskStatus {
     UTDATERT_MELDEPERIODE,
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
+    KAN_IKKE_MELDE_HELG,
+    FOR_MANGE_DAGER_GODKJENT_FRAVÆR,
 }

@@ -82,7 +82,7 @@ class UtbetalingerIT {
             val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)
 
             oppdatertSak.utbetalinger shouldBe listOf(
-                oppdatertSak.meldekortVedtaksliste.first().utbetaling,
+                oppdatertSak.meldekortvedtaksliste.first().utbetaling,
                 oppdatertSak.rammevedtaksliste.last().utbetaling,
             )
 
@@ -125,7 +125,7 @@ class UtbetalingerIT {
             )
 
             oppdatertSak.utbetalinger shouldBe listOf(
-                oppdatertSak.meldekortVedtaksliste.first().utbetaling,
+                oppdatertSak.meldekortvedtaksliste.first().utbetaling,
                 oppdatertSak.rammevedtaksliste.last().utbetaling,
             )
 
@@ -187,7 +187,7 @@ class UtbetalingerIT {
             val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)
 
             oppdatertSak.utbetalinger shouldBe listOf(
-                oppdatertSak.meldekortVedtaksliste.first().utbetaling,
+                oppdatertSak.meldekortvedtaksliste.first().utbetaling,
                 oppdatertSak.rammevedtaksliste.last().utbetaling,
             )
 

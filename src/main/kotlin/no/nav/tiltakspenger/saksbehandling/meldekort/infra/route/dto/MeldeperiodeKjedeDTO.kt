@@ -33,7 +33,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
     val meldeperiodeKjede = this.meldeperiodeKjeder.single { it.kjedeId == kjedeId }
 
     // TODO: denne bør skrives om litt, bør ikke gå via beregningene her
-    val korrigering = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.let {
+    val korrigering = meldeperiodeBeregninger.gjeldendeBeregningPerKjede[kjedeId]?.let {
         if (it.beregningKilde !is BeregningKilde.BeregningKildeMeldekort) {
             return@let null
         }
@@ -67,7 +67,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             .hentMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
             .map {
                 it.tilMeldekortBehandlingDTO(
-                    this.meldekortVedtaksliste.hentForMeldekortBehandling(it.id),
+                    this.meldekortvedtaksliste.hentForMeldekortBehandling(it.id),
                     beregninger = this.meldeperiodeBeregninger,
                 )
             },
@@ -76,7 +76,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         avbrutteMeldekortBehandlinger = this.meldekortbehandlinger
             .hentAvbrutteMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
             .map { it.tilMeldekortBehandlingDTO(beregninger = this.meldeperiodeBeregninger) },
-        sisteBeregning = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.tilMeldeperiodeBeregningDTO(),
+        sisteBeregning = meldeperiodeBeregninger.gjeldendeBeregningPerKjede[kjedeId]?.tilMeldeperiodeBeregningDTO(),
     )
 }
 

@@ -12,12 +12,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortK
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførMeldekortVedtakService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførMeldekortvedtakService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
@@ -41,8 +41,8 @@ open class UtbetalingContext(
             clock = clock,
         )
     }
-    open val meldekortVedtakRepo: MeldekortVedtakRepo by lazy {
-        MeldekortVedtakPostgresRepo(
+    open val meldekortvedtakRepo: MeldekortvedtakRepo by lazy {
+        MeldekortvedtakPostgresRepo(
             sessionFactory as PostgresSessionFactory,
         )
     }
@@ -66,9 +66,9 @@ open class UtbetalingContext(
             clock = clock,
         )
     }
-    val journalførMeldekortVedtakService by lazy {
-        JournalførMeldekortVedtakService(
-            meldekortVedtakRepo = meldekortVedtakRepo,
+    val journalførMeldekortvedtakService by lazy {
+        JournalførMeldekortvedtakService(
+            meldekortvedtakRepo = meldekortvedtakRepo,
             journalførMeldekortKlient = journalførMeldekortKlient,
             genererVedtaksbrevForUtbetalingKlient = genererVedtaksbrevForUtbetalingKlient,
             navIdentClient = navIdentClient,

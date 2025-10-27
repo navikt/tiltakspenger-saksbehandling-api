@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
@@ -161,7 +161,7 @@ sealed interface MeldekortBehandling : Behandling {
     fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
     fun oppdaterSimulering(simulering: Simulering?): MeldekortBehandling
 
-    fun toSimulertBeregning(beregninger: MeldeperiodeBeregninger): SimulertBeregning? {
+    fun toSimulertBeregning(beregninger: MeldeperiodeBeregningerVedtatt): SimulertBeregning? {
         return beregning?.let {
             SimulertBeregning.create(
                 beregning = it,

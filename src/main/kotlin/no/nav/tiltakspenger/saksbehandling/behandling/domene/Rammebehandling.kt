@@ -83,6 +83,7 @@ sealed interface Rammebehandling : Behandling {
             is Søknadsbehandling -> Behandlingstype.SØKNADSBEHANDLING
         }
 
+    val erUnderAutomatiskBehandling: Boolean get() = status == UNDER_AUTOMATISK_BEHANDLING
     val erUnderBehandling: Boolean get() = status == UNDER_BEHANDLING || status == UNDER_AUTOMATISK_BEHANDLING
     override val erAvbrutt: Boolean get() = status == AVBRUTT
     val erVedtatt: Boolean get() = status == VEDTATT

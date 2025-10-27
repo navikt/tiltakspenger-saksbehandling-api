@@ -92,7 +92,7 @@ class DelautomatiskBehandlingService(
     private fun settBehandlingPaVent(behandling: Søknadsbehandling, correlationId: CorrelationId) {
         val startdatoForTiltak = getSoknadstiltakFraSaksopplysning(behandling)?.deltagelseFraOgMed
             ?: throw IllegalStateException("Skal ikke sette behandling med id ${behandling.id} på vent siden startdato mangler")
-        val venterTil = startdatoForTiltak.atTime(10, 0)
+        val venterTil = startdatoForTiltak.atTime(6, 0)
         if (behandling.ventestatus.erSattPåVent) {
             behandling.oppdaterVenterTil(
                 nyVenterTil = venterTil,

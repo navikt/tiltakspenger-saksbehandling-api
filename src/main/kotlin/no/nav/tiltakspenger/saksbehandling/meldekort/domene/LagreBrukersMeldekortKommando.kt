@@ -27,7 +27,11 @@ data class LagreBrukersMeldekortKommando(
 ) {
     val antallDagerRegistrert: Int = dager.antallDagerRegistrert()
 
-    fun tilBrukersMeldekort(meldeperiode: Meldeperiode, behandlesAutomatisk: Boolean): BrukersMeldekort {
+    fun tilBrukersMeldekort(
+        meldeperiode: Meldeperiode,
+        behandlesAutomatisk: Boolean,
+        behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus,
+    ): BrukersMeldekort {
         require(meldeperiode.id == meldeperiodeId) {
             "Meldeperioden må matche meldekortets meldeperiodeId - Forventet ${meldeperiode.id} - fikk $meldeperiodeId"
         }
@@ -41,7 +45,7 @@ data class LagreBrukersMeldekortKommando(
             journalpostId = journalpostId,
             oppgaveId = null,
             behandlesAutomatisk = behandlesAutomatisk,
-            behandletAutomatiskStatus = null,
+            behandletAutomatiskStatus = behandletAutomatiskStatus,
         )
     }
 

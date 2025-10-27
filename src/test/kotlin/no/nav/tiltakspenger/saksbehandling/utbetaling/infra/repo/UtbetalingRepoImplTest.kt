@@ -23,13 +23,13 @@ class UtbetalingRepoImplTest {
     fun `kan lagre og hente utbetaling fra meldekortvedtak`() {
         val tidspunkt = nå(fixedClock)
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (_, _, meldekortVedtak, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+            val (_, _, meldekortvedtak, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
             val utbetalingRepo = testDataHelper.utbetalingRepo
 
-            val utbetaling = meldekortVedtak.utbetaling
+            val utbetaling = meldekortvedtak.utbetaling
 
             utbetalingRepo.hentForUtsjekk() shouldBe listOf(utbetaling)
             utbetalingRepo.markerSendtTilUtbetaling(
@@ -66,14 +66,14 @@ class UtbetalingRepoImplTest {
     @Test
     fun utbetalingsstatus() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (sak, _, meldekortVedtak, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+            val (sak, _, meldekortvedtak, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
                 fnr = gyldigFnr(),
             )
             val utbetalingRepo = testDataHelper.utbetalingRepo
 
-            val utbetaling = meldekortVedtak.utbetaling
+            val utbetaling = meldekortvedtak.utbetaling
 
             val sendtTilUtbetalingTidspunkt = nå(fixedClock.plus(1, ChronoUnit.MICROS))
             utbetalingRepo.markerSendtTilUtbetaling(
@@ -91,16 +91,16 @@ class UtbetalingRepoImplTest {
             ) = listOf(
                 UtbetalingDetSkalHentesStatusFor(
                     utbetalingId = utbetaling.id,
-                    sakId = meldekortVedtak.sakId,
-                    saksnummer = meldekortVedtak.saksnummer,
-                    opprettet = meldekortVedtak.opprettet,
+                    sakId = meldekortvedtak.sakId,
+                    saksnummer = meldekortvedtak.saksnummer,
+                    opprettet = meldekortvedtak.opprettet,
                     sendtTilUtbetalingstidspunkt = sendtTilUtbetalingTidspunkt,
                     forsøkshistorikk = forsøkshistorikk,
                 ),
             )
 
             testDataHelper.sessionFactory.withSession {
-                MeldekortVedtakPostgresRepo.hentForSakId(sak.id, it).single().utbetaling.status shouldBe null
+                MeldekortvedtakPostgresRepo.hentForSakId(sak.id, it).single().utbetaling.status shouldBe null
             }
 
             val forsøk0 = Forsøkshistorikk.opprett(
@@ -122,7 +122,7 @@ class UtbetalingRepoImplTest {
                 metadata = forsøk1,
             )
             testDataHelper.sessionFactory.withSession {
-                MeldekortVedtakPostgresRepo.hentForSakId(sak.id, it)
+                MeldekortvedtakPostgresRepo.hentForSakId(sak.id, it)
                     .single().utbetaling.status shouldBe Utbetalingsstatus.IkkePåbegynt
             }
             utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøk1)

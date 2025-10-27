@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingsstatusDTO
@@ -28,7 +28,7 @@ data class BeløpFørOgNåDTO(
 
 fun BehandlingUtbetaling.tilDTO(
     utbetalingsstatus: Utbetalingsstatus?,
-    beregninger: MeldeperiodeBeregninger,
+    beregninger: MeldeperiodeBeregningerVedtatt,
 ): BehandlingUtbetalingDTO {
     return BehandlingUtbetalingDTO(
         navkontor = navkontor.kontornummer,

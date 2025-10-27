@@ -12,19 +12,19 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import java.time.LocalDateTime
 
-class MeldekortVedtakPostgresRepo(
+class MeldekortvedtakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) : MeldekortVedtakRepo {
+) : MeldekortvedtakRepo {
 
-    override fun lagre(vedtak: MeldekortVedtak, context: TransactionContext?) {
+    override fun lagre(vedtak: Meldekortvedtak, context: TransactionContext?) {
         sessionFactory.withTransaction(context) { tx ->
             // Må lagre vedtaket og utbetalingen i en transaksjon med deferred constraint pga sirkulære referanser
             tx.run(queryOf("SET CONSTRAINTS meldekortvedtak_utbetaling_id_fkey DEFERRED").asExecute)
@@ -79,7 +79,7 @@ class MeldekortVedtakPostgresRepo(
         }
     }
 
-    override fun hentDeSomSkalJournalføres(limit: Int): List<MeldekortVedtak> {
+    override fun hentDeSomSkalJournalføres(limit: Int): List<Meldekortvedtak> {
         return sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
@@ -99,7 +99,7 @@ class MeldekortVedtakPostgresRepo(
     }
 
     companion object {
-        fun hentForSakId(sakId: SakId, session: Session): MeldekortVedtaksliste {
+        fun hentForSakId(sakId: SakId, session: Session): Meldekortvedtaksliste {
             return session.run(
                 sqlQuery(
                     """
@@ -113,10 +113,10 @@ class MeldekortVedtakPostgresRepo(
                 ).map { row ->
                     row.toVedtak(session)
                 }.asList,
-            ).let { MeldekortVedtaksliste(it) }
+            ).let { Meldekortvedtaksliste(it) }
         }
 
-        private fun Row.toVedtak(session: Session): MeldekortVedtak {
+        private fun Row.toVedtak(session: Session): Meldekortvedtak {
             val vedtakId = VedtakId.fromString(string("id"))
             val sakId = SakId.fromString(string("sak_id"))
             val saksnummer = Saksnummer(string("saksnummer"))
@@ -144,7 +144,7 @@ class MeldekortVedtakPostgresRepo(
                 "Fant ikke utbetalingen $utbetalingId for vedtak $vedtakId"
             }
 
-            return MeldekortVedtak(
+            return Meldekortvedtak(
                 id = vedtakId,
                 sakId = sakId,
                 saksnummer = saksnummer,

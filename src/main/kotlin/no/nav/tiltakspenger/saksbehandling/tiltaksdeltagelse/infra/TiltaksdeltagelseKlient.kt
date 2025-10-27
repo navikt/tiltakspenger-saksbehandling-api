@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltaksdeltakelseMedArrangørnavn
 
 interface TiltaksdeltagelseKlient {
     /**
@@ -16,4 +17,10 @@ interface TiltaksdeltagelseKlient {
         tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
     ): Tiltaksdeltagelser
+
+    suspend fun hentTiltaksdeltakelserMedArrangørnavn(
+        fnr: Fnr,
+        harAdressebeskyttelse: Boolean,
+        correlationId: CorrelationId,
+    ): List<TiltaksdeltakelseMedArrangørnavn>
 }

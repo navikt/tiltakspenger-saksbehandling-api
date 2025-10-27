@@ -1,8 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 
 private enum class MeldekortBehandletAutomatiskStatusDb {
+    VENTER_BEHANDLING,
     BEHANDLET,
     UKJENT_FEIL,
     HENTE_NAVKONTOR_FEILET,
@@ -13,31 +14,39 @@ private enum class MeldekortBehandletAutomatiskStatusDb {
     UTDATERT_MELDEPERIODE,
     ER_UNDER_REVURDERING,
     FOR_MANGE_DAGER_REGISTRERT,
+    KAN_IKKE_MELDE_HELG,
+    FOR_MANGE_DAGER_GODKJENT_FRAVÆR,
 }
 
-fun BrukersMeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
-    BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET -> MeldekortBehandletAutomatiskStatusDb.BEHANDLET
-    BrukersMeldekortBehandletAutomatiskStatus.UKJENT_FEIL -> MeldekortBehandletAutomatiskStatusDb.UKJENT_FEIL
-    BrukersMeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET -> MeldekortBehandletAutomatiskStatusDb.HENTE_NAVKONTOR_FEILET
-    BrukersMeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDb.BEHANDLING_FEILET_PÅ_SAK
-    BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDb.UTBETALING_FEILET_PÅ_SAK
-    BrukersMeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDb.SKAL_IKKE_BEHANDLES_AUTOMATISK
-    BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET -> MeldekortBehandletAutomatiskStatusDb.ALLEREDE_BEHANDLET
-    BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE
-    BrukersMeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING
-    BrukersMeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT
+fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
+    MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatusDb.VENTER_BEHANDLING
+    MeldekortBehandletAutomatiskStatus.BEHANDLET -> MeldekortBehandletAutomatiskStatusDb.BEHANDLET
+    MeldekortBehandletAutomatiskStatus.UKJENT_FEIL -> MeldekortBehandletAutomatiskStatusDb.UKJENT_FEIL
+    MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET -> MeldekortBehandletAutomatiskStatusDb.HENTE_NAVKONTOR_FEILET
+    MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDb.BEHANDLING_FEILET_PÅ_SAK
+    MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDb.UTBETALING_FEILET_PÅ_SAK
+    MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK -> MeldekortBehandletAutomatiskStatusDb.SKAL_IKKE_BEHANDLES_AUTOMATISK
+    MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET -> MeldekortBehandletAutomatiskStatusDb.ALLEREDE_BEHANDLET
+    MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE
+    MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING
+    MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT
+    MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_MELDE_HELG
+    MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR -> MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
 }.toString()
 
-fun String.tilMeldekortBehandletAutomatiskStatus(): BrukersMeldekortBehandletAutomatiskStatus =
+fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatiskStatus =
     when (MeldekortBehandletAutomatiskStatusDb.valueOf(this)) {
-        MeldekortBehandletAutomatiskStatusDb.BEHANDLET -> BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET
-        MeldekortBehandletAutomatiskStatusDb.UKJENT_FEIL -> BrukersMeldekortBehandletAutomatiskStatus.UKJENT_FEIL
-        MeldekortBehandletAutomatiskStatusDb.HENTE_NAVKONTOR_FEILET -> BrukersMeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET
-        MeldekortBehandletAutomatiskStatusDb.BEHANDLING_FEILET_PÅ_SAK -> BrukersMeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK
-        MeldekortBehandletAutomatiskStatusDb.UTBETALING_FEILET_PÅ_SAK -> BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK
-        MeldekortBehandletAutomatiskStatusDb.SKAL_IKKE_BEHANDLES_AUTOMATISK -> BrukersMeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
-        MeldekortBehandletAutomatiskStatusDb.ALLEREDE_BEHANDLET -> BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
-        MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE -> BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE
-        MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING -> BrukersMeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING
-        MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT -> BrukersMeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT
+        MeldekortBehandletAutomatiskStatusDb.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING
+        MeldekortBehandletAutomatiskStatusDb.BEHANDLET -> MeldekortBehandletAutomatiskStatus.BEHANDLET
+        MeldekortBehandletAutomatiskStatusDb.UKJENT_FEIL -> MeldekortBehandletAutomatiskStatus.UKJENT_FEIL
+        MeldekortBehandletAutomatiskStatusDb.HENTE_NAVKONTOR_FEILET -> MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET
+        MeldekortBehandletAutomatiskStatusDb.BEHANDLING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK
+        MeldekortBehandletAutomatiskStatusDb.UTBETALING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK
+        MeldekortBehandletAutomatiskStatusDb.SKAL_IKKE_BEHANDLES_AUTOMATISK -> MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
+        MeldekortBehandletAutomatiskStatusDb.ALLEREDE_BEHANDLET -> MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+        MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE -> MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE
+        MeldekortBehandletAutomatiskStatusDb.ER_UNDER_REVURDERING -> MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING
+        MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT
+        MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG
+        MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_GODKJENT_FRAVÆR -> MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
     }

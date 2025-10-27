@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -19,7 +20,7 @@ import java.time.LocalDateTime
 /**
  * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
  * */
-data class MeldekortVedtak(
+data class Meldekortvedtak(
     override val id: VedtakId,
     override val opprettet: LocalDateTime,
     override val sakId: SakId,
@@ -33,6 +34,8 @@ data class MeldekortVedtak(
 
     override val saksbehandler: String = meldekortBehandling.saksbehandler!!
     override val beslutter: String = meldekortBehandling.beslutter!!
+
+    override val beregning: Beregning = meldekortBehandling.beregning
 
     val meldeperiode: Meldeperiode = meldekortBehandling.meldeperiode
 
@@ -61,7 +64,7 @@ data class MeldekortVedtak(
 fun MeldekortBehandling.Behandlet.opprettVedtak(
     forrigeUtbetaling: VedtattUtbetaling?,
     clock: Clock,
-): MeldekortVedtak {
+): Meldekortvedtak {
     val vedtakId = VedtakId.random()
     val opprettet = nå(clock)
 
@@ -83,7 +86,7 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
         status = null,
     )
 
-    return MeldekortVedtak(
+    return Meldekortvedtak(
         id = vedtakId,
         opprettet = opprettet,
         sakId = this.sakId,

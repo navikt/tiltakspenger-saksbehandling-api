@@ -9,10 +9,10 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.satser.Satsdag
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.tilMeldeperiodeBeregninger
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -170,7 +170,9 @@ internal class MeldekortberegningKorrigeringTest {
 
             val sisteKjedeId = meldekortbehandlinger.last().kjedeId
 
-            MeldeperiodeBeregninger(meldekortbehandlinger, Rammebehandlinger.empty()).sisteBeregningPerKjede[sisteKjedeId]!!.totalBeløp shouldBe 0
+            val beregninger = meldekortbehandlinger.tilMeldeperiodeBeregninger(clock)
+
+            beregninger.gjeldendeBeregningPerKjede[sisteKjedeId]!!.totalBeløp shouldBe 0
         }
     }
 
