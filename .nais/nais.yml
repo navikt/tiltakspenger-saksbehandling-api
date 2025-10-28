@@ -85,6 +85,7 @@ spec:
         - host: {{ urlOppgave }}
         - host: {{ urlSokosUtbetaldata }}
         - host: {{ urlTiltakspengerArena }}
+        - host: {{ urlSaf }}
     inbound:
       rules:
         - application: tiltakspenger-saksbehandling

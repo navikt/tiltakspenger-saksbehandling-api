@@ -83,7 +83,7 @@ fun Route.routes(
             startBehandlingAvPapirsøknadService = applicationContext.søknadContext.registrerPapirsøknadService,
             søknadService = applicationContext.søknadContext.søknadService,
             sakService = applicationContext.sakContext.sakService,
-            clock = applicationContext.clock,
+            validerJournalpostService = applicationContext.søknadContext.validerJournalpostService,
         )
 
         hentTiltakdeltakelserRoute(

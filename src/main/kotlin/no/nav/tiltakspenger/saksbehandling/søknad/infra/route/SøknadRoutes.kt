@@ -5,8 +5,9 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
+import no.nav.tiltakspenger.saksbehandling.journalpost.infra.route.validerJournalpostRoute
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvPapirsøknadService
-import java.time.Clock
 
 fun Route.søknadRoutes(
     auditService: AuditService,
@@ -14,8 +15,9 @@ fun Route.søknadRoutes(
     startBehandlingAvPapirsøknadService: StartBehandlingAvPapirsøknadService,
     søknadService: SøknadService,
     sakService: SakService,
-    clock: Clock,
+    validerJournalpostService: ValiderJournalpostService,
 ) {
     mottaSøknadRoute(søknadService, sakService)
     startBehandlingAvPapirsøknadRoute(auditService, tilgangskontrollService, startBehandlingAvPapirsøknadService)
+    validerJournalpostRoute(validerJournalpostService, tilgangskontrollService)
 }
