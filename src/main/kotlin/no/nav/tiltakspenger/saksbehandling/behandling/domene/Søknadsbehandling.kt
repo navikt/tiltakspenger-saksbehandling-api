@@ -212,7 +212,7 @@ data class Søknadsbehandling(
                     sak.fnr,
                     correlationId,
                     sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
-                    emptyList(),
+                    søknad.tiltak?.let { listOf(it.id) } ?: emptyList(),
                     true,
                 )
             }
