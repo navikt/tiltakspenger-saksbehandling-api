@@ -1,13 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
 import arrow.core.nonEmptyListOf
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.dato.april
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -15,15 +13,15 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingsstatusDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingStansTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 class SendRevurderingTilBeslutningTest {
@@ -56,8 +54,7 @@ class SendRevurderingTilBeslutningTest {
                 forventetStatus = HttpStatusCode.OK,
             )
 
-            val oppdatertRevurdering = objectMapper.readValue<RevurderingDTO>(responseBody)
-            oppdatertRevurdering.status shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING
+            JSONObject(responseBody).getString("status") shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING.name
         }
     }
 
@@ -73,12 +70,11 @@ class SendRevurderingTilBeslutningTest {
                 revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
             )
 
-            val behandlingDTO = objectMapper.readValue<RevurderingDTO>(jsonResponse)
+            JSONObject(jsonResponse).getString("status") shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING.name
+            JSONObject(jsonResponse).getString("resultat") shouldBe RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE.name
 
-            behandlingDTO.status shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING
-            behandlingDTO.resultat shouldBe RammebehandlingResultatDTO.REVURDERING_INNVILGELSE
-
-            val revurdering = tac.behandlingContext.behandlingRepo.hent(BehandlingId.fromString(behandlingDTO.id))
+            val revurdering =
+                tac.behandlingContext.behandlingRepo.hent(BehandlingId.fromString(JSONObject(jsonResponse).getString("id")))
 
             revurdering.shouldBeInstanceOf<Revurdering>()
 
@@ -87,9 +83,9 @@ class SendRevurderingTilBeslutningTest {
                 barnetillegg = Barnetillegg(
                     periodisering = søknadsbehandling.barnetillegg!!.periodisering.nyPeriode(
                         revurderingInnvilgelsesperiode,
-                        defaultVerdiDersomDenMangler = søknadsbehandling.barnetillegg!!.periodisering.verdier.first(),
+                        defaultVerdiDersomDenMangler = søknadsbehandling.barnetillegg.periodisering.verdier.first(),
                     ),
-                    begrunnelse = søknadsbehandling.barnetillegg!!.begrunnelse,
+                    begrunnelse = søknadsbehandling.barnetillegg.begrunnelse,
                 ),
                 antallDagerPerMeldeperiode = SammenhengendePeriodisering(
                     AntallDagerForMeldeperiode.default,

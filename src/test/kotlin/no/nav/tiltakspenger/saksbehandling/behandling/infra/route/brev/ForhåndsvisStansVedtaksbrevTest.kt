@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.til
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
@@ -46,7 +46,7 @@ internal class ForhåndsvisStansVedtaksbrevTest {
                     stansTilOgMed = null,
                     valgteHjemler = listOf(ValgtHjemmelForStansDTO.LønnFraAndre),
                     barnetillegg = null,
-                    resultat = RammebehandlingResultatDTO.STANS,
+                    resultat = RammebehandlingResultatTypeDTO.STANS,
                     avslagsgrunner = null,
                 )
                 responseJson shouldBe "pdf"

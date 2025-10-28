@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route
+package no.nav.tiltakspenger.saksbehandling.infra.route
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -9,7 +9,8 @@ data class AntallDagerPerMeldeperiodeDTO(
     val periode: PeriodeDTO,
     val antallDagerPerMeldeperiode: Int,
 )
-fun Periodisering<AntallDagerForMeldeperiode>.toDTO(): List<AntallDagerPerMeldeperiodeDTO> {
+
+fun Periodisering<AntallDagerForMeldeperiode>.tilAntallDagerPerMeldeperiodeDTO(): List<AntallDagerPerMeldeperiodeDTO> {
     return this.perioderMedVerdi.toList().map {
         AntallDagerPerMeldeperiodeDTO(antallDagerPerMeldeperiode = it.verdi.value, periode = it.periode.toDTO())
     }

@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.LocalDate
 import kotlin.collections.List
@@ -54,7 +54,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
             ),
         ),
     ) : OppdaterRevurderingDTO {
-        override val resultat: RammebehandlingResultatDTO = RammebehandlingResultatDTO.REVURDERING_INNVILGELSE
+        override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
 
         override fun tilDomene(
             sakId: SakId,
@@ -99,7 +99,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
             ),
         ),
     ) : OppdaterRevurderingDTO {
-        override val resultat: RammebehandlingResultatDTO = RammebehandlingResultatDTO.REVURDERING_INNVILGELSE
+        override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
 
         override fun tilDomene(
             sakId: SakId,
@@ -140,7 +140,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val stansFraOgMed: LocalDate?,
         val stansTilOgMed: LocalDate?,
     ) : OppdaterRevurderingDTO {
-        override val resultat: RammebehandlingResultatDTO = RammebehandlingResultatDTO.STANS
+        override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.STANS
 
         init {
             if (harValgtStansFraFørsteDagSomGirRett) require(stansFraOgMed == null) { "stansFraOgMed må være null når harValgtStansFraFørsteDagSomGirRett er true" }
@@ -170,19 +170,19 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
     }
 }
 
-fun RammebehandlingResultatDTO.tilRevurderingType(): RevurderingType = when (this) {
-    RammebehandlingResultatDTO.REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
-    RammebehandlingResultatDTO.STANS -> RevurderingType.STANS
-    RammebehandlingResultatDTO.OMGJØRING -> RevurderingType.OMGJØRING
+fun RammebehandlingResultatTypeDTO.tilRevurderingType(): RevurderingType = when (this) {
+    RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
+    RammebehandlingResultatTypeDTO.STANS -> RevurderingType.STANS
+    RammebehandlingResultatTypeDTO.OMGJØRING -> RevurderingType.OMGJØRING
 
-    RammebehandlingResultatDTO.AVSLAG,
-    RammebehandlingResultatDTO.INNVILGELSE,
-    RammebehandlingResultatDTO.IKKE_VALGT,
+    RammebehandlingResultatTypeDTO.AVSLAG,
+    RammebehandlingResultatTypeDTO.INNVILGELSE,
+    RammebehandlingResultatTypeDTO.IKKE_VALGT,
     -> throw IllegalStateException("Ugyldig type for revurdering $this")
 }
 
-fun RevurderingType.tilDTO(): RammebehandlingResultatDTO = when (this) {
-    RevurderingType.STANS -> RammebehandlingResultatDTO.STANS
-    RevurderingType.INNVILGELSE -> RammebehandlingResultatDTO.REVURDERING_INNVILGELSE
-    RevurderingType.OMGJØRING -> RammebehandlingResultatDTO.OMGJØRING
+fun RevurderingType.tilDTO(): RammebehandlingResultatTypeDTO = when (this) {
+    RevurderingType.STANS -> RammebehandlingResultatTypeDTO.STANS
+    RevurderingType.INNVILGELSE -> RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
+    RevurderingType.OMGJØRING -> RammebehandlingResultatTypeDTO.OMGJØRING
 }
