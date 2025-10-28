@@ -23,6 +23,7 @@ data class Tiltaksdeltagelse(
     val deltakelseProsent: Float?,
     val antallDagerPerUke: Float?,
     val kilde: Tiltakskilde,
+    val deltidsprosentGjennomforing: Double?,
 ) {
     /**
      * null dersom [deltagelseFraOgMed] eller [deltagelseTilOgMed] er null.

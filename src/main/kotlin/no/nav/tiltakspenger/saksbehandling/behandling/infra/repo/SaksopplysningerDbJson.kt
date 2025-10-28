@@ -31,6 +31,7 @@ private data class SaksopplysningerDbJson(
         val antallDagerPerUke: Float?,
         val kilde: String,
         val rettPåTiltakspenger: Boolean,
+        val deltidsprosentGjennomforing: Double? = null,
     ) {
         fun toDomain(): Tiltaksdeltagelse {
             return Tiltaksdeltagelse(
@@ -45,6 +46,7 @@ private data class SaksopplysningerDbJson(
                 antallDagerPerUke = antallDagerPerUke,
                 kilde = kilde.toTiltakskilde(),
                 rettPåTiltakspenger = rettPåTiltakspenger,
+                deltidsprosentGjennomforing = deltidsprosentGjennomforing,
             )
         }
     }
@@ -63,6 +65,7 @@ private fun Tiltaksdeltagelse.toDbJson(): TiltaksdeltagelseDbJson {
         antallDagerPerUke = this.antallDagerPerUke,
         kilde = this.kilde.toDb(),
         rettPåTiltakspenger = this.rettPåTiltakspenger,
+        deltidsprosentGjennomforing = this.deltidsprosentGjennomforing,
     )
 }
 

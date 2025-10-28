@@ -35,6 +35,7 @@ interface TiltakMother {
         prosent: Float? = 100F,
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Tiltakskilde.Arena,
+        deltidsprosentGjennomforing: Double? = null,
     ): Tiltaksdeltagelse {
         return Tiltaksdeltagelse(
             eksternDeltagelseId = eksternTiltaksdeltagelseId,
@@ -48,6 +49,7 @@ interface TiltakMother {
             deltakelseProsent = prosent,
             kilde = kilde,
             antallDagerPerUke = dagerPrUke,
+            deltidsprosentGjennomforing = deltidsprosentGjennomforing,
         )
     }
 
@@ -63,6 +65,7 @@ interface TiltakMother {
         prosent: Float? = 100F,
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
+        deltidsprosentGjennomforing: Double? = null,
     ): Tiltaksdeltagelse {
         return Tiltaksdeltagelse(
             eksternDeltagelseId = eksternTiltaksdeltagelseId,
@@ -76,6 +79,7 @@ interface TiltakMother {
             deltakelseProsent = prosent,
             kilde = kilde,
             antallDagerPerUke = dagerPrUke,
+            deltidsprosentGjennomforing = deltidsprosentGjennomforing,
         )
     }
 
@@ -93,6 +97,7 @@ interface TiltakMother {
         prosent: Float? = 100F,
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
+        deltidsprosentGjennomforing: Double? = null,
     ): Pair<Tiltaksdeltagelse, Søknadstiltak> {
         val tiltaksdeltagelse = Tiltaksdeltagelse(
             eksternDeltagelseId = eksternTiltaksdeltagelseId,
@@ -106,6 +111,7 @@ interface TiltakMother {
             deltakelseProsent = prosent,
             kilde = kilde,
             antallDagerPerUke = dagerPrUke,
+            deltidsprosentGjennomforing = deltidsprosentGjennomforing,
         )
         return tiltaksdeltagelse to søknadstiltak(
             id = eksternTiltaksdeltagelseId,

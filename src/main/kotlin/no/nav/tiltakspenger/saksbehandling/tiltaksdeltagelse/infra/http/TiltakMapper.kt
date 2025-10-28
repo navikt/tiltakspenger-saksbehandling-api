@@ -63,6 +63,7 @@ internal fun mapTiltak(
                 antallDagerPerUke = tiltakDto.deltakelsePerUke,
                 deltakelseProsent = tiltakDto.deltakelseProsent,
                 kilde = tiltakDto.kilde.toTiltakskilde(tiltakDto.id),
+                deltidsprosentGjennomforing = tiltakDto.gjennomforing?.deltidsprosent,
 
             )
         }.let { Tiltaksdeltagelser(it) }
