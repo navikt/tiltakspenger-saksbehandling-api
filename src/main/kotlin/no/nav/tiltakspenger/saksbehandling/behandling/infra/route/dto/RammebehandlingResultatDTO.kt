@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 
-enum class BehandlingResultatDTO {
+enum class RammebehandlingResultatDTO {
     INNVILGELSE,
     AVSLAG,
     STANS,
@@ -28,18 +28,19 @@ enum class BehandlingResultatDTO {
     }
 }
 
-fun SøknadsbehandlingResultat.tilBehandlingResultatDTO(): BehandlingResultatDTO = when (this) {
-    is SøknadsbehandlingResultat.Avslag -> BehandlingResultatDTO.AVSLAG
-    is SøknadsbehandlingResultat.Innvilgelse -> BehandlingResultatDTO.INNVILGELSE
+fun SøknadsbehandlingResultat?.tilBehandlingResultatDTO(): RammebehandlingResultatDTO = when (this) {
+    is SøknadsbehandlingResultat.Avslag -> RammebehandlingResultatDTO.AVSLAG
+    is SøknadsbehandlingResultat.Innvilgelse -> RammebehandlingResultatDTO.INNVILGELSE
+    null -> RammebehandlingResultatDTO.IKKE_VALGT
 }
 
-fun RevurderingResultat.tilBehandlingResultatDTO(): BehandlingResultatDTO = when (this) {
-    is RevurderingResultat.Stans -> BehandlingResultatDTO.STANS
-    is RevurderingResultat.Innvilgelse -> BehandlingResultatDTO.REVURDERING_INNVILGELSE
-    is RevurderingResultat.Omgjøring -> BehandlingResultatDTO.OMGJØRING
+fun RevurderingResultat.tilBehandlingResultatDTO(): RammebehandlingResultatDTO = when (this) {
+    is RevurderingResultat.Stans -> RammebehandlingResultatDTO.STANS
+    is RevurderingResultat.Innvilgelse -> RammebehandlingResultatDTO.REVURDERING_INNVILGELSE
+    is RevurderingResultat.Omgjøring -> RammebehandlingResultatDTO.OMGJØRING
 }
 
-fun Rammebehandling.tilBehandlingResultatDTO(): BehandlingResultatDTO? = when (this) {
+fun Rammebehandling.tilBehandlingResultatDTO(): RammebehandlingResultatDTO? = when (this) {
     is Revurdering -> resultat.tilBehandlingResultatDTO()
     is Søknadsbehandling -> resultat?.tilBehandlingResultatDTO()
 }

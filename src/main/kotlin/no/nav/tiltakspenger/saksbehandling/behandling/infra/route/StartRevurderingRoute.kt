@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
@@ -68,7 +68,7 @@ fun Route.startRevurderingRoute(
 }
 
 private data class StartRevurderingBody(
-    val revurderingType: BehandlingResultatDTO,
+    val revurderingType: RammebehandlingResultatDTO,
     val rammevedtakIdSomOmgjøres: String? = null,
 ) {
     fun tilKommando(

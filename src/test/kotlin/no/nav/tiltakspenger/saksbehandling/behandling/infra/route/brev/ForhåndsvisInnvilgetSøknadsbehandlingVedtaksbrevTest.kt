@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
@@ -44,7 +44,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     stansTilOgMed = null,
                     valgteHjemler = null,
                     barnetillegg = null,
-                    resultat = BehandlingResultatDTO.INNVILGELSE,
+                    resultat = RammebehandlingResultatDTO.INNVILGELSE,
                     avslagsgrunner = null,
                 )
                 responseJson shouldBe "pdf"
@@ -77,7 +77,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     stansTilOgMed = null,
                     valgteHjemler = null,
                     barnetillegg = listOf(BarnetilleggPeriodeDTO(antallBarn = 1, periode = virkningsperiode.toDTO())),
-                    resultat = BehandlingResultatDTO.INNVILGELSE,
+                    resultat = RammebehandlingResultatDTO.INNVILGELSE,
                     avslagsgrunner = null,
                 )
                 responseJson shouldBe "pdf"
@@ -115,7 +115,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                         ),
                         BarnetilleggPeriodeDTO(antallBarn = 1, periode = (1.februar(2025) til 31.mars(2025)).toDTO()),
                     ),
-                    resultat = BehandlingResultatDTO.INNVILGELSE,
+                    resultat = RammebehandlingResultatDTO.INNVILGELSE,
                     avslagsgrunner = null,
                 )
                 responseJson shouldBe "pdf"

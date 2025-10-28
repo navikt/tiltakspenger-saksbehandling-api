@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
@@ -53,7 +53,7 @@ private data class Body(
     val stansTilOgMed: LocalDate?,
     val valgteHjemler: List<ValgtHjemmelForStansDTO>?,
     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
-    val resultat: BehandlingResultatDTO,
+    val resultat: RammebehandlingResultatDTO,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 ) {
     init {

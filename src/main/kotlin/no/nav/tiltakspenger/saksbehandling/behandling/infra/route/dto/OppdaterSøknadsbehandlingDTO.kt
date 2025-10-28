@@ -40,7 +40,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         val barnetillegg: BarnetilleggDTO,
         val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>,
     ) : OppdaterSøknadsbehandlingDTO {
-        override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.INNVILGELSE
+        override val resultat: RammebehandlingResultatDTO = RammebehandlingResultatDTO.INNVILGELSE
 
         override fun tilDomene(
             sakId: SakId,
@@ -77,7 +77,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         override val begrunnelseVilkårsvurdering: String?,
         val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
     ) : OppdaterSøknadsbehandlingDTO {
-        override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.AVSLAG
+        override val resultat: RammebehandlingResultatDTO = RammebehandlingResultatDTO.AVSLAG
 
         override fun tilDomene(
             sakId: SakId,

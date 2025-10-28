@@ -14,9 +14,9 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -57,7 +57,7 @@ class SendRevurderingTilBeslutningTest {
             )
 
             val oppdatertRevurdering = objectMapper.readValue<RevurderingDTO>(responseBody)
-            oppdatertRevurdering.status shouldBe BehandlingsstatusDTO.KLAR_TIL_BESLUTNING
+            oppdatertRevurdering.status shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING
         }
     }
 
@@ -75,8 +75,8 @@ class SendRevurderingTilBeslutningTest {
 
             val behandlingDTO = objectMapper.readValue<RevurderingDTO>(jsonResponse)
 
-            behandlingDTO.status shouldBe BehandlingsstatusDTO.KLAR_TIL_BESLUTNING
-            behandlingDTO.resultat shouldBe BehandlingResultatDTO.REVURDERING_INNVILGELSE
+            behandlingDTO.status shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING
+            behandlingDTO.resultat shouldBe RammebehandlingResultatDTO.REVURDERING_INNVILGELSE
 
             val revurdering = tac.behandlingContext.behandlingRepo.hent(BehandlingId.fromString(behandlingDTO.id))
 

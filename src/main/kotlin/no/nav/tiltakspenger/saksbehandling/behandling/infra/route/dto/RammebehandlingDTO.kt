@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -26,14 +25,13 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.Tiltaks
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import java.time.LocalDateTime
 
-sealed interface BehandlingDTO {
+sealed interface RammebehandlingDTO {
     val id: String
-    val type: BehandlingstypeDTO
-    val status: BehandlingsstatusDTO
-    val resultat: BehandlingResultatDTO?
+    val type: RammebehandlingstypeDTO
+    val status: RammebehandlingsstatusDTO
+    val resultat: RammebehandlingResultatDTO
     val sakId: String
     val saksnummer: String
     val saksbehandler: String?
@@ -55,8 +53,8 @@ sealed interface BehandlingDTO {
 
 data class SøknadsbehandlingDTO(
     override val id: String,
-    override val status: BehandlingsstatusDTO,
-    override val resultat: BehandlingResultatDTO?,
+    override val status: RammebehandlingsstatusDTO,
+    override val resultat: RammebehandlingResultatDTO,
     override val sakId: String,
     override val saksnummer: String,
     override val saksbehandler: String?,
@@ -80,14 +78,14 @@ data class SøknadsbehandlingDTO(
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<String>,
-) : BehandlingDTO {
-    override val type = BehandlingstypeDTO.SØKNADSBEHANDLING
+) : RammebehandlingDTO {
+    override val type = RammebehandlingstypeDTO.SØKNADSBEHANDLING
 }
 
 data class RevurderingDTO(
     override val id: String,
-    override val status: BehandlingsstatusDTO,
-    override val resultat: BehandlingResultatDTO,
+    override val status: RammebehandlingsstatusDTO,
+    override val resultat: RammebehandlingResultatDTO,
     override val sakId: String,
     override val saksnummer: String,
     override val saksbehandler: String?,
@@ -111,11 +109,11 @@ data class RevurderingDTO(
     val harValgtStansFraFørsteDagSomGirRett: Boolean?,
     val harValgtStansTilSisteDagSomGirRett: Boolean?,
     val omgjørVedtak: String?,
-) : BehandlingDTO {
-    override val type = BehandlingstypeDTO.REVURDERING
+) : RammebehandlingDTO {
+    override val type = RammebehandlingstypeDTO.REVURDERING
 }
 
-fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): BehandlingDTO {
+fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): RammebehandlingDTO {
     val behandling = rammebehandlinger.hentBehandling(behandlingId)
     val rammevedakForBehandling = rammevedtaksliste.finnRammevedtakForBehandling(behandlingId)
     requireNotNull(behandling) {
@@ -137,7 +135,7 @@ fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): BehandlingDTO {
     }
 }
 
-fun Sak.tilBehandlingerDTO(): List<BehandlingDTO> = this.rammebehandlinger.map { this.tilBehandlingDTO(it.id) }
+fun Sak.tilBehandlingerDTO(): List<RammebehandlingDTO> = this.rammebehandlinger.map { this.tilBehandlingDTO(it.id) }
 
 fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     utbetalingsstatus: Utbetalingsstatus?,
@@ -147,7 +145,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     return SøknadsbehandlingDTO(
         id = this.id.toString(),
         status = this.status.toBehandlingsstatusDTO(),
-        resultat = this.resultat?.tilBehandlingResultatDTO(),
+        resultat = this.resultat.tilBehandlingResultatDTO(),
         sakId = this.sakId.toString(),
         saksnummer = this.saksnummer.toString(),
         saksbehandler = this.saksbehandler,

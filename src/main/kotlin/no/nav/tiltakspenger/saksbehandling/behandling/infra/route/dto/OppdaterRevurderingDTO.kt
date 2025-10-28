@@ -54,7 +54,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
             ),
         ),
     ) : OppdaterRevurderingDTO {
-        override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.REVURDERING_INNVILGELSE
+        override val resultat: RammebehandlingResultatDTO = RammebehandlingResultatDTO.REVURDERING_INNVILGELSE
 
         override fun tilDomene(
             sakId: SakId,
@@ -99,7 +99,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
             ),
         ),
     ) : OppdaterRevurderingDTO {
-        override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.REVURDERING_INNVILGELSE
+        override val resultat: RammebehandlingResultatDTO = RammebehandlingResultatDTO.REVURDERING_INNVILGELSE
 
         override fun tilDomene(
             sakId: SakId,
@@ -140,7 +140,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val stansFraOgMed: LocalDate?,
         val stansTilOgMed: LocalDate?,
     ) : OppdaterRevurderingDTO {
-        override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.STANS
+        override val resultat: RammebehandlingResultatDTO = RammebehandlingResultatDTO.STANS
 
         init {
             if (harValgtStansFraFørsteDagSomGirRett) require(stansFraOgMed == null) { "stansFraOgMed må være null når harValgtStansFraFørsteDagSomGirRett er true" }
@@ -170,19 +170,19 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
     }
 }
 
-fun BehandlingResultatDTO.tilRevurderingType(): RevurderingType = when (this) {
-    BehandlingResultatDTO.REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
-    BehandlingResultatDTO.STANS -> RevurderingType.STANS
-    BehandlingResultatDTO.OMGJØRING -> RevurderingType.OMGJØRING
+fun RammebehandlingResultatDTO.tilRevurderingType(): RevurderingType = when (this) {
+    RammebehandlingResultatDTO.REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
+    RammebehandlingResultatDTO.STANS -> RevurderingType.STANS
+    RammebehandlingResultatDTO.OMGJØRING -> RevurderingType.OMGJØRING
 
-    BehandlingResultatDTO.AVSLAG,
-    BehandlingResultatDTO.INNVILGELSE,
-    BehandlingResultatDTO.IKKE_VALGT,
+    RammebehandlingResultatDTO.AVSLAG,
+    RammebehandlingResultatDTO.INNVILGELSE,
+    RammebehandlingResultatDTO.IKKE_VALGT,
     -> throw IllegalStateException("Ugyldig type for revurdering $this")
 }
 
-fun RevurderingType.tilDTO(): BehandlingResultatDTO = when (this) {
-    RevurderingType.STANS -> BehandlingResultatDTO.STANS
-    RevurderingType.INNVILGELSE -> BehandlingResultatDTO.REVURDERING_INNVILGELSE
-    RevurderingType.OMGJØRING -> BehandlingResultatDTO.OMGJØRING
+fun RevurderingType.tilDTO(): RammebehandlingResultatDTO = when (this) {
+    RevurderingType.STANS -> RammebehandlingResultatDTO.STANS
+    RevurderingType.INNVILGELSE -> RammebehandlingResultatDTO.REVURDERING_INNVILGELSE
+    RevurderingType.OMGJØRING -> RammebehandlingResultatDTO.OMGJØRING
 }

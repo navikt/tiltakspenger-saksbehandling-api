@@ -6,7 +6,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.til
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
@@ -42,7 +42,7 @@ internal class ForhåndsvisAvslagVedtaksbrevTest {
                     stansTilOgMed = null,
                     valgteHjemler = null,
                     barnetillegg = null,
-                    resultat = BehandlingResultatDTO.AVSLAG,
+                    resultat = RammebehandlingResultatDTO.AVSLAG,
                     avslagsgrunner = listOf(ValgtHjemmelForAvslagDTO.FremmetForSent),
                 )
                 responseJson shouldBe "pdf"
