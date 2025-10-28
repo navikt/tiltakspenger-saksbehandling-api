@@ -161,6 +161,7 @@ class TiltaksdeltagelseTest {
             deltakelseProsent = 50.0F,
             antallDagerPerUke = 2.0F,
             kilde = Tiltakskilde.Komet,
+            deltidsprosentGjennomforing = 100.0,
         )
     }
 }
