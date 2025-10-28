@@ -60,11 +60,11 @@ data class PapirsøknadBody(
         val fornavn: String?,
         val mellomnavn: String?,
         val etternavn: String?,
-        val oppholdInnenforEøs: JaNeiSpmDTO,
+        val oppholdInnenforEøs: JaNeiSpmDTO?,
     )
 
     data class JaNeiSpmDTO(
-        val svar: Boolean,
+        val svar: Boolean?,
     )
 
     data class PeriodeSpmDTO(
@@ -76,11 +76,6 @@ data class PapirsøknadBody(
         val svar: Boolean,
         val fraOgMed: LocalDate?,
     )
-
-    enum class SpmSvarDTO {
-        Nei,
-        Ja,
-    }
 
     fun PersonopplysningerDTO.tilDomene(): Søknad.Personopplysninger = Søknad.Personopplysninger(
         fnr = Fnr.fromString(this.ident),
@@ -127,7 +122,7 @@ data class PapirsøknadBody(
         checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg, manuelle barn " }
 
         return BarnetilleggFraSøknad.Manuell(
-            oppholderSegIEØS = this.oppholdInnenforEøs.tilDomene(),
+            oppholderSegIEØS = this.oppholdInnenforEøs?.tilDomene(),
             fornavn = this.fornavn,
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn,
@@ -138,7 +133,7 @@ data class PapirsøknadBody(
     fun BarnetilleggDTO.tilDomenePdl(): BarnetilleggFraSøknad.FraPdl {
         checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg fra PDL" }
         return BarnetilleggFraSøknad.FraPdl(
-            oppholderSegIEØS = this.oppholdInnenforEøs.tilDomene(),
+            oppholderSegIEØS = this.oppholdInnenforEøs?.tilDomene(),
             fornavn = this.fornavn,
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn,
@@ -146,9 +141,10 @@ data class PapirsøknadBody(
         )
     }
 
-    fun JaNeiSpmDTO.tilDomene(): Søknad.JaNeiSpm =
+    fun JaNeiSpmDTO.tilDomene(): Søknad.JaNeiSpm? =
         when (this.svar) {
             false -> Søknad.JaNeiSpm.Nei
             true -> Søknad.JaNeiSpm.Ja
+            null -> null
         }
 }
