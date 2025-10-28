@@ -23,6 +23,8 @@ import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.DataSourceSetup
+import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
+import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClientImpl
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -119,6 +121,13 @@ open class ApplicationContext(
         TiltakspengerArenaHttpClient(
             baseUrl = Configuration.tiltakspengerArenaUrl,
             getToken = { texasClient.getSystemToken(Configuration.tiltakspengerArenaScope, IdentityProvider.AZUREAD) },
+        )
+    }
+
+    open val safJournalpostClient: SafJournalpostClient by lazy {
+        SafJournalpostClientImpl(
+            baseUrl = Configuration.safUrl,
+            getToken = { texasClient.getSystemToken(Configuration.safScope, IdentityProvider.AZUREAD) },
         )
     }
 
@@ -330,6 +339,7 @@ open class ApplicationContext(
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkSakService = statistikkContext.statistikkSakService,
             clock = clock,
+            safJournalpostClient = safJournalpostClient,
         )
     }
 

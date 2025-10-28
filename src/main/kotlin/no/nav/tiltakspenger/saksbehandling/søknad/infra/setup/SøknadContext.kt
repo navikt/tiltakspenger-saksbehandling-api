@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
+import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvPapirsøknadService
@@ -21,6 +23,7 @@ open class SøknadContext(
     statistikkSakRepo: StatistikkSakRepo,
     statistikkSakService: StatistikkSakService,
     clock: Clock,
+    safJournalpostClient: SafJournalpostClient,
 ) {
     open val søknadRepo: SøknadRepo by lazy { SøknadPostgresRepo(sessionFactory = sessionFactory as PostgresSessionFactory) }
     val søknadService: SøknadService by lazy {
@@ -40,6 +43,12 @@ open class SøknadContext(
             statistikkSakService = statistikkSakService,
             søknadRepo = søknadRepo,
             clock = clock,
+        )
+    }
+
+    val validerJournalpostService: ValiderJournalpostService by lazy {
+        ValiderJournalpostService(
+            safJournalpostClient = safJournalpostClient,
         )
     }
 }

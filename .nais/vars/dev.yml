@@ -14,6 +14,7 @@ urlMicrosoftGraphApi: graph.microsoft.com
 urlOppgave: oppgave.dev-fss-pub.nais.io
 urlSokosUtbetaldata: sokos-utbetaldata.dev-fss-pub.nais.io
 urlTiltakspengerArena: tiltakspenger-arena.dev-fss-pub.nais.io
+urlSaf: saf-q2.dev-fss-pub.nais.io
 azure:
   groups:
     - name: ROLE_SAKSBEHANDLER
