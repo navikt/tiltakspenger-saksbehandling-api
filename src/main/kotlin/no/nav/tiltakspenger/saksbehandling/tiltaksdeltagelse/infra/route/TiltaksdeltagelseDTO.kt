@@ -14,9 +14,11 @@ data class TiltaksdeltagelseDTO(
     val deltakelseProsent: Float?,
     val antallDagerPerUke: Float?,
     val kilde: String,
+    val deltakelseProsentFraGjennomforing: Boolean?,
 )
 
 fun Tiltaksdeltagelse.toDTO(): TiltaksdeltagelseDTO {
+    val deltakelseProsentFraGjennomforing = this.deltakelseProsent == null && this.deltidsprosentGjennomforing != null
     return TiltaksdeltagelseDTO(
         eksternDeltagelseId = this.eksternDeltagelseId,
         gjennomføringId = this.gjennomføringId,
@@ -25,8 +27,9 @@ fun Tiltaksdeltagelse.toDTO(): TiltaksdeltagelseDTO {
         deltagelseFraOgMed = this.deltagelseFraOgMed,
         deltagelseTilOgMed = this.deltagelseTilOgMed,
         deltakelseStatus = this.deltakelseStatus.name,
-        deltakelseProsent = this.deltakelseProsent,
+        deltakelseProsent = this.deltakelseProsent ?: this.deltidsprosentGjennomforing?.toFloat(),
         antallDagerPerUke = this.antallDagerPerUke,
         kilde = this.kilde.name,
+        deltakelseProsentFraGjennomforing = deltakelseProsentFraGjennomforing,
     )
 }
