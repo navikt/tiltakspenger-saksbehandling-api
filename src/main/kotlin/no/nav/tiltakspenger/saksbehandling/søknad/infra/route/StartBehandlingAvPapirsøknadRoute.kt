@@ -27,14 +27,14 @@ import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
-const val PAPIRSØKNAD_PATH = "/{saksnummer}/papirsoknad"
+const val PAPIRSØKNAD_PATH = "sak/{saksnummer}/papirsoknad"
 
 fun Route.startBehandlingAvPapirsøknadRoute(
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
     startBehandlingAvPapirsøknad: StartBehandlingAvPapirsøknadService,
 ) {
-    post("/{saksnummer}/papirsoknad") {
+    post(PAPIRSØKNAD_PATH) {
         logger.debug { "Mottatt papirsøknad på '$PAPIRSØKNAD_PATH'" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
@@ -74,7 +74,7 @@ data class StartBehandlingAvPapirsøknadCommand(
     val journalpostId: JournalpostId,
     val manueltSattSøknadsperiode: Periode?,
     val søknadstiltak: Søknadstiltak?,
-    val kravtidspunkt: LocalDateTime,
+    val opprettet: LocalDateTime,
     val barnetillegg: List<BarnetilleggFraSøknad>,
     val antallVedlegg: Int,
     val kvp: Søknad.PeriodeSpm?,
