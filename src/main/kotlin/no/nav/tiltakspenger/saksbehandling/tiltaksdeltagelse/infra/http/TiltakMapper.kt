@@ -38,32 +38,26 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 internal fun mapTiltak(
     tiltakDTOListe: List<TiltakTilSaksbehandlingDTO>,
 ): Tiltaksdeltagelser {
-    // TODO fjern deprekerte felter når gjennomforing ikke er nullable
     return tiltakDTOListe
         .map { tiltakDto ->
             Tiltaksdeltagelse(
                 eksternDeltagelseId = tiltakDto.id,
-                gjennomføringId = tiltakDto.gjennomforing?.id ?: tiltakDto.gjennomføringId,
-                typeNavn = tiltakDto.gjennomforing?.typeNavn ?: tiltakDto.typeNavn,
+                gjennomføringId = tiltakDto.gjennomforing.id,
+                typeNavn = tiltakDto.gjennomforing.typeNavn,
                 typeKode =
-                tiltakDto.gjennomforing?.arenaKode?.toTiltakstypeSomGirRett()?.getOrElse {
+                tiltakDto.gjennomforing.arenaKode.toTiltakstypeSomGirRett().getOrElse {
                     throw IllegalStateException(
-                        "Inneholder tiltakstype som ikke gir rett (som vi ikke støtter i MVP): ${tiltakDto.typeKode}. Tiltaksid: ${tiltakDto.id}",
-                    )
-                } ?: tiltakDto.typeKode.toTiltakstypeSomGirRett().getOrElse {
-                    throw IllegalStateException(
-                        "Inneholder tiltakstype som ikke gir rett (som vi ikke støtter i MVP): ${tiltakDto.typeKode}. Tiltaksid: ${tiltakDto.id}",
+                        "Inneholder tiltakstype som ikke gir rett (som vi ikke støtter i MVP): ${tiltakDto.gjennomforing.arenaKode}. Tiltaksid: ${tiltakDto.id}",
                     )
                 },
-                rettPåTiltakspenger = tiltakDto.gjennomforing?.arenaKode?.rettPåTiltakspenger
-                    ?: tiltakDto.typeKode.rettPåTiltakspenger,
+                rettPåTiltakspenger = tiltakDto.gjennomforing.arenaKode.rettPåTiltakspenger,
                 deltagelseFraOgMed = tiltakDto.deltakelseFom,
                 deltagelseTilOgMed = tiltakDto.deltakelseTom,
                 deltakelseStatus = tiltakDto.deltakelseStatus.toDomain(),
                 antallDagerPerUke = tiltakDto.deltakelsePerUke,
                 deltakelseProsent = tiltakDto.deltakelseProsent,
                 kilde = tiltakDto.kilde.toTiltakskilde(tiltakDto.id),
-                deltidsprosentGjennomforing = tiltakDto.gjennomforing?.deltidsprosent,
+                deltidsprosentGjennomforing = tiltakDto.gjennomforing.deltidsprosent,
 
             )
         }.let { Tiltaksdeltagelser(it) }
@@ -73,27 +67,21 @@ internal fun mapTiltakMedArrangørnavn(
     harAdressebeskyttelse: Boolean,
     tiltakDTOListe: List<TiltakTilSaksbehandlingDTO>,
 ): List<TiltaksdeltakelseMedArrangørnavn> {
-    // TODO fjern deprekerte felter når gjennomforing ikke er nullable
     return tiltakDTOListe
         .map { tiltakDto ->
             TiltaksdeltakelseMedArrangørnavn(
                 harAdressebeskyttelse = harAdressebeskyttelse,
-                arrangørnavnFørSensur = tiltakDto.gjennomforing?.arrangørnavn,
+                arrangørnavnFørSensur = tiltakDto.gjennomforing.arrangørnavn,
                 eksternDeltakelseId = tiltakDto.id,
-                gjennomføringId = tiltakDto.gjennomforing?.id ?: tiltakDto.gjennomføringId,
-                typeNavn = tiltakDto.gjennomforing?.typeNavn ?: tiltakDto.typeNavn,
+                gjennomføringId = tiltakDto.gjennomforing.id,
+                typeNavn = tiltakDto.gjennomforing.typeNavn,
                 typeKode =
-                tiltakDto.gjennomforing?.arenaKode?.toTiltakstypeSomGirRett()?.getOrElse {
+                tiltakDto.gjennomforing.arenaKode.toTiltakstypeSomGirRett().getOrElse {
                     throw IllegalStateException(
-                        "Inneholder tiltakstype som ikke gir rett (som vi ikke støtter i MVP): ${tiltakDto.typeKode}. Tiltaksid: ${tiltakDto.id}",
-                    )
-                } ?: tiltakDto.typeKode.toTiltakstypeSomGirRett().getOrElse {
-                    throw IllegalStateException(
-                        "Inneholder tiltakstype som ikke gir rett (som vi ikke støtter i MVP): ${tiltakDto.typeKode}. Tiltaksid: ${tiltakDto.id}",
+                        "Inneholder tiltakstype som ikke gir rett (som vi ikke støtter i MVP): ${tiltakDto.gjennomforing.arenaKode}. Tiltaksid: ${tiltakDto.id}",
                     )
                 },
-                rettPåTiltakspenger = tiltakDto.gjennomforing?.arenaKode?.rettPåTiltakspenger
-                    ?: tiltakDto.typeKode.rettPåTiltakspenger,
+                rettPåTiltakspenger = tiltakDto.gjennomforing.arenaKode.rettPåTiltakspenger,
                 deltakelseFraOgMed = tiltakDto.deltakelseFom,
                 deltakelseTilOgMed = tiltakDto.deltakelseTom,
                 deltakelseStatus = tiltakDto.deltakelseStatus.toDomain(),
@@ -148,4 +136,4 @@ fun TiltakTilSaksbehandlingDTO.harFomOgTomEllerRelevantStatus(
 }
 
 fun TiltakTilSaksbehandlingDTO.rettPaTiltakspenger(): Boolean =
-    typeKode.toTiltakstypeSomGirRett().isRight()
+    gjennomforing.arenaKode.toTiltakstypeSomGirRett().isRight()
