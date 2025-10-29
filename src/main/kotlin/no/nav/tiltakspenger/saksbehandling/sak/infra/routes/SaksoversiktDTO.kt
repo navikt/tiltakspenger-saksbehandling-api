@@ -21,19 +21,18 @@ import java.time.LocalDateTime
  * @property id Unik identifikator for behandlingen. For søknader er dette søknadId. For søknadsbehandlinger er dette behandlingId.
  */
 data class SaksoversiktDTO(
+    val id: String,
+    val sakId: String,
+    val saksnummer: String,
+    val typeBehandling: RammebehandlingstypeDTO,
+    val opprettet: LocalDateTime,
     val periode: PeriodeDTO?,
-    val status: String,
+    val status: String?,
     val kravtidspunkt: LocalDateTime?,
     val underkjent: Boolean?,
-    val typeBehandling: RammebehandlingstypeDTO,
     val resultat: RammebehandlingResultatTypeDTO?,
-    val fnr: String,
-    val id: String,
-    val saksnummer: String,
-    val sakId: String,
     val saksbehandler: String?,
     val beslutter: String?,
-    val opprettet: LocalDateTime,
     val erSattPåVent: Boolean?,
 )
 
@@ -45,35 +44,33 @@ fun List<Søknad>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
     this.map { it.toSaksoversiktDTO() }
 
 fun Rammebehandling.toSaksoversiktDTO() = SaksoversiktDTO(
+    id = id.toString(),
+    sakId = sakId.toString(),
+    saksnummer = saksnummer.toString(),
+    typeBehandling = behandlingstype.tilBehandlingstypeDTO(),
+    opprettet = opprettet,
     periode = virkningsperiode?.toDTO(),
     status = status.toBehandlingsstatusDTO().toString(),
     kravtidspunkt = if (this is Søknadsbehandling) kravtidspunkt else null,
     underkjent = attesteringer.any { attestering -> attestering.isUnderkjent() },
-    typeBehandling = behandlingstype.tilBehandlingstypeDTO(),
     resultat = this.tilBehandlingResultatDTO(),
-    fnr = fnr.verdi,
-    id = id.toString(),
-    saksnummer = saksnummer.toString(),
-    sakId = sakId.toString(),
     saksbehandler = saksbehandler,
     beslutter = beslutter,
-    opprettet = opprettet,
     erSattPåVent = ventestatus.erSattPåVent,
 )
 
 fun Søknad.toSaksoversiktDTO() = SaksoversiktDTO(
+    id = id.toString(),
+    sakId = sakId.toString(),
+    saksnummer = saksnummer.toString(),
+    typeBehandling = RammebehandlingstypeDTO.SØKNAD,
+    opprettet = opprettet,
     periode = null,
-    status = "SØKNAD",
+    resultat = null,
+    status = null,
     kravtidspunkt = tidsstempelHosOss,
     underkjent = null,
-    typeBehandling = RammebehandlingstypeDTO.SØKNAD,
-    resultat = null,
-    fnr = fnr.verdi,
-    id = id.toString(),
-    saksnummer = saksnummer.toString(),
-    sakId = sakId.toString(),
     saksbehandler = null,
     beslutter = null,
-    opprettet = opprettet,
     erSattPåVent = null,
 )
