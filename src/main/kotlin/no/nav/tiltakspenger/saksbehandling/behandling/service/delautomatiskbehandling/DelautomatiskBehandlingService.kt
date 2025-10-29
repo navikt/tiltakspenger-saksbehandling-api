@@ -245,13 +245,14 @@ class DelautomatiskBehandlingService(
                 manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_IKKE_DELTATT_PA_TILTAK)
             }
             val deltakelsesprosent = soknadstiltakFraSaksopplysning.getDeltakelsesprosent()
-            if (soknadstiltakFraSaksopplysning.antallDagerPerUke == null && deltakelsesprosent == null) {
+            val manglerDagerPerUke = soknadstiltakFraSaksopplysning.antallDagerPerUke == null || soknadstiltakFraSaksopplysning.antallDagerPerUke == 0F
+            if (manglerDagerPerUke && deltakelsesprosent == null) {
                 manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_TILTAK_MANGLER_DELTAKELSESMENGDE)
             }
             if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 5.0F) {
                 manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_TILTAK_MER_ENN_FEM_DAGER_PER_UKE)
             }
-            if (soknadstiltakFraSaksopplysning.antallDagerPerUke == null && deltakelsesprosent != null && deltakelsesprosent < 100.0F) {
+            if (manglerDagerPerUke && deltakelsesprosent != null && deltakelsesprosent < 100.0F) {
                 manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_DELTIDSTILTAK_UTEN_DAGER_PER_UKE)
             }
         }
@@ -369,7 +370,7 @@ class DelautomatiskBehandlingService(
         val soknadstiltakFraSaksopplysning = behandling.søknad.tiltak
             .let { tiltak -> behandling.saksopplysninger.getTiltaksdeltagelse(tiltak.id) }
             ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk. BehandlingId: ${behandling.id}")
-        require(soknadstiltakFraSaksopplysning.antallDagerPerUke != null || soknadstiltakFraSaksopplysning.getDeltakelsesprosent() == 100.0F) {
+        require((soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) || soknadstiltakFraSaksopplysning.getDeltakelsesprosent() == 100.0F) {
             "Tiltaksdeltakelser som mangler dagerPerUke og ikke har deltakelsesprosent 100% kan ikke behandles automatisk. BehandlingId: ${behandling.id}"
         }
         return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
