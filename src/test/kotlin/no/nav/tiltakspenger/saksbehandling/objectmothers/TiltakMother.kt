@@ -163,7 +163,6 @@ fun Søknadstiltak.toTiltak(
     return tiltaksdeltagelse(
         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
         eksternTiltaksdeltagelseId = this.id,
-        // TODO jah: Vi burde ha kontroll på denne fra vi tar inn søknaden i routen til først søknad og deretter saksbehandling-api
         typeKode = typeKode.toTiltakstypeSomGirRett().getOrElse {
             throw IllegalArgumentException("Ugyldig typekode ${this.typeKode}")
         },
@@ -178,12 +177,29 @@ fun Tiltaksdeltagelse.toSøknadstiltak(): Søknadstiltak {
         id = this.eksternDeltagelseId,
         deltakelseFom = this.deltagelseFraOgMed!!,
         deltakelseTom = this.deltagelseTilOgMed!!,
-        /**
-         * TODO hs: Dirty fiks for at vi i opprettelsen la inn GRUPPE_AMO tidligere, men ved lokal kjøring kjører man
-         * TiltakResponsDTO.TiltakType.valueOf(this.typeKode) [Søknadstiltak.toTiltak]
-         * https://trello.com/c/KtVPaugt/1663-gruppeamo-mappes-feil-i-lokalt-oppsett
-         */
-        typeKode = if (this.typeKode === TiltakstypeSomGirRett.GRUPPE_AMO) TiltakResponsDTO.TiltakType.GRUPPEAMO.name else this.typeKode.name,
+        typeKode = this.typeKode.tilTiltakstype().name,
         typeNavn = this.typeNavn,
     )
+}
+
+fun TiltakstypeSomGirRett.tilTiltakstype(): TiltakResponsDTO.TiltakType {
+    return when (this) {
+        TiltakstypeSomGirRett.ARBEIDSFORBEREDENDE_TRENING -> TiltakResponsDTO.TiltakType.ARBFORB
+        TiltakstypeSomGirRett.ARBEIDSRETTET_REHABILITERING -> TiltakResponsDTO.TiltakType.ARBRRHDAG
+        TiltakstypeSomGirRett.ARBEIDSTRENING -> TiltakResponsDTO.TiltakType.ARBTREN
+        TiltakstypeSomGirRett.AVKLARING -> TiltakResponsDTO.TiltakType.AVKLARAG
+        TiltakstypeSomGirRett.DIGITAL_JOBBKLUBB -> TiltakResponsDTO.TiltakType.DIGIOPPARB
+        TiltakstypeSomGirRett.ENKELTPLASS_AMO -> TiltakResponsDTO.TiltakType.ENKELAMO
+        TiltakstypeSomGirRett.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG -> TiltakResponsDTO.TiltakType.ENKFAGYRKE
+        TiltakstypeSomGirRett.FORSØK_OPPLÆRING_LENGRE_VARIGHET -> TiltakResponsDTO.TiltakType.FORSOPPLEV
+        TiltakstypeSomGirRett.GRUPPE_AMO -> TiltakResponsDTO.TiltakType.GRUPPEAMO
+        TiltakstypeSomGirRett.GRUPPE_VGS_OG_HØYERE_YRKESFAG -> TiltakResponsDTO.TiltakType.GRUFAGYRKE
+        TiltakstypeSomGirRett.HØYERE_UTDANNING -> TiltakResponsDTO.TiltakType.HOYEREUTD
+        TiltakstypeSomGirRett.INDIVIDUELL_JOBBSTØTTE -> TiltakResponsDTO.TiltakType.INDJOBSTOT
+        TiltakstypeSomGirRett.INDIVIDUELL_KARRIERESTØTTE_UNG -> TiltakResponsDTO.TiltakType.IPSUNG
+        TiltakstypeSomGirRett.JOBBKLUBB -> TiltakResponsDTO.TiltakType.JOBBK
+        TiltakstypeSomGirRett.OPPFØLGING -> TiltakResponsDTO.TiltakType.INDOPPFAG
+        TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_NAV -> TiltakResponsDTO.TiltakType.UTVAOONAV
+        TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_OPPLÆRING -> TiltakResponsDTO.TiltakType.UTVOPPFOPL
+    }
 }

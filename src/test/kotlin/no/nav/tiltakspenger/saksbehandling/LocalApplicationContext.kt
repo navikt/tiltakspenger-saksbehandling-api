@@ -91,8 +91,6 @@ class LocalApplicationContext(
     private val fnr: Fnr = Fnr.fromString("12345678911")
     private val tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelse(
         // Siden Komet eier GRUPPE_AMO, vil dette være en UUID. Hadde det vært Arena som var master ville det vært eksempelvis TA6509186.
-        // Kommentar jah: Litt usikker på om Komet sender UUIDen til Arena, eller om de genererer en Arena-ID på formatet TA...
-        // Kommentar Tia: Komet genererer uuid og sender denne til Arena for tiltakstyper de har tatt over. Komet er ikke master for ikke gruppeamo ennå.
         eksternTiltaksdeltagelseId = "fa287e7-ddbb-44a2-9bfa-4da4661f8b6d",
         eksternTiltaksgjennomføringsId = "5667273f-784e-4521-89c3-75b0be8ee250",
         typeKode = TiltakstypeSomGirRett.GRUPPE_AMO,
