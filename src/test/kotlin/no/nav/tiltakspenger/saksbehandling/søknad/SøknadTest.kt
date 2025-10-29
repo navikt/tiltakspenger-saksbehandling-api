@@ -28,7 +28,8 @@ class SøknadTest {
             val opprettetSøknad = Søknad.opprett(
                 søknadstiltak = søknadstiltak(),
                 journalpostId = "99999",
-                kravtidspunkt = LocalDateTime.now(),
+                opprettet = LocalDateTime.now(),
+                tidsstempelHosOss = LocalDateTime.now(),
                 personopplysninger = ObjectMother.personSøknad(fnr = sak.fnr),
                 barnetillegg = emptyList(),
                 kvp = periodeNei(),
@@ -58,7 +59,8 @@ class SøknadTest {
             val opprettetSøknad = Søknad.opprett(
                 søknadstiltak = null,
                 journalpostId = "99999",
-                kravtidspunkt = LocalDateTime.now(),
+                opprettet = LocalDateTime.now(),
+                tidsstempelHosOss = LocalDateTime.now(),
                 personopplysninger = ObjectMother.personSøknad(fnr = sak.fnr),
                 barnetillegg = emptyList(),
                 kvp = periodeNei(),

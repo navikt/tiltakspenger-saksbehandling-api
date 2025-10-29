@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad.service
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
@@ -41,7 +42,8 @@ class StartBehandlingAvPapirsøknadService(
         val papirsøknad = Søknad.opprett(
             sak = sak,
             journalpostId = kommando.journalpostId.toString(),
-            kravtidspunkt = kommando.kravtidspunkt,
+            opprettet = kommando.opprettet,
+            tidsstempelHosOss = nå(clock),
             personopplysninger = kommando.personopplysninger,
             søknadstiltak = kommando.søknadstiltak,
             barnetillegg = kommando.barnetillegg,
