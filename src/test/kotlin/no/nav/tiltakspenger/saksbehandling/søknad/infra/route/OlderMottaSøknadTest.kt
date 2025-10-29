@@ -122,6 +122,7 @@ class OlderMottaSøknadTest {
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     avbrutt = null,
+                    manueltSattSøknadsperiode = null,
                     søknadstype = Søknadstype.DIGITAL,
                 )
 

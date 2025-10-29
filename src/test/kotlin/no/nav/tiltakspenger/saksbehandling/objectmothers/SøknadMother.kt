@@ -123,6 +123,7 @@ interface SøknadMother {
             sakId = sakId,
             saksnummer = saksnummer,
             avbrutt = avbrutt,
+            manueltSattSøknadsperiode = null,
             søknadstype = søknadstype,
         )
 

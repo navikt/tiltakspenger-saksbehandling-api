@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbeha
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -203,8 +202,7 @@ class DelautomatiskBehandlingService(
         val manueltBehandlesGrunner = mutableListOf<ManueltBehandlesGrunn>()
         require(
             behandling.søknad is InnvilgbarSøknad &&
-                behandling.søknad.erDigitalSøknad() &&
-                behandling.saksopplysninger != null,
+                behandling.søknad.erDigitalSøknad(),
         ) { "Kan ikke automatisk behandle papirsøknad ${behandling.søknad.id}" }
 
         if (behandling.søknad.harLivsoppholdYtelser()) {
@@ -295,8 +293,7 @@ class DelautomatiskBehandlingService(
     private fun getSoknadstiltakFraSaksopplysning(behandling: Søknadsbehandling): Tiltaksdeltagelse? {
         require(
             behandling.søknad is InnvilgbarSøknad &&
-                behandling.søknad.erDigitalSøknad() &&
-                behandling.saksopplysninger != null,
+                behandling.søknad.erDigitalSøknad(),
         ) { "Kan ikke automatisk behandle papirsøknad ${behandling.søknad.id}" }
         return behandling.saksopplysninger.getTiltaksdeltagelse(behandling.søknad.tiltak.id)
     }
@@ -358,7 +355,7 @@ class DelautomatiskBehandlingService(
     ): SammenhengendePeriodisering<AntallDagerForMeldeperiode> {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
         val soknadstiltakFraSaksopplysning = behandling.søknad.tiltak
-            .let { tiltak -> behandling.saksopplysninger?.getTiltaksdeltagelse(tiltak.id) }
+            .let { tiltak -> behandling.saksopplysninger.getTiltaksdeltagelse(tiltak.id) }
             ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk")
         return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
             SammenhengendePeriodisering(
