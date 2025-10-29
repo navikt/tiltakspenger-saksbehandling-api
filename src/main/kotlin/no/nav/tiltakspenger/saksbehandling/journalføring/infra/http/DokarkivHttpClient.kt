@@ -31,13 +31,13 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortK
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.http.utgåendeJournalpostRequest
 
-internal const val JOARK_PATH = "rest/journalpostapi/v1/journalpost"
+internal const val DOKARKIV_PATH = "rest/journalpostapi/v1/journalpost"
 
 /**
  * https://confluence.adeo.no/display/BOA/opprettJournalpost
  * swagger: https://dokarkiv-q2.dev.intern.nav.no/swagger-ui/index.html#/
  */
-internal class JoarkHttpClient(
+internal class DokarkivHttpClient(
     private val baseUrl: String,
     private val client: HttpClient = httpClientWithRetry(timeout = 30L),
     private val getToken: suspend () -> AccessToken,
@@ -75,7 +75,7 @@ internal class JoarkHttpClient(
         try {
             log.info { "Starter journalføring av dokument" }
 
-            val res = client.post("$baseUrl/$JOARK_PATH") {
+            val res = client.post("$baseUrl/$DOKARKIV_PATH") {
                 accept(ContentType.Application.Json)
                 header("X-Correlation-ID", correlationId.value)
                 header("Nav-Callid", correlationId.value)
@@ -87,12 +87,12 @@ internal class JoarkHttpClient(
 
             when (res.status) {
                 HttpStatusCode.Created -> {
-                    val response = res.call.body<JoarkResponse>()
+                    val response = res.call.body<DokarkivResponse>()
                     log.info { response.toString() }
 
                     val journalpostId = if (response.journalpostId.isNullOrEmpty()) {
-                        log.error { "Kallet til Joark gikk ok, men vi fikk ingen journalpostId fra Joark" }
-                        throw IllegalStateException("Kallet til Joark gikk ok, men vi fikk ingen journalpostId fra Joark")
+                        log.error { "Kallet til dokarkiv gikk ok, men vi fikk ingen journalpostId fra dokarkiv" }
+                        throw IllegalStateException("Kallet til dokarkiv gikk ok, men vi fikk ingen journalpostId fra dokarkiv")
                     } else {
                         response.journalpostId
                     }
@@ -106,33 +106,33 @@ internal class JoarkHttpClient(
                 }
 
                 else -> {
-                    log.error { "Kallet til joark feilet ${res.status} ${res.status.description}" }
-                    throw RuntimeException("Feil i kallet til joark")
+                    log.error { "Kallet til dokarkiv feilet ${res.status} ${res.status.description}" }
+                    throw RuntimeException("Feil i kallet til dokarkiv")
                 }
             }
         } catch (throwable: Throwable) {
             if (throwable is ClientRequestException) {
                 val status = throwable.response.status
                 if (status == Unauthorized || status == Forbidden) {
-                    log.error(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot joark. status: $status." }
+                    log.error(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot dokarkiv. status: $status." }
                     token.invaliderCache()
                 }
                 if (status == Conflict) {
                     log.warn { "Har allerede blitt journalført (409 Conflict)" }
-                    val response = throwable.response.call.body<JoarkResponse>()
+                    val response = throwable.response.call.body<DokarkivResponse>()
                     return JournalpostId(response.journalpostId.orEmpty())
                 }
             }
             if (throwable is IllegalStateException) {
                 throw throwable
             } else {
-                log.error(throwable) { "Ukjent feil fra joark." }
-                throw RuntimeException("Ukjent feil fra joark.")
+                log.error(throwable) { "Ukjent feil fra dokarkiv." }
+                throw RuntimeException("Ukjent feil fra dokarkiv.")
             }
         }
     }
 
-    data class JoarkResponse(
+    data class DokarkivResponse(
         val journalpostId: String?,
         val journalpostferdigstilt: Boolean?,
         val melding: String?,
