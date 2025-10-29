@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
-import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostFakeClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BenkOversiktFakeRepo
@@ -144,7 +143,7 @@ class TestApplicationContext(
 
     override val oppgaveKlient: OppgaveKlient = OppgaveFakeKlient()
 
-    override val safJournalpostClient: SafJournalpostClient = SafJournalpostFakeClient()
+    val safJournalpostFakeClient = SafJournalpostFakeClient()
 
     override val personContext =
         object : PersonContext(sessionFactory, texasClient) {
@@ -177,7 +176,7 @@ class TestApplicationContext(
             statistikkSakService = statistikkContext.statistikkSakService,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             clock = fixedClock,
-            safJournalpostClient = safJournalpostClient,
+            safJournalpostClient = safJournalpostFakeClient,
         ) {
             override val søknadRepo = søknadFakeRepo
         }

@@ -79,7 +79,7 @@ spec:
       external:
         - host: {{ urlPdl }}
         - host: {{ urlSkjerming }}
-        - host: {{ urlJoark }}
+        - host: {{ urlDokarkiv }}
         - host: {{ urlDokdist }}
         - host: {{ urlMicrosoftGraphApi }}
         - host: {{ urlOppgave }}

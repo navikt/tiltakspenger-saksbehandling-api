@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.http
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JoarkRequest
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JoarkRequest.JournalpostDokument.DokumentVariant.ArkivPDF
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JoarkRequest.JournalpostDokument.DokumentVariant.OriginalJson
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest.JournalpostDokument.DokumentVariant.ArkivPDF
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest.JournalpostDokument.DokumentVariant.OriginalJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import java.time.format.DateTimeFormatter
@@ -16,15 +16,15 @@ fun Meldekortvedtak.toJournalpostRequest(
     pdfOgJson: PdfOgJson,
 ): String {
     val tittel = lagMeldekortTittel(this.periode, this.meldekortBehandling.type)
-    return JoarkRequest(
+    return DokarkivRequest(
         tittel = tittel,
-        journalpostType = JoarkRequest.JournalPostType.NOTAT,
+        journalpostType = DokarkivRequest.JournalPostType.NOTAT,
         kanal = null,
         avsenderMottaker = null,
-        bruker = JoarkRequest.Bruker(this.fnr.verdi),
-        sak = JoarkRequest.JoarkSak.Fagsak(this.saksnummer.toString()),
+        bruker = DokarkivRequest.Bruker(this.fnr.verdi),
+        sak = DokarkivRequest.DokarkivSak.Fagsak(this.saksnummer.toString()),
         dokumenter = listOf(
-            JoarkRequest.JournalpostDokument(
+            DokarkivRequest.JournalpostDokument(
                 tittel = tittel,
                 brevkode = "MELDEKORT-TILTAKSPENGER",
                 dokumentvarianter = listOf(
@@ -40,7 +40,7 @@ fun Meldekortvedtak.toJournalpostRequest(
             ),
         ),
         eksternReferanseId = this.id.toString(),
-        overstyrInnsynsregler = JoarkRequest.OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT,
+        overstyrInnsynsregler = DokarkivRequest.OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT,
     ).let { objectMapper.writeValueAsString(it) }
 }
 

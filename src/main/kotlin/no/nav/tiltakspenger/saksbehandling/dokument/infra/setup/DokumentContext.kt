@@ -10,17 +10,17 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonskli
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JoarkHttpClient
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivHttpClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 
 open class DokumentContext(
     private val texasClient: TexasClient,
 ) {
-    private val joarkClient by lazy {
-        JoarkHttpClient(
-            baseUrl = Configuration.joarkUrl,
-            getToken = { texasClient.getSystemToken(Configuration.joarkScope, IdentityProvider.AZUREAD) },
+    private val dokarkivClient by lazy {
+        DokarkivHttpClient(
+            baseUrl = Configuration.dokarkivUrl,
+            getToken = { texasClient.getSystemToken(Configuration.dokarkivScope, IdentityProvider.AZUREAD) },
         )
     }
     open val dokumentdistribusjonsklient: Dokumentdistribusjonsklient by lazy {
@@ -29,8 +29,8 @@ open class DokumentContext(
             getToken = { texasClient.getSystemToken(Configuration.dokdistScope, IdentityProvider.AZUREAD) },
         )
     }
-    open val journalførMeldekortKlient: JournalførMeldekortKlient by lazy { joarkClient }
-    open val journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient by lazy { joarkClient }
+    open val journalførMeldekortKlient: JournalførMeldekortKlient by lazy { dokarkivClient }
+    open val journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient by lazy { dokarkivClient }
     private val pdfgen by lazy {
         PdfgenHttpClient(Configuration.pdfgenUrl)
     }

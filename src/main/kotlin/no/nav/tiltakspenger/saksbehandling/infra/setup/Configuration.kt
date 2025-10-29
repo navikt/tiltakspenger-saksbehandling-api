@@ -62,8 +62,8 @@ object Configuration {
                 "TILTAK_URL" to "http://host.docker.internal:8091",
                 "UTBETALING_SCOPE" to "localhost",
                 "UTBETALING_URL" to "http://host.docker.internal:8091",
-                "JOARK_SCOPE" to "localhost",
-                "JOARK_URL" to "http://host.docker.internal:8091",
+                "DOKARKIV_SCOPE" to "localhost",
+                "DOKARKIV_URL" to "http://host.docker.internal:8091",
                 "DOKDIST_SCOPE" to "localhost",
                 "DOKDIST_URL" to "http://host.docker.internal:8091",
                 "PDFGEN_SCOPE" to "localhost",
@@ -112,8 +112,8 @@ object Configuration {
                 "TILTAK_URL" to "http://tiltakspenger-tiltak",
                 "UTBETALING_SCOPE" to "dev-gcp:helved:utsjekk",
                 "UTBETALING_URL" to "http://utsjekk.helved",
-                "JOARK_SCOPE" to "dev-fss:teamdokumenthandtering:dokarkiv",
-                "JOARK_URL" to "https://dokarkiv-q2.dev-fss-pub.nais.io",
+                "DOKARKIV_SCOPE" to "dev-fss:teamdokumenthandtering:dokarkiv",
+                "DOKARKIV_URL" to "https://dokarkiv-q2.dev-fss-pub.nais.io",
                 "DOKDIST_SCOPE" to "dev-fss:teamdokumenthandtering:dokdistfordeling",
                 "DOKDIST_URL" to "https://dokdistfordeling.dev-fss-pub.nais.io",
                 "PDFGEN_SCOPE" to "dev-gcp:tpts:tiltakspenger-pdfgen",
@@ -155,8 +155,8 @@ object Configuration {
                 "TILTAK_URL" to "http://tiltakspenger-tiltak",
                 "UTBETALING_SCOPE" to "prod-gcp:helved:utsjekk",
                 "UTBETALING_URL" to "http://utsjekk.helved",
-                "JOARK_SCOPE" to "prod-fss:teamdokumenthandtering:dokarkiv",
-                "JOARK_URL" to "https://dokarkiv.prod-fss-pub.nais.io",
+                "DOKARKIV_SCOPE" to "prod-fss:teamdokumenthandtering:dokarkiv",
+                "DOKARKIV_URL" to "https://dokarkiv.prod-fss-pub.nais.io",
                 "DOKDIST_SCOPE" to "prod-fss:teamdokumenthandtering:dokdistfordeling",
                 "DOKDIST_URL" to "https://dokdistfordeling.prod-fss-pub.nais.io",
                 "PDFGEN_SCOPE" to "prod-gcp:tpts:tiltakspenger-pdfgen",
@@ -229,7 +229,7 @@ object Configuration {
     val pdlScope: String by lazy { config()[Key("PDL_SCOPE", stringType)] }
     val skjermingScope: String by lazy { config()[Key("SKJERMING_SCOPE", stringType)] }
     val tiltakScope: String by lazy { config()[Key("TILTAK_SCOPE", stringType)] }
-    val joarkScope: String by lazy { config()[Key("JOARK_SCOPE", stringType)] }
+    val dokarkivScope: String by lazy { config()[Key("DOKARKIV_SCOPE", stringType)] }
     val dokdistScope: String by lazy { config()[Key("DOKDIST_SCOPE", stringType)] }
     val utbetalingScope: String by lazy { config()[Key("UTBETALING_SCOPE", stringType)] }
     val microsoftScope: String by lazy { config()[Key("MICROSOFT_SCOPE", stringType)] }
@@ -244,7 +244,7 @@ object Configuration {
     val pdlUrl by lazy { config()[Key("PDL_ENDPOINT_URL", stringType)] }
     val skjermingUrl: String by lazy { config()[Key("SKJERMING_URL", stringType)] }
     val tiltakUrl: String by lazy { config()[Key("TILTAK_URL", stringType)] }
-    val joarkUrl: String by lazy { config()[Key("JOARK_URL", stringType)] }
+    val dokarkivUrl: String by lazy { config()[Key("DOKARKIV_URL", stringType)] }
     val dokdistUrl: String by lazy { config()[Key("DOKDIST_URL", stringType)] }
     val pdfgenUrl: String by lazy { config()[Key("PDFGEN_URL", stringType)] }
     val utbetalingUrl: String by lazy { config()[Key("UTBETALING_URL", stringType)] }
