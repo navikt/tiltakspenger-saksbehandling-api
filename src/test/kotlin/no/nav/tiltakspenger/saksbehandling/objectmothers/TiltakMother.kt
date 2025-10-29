@@ -158,7 +158,15 @@ interface TiltakMother {
 fun Søknadstiltak.toTiltak(
     eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
 ): Tiltaksdeltagelse {
-    val typeKode = TiltakResponsDTO.TiltakType.valueOf(this.typeKode)
+    /**
+     * TODO hhs - Fortsatt noe feil i mappingen som gjorde at jeg la inn denne hacken.
+     * Testene bruker kodene i enumverdiene som er i TiltakType, mens lokale kjøringen bruker enumverdiene som er i TiltakstypeSomGirRett.
+     */
+    val typeKode = try {
+        TiltakResponsDTO.TiltakType.valueOf(this.typeKode)
+    } catch (_: IllegalArgumentException) {
+        TiltakstypeSomGirRett.valueOf(this.typeKode).tilTiltakstype()
+    }
 
     return tiltaksdeltagelse(
         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
