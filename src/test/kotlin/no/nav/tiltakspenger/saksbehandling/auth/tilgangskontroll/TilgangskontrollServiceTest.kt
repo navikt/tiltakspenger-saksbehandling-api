@@ -1,7 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll
 
-import arrow.core.left
-import arrow.core.right
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -14,6 +12,8 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponse
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponse
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
@@ -34,7 +34,7 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPerson - har tilgang - kaster ikke feil`() = runTest {
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns true.right()
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Godkjent
 
         shouldNotThrow<TilgangException> {
             tilgangskontrollService.harTilgangTilPerson(fnr, "token", saksbehandler)
@@ -43,14 +43,14 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPerson - har ikke tilgang - kaster TilgangException`() = runTest {
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns AvvistTilgangResponse(
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Avvist(
             type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
-            title = "AVVIST_STRENGT_FORTROLIG_ADRESSE",
+            årsak = TilgangsvurderingAvvistÅrsak.FORTROLIG,
             status = 403,
             brukerIdent = fnr.verdi,
             navIdent = "Z12345",
             begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
-        ).left()
+        )
 
         shouldThrow<TilgangException> {
             tilgangskontrollService.harTilgangTilPerson(fnr, "token", saksbehandler)
@@ -58,10 +58,10 @@ class TilgangskontrollServiceTest {
     }
 
     @Test
-    fun `harTilgangTilPerson - kaster feil - kaster TilgangException`() = runTest {
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } throws RuntimeException("feilmelding")
+    fun `harTilgangTilPerson - generell feil - kaster RuntimeException`() = runTest {
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.GenerellFeilMotTilgangsmaskin
 
-        shouldThrow<TilgangException> {
+        shouldThrow<RuntimeException> {
             tilgangskontrollService.harTilgangTilPerson(fnr, "token", saksbehandler)
         }
     }
@@ -69,7 +69,7 @@ class TilgangskontrollServiceTest {
     @Test
     fun `harTilgangTilPersonForSakId - har tilgang - kaster ikke feil`() = runTest {
         coEvery { sakService.hentFnrForSakId(sakId) } returns fnr
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns true.right()
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Godkjent
 
         shouldNotThrow<TilgangException> {
             tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, "token")
@@ -79,14 +79,14 @@ class TilgangskontrollServiceTest {
     @Test
     fun `harTilgangTilPersonForSakId - har ikke tilgang - kaster TilgangException`() = runTest {
         coEvery { sakService.hentFnrForSakId(sakId) } returns fnr
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns AvvistTilgangResponse(
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Avvist(
             type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
-            title = "AVVIST_STRENGT_FORTROLIG_ADRESSE",
+            årsak = TilgangsvurderingAvvistÅrsak.FORTROLIG,
             status = 403,
             brukerIdent = fnr.verdi,
             navIdent = "Z12345",
             begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
-        ).left()
+        )
 
         shouldThrow<TilgangException> {
             tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, "token")
@@ -94,11 +94,11 @@ class TilgangskontrollServiceTest {
     }
 
     @Test
-    fun `harTilgangTilPersonForSakId - kaster feil - kaster TilgangException`() = runTest {
+    fun `harTilgangTilPersonForSakId - generell feil - kaster RuntimeException`() = runTest {
         coEvery { sakService.hentFnrForSakId(sakId) } returns fnr
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } throws RuntimeException("feilmelding")
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.GenerellFeilMotTilgangsmaskin
 
-        shouldThrow<TilgangException> {
+        shouldThrow<RuntimeException> {
             tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, "token")
         }
     }
@@ -107,7 +107,7 @@ class TilgangskontrollServiceTest {
     fun `harTilgangTilPersonForSakId - fant ikke sak - kaster TilgangException`() = runTest {
         coEvery { sakService.hentFnrForSakId(sakId) } throws IkkeFunnetException("Fant ikke sak med sakId $sakId")
 
-        shouldThrow<TilgangException> {
+        shouldThrow<RuntimeException> {
             tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, "token")
         }
     }
@@ -115,7 +115,7 @@ class TilgangskontrollServiceTest {
     @Test
     fun `harTilgangTilPersonForSaksnummer - har tilgang - kaster ikke feil`() = runTest {
         coEvery { sakService.hentFnrForSaksnummer(saksnummer) } returns fnr
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns true.right()
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Godkjent
 
         shouldNotThrow<TilgangException> {
             tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, "token")
@@ -125,14 +125,14 @@ class TilgangskontrollServiceTest {
     @Test
     fun `harTilgangTilPersonForSaksnummer - har ikke tilgang - kaster TilgangException`() = runTest {
         coEvery { sakService.hentFnrForSaksnummer(saksnummer) } returns fnr
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns AvvistTilgangResponse(
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Avvist(
             type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
-            title = "AVVIST_STRENGT_FORTROLIG_ADRESSE",
+            årsak = TilgangsvurderingAvvistÅrsak.FORTROLIG,
             status = 403,
             brukerIdent = fnr.verdi,
             navIdent = "Z12345",
             begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
-        ).left()
+        )
 
         shouldThrow<TilgangException> {
             tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, "token")
@@ -140,11 +140,11 @@ class TilgangskontrollServiceTest {
     }
 
     @Test
-    fun `harTilgangTilPersonForSaksnummer - kaster feil - kaster TilgangException`() = runTest {
+    fun `harTilgangTilPersonForSaksnummer - generell feil - kaster RunTimeException`() = runTest {
         coEvery { sakService.hentFnrForSaksnummer(saksnummer) } returns fnr
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } throws RuntimeException("feilmelding")
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.GenerellFeilMotTilgangsmaskin
 
-        shouldThrow<TilgangException> {
+        shouldThrow<RuntimeException> {
             tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, "token")
         }
     }
@@ -153,7 +153,7 @@ class TilgangskontrollServiceTest {
     fun `harTilgangTilPersonForSaksnummer - fant ikke sak - kaster TilgangException`() = runTest {
         coEvery { sakService.hentFnrForSaksnummer(saksnummer) } throws IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
 
-        shouldThrow<TilgangException> {
+        shouldThrow<RuntimeException> {
             tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, "token")
         }
     }
@@ -193,7 +193,7 @@ class TilgangskontrollServiceTest {
     fun `harTilgangTilPersoner - kaster feil - kaster TilgangException`() = runTest {
         coEvery { tilgangsmaskinClient.harTilgangTilPersoner(fnrs, any()) } throws RuntimeException("feilmelding")
 
-        shouldThrow<TilgangException> {
+        shouldThrow<RuntimeException> {
             tilgangskontrollService.harTilgangTilPersoner(fnrs, "token", saksbehandler)
         }
     }

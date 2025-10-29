@@ -1,10 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra
 
-import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponse
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponse
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 
 class TilgangsmaskinFakeLokalClient : TilgangsmaskinClient {
     private val data = arrow.atomic.Atomic(mutableMapOf<Fnr, Boolean>())
@@ -12,8 +11,19 @@ class TilgangsmaskinFakeLokalClient : TilgangsmaskinClient {
     override suspend fun harTilgangTilPerson(
         fnr: Fnr,
         saksbehandlerToken: String,
-    ): Either<AvvistTilgangResponse, Boolean> {
-        return harTilgang(fnr).right()
+    ): Tilgangsvurdering {
+        return if (harTilgang(fnr)) {
+            Tilgangsvurdering.Godkjent
+        } else {
+            Tilgangsvurdering.Avvist(
+                type = "TilgangAvvist",
+                årsak = no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak.FORTROLIG,
+                status = 403,
+                brukerIdent = fnr.verdi,
+                navIdent = "Z123456",
+                begrunnelse = "Saksbehandler har ikke tilgang til person",
+            )
+        }
     }
 
     override suspend fun harTilgangTilPersoner(

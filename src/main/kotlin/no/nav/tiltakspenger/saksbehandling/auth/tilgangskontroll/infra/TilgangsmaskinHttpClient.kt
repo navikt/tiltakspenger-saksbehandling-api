@@ -1,8 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -13,6 +10,7 @@ import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponse
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.PersonRequestItem
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponse
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -42,7 +40,7 @@ class TilgangsmaskinHttpClient(
     override suspend fun harTilgangTilPerson(
         fnr: Fnr,
         saksbehandlerToken: String,
-    ): Either<AvvistTilgangResponse, Boolean> {
+    ): Tilgangsvurdering {
         val oboToken = texasClient.exchangeToken(
             userToken = saksbehandlerToken,
             audienceTarget = scope,
@@ -52,15 +50,15 @@ class TilgangsmaskinHttpClient(
         val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
         val status = httpResponse.statusCode()
         if (status == 204) {
-            return true.right()
+            return Tilgangsvurdering.Godkjent
         }
         val jsonResponse = httpResponse.body()
         if (status == 403) {
             val avvistTilgangResponse = objectMapper.readValue<AvvistTilgangResponse>(jsonResponse)
             Sikkerlogg.info { "Tilgang avvist: ${avvistTilgangResponse.begrunnelse}. Nav-ident: ${avvistTilgangResponse.navIdent}, fnr: ${avvistTilgangResponse.brukerIdent}, regel: ${avvistTilgangResponse.title}" }
-            return avvistTilgangResponse.left()
+            return avvistTilgangResponse.tilAvvistTilgangsvurdering()
         }
-        throw RuntimeException("Noe gikk galt ved sjekk mot tilgangsmaskinen, statuskode $status")
+        return Tilgangsvurdering.GenerellFeilMotTilgangsmaskin
     }
 
     override suspend fun harTilgangTilPersoner(

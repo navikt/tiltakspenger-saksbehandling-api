@@ -6,8 +6,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinClient
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.Tilgangsnektårsak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 class TilgangskontrollService(
@@ -22,19 +24,19 @@ class TilgangskontrollService(
         saksbehandler: Saksbehandler,
     ) {
         try {
-            tilgangsmaskinClient.harTilgangTilPerson(fnr, saksbehandlerToken).fold(
-                ifLeft = {
-                    throw TilgangException("Saksbehandler ${saksbehandler.navIdent} har ikke tilgang til person: ${it.begrunnelse}")
-                },
-                ifRight = {
-                    if (!it) {
-                        throw TilgangException("Saksbehandler ${saksbehandler.navIdent} har ikke tilgang til person")
-                    }
-                },
-            )
+            val vurdering = tilgangsmaskinClient.harTilgangTilPerson(fnr, saksbehandlerToken)
+
+            when (vurdering) {
+                is Tilgangsvurdering.Avvist -> throw TilgangException(
+                    vurdering.årsak.toTilgangsnektårsak(),
+                    "Saksbehandler ${saksbehandler.navIdent} har ikke tilgang til person: ${vurdering.begrunnelse}",
+                )
+
+                Tilgangsvurdering.Godkjent -> Unit
+                Tilgangsvurdering.GenerellFeilMotTilgangsmaskin -> throw RuntimeException("Klarte ikke gjøre tilgangskontroll for saksbehandler ${saksbehandler.navIdent} - Generell feil mot tilgangsmaskinen")
+            }
         } catch (e: Exception) {
-            log.error { "Noe gikk galt ved sjekk av tilgang for person: ${e.message}" }
-            throw TilgangException("Klarte ikke gjøre tilgangskontroll for saksbehandler ${saksbehandler.navIdent}: ${e.message}}")
+            throw e
         }
     }
 
@@ -50,7 +52,7 @@ class TilgangskontrollService(
             throw tilgangException
         } catch (e: Exception) {
             log.error { "Noe gikk galt ved sjekk av tilgang for person for sakId $sakId: ${e.message}" }
-            throw TilgangException("Klarte ikke gjøre tilgangskontroll for saksbehandler ${saksbehandler.navIdent}: ${e.message}}")
+            throw RuntimeException("Klarte ikke gjøre tilgangskontroll for saksbehandler ${saksbehandler.navIdent}: ${e.message}}")
         }
     }
 
@@ -66,7 +68,7 @@ class TilgangskontrollService(
             throw tilgangException
         } catch (e: Exception) {
             log.error { "Noe gikk galt ved sjekk av tilgang for person for saksnummer $saksnummer: ${e.message}" }
-            throw TilgangException("Klarte ikke gjøre tilgangskontroll for saksbehandler ${saksbehandler.navIdent}: ${e.message}}")
+            throw RuntimeException("Klarte ikke gjøre tilgangskontroll for saksbehandler ${saksbehandler.navIdent}: ${e.message}}")
         }
     }
 
@@ -86,7 +88,7 @@ class TilgangskontrollService(
             }
         } catch (e: Exception) {
             log.error { "Noe gikk galt ved sjekk av tilgang for flere personer: ${e.message}" }
-            throw TilgangException("Klarte ikke gjøre tilgangskontroll for saksbehandler (flere brukere) ${saksbehandler.navIdent}: ${e.message}}")
+            throw RuntimeException("Klarte ikke gjøre tilgangskontroll for saksbehandler (flere brukere) ${saksbehandler.navIdent}: ${e.message}}")
         }
     }
 }

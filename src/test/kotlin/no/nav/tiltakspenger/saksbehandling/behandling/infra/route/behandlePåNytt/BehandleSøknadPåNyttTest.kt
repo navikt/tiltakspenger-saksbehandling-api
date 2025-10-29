@@ -7,6 +7,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
@@ -108,7 +110,17 @@ internal class BehandleSøknadPåNyttTest {
                 behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
                 behandling.resultat is SøknadsbehandlingResultat.Avslag
 
-                tac.tilgangsmaskinFakeClient.leggTil(sak.fnr, false)
+                tac.tilgangsmaskinFakeClient.leggTil(
+                    sak.fnr,
+                    Tilgangsvurdering.Avvist(
+                        type = "test",
+                        årsak = TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG,
+                        status = 403,
+                        brukerIdent = "test",
+                        navIdent = "test",
+                        begrunnelse = "test",
+                    ),
+                )
 
                 val responskode = this.startBehandlingAvSøknadPåNyttForSøknadId(
                     tac = tac,

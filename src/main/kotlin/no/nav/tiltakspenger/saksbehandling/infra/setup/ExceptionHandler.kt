@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ikkeFunnet
-import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.serverfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ugyldigRequest
 
@@ -33,7 +32,7 @@ object ExceptionHandler {
             }
 
             is TilgangException -> {
-                call.respond403Forbidden(ikkeTilgang())
+                call.respond403Forbidden(cause.toErrorJson())
             }
 
             is IkkeFunnetException -> {

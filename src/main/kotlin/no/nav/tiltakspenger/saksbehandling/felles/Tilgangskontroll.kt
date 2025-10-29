@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.Tilgangsnektårsak
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 
 /**
@@ -50,7 +51,7 @@ fun krevSaksbehandlerEllerBeslutterRolle(
  */
 fun krevRollen(saksbehandler: Saksbehandler, krevRollen: Saksbehandlerrolle) {
     if (!saksbehandler.roller.contains(krevRollen)) {
-        throw TilgangException(saksbehandler, krevRollen)
+        throw TilgangException(Tilgangsnektårsak.KREV_ROLLEN, saksbehandler, krevRollen)
     }
 }
 
@@ -73,24 +74,24 @@ fun krevEnAvRollene(saksbehandler: Saksbehandler, krevEnAvRollene: Saksbehandler
  */
 fun krevEnAvRollene(saksbehandler: Saksbehandler, krevEnAvRollene: List<Saksbehandlerrolle>) {
     if (krevEnAvRollene.none { saksbehandler.roller.contains(it) }) {
-        throw TilgangException(saksbehandler, krevEnAvRollene)
+        throw TilgangException(Tilgangsnektårsak.KREV_ROLLEN, saksbehandler, krevEnAvRollene)
     }
 }
 
 fun krevHentEllerOpprettSakRollen(systembruker: Systembruker) {
     if (!systembruker.roller.harHentEllerOpprettSak()) {
-        throw TilgangException("$systembruker mangler rollen HENT_ELLER_OPPRETT_SAK.")
+        throw TilgangException(Tilgangsnektårsak.MANGLER_ROLLE, "$systembruker mangler rollen HENT_ELLER_OPPRETT_SAK.")
     }
 }
 
 fun krevLagreSoknadRollen(systembruker: Systembruker) {
     if (!systembruker.roller.harLagreSoknad()) {
-        throw TilgangException("$systembruker mangler rollen LAGRE_SOKNAD.")
+        throw TilgangException(Tilgangsnektårsak.MANGLER_ROLLE, "$systembruker mangler rollen LAGRE_SOKNAD.")
     }
 }
 
 fun krevLagreMeldekortRollen(systembruker: Systembruker) {
     if (!systembruker.roller.harLagreMeldekort()) {
-        throw TilgangException("$systembruker mangler rollen LAGRE_MELDEKORT.")
+        throw TilgangException(Tilgangsnektårsak.MANGLER_ROLLE, "$systembruker mangler rollen LAGRE_MELDEKORT.")
     }
 }

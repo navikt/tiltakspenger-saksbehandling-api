@@ -1,28 +1,29 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra
 
-import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponse
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponse
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak
 
 class TilgangsmaskinFakeTestClient : TilgangsmaskinClient {
-    private val data = arrow.atomic.Atomic(mutableMapOf<Fnr, Boolean>())
+    private val data = arrow.atomic.Atomic(mutableMapOf<Fnr, Tilgangsvurdering>())
 
     override suspend fun harTilgangTilPerson(
         fnr: Fnr,
         saksbehandlerToken: String,
-    ): Either<AvvistTilgangResponse, Boolean> {
-        data.get()[fnr]?.let { return it.right() }
-        return AvvistTilgangResponse(
+    ): Tilgangsvurdering {
+        data.get()[fnr]?.let { return it }
+        return Tilgangsvurdering.Avvist(
             type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
-            title = "AVVIST_STRENGT_FORTROLIG_ADRESSE",
+            årsak = TilgangsvurderingAvvistÅrsak.FORTROLIG,
             status = 403,
             brukerIdent = fnr.verdi,
             navIdent = "Z12345",
             begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
-        ).left()
+        )
     }
 
     override suspend fun harTilgangTilPersoner(
@@ -34,7 +35,7 @@ class TilgangsmaskinFakeTestClient : TilgangsmaskinClient {
             resultater = fnrs.map {
                 TilgangBulkResponse.TilgangResponse(
                     brukerId = it.verdi,
-                    status = if (data.get()[it] == null || data.get()[it] == true) {
+                    status = if (data.get()[it] == null || data.get()[it] is Tilgangsvurdering.Godkjent) {
                         204
                     } else {
                         403
@@ -46,7 +47,7 @@ class TilgangsmaskinFakeTestClient : TilgangsmaskinClient {
 
     fun leggTil(
         fnr: Fnr,
-        harTilgang: Boolean,
+        harTilgang: Tilgangsvurdering,
     ) {
         data.get()[fnr] = harTilgang
     }

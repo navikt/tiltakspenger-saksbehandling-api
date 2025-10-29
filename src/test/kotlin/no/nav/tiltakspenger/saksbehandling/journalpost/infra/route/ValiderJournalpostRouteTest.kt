@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
@@ -104,7 +105,7 @@ class ValiderJournalpostRouteTest {
         journalpostId: JournalpostId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): String {
-        tac.tilgangsmaskinFakeClient.leggTil(fnr, true)
+        tac.tilgangsmaskinFakeClient.leggTil(fnr, Tilgangsvurdering.Godkjent)
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )

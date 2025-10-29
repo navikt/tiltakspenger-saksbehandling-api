@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaF
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
@@ -112,7 +113,7 @@ class TestApplicationContext(
     ) {
         personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = person)
         tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
-        tilgangsmaskinFakeClient.leggTil(fnr, true)
+        tilgangsmaskinFakeClient.leggTil(fnr, Tilgangsvurdering.Godkjent)
     }
 
     fun oppdaterTiltaksdeltagelse(fnr: Fnr, tiltaksdeltagelse: Tiltaksdeltagelse) {
