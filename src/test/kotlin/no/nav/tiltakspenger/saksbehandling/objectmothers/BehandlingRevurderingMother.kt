@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetalin
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
@@ -31,11 +32,15 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.godkjentAttestering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.navkontor
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyRammevedtakInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyVedtattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -55,6 +60,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 tom = it.tilOgMed,
             )
         },
+        clock: Clock = this.clock,
     ): Revurdering {
         return runBlocking {
             Revurdering.opprettStans(
@@ -64,7 +70,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 saksbehandler = saksbehandler,
                 saksopplysninger = hentSaksopplysninger(virkningsperiode),
                 clock = clock,
-            )
+            ).copy(id = id)
         }
     }
 
@@ -99,6 +105,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             stansTilOgMed = OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed.create(stansTilOgMed),
         ),
         utbetaling: BehandlingUtbetaling? = null,
+        clock: Clock = this.clock,
     ): Revurdering {
         return this.nyOpprettetRevurderingStans(
             id = id,
@@ -108,6 +115,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             virkningsperiode = virkningsperiode,
             hentSaksopplysninger = { saksopplysninger },
+            clock = clock,
         ).oppdaterStans(
             kommando = kommando,
             førsteDagSomGirRett = førsteDagSomGirRett,
@@ -118,6 +126,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     }
 
     fun nyVedtattRevurderingStans(
+        clock: Clock = this.clock,
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
@@ -133,7 +142,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             tom = virkningsperiode.tilOgMed,
         ),
         valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
-        attestering: Attestering = godkjentAttestering(beslutter),
+        attestering: Attestering = godkjentAttestering(beslutter, clock),
         stansFraOgMed: LocalDate?,
         stansTilOgMed: LocalDate?,
         førsteDagSomGirRett: LocalDate,
@@ -155,6 +164,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             stansTilOgMed = stansTilOgMed,
             førsteDagSomGirRett = førsteDagSomGirRett,
             sisteDagSomGirRett = sisteDagSomGirRett,
+            clock = clock,
         ).taBehandling(beslutter).iverksett(
             utøvendeBeslutter = beslutter,
             attestering = attestering,
@@ -175,6 +185,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 tom = it.tilOgMed,
             )
         },
+        clock: Clock = this.clock,
     ): Revurdering {
         return runBlocking {
             Revurdering.opprettInnvilgelse(
@@ -184,7 +195,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 saksbehandler = saksbehandler,
                 saksopplysninger = hentSaksopplysninger(virkningsperiode),
                 clock = clock,
-            )
+            ).copy(id = id)
         }
     }
 
@@ -212,6 +223,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         beregning: Beregning? = null,
         simulering: Simulering? = null,
+        clock: Clock = this.clock,
     ): Revurdering {
         val kommando = OppdaterRevurderingKommando.Innvilgelse(
             sakId = sakId,
@@ -234,6 +246,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             virkningsperiode = virkningsperiode,
             hentSaksopplysninger = { saksopplysninger },
+            clock = clock,
         ).oppdaterInnvilgelse(
             kommando = kommando,
             clock = clock,
@@ -250,6 +263,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     }
 
     fun nyVedtattRevurderingInnvilgelse(
+        clock: Clock = this.clock,
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
@@ -264,7 +278,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        attestering: Attestering = godkjentAttestering(beslutter),
+        attestering: Attestering = godkjentAttestering(beslutter, clock),
         navkontor: Navkontor = navkontor(),
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
@@ -291,10 +305,47 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             barnetillegg = barnetillegg,
             beregning = beregning,
+            clock = clock,
         ).taBehandling(beslutter).iverksett(
             utøvendeBeslutter = beslutter,
             attestering = attestering,
             clock = clock,
         ) as Revurdering
+    }
+
+    fun nyOpprettetRevurderingOmgjøring(
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        saksbehandler: Saksbehandler = saksbehandler(),
+        virkningsperiode: Periode = revurderingVirkningsperiode(),
+        omgjørBehandling: Rammebehandling = nyVedtattSøknadsbehandling(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+        ),
+        omgjørRammevedtak: Rammevedtak = nyRammevedtakInnvilgelse(
+            sakId = sakId,
+            periode = omgjørBehandling.virkningsperiode!!,
+            fnr = fnr,
+            behandling = omgjørBehandling,
+        ),
+        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+            saksopplysninger(
+                fom = it.fraOgMed,
+                tom = it.tilOgMed,
+            )
+        },
+        clock: Clock = this.clock,
+    ): Revurdering {
+        return runBlocking {
+            Revurdering.opprettOmgjøring(
+                saksbehandler = saksbehandler,
+                saksopplysninger = hentSaksopplysninger(virkningsperiode),
+                omgjørRammevedtak = omgjørRammevedtak,
+                clock = clock,
+            ).copy(id = id)
+        }
     }
 }

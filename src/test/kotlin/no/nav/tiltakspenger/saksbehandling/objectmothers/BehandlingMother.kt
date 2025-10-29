@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
@@ -75,14 +76,17 @@ interface BehandlingMother : MotherOfAllMothers {
         )
     }
 
-    fun Rammebehandling.antallDagerPerMeldeperiodeDTO(periode: Periode, antallDager: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE): List<AntallDagerPerMeldeperiodeDTO> {
+    fun Rammebehandling.antallDagerPerMeldeperiodeDTO(
+        periode: Periode,
+        antallDager: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    ): List<AntallDagerPerMeldeperiodeDTO> {
         return SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(antallDager),
             periode,
         ).tilAntallDagerPerMeldeperiodeDTO()
     }
 
-    fun godkjentAttestering(beslutter: Saksbehandler = beslutter()): Attestering =
+    fun godkjentAttestering(beslutter: Saksbehandler = beslutter(), clock: Clock = this.clock): Attestering =
         Attestering(
             id = AttesteringId.random(),
             status = Attesteringsstatus.GODKJENT,
@@ -116,7 +120,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 hentSaksopplysninger = hentSaksopplysninger,
                 clock = clock,
                 correlationId = correlationId,
-            )
+            ).copy(id = id)
         }
     }
 
@@ -323,6 +327,7 @@ interface BehandlingMother : MotherOfAllMothers {
         ),
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         clock: Clock = fixedClock,
     ): Søknadsbehandling {
         return nySøknadsbehandlingKlarTilBeslutning(
@@ -342,6 +347,7 @@ interface BehandlingMother : MotherOfAllMothers {
             oppgaveId = oppgaveId,
             resultat = resultat,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            avslagsgrunner = avslagsgrunner,
             clock = clock,
         ).taBehandling(beslutter) as Søknadsbehandling
     }
@@ -429,7 +435,8 @@ interface BehandlingMother : MotherOfAllMothers {
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
-    ): Rammebehandling {
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+    ): Søknadsbehandling {
         return nySøknadsbehandlingUnderBeslutning(
             id = id,
             sakId = sakId,
@@ -449,11 +456,12 @@ interface BehandlingMother : MotherOfAllMothers {
             resultat = resultat,
             clock = clock,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            avslagsgrunner = avslagsgrunner,
         ).iverksett(
             utøvendeBeslutter = beslutter,
-            attestering = godkjentAttestering(beslutter),
+            attestering = godkjentAttestering(beslutter, clock),
             clock = clock,
-        )
+        ) as Søknadsbehandling
     }
 
     fun nyAvbruttSøknadsbehandling(
@@ -508,6 +516,7 @@ fun TestApplicationContext.nyInnvilgbarSøknad(
     tiltaksdeltagelse: Tiltaksdeltagelse? = null,
     søknadstiltak: Søknadstiltak? = tiltaksdeltagelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
+    søknadId: SøknadId = SøknadId.random(),
     søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(
         fnr = fnr,
         personopplysninger = personopplysningerFraSøknad,
@@ -520,6 +529,7 @@ fun TestApplicationContext.nyInnvilgbarSøknad(
         kvp = if (deltarPåKvp) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
         sakId = sak.id,
         saksnummer = sak.saksnummer,
+        id = søknadId,
     ),
 ): Søknad {
     this.søknadContext.søknadService.nySøknad(søknad)
@@ -567,7 +577,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
         saksnummer = sak.saksnummer,
     ),
     correlationId: CorrelationId = CorrelationId.generate(),
-): Sak {
+): Pair<Sak, Søknadsbehandling> {
     this.sakContext.sakRepo.opprettSak(sak)
     this.nyInnvilgbarSøknad(
         periode = periode,
@@ -590,7 +600,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
     ).also {
         this.behandlingContext.behandlingRepo.lagre(it)
     }
-    return sak.leggTilSøknadsbehandling(behandlingUnderBehandling)
+    return sak.leggTilSøknadsbehandling(behandlingUnderBehandling) to behandlingUnderBehandling
 }
 
 suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
@@ -608,7 +618,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
     resultat: SøknadsbehandlingType,
 ): Sak {
-    val sakMedSøknadsbehandling = startSøknadsbehandling(
+    val (sakMedSøknadsbehandling) = startSøknadsbehandling(
         periode = periode,
         fnr = fnr,
     )
@@ -672,6 +682,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
         periode,
     ),
     barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
+    avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
 ): Sak {
     val vilkårsvurdert = søknadsbehandlingTilBeslutter(
         periode = periode,
@@ -680,6 +691,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
         resultat = resultat,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         barnetillegg = barnetillegg,
+        avslagsgrunner = avslagsgrunner,
     )
     this.behandlingContext.taBehandlingService.taBehandling(
         vilkårsvurdert.id,
@@ -702,7 +714,8 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         periode,
     ),
     barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
-): Sak {
+    avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+): Pair<Sak, Søknadsbehandling> {
     val tac = this
     val underBeslutning = søknadsbehandlingUnderBeslutning(
         periode = periode,
@@ -712,15 +725,15 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         resultat = resultat,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         barnetillegg = barnetillegg,
+        avslagsgrunner = avslagsgrunner,
     )
-    tac.behandlingContext.iverksettBehandlingService.iverksett(
+    val behandling = tac.behandlingContext.iverksettBehandlingService.iverksett(
         behandlingId = underBeslutning.rammebehandlinger.singleOrNullOrThrow()!!.id,
         beslutter = beslutter,
         sakId = underBeslutning.id,
-    )
-    return this.sakContext.sakService.hentForSakId(
-        underBeslutning.id,
-    )
+    ).getOrFail().second
+
+    return this.sakContext.sakService.hentForSakId(behandling.sakId) to behandling as Søknadsbehandling
 }
 
 suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
@@ -744,7 +757,7 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
         resultat = resultat,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         barnetillegg = barnetillegg,
-    ).genererMeldeperioder(clock)
+    ).first.genererMeldeperioder(clock)
 
     this.meldekortContext.meldeperiodeRepo.lagre(meldeperioder)
 
@@ -758,7 +771,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
     beslutter: Saksbehandler = beslutter(),
 ): Sak {
     val tac = this
-    val sak = søknadssbehandlingIverksatt(
+    val (sak) = søknadssbehandlingIverksatt(
         periode = periode,
         fnr = fnr,
         saksbehandler = saksbehandler,
