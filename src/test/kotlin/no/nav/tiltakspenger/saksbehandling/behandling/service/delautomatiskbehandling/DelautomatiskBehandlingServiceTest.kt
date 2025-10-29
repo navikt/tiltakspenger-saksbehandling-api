@@ -55,7 +55,7 @@ class DelautomatiskBehandlingServiceTest {
                 }
 
                 soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
-                val tiltaksdeltakelse = behandling.saksopplysninger?.tiltaksdeltagelser?.find { it.eksternDeltagelseId == soknad.tiltak.id }!!
+                val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == soknad.tiltak.id }!!
                 val virkningsperiode = soknad.tiltaksdeltagelseperiodeDetErSøktOm()
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
@@ -263,6 +263,104 @@ class DelautomatiskBehandlingServiceTest {
     }
 
     @Test
+    fun `behandleAutomatisk - mangler dager per uke og tiltaket er på deltid - sendes til manuell behandling`() {
+        with(TestApplicationContext()) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    configureExceptions()
+                    setupAuthentication(texasClient)
+                    routing { routes(tac) }
+                }
+                val virkningsperiode = Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
+                val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                    tac = tac,
+                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                        fom = virkningsperiode.fraOgMed,
+                        tom = virkningsperiode.tilOgMed,
+                        status = TiltakDeltakerstatus.Deltar,
+                        dagerPrUke = null,
+                        prosent = 60.0F,
+                        deltidsprosentGjennomforing = 100.0,
+                    ),
+                )
+                tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                    it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                }
+
+                soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
+
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+
+                val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+                oppdatertBehandling.saksbehandler shouldBe null
+                oppdatertBehandling.automatiskSaksbehandlet shouldBe false
+                oppdatertBehandling.venterTil shouldBe null
+                oppdatertBehandling.ventestatus.erSattPåVent shouldBe false
+                oppdatertBehandling.manueltBehandlesGrunner shouldBe listOf(ManueltBehandlesGrunn.SAKSOPPLYSNING_DELTIDSTILTAK_UTEN_DAGER_PER_UKE)
+            }
+        }
+    }
+
+    @Test
+    fun `behandleAutomatisk - mangler dager per uke men tiltaket er på heltid - sendes til beslutning`() {
+        with(TestApplicationContext()) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    configureExceptions()
+                    setupAuthentication(texasClient)
+                    routing { routes(tac) }
+                }
+                val virkningsperiode = Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
+                val tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+                    fom = virkningsperiode.fraOgMed,
+                    tom = virkningsperiode.tilOgMed,
+                    status = TiltakDeltakerstatus.Deltar,
+                    dagerPrUke = null,
+                    prosent = null,
+                    deltidsprosentGjennomforing = 100.0,
+                )
+                val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                    tac = tac,
+                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltagelse = tiltaksdeltakelse,
+                )
+                tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                    it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                }
+
+                soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
+
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+
+                val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                oppdatertBehandling.automatiskSaksbehandlet shouldBe true
+                oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
+
+                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.tiltaksdeltagelseperiodeDetErSøktOm())
+                oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
+                oppdatertBehandling.virkningsperiode shouldBe virkningsperiode
+                oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(virkningsperiode)
+                oppdatertBehandling.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
+                    SammenhengendePeriodisering(
+                        tiltaksdeltakelse,
+                        virkningsperiode,
+                    ),
+                )
+            }
+        }
+    }
+
+    @Test
     fun `behandleAutomatisk - har andre ytelser (søknad) - manuell behandling`() {
         with(TestApplicationContext()) {
             val tac = this
@@ -293,7 +391,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.leggTilPerson(
                     fnr = sak.fnr,
                     person = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
-                    tiltaksdeltagelse = behandling.saksopplysninger!!.tiltaksdeltagelser.first(),
+                    tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first(),
                 )
 
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
@@ -376,7 +474,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.leggTilPerson(
                     fnr = sak.fnr,
                     person = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
-                    tiltaksdeltagelse = behandling.saksopplysninger!!.tiltaksdeltagelser.first(),
+                    tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first(),
                 )
 
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
