@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -43,7 +43,7 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
         stansTilOgMed: LocalDate? = null,
         valgteHjemler: List<ValgtHjemmelForStansDTO>? = null,
         barnetillegg: List<BarnetilleggPeriodeDTO>? = null,
-        resultat: RammebehandlingResultatDTO,
+        resultat: RammebehandlingResultatTypeDTO,
         avslagsgrunner: List<ValgtHjemmelForAvslagDTO>? = null,
     ): Triple<Sak, Rammebehandling, String> {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(

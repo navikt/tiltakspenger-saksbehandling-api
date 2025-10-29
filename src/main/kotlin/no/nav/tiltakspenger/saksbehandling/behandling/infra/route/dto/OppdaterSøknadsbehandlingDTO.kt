@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
@@ -40,7 +40,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         val barnetillegg: BarnetilleggDTO,
         val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>,
     ) : OppdaterSøknadsbehandlingDTO {
-        override val resultat: RammebehandlingResultatDTO = RammebehandlingResultatDTO.INNVILGELSE
+        override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.INNVILGELSE
 
         override fun tilDomene(
             sakId: SakId,
@@ -77,7 +77,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         override val begrunnelseVilkårsvurdering: String?,
         val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
     ) : OppdaterSøknadsbehandlingDTO {
-        override val resultat: RammebehandlingResultatDTO = RammebehandlingResultatDTO.AVSLAG
+        override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.AVSLAG
 
         override fun tilDomene(
             sakId: SakId,

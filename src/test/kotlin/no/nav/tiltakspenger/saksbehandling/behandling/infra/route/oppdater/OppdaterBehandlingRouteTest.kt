@@ -33,6 +33,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterS�
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
@@ -44,9 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRe
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import org.junit.jupiter.api.Test
 
 class OppdaterBehandlingRouteTest {
@@ -79,8 +79,8 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
-            val tiltaksdeltagelse = behandling.saksopplysninger?.tiltaksdeltagelser?.first()
-            val nyInnvilgelsesperiode = tiltaksdeltagelse?.periode!!.minusTilOgMed(1)
+            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first()
+            val nyInnvilgelsesperiode = tiltaksdeltagelse.periode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
                 begrunnelse = BegrunnelseVilkårsvurdering("barnetillegg begrunnelse"),
@@ -108,7 +108,7 @@ class OppdaterBehandlingRouteTest {
                     ),
                     innvilgelsesperiode = nyInnvilgelsesperiode.toDTO(),
                     barnetillegg = barnetillegg.toBarnetilleggDTO(),
-                    antallDagerPerMeldeperiodeForPerioder = antallDager.toDTO(),
+                    antallDagerPerMeldeperiodeForPerioder = antallDager.tilAntallDagerPerMeldeperiodeDTO(),
                 ),
             )
 
@@ -182,7 +182,7 @@ class OppdaterBehandlingRouteTest {
                     ),
                     innvilgelsesperiode = nyInnvilgelsesperiode.toDTO(),
                     barnetillegg = barnetillegg.toBarnetilleggDTO(),
-                    antallDagerPerMeldeperiodeForPerioder = antallDager.toDTO(),
+                    antallDagerPerMeldeperiodeForPerioder = antallDager.tilAntallDagerPerMeldeperiodeDTO(),
                 ),
             )
 
@@ -273,8 +273,8 @@ class OppdaterBehandlingRouteTest {
                 it.beslutter shouldBe null
             }
 
-            val tiltaksdeltagelse = behandling.saksopplysninger?.tiltaksdeltagelser?.single()
-            val tiltaksdeltakelsePeriode = tiltaksdeltagelse?.periode!!
+            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.single()
+            val tiltaksdeltakelsePeriode = tiltaksdeltagelse.periode!!
 
             val oppdatertTiltaksdeltagelsesPeriode = tiltaksdeltakelsePeriode.minusFraOgMed(7)
 

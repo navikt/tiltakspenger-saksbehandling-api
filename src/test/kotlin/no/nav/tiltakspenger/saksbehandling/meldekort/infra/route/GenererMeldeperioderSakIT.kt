@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRe
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
@@ -35,7 +36,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRe
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import org.junit.jupiter.api.Test
 
 class GenererMeldeperioderSakIT {
@@ -66,7 +66,7 @@ class GenererMeldeperioderSakIT {
                 antallDagerPerMeldeperiodeForPerioder = SammenhengendePeriodisering(
                     AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
                     revurderingInnvilgelse,
-                ).toDTO(),
+                ).tilAntallDagerPerMeldeperiodeDTO(),
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelse).toBarnetilleggDTO(),

@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.t
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
@@ -36,7 +37,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehan
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 
 interface SendRevurderingTilBeslutningBuilder {
 
@@ -114,7 +114,7 @@ interface SendRevurderingTilBeslutningBuilder {
                         periode = tiltaksdeltagelse.periode!!.toDTO(),
                     ),
                 ),
-                antallDagerPerMeldeperiodeForPerioder = antallDager.toDTO(),
+                antallDagerPerMeldeperiodeForPerioder = antallDager.tilAntallDagerPerMeldeperiodeDTO(),
                 barnetillegg = Barnetillegg.utenBarnetillegg(revurderingVirkningsperiode).toBarnetilleggDTO(),
             ),
         )

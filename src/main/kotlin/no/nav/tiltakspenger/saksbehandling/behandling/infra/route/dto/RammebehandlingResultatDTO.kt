@@ -1,46 +1,126 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultatType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
 
-enum class RammebehandlingResultatDTO {
-    INNVILGELSE,
-    AVSLAG,
-    STANS,
-    REVURDERING_INNVILGELSE,
-    OMGJØRING,
-    IKKE_VALGT,
-    ;
+sealed interface RammebehandlingResultatDTO {
+    val resultat: RammebehandlingResultatTypeDTO
+}
 
-    fun toDomain(): BehandlingResultatType? = when (this) {
-        INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
-        AVSLAG -> SøknadsbehandlingType.AVSLAG
-        STANS -> RevurderingType.STANS
-        REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
-        OMGJØRING -> RevurderingType.OMGJØRING
-        IKKE_VALGT -> null
+sealed interface SøknadsbehandlingResultatDTO : RammebehandlingResultatDTO {
+
+    data class Innvilgelse(
+        override val innvilgelsesperiode: PeriodeDTO,
+        override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+        override val barnetillegg: BarnetilleggDTO?,
+        override val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
+    ) : SøknadsbehandlingResultatDTO,
+        RammebehandlingInnvilgelseResultatDTO {
+        override val resultat = RammebehandlingResultatTypeDTO.INNVILGELSE
+    }
+
+    data class Avslag(
+        val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
+    ) : SøknadsbehandlingResultatDTO {
+        override val resultat = RammebehandlingResultatTypeDTO.AVSLAG
+    }
+
+    data object IkkeValgt : SøknadsbehandlingResultatDTO {
+        override val resultat = RammebehandlingResultatTypeDTO.IKKE_VALGT
     }
 }
 
-fun SøknadsbehandlingResultat?.tilBehandlingResultatDTO(): RammebehandlingResultatDTO = when (this) {
-    is SøknadsbehandlingResultat.Avslag -> RammebehandlingResultatDTO.AVSLAG
-    is SøknadsbehandlingResultat.Innvilgelse -> RammebehandlingResultatDTO.INNVILGELSE
-    null -> RammebehandlingResultatDTO.IKKE_VALGT
+sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
+
+    data class Innvilgelse(
+        override val innvilgelsesperiode: PeriodeDTO?,
+        override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
+        override val barnetillegg: BarnetilleggDTO?,
+        override val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
+    ) : RevurderingResultatDTO,
+        RammebehandlingInnvilgelseResultatDTO {
+        override val resultat = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
+    }
+
+    data class Stans(
+        val valgtHjemmelHarIkkeRettighet: List<String>,
+        val harValgtStansFraFørsteDagSomGirRett: Boolean?,
+        val harValgtStansTilSisteDagSomGirRett: Boolean?,
+    ) : RevurderingResultatDTO {
+        override val resultat = RammebehandlingResultatTypeDTO.STANS
+    }
+
+    data class Omgjøring(
+        override val innvilgelsesperiode: PeriodeDTO,
+        override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+        override val barnetillegg: BarnetilleggDTO,
+        override val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>,
+        val omgjørVedtak: String,
+    ) : RevurderingResultatDTO,
+        RammebehandlingInnvilgelseResultatDTO {
+        override val resultat = RammebehandlingResultatTypeDTO.OMGJØRING
+    }
 }
 
-fun RevurderingResultat.tilBehandlingResultatDTO(): RammebehandlingResultatDTO = when (this) {
-    is RevurderingResultat.Stans -> RammebehandlingResultatDTO.STANS
-    is RevurderingResultat.Innvilgelse -> RammebehandlingResultatDTO.REVURDERING_INNVILGELSE
-    is RevurderingResultat.Omgjøring -> RammebehandlingResultatDTO.OMGJØRING
+sealed interface RammebehandlingInnvilgelseResultatDTO {
+    val innvilgelsesperiode: PeriodeDTO?
+    val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?
+    val barnetillegg: BarnetilleggDTO?
+    val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?
 }
 
-fun Rammebehandling.tilBehandlingResultatDTO(): RammebehandlingResultatDTO? = when (this) {
-    is Revurdering -> resultat.tilBehandlingResultatDTO()
-    is Søknadsbehandling -> resultat?.tilBehandlingResultatDTO()
+fun SøknadsbehandlingResultat?.tilSøknadsbehandlingResultatDTO(): SøknadsbehandlingResultatDTO {
+    return when (this) {
+        is SøknadsbehandlingResultat.Avslag -> SøknadsbehandlingResultatDTO.Avslag(
+            avslagsgrunner = avslagsgrunner.toValgtHjemmelForAvslagDTO(),
+        )
+
+        is SøknadsbehandlingResultat.Innvilgelse -> SøknadsbehandlingResultatDTO.Innvilgelse(
+            innvilgelsesperiode = innvilgelsesperiode.toDTO(),
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser.tilDTO(),
+            barnetillegg = barnetillegg?.toBarnetilleggDTO(),
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode?.tilAntallDagerPerMeldeperiodeDTO(),
+        )
+
+        null -> SøknadsbehandlingResultatDTO.IkkeValgt
+    }
+}
+
+fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
+    return when (this) {
+        is RevurderingResultat.Innvilgelse -> RevurderingResultatDTO.Innvilgelse(
+            innvilgelsesperiode = innvilgelsesperiode?.toDTO(),
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.tilDTO(),
+            barnetillegg = barnetillegg?.toBarnetilleggDTO(),
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode?.tilAntallDagerPerMeldeperiodeDTO(),
+        )
+
+        is RevurderingResultat.Stans -> RevurderingResultatDTO.Stans(
+            valgtHjemmelHarIkkeRettighet = valgtHjemmel.toDTO(Behandlingstype.REVURDERING),
+            harValgtStansFraFørsteDagSomGirRett = harValgtStansFraFørsteDagSomGirRett,
+            harValgtStansTilSisteDagSomGirRett = harValgtStansTilSisteDagSomGirRett,
+        )
+
+        is RevurderingResultat.Omgjøring -> RevurderingResultatDTO.Omgjøring(
+            innvilgelsesperiode = innvilgelsesperiode.toDTO(),
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser.tilDTO(),
+            barnetillegg = barnetillegg.toBarnetilleggDTO(),
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),
+            omgjørVedtak = omgjørRammevedtak.id.toString(),
+        )
+    }
+}
+
+private fun ValgteTiltaksdeltakelser.tilDTO(): List<TiltaksdeltakelsePeriodeDTO> {
+    return periodisering.perioderMedVerdi.toList().map { it.toTiltaksdeltakelsePeriodeDTO() }
 }

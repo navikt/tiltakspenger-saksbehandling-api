@@ -27,7 +27,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -40,6 +39,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgbarSøknad
@@ -54,9 +55,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -66,7 +65,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun virkningsperiode() = 1.januar(2023) til 31.mars(2023)
 
     fun Rammebehandling.tiltaksdeltagelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
-        val tiltaksdeltagelse = this.saksopplysninger!!.tiltaksdeltagelser.single()
+        val tiltaksdeltagelse = this.saksopplysninger.tiltaksdeltagelser.single()
 
         return listOf(
             TiltaksdeltakelsePeriodeDTO(
@@ -80,7 +79,7 @@ interface BehandlingMother : MotherOfAllMothers {
         return SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(antallDager),
             periode,
-        ).toDTO()
+        ).tilAntallDagerPerMeldeperiodeDTO()
     }
 
     fun godkjentAttestering(beslutter: Saksbehandler = beslutter()): Attestering =
@@ -617,7 +616,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     val tiltaksdeltakelser = listOf(
         Pair(
             periode,
-            behandling.saksopplysninger!!.tiltaksdeltagelser.first().eksternDeltagelseId,
+            behandling.saksopplysninger.tiltaksdeltagelser.first().eksternDeltagelseId,
         ),
     )
 

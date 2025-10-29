@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingstypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingstypeDTO
@@ -26,7 +26,7 @@ data class SaksoversiktDTO(
     val kravtidspunkt: LocalDateTime?,
     val underkjent: Boolean?,
     val typeBehandling: RammebehandlingstypeDTO,
-    val resultat: RammebehandlingResultatDTO?,
+    val resultat: RammebehandlingResultatTypeDTO?,
     val fnr: String,
     val id: String,
     val saksnummer: String,

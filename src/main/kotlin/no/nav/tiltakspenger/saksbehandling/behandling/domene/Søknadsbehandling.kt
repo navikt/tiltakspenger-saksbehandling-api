@@ -9,9 +9,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -29,9 +26,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDateTime
@@ -46,7 +43,7 @@ data class Søknadsbehandling(
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
-    override val saksopplysninger: Saksopplysninger?,
+    override val saksopplysninger: Saksopplysninger,
     override val saksbehandler: String?,
     override val beslutter: String?,
     override val sendtTilBeslutning: LocalDateTime?,
@@ -107,7 +104,10 @@ data class Søknadsbehandling(
 
         val resultat = when (kommando) {
             is OppdaterSøknadsbehandlingKommando.Avslag -> {
-                Avslag(avslagsgrunner = kommando.avslagsgrunner, avslagsperiode = this.søknad.tiltaksdeltagelseperiodeDetErSøktOm())
+                Avslag(
+                    avslagsgrunner = kommando.avslagsgrunner,
+                    avslagsperiode = this.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+                )
             }
 
             is OppdaterSøknadsbehandlingKommando.Innvilgelse -> {
@@ -199,16 +199,22 @@ data class Søknadsbehandling(
         ): Søknadsbehandling {
             val opprettet = nå(clock)
 
-            val saksopplysninger = if (søknad.tiltak != null) {
-                hentSaksopplysninger(
+            val saksopplysninger = when (søknad) {
+                is InnvilgbarSøknad -> hentSaksopplysninger(
                     sak.fnr,
                     correlationId,
                     sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
-                    listOf(søknad.tiltak!!.id),
+                    listOf(søknad.tiltak.id),
                     true,
                 )
-            } else {
-                null
+
+                is IkkeInnvilgbarSøknad -> hentSaksopplysninger(
+                    sak.fnr,
+                    correlationId,
+                    sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+                    søknad.tiltak?.let { listOf(it.id) } ?: emptyList(),
+                    true,
+                )
             }
 
             return Søknadsbehandling(

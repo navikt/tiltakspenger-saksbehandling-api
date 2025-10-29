@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
@@ -34,7 +34,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                 val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
                 val behandlingId = behandling.id
                 val fritekstTilVedtaksbrev = "some_tekst"
-                val (oppdatertSak, oppdatertBehandling, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
+                val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
                     tac = tac,
                     sakId = sak.id,
                     behandlingId = behandlingId,
@@ -44,7 +44,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     stansTilOgMed = null,
                     valgteHjemler = null,
                     barnetillegg = null,
-                    resultat = RammebehandlingResultatDTO.INNVILGELSE,
+                    resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                     avslagsgrunner = null,
                 )
                 responseJson shouldBe "pdf"
@@ -77,7 +77,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     stansTilOgMed = null,
                     valgteHjemler = null,
                     barnetillegg = listOf(BarnetilleggPeriodeDTO(antallBarn = 1, periode = virkningsperiode.toDTO())),
-                    resultat = RammebehandlingResultatDTO.INNVILGELSE,
+                    resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                     avslagsgrunner = null,
                 )
                 responseJson shouldBe "pdf"
@@ -115,7 +115,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                         ),
                         BarnetilleggPeriodeDTO(antallBarn = 1, periode = (1.februar(2025) til 31.mars(2025)).toDTO()),
                     ),
-                    resultat = RammebehandlingResultatDTO.INNVILGELSE,
+                    resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                     avslagsgrunner = null,
                 )
                 responseJson shouldBe "pdf"

@@ -56,7 +56,7 @@ sealed interface Rammebehandling : Behandling {
 
     override val saksnummer: Saksnummer
     override val fnr: Fnr
-    val saksopplysninger: Saksopplysninger?
+    val saksopplysninger: Saksopplysninger
 
     override val saksbehandler: String?
     override val beslutter: String?
@@ -89,15 +89,15 @@ sealed interface Rammebehandling : Behandling {
     val erVedtatt: Boolean get() = status == VEDTATT
     override val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
 
-    val saksopplysningsperiode: Periode? get() = saksopplysninger?.periode
+    val saksopplysningsperiode: Periode? get() = saksopplysninger.periode
 
     val utbetaling: BehandlingUtbetaling?
 
     fun inneholderSaksopplysningerEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
-        saksopplysninger?.tiltaksdeltagelser?.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
+        saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
 
     fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? =
-        saksopplysninger?.getTiltaksdeltagelse(eksternDeltagelseId)
+        saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Rammebehandling
 
@@ -508,7 +508,7 @@ sealed interface Rammebehandling : Behandling {
             KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling(it)
         }.map {
             @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
-            val skalNullstille = this.saksopplysninger?.let { saksopplysninger ->
+            val skalNullstille = this.saksopplysninger.let { saksopplysninger ->
                 if (saksopplysninger.tiltaksdeltagelser.size != nyeSaksopplysninger.tiltaksdeltagelser.size) {
                     true
                 } else {
@@ -522,7 +522,7 @@ sealed interface Rammebehandling : Behandling {
                             }.any { it }
                         )
                 }
-            } ?: true
+            }
 
             when (this) {
                 is Søknadsbehandling -> this.copy(
