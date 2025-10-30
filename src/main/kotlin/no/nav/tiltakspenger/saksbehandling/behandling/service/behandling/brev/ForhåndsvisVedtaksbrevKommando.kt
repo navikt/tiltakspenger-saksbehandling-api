@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultatT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import java.time.LocalDate
 
 /**
@@ -33,7 +33,7 @@ data class ForhåndsvisVedtaksbrevKommando(
     val saksbehandler: Saksbehandler,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
     val resultat: BehandlingResultatType,
-    val valgteHjemler: List<ValgtHjemmelHarIkkeRettighet>?,
+    val valgteHjemler: List<ValgtHjemmelForStans>?,
     val virkningsperiode: Periode?,
     val barnetillegg: IkkeTomPeriodisering<AntallBarn>?,
     val stansFraOgMed: LocalDate?,

@@ -53,7 +53,7 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     }
 
     data class Stans(
-        val valgtHjemmelHarIkkeRettighet: List<String>,
+        val valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelForStansDTO>,
         val harValgtStansFraFørsteDagSomGirRett: Boolean?,
         val harValgtStansTilSisteDagSomGirRett: Boolean?,
     ) : RevurderingResultatDTO {
@@ -106,7 +106,7 @@ fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
         )
 
         is RevurderingResultat.Stans -> RevurderingResultatDTO.Stans(
-            valgtHjemmelHarIkkeRettighet = valgtHjemmel.toDTO(Behandlingstype.REVURDERING),
+            valgtHjemmelHarIkkeRettighet = valgtHjemmel.tilValgtHjemmelForStansDTO(),
             harValgtStansFraFørsteDagSomGirRett = harValgtStansFraFørsteDagSomGirRett,
             harValgtStansTilSisteDagSomGirRett = harValgtStansTilSisteDagSomGirRett,
         )

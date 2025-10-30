@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.Clock
@@ -122,7 +121,7 @@ private fun Rammebehandling.getBehandlingAarsak(): StatistikkBehandlingAarsak? {
     return null
 }
 
-private fun ValgtHjemmelHarIkkeRettighet.toBehandlingAarsak() =
+private fun ValgtHjemmelForStans.toBehandlingAarsak() =
     when (this) {
         ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak -> StatistikkBehandlingAarsak.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
         ValgtHjemmelForStans.Alder -> StatistikkBehandlingAarsak.ALDER
@@ -132,5 +131,4 @@ private fun ValgtHjemmelHarIkkeRettighet.toBehandlingAarsak() =
         ValgtHjemmelForStans.Introduksjonsprogrammet -> StatistikkBehandlingAarsak.INTRODUKSJONSPROGRAMMET
         ValgtHjemmelForStans.LønnFraTiltaksarrangør -> StatistikkBehandlingAarsak.LONN_FRA_TILTAKSARRANGOR
         ValgtHjemmelForStans.LønnFraAndre -> StatistikkBehandlingAarsak.LONN_FRA_ANDRE
-        else -> null
     }

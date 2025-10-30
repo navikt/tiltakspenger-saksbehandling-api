@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 /**
  * https://confluence.adeo.no/pages/viewpage.action?pageId=679150248
  */
-sealed interface Avslagsgrunnlag : ValgtHjemmelHarIkkeRettighet {
+sealed interface Avslagsgrunnlag {
     val hjemler: List<Hjemmel>
 
     data object DeltarIkkePåArbeidsmarkedstiltak : Avslagsgrunnlag {
