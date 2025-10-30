@@ -3,12 +3,12 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus.Deltar
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
@@ -178,26 +178,4 @@ fun Tiltaksdeltagelse.toSøknadstiltak(): Søknadstiltak {
         typeKode = this.typeKode.tilTiltakstype(),
         typeNavn = this.typeNavn,
     )
-}
-
-fun TiltakstypeSomGirRett.tilTiltakstype(): TiltakResponsDTO.TiltakType {
-    return when (this) {
-        TiltakstypeSomGirRett.ARBEIDSFORBEREDENDE_TRENING -> TiltakResponsDTO.TiltakType.ARBFORB
-        TiltakstypeSomGirRett.ARBEIDSRETTET_REHABILITERING -> TiltakResponsDTO.TiltakType.ARBRRHDAG
-        TiltakstypeSomGirRett.ARBEIDSTRENING -> TiltakResponsDTO.TiltakType.ARBTREN
-        TiltakstypeSomGirRett.AVKLARING -> TiltakResponsDTO.TiltakType.AVKLARAG
-        TiltakstypeSomGirRett.DIGITAL_JOBBKLUBB -> TiltakResponsDTO.TiltakType.DIGIOPPARB
-        TiltakstypeSomGirRett.ENKELTPLASS_AMO -> TiltakResponsDTO.TiltakType.ENKELAMO
-        TiltakstypeSomGirRett.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG -> TiltakResponsDTO.TiltakType.ENKFAGYRKE
-        TiltakstypeSomGirRett.FORSØK_OPPLÆRING_LENGRE_VARIGHET -> TiltakResponsDTO.TiltakType.FORSOPPLEV
-        TiltakstypeSomGirRett.GRUPPE_AMO -> TiltakResponsDTO.TiltakType.GRUPPEAMO
-        TiltakstypeSomGirRett.GRUPPE_VGS_OG_HØYERE_YRKESFAG -> TiltakResponsDTO.TiltakType.GRUFAGYRKE
-        TiltakstypeSomGirRett.HØYERE_UTDANNING -> TiltakResponsDTO.TiltakType.HOYEREUTD
-        TiltakstypeSomGirRett.INDIVIDUELL_JOBBSTØTTE -> TiltakResponsDTO.TiltakType.INDJOBSTOT
-        TiltakstypeSomGirRett.INDIVIDUELL_KARRIERESTØTTE_UNG -> TiltakResponsDTO.TiltakType.IPSUNG
-        TiltakstypeSomGirRett.JOBBKLUBB -> TiltakResponsDTO.TiltakType.JOBBK
-        TiltakstypeSomGirRett.OPPFØLGING -> TiltakResponsDTO.TiltakType.INDOPPFAG
-        TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_NAV -> TiltakResponsDTO.TiltakType.UTVAOONAV
-        TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_OPPLÆRING -> TiltakResponsDTO.TiltakType.UTVOPPFOPL
-    }
 }

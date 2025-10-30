@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -46,7 +47,7 @@ data class PapirsøknadBody(
         val deltakelseFraOgMed: LocalDate,
         val deltakelseTilOgMed: LocalDate,
         val arrangørNavn: String?,
-        val typeKode: String,
+        val typeKode: TiltakstypeSomGirRett,
         val typeNavn: String,
     )
 
@@ -69,12 +70,12 @@ data class PapirsøknadBody(
     )
 
     data class PeriodeSpmDTO(
-        val svar: SpmSvarDTO,
+        val svar: SpmSvarDTO?,
         val periode: PeriodeDTO?,
     )
 
     data class FraOgMedDatoSpmDTO(
-        val svar: SpmSvarDTO,
+        val svar: SpmSvarDTO?,
         val fraOgMed: LocalDate?,
     )
 
@@ -102,6 +103,7 @@ data class PapirsøknadBody(
 
             SpmSvarDTO.NEI -> Søknad.PeriodeSpm.Nei
             SpmSvarDTO.IKKE_BESVART -> null
+            null -> null
         }
 
     fun FraOgMedDatoSpmDTO.tilDomene(): Søknad.FraOgMedDatoSpm? {
@@ -115,6 +117,7 @@ data class PapirsøknadBody(
 
             SpmSvarDTO.NEI -> Søknad.FraOgMedDatoSpm.Nei
             SpmSvarDTO.IKKE_BESVART -> null
+            null -> null
         }
     }
 
@@ -123,7 +126,7 @@ data class PapirsøknadBody(
             id = this.eksternDeltakelseId,
             deltakelseFom = this.deltakelseFraOgMed,
             deltakelseTom = this.deltakelseTilOgMed,
-            typeKode = TiltakResponsDTO.TiltakType.valueOf(this.typeKode),
+            typeKode = this.typeKode.tilTiltakstype(),
             typeNavn = this.typeNavn,
         )
 
@@ -159,4 +162,26 @@ data class PapirsøknadBody(
             SpmSvarDTO.IKKE_BESVART -> null
             null -> null
         }
+}
+
+fun TiltakstypeSomGirRett.tilTiltakstype(): TiltakResponsDTO.TiltakType {
+    return when (this) {
+        TiltakstypeSomGirRett.ARBEIDSFORBEREDENDE_TRENING -> TiltakResponsDTO.TiltakType.ARBFORB
+        TiltakstypeSomGirRett.ARBEIDSRETTET_REHABILITERING -> TiltakResponsDTO.TiltakType.ARBRRHDAG
+        TiltakstypeSomGirRett.ARBEIDSTRENING -> TiltakResponsDTO.TiltakType.ARBTREN
+        TiltakstypeSomGirRett.AVKLARING -> TiltakResponsDTO.TiltakType.AVKLARAG
+        TiltakstypeSomGirRett.DIGITAL_JOBBKLUBB -> TiltakResponsDTO.TiltakType.DIGIOPPARB
+        TiltakstypeSomGirRett.ENKELTPLASS_AMO -> TiltakResponsDTO.TiltakType.ENKELAMO
+        TiltakstypeSomGirRett.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG -> TiltakResponsDTO.TiltakType.ENKFAGYRKE
+        TiltakstypeSomGirRett.FORSØK_OPPLÆRING_LENGRE_VARIGHET -> TiltakResponsDTO.TiltakType.FORSOPPLEV
+        TiltakstypeSomGirRett.GRUPPE_AMO -> TiltakResponsDTO.TiltakType.GRUPPEAMO
+        TiltakstypeSomGirRett.GRUPPE_VGS_OG_HØYERE_YRKESFAG -> TiltakResponsDTO.TiltakType.GRUFAGYRKE
+        TiltakstypeSomGirRett.HØYERE_UTDANNING -> TiltakResponsDTO.TiltakType.HOYEREUTD
+        TiltakstypeSomGirRett.INDIVIDUELL_JOBBSTØTTE -> TiltakResponsDTO.TiltakType.INDJOBSTOT
+        TiltakstypeSomGirRett.INDIVIDUELL_KARRIERESTØTTE_UNG -> TiltakResponsDTO.TiltakType.IPSUNG
+        TiltakstypeSomGirRett.JOBBKLUBB -> TiltakResponsDTO.TiltakType.JOBBK
+        TiltakstypeSomGirRett.OPPFØLGING -> TiltakResponsDTO.TiltakType.INDOPPFAG
+        TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_NAV -> TiltakResponsDTO.TiltakType.UTVAOONAV
+        TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_OPPLÆRING -> TiltakResponsDTO.TiltakType.UTVOPPFOPL
+    }
 }
