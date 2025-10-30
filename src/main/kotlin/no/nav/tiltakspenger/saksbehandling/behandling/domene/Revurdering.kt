@@ -145,6 +145,7 @@ data class Revurdering(
                 ),
                 barnetillegg = kommando.barnetillegg,
                 antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                saksopplysninger = saksopplysninger,
             ),
             utbetaling = utbetaling,
         ).right()
@@ -251,7 +252,7 @@ data class Revurdering(
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
-                resultat = Omgjøring(omgjørRammevedtak),
+                resultat = Omgjøring.create(omgjørRammevedtak, saksopplysninger),
             )
         }
 

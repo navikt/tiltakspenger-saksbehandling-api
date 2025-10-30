@@ -29,7 +29,7 @@ sealed interface BehandlingResultat {
      *
      * @param saksopplysninger Kan være null dersom søker ikke har søkt på et tiltak [no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad], gir kun mening ved avslag.
      */
-    fun erFerdigutfylt(saksopplysninger: Saksopplysninger?): Boolean
+    fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean
 
     /** Denne benyttes både i søknadsbehandlinger og revurderinger */
     sealed interface Innvilgelse : BehandlingResultat {
@@ -41,14 +41,18 @@ sealed interface BehandlingResultat {
          * Sjekker også at periodene til [valgteTiltaksdeltakelser], [barnetillegg] og [antallDagerPerMeldeperiode] er lik [innvilgelsesperiode].
          * TODO jah: Ikke direkte relatert til omgjøring, men vi bør utvide denne til og ta høyde for saksopplysninger.tiltaksdeltagelser
          */
-        override fun erFerdigutfylt(saksopplysninger: Saksopplysninger?) = saksopplysninger != null && innvilgelsesperiode != null &&
-            valgteTiltaksdeltakelser != null &&
-            barnetillegg != null &&
-            antallDagerPerMeldeperiode != null &&
-            antallDagerPerMeldeperiode!!.totalPeriode == innvilgelsesperiode &&
-            valgteTiltaksdeltakelser!!.periodisering.totalPeriode == innvilgelsesperiode &&
-            barnetillegg!!.periodisering.totalPeriode == innvilgelsesperiode
+        override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
+            return innvilgelsesperiode != null &&
+                valgteTiltaksdeltakelser != null &&
+                barnetillegg != null &&
+                antallDagerPerMeldeperiode != null &&
+                antallDagerPerMeldeperiode!!.totalPeriode == innvilgelsesperiode &&
+                valgteTiltaksdeltakelser!!.periodisering.totalPeriode == innvilgelsesperiode &&
+                barnetillegg!!.periodisering.totalPeriode == innvilgelsesperiode
+        }
     }
+
+    fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): BehandlingResultat?
 }
 
 sealed interface BehandlingResultatType
@@ -62,4 +66,28 @@ enum class RevurderingType : BehandlingResultatType {
     STANS,
     INNVILGELSE,
     OMGJØRING,
+}
+
+/**
+ * Kommentar jah: Håper vi kan bli kvitt en del av denne funksjonen og flytte den inn i BehandlingResultat-implementasjonene.
+ * Dersom vi tillater behandlingene og være "dirty", er det eneste vi må påse at vi nullstiller ValgteTiltaksdeltakelser dersom de forvinner eller perioden krymper.
+ */
+@Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
+fun skalNullstilleResultatVedNyeSaksopplysninger(
+    valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
+    nyeSaksopplysninger: Saksopplysninger,
+): Boolean {
+    return if (valgteTiltaksdeltakelser.verdier.size != nyeSaksopplysninger.tiltaksdeltagelser.size) {
+        true
+    } else {
+        (
+            valgteTiltaksdeltakelser.verdier.sortedBy { it.eksternDeltagelseId }
+                .zip(nyeSaksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }) { forrige, nye ->
+                    // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltagelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
+                    forrige.eksternDeltagelseId != nye.eksternDeltagelseId ||
+                        forrige.deltagelseFraOgMed == nye.deltagelseFraOgMed ||
+                        forrige.deltagelseTilOgMed == nye.deltagelseTilOgMed
+                }.any { it }
+            )
+    }
 }

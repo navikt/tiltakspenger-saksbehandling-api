@@ -70,7 +70,7 @@ interface StartRevurderingBuilder {
             tac.tiltakContext.tiltaksdeltagelseKlient as TiltaksdeltagelseFakeKlient
 
         val oppdatertTiltaksdeltagelse =
-            søknadsbehandling.saksopplysninger?.getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
+            søknadsbehandling.saksopplysninger.getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
                 deltagelseFraOgMed = revurderingVirkningsperiode.fraOgMed,
                 deltagelseTilOgMed = revurderingVirkningsperiode.tilOgMed,
             )
