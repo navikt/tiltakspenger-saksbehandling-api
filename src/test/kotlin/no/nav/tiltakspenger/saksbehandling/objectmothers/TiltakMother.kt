@@ -117,7 +117,7 @@ interface TiltakMother {
             id = eksternTiltaksdeltagelseId,
             deltakelseFom = søknadFraOgMed,
             deltakelseTom = søknadTilOgMed,
-            typeKode = typeKode.name,
+            typeKode = typeKode.tilTiltakstype(),
             typeNavn = typeNavn,
         )
     }
@@ -158,20 +158,10 @@ interface TiltakMother {
 fun Søknadstiltak.toTiltak(
     eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
 ): Tiltaksdeltagelse {
-    /**
-     * TODO hhs - Fortsatt noe feil i mappingen som gjorde at jeg la inn denne hacken.
-     * Testene bruker kodene i enumverdiene som er i TiltakType, mens lokale kjøringen bruker enumverdiene som er i TiltakstypeSomGirRett.
-     */
-    val typeKode = try {
-        TiltakResponsDTO.TiltakType.valueOf(this.typeKode)
-    } catch (_: IllegalArgumentException) {
-        TiltakstypeSomGirRett.valueOf(this.typeKode).tilTiltakstype()
-    }
-
     return tiltaksdeltagelse(
         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
         eksternTiltaksdeltagelseId = this.id,
-        typeKode = typeKode.toTiltakstypeSomGirRett().getOrElse {
+        typeKode = this.typeKode.toTiltakstypeSomGirRett().getOrElse {
             throw IllegalArgumentException("Ugyldig typekode ${this.typeKode}")
         },
         typeNavn = this.typeNavn,
@@ -185,7 +175,7 @@ fun Tiltaksdeltagelse.toSøknadstiltak(): Søknadstiltak {
         id = this.eksternDeltagelseId,
         deltakelseFom = this.deltagelseFraOgMed!!,
         deltakelseTom = this.deltagelseTilOgMed!!,
-        typeKode = this.typeKode.tilTiltakstype().name,
+        typeKode = this.typeKode.tilTiltakstype(),
         typeNavn = this.typeNavn,
     )
 }

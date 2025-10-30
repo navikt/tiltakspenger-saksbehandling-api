@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -112,7 +113,7 @@ data class PapirsøknadBody(
             id = this.eksternDeltakelseId,
             deltakelseFom = this.deltakelseFraOgMed,
             deltakelseTom = this.deltakelseTilOgMed,
-            typeKode = this.typeKode,
+            typeKode = TiltakResponsDTO.TiltakType.valueOf(this.typeKode),
             typeNavn = this.typeNavn,
         )
 

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -25,7 +26,7 @@ interface SøknadMother {
         id: String = UUID.randomUUID().toString(),
         deltakelseFom: LocalDate = 1.januar(2022),
         deltakelseTom: LocalDate = 31.januar(2022),
-        typeKode: String = "GRUPPEAMO",
+        typeKode: TiltakResponsDTO.TiltakType = TiltakResponsDTO.TiltakType.GRUPPEAMO,
         typeNavn: String = "Gruppe AMO",
     ): Søknadstiltak =
         Søknadstiltak(
