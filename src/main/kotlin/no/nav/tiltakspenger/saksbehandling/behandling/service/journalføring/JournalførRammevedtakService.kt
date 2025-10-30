@@ -71,7 +71,11 @@ class JournalførRammevedtakService(
 
                     log.info { "Vedtaksbrev generert for vedtak ${vedtak.id}" }
                     val journalpostId =
-                        journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(vedtak, pdfOgJson, correlationId)
+                        journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(
+                            vedtak,
+                            pdfOgJson,
+                            correlationId,
+                        )
                     log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
                     rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
                     log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }

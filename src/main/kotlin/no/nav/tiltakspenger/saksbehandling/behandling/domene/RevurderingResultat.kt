@@ -99,6 +99,9 @@ sealed interface RevurderingResultat : BehandlingResultat {
         // Kommentar jah: Avventer med å extende BehandlingResultat.Innvilgelse inntil vi har på plass periodisering av innvilgelsesperioden.
         // Det er ikke sikkert at vi ønsker å gjenbruke logikken derfra.
 
+        // Abn: extender Innvilgelse for nå, slik at Omgjøring mappes til innvilgelse ved exhaustive mappinger for vedtak, statistikk osv.
+        // Fjernes når omgjøring ikke lengre alltid skal føre til innvilgelse. Må da ha en annen mekanisme for å avgjøre om omgjøringen er en innvilgelse
+
         constructor(
             omgjørRammevedtak: Rammevedtak,
         ) : this(
