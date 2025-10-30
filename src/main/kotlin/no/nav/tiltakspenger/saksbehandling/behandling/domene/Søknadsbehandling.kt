@@ -164,6 +164,7 @@ data class Søknadsbehandling(
                 saksbehandler = avbruttAv.navIdent,
                 begrunnelse = begrunnelse,
             ),
+            sistEndret = tidspunkt,
         )
     }
 
