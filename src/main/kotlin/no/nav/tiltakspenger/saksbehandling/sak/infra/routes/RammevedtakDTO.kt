@@ -9,9 +9,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.maksAntallDager
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -25,7 +26,7 @@ data class RammevedtakDTO(
     val behandlingId: String,
     val opprettet: LocalDateTime,
     val vedtaksdato: LocalDate?,
-    val vedtaksType: VedtakstypeDTO,
+    val resultat: RammebehandlingResultatTypeDTO,
     val periode: PeriodeDTO,
     val gjeldendePeriode: PeriodeDTO,
     val saksbehandler: String,
@@ -33,12 +34,6 @@ data class RammevedtakDTO(
     val antallDagerPerMeldeperiode: Int,
     val barnetillegg: BarnetilleggDTO?,
 )
-
-enum class VedtakstypeDTO {
-    INNVILGELSE,
-    AVSLAG,
-    STANS,
-}
 
 fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
     val periodeDTO = periode.toDTO()
@@ -48,11 +43,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         behandlingId = behandling.id.toString(),
         opprettet = opprettet,
         vedtaksdato = vedtaksdato,
-        vedtaksType = when (vedtakstype) {
-            Vedtakstype.INNVILGELSE -> VedtakstypeDTO.INNVILGELSE
-            Vedtakstype.AVSLAG -> VedtakstypeDTO.AVSLAG
-            Vedtakstype.STANS -> VedtakstypeDTO.STANS
-        },
+        resultat = resultat.tilBehandlingResultatDTO(),
         periode = periodeDTO,
         gjeldendePeriode = periodeDTO,
         saksbehandler = saksbehandler,

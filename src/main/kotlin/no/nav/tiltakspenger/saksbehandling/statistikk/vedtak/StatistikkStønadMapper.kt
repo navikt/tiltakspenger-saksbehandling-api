@@ -38,7 +38,7 @@ fun genererStønadsstatistikkForRammevedtak(
         sakId = vedtak.sakId.toString(),
         saksnummer = vedtak.saksnummer.toString(),
         // vår sak har ikke resultat, så bruker vedtak sin resultat
-        resultat = vedtak.vedtakstype.toVedtakStatistikkResultat(),
+        resultat = vedtak.resultat.toVedtakStatistikkResultat(),
         sakDato = vedtak.saksnummer.dato,
         vedtakFom = vedtak.periode.fraOgMed,
         vedtakTom = vedtak.periode.tilOgMed,

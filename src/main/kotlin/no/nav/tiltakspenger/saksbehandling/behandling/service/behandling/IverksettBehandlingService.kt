@@ -8,10 +8,13 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
@@ -27,7 +30,6 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakSe
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
 
@@ -96,10 +98,10 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        return when (vedtak.vedtakstype) {
-            Vedtakstype.INNVILGELSE -> iverksett(vedtak, sakStatistikk, stønadStatistikk)
+        return when (vedtak.resultat) {
+            is BehandlingResultat.Innvilgelse -> iverksett(vedtak, sakStatistikk, stønadStatistikk)
 
-            Vedtakstype.AVSLAG -> {
+            is SøknadsbehandlingResultat.Avslag -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
                 sessionFactory.withTransactionContext { tx ->
                     behandlingRepo.lagre(vedtak.behandling, tx)
@@ -115,7 +117,7 @@ class IverksettBehandlingService(
                 this
             }
 
-            Vedtakstype.STANS -> throw IllegalArgumentException("Kan ikke iverksette stans-vedtak på en søknadsbehandling")
+            is RevurderingResultat.Stans -> throw IllegalArgumentException("Kan ikke iverksette stans-vedtak på en søknadsbehandling")
         }
     }
 
@@ -124,7 +126,7 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        require(vedtak.vedtakstype == Vedtakstype.INNVILGELSE || vedtak.vedtakstype == Vedtakstype.STANS) {
+        require(vedtak.resultat is BehandlingResultat.Innvilgelse || vedtak.resultat is RevurderingResultat.Stans) {
             "Kan kun iverksette innvilgelse eller stans"
         }
 

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
+import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -9,10 +10,10 @@ import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
@@ -43,7 +44,6 @@ data class Rammevedtak(
     override val utbetaling: VedtattUtbetaling?,
     val behandling: Rammebehandling,
     val vedtaksdato: LocalDate?,
-    val vedtakstype: Vedtakstype,
     val distribusjonId: DistribusjonId?,
     val distribusjonstidspunkt: LocalDateTime?,
     val sendtTilDatadeling: LocalDateTime?,
@@ -58,6 +58,8 @@ data class Rammevedtak(
     override val beslutter: String = behandling.beslutter!!
 
     override val beregning: Beregning? = behandling.utbetaling?.beregning
+
+    val resultat: BehandlingResultat = behandling.resultat!!
 
     /** Vil være null for stans, avslag eller dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
@@ -74,6 +76,7 @@ data class Rammevedtak(
     val innvilgelsesperiode = behandling.innvilgelsesperiode
 
     init {
+        logger {}.info { resultat }
         require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
         require(sakId == behandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${behandling.id}" }
         require(periode == behandling.virkningsperiode) { "Periode i vedtak ($periode) og behandlingens virkningsperiode (${behandling.virkningsperiode}) må være lik. SakId: $sakId, Saksnummer: ${behandling.saksnummer} BehandlingId: ${behandling.id}" }
@@ -89,36 +92,7 @@ data class Rammevedtak(
             require(beslutter == it.beslutter)
             require(behandling.id == it.beregningKilde.id)
         }
-        when (vedtakstype) {
-            Vedtakstype.INNVILGELSE -> {
-                require(
-                    behandling.resultat is SøknadsbehandlingResultat.Innvilgelse ||
-                        behandling.resultat is RevurderingResultat.Innvilgelse ||
-                        behandling.resultat is RevurderingResultat.Omgjøring,
-                ) {
-                    "Ved innvilgelse må resultat i behandling være Innvilgelse eller Omgjøring. SakId: ${behandling.sakId}, Saksnummer: ${behandling.saksnummer}, BehandlingId: ${behandling.id}"
-                }
-            }
-
-            Vedtakstype.AVSLAG -> {
-                require(behandling.resultat is SøknadsbehandlingResultat.Avslag) {
-                    "Ved avslag må resultat i behandling være Avslag. SakId: ${behandling.sakId}, Saksnummer: ${behandling.saksnummer}, BehandlingId: ${behandling.id}"
-                }
-            }
-
-            Vedtakstype.STANS -> {
-                require(behandling.resultat is RevurderingResultat.Stans) {
-                    "Ved stans må resultat i behandling være Stans. SakId: ${behandling.sakId}, Saksnummer: ${behandling.saksnummer}, BehandlingId: ${behandling.id}"
-                }
-            }
-        }
     }
-}
-
-enum class Vedtakstype {
-    INNVILGELSE,
-    AVSLAG,
-    STANS,
 }
 
 fun Sak.opprettVedtak(
@@ -155,13 +129,6 @@ fun Sak.opprettVedtak(
         opprettet = opprettet,
         sakId = this.id,
         behandling = behandling,
-        vedtakstype = when (behandling.resultat!!) {
-            is SøknadsbehandlingResultat.Avslag -> Vedtakstype.AVSLAG
-            is SøknadsbehandlingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
-            is RevurderingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
-            is RevurderingResultat.Stans -> Vedtakstype.STANS
-            is RevurderingResultat.Omgjøring -> Vedtakstype.INNVILGELSE
-        },
         periode = behandling.virkningsperiode!!,
         omgjortAvRammevedtakId = null,
         utbetaling = utbetaling,

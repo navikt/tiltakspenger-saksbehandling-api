@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import java.time.LocalDate
 import java.util.UUID
 
@@ -74,10 +76,10 @@ enum class VedtakStatistikkResultat {
     ;
 
     companion object {
-        fun Vedtakstype.toVedtakStatistikkResultat(): VedtakStatistikkResultat = when (this) {
-            Vedtakstype.INNVILGELSE -> Innvilgelse
-            Vedtakstype.AVSLAG -> Avslag
-            Vedtakstype.STANS -> Stans
+        fun BehandlingResultat.toVedtakStatistikkResultat(): VedtakStatistikkResultat = when (this) {
+            is BehandlingResultat.Innvilgelse -> Innvilgelse
+            is SøknadsbehandlingResultat.Avslag -> Avslag
+            is RevurderingResultat.Stans -> Stans
         }
     }
 }

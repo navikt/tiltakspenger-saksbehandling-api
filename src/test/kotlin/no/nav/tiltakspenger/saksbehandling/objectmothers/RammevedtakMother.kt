@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import no.nav.utsjekk.kontrakter.felles.Satstype
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -36,7 +35,6 @@ interface RammevedtakMother : MotherOfAllMothers {
             fnr = fnr,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
-        vedtaksType: Vedtakstype = Vedtakstype.INNVILGELSE,
         journalpostId: JournalpostId? = null,
         journalføringstidspunkt: LocalDateTime? = null,
         distribusjonId: DistribusjonId? = null,
@@ -51,7 +49,6 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId = sakId,
         behandling = behandling,
         vedtaksdato = vedtaksdato,
-        vedtakstype = vedtaksType,
         periode = periode,
         journalpostId = journalpostId,
         journalføringstidspunkt = journalføringstidspunkt,
@@ -97,7 +94,6 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId = sakId,
         behandling = behandling,
         vedtaksdato = vedtaksdato,
-        vedtaksType = Vedtakstype.INNVILGELSE,
         periode = periode,
         journalpostId = journalpostId,
         journalføringstidspunkt = journalføringstidspunkt,
@@ -136,7 +132,6 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId = sakId,
         behandling = behandling,
         vedtaksdato = vedtaksdato,
-        vedtaksType = Vedtakstype.STANS,
         periode = periode,
         journalpostId = journalpostId,
         journalføringstidspunkt = journalføringstidspunkt,
