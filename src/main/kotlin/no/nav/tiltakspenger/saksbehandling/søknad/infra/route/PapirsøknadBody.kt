@@ -65,18 +65,24 @@ data class PapirsøknadBody(
     )
 
     data class JaNeiSpmDTO(
-        val svar: Boolean?,
+        val svar: SpmSvarDTO?,
     )
 
     data class PeriodeSpmDTO(
-        val svar: Boolean,
+        val svar: SpmSvarDTO,
         val periode: PeriodeDTO?,
     )
 
     data class FraOgMedDatoSpmDTO(
-        val svar: Boolean,
+        val svar: SpmSvarDTO,
         val fraOgMed: LocalDate?,
     )
+
+    enum class SpmSvarDTO {
+        NEI,
+        JA,
+        IKKE_BESVART,
+    }
 
     fun PersonopplysningerDTO.tilDomene(): Søknad.Personopplysninger = Søknad.Personopplysninger(
         fnr = Fnr.fromString(this.ident),
@@ -84,27 +90,31 @@ data class PapirsøknadBody(
         etternavn = this.etternavn,
     )
 
-    fun PeriodeSpmDTO.tilDomene(): Søknad.PeriodeSpm =
+    fun PeriodeSpmDTO.tilDomene(): Søknad.PeriodeSpm? =
         when (this.svar) {
-            false -> Søknad.PeriodeSpm.Nei
-            true -> {
+            SpmSvarDTO.JA -> {
                 checkNotNull(this.periode?.fraOgMed) { "Det skal ikke være mulig med null i fradato hvis man har svart JA " }
                 checkNotNull(this.periode.tilOgMed) { "Det skal ikke være mulig med null i tildato hvis man har svart JA " }
                 Søknad.PeriodeSpm.Ja(
                     periode = this.periode.toDomain(),
                 )
             }
+
+            SpmSvarDTO.NEI -> Søknad.PeriodeSpm.Nei
+            SpmSvarDTO.IKKE_BESVART -> null
         }
 
-    fun FraOgMedDatoSpmDTO.tilDomene(): Søknad.FraOgMedDatoSpm {
+    fun FraOgMedDatoSpmDTO.tilDomene(): Søknad.FraOgMedDatoSpm? {
         return when (this.svar) {
-            false -> Søknad.FraOgMedDatoSpm.Nei
-            true -> {
+            SpmSvarDTO.JA -> {
                 requireNotNull(this.fraOgMed) { "Det skal ikke være mulig med null i fradato hvis man har svart JA" }
                 Søknad.FraOgMedDatoSpm.Ja(
                     fra = this.fraOgMed,
                 )
             }
+
+            SpmSvarDTO.NEI -> Søknad.FraOgMedDatoSpm.Nei
+            SpmSvarDTO.IKKE_BESVART -> null
         }
     }
 
@@ -144,8 +154,9 @@ data class PapirsøknadBody(
 
     fun JaNeiSpmDTO.tilDomene(): Søknad.JaNeiSpm? =
         when (this.svar) {
-            false -> Søknad.JaNeiSpm.Nei
-            true -> Søknad.JaNeiSpm.Ja
+            SpmSvarDTO.NEI -> Søknad.JaNeiSpm.Nei
+            SpmSvarDTO.JA -> Søknad.JaNeiSpm.Ja
+            SpmSvarDTO.IKKE_BESVART -> null
             null -> null
         }
 }
