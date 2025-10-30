@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.maksAntallDager
@@ -11,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.B
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -63,11 +63,13 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
     )
 }
 
-fun PeriodeMedVerdi<Rammevedtak>.tilPeriodisertRammevedtakDTO(): RammevedtakDTO {
-    return verdi.tilRammevedtakDTO().copy(
-        gjeldendePeriode = periode.toDTO(),
-        barnetillegg = verdi.barnetillegg?.tilKrympetBarnetilleggDTO(periode),
-    )
+fun Rammevedtaksliste.tilRammevedtakTidslinjeDTO(): List<RammevedtakDTO> {
+    return tidslinje.perioderMedVerdi.map {
+        it.verdi.tilRammevedtakDTO().copy(
+            gjeldendePeriode = it.periode.toDTO(),
+            barnetillegg = it.verdi.barnetillegg?.tilKrympetBarnetilleggDTO(it.periode),
+        )
+    }
 }
 
 private fun Barnetillegg.tilKrympetBarnetilleggDTO(periode: Periode): BarnetilleggDTO = BarnetilleggDTO(

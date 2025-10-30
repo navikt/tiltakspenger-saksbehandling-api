@@ -24,6 +24,7 @@ data class SakDTO(
     val søknader: List<SøknadDTO>,
     val behandlinger: List<RammebehandlingDTO>,
     val tidslinje: List<RammevedtakDTO>,
+    val alleRammevedtak: List<RammevedtakDTO>,
     val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
     val kanSendeInnHelgForMeldekort: Boolean,
 )
@@ -32,6 +33,7 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     saksnummer = saksnummer.verdi,
     sakId = id.toString(),
     fnr = fnr.verdi,
+    // TODO abn: kan vi fjerne søknader her? Alle søknader får vel en behandling opprettet automatisk nå
     behandlingsoversikt = (
         rammebehandlinger.åpneBehandlinger.toSaksoversiktDTO() +
             this.søknader
@@ -45,7 +47,8 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     sisteDagSomGirRett = sisteDagSomGirRett,
     søknader = søknader.toSøknadDTO(),
     behandlinger = this.tilBehandlingerDTO(),
-    tidslinje = rammevedtaksliste.tidslinje.perioderMedVerdi.map { it.tilPeriodisertRammevedtakDTO() },
+    tidslinje = rammevedtaksliste.tilRammevedtakTidslinjeDTO(),
+    alleRammevedtak = rammevedtaksliste.map { it.tilRammevedtakDTO() },
     utbetalingstidslinje = this.tilUtbetalingstidslinjeMeldeperiodeDTO(),
     kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
 )
