@@ -240,8 +240,21 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ULIK_TILTAKSPERIODE)
         }
 
-        if (soknadstiltakFraSaksopplysning != null && (!soknadstiltakFraSaksopplysning.deltakelseStatus.deltarEllerHarDeltatt())) {
-            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_IKKE_DELTATT_PA_TILTAK)
+        if (soknadstiltakFraSaksopplysning != null) {
+            if (!soknadstiltakFraSaksopplysning.deltakelseStatus.deltarEllerHarDeltatt()) {
+                manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_IKKE_DELTATT_PA_TILTAK)
+            }
+            val deltakelsesprosent = soknadstiltakFraSaksopplysning.getDeltakelsesprosent()
+            val manglerDagerPerUke = soknadstiltakFraSaksopplysning.antallDagerPerUke == null || soknadstiltakFraSaksopplysning.antallDagerPerUke == 0F
+            if (manglerDagerPerUke && deltakelsesprosent == null) {
+                manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_TILTAK_MANGLER_DELTAKELSESMENGDE)
+            }
+            if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 5.0F) {
+                manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_TILTAK_MER_ENN_FEM_DAGER_PER_UKE)
+            }
+            if (manglerDagerPerUke && deltakelsesprosent != null && deltakelsesprosent < 100.0F) {
+                manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_DELTIDSTILTAK_UTEN_DAGER_PER_UKE)
+            }
         }
 
         val tiltaksid = behandling.søknad.tiltak.id
@@ -353,13 +366,16 @@ class DelautomatiskBehandlingService(
     private fun utledAntallDagerPerMeldeperiode(
         behandling: Søknadsbehandling,
     ): SammenhengendePeriodisering<AntallDagerForMeldeperiode> {
-        require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
+        require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad. BehandlingId: ${behandling.id}" }
         val soknadstiltakFraSaksopplysning = behandling.søknad.tiltak
             .let { tiltak -> behandling.saksopplysninger.getTiltaksdeltagelse(tiltak.id) }
-            ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk")
+            ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk. BehandlingId: ${behandling.id}")
+        require((soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) || soknadstiltakFraSaksopplysning.getDeltakelsesprosent() == 100.0F) {
+            "Tiltaksdeltakelser som mangler dagerPerUke og ikke har deltakelsesprosent 100% kan ikke behandles automatisk. BehandlingId: ${behandling.id}"
+        }
         return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
             SammenhengendePeriodisering(
-                AntallDagerForMeldeperiode((soknadstiltakFraSaksopplysning.antallDagerPerUke * 2).toInt()),
+                AntallDagerForMeldeperiode(getDagerPerMeldeperiode(soknadstiltakFraSaksopplysning.antallDagerPerUke)),
                 behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
             )
         } else {
@@ -368,5 +384,14 @@ class DelautomatiskBehandlingService(
                 behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
             )
         }
+    }
+
+    private fun Tiltaksdeltagelse.getDeltakelsesprosent(): Float? {
+        return deltakelseProsent
+            ?: deltidsprosentGjennomforing?.toFloat()
+    }
+
+    private fun getDagerPerMeldeperiode(dagerPerUke: Float): Int {
+        return ((dagerPerUke + 0.5F).toInt()) * 2
     }
 }
