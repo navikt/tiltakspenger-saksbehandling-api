@@ -148,7 +148,7 @@ fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
         id = id,
         fraOgMed = this.deltakelseFom.toString(),
         tilOgMed = this.deltakelseTom.toString(),
-        typeKode = this.typeKode,
+        typeKode = this.typeKode.name,
         typeNavn = this.typeNavn,
     )
 }

@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
@@ -85,7 +86,7 @@ class OlderMottaSøknadTest {
                         id = "123",
                         deltakelseFom = 1.april(2025),
                         deltakelseTom = 10.april(2025),
-                        typeKode = "Annen utdanning",
+                        typeKode = TiltakResponsDTO.TiltakType.ANNUTDANN,
                         typeNavn = "Annen utdanning",
                     ),
                     barnetillegg =
@@ -144,7 +145,7 @@ class OlderMottaSøknadTest {
             "tiltak": {
               "id": "123",
               "arrangør": "Testarrangør",
-              "typeKode": "Annen utdanning",
+              "typeKode": "ANNUTDANN",
               "typeNavn": "Annen utdanning",
               "deltakelseFom": "2025-04-01",
               "deltakelseTom": "2025-04-10"

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -196,14 +197,14 @@ sealed interface Søknad {
 
 /**
  * @param id mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api). Dette er tiltaksdeltagelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?). Kalles ekstern_id i databasen.
- * @param typeKode f.eks. JOBBK, GRUPPEAMO, INDOPPFAG, ARBTREN
+ * @param typeKode f.eks. JOBBK, GRUPPEAMO, INDOPPFAG, ARBTREN ([no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.TiltakType])
  * @param typeNavn f.eks. Jobbklubb, Arbeidsmarkedsopplæring (gruppe), Oppfølging, Arbeidstrening
  */
 data class Søknadstiltak(
     val id: String,
     val deltakelseFom: LocalDate,
     val deltakelseTom: LocalDate,
-    val typeKode: String,
+    val typeKode: TiltakResponsDTO.TiltakType,
     val typeNavn: String,
 )
 

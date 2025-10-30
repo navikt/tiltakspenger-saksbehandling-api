@@ -6,6 +6,7 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
+import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import org.intellij.lang.annotations.Language
 
@@ -42,7 +43,7 @@ internal object SøknadTiltakDAO {
                     "id" to random(ULID_PREFIX_TILTAK).toString(),
                     "soknad_id" to søknadId.toString(),
                     "ekstern_id" to søknadstiltak.id,
-                    "typekode" to søknadstiltak.typeKode,
+                    "typekode" to søknadstiltak.typeKode.name,
                     "typenavn" to søknadstiltak.typeNavn,
                     "deltakelse_fra_og_med" to søknadstiltak.deltakelseFom,
                     "deltakelse_til_og_med" to søknadstiltak.deltakelseTom,
@@ -68,7 +69,7 @@ internal object SøknadTiltakDAO {
             id = eksternId,
             deltakelseFom = deltakelseFom,
             deltakelseTom = deltakelseTom,
-            typeKode = typekode,
+            typeKode = TiltakResponsDTO.TiltakType.valueOf(typekode),
             typeNavn = typenavn,
         )
     }

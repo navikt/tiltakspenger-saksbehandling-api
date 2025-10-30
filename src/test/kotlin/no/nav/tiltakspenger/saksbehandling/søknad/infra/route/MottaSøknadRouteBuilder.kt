@@ -20,10 +20,12 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 
 /**
@@ -94,7 +96,7 @@ interface MottaSøknadRouteBuilder {
                     fnr = fnr.verdi,
                     søknadId = søknadId.toString(),
                     deltakelsesperiode = deltakelsesperiode,
-                    tiltaksdeltagelse = tiltaksdeltagelse,
+                    tiltaksdeltagelse = tiltaksdeltagelse.toSøknadstiltak(),
                 ),
             )
         }.apply {
@@ -123,7 +125,7 @@ interface MottaSøknadRouteBuilder {
         journalpostId: String = "123456789",
         fnr: String = Fnr.random().toString(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltagelse: Tiltaksdeltagelse,
+        tiltaksdeltagelse: Søknadstiltak,
     ): String {
         return """
         {
@@ -136,9 +138,9 @@ interface MottaSøknadRouteBuilder {
               "etternavn": "HOFTE"
             },
             "tiltak": {
-              "id": "${tiltaksdeltagelse.eksternDeltagelseId}",
+              "id": "${tiltaksdeltagelse.id}",
               "arrangør": "Testarrangør",
-              "typeKode": "${tiltaksdeltagelse.typeKode}",
+              "typeKode": "${tiltaksdeltagelse.typeKode.name}",
               "typeNavn": "${tiltaksdeltagelse.typeNavn}",
               "deltakelseFom": "${deltakelsesperiode.fraOgMed}",
               "deltakelseTom": "${deltakelsesperiode.tilOgMed}"
