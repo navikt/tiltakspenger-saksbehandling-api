@@ -9,7 +9,7 @@ data class AvvistTilgangResponse(
     val begrunnelse: String,
 ) {
     fun tilAvvistTilgangsvurdering(): Tilgangsvurdering.Avvist {
-        val årsak = when (type) {
+        val årsak = when (title) {
             "AVVIST_STRENGT_FORTROLIG_ADRESSE" -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG
             "AVVIST_STRENGT_FORTROLIG_UTLAND" -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG_UTLAND
             "AVVIST_FORTROLIG_ADRESSE" -> TilgangsvurderingAvvistÅrsak.FORTROLIG
