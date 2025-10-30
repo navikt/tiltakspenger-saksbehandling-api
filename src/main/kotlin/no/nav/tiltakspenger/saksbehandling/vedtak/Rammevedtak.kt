@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
-import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -76,7 +75,6 @@ data class Rammevedtak(
     val innvilgelsesperiode = behandling.innvilgelsesperiode
 
     init {
-        logger {}.info { resultat }
         require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
         require(sakId == behandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${behandling.id}" }
         require(periode == behandling.virkningsperiode) { "Periode i vedtak ($periode) og behandlingens virkningsperiode (${behandling.virkningsperiode}) må være lik. SakId: $sakId, Saksnummer: ${behandling.saksnummer} BehandlingId: ${behandling.id}" }

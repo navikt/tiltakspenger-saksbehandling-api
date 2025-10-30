@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
@@ -39,7 +40,7 @@ class JournalførRammevedtakService(
             rammevedtakRepo.hentRammevedtakSomSkalJournalføres().forEach { vedtak ->
                 val sak: Sak = sakService.hentForSakId(vedtak.sakId)
                 val correlationId = CorrelationId.generate()
-                log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.resultat}" }
+                log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.resultat.tilRammebehandlingResultatTypeDTO()}" }
                 Either.catch {
                     val vedtaksdato = LocalDate.now()
                     val pdfOgJson = when (vedtak.resultat) {

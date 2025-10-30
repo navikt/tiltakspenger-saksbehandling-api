@@ -38,7 +38,7 @@ fun RevurderingResultat.tilRevurderingResultatTypeDTO(): RammebehandlingResultat
     is RevurderingResultat.Omgjøring -> RammebehandlingResultatTypeDTO.OMGJØRING
 }
 
-fun BehandlingResultat?.tilBehandlingResultatDTO(): RammebehandlingResultatTypeDTO = when (this) {
+fun BehandlingResultat?.tilRammebehandlingResultatTypeDTO(): RammebehandlingResultatTypeDTO = when (this) {
     is SøknadsbehandlingResultat.Innvilgelse,
     is SøknadsbehandlingResultat.Avslag,
     -> this.tilSøknadsbehandlingResultatTypeDTO()

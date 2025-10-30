@@ -6,8 +6,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingstypeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingstypeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import java.time.LocalDateTime
@@ -53,7 +53,7 @@ fun Rammebehandling.toSaksoversiktDTO() = SaksoversiktDTO(
     status = status.toBehandlingsstatusDTO().toString(),
     kravtidspunkt = if (this is Søknadsbehandling) kravtidspunkt else null,
     underkjent = attesteringer.any { attestering -> attestering.isUnderkjent() },
-    resultat = this.resultat.tilBehandlingResultatDTO(),
+    resultat = this.resultat.tilRammebehandlingResultatTypeDTO(),
     saksbehandler = saksbehandler,
     beslutter = beslutter,
     erSattPåVent = ventestatus.erSattPåVent,

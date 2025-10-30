@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.B
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import java.time.LocalDate
@@ -43,7 +43,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         behandlingId = behandling.id.toString(),
         opprettet = opprettet,
         vedtaksdato = vedtaksdato,
-        resultat = resultat.tilBehandlingResultatDTO(),
+        resultat = resultat.tilRammebehandlingResultatTypeDTO(),
         periode = periodeDTO,
         gjeldendePeriode = periodeDTO,
         saksbehandler = saksbehandler,
