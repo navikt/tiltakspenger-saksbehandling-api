@@ -187,6 +187,7 @@ data class Revurdering(
                 saksbehandler = avbruttAv.navIdent,
                 begrunnelse = begrunnelse,
             ),
+            sistEndret = tidspunkt,
         )
     }
 
