@@ -38,14 +38,14 @@ fun String.toAvslagsgrunnlag(): NonEmptySet<Avslagsgrunnlag> {
 
 private fun Avslagsgrunnlag.toDb(): String {
     return when (this) {
-        is Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelForAvslagDb.AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK
-        is Avslagsgrunnlag.Alder -> ValgtHjemmelForAvslagDb.AVSLAG_ALDER
-        is Avslagsgrunnlag.Livsoppholdytelser -> ValgtHjemmelForAvslagDb.AVSLAG_LIVSOPPHOLDSYTELSER
-        is Avslagsgrunnlag.Kvalifiseringsprogrammet -> ValgtHjemmelForAvslagDb.AVSLAG_KVALIFISERINGSPROGRAMMET
-        is Avslagsgrunnlag.Introduksjonsprogrammet -> ValgtHjemmelForAvslagDb.AVSLAG_INTRODUKSJONSPROGRAMMET
-        is Avslagsgrunnlag.LønnFraTiltaksarrangør -> ValgtHjemmelForAvslagDb.AVSLAG_LØNN_FRA_TILTAKSARRANGØR
-        is Avslagsgrunnlag.LønnFraAndre -> ValgtHjemmelForAvslagDb.AVSLAG_LØNN_FRA_ANDRE
-        is Avslagsgrunnlag.Institusjonsopphold -> ValgtHjemmelForAvslagDb.AVSLAG_INSTITUSJONSOPPHOLD
-        is Avslagsgrunnlag.FremmetForSent -> ValgtHjemmelForAvslagDb.AVSLAG_FREMMET_FOR_SENT
+        Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelForAvslagDb.AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK
+        Avslagsgrunnlag.Alder -> ValgtHjemmelForAvslagDb.AVSLAG_ALDER
+        Avslagsgrunnlag.Livsoppholdytelser -> ValgtHjemmelForAvslagDb.AVSLAG_LIVSOPPHOLDSYTELSER
+        Avslagsgrunnlag.Kvalifiseringsprogrammet -> ValgtHjemmelForAvslagDb.AVSLAG_KVALIFISERINGSPROGRAMMET
+        Avslagsgrunnlag.Introduksjonsprogrammet -> ValgtHjemmelForAvslagDb.AVSLAG_INTRODUKSJONSPROGRAMMET
+        Avslagsgrunnlag.LønnFraTiltaksarrangør -> ValgtHjemmelForAvslagDb.AVSLAG_LØNN_FRA_TILTAKSARRANGØR
+        Avslagsgrunnlag.LønnFraAndre -> ValgtHjemmelForAvslagDb.AVSLAG_LØNN_FRA_ANDRE
+        Avslagsgrunnlag.Institusjonsopphold -> ValgtHjemmelForAvslagDb.AVSLAG_INSTITUSJONSOPPHOLD
+        Avslagsgrunnlag.FremmetForSent -> ValgtHjemmelForAvslagDb.AVSLAG_FREMMET_FOR_SENT
     }.toString()
 }

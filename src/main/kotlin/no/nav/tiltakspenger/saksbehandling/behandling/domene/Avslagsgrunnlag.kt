@@ -3,11 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 /**
  * https://confluence.adeo.no/pages/viewpage.action?pageId=679150248
  */
-sealed interface Avslagsgrunnlag {
-    val hjemler: List<Hjemmel>
-
-    data object DeltarIkkePåArbeidsmarkedstiltak : Avslagsgrunnlag {
-        override val hjemler = listOf(
+enum class Avslagsgrunnlag(val hjemler: List<Hjemmel>) {
+    DeltarIkkePåArbeidsmarkedstiltak(
+        listOf(
             Hjemmel(
                 paragraf = Paragraf(2),
                 forskrift = Forskrift.Tiltakspengeforskriften,
@@ -16,20 +14,18 @@ sealed interface Avslagsgrunnlag {
                 paragraf = Paragraf(13),
                 forskrift = Forskrift.Arbeidsmarkedsloven,
             ),
-        )
-    }
-
-    data object Alder : Avslagsgrunnlag {
-        override val hjemler = listOf(
+        ),
+    ),
+    Alder(
+        listOf(
             Hjemmel(
                 paragraf = Paragraf(3),
                 forskrift = Forskrift.Tiltakspengeforskriften,
             ),
-        )
-    }
-
-    data object Livsoppholdytelser : Avslagsgrunnlag {
-        override val hjemler = listOf(
+        ),
+    ),
+    Livsoppholdytelser(
+        listOf(
             Hjemmel(
                 paragraf = Paragraf(7),
                 forskrift = Forskrift.Tiltakspengeforskriften,
@@ -40,40 +36,36 @@ sealed interface Avslagsgrunnlag {
                 forskrift = Forskrift.Arbeidsmarkedsloven,
                 ledd = Ledd(1),
             ),
-        )
-    }
-
-    data object Kvalifiseringsprogrammet : Avslagsgrunnlag {
-        override val hjemler = listOf(
+        ),
+    ),
+    Kvalifiseringsprogrammet(
+        listOf(
             Hjemmel(
                 paragraf = Paragraf(7),
                 forskrift = Forskrift.Tiltakspengeforskriften,
                 ledd = Ledd(3),
             ),
-        )
-    }
-
-    data object Introduksjonsprogrammet : Avslagsgrunnlag {
-        override val hjemler = listOf(
+        ),
+    ),
+    Introduksjonsprogrammet(
+        listOf(
             Hjemmel(
                 paragraf = Paragraf(7),
                 forskrift = Forskrift.Tiltakspengeforskriften,
                 ledd = Ledd(3),
             ),
-        )
-    }
-
-    data object LønnFraTiltaksarrangør : Avslagsgrunnlag {
-        override val hjemler = listOf(
+        ),
+    ),
+    LønnFraTiltaksarrangør(
+        listOf(
             Hjemmel(
                 paragraf = Paragraf(8),
                 forskrift = Forskrift.Tiltakspengeforskriften,
             ),
-        )
-    }
-
-    data object LønnFraAndre : Avslagsgrunnlag {
-        override val hjemler = listOf(
+        ),
+    ),
+    LønnFraAndre(
+        listOf(
             Hjemmel(
                 paragraf = Paragraf(13),
                 forskrift = Forskrift.Arbeidsmarkedsloven,
@@ -83,20 +75,18 @@ sealed interface Avslagsgrunnlag {
                 forskrift = Forskrift.Tiltakspengeforskriften,
                 ledd = Ledd(2),
             ),
-        )
-    }
-
-    data object Institusjonsopphold : Avslagsgrunnlag {
-        override val hjemler = listOf(
+        ),
+    ),
+    Institusjonsopphold(
+        listOf(
             Hjemmel(
                 paragraf = Paragraf(9),
                 forskrift = Forskrift.Tiltakspengeforskriften,
             ),
-        )
-    }
-
-    data object FremmetForSent : Avslagsgrunnlag {
-        override val hjemler = listOf(
+        ),
+    ),
+    FremmetForSent(
+        listOf(
             Hjemmel(
                 paragraf = Paragraf(11),
                 forskrift = Forskrift.Tiltakspengeforskriften,
@@ -105,6 +95,6 @@ sealed interface Avslagsgrunnlag {
                 paragraf = Paragraf(15),
                 forskrift = Forskrift.Arbeidsmarkedsloven,
             ),
-        )
-    }
+        ),
+    ),
 }
