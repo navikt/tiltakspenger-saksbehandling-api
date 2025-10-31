@@ -83,17 +83,17 @@ interface SøknadMother {
         barnetillegg: List<BarnetilleggFraSøknad> = listOf(),
         tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
         søknadstiltak: Søknadstiltak = søknadstiltak(deltakelseFom = periode.fraOgMed, deltakelseTom = periode.tilOgMed),
-        kvp: Søknad.PeriodeSpm? = periodeNei(),
-        intro: Søknad.PeriodeSpm? = periodeNei(),
-        institusjon: Søknad.PeriodeSpm? = periodeNei(),
-        trygdOgPensjon: Søknad.PeriodeSpm? = periodeNei(),
-        etterlønn: Søknad.JaNeiSpm? = nei(),
-        gjenlevendepensjon: Søknad.PeriodeSpm? = periodeNei(),
-        alderspensjon: Søknad.FraOgMedDatoSpm? = fraOgMedDatoNei(),
-        sykepenger: Søknad.PeriodeSpm? = periodeNei(),
-        supplerendeStønadAlder: Søknad.PeriodeSpm? = periodeNei(),
-        supplerendeStønadFlyktning: Søknad.PeriodeSpm? = periodeNei(),
-        jobbsjansen: Søknad.PeriodeSpm? = periodeNei(),
+        kvp: Søknad.PeriodeSpm = periodeNei(),
+        intro: Søknad.PeriodeSpm = periodeNei(),
+        institusjon: Søknad.PeriodeSpm = periodeNei(),
+        trygdOgPensjon: Søknad.PeriodeSpm = periodeNei(),
+        etterlønn: Søknad.JaNeiSpm = nei(),
+        gjenlevendepensjon: Søknad.PeriodeSpm = periodeNei(),
+        alderspensjon: Søknad.FraOgMedDatoSpm = fraOgMedDatoNei(),
+        sykepenger: Søknad.PeriodeSpm = periodeNei(),
+        supplerendeStønadAlder: Søknad.PeriodeSpm = periodeNei(),
+        supplerendeStønadFlyktning: Søknad.PeriodeSpm = periodeNei(),
+        jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         vedlegg: Int = 0,
@@ -197,19 +197,19 @@ interface SøknadMother {
         fnr = fnr,
     )
 
+    fun ikkeBesvart() = Søknad.JaNeiSpm.IkkeBesvart
+    fun fraOgMedDatoIkkeBesvart() = Søknad.FraOgMedDatoSpm.IkkeBesvart
+    fun periodeIkkeBesvart() = Søknad.PeriodeSpm.IkkeBesvart
+
     fun nei() = Søknad.JaNeiSpm.Nei
-
     fun fraOgMedDatoNei() = Søknad.FraOgMedDatoSpm.Nei
-
     fun periodeNei() = Søknad.PeriodeSpm.Nei
 
     fun ja() = Søknad.JaNeiSpm.Ja
-
     fun fraOgMedDatoJa(fom: LocalDate = 1.januar(2022)) =
         Søknad.FraOgMedDatoSpm.Ja(
             fra = fom,
         )
-
     fun periodeJa(
         fom: LocalDate = 1.januar(2022),
         tom: LocalDate = 31.januar(2022),

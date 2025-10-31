@@ -190,7 +190,52 @@ class RammebehandlingDTOTest {
                 "trygdOgPensjon" : null,
                 "antallVedlegg" : 0,
                 "avbrutt" : null,
-                "kanInnvilges" : true
+                "kanInnvilges" : true,
+                "svar": {
+                  "kvp": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "intro": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "institusjon": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "etterlønn": {
+                    "svar": "NEI"
+                  },
+                  "gjenlevendepensjon": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "alderspensjon": {
+                    "svar": "NEI",
+                    "fraOgMed": null
+                  },
+                  "sykepenger": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "supplerendeStønadAlder": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "supplerendeStønadFlyktning": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "jobbsjansen": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "trygdOgPensjon": {
+                    "svar": "NEI",
+                    "periode": null
+                  }
+                }
               },
               "automatiskSaksbehandlet" : false,
               "manueltBehandlesGrunner" : [ ],
@@ -317,7 +362,52 @@ class RammebehandlingDTOTest {
                 "trygdOgPensjon" : null,
                 "antallVedlegg" : 0,
                 "avbrutt" : null,
-                "kanInnvilges" : true
+                "kanInnvilges" : true,
+                "svar": {
+                  "kvp": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "intro": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "institusjon": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "etterlønn": {
+                    "svar": "NEI"
+                  },
+                  "gjenlevendepensjon": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "alderspensjon": {
+                    "svar": "NEI",
+                    "fraOgMed": null
+                  },
+                  "sykepenger": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "supplerendeStønadAlder": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "supplerendeStønadFlyktning": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "jobbsjansen": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "trygdOgPensjon": {
+                    "svar": "NEI",
+                    "periode": null
+                  }
+                }
               },
               "automatiskSaksbehandlet" : false,
               "manueltBehandlesGrunner" : [ ],
@@ -434,7 +524,52 @@ class RammebehandlingDTOTest {
                 "trygdOgPensjon" : null,
                 "antallVedlegg" : 0,
                 "avbrutt" : null,
-                "kanInnvilges" : true
+                "kanInnvilges" : true,
+                "svar": { 
+                  "kvp": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "intro": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "institusjon": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "etterlønn": {
+                    "svar": "NEI"
+                  },
+                  "gjenlevendepensjon": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "alderspensjon": {
+                    "svar": "NEI",
+                    "fraOgMed": null
+                  },
+                  "sykepenger": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "supplerendeStønadAlder": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "supplerendeStønadFlyktning": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "jobbsjansen": {
+                    "svar": "NEI",
+                    "periode": null
+                  },
+                  "trygdOgPensjon": {
+                    "svar": "NEI",
+                    "periode": null
+                  }
+                }
               },
               "automatiskSaksbehandlet" : false,
               "manueltBehandlesGrunner" : [ ],

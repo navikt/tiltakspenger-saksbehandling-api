@@ -26,17 +26,17 @@ sealed interface Søknad {
     val fnr: Fnr
     val tiltak: Søknadstiltak?
     val barnetillegg: List<BarnetilleggFraSøknad>
-    val kvp: PeriodeSpm?
-    val intro: PeriodeSpm?
-    val institusjon: PeriodeSpm?
-    val etterlønn: JaNeiSpm?
-    val gjenlevendepensjon: PeriodeSpm?
-    val alderspensjon: FraOgMedDatoSpm?
-    val sykepenger: PeriodeSpm?
-    val supplerendeStønadAlder: PeriodeSpm?
-    val supplerendeStønadFlyktning: PeriodeSpm?
-    val jobbsjansen: PeriodeSpm?
-    val trygdOgPensjon: PeriodeSpm?
+    val kvp: PeriodeSpm
+    val intro: PeriodeSpm
+    val institusjon: PeriodeSpm
+    val etterlønn: JaNeiSpm
+    val gjenlevendepensjon: PeriodeSpm
+    val alderspensjon: FraOgMedDatoSpm
+    val sykepenger: PeriodeSpm
+    val supplerendeStønadAlder: PeriodeSpm
+    val supplerendeStønadFlyktning: PeriodeSpm
+    val jobbsjansen: PeriodeSpm
+    val trygdOgPensjon: PeriodeSpm
     val vedlegg: Int
     val søknadstype: Søknadstype
 
@@ -53,17 +53,17 @@ sealed interface Søknad {
             personopplysninger: Personopplysninger,
             søknadstiltak: Søknadstiltak?,
             barnetillegg: List<BarnetilleggFraSøknad>,
-            kvp: PeriodeSpm?,
-            intro: PeriodeSpm?,
-            institusjon: PeriodeSpm?,
-            etterlønn: JaNeiSpm?,
-            gjenlevendepensjon: PeriodeSpm?,
-            alderspensjon: FraOgMedDatoSpm?,
-            sykepenger: PeriodeSpm?,
-            supplerendeStønadAlder: PeriodeSpm?,
-            supplerendeStønadFlyktning: PeriodeSpm?,
-            jobbsjansen: PeriodeSpm?,
-            trygdOgPensjon: PeriodeSpm?,
+            kvp: PeriodeSpm,
+            intro: PeriodeSpm,
+            institusjon: PeriodeSpm,
+            etterlønn: JaNeiSpm,
+            gjenlevendepensjon: PeriodeSpm,
+            alderspensjon: FraOgMedDatoSpm,
+            sykepenger: PeriodeSpm,
+            supplerendeStønadAlder: PeriodeSpm,
+            supplerendeStønadFlyktning: PeriodeSpm,
+            jobbsjansen: PeriodeSpm,
+            trygdOgPensjon: PeriodeSpm,
             antallVedlegg: Int,
             manueltSattSøknadsperiode: Periode?,
             søknadstype: Søknadstype,
@@ -153,6 +153,7 @@ sealed interface Søknad {
     )
 
     sealed interface PeriodeSpm {
+        data object IkkeBesvart : PeriodeSpm
         data object Nei : PeriodeSpm
 
         data class Ja(
@@ -163,7 +164,7 @@ sealed interface Søknad {
         fun erJa(): Boolean =
             when (this) {
                 is Ja -> true
-                is Nei -> false
+                is Nei, IkkeBesvart -> false
             }
     }
 
@@ -172,16 +173,20 @@ sealed interface Søknad {
 
         data object Nei : JaNeiSpm
 
+        data object IkkeBesvart : JaNeiSpm
+
         /** ignorerer perioden */
         fun erJa(): Boolean =
             when (this) {
                 is Ja -> true
-                is Nei -> false
+                is Nei, IkkeBesvart -> false
             }
     }
 
     sealed interface FraOgMedDatoSpm {
         data object Nei : FraOgMedDatoSpm
+
+        data object IkkeBesvart : FraOgMedDatoSpm
 
         data class Ja(
             val fra: LocalDate,
@@ -190,7 +195,7 @@ sealed interface Søknad {
         fun erJa(): Boolean =
             when (this) {
                 is Ja -> true
-                is Nei -> false
+                is Nei, IkkeBesvart -> false
             }
     }
 }
@@ -209,7 +214,7 @@ data class Søknadstiltak(
 )
 
 sealed class BarnetilleggFraSøknad {
-    abstract val oppholderSegIEØS: Søknad.JaNeiSpm?
+    abstract val oppholderSegIEØS: Søknad.JaNeiSpm
     abstract val fornavn: String?
     abstract val mellomnavn: String?
     abstract val etternavn: String?
@@ -218,7 +223,7 @@ sealed class BarnetilleggFraSøknad {
     abstract fun under16ForDato(dato: LocalDate): Boolean
 
     data class FraPdl(
-        override val oppholderSegIEØS: Søknad.JaNeiSpm?,
+        override val oppholderSegIEØS: Søknad.JaNeiSpm,
         override val fornavn: String?,
         override val mellomnavn: String?,
         override val etternavn: String?,
@@ -228,7 +233,7 @@ sealed class BarnetilleggFraSøknad {
     }
 
     data class Manuell(
-        override val oppholderSegIEØS: Søknad.JaNeiSpm?,
+        override val oppholderSegIEØS: Søknad.JaNeiSpm,
         override val fornavn: String,
         override val mellomnavn: String?,
         override val etternavn: String,
