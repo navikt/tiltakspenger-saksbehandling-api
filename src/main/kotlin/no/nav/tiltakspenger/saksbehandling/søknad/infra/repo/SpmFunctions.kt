@@ -25,7 +25,7 @@ fun Row.periodeSpm(navn: String): Søknad.PeriodeSpm {
         }
         NEI -> Søknad.PeriodeSpm.Nei
         IKKE_BESVART -> Søknad.PeriodeSpm.IkkeBesvart
-        else -> throw IllegalArgumentException("Ugyldig type")
+        else -> throw IllegalArgumentException("Ugyldig type $this")
     }
 }
 
@@ -39,7 +39,7 @@ fun Row.fraOgMedDatoSpm(navn: String): Søknad.FraOgMedDatoSpm {
         }
         NEI -> Søknad.FraOgMedDatoSpm.Nei
         IKKE_BESVART -> Søknad.FraOgMedDatoSpm.IkkeBesvart
-        else -> throw IllegalArgumentException("Ugyldig type")
+        else -> throw IllegalArgumentException("Ugyldig type $this")
     }
 }
 
@@ -48,7 +48,7 @@ fun Row.jaNeiSpm(navn: String): Søknad.JaNeiSpm =
         JA -> Søknad.JaNeiSpm.Ja
         NEI -> Søknad.JaNeiSpm.Nei
         IKKE_BESVART -> Søknad.JaNeiSpm.IkkeBesvart
-        else -> throw IllegalArgumentException("Ugyldig type")
+        else -> throw IllegalArgumentException("Ugyldig type $this")
     }
 
 fun Map<String, Søknad.PeriodeSpm>.toPeriodeSpmParams(): Map<String, Any?> =
