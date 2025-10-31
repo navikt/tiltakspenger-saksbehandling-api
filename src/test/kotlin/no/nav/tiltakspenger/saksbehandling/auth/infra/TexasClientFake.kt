@@ -62,6 +62,7 @@ class TexasClientFake : TexasClient {
                     "preferred_username" to bruker.epost,
                 ),
             )
+
             is Systembruker -> TexasIntrospectionResponse(
                 active = true,
                 error = null,
@@ -99,5 +100,9 @@ class TexasClientFake : TexasClient {
                 Systembrukerrolle.LAGRE_SOKNAD -> "lagre_soknad"
             }
         }
+    }
+
+    companion object {
+        const val LOKAL_FRONTEND_TOKEN = "TokenMcTokenface"
     }
 }

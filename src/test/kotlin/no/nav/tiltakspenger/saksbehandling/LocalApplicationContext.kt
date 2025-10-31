@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
+import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
+import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake.Companion.LOKAL_FRONTEND_TOKEN
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeLokalClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
@@ -32,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContex
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandlerOgBeslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingKlient
@@ -72,6 +75,8 @@ class LocalApplicationContext(
     } else {
         null
     }
+
+    override val texasClient = if (Configuration.brukFakeTexasClientLokalt) TexasClientFake() else super.texasClient
 
     private val personFakeKlient = PersonFakeKlient(clock)
     private val genererFakeVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient =
@@ -267,6 +272,7 @@ class LocalApplicationContext(
             fnr = fnr,
             person = ObjectMother.personopplysningKjedeligFyr(fnr = fnr),
         )
+        (texasClient as? TexasClientFake)?.leggTilBruker(LOKAL_FRONTEND_TOKEN, saksbehandlerOgBeslutter())
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
