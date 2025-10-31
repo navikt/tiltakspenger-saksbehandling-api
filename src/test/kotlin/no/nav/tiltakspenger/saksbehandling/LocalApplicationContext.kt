@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
-import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake.Companion.LOKAL_FRONTEND_TOKEN
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeLokalClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
@@ -272,7 +271,22 @@ class LocalApplicationContext(
             fnr = fnr,
             person = ObjectMother.personopplysningKjedeligFyr(fnr = fnr),
         )
-        (texasClient as? TexasClientFake)?.leggTilBruker(LOKAL_FRONTEND_TOKEN, saksbehandlerOgBeslutter())
+        (texasClient as? TexasClientFake)?.also {
+            it.leggTilBruker(
+                TexasClientFake.LOKAL_FRONTEND_TOKEN_BRUKER_1,
+                saksbehandlerOgBeslutter(
+                    navIdent = "A123456",
+                    brukernavn = "Sak McBeslutterface",
+                ),
+            )
+            it.leggTilBruker(
+                TexasClientFake.LOKAL_FRONTEND_TOKEN_BRUKER_2,
+                saksbehandlerOgBeslutter(
+                    navIdent = "B123456",
+                    brukernavn = "Beslutter McSakface",
+                ),
+            )
+        }
     }
 
     @Suppress("MemberVisibilityCanBePrivate")

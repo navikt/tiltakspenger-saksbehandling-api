@@ -103,6 +103,7 @@ class TexasClientFake : TexasClient {
     }
 
     companion object {
-        const val LOKAL_FRONTEND_TOKEN = "TokenMcTokenface"
+        const val LOKAL_FRONTEND_TOKEN_BRUKER_1 = "TokenMcTokenface"
+        const val LOKAL_FRONTEND_TOKEN_BRUKER_2 = "TokenMcTokenface2"
     }
 }
