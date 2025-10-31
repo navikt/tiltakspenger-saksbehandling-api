@@ -507,32 +507,15 @@ sealed interface Rammebehandling : Behandling {
         return validerKanOppdatere(saksbehandler).mapLeft {
             KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling(it)
         }.map {
-            @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
-            val skalNullstille = this.saksopplysninger.let { saksopplysninger ->
-                if (saksopplysninger.tiltaksdeltagelser.size != nyeSaksopplysninger.tiltaksdeltagelser.size) {
-                    true
-                } else {
-                    (
-                        saksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }
-                            .zip(nyeSaksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }) { forrige, nye ->
-                                // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltagelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
-                                forrige.eksternDeltagelseId != nye.eksternDeltagelseId ||
-                                    forrige.deltagelseFraOgMed == nye.deltagelseFraOgMed ||
-                                    forrige.deltagelseTilOgMed == nye.deltagelseTilOgMed
-                            }.any { it }
-                        )
-                }
-            }
-
             when (this) {
                 is Søknadsbehandling -> this.copy(
                     saksopplysninger = nyeSaksopplysninger,
-                    resultat = if (skalNullstille) null else this.resultat,
+                    resultat = this.resultat?.oppdaterSaksopplysninger(nyeSaksopplysninger),
                 )
 
                 is Revurdering -> this.copy(
                     saksopplysninger = nyeSaksopplysninger,
-                    resultat = if (skalNullstille && this.resultat is RevurderingResultat.Innvilgelse) this.resultat.nullstill() else this.resultat,
+                    resultat = this.resultat.oppdaterSaksopplysninger(nyeSaksopplysninger),
                 )
             }
         }

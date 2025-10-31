@@ -9,6 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltak
 
 sealed interface SøknadsbehandlingResultat : BehandlingResultat {
 
+    override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): SøknadsbehandlingResultat?
+
     /**
      * Virkningsperioden/vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
      * Den vil ikke påvirke vedtakstidslinjen, beregninger eller utbetalinger.
@@ -28,7 +30,10 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
          * True dersom [avslagsgrunner] ikke er tom. Vi må støtte at [avslagsperiode] er null for særdeles mangelfulle søknader.
          * Må kunne avslå en søknad selv om det ikke er søkt på et tiltak.
          */
-        override fun erFerdigutfylt(saksopplysninger: Saksopplysninger?): Boolean = avslagsgrunner.isNotEmpty()
+        override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean = avslagsgrunner.isNotEmpty()
+
+        /** Avslag påvirkes ikke av oppdaterte saksopplysninger */
+        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Avslag = this
     }
 
     /**
@@ -44,5 +49,17 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
     ) : BehandlingResultat.Innvilgelse,
         SøknadsbehandlingResultat {
         override val virkningsperiode = innvilgelsesperiode
+
+        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Innvilgelse? {
+            return if (skalNullstilleResultatVedNyeSaksopplysninger(
+                    valgteTiltaksdeltakelser,
+                    oppdaterteSaksopplysninger,
+                )
+            ) {
+                null
+            } else {
+                this
+            }
+        }
     }
 }

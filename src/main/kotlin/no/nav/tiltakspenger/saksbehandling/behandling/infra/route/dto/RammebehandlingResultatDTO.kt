@@ -61,7 +61,7 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
 
     data class Omgjøring(
         override val innvilgelsesperiode: PeriodeDTO,
-        override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+        override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
         override val barnetillegg: BarnetilleggDTO,
         override val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>,
         val omgjørVedtak: String,
@@ -112,7 +112,7 @@ fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
 
         is RevurderingResultat.Omgjøring -> RevurderingResultatDTO.Omgjøring(
             innvilgelsesperiode = innvilgelsesperiode.toDTO(),
-            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser.tilDTO(),
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.tilDTO(),
             barnetillegg = barnetillegg.toBarnetilleggDTO(),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),
             omgjørVedtak = omgjørRammevedtak.id.toString(),

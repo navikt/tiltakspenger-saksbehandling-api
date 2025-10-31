@@ -764,7 +764,7 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "sendt_til_beslutning" to this.sendtTilBeslutning,
         "fritekst_vedtaksbrev" to this.fritekstTilVedtaksbrev?.verdi,
         "begrunnelse_vilkarsvurdering" to this.begrunnelseVilkårsvurdering?.verdi,
-        "saksopplysninger" to this.saksopplysninger?.toDbJson(),
+        "saksopplysninger" to this.saksopplysninger.toDbJson(),
         "saksopplysningsperiode_fra_og_med" to this.saksopplysningsperiode?.fraOgMed,
         "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode?.tilOgMed,
         "avbrutt" to this.avbrutt?.toDbJson(),
