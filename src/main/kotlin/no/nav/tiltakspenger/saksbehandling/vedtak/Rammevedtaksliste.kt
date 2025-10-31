@@ -10,11 +10,11 @@ import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.felles.max
-import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -31,7 +31,7 @@ data class Rammevedtaksliste(
 
     /** Et førstegangsvedtak defineres som den første søknadsbehandlingen som førte til innvilgelse. */
     val harFørstegangsvedtak: Boolean by lazy {
-        verdi.any { it.behandling is Søknadsbehandling && it.vedtakstype == Vedtakstype.INNVILGELSE }
+        verdi.any { it.behandling is Søknadsbehandling && it.resultat is BehandlingResultat.Innvilgelse }
     }
 
     val utbetalinger: List<VedtattUtbetaling> by lazy {
@@ -39,12 +39,12 @@ data class Rammevedtaksliste(
     }
 
     val avslagsvedtak: List<Rammevedtak> by lazy {
-        verdi.filter { it.vedtakstype == Vedtakstype.AVSLAG }
+        verdi.filter { it.resultat is SøknadsbehandlingResultat.Avslag }
     }
 
     /**
-     * Vedtakstidslinjen tar kun for seg vedtak som kan påvirke en utbetaling ([Vedtakstype.INNVILGELSE] og [Vedtakstype.STANS]) og skal aldri inkludere [Vedtakstype.AVSLAG].
-     * Dersom man ønsker å opphøre en tidligere innvilget periode, skal man bruke stans, aldri [Vedtakstype.AVSLAG].
+     * Vedtakstidslinjen tar kun for seg vedtak som kan påvirke en utbetaling ([BehandlingResultat.Innvilgelse] og [RevurderingResultat.Stans]) og skal aldri inkludere [SøknadsbehandlingResultat.Avslag].
+     * Dersom man ønsker å opphøre en tidligere innvilget periode, skal man bruke stans, aldri [SøknadsbehandlingResultat.Avslag].
      *
      * Et tenkt eksempel: Bruker søker på 2 tiltak, som har lik periode. Det første gir rett til tiltakspenger, det andre ikke.
      * Dersom man innvilger tiltak 1 og avslår tiltak 2 i den rekkefølgen, hvis man inkluderte avslag i tidslinjen, ville avslaget opphørt innvilgelsen; som den absolutt ikke må gjøre i dette tilfellet.
@@ -59,12 +59,12 @@ data class Rammevedtaksliste(
             // Fjerner alle vedtak som er omgjort av et annet vedtak.
             it.omgjortAvRammevedtakId == null
         }.filter {
-            when (it.vedtakstype) {
-                Vedtakstype.INNVILGELSE,
-                Vedtakstype.STANS,
+            when (it.resultat) {
+                is BehandlingResultat.Innvilgelse,
+                is RevurderingResultat.Stans,
                 -> true
 
-                Vedtakstype.AVSLAG -> false
+                is SøknadsbehandlingResultat.Avslag -> false
             }
         }.toTidslinje()
     }
@@ -81,7 +81,7 @@ data class Rammevedtaksliste(
 
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
         tidslinje.filter {
-            it.verdi.vedtakstype == Vedtakstype.INNVILGELSE
+            it.verdi.resultat is BehandlingResultat.Innvilgelse
         }.perioderMedVerdi.mapNotNull { (vedtak, gjeldendePeriode) ->
             gjeldendePeriode.overlappendePeriode(vedtak.innvilgelsesperiode!!)?.let { overlappendePeriode ->
                 PeriodeMedVerdi(

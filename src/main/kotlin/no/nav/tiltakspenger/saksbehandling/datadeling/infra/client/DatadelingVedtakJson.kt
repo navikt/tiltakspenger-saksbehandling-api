@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -12,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingR
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingVedtakJson.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.LocalDate
 
 private data class DatadelingVedtakJson(
@@ -70,8 +70,8 @@ fun Rammevedtak.toDatadelingJson(): String {
         innvilgelsesperiode = innvilgelsesperiode?.toDTO(),
         omgjørRammevedtakId = this.omgjørRammevedtak?.toString(),
         omgjortAvRammevedtakId = this.omgjortAvRammevedtakId?.toString(),
-        rettighet = when (this.vedtakstype) {
-            Vedtakstype.INNVILGELSE -> {
+        rettighet = when (this.resultat) {
+            is BehandlingResultat.Innvilgelse -> {
                 if (barnetillegg?.harBarnetillegg == true) {
                     "TILTAKSPENGER_OG_BARNETILLEGG"
                 } else {
@@ -79,8 +79,8 @@ fun Rammevedtak.toDatadelingJson(): String {
                 }
             }
 
-            Vedtakstype.STANS -> "STANS"
-            Vedtakstype.AVSLAG -> "AVSLAG"
+            is RevurderingResultat.Stans -> "STANS"
+            is SøknadsbehandlingResultat.Avslag -> "AVSLAG"
         },
         fnr = fnr.verdi,
         opprettet = opprettet.toString(),
@@ -106,10 +106,10 @@ private fun Barnetillegg.toDatadelingBarnetillegg(): DatadelingVedtakJson.Barnet
 }
 
 private fun Rammevedtak.toValgteHjemlerHarIkkeRettighetListe(): List<String>? {
-    return when (this.vedtakstype) {
-        Vedtakstype.INNVILGELSE -> null
-        Vedtakstype.STANS -> (this.behandling as Revurdering).toValgteHjemlerHarIkkeRettighetListe()
-        Vedtakstype.AVSLAG -> (this.behandling as Søknadsbehandling).toValgteHjemlerHarIkkeRettighetListe()
+    return when (this.resultat) {
+        is BehandlingResultat.Innvilgelse -> null
+        is RevurderingResultat.Stans -> (this.behandling as Revurdering).toValgteHjemlerHarIkkeRettighetListe()
+        is SøknadsbehandlingResultat.Avslag -> (this.behandling as Søknadsbehandling).toValgteHjemlerHarIkkeRettighetListe()
     }
 }
 

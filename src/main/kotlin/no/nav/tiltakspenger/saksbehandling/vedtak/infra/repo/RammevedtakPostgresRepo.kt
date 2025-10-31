@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostg
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -271,7 +270,6 @@ class RammevedtakPostgresRepo(
                         sak_id, 
                         behandling_id,
                         utbetaling_id,
-                        vedtakstype, 
                         vedtaksdato, 
                         fra_og_med, 
                         til_og_med, 
@@ -284,7 +282,6 @@ class RammevedtakPostgresRepo(
                         :sak_id, 
                         :behandling_id,
                         :utbetaling_id,
-                        :vedtakstype, 
                         :vedtaksdato, 
                         :fra_og_med, 
                         :til_og_med, 
@@ -298,7 +295,6 @@ class RammevedtakPostgresRepo(
                     "sak_id" to vedtak.sakId.toString(),
                     "behandling_id" to vedtak.behandling.id.toString(),
                     "utbetaling_id" to vedtak.utbetaling?.id?.toString(),
-                    "vedtakstype" to vedtak.vedtakstype.toString(),
                     "vedtaksdato" to vedtak.vedtaksdato,
                     "fra_og_med" to vedtak.periode.fraOgMed,
                     "til_og_med" to vedtak.periode.tilOgMed,
@@ -323,7 +319,6 @@ class RammevedtakPostgresRepo(
                     session,
                 )!!,
                 vedtaksdato = localDateOrNull("vedtaksdato"),
-                vedtakstype = Vedtakstype.valueOf(string("vedtakstype")),
                 periode = Periode(fraOgMed = localDate("fra_og_med"), tilOgMed = localDate("til_og_med")),
                 journalpostId = stringOrNull("journalpost_id")?.let { JournalpostId(it) },
                 journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt"),

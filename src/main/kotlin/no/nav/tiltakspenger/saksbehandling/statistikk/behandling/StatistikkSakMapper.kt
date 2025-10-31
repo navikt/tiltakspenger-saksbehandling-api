@@ -1,14 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.Clock
 
 fun genererSaksstatistikkForRammevedtak(
@@ -40,11 +41,11 @@ fun genererSaksstatistikkForRammevedtak(
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         // TODO jah: I følge confluence-dokken så finner jeg ikke dette feltet. Burde det heller vært AVSLUTTET?
         behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,
-        behandlingResultat = when (vedtak.vedtakstype) {
+        behandlingResultat = when (vedtak.resultat) {
             // I førsteomgang mapper vi bare delvis til innvilgelse.
-            Vedtakstype.INNVILGELSE -> StatistikkBehandlingResultat.INNVILGET
-            Vedtakstype.STANS -> StatistikkBehandlingResultat.STANS
-            Vedtakstype.AVSLAG -> StatistikkBehandlingResultat.AVSLAG
+            is BehandlingResultat.Innvilgelse -> StatistikkBehandlingResultat.INNVILGET
+            is RevurderingResultat.Stans -> StatistikkBehandlingResultat.STANS
+            is SøknadsbehandlingResultat.Avslag -> StatistikkBehandlingResultat.AVSLAG
         },
         // TODO jah: Denne bør ikke være null.
         resultatBegrunnelse = null,

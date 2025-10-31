@@ -5,6 +5,10 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
@@ -14,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.Clock
 import java.time.LocalDate
 
@@ -37,11 +40,11 @@ class JournalførRammevedtakService(
             rammevedtakRepo.hentRammevedtakSomSkalJournalføres().forEach { vedtak ->
                 val sak: Sak = sakService.hentForSakId(vedtak.sakId)
                 val correlationId = CorrelationId.generate()
-                log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.vedtakstype}" }
+                log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.resultat.tilRammebehandlingResultatTypeDTO()}" }
                 Either.catch {
                     val vedtaksdato = LocalDate.now()
-                    val pdfOgJson = when (vedtak.vedtakstype) {
-                        Vedtakstype.INNVILGELSE -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+                    val pdfOgJson = when (vedtak.resultat) {
+                        is BehandlingResultat.Innvilgelse -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
                             tilleggstekst = vedtak.behandling.fritekstTilVedtaksbrev,
@@ -49,7 +52,7 @@ class JournalførRammevedtakService(
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         )
 
-                        Vedtakstype.STANS -> genererVedtaksbrevForStansKlient.genererStansvedtak(
+                        is RevurderingResultat.Stans -> genererVedtaksbrevForStansKlient.genererStansvedtak(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
                             hentBrukersNavn = personService::hentNavn,
@@ -58,7 +61,7 @@ class JournalførRammevedtakService(
                             stansTilSisteDagSomGirRett = sak.sisteDagSomGirRett == vedtak.periode.tilOgMed,
                         )
 
-                        Vedtakstype.AVSLAG -> genererVedtaksbrevForAvslagKlient.genererAvslagsvVedtaksbrev(
+                        is SøknadsbehandlingResultat.Avslag -> genererVedtaksbrevForAvslagKlient.genererAvslagsvVedtaksbrev(
                             vedtak = vedtak,
                             datoForUtsending = vedtaksdato,
                             hentBrukersNavn = personService::hentNavn,
@@ -68,7 +71,11 @@ class JournalførRammevedtakService(
 
                     log.info { "Vedtaksbrev generert for vedtak ${vedtak.id}" }
                     val journalpostId =
-                        journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(vedtak, pdfOgJson, correlationId)
+                        journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(
+                            vedtak,
+                            pdfOgJson,
+                            correlationId,
+                        )
                     log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
                     rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
                     log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }

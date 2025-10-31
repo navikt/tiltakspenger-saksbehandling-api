@@ -1,0 +1,1 @@
+ALTER TABLE rammevedtak DROP COLUMN IF EXISTS vedtakstype;

@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.Clock
 
 class BehandleSøknadPåNyttService(
