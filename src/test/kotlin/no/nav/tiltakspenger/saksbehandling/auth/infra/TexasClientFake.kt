@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.auth.infra
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Bruker
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -49,6 +50,7 @@ class TexasClientFake : TexasClient {
 
     private fun godkjentResponse(token: String): TexasIntrospectionResponse {
         val bruker = data.get()[token]
+
         return when (bruker) {
             is Saksbehandler -> TexasIntrospectionResponse(
                 active = true,
@@ -105,5 +107,6 @@ class TexasClientFake : TexasClient {
     companion object {
         const val LOKAL_FRONTEND_TOKEN_BRUKER_1 = "TokenMcTokenface"
         const val LOKAL_FRONTEND_TOKEN_BRUKER_2 = "TokenMcTokenface2"
+        const val LOKAL_SYSTEMBRUKER_TOKEN = "asdf"
     }
 }

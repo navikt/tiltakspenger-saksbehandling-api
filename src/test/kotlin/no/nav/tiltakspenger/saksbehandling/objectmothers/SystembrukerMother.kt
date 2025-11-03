@@ -6,6 +6,21 @@ import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerrolle
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 
 interface SystembrukerMother {
+    fun systembrukerAlleRoller(
+        klientId: String = "klientId",
+        klientnavn: String = "klientnavn",
+    ) = Systembruker(
+        roller = Systembrukerroller(
+            nonEmptyListOf(
+                Systembrukerrolle.HENT_ELLER_OPPRETT_SAK,
+                Systembrukerrolle.LAGRE_SOKNAD,
+                Systembrukerrolle.LAGRE_MELDEKORT,
+            ),
+        ),
+        klientId = klientId,
+        klientnavn = klientnavn,
+    )
+
     fun systembrukerHentEllerOpprettSakOgLagreSoknad(
         klientId: String = "klientId",
         klientnavn: String = "klientnavn",

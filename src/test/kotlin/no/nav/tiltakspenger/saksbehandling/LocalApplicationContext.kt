@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevFor
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandlerOgBeslutter
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.systembrukerAlleRoller
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingKlient
@@ -285,6 +286,10 @@ class LocalApplicationContext(
                     navIdent = "B123456",
                     brukernavn = "Beslutter McSakface",
                 ),
+            )
+            it.leggTilBruker(
+                TexasClientFake.LOKAL_SYSTEMBRUKER_TOKEN,
+                systembrukerAlleRoller(),
             )
         }
     }
