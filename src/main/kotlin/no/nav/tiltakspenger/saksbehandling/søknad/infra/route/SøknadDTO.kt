@@ -58,7 +58,9 @@ data class SøknadDTO(
     )
 
     data class BarnetilleggFraSøknadDTO(
+        @Deprecated("Erstattet av oppholderSegIEØSSpm")
         val oppholderSegIEØS: Boolean?,
+        val oppholderSegIEØSSpm: JaNeiSpmDTO,
         val fornavn: String?,
         val mellomnavn: String?,
         val etternavn: String?,
@@ -271,6 +273,7 @@ fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknad
             JaNeiSpm.Ja -> true
             JaNeiSpm.Nei, JaNeiSpm.IkkeBesvart -> false
         },
+        oppholderSegIEØSSpm = it.oppholderSegIEØS.toDTO(),
         fornavn = it.fornavn,
         mellomnavn = it.mellomnavn,
         etternavn = it.etternavn,
