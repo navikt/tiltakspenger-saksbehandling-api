@@ -22,20 +22,32 @@ data class SøknadDTO(
     val barnetillegg: List<BarnetilleggFraSøknadDTO>,
     val opprettet: LocalDateTime,
     val tidsstempelHosOss: LocalDateTime,
+    @Deprecated("Erstattet av svar.kvp")
     val kvp: PeriodeDTO?,
+    @Deprecated("Erstattet av svar.intro")
     val intro: PeriodeDTO?,
+    @Deprecated("Erstattet av svar.institusjon")
     val institusjon: PeriodeDTO?,
+    @Deprecated("Erstattet av svar.etterlønn")
     val etterlønn: Boolean?,
+    @Deprecated("Erstattet av svar.gjenlevendepensjon")
     val gjenlevendepensjon: PeriodeDTO?,
+    @Deprecated("Erstattet av svar.alderspensjon")
     val alderspensjon: LocalDate?,
+    @Deprecated("Erstattet av svar.sykepenger")
     val sykepenger: PeriodeDTO?,
+    @Deprecated("Erstattet av svar.supplerendeStønadAlder")
     val supplerendeStønadAlder: PeriodeDTO?,
+    @Deprecated("Erstattet av svar.supplerendeStønadFlyktning")
     val supplerendeStønadFlyktning: PeriodeDTO?,
+    @Deprecated("Erstattet av svar.jobbsjansen")
     val jobbsjansen: PeriodeDTO?,
+    @Deprecated("Erstattet av svar.trygdOgPensjon")
     val trygdOgPensjon: PeriodeDTO?,
     val antallVedlegg: Int,
     val avbrutt: AvbruttDTO?,
     val kanInnvilges: Boolean,
+    val svar: SøknadSvarDTO,
 ) {
     data class TiltaksdeltagelseFraSøknadDTO(
         val id: String,
@@ -58,6 +70,40 @@ data class SøknadDTO(
         PDL,
         Manuell,
     }
+
+    enum class JaNeiSvar {
+        JA,
+        NEI,
+        IKKE_BESVART,
+    }
+
+    data class JaNeiSpmDTO(
+        val svar: JaNeiSvar,
+    )
+
+    data class PeriodeSpmDTO(
+        val svar: JaNeiSvar,
+        val periode: PeriodeDTO?,
+    )
+
+    data class FraOgMedDatoSpmDTO(
+        val svar: JaNeiSvar,
+        val fraOgMed: LocalDate?,
+    )
+
+    data class SøknadSvarDTO(
+        val kvp: PeriodeSpmDTO,
+        val intro: PeriodeSpmDTO,
+        val institusjon: PeriodeSpmDTO,
+        val etterlønn: JaNeiSpmDTO,
+        val gjenlevendepensjon: PeriodeSpmDTO,
+        val alderspensjon: FraOgMedDatoSpmDTO,
+        val sykepenger: PeriodeSpmDTO,
+        val supplerendeStønadAlder: PeriodeSpmDTO,
+        val supplerendeStønadFlyktning: PeriodeSpmDTO,
+        val jobbsjansen: PeriodeSpmDTO,
+        val trygdOgPensjon: PeriodeSpmDTO,
+    )
 }
 
 fun Søknad.toSøknadDTO(): SøknadDTO {
@@ -75,20 +121,33 @@ fun InnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         barnetillegg = this.barnetillegg.toDTO(),
         opprettet = this.opprettet,
         tidsstempelHosOss = this.tidsstempelHosOss,
-        kvp = this.kvp?.toPeriodeDTO(),
-        intro = this.intro?.toPeriodeDTO(),
-        institusjon = this.institusjon?.toPeriodeDTO(),
-        etterlønn = this.etterlønn?.toDTO(),
-        gjenlevendepensjon = this.gjenlevendepensjon?.toPeriodeDTO(),
-        alderspensjon = this.alderspensjon?.toDTO(),
-        sykepenger = this.sykepenger?.toPeriodeDTO(),
-        supplerendeStønadAlder = this.supplerendeStønadAlder?.toPeriodeDTO(),
-        supplerendeStønadFlyktning = this.supplerendeStønadFlyktning?.toPeriodeDTO(),
-        jobbsjansen = this.jobbsjansen?.toPeriodeDTO(),
-        trygdOgPensjon = this.trygdOgPensjon?.toPeriodeDTO(),
+        kvp = this.kvp.toOldPeriodeDTO(),
+        intro = this.intro.toOldPeriodeDTO(),
+        institusjon = this.institusjon.toOldPeriodeDTO(),
+        etterlønn = this.etterlønn.toOldDTO(),
+        gjenlevendepensjon = this.gjenlevendepensjon.toOldPeriodeDTO(),
+        alderspensjon = this.alderspensjon.toOldDTO(),
+        sykepenger = this.sykepenger.toOldPeriodeDTO(),
+        supplerendeStønadAlder = this.supplerendeStønadAlder.toOldPeriodeDTO(),
+        supplerendeStønadFlyktning = this.supplerendeStønadFlyktning.toOldPeriodeDTO(),
+        jobbsjansen = this.jobbsjansen.toOldPeriodeDTO(),
+        trygdOgPensjon = this.trygdOgPensjon.toOldPeriodeDTO(),
         antallVedlegg = this.vedlegg,
         avbrutt = avbrutt?.toAvbruttDTO(),
         kanInnvilges = this.kanInnvilges(),
+        svar = SøknadDTO.SøknadSvarDTO(
+            kvp = kvp.toDTO(),
+            intro = intro.toDTO(),
+            institusjon = institusjon.toDTO(),
+            etterlønn = etterlønn.toDTO(),
+            gjenlevendepensjon = gjenlevendepensjon.toDTO(),
+            alderspensjon = alderspensjon.toDTO(),
+            sykepenger = sykepenger.toDTO(),
+            supplerendeStønadAlder = supplerendeStønadAlder.toDTO(),
+            supplerendeStønadFlyktning = supplerendeStønadFlyktning.toDTO(),
+            jobbsjansen = jobbsjansen.toDTO(),
+            trygdOgPensjon = trygdOgPensjon.toDTO(),
+        ),
     )
 }
 
@@ -100,20 +159,33 @@ fun IkkeInnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         barnetillegg = this.barnetillegg.toDTO(),
         opprettet = this.opprettet,
         tidsstempelHosOss = this.tidsstempelHosOss,
-        kvp = this.kvp?.toPeriodeDTO(),
-        intro = this.intro?.toPeriodeDTO(),
-        institusjon = this.institusjon?.toPeriodeDTO(),
-        etterlønn = this.etterlønn?.toDTO(),
-        gjenlevendepensjon = this.gjenlevendepensjon?.toPeriodeDTO(),
-        alderspensjon = this.alderspensjon?.toDTO(),
-        sykepenger = this.sykepenger?.toPeriodeDTO(),
-        supplerendeStønadAlder = this.supplerendeStønadAlder?.toPeriodeDTO(),
-        supplerendeStønadFlyktning = this.supplerendeStønadFlyktning?.toPeriodeDTO(),
-        jobbsjansen = this.jobbsjansen?.toPeriodeDTO(),
-        trygdOgPensjon = this.trygdOgPensjon?.toPeriodeDTO(),
+        kvp = this.kvp.toOldPeriodeDTO(),
+        intro = this.intro.toOldPeriodeDTO(),
+        institusjon = this.institusjon.toOldPeriodeDTO(),
+        etterlønn = this.etterlønn.toOldDTO(),
+        gjenlevendepensjon = this.gjenlevendepensjon.toOldPeriodeDTO(),
+        alderspensjon = this.alderspensjon.toOldDTO(),
+        sykepenger = this.sykepenger.toOldPeriodeDTO(),
+        supplerendeStønadAlder = this.supplerendeStønadAlder.toOldPeriodeDTO(),
+        supplerendeStønadFlyktning = this.supplerendeStønadFlyktning.toOldPeriodeDTO(),
+        jobbsjansen = this.jobbsjansen.toOldPeriodeDTO(),
+        trygdOgPensjon = this.trygdOgPensjon.toOldPeriodeDTO(),
         antallVedlegg = this.vedlegg,
         avbrutt = avbrutt?.toAvbruttDTO(),
         kanInnvilges = this.kanInnvilges(),
+        svar = SøknadDTO.SøknadSvarDTO(
+            kvp = kvp.toDTO(),
+            intro = intro.toDTO(),
+            institusjon = institusjon.toDTO(),
+            etterlønn = etterlønn.toDTO(),
+            gjenlevendepensjon = gjenlevendepensjon.toDTO(),
+            alderspensjon = alderspensjon.toDTO(),
+            sykepenger = sykepenger.toDTO(),
+            supplerendeStønadAlder = supplerendeStønadAlder.toDTO(),
+            supplerendeStønadFlyktning = supplerendeStønadFlyktning.toDTO(),
+            jobbsjansen = jobbsjansen.toDTO(),
+            trygdOgPensjon = trygdOgPensjon.toDTO(),
+        ),
     )
 }
 
@@ -122,25 +194,65 @@ fun List<Søknad>.toSøknadDTO(): List<SøknadDTO> {
     return this.map { it.toSøknadDTO() }
 }
 
-fun JaNeiSpm.toDTO(): Boolean {
+fun JaNeiSpm.toOldDTO(): Boolean {
     return when (this) {
         JaNeiSpm.Ja -> true
-        JaNeiSpm.Nei -> false
+        JaNeiSpm.Nei, JaNeiSpm.IkkeBesvart -> false
     }
 }
 
-fun FraOgMedDatoSpm.toDTO(): LocalDate? {
+fun JaNeiSpm.toDTO(): SøknadDTO.JaNeiSpmDTO {
+    return SøknadDTO.JaNeiSpmDTO(
+        svar = when (this) {
+            JaNeiSpm.Ja -> SøknadDTO.JaNeiSvar.JA
+            JaNeiSpm.Nei -> SøknadDTO.JaNeiSvar.NEI
+            JaNeiSpm.IkkeBesvart -> SøknadDTO.JaNeiSvar.IKKE_BESVART
+        },
+    )
+}
+
+fun FraOgMedDatoSpm.toOldDTO(): LocalDate? {
     return when (this) {
-        is FraOgMedDatoSpm.Nei -> null
+        is FraOgMedDatoSpm.Nei, FraOgMedDatoSpm.IkkeBesvart -> null
         is FraOgMedDatoSpm.Ja -> this.fra
     }
 }
 
-fun PeriodeSpm.toPeriodeDTO(): PeriodeDTO? {
+fun FraOgMedDatoSpm.toDTO(): SøknadDTO.FraOgMedDatoSpmDTO {
+    val svar = when (this) {
+        is FraOgMedDatoSpm.IkkeBesvart -> SøknadDTO.JaNeiSvar.IKKE_BESVART
+        is FraOgMedDatoSpm.Nei -> SøknadDTO.JaNeiSvar.NEI
+        is FraOgMedDatoSpm.Ja -> SøknadDTO.JaNeiSvar.JA
+    }
+
+    return SøknadDTO.FraOgMedDatoSpmDTO(
+        svar = svar,
+        fraOgMed = when (this) {
+            is FraOgMedDatoSpm.Nei, FraOgMedDatoSpm.IkkeBesvart -> null
+            is FraOgMedDatoSpm.Ja -> this.fra
+        },
+    )
+}
+
+fun PeriodeSpm.toOldPeriodeDTO(): PeriodeDTO? {
     return when (this) {
-        is PeriodeSpm.Nei -> null
+        is PeriodeSpm.Nei, PeriodeSpm.IkkeBesvart -> null
         is PeriodeSpm.Ja -> this.periode.toDTO()
     }
+}
+
+fun PeriodeSpm.toDTO(): SøknadDTO.PeriodeSpmDTO {
+    return SøknadDTO.PeriodeSpmDTO(
+        svar = when (this) {
+            is PeriodeSpm.IkkeBesvart -> SøknadDTO.JaNeiSvar.IKKE_BESVART
+            is PeriodeSpm.Nei -> SøknadDTO.JaNeiSvar.NEI
+            is PeriodeSpm.Ja -> SøknadDTO.JaNeiSvar.JA
+        },
+        periode = when (this) {
+            is PeriodeSpm.Nei, PeriodeSpm.IkkeBesvart -> null
+            is PeriodeSpm.Ja -> this.periode.toDTO()
+        },
+    )
 }
 
 fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
@@ -157,8 +269,7 @@ fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknad
     SøknadDTO.BarnetilleggFraSøknadDTO(
         oppholderSegIEØS = when (it.oppholderSegIEØS) {
             JaNeiSpm.Ja -> true
-            JaNeiSpm.Nei -> false
-            null -> null
+            JaNeiSpm.Nei, JaNeiSpm.IkkeBesvart -> false
         },
         fornavn = it.fornavn,
         mellomnavn = it.mellomnavn,

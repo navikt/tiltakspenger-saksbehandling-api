@@ -6,13 +6,14 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 
 private const val JA = "JA"
 private const val NEI = "NEI"
+private const val IKKE_BESVART = "IKKE_BESVART"
 
 private const val JA_SUFFIX = "_ja"
 private const val FOM_SUFFIX = "_fom"
 private const val TOM_SUFFIX = "_tom"
 private const val TYPE_SUFFIX = "_type"
 
-fun Row.periodeSpm(navn: String): Søknad.PeriodeSpm? {
+fun Row.periodeSpm(navn: String): Søknad.PeriodeSpm {
     val type = stringOrNull(navn + TYPE_SUFFIX)
     val fom = localDateOrNull(navn + FOM_SUFFIX)
     val tom = localDateOrNull(navn + TOM_SUFFIX)
@@ -23,12 +24,12 @@ fun Row.periodeSpm(navn: String): Søknad.PeriodeSpm? {
             Søknad.PeriodeSpm.Ja(Periode(fom, tom))
         }
         NEI -> Søknad.PeriodeSpm.Nei
-        null -> null
-        else -> throw IllegalArgumentException("Ugyldig type")
+        IKKE_BESVART -> Søknad.PeriodeSpm.IkkeBesvart
+        else -> throw IllegalArgumentException("Ugyldig type $this")
     }
 }
 
-fun Row.fraOgMedDatoSpm(navn: String): Søknad.FraOgMedDatoSpm? {
+fun Row.fraOgMedDatoSpm(navn: String): Søknad.FraOgMedDatoSpm {
     val type = stringOrNull(navn + TYPE_SUFFIX)
     val fom = localDateOrNull(navn + FOM_SUFFIX)
     return when (type) {
@@ -37,20 +38,20 @@ fun Row.fraOgMedDatoSpm(navn: String): Søknad.FraOgMedDatoSpm? {
             Søknad.FraOgMedDatoSpm.Ja(fom)
         }
         NEI -> Søknad.FraOgMedDatoSpm.Nei
-        null -> null
-        else -> throw IllegalArgumentException("Ugyldig type")
+        IKKE_BESVART -> Søknad.FraOgMedDatoSpm.IkkeBesvart
+        else -> throw IllegalArgumentException("Ugyldig type $this")
     }
 }
 
-fun Row.jaNeiSpm(navn: String): Søknad.JaNeiSpm? =
+fun Row.jaNeiSpm(navn: String): Søknad.JaNeiSpm =
     when (stringOrNull(navn + TYPE_SUFFIX)) {
         JA -> Søknad.JaNeiSpm.Ja
         NEI -> Søknad.JaNeiSpm.Nei
-        null -> null
-        else -> throw IllegalArgumentException("Ugyldig type")
+        IKKE_BESVART -> Søknad.JaNeiSpm.IkkeBesvart
+        else -> throw IllegalArgumentException("Ugyldig type $this")
     }
 
-fun Map<String, Søknad.PeriodeSpm?>.toPeriodeSpmParams(): Map<String, Any?> =
+fun Map<String, Søknad.PeriodeSpm>.toPeriodeSpmParams(): Map<String, Any?> =
     this
         .flatMap { (k, v) ->
             listOf(
@@ -63,7 +64,7 @@ fun Map<String, Søknad.PeriodeSpm?>.toPeriodeSpmParams(): Map<String, Any?> =
             it.first to it.second as Any?
         }
 
-fun Map<String, Søknad.FraOgMedDatoSpm?>.toFraOgMedDatoSpmParams(): Map<String, Any?> =
+fun Map<String, Søknad.FraOgMedDatoSpm>.toFraOgMedDatoSpmParams(): Map<String, Any?> =
     this
         .flatMap { (k, v) ->
             listOf(
@@ -75,7 +76,7 @@ fun Map<String, Søknad.FraOgMedDatoSpm?>.toFraOgMedDatoSpmParams(): Map<String,
             it.first to it.second as Any?
         }
 
-fun Map<String, Søknad.JaNeiSpm?>.toJaNeiSpmParams(): Map<String, Any?> =
+fun Map<String, Søknad.JaNeiSpm>.toJaNeiSpmParams(): Map<String, Any?> =
     this
         .flatMap { (k, v) ->
             listOf(
@@ -85,65 +86,59 @@ fun Map<String, Søknad.JaNeiSpm?>.toJaNeiSpmParams(): Map<String, Any?> =
             it.first to it.second as Any?
         }
 
-fun lagrePeriodeSpmType(periodeSpm: Søknad.PeriodeSpm?) =
+fun lagrePeriodeSpmType(periodeSpm: Søknad.PeriodeSpm) =
     when (periodeSpm) {
         is Søknad.PeriodeSpm.Ja -> JA
         is Søknad.PeriodeSpm.Nei -> NEI
-        null -> null
+        is Søknad.PeriodeSpm.IkkeBesvart -> IKKE_BESVART
     }
 
-fun lagrePeriodeSpmJa(periodeSpm: Søknad.PeriodeSpm?) =
+fun lagrePeriodeSpmJa(periodeSpm: Søknad.PeriodeSpm) =
     when (periodeSpm) {
         is Søknad.PeriodeSpm.Ja -> true
-        is Søknad.PeriodeSpm.Nei -> false
-        null -> null
+        is Søknad.PeriodeSpm.Nei, Søknad.PeriodeSpm.IkkeBesvart -> false
     }
 
-fun lagrePeriodeSpmFra(periodeSpm: Søknad.PeriodeSpm?) =
+fun lagrePeriodeSpmFra(periodeSpm: Søknad.PeriodeSpm) =
     when (periodeSpm) {
         is Søknad.PeriodeSpm.Ja -> periodeSpm.periode.fraOgMed
-        is Søknad.PeriodeSpm.Nei -> null
-        null -> null
+        is Søknad.PeriodeSpm.Nei, Søknad.PeriodeSpm.IkkeBesvart -> null
     }
 
-fun lagrePeriodeSpmTil(periodeSpm: Søknad.PeriodeSpm?) =
+fun lagrePeriodeSpmTil(periodeSpm: Søknad.PeriodeSpm) =
     when (periodeSpm) {
         is Søknad.PeriodeSpm.Ja -> periodeSpm.periode.tilOgMed
-        is Søknad.PeriodeSpm.Nei -> null
-        null -> null
+        is Søknad.PeriodeSpm.Nei, Søknad.PeriodeSpm.IkkeBesvart -> null
     }
 
-fun lagreFraOgMedDatoSpmType(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm?) =
+fun lagreFraOgMedDatoSpmType(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm) =
     when (fraOgMedDatoSpm) {
         is Søknad.FraOgMedDatoSpm.Ja -> JA
         is Søknad.FraOgMedDatoSpm.Nei -> NEI
-        null -> null
+        is Søknad.FraOgMedDatoSpm.IkkeBesvart -> IKKE_BESVART
     }
 
-fun lagreFraOgMedDatoSpmJa(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm?) =
+fun lagreFraOgMedDatoSpmJa(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm) =
     when (fraOgMedDatoSpm) {
         is Søknad.FraOgMedDatoSpm.Ja -> true
-        is Søknad.FraOgMedDatoSpm.Nei -> false
-        null -> null
+        is Søknad.FraOgMedDatoSpm.Nei, Søknad.FraOgMedDatoSpm.IkkeBesvart -> false
     }
 
-fun lagreFraOgMedDatoSpmFra(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm?) =
+fun lagreFraOgMedDatoSpmFra(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm) =
     when (fraOgMedDatoSpm) {
         is Søknad.FraOgMedDatoSpm.Ja -> fraOgMedDatoSpm.fra
-        is Søknad.FraOgMedDatoSpm.Nei -> null
-        null -> null
+        is Søknad.FraOgMedDatoSpm.Nei, Søknad.FraOgMedDatoSpm.IkkeBesvart -> null
     }
 
-fun lagreJaNeiSpmType(jaNeiSpm: Søknad.JaNeiSpm?): String? =
+fun lagreJaNeiSpmType(jaNeiSpm: Søknad.JaNeiSpm): String =
     when (jaNeiSpm) {
         is Søknad.JaNeiSpm.Ja -> JA
         is Søknad.JaNeiSpm.Nei -> NEI
-        null -> null
+        is Søknad.JaNeiSpm.IkkeBesvart -> IKKE_BESVART
     }
 
-fun lagreJaNeiSpmJa(jaNeiSpm: Søknad.JaNeiSpm?) =
+fun lagreJaNeiSpmJa(jaNeiSpm: Søknad.JaNeiSpm) =
     when (jaNeiSpm) {
         is Søknad.JaNeiSpm.Ja -> true
-        is Søknad.JaNeiSpm.Nei -> false
-        null -> null
+        is Søknad.JaNeiSpm.Nei, Søknad.JaNeiSpm.IkkeBesvart -> false
     }

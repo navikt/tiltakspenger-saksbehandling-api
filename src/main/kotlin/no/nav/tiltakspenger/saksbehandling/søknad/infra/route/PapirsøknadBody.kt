@@ -28,17 +28,17 @@ data class PapirsøknadBody(
             barnetillegg = this.svar.barnetilleggPdl.map { it.tilDomenePdl() } +
                 this.svar.barnetilleggManuelle.map { it.tilDomeneManuell() },
             antallVedlegg = antallVedlegg,
-            kvp = this.svar.kvp?.tilDomene(),
-            intro = this.svar.intro?.tilDomene(),
-            institusjon = this.svar.institusjon?.tilDomene(),
-            etterlønn = this.svar.etterlønn?.tilDomene(),
-            gjenlevendepensjon = this.svar.gjenlevendepensjon?.tilDomene(),
-            alderspensjon = this.svar.alderspensjon?.tilDomene(),
-            sykepenger = this.svar.sykepenger?.tilDomene(),
-            supplerendeStønadAlder = this.svar.supplerendeStønadAlder?.tilDomene(),
-            supplerendeStønadFlyktning = this.svar.supplerendeStønadFlyktning?.tilDomene(),
-            jobbsjansen = this.svar.jobbsjansen?.tilDomene(),
-            trygdOgPensjon = this.svar.trygdOgPensjon?.tilDomene(),
+            kvp = this.svar.kvp.tilDomene(),
+            intro = this.svar.intro.tilDomene(),
+            institusjon = this.svar.institusjon.tilDomene(),
+            etterlønn = this.svar.etterlønn.tilDomene(),
+            gjenlevendepensjon = this.svar.gjenlevendepensjon.tilDomene(),
+            alderspensjon = this.svar.alderspensjon.tilDomene(),
+            sykepenger = this.svar.sykepenger.tilDomene(),
+            supplerendeStønadAlder = this.svar.supplerendeStønadAlder.tilDomene(),
+            supplerendeStønadFlyktning = this.svar.supplerendeStønadFlyktning.tilDomene(),
+            jobbsjansen = this.svar.jobbsjansen.tilDomene(),
+            trygdOgPensjon = this.svar.trygdOgPensjon.tilDomene(),
         )
     }
 
@@ -62,28 +62,28 @@ data class PapirsøknadBody(
         val fornavn: String?,
         val mellomnavn: String?,
         val etternavn: String?,
-        val oppholdInnenforEøs: JaNeiSpmDTO?,
+        val oppholdInnenforEøs: JaNeiSpmDTO,
     )
 
+    enum class JaNeiSvar {
+        JA,
+        NEI,
+        IKKE_BESVART,
+    }
+
     data class JaNeiSpmDTO(
-        val svar: SpmSvarDTO?,
+        val svar: JaNeiSvar,
     )
 
     data class PeriodeSpmDTO(
-        val svar: SpmSvarDTO?,
+        val svar: JaNeiSvar,
         val periode: PeriodeDTO?,
     )
 
     data class FraOgMedDatoSpmDTO(
-        val svar: SpmSvarDTO?,
+        val svar: JaNeiSvar,
         val fraOgMed: LocalDate?,
     )
-
-    enum class SpmSvarDTO {
-        NEI,
-        JA,
-        IKKE_BESVART,
-    }
 
     fun PersonopplysningerDTO.tilDomene(): Søknad.Personopplysninger = Søknad.Personopplysninger(
         fnr = Fnr.fromString(this.ident),
@@ -91,33 +91,29 @@ data class PapirsøknadBody(
         etternavn = this.etternavn,
     )
 
-    fun PeriodeSpmDTO.tilDomene(): Søknad.PeriodeSpm? =
+    fun PeriodeSpmDTO.tilDomene(): Søknad.PeriodeSpm =
         when (this.svar) {
-            SpmSvarDTO.JA -> {
+            JaNeiSvar.IKKE_BESVART -> Søknad.PeriodeSpm.IkkeBesvart
+            JaNeiSvar.NEI -> Søknad.PeriodeSpm.Nei
+            JaNeiSvar.JA -> {
                 checkNotNull(this.periode?.fraOgMed) { "Det skal ikke være mulig med null i fradato hvis man har svart JA " }
                 checkNotNull(this.periode.tilOgMed) { "Det skal ikke være mulig med null i tildato hvis man har svart JA " }
                 Søknad.PeriodeSpm.Ja(
                     periode = this.periode.toDomain(),
                 )
             }
-
-            SpmSvarDTO.NEI -> Søknad.PeriodeSpm.Nei
-            SpmSvarDTO.IKKE_BESVART -> null
-            null -> null
         }
 
-    fun FraOgMedDatoSpmDTO.tilDomene(): Søknad.FraOgMedDatoSpm? {
+    fun FraOgMedDatoSpmDTO.tilDomene(): Søknad.FraOgMedDatoSpm {
         return when (this.svar) {
-            SpmSvarDTO.JA -> {
+            JaNeiSvar.IKKE_BESVART -> Søknad.FraOgMedDatoSpm.IkkeBesvart
+            JaNeiSvar.NEI -> Søknad.FraOgMedDatoSpm.Nei
+            JaNeiSvar.JA -> {
                 requireNotNull(this.fraOgMed) { "Det skal ikke være mulig med null i fradato hvis man har svart JA" }
                 Søknad.FraOgMedDatoSpm.Ja(
                     fra = this.fraOgMed,
                 )
             }
-
-            SpmSvarDTO.NEI -> Søknad.FraOgMedDatoSpm.Nei
-            SpmSvarDTO.IKKE_BESVART -> null
-            null -> null
         }
     }
 
@@ -136,7 +132,7 @@ data class PapirsøknadBody(
         checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg, manuelle barn " }
 
         return BarnetilleggFraSøknad.Manuell(
-            oppholderSegIEØS = this.oppholdInnenforEøs?.tilDomene(),
+            oppholderSegIEØS = this.oppholdInnenforEøs.tilDomene(),
             fornavn = this.fornavn,
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn,
@@ -147,7 +143,7 @@ data class PapirsøknadBody(
     fun BarnetilleggDTO.tilDomenePdl(): BarnetilleggFraSøknad.FraPdl {
         checkNotNull(this.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg fra PDL" }
         return BarnetilleggFraSøknad.FraPdl(
-            oppholderSegIEØS = this.oppholdInnenforEøs?.tilDomene(),
+            oppholderSegIEØS = this.oppholdInnenforEøs.tilDomene(),
             fornavn = this.fornavn,
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn,
@@ -155,12 +151,11 @@ data class PapirsøknadBody(
         )
     }
 
-    fun JaNeiSpmDTO.tilDomene(): Søknad.JaNeiSpm? =
+    fun JaNeiSpmDTO.tilDomene(): Søknad.JaNeiSpm =
         when (this.svar) {
-            SpmSvarDTO.NEI -> Søknad.JaNeiSpm.Nei
-            SpmSvarDTO.JA -> Søknad.JaNeiSpm.Ja
-            SpmSvarDTO.IKKE_BESVART -> null
-            null -> null
+            JaNeiSvar.IKKE_BESVART -> Søknad.JaNeiSpm.IkkeBesvart
+            JaNeiSvar.NEI -> Søknad.JaNeiSpm.Nei
+            JaNeiSvar.JA -> Søknad.JaNeiSpm.Ja
         }
 }
 

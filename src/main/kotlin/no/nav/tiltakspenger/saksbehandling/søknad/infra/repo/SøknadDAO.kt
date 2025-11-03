@@ -17,6 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.toFraOgMedDatoSpmParams
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.toJaNeiSpmParams
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.toPeriodeSpmParams
 
 private const val KVP_FELT = "kvp"
 private const val INTRO_FELT = "intro"

@@ -10,10 +10,13 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.fraOgMedDatoIkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.fraOgMedDatoJa
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.fraOgMedDatoNei
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.ikkeBesvart
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.ja
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nei
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.periodeIkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.periodeJa
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.periodeNei
 import org.junit.jupiter.api.Nested
@@ -207,7 +210,7 @@ class SøknadPostgresRepoTest {
                         saksnummer = sak.saksnummer,
                         søknadstiltak = tiltak,
                         fnr = fnr,
-                        etterlønn = null,
+                        etterlønn = ikkeBesvart(),
                     )
 
                     val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
@@ -217,7 +220,7 @@ class SøknadPostgresRepoTest {
                             hentetSøknad shouldBe persistertSøknad
                             hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
                             // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
-                            hentetSøknad.etterlønn shouldBe null
+                            hentetSøknad.etterlønn shouldBe ikkeBesvart()
                         }
                     }
                 }
@@ -332,15 +335,15 @@ class SøknadPostgresRepoTest {
                         saksnummer = sak.saksnummer,
                         søknadstiltak = tiltak,
                         fnr = fnr,
-                        kvp = null,
-                        intro = null,
-                        institusjon = null,
-                        trygdOgPensjon = null,
-                        gjenlevendepensjon = null,
-                        sykepenger = null,
-                        supplerendeStønadAlder = null,
-                        supplerendeStønadFlyktning = null,
-                        jobbsjansen = null,
+                        kvp = periodeIkkeBesvart(),
+                        intro = periodeIkkeBesvart(),
+                        institusjon = periodeIkkeBesvart(),
+                        trygdOgPensjon = periodeIkkeBesvart(),
+                        gjenlevendepensjon = periodeIkkeBesvart(),
+                        sykepenger = periodeIkkeBesvart(),
+                        supplerendeStønadAlder = periodeIkkeBesvart(),
+                        supplerendeStønadFlyktning = periodeIkkeBesvart(),
+                        jobbsjansen = periodeIkkeBesvart(),
                     )
 
                     val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
@@ -350,15 +353,15 @@ class SøknadPostgresRepoTest {
                             hentetSøknad shouldBe persistertSøknad
                             hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
                             // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
-                            hentetSøknad.kvp shouldBe null
-                            hentetSøknad.intro shouldBe null
-                            hentetSøknad.institusjon shouldBe null
-                            hentetSøknad.trygdOgPensjon shouldBe null
-                            hentetSøknad.gjenlevendepensjon shouldBe null
-                            hentetSøknad.sykepenger shouldBe null
-                            hentetSøknad.supplerendeStønadAlder shouldBe null
-                            hentetSøknad.supplerendeStønadFlyktning shouldBe null
-                            hentetSøknad.jobbsjansen shouldBe null
+                            hentetSøknad.kvp shouldBe periodeIkkeBesvart()
+                            hentetSøknad.intro shouldBe periodeIkkeBesvart()
+                            hentetSøknad.institusjon shouldBe periodeIkkeBesvart()
+                            hentetSøknad.trygdOgPensjon shouldBe periodeIkkeBesvart()
+                            hentetSøknad.gjenlevendepensjon shouldBe periodeIkkeBesvart()
+                            hentetSøknad.sykepenger shouldBe periodeIkkeBesvart()
+                            hentetSøknad.supplerendeStønadAlder shouldBe periodeIkkeBesvart()
+                            hentetSøknad.supplerendeStønadFlyktning shouldBe periodeIkkeBesvart()
+                            hentetSøknad.jobbsjansen shouldBe periodeIkkeBesvart()
                         }
                     }
                 }
@@ -441,7 +444,7 @@ class SøknadPostgresRepoTest {
                         saksnummer = sak.saksnummer,
                         søknadstiltak = tiltak,
                         fnr = fnr,
-                        alderspensjon = null,
+                        alderspensjon = fraOgMedDatoIkkeBesvart(),
                     )
 
                     val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
@@ -451,7 +454,7 @@ class SøknadPostgresRepoTest {
                             hentetSøknad shouldBe persistertSøknad
                             hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
                             // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
-                            hentetSøknad.alderspensjon shouldBe null
+                            hentetSøknad.alderspensjon shouldBe fraOgMedDatoIkkeBesvart()
                         }
                     }
                 }
