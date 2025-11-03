@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.vedtak
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
@@ -34,12 +35,10 @@ data class Vedtaksliste(
         return avslåtteBehandlinger.filter { it.søknad.id == søknadId }
     }
 
-    val slåttSammen: List<Vedtak> by lazy { slåSammenVedtakslistene(rammevedtaksliste, meldekortvedtaksliste) }
-
-    val fnr: Fnr? by lazy { slåttSammen.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow() }
-    val sakId: SakId? by lazy { slåttSammen.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow() }
+    val fnr: Fnr? by lazy { this.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow() }
+    val sakId: SakId? by lazy { this.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow() }
     val saksnummer: Saksnummer? by lazy {
-        slåttSammen.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
+        this.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
     }
 
     val harFørstegangsvedtak: Boolean by lazy {
@@ -63,10 +62,10 @@ data class Vedtaksliste(
     }
 
     init {
-        require(slåttSammen.distinctBy { it.opprettet }.size == slåttSammen.size) {
+        require(this.nonDistinctBy { it.opprettet }.isEmpty()) {
             "Vedtakene i Vedtaksliste kan ikke ha samme opprettet-tidspunkt."
         }
-        require(slåttSammen.distinctBy { it.id }.size == slåttSammen.size) {
+        require(this.nonDistinctBy { it.id }.isEmpty()) {
             "Vedtakene i Vedtaksliste må ha unike IDer."
         }
     }
@@ -84,7 +83,6 @@ data class Vedtaksliste(
 private fun slåSammenVedtakslistene(
     rammevedtaksliste: Rammevedtaksliste,
     meldekortvedtaksliste: Meldekortvedtaksliste,
-
 ): List<Vedtak> {
     return (rammevedtaksliste.verdi + meldekortvedtaksliste.verdi).sortedBy { it.opprettet }
 }
