@@ -5,7 +5,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
@@ -16,9 +21,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
 import kotlin.collections.emptyList
@@ -65,7 +74,7 @@ internal class StartRevurderingTest {
     @Test
     fun `kan starte revurdering omgjøring`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = startRevurderingOmgjøring(tac)
+            val (sak, _, søknadsbehandling, revurdering) = startRevurderingOmgjøring(tac)
             val søknadsvedtak: Rammevedtak = sak.vedtaksliste.single() as Rammevedtak
             val søknadsvedtakResultat = søknadsvedtak.behandling.resultat as SøknadsbehandlingResultat.Innvilgelse
             revurdering.shouldBeInstanceOf<Revurdering>()
@@ -79,13 +88,65 @@ internal class StartRevurderingTest {
             revurdering.saksnummer shouldBe sak.saksnummer
             revurdering.virkningsperiode shouldBe søknadsvedtak.periode
             revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.virkningsperiode
-            revurdering.resultat.innvilgelsesperiode shouldBe søknadsvedtakResultat.innvilgelsesperiode
-            revurdering.barnetillegg shouldBe søknadsvedtak.barnetillegg
-            revurdering.antallDagerPerMeldeperiode shouldBe søknadsvedtak.antallDagerPerMeldeperiode
-            revurdering.valgteTiltaksdeltakelser shouldBe søknadsvedtak.valgteTiltaksdeltakelser
+            revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.innvilgelsesperiode
+            revurdering.resultat.innvilgelsesperiode shouldBe (3 til 10.april(2025))
+            revurdering.barnetillegg shouldBe Barnetillegg(
+                periodisering = SammenhengendePeriodisering(
+                    søknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
+                    (3 til 10.april(2025)),
+                ),
+                begrunnelse = søknadsbehandling.barnetillegg.begrunnelse,
+            )
+            revurdering.antallDagerPerMeldeperiode shouldBe SammenhengendePeriodisering(
+                søknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
+                (3 til 10.april(2025)),
+            )
+            revurdering.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
+                periodisering = SammenhengendePeriodisering(
+                    søknadsbehandling.valgteTiltaksdeltakelser!!.periodisering.verdier.single(),
+                    (3 til 10.april(2025)),
+                ),
+            )
             revurdering.attesteringer shouldBe emptyList()
             revurdering.saksopplysninger.shouldNotBeNull()
-            revurdering.erFerdigutfylt() shouldBe false
+            revurdering.erFerdigutfylt() shouldBe true
+        }
+    }
+
+    @Test
+    fun `revurdering til omgjøring - tiltaksdeltagelse har krympet før start`() {
+        withTestApplicationContext { tac ->
+            val (_, _, søknadsbehandling, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                søknadsbehandlingVirkningsperiode = 1 til 10.april(2025),
+                oppdaterTiltaksdeltagelsesperiode = 2 til 9.april(2025),
+            )
+            søknadsbehandling.virkningsperiode shouldBe (1 til 10.april(2025))
+            søknadsbehandling.innvilgelsesperiode shouldBe (1 til 10.april(2025))
+            søknadsbehandling.saksopplysninger.tiltaksdeltagelser.single().periode shouldBe (1 til 10.april(2025))
+            omgjøring.virkningsperiode shouldBe (1 til 10.april(2025))
+            omgjøring.innvilgelsesperiode shouldBe (2 til 9.april(2025))
+            omgjøring.barnetillegg shouldBe Barnetillegg(
+                periodisering = SammenhengendePeriodisering(
+                    søknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
+                    (2 til 9.april(2025)),
+                ),
+                begrunnelse = søknadsbehandling.barnetillegg.begrunnelse,
+            )
+            omgjøring.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
+                periodisering = SammenhengendePeriodisering(
+                    søknadsbehandling.valgteTiltaksdeltakelser!!.periodisering.verdier.single(),
+                    (2 til 9.april(2025)),
+                ),
+            )
+            omgjøring.antallDagerPerMeldeperiode shouldBe SammenhengendePeriodisering(
+                søknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
+                (2 til 9.april(2025)),
+            )
+            omgjøring.erFerdigutfylt() shouldBe true
+
+            // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
+            tac.sakContext.sakService.hentForSakId(sakId = omgjøring.sakId).rammebehandlinger[1] shouldBe omgjøring
         }
     }
 }

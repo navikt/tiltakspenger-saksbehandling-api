@@ -15,6 +15,12 @@ data class ValgteTiltaksdeltakelser(
 ) {
     val verdier = periodisering.verdier
 
+    fun krympPeriode(periode: Periode): ValgteTiltaksdeltakelser {
+        return ValgteTiltaksdeltakelser(
+            periodisering.krymp(periode) as SammenhengendePeriodisering<Tiltaksdeltagelse>,
+        )
+    }
+
     companion object {
         fun periodiser(
             tiltaksdeltakelser: List<Pair<Periode, String>>,

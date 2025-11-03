@@ -106,7 +106,7 @@ interface StartRevurderingBuilder {
             virkningsperiode = søknadsbehandlingVirkningsperiode,
         )
         val oppdatertTiltaksdeltagelse = søknadsbehandling.saksopplysninger
-            ?.getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
+            .getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
             deltagelseFraOgMed = oppdaterTiltaksdeltagelsesperiode.fraOgMed,
             deltagelseTilOgMed = oppdaterTiltaksdeltagelsesperiode.tilOgMed,
         )

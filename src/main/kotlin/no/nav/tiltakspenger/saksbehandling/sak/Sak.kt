@@ -222,6 +222,9 @@ data class Sak(
     fun oppdaterKanSendeInnHelgForMeldekort(kanSendeInnHelgForMeldekort: Boolean): Sak =
         this.copy(kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort)
 
+    /**
+     * Tar kun med vedtak som innvilger.
+     */
     fun erRammevedtakGjeldendeForHeleSinPeriode(rammevedtakId: VedtakId): Boolean {
         val rammevedtak = hentRammevedtakForId(rammevedtakId)
         val treff = this.rammevedtaksliste.innvilgetTidslinje.filter {

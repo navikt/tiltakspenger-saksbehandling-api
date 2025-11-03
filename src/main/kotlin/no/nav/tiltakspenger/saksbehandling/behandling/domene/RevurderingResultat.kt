@@ -193,17 +193,28 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 omgjørRammevedtak: Rammevedtak,
                 saksopplysninger: Saksopplysninger,
             ): Omgjøring {
+                val innvilgelsesperiode = omgjørRammevedtak.innvilgelsesperiode?.let {
+                    // Vi har en generell begrensning om innvilgelseserperioden ikke kan være større enn tiltaksdeltagelsene.
+                    // TODO ved flere innvilgelsesperioder: endre denne logikken
+                    saksopplysninger.tiltaksdeltagelser.totalPeriode?.overlappendePeriode(it)
+                        ?: throw IllegalArgumentException(
+                            "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. Et rent opphørsomgjøring kommer senere.",
+                        )
+                } ?: omgjørRammevedtak.periode
+                val valgteTiltaksdeltakelser = omgjørRammevedtak.valgteTiltaksdeltakelser!!.krympPeriode(innvilgelsesperiode)
+                val barnetillegg = omgjørRammevedtak.barnetillegg!!.krympPeriode(innvilgelsesperiode)
+                val antallDagerPerMeldeperiode = omgjørRammevedtak.antallDagerPerMeldeperiode!!.krympPeriode(innvilgelsesperiode) as SammenhengendePeriodisering<AntallDagerForMeldeperiode>
                 return Omgjøring(
                     // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.
                     virkningsperiode = omgjørRammevedtak.periode,
                     // Hvis vedtaket vi omgjør er en delvis innvilgelse, så bruker vi denne.
-                    innvilgelsesperiode = omgjørRammevedtak.innvilgelsesperiode ?: omgjørRammevedtak.periode,
+                    innvilgelsesperiode = innvilgelsesperiode,
                     valgteTiltaksdeltakelser = resetTiltaksdeltagelserDersomDeErInkompatible(
-                        omgjørRammevedtak.valgteTiltaksdeltakelser!!,
+                        valgteTiltaksdeltakelser,
                         saksopplysninger.tiltaksdeltagelser,
                     ),
-                    barnetillegg = omgjørRammevedtak.barnetillegg!!,
-                    antallDagerPerMeldeperiode = omgjørRammevedtak.antallDagerPerMeldeperiode!!,
+                    barnetillegg = barnetillegg,
+                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     omgjørRammevedtak = omgjørRammevedtak,
                 )
             }

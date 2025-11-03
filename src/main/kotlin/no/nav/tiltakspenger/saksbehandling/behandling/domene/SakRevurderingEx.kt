@@ -104,7 +104,7 @@ private suspend fun Sak.startRevurderingOmgjøring(
     clock: Clock,
 ): Revurdering {
     require(this.erRammevedtakGjeldendeForHeleSinPeriode(rammevedtakIdSomOmgjøres)) {
-        "I første versjon, kan man kun omgjøre et rammevedtak som er gjeldende for hele sin periode."
+        "I første versjon, kan man kun omgjøre et (delvis) innvilget rammevedtak som er gjeldende for hele sin periode."
     }
     val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
     return Revurdering.opprettOmgjøring(

@@ -18,6 +18,11 @@ data class Barnetillegg(
         periodisering.any { it.verdi != AntallBarn.ZERO }
     }
 
+    fun krympPeriode(periode: Periode): Barnetillegg {
+        val krympetPeriodisering = periodisering.krymp(periode) as SammenhengendePeriodisering<AntallBarn>
+        return this.copy(periodisering = krympetPeriodisering)
+    }
+
     companion object {
 
         fun periodiserOgFyllUtHullMed0(
