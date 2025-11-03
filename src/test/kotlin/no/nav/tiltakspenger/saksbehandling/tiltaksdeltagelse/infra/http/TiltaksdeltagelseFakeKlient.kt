@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltaksdeltakelseMe
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 
 class TiltaksdeltagelseFakeKlient(
+    private val defaultTiltaksdeltagelserTilSøknadHvisDenMangler: Boolean = false,
     private val søknadRepoProvider: suspend () -> SøknadRepo? = { null },
 ) : TiltaksdeltagelseKlient {
     private val data = Atomic(mutableMapOf<Fnr, Tiltaksdeltagelser>())
@@ -24,7 +25,7 @@ class TiltaksdeltagelseFakeKlient(
         tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
     ): Tiltaksdeltagelser {
-        return data.get()[fnr] ?: hentTiltaksdeltagelseFraSøknad(fnr)
+        return data.get()[fnr] ?: if (defaultTiltaksdeltagelserTilSøknadHvisDenMangler) hentTiltaksdeltagelseFraSøknad(fnr) else Tiltaksdeltagelser.empty()
     }
 
     override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
@@ -37,9 +38,13 @@ class TiltaksdeltagelseFakeKlient(
 
     fun lagre(
         fnr: Fnr,
-        tiltaksdeltagelse: Tiltaksdeltagelse,
+        tiltaksdeltagelse: Tiltaksdeltagelse?,
     ) {
         val current = data.get()[fnr]
+        if (tiltaksdeltagelse == null) {
+            data.get().remove(fnr)
+            return
+        }
         if (current == null) {
             data.get()[fnr] = Tiltaksdeltagelser(listOf(tiltaksdeltagelse))
             return

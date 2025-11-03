@@ -50,7 +50,7 @@ interface StartRevurderingBuilder {
             oppdatertSak,
             søknad,
             søknadsbehandling,
-            revurdering,
+            revurdering!!,
         )
     }
 
@@ -87,29 +87,35 @@ interface StartRevurderingBuilder {
             oppdatertSak,
             søknad,
             søknadsbehandling,
-            revurdering,
+            revurdering!!,
         )
     }
 
     /**
      * Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering til omgjøring.
      * Default: Tiltaksdeltagelsen har endret seg fra 1. til 3. april.
+     * @param oppdaterTiltaksdeltagelsesperiode Dersom null, fjernes den for dette fødselsnummeret.
      * */
     suspend fun ApplicationTestBuilder.startRevurderingOmgjøring(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         søknadsbehandlingVirkningsperiode: Periode = 1 til 10.april(2025),
-        oppdaterTiltaksdeltagelsesperiode: Periode = 3 til 10.april(2025),
-    ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
+        oppdaterTiltaksdeltagelsesperiode: Periode? = 3 til 10.april(2025),
+        expectOmgjøringStatus: HttpStatusCode? = HttpStatusCode.OK,
+    ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering?> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac,
             virkningsperiode = søknadsbehandlingVirkningsperiode,
         )
-        val oppdatertTiltaksdeltagelse = søknadsbehandling.saksopplysninger
-            .getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
-            deltagelseFraOgMed = oppdaterTiltaksdeltagelsesperiode.fraOgMed,
-            deltagelseTilOgMed = oppdaterTiltaksdeltagelsesperiode.tilOgMed,
-        )
+        val oppdatertTiltaksdeltagelse = if (oppdaterTiltaksdeltagelsesperiode != null) {
+            søknadsbehandling.saksopplysninger
+                .getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
+                deltagelseFraOgMed = oppdaterTiltaksdeltagelsesperiode.fraOgMed,
+                deltagelseTilOgMed = oppdaterTiltaksdeltagelsesperiode.tilOgMed,
+            )
+        } else {
+            null
+        }
         tac.oppdaterTiltaksdeltagelse(sak.fnr, oppdatertTiltaksdeltagelse)
 
         val revurdering = startRevurderingForSakId(
@@ -117,6 +123,7 @@ interface StartRevurderingBuilder {
             sakId = sak.id,
             type = RevurderingType.OMGJØRING,
             rammevedtakIdSomOmgjøres = sak.vedtaksliste.single().id,
+            expectStatus = expectOmgjøringStatus,
         )
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
 
@@ -135,7 +142,8 @@ interface StartRevurderingBuilder {
         type: RevurderingType,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         rammevedtakIdSomOmgjøres: VedtakId? = null,
-    ): Revurdering {
+        expectStatus: HttpStatusCode? = HttpStatusCode.OK,
+    ): Revurdering? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.texasClient.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
@@ -160,8 +168,9 @@ interface StartRevurderingBuilder {
                 withClue(
                     "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
                 ) {
-                    status shouldBe HttpStatusCode.OK
+                    if (expectStatus != null) status shouldBe expectStatus
                 }
+                if (status != HttpStatusCode.OK) return null
                 val revurderingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
                 return tac.behandlingContext.behandlingRepo.hent(revurderingId) as Revurdering
             }

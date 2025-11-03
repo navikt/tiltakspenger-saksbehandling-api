@@ -367,7 +367,7 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             // Omgjøringen starter med at tiltaksdeltagelsesperioden er endret siden søknadsvedtaket.
             val (sak, _, søknadsbehandling, revurdering) = startRevurderingOmgjøring(tac)
-            val tiltaksdeltagelseVedOpprettelseAvRevurdering = revurdering.saksopplysninger.tiltaksdeltagelser.first()
+            val tiltaksdeltagelseVedOpprettelseAvRevurdering = revurdering!!.saksopplysninger.tiltaksdeltagelser.first()
             val nyOmgjøringsperiodeEtterOppdatering = (3 til 9.april(2025))
             val avbruttTiltaksdeltagelse = tiltaksdeltagelseVedOpprettelseAvRevurdering.copy(
                 deltagelseFraOgMed = tiltaksdeltagelseVedOpprettelseAvRevurdering.deltagelseFraOgMed!!,

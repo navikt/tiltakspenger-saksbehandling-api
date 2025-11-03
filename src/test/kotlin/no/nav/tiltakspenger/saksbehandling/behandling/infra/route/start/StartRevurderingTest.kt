@@ -3,34 +3,23 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.server.routing.routing
-import io.ktor.server.testing.testApplication
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
-import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.routes
-import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
-import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
-import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
-import kotlin.collections.emptyList
 
 internal class StartRevurderingTest {
     @Test
@@ -124,6 +113,7 @@ internal class StartRevurderingTest {
             søknadsbehandling.virkningsperiode shouldBe (1 til 10.april(2025))
             søknadsbehandling.innvilgelsesperiode shouldBe (1 til 10.april(2025))
             søknadsbehandling.saksopplysninger.tiltaksdeltagelser.single().periode shouldBe (1 til 10.april(2025))
+            omgjøring!!.saksopplysninger.tiltaksdeltagelser.single().periode shouldBe (2 til 9.april(2025))
             omgjøring.virkningsperiode shouldBe (1 til 10.april(2025))
             omgjøring.innvilgelsesperiode shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(
@@ -147,6 +137,57 @@ internal class StartRevurderingTest {
 
             // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
             tac.sakContext.sakService.hentForSakId(sakId = omgjøring.sakId).rammebehandlinger[1] shouldBe omgjøring
+        }
+    }
+
+    @Test
+    fun `revurdering til omgjøring - tiltaksdeltagelse har økt før start`() {
+        withTestApplicationContext { tac ->
+            val (_, _, søknadsbehandling, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                søknadsbehandlingVirkningsperiode = 2 til 9.april(2025),
+                oppdaterTiltaksdeltagelsesperiode = 1 til 10.april(2025),
+            )
+            søknadsbehandling.virkningsperiode shouldBe (2 til 9.april(2025))
+            søknadsbehandling.innvilgelsesperiode shouldBe (2 til 9.april(2025))
+            søknadsbehandling.saksopplysninger.tiltaksdeltagelser.single().periode shouldBe (2 til 9.april(2025))
+            omgjøring!!.saksopplysninger.tiltaksdeltagelser.single().periode shouldBe (1 til 10.april(2025))
+            omgjøring.virkningsperiode shouldBe (2 til 9.april(2025))
+            omgjøring.innvilgelsesperiode shouldBe (2 til 9.april(2025))
+            omgjøring.barnetillegg shouldBe Barnetillegg(
+                periodisering = SammenhengendePeriodisering(
+                    søknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
+                    (2 til 9.april(2025)),
+                ),
+                begrunnelse = søknadsbehandling.barnetillegg.begrunnelse,
+            )
+            omgjøring.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
+                periodisering = SammenhengendePeriodisering(
+                    søknadsbehandling.valgteTiltaksdeltakelser!!.periodisering.verdier.single(),
+                    (2 til 9.april(2025)),
+                ),
+            )
+            omgjøring.antallDagerPerMeldeperiode shouldBe SammenhengendePeriodisering(
+                søknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
+                (2 til 9.april(2025)),
+            )
+            omgjøring.erFerdigutfylt() shouldBe true
+
+            // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
+            tac.sakContext.sakService.hentForSakId(sakId = omgjøring.sakId).rammebehandlinger[1] shouldBe omgjøring
+        }
+    }
+
+    @Test
+    fun `revurdering til omgjøring - tiltaksdeltagelse finnes ikke lenger`() {
+        withTestApplicationContext { tac ->
+            val (_, _, _, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                søknadsbehandlingVirkningsperiode = 2 til 9.april(2025),
+                oppdaterTiltaksdeltagelsesperiode = null,
+                expectOmgjøringStatus = HttpStatusCode.InternalServerError,
+            )
+            omgjøring shouldBe null
         }
     }
 }

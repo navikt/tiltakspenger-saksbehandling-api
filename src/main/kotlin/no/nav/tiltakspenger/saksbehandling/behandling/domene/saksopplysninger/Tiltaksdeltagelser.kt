@@ -70,4 +70,8 @@ data class Tiltaksdeltagelser(
             tiltaksdeltagelser.any { it.overlapperMed(deltagelse) ?: true }
         }
     }
+
+    companion object {
+        fun empty() = Tiltaksdeltagelser(emptyList())
+    }
 }

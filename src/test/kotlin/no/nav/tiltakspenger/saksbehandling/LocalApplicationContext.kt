@@ -140,7 +140,7 @@ class LocalApplicationContext(
     }
 
     private val tiltaksdeltagelseFakeKlient by lazy {
-        TiltaksdeltagelseFakeKlient { søknadContext.søknadRepo }
+        TiltaksdeltagelseFakeKlient(true) { søknadContext.søknadRepo }
     }
 
     override val tiltakContext by lazy {

@@ -58,7 +58,7 @@ class UtbetalingerIT {
             oppdaterBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = revurdering.id,
+                behandlingId = revurdering!!.id,
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
                     fritekstTilVedtaksbrev = "lol",
                     begrunnelseVilkårsvurdering = "what",
@@ -165,7 +165,7 @@ class UtbetalingerIT {
             oppdaterBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = revurdering.id,
+                behandlingId = revurdering!!.id,
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
                     fritekstTilVedtaksbrev = "lol",
                     begrunnelseVilkårsvurdering = "what",
@@ -226,7 +226,7 @@ class UtbetalingerIT {
             oppdaterBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = revurdering.id,
+                behandlingId = revurdering!!.id,
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
                     fritekstTilVedtaksbrev = "lol",
                     begrunnelseVilkårsvurdering = "what",

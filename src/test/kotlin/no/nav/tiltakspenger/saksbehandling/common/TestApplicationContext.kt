@@ -116,7 +116,7 @@ class TestApplicationContext(
         tilgangsmaskinFakeClient.leggTil(fnr, Tilgangsvurdering.Godkjent)
     }
 
-    fun oppdaterTiltaksdeltagelse(fnr: Fnr, tiltaksdeltagelse: Tiltaksdeltagelse) {
+    fun oppdaterTiltaksdeltagelse(fnr: Fnr, tiltaksdeltagelse: Tiltaksdeltagelse?) {
         tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
     }
 

@@ -56,7 +56,7 @@ internal class OppdaterSaksopplysningerTest {
     fun `revurdering til omgjøring - kan oppdatere saksopplysninger`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingOmgjøring(tac)
-            val forrigeTiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelser.first()
+            val forrigeTiltaksdeltagelse = revurdering!!.saksopplysninger.tiltaksdeltagelser.first()
             val avbruttTiltaksdeltagelse = forrigeTiltaksdeltagelse.copy(
                 deltagelseFraOgMed = forrigeTiltaksdeltagelse.deltagelseFraOgMed!!,
                 deltagelseTilOgMed = forrigeTiltaksdeltagelse.deltagelseTilOgMed!!.minusDays(1),
