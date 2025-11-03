@@ -34,6 +34,7 @@ data class SimulertBeregning(
     val simuleringstidspunkt: LocalDateTime?,
     val simuleringsdato: LocalDate?,
     val simuleringTotalBeløp: Int?,
+    val simuleringResultat: SimuleringResultat,
 ) {
     val simuleringsdager: NonEmptyList<Simuleringsdag>? by lazy {
         meldeperioder.mapNotNull { it.simuleringsdager }.flatten().toNonEmptyListOrNull()
@@ -56,6 +57,12 @@ data class SimulertBeregning(
         val barnetillegg: Int,
         val total: Int,
     )
+
+    enum class SimuleringResultat {
+        ENDRING,
+        INGEN_ENDRING,
+        IKKE_SIMULERT,
+    }
 
     /**
      * En simulering for en enkelt meldeperiode kan ikke både inneholde feilutbetaling og etterbetaling, siden de motposterer hverandre.
@@ -155,6 +162,11 @@ data class SimulertBeregning(
                 simuleringstidspunkt = null,
                 simuleringsdato = (simulering as? Simulering.Endring)?.datoBeregnet,
                 simuleringTotalBeløp = (simulering as? Simulering.Endring)?.totalBeløp,
+                simuleringResultat = when (simulering) {
+                    is Simulering.Endring -> SimuleringResultat.ENDRING
+                    is Simulering.IngenEndring -> SimuleringResultat.INGEN_ENDRING
+                    null -> SimuleringResultat.IKKE_SIMULERT
+                },
             )
         }
     }

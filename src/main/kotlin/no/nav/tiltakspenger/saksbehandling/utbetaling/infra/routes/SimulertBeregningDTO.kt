@@ -29,6 +29,7 @@ data class SimulertBeregningDTO(
     val simuleringsdato: LocalDate?,
     val simuleringTotalBeløp: Int?,
     val simulerteBeløp: SimulerteBeløp?,
+    val simuleringResultat: SimuleringResultatDTO,
     val beregning: BeregningerSummertDTO,
 ) {
 
@@ -77,6 +78,12 @@ data class SimulertBeregningDTO(
         TREKK,
         MOTPOSTERING,
     }
+
+    enum class SimuleringResultatDTO {
+        ENDRING,
+        INGEN_ENDRING,
+        IKKE_SIMULERT,
+    }
 }
 
 fun SimulertBeregning.toSimulertBeregningDTO(): SimulertBeregningDTO {
@@ -93,6 +100,7 @@ fun SimulertBeregning.toSimulertBeregningDTO(): SimulertBeregningDTO {
         simuleringTotalBeløp = this.simuleringTotalBeløp,
         simulerteBeløp = this.simuleringsdager?.tilSimulerteBeløpDTO(),
         beregning = this.beregning.tilBeregningerSummertDTO(this.forrigeBeregning),
+        simuleringResultat = this.simuleringResultat.tilDTO(),
     )
 }
 
@@ -182,5 +190,13 @@ private fun Posteringstype.tilDTO(): SimulertBeregningDTO.PosteringstypeDTO {
         Posteringstype.JUSTERING -> SimulertBeregningDTO.PosteringstypeDTO.JUSTERING
         Posteringstype.TREKK -> SimulertBeregningDTO.PosteringstypeDTO.TREKK
         Posteringstype.MOTPOSTERING -> SimulertBeregningDTO.PosteringstypeDTO.MOTPOSTERING
+    }
+}
+
+private fun SimulertBeregning.SimuleringResultat.tilDTO(): SimulertBeregningDTO.SimuleringResultatDTO {
+    return when (this) {
+        SimulertBeregning.SimuleringResultat.ENDRING -> SimulertBeregningDTO.SimuleringResultatDTO.ENDRING
+        SimulertBeregning.SimuleringResultat.INGEN_ENDRING -> SimulertBeregningDTO.SimuleringResultatDTO.INGEN_ENDRING
+        SimulertBeregning.SimuleringResultat.IKKE_SIMULERT -> SimulertBeregningDTO.SimuleringResultatDTO.IKKE_SIMULERT
     }
 }
