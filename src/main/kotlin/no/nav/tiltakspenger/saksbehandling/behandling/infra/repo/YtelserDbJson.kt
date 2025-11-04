@@ -54,10 +54,10 @@ data class YtelserDbJson(
 
 fun Ytelser.toDbJson(): YtelserDbJson {
     return YtelserDbJson(
-        ytelser = this.value.map {
+        ytelser = this.value.map { ytelse ->
             YtelserDbJson.YtelseDbJson(
-                ytelsetype = it.ytelsetype.tekstverdi,
-                perioder = it.perioder.map { it.toDbJson() },
+                ytelsetype = ytelse.ytelsetype.tekstverdi,
+                perioder = ytelse.perioder.map { it.toDbJson() },
             )
         },
         type = when (this) {
