@@ -163,7 +163,7 @@ internal class PdfgenHttpClient(
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
-        vurderingsperiode: Periode,
+        innvilgelsesperiode: Periode,
         tilleggstekst: FritekstTilVedtaksbrev,
         barnetillegg: SammenhengendePeriodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
@@ -177,7 +177,7 @@ internal class PdfgenHttpClient(
                     beslutterNavIdent = beslutterNavIdent,
                     saksnummer = saksnummer,
                     forhåndsvisning = forhåndsvisning,
-                    innvilgelsesperiode = vurderingsperiode,
+                    innvilgelsesperiode = innvilgelsesperiode,
                     tilleggstekst = tilleggstekst,
                     barnetilleggsPerioder = barnetillegg,
                     vedtaksdato = vedtaksdato,

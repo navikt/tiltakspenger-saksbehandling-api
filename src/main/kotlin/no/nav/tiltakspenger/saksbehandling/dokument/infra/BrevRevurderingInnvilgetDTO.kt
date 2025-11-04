@@ -46,7 +46,7 @@ suspend fun Rammevedtak.tilRevurderingInnvilgetBrev(
         fnr = fnr,
         saksbehandlerNavIdent = saksbehandler,
         beslutterNavIdent = beslutter,
-        innvilgelsesperiode = periode,
+        innvilgelsesperiode = innvilgelsesperiode!!,
         saksnummer = saksnummer,
         forhåndsvisning = false,
         barnetilleggsPerioder = barnetillegg?.periodisering,
