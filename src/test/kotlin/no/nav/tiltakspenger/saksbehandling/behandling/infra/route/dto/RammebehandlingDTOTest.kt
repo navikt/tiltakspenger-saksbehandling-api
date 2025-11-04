@@ -50,8 +50,10 @@ class RammebehandlingDTOTest {
 
     @Test
     fun `Rammebehandling DTO fra søknadsbehandling med innvilgelse`() {
+        val clock = clock.copy()
+
         val behandling = nyVedtattSøknadsbehandling(
-            clock = clock.copy(),
+            clock = clock,
             id = behandlingId,
             sakId = sakId,
             saksnummer = saksnummer,
@@ -75,6 +77,7 @@ class RammebehandlingDTOTest {
                     eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
                     eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                 ),
+                clock = clock,
             ),
         )
 
@@ -89,109 +92,119 @@ class RammebehandlingDTOTest {
         @Language("JSON")
         val expectedJson = """
             {
-              "id" : "beh_01K8R3V8S9X8KGR8HDXXDXN9P3",
-              "status" : "VEDTATT",
-              "sakId" : "sak_01K8QWMR1KZZB728K0F4RQG184",
-              "saksnummer" : "202510291001",
-              "rammevedtakId" : "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
-              "saksbehandler" : "Z12345",
-              "beslutter" : "B12345",
-              "saksopplysninger" : {
-                "fødselsdato" : "2001-01-01",
-                "tiltaksdeltagelse" : [ {
-                  "eksternDeltagelseId" : "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
-                  "gjennomføringId" : "68f04dee-11a9-4d69-84fd-1096a4264492",
-                  "typeNavn" : "Arbeidsmarkedsoppfølging gruppe",
-                  "typeKode" : "GRUPPE_AMO",
-                  "deltagelseFraOgMed" : "2025-01-01",
-                  "deltagelseTilOgMed" : "2025-03-31",
-                  "deltakelseStatus" : "Deltar",
-                  "deltakelseProsent" : 100.0,
-                  "antallDagerPerUke" : 5.0,
-                  "kilde" : "Komet",
-                  "deltakelseProsentFraGjennomforing" : false
-                } ],
-                "periode" : {
-                  "fraOgMed" : "2025-01-01",
-                  "tilOgMed" : "2025-03-31"
-                },
-                "ytelser" : [ ],
-                "tiltakspengevedtakFraArena" : [ ],
-                "oppslagstidspunkt": "2025-01-01T01:02:05.456789"
-              },
-              "attesteringer" : [ {
-                "endretAv" : "B12345",
-                "status" : "GODKJENT",
-                "begrunnelse" : null,
-                "endretTidspunkt" : "2025-01-01T01:02:07.456789"
-              } ],
-              "virkningsperiode" : {
-                "fraOgMed" : "2025-01-01",
-                "tilOgMed" : "2025-03-31"
-              },
-              "fritekstTilVedtaksbrev" : "nyBehandlingUnderBeslutning()",
-              "begrunnelseVilkårsvurdering" : "nyBehandlingUnderBeslutning()",
-              "avbrutt" : null,
-              "sistEndret" : "2025-01-01T01:02:05.456789",
-              "iverksattTidspunkt" : "2025-01-01T01:02:08.456789",
-              "ventestatus" : null,
-              "utbetaling" : null,
-              "innvilgelsesperiode" : {
-                "fraOgMed" : "2025-01-01",
-                "tilOgMed" : "2025-03-31"
-              },
-              "valgteTiltaksdeltakelser" : [ {
-                "eksternDeltagelseId" : "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
-                "periode" : {
-                  "fraOgMed" : "2025-01-01",
-                  "tilOgMed" : "2025-03-31"
-                }
-              } ],
-              "barnetillegg" : {
-                "perioder" : [ {
-                  "antallBarn" : 0,
-                  "periode" : {
-                    "fraOgMed" : "2025-01-01",
-                    "tilOgMed" : "2025-03-31"
+              "id": "beh_01K8R3V8S9X8KGR8HDXXDXN9P3",
+              "status": "VEDTATT",
+              "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
+              "saksnummer": "202510291001",
+              "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
+              "saksbehandler": "Z12345",
+              "beslutter": "B12345",
+              "saksopplysninger": {
+                "fødselsdato": "2001-01-01",
+                "tiltaksdeltagelse": [
+                  {
+                    "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
+                    "gjennomføringId": "68f04dee-11a9-4d69-84fd-1096a4264492",
+                    "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
+                    "typeKode": "GRUPPE_AMO",
+                    "deltagelseFraOgMed": "2025-01-01",
+                    "deltagelseTilOgMed": "2025-03-31",
+                    "deltakelseStatus": "Deltar",
+                    "deltakelseProsent": 100.0,
+                    "antallDagerPerUke": 5.0,
+                    "kilde": "Komet",
+                    "deltakelseProsentFraGjennomforing": false
                   }
-                } ],
-                "begrunnelse" : null
+                ],
+                "periode": {
+                  "fraOgMed": "2025-01-01",
+                  "tilOgMed": "2025-03-31"
+                },
+                "ytelser": [],
+                "tiltakspengevedtakFraArena": [],
+                "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
               },
-              "antallDagerPerMeldeperiode" : [ {
-                "periode" : {
-                  "fraOgMed" : "2025-01-01",
-                  "tilOgMed" : "2025-03-31"
+              "attesteringer": [
+                {
+                  "endretAv": "B12345",
+                  "status": "GODKJENT",
+                  "begrunnelse": null,
+                  "endretTidspunkt": "2025-01-01T01:02:08.456789"
+                }
+              ],
+              "virkningsperiode": {
+                "fraOgMed": "2025-01-01",
+                "tilOgMed": "2025-03-31"
+              },
+              "fritekstTilVedtaksbrev": "nyBehandlingUnderBeslutning()",
+              "begrunnelseVilkårsvurdering": "nyBehandlingUnderBeslutning()",
+              "avbrutt": null,
+              "sistEndret": "2025-01-01T01:02:06.456789",
+              "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
+              "ventestatus": null,
+              "utbetaling": null,
+              "innvilgelsesperiode": {
+                "fraOgMed": "2025-01-01",
+                "tilOgMed": "2025-03-31"
+              },
+              "valgteTiltaksdeltakelser": [
+                {
+                  "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
+                  "periode": {
+                    "fraOgMed": "2025-01-01",
+                    "tilOgMed": "2025-03-31"
+                  }
+                }
+              ],
+              "barnetillegg": {
+                "perioder": [
+                  {
+                    "antallBarn": 0,
+                    "periode": {
+                      "fraOgMed": "2025-01-01",
+                      "tilOgMed": "2025-03-31"
+                    }
+                  }
+                ],
+                "begrunnelse": null
+              },
+              "antallDagerPerMeldeperiode": [
+                {
+                  "periode": {
+                    "fraOgMed": "2025-01-01",
+                    "tilOgMed": "2025-03-31"
+                  },
+                  "antallDagerPerMeldeperiode": 10
+                }
+              ],
+              "resultat": "INNVILGELSE",
+              "søknad": {
+                "id": "soknad_01K8QWMR32C2X5Y5T4N945BF9V",
+                "journalpostId": "journalpostId",
+                "tiltak": {
+                  "id": "06872f2f-5ca4-453a-8d41-8e91e1f777a3",
+                  "fraOgMed": "2025-01-01",
+                  "tilOgMed": "2025-03-31",
+                  "typeKode": "GRUPPEAMO",
+                  "typeNavn": "Gruppe AMO"
                 },
-                "antallDagerPerMeldeperiode" : 10
-              } ],
-              "resultat" : "INNVILGELSE",
-              "søknad" : {
-                "id" : "soknad_01K8QWMR32C2X5Y5T4N945BF9V",
-                "journalpostId" : "journalpostId",
-                "tiltak" : {
-                  "id" : "06872f2f-5ca4-453a-8d41-8e91e1f777a3",
-                  "fraOgMed" : "2025-01-01",
-                  "tilOgMed" : "2025-03-31",
-                  "typeKode" : "GRUPPEAMO",
-                  "typeNavn" : "Gruppe AMO"
-                },
-                "barnetillegg" : [ ],
-                "opprettet" : "2022-01-01T12:00:00",
-                "tidsstempelHosOss" : "2022-01-01T12:00:00",
-                "kvp" : null,
-                "intro" : null,
-                "institusjon" : null,
-                "etterlønn" : false,
-                "gjenlevendepensjon" : null,
-                "alderspensjon" : null,
-                "sykepenger" : null,
-                "supplerendeStønadAlder" : null,
-                "supplerendeStønadFlyktning" : null,
-                "jobbsjansen" : null,
-                "trygdOgPensjon" : null,
-                "antallVedlegg" : 0,
-                "avbrutt" : null,
-                "kanInnvilges" : true,
+                "barnetillegg": [],
+                "opprettet": "2022-01-01T12:00:00",
+                "tidsstempelHosOss": "2022-01-01T12:00:00",
+                "kvp": null,
+                "intro": null,
+                "institusjon": null,
+                "etterlønn": false,
+                "gjenlevendepensjon": null,
+                "alderspensjon": null,
+                "sykepenger": null,
+                "supplerendeStønadAlder": null,
+                "supplerendeStønadFlyktning": null,
+                "jobbsjansen": null,
+                "trygdOgPensjon": null,
+                "antallVedlegg": 0,
+                "avbrutt": null,
+                "kanInnvilges": true,
                 "svar": {
                   "kvp": {
                     "svar": "NEI",
@@ -238,9 +251,9 @@ class RammebehandlingDTOTest {
                   }
                 }
               },
-              "automatiskSaksbehandlet" : false,
-              "manueltBehandlesGrunner" : [ ],
-              "type" : "SØKNADSBEHANDLING"
+              "automatiskSaksbehandlet": false,
+              "manueltBehandlesGrunner": [],
+              "type": "SØKNADSBEHANDLING"
             }
         """.trimIndent()
 
@@ -249,8 +262,10 @@ class RammebehandlingDTOTest {
 
     @Test
     fun `Rammebehandling DTO fra søknadsbehandling med avslag`() {
+        val clock = clock.copy()
+
         val behandling = nyVedtattSøknadsbehandling(
-            clock = clock.copy(),
+            clock = clock,
             id = behandlingId,
             sakId = sakId,
             saksnummer = saksnummer,
@@ -275,6 +290,7 @@ class RammebehandlingDTOTest {
                     eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
                     eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                 ),
+                clock = clock,
             ),
         )
 
@@ -289,82 +305,88 @@ class RammebehandlingDTOTest {
         @Language("JSON")
         val expectedJson = """
             {
-              "id" : "beh_01K8R3V8S9X8KGR8HDXXDXN9P3",
-              "status" : "VEDTATT",
-              "sakId" : "sak_01K8QWMR1KZZB728K0F4RQG184",
-              "saksnummer" : "202510291001",
-              "rammevedtakId" : "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
-              "saksbehandler" : "Z12345",
-              "beslutter" : "B12345",
-              "saksopplysninger" : {
-                "fødselsdato" : "2001-01-01",
-                "tiltaksdeltagelse" : [ {
-                  "eksternDeltagelseId" : "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
-                  "gjennomføringId" : "68f04dee-11a9-4d69-84fd-1096a4264492",
-                  "typeNavn" : "Arbeidsmarkedsoppfølging gruppe",
-                  "typeKode" : "GRUPPE_AMO",
-                  "deltagelseFraOgMed" : "2025-01-01",
-                  "deltagelseTilOgMed" : "2025-03-31",
-                  "deltakelseStatus" : "Deltar",
-                  "deltakelseProsent" : 100.0,
-                  "antallDagerPerUke" : 5.0,
-                  "kilde" : "Komet",
-                  "deltakelseProsentFraGjennomforing" : false
-                } ],
-                "periode" : {
-                  "fraOgMed" : "2025-01-01",
-                  "tilOgMed" : "2025-03-31"
+              "id": "beh_01K8R3V8S9X8KGR8HDXXDXN9P3",
+              "status": "VEDTATT",
+              "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
+              "saksnummer": "202510291001",
+              "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
+              "saksbehandler": "Z12345",
+              "beslutter": "B12345",
+              "saksopplysninger": {
+                "fødselsdato": "2001-01-01",
+                "tiltaksdeltagelse": [
+                  {
+                    "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
+                    "gjennomføringId": "68f04dee-11a9-4d69-84fd-1096a4264492",
+                    "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
+                    "typeKode": "GRUPPE_AMO",
+                    "deltagelseFraOgMed": "2025-01-01",
+                    "deltagelseTilOgMed": "2025-03-31",
+                    "deltakelseStatus": "Deltar",
+                    "deltakelseProsent": 100.0,
+                    "antallDagerPerUke": 5.0,
+                    "kilde": "Komet",
+                    "deltakelseProsentFraGjennomforing": false
+                  }
+                ],
+                "periode": {
+                  "fraOgMed": "2025-01-01",
+                  "tilOgMed": "2025-03-31"
                 },
-                "ytelser" : [ ],
-                "tiltakspengevedtakFraArena" : [ ],
+                "ytelser": [],
+                "tiltakspengevedtakFraArena": [],
                 "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
               },
-              "attesteringer" : [ {
-                "endretAv" : "B12345",
-                "status" : "GODKJENT",
-                "begrunnelse" : null,
-                "endretTidspunkt" : "2025-01-01T01:02:07.456789"
-              } ],
-              "virkningsperiode" : {
-                "fraOgMed" : "2025-01-01",
-                "tilOgMed" : "2025-03-31"
+              "attesteringer": [
+                {
+                  "endretAv": "B12345",
+                  "status": "GODKJENT",
+                  "begrunnelse": null,
+                  "endretTidspunkt": "2025-01-01T01:02:08.456789"
+                }
+              ],
+              "virkningsperiode": {
+                "fraOgMed": "2025-01-01",
+                "tilOgMed": "2025-03-31"
               },
-              "fritekstTilVedtaksbrev" : "nyBehandlingUnderBeslutning()",
-              "begrunnelseVilkårsvurdering" : "nyBehandlingUnderBeslutning()",
-              "avbrutt" : null,
-              "sistEndret" : "2025-01-01T01:02:05.456789",
-              "iverksattTidspunkt" : "2025-01-01T01:02:08.456789",
-              "ventestatus" : null,
-              "utbetaling" : null,
-              "avslagsgrunner" : [ "DeltarIkkePåArbeidsmarkedstiltak" ],
-              "resultat" : "AVSLAG",
-              "søknad" : {
-                "id" : "soknad_01K8QWMR32C2X5Y5T4N945BF9V",
-                "journalpostId" : "journalpostId",
-                "tiltak" : {
-                  "id" : "06872f2f-5ca4-453a-8d41-8e91e1f777a3",
-                  "fraOgMed" : "2025-01-01",
-                  "tilOgMed" : "2025-03-31",
-                  "typeKode" : "GRUPPEAMO",
-                  "typeNavn" : "Gruppe AMO"
+              "fritekstTilVedtaksbrev": "nyBehandlingUnderBeslutning()",
+              "begrunnelseVilkårsvurdering": "nyBehandlingUnderBeslutning()",
+              "avbrutt": null,
+              "sistEndret": "2025-01-01T01:02:06.456789",
+              "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
+              "ventestatus": null,
+              "utbetaling": null,
+              "avslagsgrunner": [
+                "DeltarIkkePåArbeidsmarkedstiltak"
+              ],
+              "resultat": "AVSLAG",
+              "søknad": {
+                "id": "soknad_01K8QWMR32C2X5Y5T4N945BF9V",
+                "journalpostId": "journalpostId",
+                "tiltak": {
+                  "id": "06872f2f-5ca4-453a-8d41-8e91e1f777a3",
+                  "fraOgMed": "2025-01-01",
+                  "tilOgMed": "2025-03-31",
+                  "typeKode": "GRUPPEAMO",
+                  "typeNavn": "Gruppe AMO"
                 },
-                "barnetillegg" : [ ],
-                "opprettet" : "2022-01-01T12:00:00",
-                "tidsstempelHosOss" : "2022-01-01T12:00:00",
-                "kvp" : null,
-                "intro" : null,
-                "institusjon" : null,
-                "etterlønn" : false,
-                "gjenlevendepensjon" : null,
-                "alderspensjon" : null,
-                "sykepenger" : null,
-                "supplerendeStønadAlder" : null,
-                "supplerendeStønadFlyktning" : null,
-                "jobbsjansen" : null,
-                "trygdOgPensjon" : null,
-                "antallVedlegg" : 0,
-                "avbrutt" : null,
-                "kanInnvilges" : true,
+                "barnetillegg": [],
+                "opprettet": "2022-01-01T12:00:00",
+                "tidsstempelHosOss": "2022-01-01T12:00:00",
+                "kvp": null,
+                "intro": null,
+                "institusjon": null,
+                "etterlønn": false,
+                "gjenlevendepensjon": null,
+                "alderspensjon": null,
+                "sykepenger": null,
+                "supplerendeStønadAlder": null,
+                "supplerendeStønadFlyktning": null,
+                "jobbsjansen": null,
+                "trygdOgPensjon": null,
+                "antallVedlegg": 0,
+                "avbrutt": null,
+                "kanInnvilges": true,
                 "svar": {
                   "kvp": {
                     "svar": "NEI",
@@ -411,9 +433,9 @@ class RammebehandlingDTOTest {
                   }
                 }
               },
-              "automatiskSaksbehandlet" : false,
-              "manueltBehandlesGrunner" : [ ],
-              "type" : "SØKNADSBEHANDLING"
+              "automatiskSaksbehandlet": false,
+              "manueltBehandlesGrunner": [],
+              "type": "SØKNADSBEHANDLING"
             }
         """.trimIndent()
 
@@ -422,8 +444,10 @@ class RammebehandlingDTOTest {
 
     @Test
     fun `Rammebehandling DTO fra søknadsbehandling uten valgt resultat`() {
+        val clock = clock.copy()
+
         val behandling = nyOpprettetSøknadsbehandling(
-            clock = clock.copy(),
+            clock = clock,
             id = behandlingId,
             sakId = sakId,
             saksnummer = saksnummer,
@@ -446,6 +470,7 @@ class RammebehandlingDTOTest {
                         eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
+                    clock = clock,
                 )
             },
         )
@@ -461,74 +486,76 @@ class RammebehandlingDTOTest {
         @Language("JSON")
         val expectedJson = """
             {
-              "id" : "beh_01K8R3V8S9X8KGR8HDXXDXN9P3",
-              "status" : "UNDER_BEHANDLING",
-              "sakId" : "sak_01K8QWMR1KZZB728K0F4RQG184",
-              "saksnummer" : "202510291001",
-              "rammevedtakId" : "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
-              "saksbehandler" : "Z12345",
-              "beslutter" : null,
-              "saksopplysninger" : {
-                "fødselsdato" : "2001-01-01",
-                "tiltaksdeltagelse" : [ {
-                  "eksternDeltagelseId" : "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
-                  "gjennomføringId" : "68f04dee-11a9-4d69-84fd-1096a4264492",
-                  "typeNavn" : "Arbeidsmarkedsoppfølging gruppe",
-                  "typeKode" : "GRUPPE_AMO",
-                  "deltagelseFraOgMed" : "2025-01-01",
-                  "deltagelseTilOgMed" : "2025-03-31",
-                  "deltakelseStatus" : "Deltar",
-                  "deltakelseProsent" : 100.0,
-                  "antallDagerPerUke" : 5.0,
-                  "kilde" : "Komet",
-                  "deltakelseProsentFraGjennomforing" : false
-                } ],
-                "periode" : {
-                  "fraOgMed" : "2025-01-01",
-                  "tilOgMed" : "2025-03-31"
+              "id": "beh_01K8R3V8S9X8KGR8HDXXDXN9P3",
+              "status": "UNDER_BEHANDLING",
+              "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
+              "saksnummer": "202510291001",
+              "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
+              "saksbehandler": "Z12345",
+              "beslutter": null,
+              "saksopplysninger": {
+                "fødselsdato": "2001-01-01",
+                "tiltaksdeltagelse": [
+                  {
+                    "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
+                    "gjennomføringId": "68f04dee-11a9-4d69-84fd-1096a4264492",
+                    "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
+                    "typeKode": "GRUPPE_AMO",
+                    "deltagelseFraOgMed": "2025-01-01",
+                    "deltagelseTilOgMed": "2025-03-31",
+                    "deltakelseStatus": "Deltar",
+                    "deltakelseProsent": 100.0,
+                    "antallDagerPerUke": 5.0,
+                    "kilde": "Komet",
+                    "deltakelseProsentFraGjennomforing": false
+                  }
+                ],
+                "periode": {
+                  "fraOgMed": "2025-01-01",
+                  "tilOgMed": "2025-03-31"
                 },
-                "ytelser" : [ ],
-                "tiltakspengevedtakFraArena" : [ ],
-                "oppslagstidspunkt": "2025-01-01T01:02:06.456789"
+                "ytelser": [],
+                "tiltakspengevedtakFraArena": [],
+                "oppslagstidspunkt": "2025-01-01T01:02:05.456789"
               },
-              "attesteringer" : [ ],
-              "virkningsperiode" : null,
-              "fritekstTilVedtaksbrev" : null,
-              "begrunnelseVilkårsvurdering" : null,
-              "avbrutt" : null,
-              "sistEndret" : "2025-01-01T01:02:04.456789",
-              "iverksattTidspunkt" : null,
-              "ventestatus" : null,
-              "utbetaling" : null,
-              "resultat" : "IKKE_VALGT",
-              "søknad" : {
-                "id" : "soknad_01K8QWMR32C2X5Y5T4N945BF9V",
-                "journalpostId" : "journalpostId",
-                "tiltak" : {
-                  "id" : "06872f2f-5ca4-453a-8d41-8e91e1f777a3",
-                  "fraOgMed" : "2025-01-01",
-                  "tilOgMed" : "2025-03-31",
-                  "typeKode" : "GRUPPEAMO",
-                  "typeNavn" : "Gruppe AMO"
+              "attesteringer": [],
+              "virkningsperiode": null,
+              "fritekstTilVedtaksbrev": null,
+              "begrunnelseVilkårsvurdering": null,
+              "avbrutt": null,
+              "sistEndret": "2025-01-01T01:02:04.456789",
+              "iverksattTidspunkt": null,
+              "ventestatus": null,
+              "utbetaling": null,
+              "resultat": "IKKE_VALGT",
+              "søknad": {
+                "id": "soknad_01K8QWMR32C2X5Y5T4N945BF9V",
+                "journalpostId": "journalpostId",
+                "tiltak": {
+                  "id": "06872f2f-5ca4-453a-8d41-8e91e1f777a3",
+                  "fraOgMed": "2025-01-01",
+                  "tilOgMed": "2025-03-31",
+                  "typeKode": "GRUPPEAMO",
+                  "typeNavn": "Gruppe AMO"
                 },
-                "barnetillegg" : [ ],
-                "opprettet" : "2022-01-01T12:00:00",
-                "tidsstempelHosOss" : "2022-01-01T12:00:00",
-                "kvp" : null,
-                "intro" : null,
-                "institusjon" : null,
-                "etterlønn" : false,
-                "gjenlevendepensjon" : null,
-                "alderspensjon" : null,
-                "sykepenger" : null,
-                "supplerendeStønadAlder" : null,
-                "supplerendeStønadFlyktning" : null,
-                "jobbsjansen" : null,
-                "trygdOgPensjon" : null,
-                "antallVedlegg" : 0,
-                "avbrutt" : null,
-                "kanInnvilges" : true,
-                "svar": { 
+                "barnetillegg": [],
+                "opprettet": "2022-01-01T12:00:00",
+                "tidsstempelHosOss": "2022-01-01T12:00:00",
+                "kvp": null,
+                "intro": null,
+                "institusjon": null,
+                "etterlønn": false,
+                "gjenlevendepensjon": null,
+                "alderspensjon": null,
+                "sykepenger": null,
+                "supplerendeStønadAlder": null,
+                "supplerendeStønadFlyktning": null,
+                "jobbsjansen": null,
+                "trygdOgPensjon": null,
+                "antallVedlegg": 0,
+                "avbrutt": null,
+                "kanInnvilges": true,
+                "svar": {
                   "kvp": {
                     "svar": "NEI",
                     "periode": null
@@ -574,9 +601,9 @@ class RammebehandlingDTOTest {
                   }
                 }
               },
-              "automatiskSaksbehandlet" : false,
-              "manueltBehandlesGrunner" : [ ],
-              "type" : "SØKNADSBEHANDLING"
+              "automatiskSaksbehandlet": false,
+              "manueltBehandlesGrunner": [],
+              "type": "SØKNADSBEHANDLING"
             }
         """.trimIndent()
 
@@ -585,8 +612,10 @@ class RammebehandlingDTOTest {
 
     @Test
     fun `Rammebehandling DTO fra revurdering med innvilgelse`() {
+        val clock = clock.copy()
+
         val behandling = nyVedtattRevurderingInnvilgelse(
-            clock = clock.copy(),
+            clock = clock,
             id = behandlingId,
             sakId = sakId,
             saksnummer = saksnummer,
@@ -601,6 +630,7 @@ class RammebehandlingDTOTest {
                     eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
                     eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                 ),
+                clock = clock,
             ),
         )
 
@@ -645,14 +675,14 @@ class RammebehandlingDTOTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-01-01T01:02:08.456789"
+                "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
               },
               "attesteringer": [
                 {
                   "endretAv": "B12345",
                   "status": "GODKJENT",
                   "begrunnelse": null,
-                  "endretTidspunkt": "2025-01-01T01:02:04.456789"
+                  "endretTidspunkt": "2025-01-01T01:02:05.456789"
                 }
               ],
               "virkningsperiode": {
@@ -662,8 +692,8 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": "nyRevurderingKlarTilBeslutning()",
               "begrunnelseVilkårsvurdering": "nyRevurderingKlarTilBeslutning()",
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:06.456789",
-              "iverksattTidspunkt": "2025-01-01T01:02:08.456789",
+              "sistEndret": "2025-01-01T01:02:07.456789",
+              "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
               "ventestatus": null,
               "utbetaling": null,
               "innvilgelsesperiode": {
@@ -710,8 +740,10 @@ class RammebehandlingDTOTest {
 
     @Test
     fun `Rammebehandling DTO fra revurdering med stans`() {
+        val clock = clock.copy()
+
         val behandling = nyVedtattRevurderingStans(
-            clock = clock.copy(),
+            clock = clock,
             id = behandlingId,
             sakId = sakId,
             saksnummer = saksnummer,
@@ -730,6 +762,7 @@ class RammebehandlingDTOTest {
                     eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
                     eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                 ),
+                clock = clock,
             ),
         )
 
@@ -774,14 +807,14 @@ class RammebehandlingDTOTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-01-01T01:02:07.456789"
+                "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
               },
               "attesteringer": [
                 {
                   "endretAv": "B12345",
                   "status": "GODKJENT",
                   "begrunnelse": null,
-                  "endretTidspunkt": "2025-01-01T01:02:04.456789"
+                  "endretTidspunkt": "2025-01-01T01:02:05.456789"
                 }
               ],
               "virkningsperiode": {
@@ -791,8 +824,8 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": "nyRevurderingKlarTilBeslutning()",
               "begrunnelseVilkårsvurdering": "nyRevurderingKlarTilBeslutning()",
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:06.456789",
-              "iverksattTidspunkt": "2025-01-01T01:02:07.456789",
+              "sistEndret": "2025-01-01T01:02:07.456789",
+              "iverksattTidspunkt": "2025-01-01T01:02:08.456789",
               "ventestatus": null,
               "utbetaling": null,
               "valgtHjemmelHarIkkeRettighet": [
@@ -837,6 +870,7 @@ class RammebehandlingDTOTest {
                     eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
                     eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                 ),
+                clock = nyClock,
             ),
         )
 
@@ -867,6 +901,7 @@ class RammebehandlingDTOTest {
                         eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
+                    clock = nyClock,
                 )
             },
         )
@@ -912,7 +947,7 @@ class RammebehandlingDTOTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-01-01T01:02:12.456789"
+                "oppslagstidspunkt": "2025-01-01T01:02:10.456789"
               },
               "attesteringer": [],
               "virkningsperiode": {
@@ -922,7 +957,7 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:09.456789",
+              "sistEndret": "2025-01-01T01:02:11.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
