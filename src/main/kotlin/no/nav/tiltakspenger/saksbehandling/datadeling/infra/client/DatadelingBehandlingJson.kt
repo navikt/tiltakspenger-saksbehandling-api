@@ -1,16 +1,53 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
-import no.nav.tiltakspenger.libs.datadeling.DatadelingBehandlingDTO
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingBehandlingJson.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingBehandlingJson.Behandlingstype
+import java.time.LocalDate
+import java.time.LocalDateTime
+
+data class DatadelingBehandlingJson(
+    val behandlingId: String,
+    val sakId: String,
+    val fraOgMed: LocalDate?,
+    val tilOgMed: LocalDate?,
+    val behandlingStatus: Behandlingsstatus,
+    val saksbehandler: String?,
+    val beslutter: String?,
+    val iverksattTidspunkt: LocalDateTime?,
+    val fnr: String,
+    val saksnummer: String,
+    val opprettetTidspunktSaksbehandlingApi: LocalDateTime,
+    val behandlingstype: Behandlingstype,
+    val sistEndret: LocalDateTime,
+) {
+    enum class Behandlingsstatus {
+        UNDER_AUTOMATISK_BEHANDLING,
+        KLAR_TIL_BEHANDLING,
+        UNDER_BEHANDLING,
+        KLAR_TIL_BESLUTNING,
+        UNDER_BESLUTNING,
+        VEDTATT,
+        AVBRUTT,
+        GODKJENT,
+        AUTOMATISK_BEHANDLET,
+        IKKE_RETT_TIL_TILTAKSPENGER,
+    }
+
+    enum class Behandlingstype {
+        SOKNADSBEHANDLING,
+        REVURDERING,
+        MELDEKORTBEHANDLING,
+    }
+}
 
 fun Søknadsbehandling.toBehandlingJson(): String {
-    return DatadelingBehandlingDTO(
+    return DatadelingBehandlingJson(
         behandlingId = id.toString(),
         sakId = sakId.toString(),
         saksnummer = saksnummer.verdi,
-        // TODO jah: Gir det mening at [fraOgMed] og [tilOgMed] er noe annet enn null fram til virkningsperioden er satt?
         fraOgMed = virkningsperiode?.fraOgMed
             ?: saksopplysninger.tiltaksdeltagelser.tidligsteFraOgMed
             ?: søknad.tiltak?.deltakelseFom
@@ -24,20 +61,20 @@ fun Søknadsbehandling.toBehandlingJson(): String {
         beslutter = beslutter,
         iverksattTidspunkt = iverksattTidspunkt,
         fnr = fnr.verdi,
-        // Skal kun kalles for søknadsbehandlinger, men det skal sjekkes lenger ut.
-        søknadJournalpostId = søknad.journalpostId,
         opprettetTidspunktSaksbehandlingApi = opprettet,
+        behandlingstype = Behandlingstype.SOKNADSBEHANDLING,
+        sistEndret = sistEndret,
 
     ).let { serialize(it) }
 }
 
-fun Rammebehandlingsstatus.toDatadelingDTO(): DatadelingBehandlingDTO.Behandlingsstatus =
+fun Rammebehandlingsstatus.toDatadelingDTO(): Behandlingsstatus =
     when (this) {
-        Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> DatadelingBehandlingDTO.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
-        Rammebehandlingsstatus.KLAR_TIL_BEHANDLING -> DatadelingBehandlingDTO.Behandlingsstatus.KLAR_TIL_BEHANDLING
-        Rammebehandlingsstatus.UNDER_BEHANDLING -> DatadelingBehandlingDTO.Behandlingsstatus.UNDER_BEHANDLING
-        Rammebehandlingsstatus.KLAR_TIL_BESLUTNING -> DatadelingBehandlingDTO.Behandlingsstatus.KLAR_TIL_BESLUTNING
-        Rammebehandlingsstatus.UNDER_BESLUTNING -> DatadelingBehandlingDTO.Behandlingsstatus.UNDER_BESLUTNING
-        Rammebehandlingsstatus.VEDTATT -> DatadelingBehandlingDTO.Behandlingsstatus.VEDTATT
-        Rammebehandlingsstatus.AVBRUTT -> DatadelingBehandlingDTO.Behandlingsstatus.AVBRUTT
+        Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+        Rammebehandlingsstatus.KLAR_TIL_BEHANDLING -> Behandlingsstatus.KLAR_TIL_BEHANDLING
+        Rammebehandlingsstatus.UNDER_BEHANDLING -> Behandlingsstatus.UNDER_BEHANDLING
+        Rammebehandlingsstatus.KLAR_TIL_BESLUTNING -> Behandlingsstatus.KLAR_TIL_BESLUTNING
+        Rammebehandlingsstatus.UNDER_BESLUTNING -> Behandlingsstatus.UNDER_BESLUTNING
+        Rammebehandlingsstatus.VEDTATT -> Behandlingsstatus.VEDTATT
+        Rammebehandlingsstatus.AVBRUTT -> Behandlingsstatus.AVBRUTT
     }
