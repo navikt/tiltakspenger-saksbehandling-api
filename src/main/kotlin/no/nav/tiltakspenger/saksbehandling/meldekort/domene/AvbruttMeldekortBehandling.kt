@@ -39,6 +39,7 @@ data class AvbruttMeldekortBehandling(
     override val attesteringer: Attesteringer,
     override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
     override val avbrutt: Avbrutt?,
+    override val sistEndret: LocalDateTime,
 ) : MeldekortBehandling {
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null

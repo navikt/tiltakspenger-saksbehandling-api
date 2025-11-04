@@ -58,6 +58,7 @@ data class MeldekortUnderBehandling(
     override val beregning: Beregning?,
     override val simulering: Simulering?,
     override val status: MeldekortBehandlingStatus,
+    override val sistEndret: LocalDateTime,
 ) : MeldekortBehandling {
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
@@ -140,6 +141,7 @@ data class MeldekortUnderBehandling(
                 attesteringer = oppdatertMeldekort.attesteringer,
                 dager = oppdatertMeldekort.dager,
                 sendtTilDatadeling = null,
+                sistEndret = nå(clock),
             ) to simulering
             ).right()
     }
@@ -189,6 +191,7 @@ data class MeldekortUnderBehandling(
                 }
                 this.copy(
                     saksbehandler = saksbehandler.navIdent,
+                    sistEndret = LocalDateTime.now(),
                 ).right()
             }
 
@@ -211,6 +214,7 @@ data class MeldekortUnderBehandling(
                 this.copy(
                     saksbehandler = saksbehandler.navIdent,
                     status = UNDER_BEHANDLING,
+                    sistEndret = LocalDateTime.now(),
                 )
             }
 
@@ -237,6 +241,7 @@ data class MeldekortUnderBehandling(
                 this.copy(
                     saksbehandler = null,
                     status = KLAR_TIL_BEHANDLING,
+                    sistEndret = LocalDateTime.now(),
                 )
             }
 
@@ -296,6 +301,7 @@ data class MeldekortUnderBehandling(
                 saksbehandler = avbruttAv.navIdent,
                 begrunnelse = begrunnelse,
             ),
+            sistEndret = tidspunkt,
         ).right()
     }
 
@@ -324,6 +330,7 @@ data class MeldekortUnderBehandling(
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
                 begrunnelse = "Ikke rett til tiltakspenger",
             ),
+            sistEndret = ikkeRettTilTiltakspengerTidspunkt,
         )
     }
 
@@ -368,6 +375,7 @@ fun Sak.opprettManuellMeldekortBehandling(
                 val oppdatertBehandling = (åpenMeldekortBehandling as MeldekortUnderBehandling).copy(
                     saksbehandler = saksbehandler.navIdent,
                     status = UNDER_BEHANDLING,
+                    sistEndret = nå(clock),
                 )
 
                 return Triple(
@@ -407,6 +415,7 @@ fun Sak.opprettManuellMeldekortBehandling(
         simulering = null,
         dager = meldeperiode.tilMeldekortDager(),
         status = UNDER_BEHANDLING,
+        sistEndret = nå(clock),
     ).let {
         Triple(this.leggTilMeldekortbehandling(it), it, SkalLagreEllerOppdatere.Lagre)
     }

@@ -29,12 +29,14 @@ class LeggTilbakeMeldekortBehandlingService(
                     it.id,
                     saksbehandler,
                     it.status,
+                    it.sistEndret,
                 )
 
                 MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> meldekortBehandlingRepo.leggTilbakeBehandlingBeslutter(
                     it.id,
                     saksbehandler,
                     it.status,
+                    it.sistEndret,
                 )
 
                 else -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne legge tilbake")

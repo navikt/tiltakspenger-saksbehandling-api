@@ -31,12 +31,14 @@ class TaMeldekortBehandlingService(
                     it.id,
                     saksbehandler,
                     it.status,
+                    it.sistEndret,
                 )
 
                 MeldekortBehandlingStatus.UNDER_BESLUTNING -> meldekortBehandlingRepo.taBehandlingBeslutter(
                     it.id,
                     saksbehandler,
                     it.status,
+                    it.sistEndret,
                 )
 
                 else -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne tildele seg selv")

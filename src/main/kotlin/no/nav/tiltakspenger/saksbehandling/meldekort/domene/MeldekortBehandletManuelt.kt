@@ -60,6 +60,7 @@ data class MeldekortBehandletManuelt(
     override val simulering: Simulering?,
     override val dager: MeldekortDager,
     override val sendtTilDatadeling: LocalDateTime?,
+    override val sistEndret: LocalDateTime,
 ) : MeldekortBehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
 
@@ -130,6 +131,7 @@ data class MeldekortBehandletManuelt(
             status = GODKJENT,
             iverksattTidspunkt = nå(clock),
             attesteringer = attesteringer,
+            sistEndret = nå(clock),
         ).right()
     }
 
@@ -180,6 +182,8 @@ data class MeldekortBehandletManuelt(
             sendtTilBeslutning = sendtTilBeslutning,
             dager = dager,
             status = UNDER_BEHANDLING,
+            sistEndret = nå(clock),
+
         ).right()
     }
 
@@ -201,6 +205,7 @@ data class MeldekortBehandletManuelt(
                 }
                 this.copy(
                     beslutter = saksbehandler.navIdent,
+                    sistEndret = LocalDateTime.now(),
                 ).right()
             }
             GODKJENT,
@@ -221,6 +226,7 @@ data class MeldekortBehandletManuelt(
                 this.copy(
                     beslutter = saksbehandler.navIdent,
                     status = UNDER_BESLUTNING,
+                    sistEndret = LocalDateTime.now(),
                 )
             }
 
@@ -247,6 +253,7 @@ data class MeldekortBehandletManuelt(
                 this.copy(
                     beslutter = null,
                     status = KLAR_TIL_BESLUTNING,
+                    sistEndret = LocalDateTime.now(),
                 )
             }
 
@@ -296,6 +303,7 @@ data class MeldekortBehandletManuelt(
             simulering = null,
             dager = meldeperiode.tilMeldekortDager(),
             status = UNDER_BEHANDLING,
+            sistEndret = LocalDateTime.now(),
         )
     }
 
@@ -324,6 +332,7 @@ data class MeldekortBehandletManuelt(
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
                 begrunnelse = "Ikke rett til tiltakspenger",
             ),
+            sistEndret = ikkeRettTilTiltakspengerTidspunkt,
         )
     }
 }

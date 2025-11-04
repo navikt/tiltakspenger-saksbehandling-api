@@ -68,6 +68,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         nySaksbehandler: Saksbehandler,
         nåværendeSaksbehandler: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val meldekortBehandling = data.get()[meldekortId]
@@ -77,6 +78,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         if (meldekortBehandling is MeldekortUnderBehandling) {
             data.get()[meldekortId] = meldekortBehandling.copy(
                 saksbehandler = nySaksbehandler.navIdent,
+                sistEndret = sistEndret,
             )
             return true
         } else {
@@ -88,6 +90,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         nyBeslutter: Saksbehandler,
         nåværendeBeslutter: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val meldekortBehandling = data.get()[meldekortId]
@@ -97,6 +100,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         if (meldekortBehandling is MeldekortBehandletManuelt) {
             data.get()[meldekortId] = meldekortBehandling.copy(
                 beslutter = nyBeslutter.navIdent,
+                sistEndret = sistEndret,
             )
             return true
         } else {
@@ -108,6 +112,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         saksbehandler: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val meldekortBehandling = data.get()[meldekortId]
@@ -118,6 +123,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
             data.get()[meldekortId] = meldekortBehandling.copy(
                 saksbehandler = saksbehandler.navIdent,
                 status = MeldekortBehandlingStatus.UNDER_BEHANDLING,
+                sistEndret = sistEndret,
             )
             return true
         } else {
@@ -129,6 +135,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         beslutter: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val meldekortBehandling = data.get()[meldekortId]
@@ -139,6 +146,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
             data.get()[meldekortId] = meldekortBehandling.copy(
                 beslutter = beslutter.navIdent,
                 status = MeldekortBehandlingStatus.UNDER_BESLUTNING,
+                sistEndret = sistEndret,
             )
             return true
         } else {
@@ -150,6 +158,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         nåværendeSaksbehandler: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val meldekortBehandling = data.get()[meldekortId]
@@ -160,6 +169,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
             data.get()[meldekortId] = meldekortBehandling.copy(
                 saksbehandler = null,
                 status = MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING,
+                sistEndret = sistEndret,
             )
             return true
         } else {
@@ -171,6 +181,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         nåværendeBeslutter: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val meldekortBehandling = data.get()[meldekortId]
@@ -181,6 +192,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
             data.get()[meldekortId] = meldekortBehandling.copy(
                 beslutter = null,
                 status = MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING,
+                sistEndret = sistEndret,
             )
             return true
         } else {

@@ -23,12 +23,14 @@ class OvertaMeldekortBehandlingService(
                     meldekortId = it.id,
                     nySaksbehandler = command.saksbehandler,
                     nåværendeSaksbehandler = command.overtarFra,
+                    it.sistEndret,
                 )
 
                 MeldekortBehandlingStatus.UNDER_BESLUTNING -> meldekortBehandlingRepo.overtaBeslutter(
                     meldekortId = it.id,
                     nyBeslutter = command.saksbehandler,
                     nåværendeBeslutter = command.overtarFra,
+                    it.sistEndret,
                 )
 
                 else -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne overta")

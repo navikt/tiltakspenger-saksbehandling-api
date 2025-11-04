@@ -49,6 +49,7 @@ interface MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         nySaksbehandler: Saksbehandler,
         nåværendeSaksbehandler: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 
@@ -56,6 +57,7 @@ interface MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         nyBeslutter: Saksbehandler,
         nåværendeBeslutter: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 
@@ -63,6 +65,7 @@ interface MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         saksbehandler: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 
@@ -70,6 +73,7 @@ interface MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         beslutter: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 
@@ -77,6 +81,7 @@ interface MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         nåværendeSaksbehandler: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 
@@ -84,6 +89,7 @@ interface MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         nåværendeBeslutter: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 
