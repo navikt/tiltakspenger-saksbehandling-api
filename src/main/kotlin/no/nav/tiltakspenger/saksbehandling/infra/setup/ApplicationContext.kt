@@ -127,7 +127,13 @@ open class ApplicationContext(
     open val safJournalpostClient: SafJournalpostClient by lazy {
         SafJournalpostClientImpl(
             baseUrl = Configuration.safUrl,
-            getToken = { texasClient.getSystemToken(Configuration.safScope, IdentityProvider.AZUREAD) },
+            getToken = {
+                texasClient.getSystemToken(
+                    audienceTarget = Configuration.safScope,
+                    identityProvider = IdentityProvider.AZUREAD,
+                    rewriteAudienceTarget = false,
+                )
+            },
         )
     }
 
