@@ -25,4 +25,8 @@ data class TiltaksdeltagelserDetErSøktTiltakspengerFor(
 
     /** TiltaksdeltagelseIden. Uavhengig av kildesystem. */
     val ider: List<String> by lazy { value.map { it.søknadstiltak.id }.distinct() }
+
+    companion object {
+        fun empty() = TiltaksdeltagelserDetErSøktTiltakspengerFor(emptyList())
+    }
 }
