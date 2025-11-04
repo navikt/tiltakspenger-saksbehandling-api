@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingBehandlingJson.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingBehandlingJson.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -59,7 +61,7 @@ fun Rammebehandling.toBehandlingJson(): String {
         } else {
             virkningsperiode?.tilOgMed
         },
-        behandlingStatus = status.toDatadelingDTO(),
+        behandlingStatus = status.toDatadelingStatus(),
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         iverksattTidspunkt = iverksattTidspunkt,
@@ -75,6 +77,25 @@ fun Rammebehandling.toBehandlingJson(): String {
     ).let { serialize(it) }
 }
 
+fun MeldekortBehandling.toBehandlingJson(): String {
+    return DatadelingBehandlingJson(
+        behandlingId = id.toString(),
+        sakId = sakId.toString(),
+        saksnummer = saksnummer.verdi,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        behandlingStatus = status.toDatadelingStatus(),
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
+        iverksattTidspunkt = iverksattTidspunkt,
+        fnr = fnr.verdi,
+        opprettetTidspunktSaksbehandlingApi = opprettet,
+        behandlingstype = Behandlingstype.MELDEKORTBEHANDLING,
+        sistEndret = sistEndret,
+
+    ).let { serialize(it) }
+}
+
 private fun Søknadsbehandling.getFraOgMed() = virkningsperiode?.fraOgMed
     ?: saksopplysninger.tiltaksdeltagelser.tidligsteFraOgMed
     ?: søknad.tiltak?.deltakelseFom
@@ -85,7 +106,7 @@ private fun Søknadsbehandling.getTilOgMed() = virkningsperiode?.tilOgMed
     ?: søknad.tiltak?.deltakelseTom
     ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm()!!.tilOgMed
 
-fun Rammebehandlingsstatus.toDatadelingDTO(): Behandlingsstatus =
+fun Rammebehandlingsstatus.toDatadelingStatus(): Behandlingsstatus =
     when (this) {
         Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
         Rammebehandlingsstatus.KLAR_TIL_BEHANDLING -> Behandlingsstatus.KLAR_TIL_BEHANDLING
@@ -94,4 +115,16 @@ fun Rammebehandlingsstatus.toDatadelingDTO(): Behandlingsstatus =
         Rammebehandlingsstatus.UNDER_BESLUTNING -> Behandlingsstatus.UNDER_BESLUTNING
         Rammebehandlingsstatus.VEDTATT -> Behandlingsstatus.VEDTATT
         Rammebehandlingsstatus.AVBRUTT -> Behandlingsstatus.AVBRUTT
+    }
+
+fun MeldekortBehandlingStatus.toDatadelingStatus(): Behandlingsstatus =
+    when (this) {
+        MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> Behandlingsstatus.KLAR_TIL_BEHANDLING
+        MeldekortBehandlingStatus.UNDER_BEHANDLING -> Behandlingsstatus.UNDER_BEHANDLING
+        MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> Behandlingsstatus.KLAR_TIL_BESLUTNING
+        MeldekortBehandlingStatus.UNDER_BESLUTNING -> Behandlingsstatus.UNDER_BESLUTNING
+        MeldekortBehandlingStatus.GODKJENT -> Behandlingsstatus.GODKJENT
+        MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> Behandlingsstatus.AUTOMATISK_BEHANDLET
+        MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> Behandlingsstatus.IKKE_RETT_TIL_TILTAKSPENGER
+        MeldekortBehandlingStatus.AVBRUTT -> Behandlingsstatus.AVBRUTT
     }

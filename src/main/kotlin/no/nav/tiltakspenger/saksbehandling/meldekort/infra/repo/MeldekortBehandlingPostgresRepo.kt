@@ -73,7 +73,8 @@ class MeldekortBehandlingPostgresRepo(
                         attesteringer,
                         brukers_meldekort_id,
                         avbrutt,
-                        sendt_til_datadeling
+                        sendt_til_datadeling,
+                        sist_endret
                     ) values (
                         :id,
                         :meldeperiode_kjede_id,
@@ -98,7 +99,8 @@ class MeldekortBehandlingPostgresRepo(
                         to_jsonb(:attesteringer::jsonb),
                         :brukers_meldekort_id,
                         to_jsonb(:avbrutt::jsonb),
-                        :sendt_til_datadeling
+                        :sendt_til_datadeling,
+                        :sist_endret
                     )
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -126,6 +128,7 @@ class MeldekortBehandlingPostgresRepo(
                     "brukers_meldekort_id" to meldekortBehandling.brukersMeldekort?.id?.toString(),
                     "avbrutt" to meldekortBehandling.avbrutt?.toDbJson(),
                     "sendt_til_datadeling" to meldekortBehandling.sendtTilDatadeling,
+                    "sist_endret" to meldekortBehandling.sistEndret,
                 ).asUpdate,
             )
         }
@@ -152,7 +155,8 @@ class MeldekortBehandlingPostgresRepo(
                         begrunnelse = :begrunnelse,
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
-                        sendt_til_datadeling = :sendt_til_datadeling
+                        sendt_til_datadeling = :sendt_til_datadeling,
+                        sist_endret = :sist_endret
                     where id = :id
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -169,6 +173,7 @@ class MeldekortBehandlingPostgresRepo(
                     "attesteringer" to meldekortBehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortBehandling.avbrutt?.toDbJson(),
                     "sendt_til_datadeling" to meldekortBehandling.sendtTilDatadeling,
+                    "sist_endret" to meldekortBehandling.sistEndret,
                 ).asUpdate,
             )
         }
@@ -199,7 +204,8 @@ class MeldekortBehandlingPostgresRepo(
                         begrunnelse = :begrunnelse,
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
-                        sendt_til_datadeling = :sendt_til_datadeling
+                        sendt_til_datadeling = :sendt_til_datadeling,
+                        sist_endret = :sist_endret
                     where id = :id
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -219,6 +225,7 @@ class MeldekortBehandlingPostgresRepo(
                     "attesteringer" to meldekortBehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortBehandling.avbrutt?.toDbJson(),
                     "sendt_til_datadeling" to meldekortBehandling.sendtTilDatadeling,
+                    "sist_endret" to meldekortBehandling.sistEndret,
                 ).asUpdate,
             )
         }
@@ -243,6 +250,7 @@ class MeldekortBehandlingPostgresRepo(
         meldekortId: MeldekortId,
         nySaksbehandler: Saksbehandler,
         nåværendeSaksbehandler: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
@@ -251,12 +259,14 @@ class MeldekortBehandlingPostgresRepo(
                     """
                     update meldekortbehandling set
                         saksbehandler = :nySaksbehandler,
-                        beslutter = CASE WHEN beslutter = :nySaksbehandler THEN null ELSE beslutter END
+                        beslutter = CASE WHEN beslutter = :nySaksbehandler THEN null ELSE beslutter END,
+                        sist_endret = :sist_endret
                     where id = :id and saksbehandler = :lagretSaksbehandler
                     """,
                     "id" to meldekortId.toString(),
                     "nySaksbehandler" to nySaksbehandler.navIdent,
                     "lagretSaksbehandler" to nåværendeSaksbehandler,
+                    "sist_endret" to sistEndret,
                 ).asUpdate,
             ) > 0
         }
@@ -266,16 +276,18 @@ class MeldekortBehandlingPostgresRepo(
         meldekortId: MeldekortId,
         nyBeslutter: Saksbehandler,
         nåværendeBeslutter: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 queryOf(
-                    """update meldekortbehandling set beslutter = :nyBeslutter where id = :id and beslutter = :lagretBeslutter""",
+                    """update meldekortbehandling set beslutter = :nyBeslutter, sist_endret = :sist_endret where id = :id and beslutter = :lagretBeslutter""",
                     mapOf(
                         "id" to meldekortId.toString(),
                         "nyBeslutter" to nyBeslutter.navIdent,
                         "lagretBeslutter" to nåværendeBeslutter,
+                        "sist_endret" to sistEndret,
                     ),
                 ).asUpdate,
             ) > 0
@@ -286,6 +298,7 @@ class MeldekortBehandlingPostgresRepo(
         meldekortId: MeldekortId,
         saksbehandler: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
@@ -295,12 +308,14 @@ class MeldekortBehandlingPostgresRepo(
                     update meldekortbehandling set
                         saksbehandler = :saksbehandler,
                         status = :status,
-                        beslutter = CASE WHEN beslutter = :saksbehandler THEN null ELSE beslutter END
+                        beslutter = CASE WHEN beslutter = :saksbehandler THEN null ELSE beslutter END,
+                        sist_endret = :sist_endret
                     where id = :id and saksbehandler is null
                     """,
                     "id" to meldekortId.toString(),
                     "saksbehandler" to saksbehandler.navIdent,
                     "status" to meldekortBehandlingStatus.toDb(),
+                    "sist_endret" to sistEndret,
                 ).asUpdate,
             ) > 0
         }
@@ -310,16 +325,18 @@ class MeldekortBehandlingPostgresRepo(
         meldekortId: MeldekortId,
         beslutter: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 queryOf(
-                    """update meldekortbehandling set beslutter = :beslutter, status = :status where id = :id and beslutter is null""",
+                    """update meldekortbehandling set beslutter = :beslutter, status = :status, sist_endret = :sist_endret where id = :id and beslutter is null""",
                     mapOf(
                         "id" to meldekortId.toString(),
                         "beslutter" to beslutter.navIdent,
                         "status" to meldekortBehandlingStatus.toDb(),
+                        "sist_endret" to sistEndret,
                     ),
                 ).asUpdate,
             ) > 0
@@ -330,16 +347,18 @@ class MeldekortBehandlingPostgresRepo(
         meldekortId: MeldekortId,
         nåværendeSaksbehandler: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 queryOf(
-                    """update meldekortbehandling set saksbehandler = null, status = :status where id = :id and saksbehandler = :lagretSaksbehandler""",
+                    """update meldekortbehandling set saksbehandler = null, status = :status, sist_endret = :sist_endret where id = :id and saksbehandler = :lagretSaksbehandler""",
                     mapOf(
                         "id" to meldekortId.toString(),
                         "lagretSaksbehandler" to nåværendeSaksbehandler.navIdent,
                         "status" to meldekortBehandlingStatus.toDb(),
+                        "sist_endret" to sistEndret,
                     ),
                 ).asUpdate,
             ) > 0
@@ -350,16 +369,18 @@ class MeldekortBehandlingPostgresRepo(
         meldekortId: MeldekortId,
         nåværendeBeslutter: Saksbehandler,
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 queryOf(
-                    """update meldekortbehandling set beslutter = null, status = :status where id = :id and beslutter = :lagretBeslutter""",
+                    """update meldekortbehandling set beslutter = null, status = :status, sist_endret = :sist_endret where id = :id and beslutter = :lagretBeslutter""",
                     mapOf(
                         "id" to meldekortId.toString(),
                         "lagretBeslutter" to nåværendeBeslutter.navIdent,
                         "status" to meldekortBehandlingStatus.toDb(),
+                        "sist_endret" to sistEndret,
                     ),
                 ).asUpdate,
             ) > 0
@@ -488,6 +509,7 @@ class MeldekortBehandlingPostgresRepo(
 
             val iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt")
             val sendtTilDatadeling = row.localDateTimeOrNull("sendt_til_datadeling")
+            val sistEndret = row.localDateTime("sist_endret")
 
             val beregning = row.stringOrNull("beregninger")
                 ?.tilMeldeperiodeBeregningerFraMeldekort(id)
@@ -514,6 +536,7 @@ class MeldekortBehandlingPostgresRepo(
                         type = type,
                         status = status,
                         sendtTilDatadeling = sendtTilDatadeling,
+                        sistEndret = sistEndret,
                     )
                 }
 
@@ -540,6 +563,7 @@ class MeldekortBehandlingPostgresRepo(
                         simulering = simulering,
                         dager = dager,
                         sendtTilDatadeling = sendtTilDatadeling,
+                        sistEndret = sistEndret,
                     )
                 }
 
@@ -563,6 +587,7 @@ class MeldekortBehandlingPostgresRepo(
                         simulering = simulering,
                         dager = dager,
                         status = status,
+                        sistEndret = sistEndret,
                     )
                 }
 
@@ -585,6 +610,7 @@ class MeldekortBehandlingPostgresRepo(
                         simulering = simulering,
                         dager = dager,
                         avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
+                        sistEndret = sistEndret,
                     )
                 }
             }
