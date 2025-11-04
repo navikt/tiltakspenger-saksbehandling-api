@@ -59,6 +59,7 @@ data class MeldekortUnderBehandling(
     override val simulering: Simulering?,
     override val status: MeldekortBehandlingStatus,
     override val sistEndret: LocalDateTime,
+    override val behandlingSendtTilDatadeling: LocalDateTime?,
 ) : MeldekortBehandling {
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
@@ -142,6 +143,7 @@ data class MeldekortUnderBehandling(
                 dager = oppdatertMeldekort.dager,
                 sendtTilDatadeling = null,
                 sistEndret = nå(clock),
+                behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             ) to simulering
             ).right()
     }
@@ -302,6 +304,7 @@ data class MeldekortUnderBehandling(
                 begrunnelse = begrunnelse,
             ),
             sistEndret = tidspunkt,
+            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
         ).right()
     }
 
@@ -331,6 +334,7 @@ data class MeldekortUnderBehandling(
                 begrunnelse = "Ikke rett til tiltakspenger",
             ),
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
+            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
         )
     }
 
@@ -416,6 +420,7 @@ fun Sak.opprettManuellMeldekortBehandling(
         dager = meldeperiode.tilMeldekortDager(),
         status = UNDER_BEHANDLING,
         sistEndret = nå(clock),
+        behandlingSendtTilDatadeling = null,
     ).let {
         Triple(this.leggTilMeldekortbehandling(it), it, SkalLagreEllerOppdatere.Lagre)
     }
