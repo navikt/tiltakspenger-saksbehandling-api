@@ -7,7 +7,7 @@ import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.FeilVedSendingTilDatadeling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -67,7 +67,7 @@ class DatadelingHttpClient(
     }
 
     override suspend fun send(
-        behandling: Søknadsbehandling,
+        behandling: Rammebehandling,
         correlationId: CorrelationId,
     ): Either<FeilVedSendingTilDatadeling, Unit> {
         val jsonPayload = behandling.toBehandlingJson()

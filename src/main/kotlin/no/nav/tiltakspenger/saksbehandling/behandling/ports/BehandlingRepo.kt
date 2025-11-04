@@ -29,7 +29,7 @@ interface BehandlingRepo {
 
     fun hentAlleForFnr(fnr: Fnr): List<Rammebehandling>
 
-    fun hentSøknadsbehandlingerTilDatadeling(limit: Int = 10): List<Rammebehandling>
+    fun hentBehandlingerTilDatadeling(limit: Int = 10): List<Rammebehandling>
 
     fun markerSendtTilDatadeling(id: BehandlingId, tidspunkt: LocalDateTime)
 

@@ -668,7 +668,7 @@ class BehandlingPostgresRepo(
     }
 
     /** Siden dette er på tvers av saker, gir det ikke mening og bruke [Rammebehandlinger] */
-    override fun hentSøknadsbehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
+    override fun hentBehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
         return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
@@ -677,9 +677,7 @@ class BehandlingPostgresRepo(
                     select b.*,sak.saksnummer,sak.fnr
                     from behandling b
                     join sak on sak.id = b.sak_id
-                    where
-                      b.behandlingstype = 'SØKNADSBEHANDLING' and
-                      (b.sendt_til_datadeling is null or b.sendt_til_datadeling < b.sist_endret)
+                    where b.sendt_til_datadeling is null or b.sendt_til_datadeling < b.sist_endret
                     order by b.opprettet
                     limit :limit
                     """.trimIndent(),

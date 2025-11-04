@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingBehandlingJson.Behandlingsstatus
@@ -43,30 +44,46 @@ data class DatadelingBehandlingJson(
     }
 }
 
-fun Søknadsbehandling.toBehandlingJson(): String {
+fun Rammebehandling.toBehandlingJson(): String {
     return DatadelingBehandlingJson(
         behandlingId = id.toString(),
         sakId = sakId.toString(),
         saksnummer = saksnummer.verdi,
-        fraOgMed = virkningsperiode?.fraOgMed
-            ?: saksopplysninger.tiltaksdeltagelser.tidligsteFraOgMed
-            ?: søknad.tiltak?.deltakelseFom
-            ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm()!!.fraOgMed,
-        tilOgMed = virkningsperiode?.tilOgMed
-            ?: saksopplysninger.tiltaksdeltagelser.senesteTilOgMed
-            ?: søknad.tiltak?.deltakelseTom
-            ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm()!!.tilOgMed,
+        fraOgMed = if (this is Søknadsbehandling) {
+            this.getFraOgMed()
+        } else {
+            virkningsperiode?.fraOgMed
+        },
+        tilOgMed = if (this is Søknadsbehandling) {
+            this.getTilOgMed()
+        } else {
+            virkningsperiode?.tilOgMed
+        },
         behandlingStatus = status.toDatadelingDTO(),
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         iverksattTidspunkt = iverksattTidspunkt,
         fnr = fnr.verdi,
         opprettetTidspunktSaksbehandlingApi = opprettet,
-        behandlingstype = Behandlingstype.SOKNADSBEHANDLING,
+        behandlingstype = if (this is Søknadsbehandling) {
+            Behandlingstype.SOKNADSBEHANDLING
+        } else {
+            Behandlingstype.REVURDERING
+        },
         sistEndret = sistEndret,
 
     ).let { serialize(it) }
 }
+
+private fun Søknadsbehandling.getFraOgMed() = virkningsperiode?.fraOgMed
+    ?: saksopplysninger.tiltaksdeltagelser.tidligsteFraOgMed
+    ?: søknad.tiltak?.deltakelseFom
+    ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm()!!.fraOgMed
+
+private fun Søknadsbehandling.getTilOgMed() = virkningsperiode?.tilOgMed
+    ?: saksopplysninger.tiltaksdeltagelser.senesteTilOgMed
+    ?: søknad.tiltak?.deltakelseTom
+    ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm()!!.tilOgMed
 
 fun Rammebehandlingsstatus.toDatadelingDTO(): Behandlingsstatus =
     when (this) {
