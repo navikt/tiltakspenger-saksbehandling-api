@@ -48,6 +48,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     fun revurderingVirkningsperiode() = 2.januar(2023) til 31.mars(2023)
 
     fun nyOpprettetRevurderingStans(
+        clock: Clock = this.clock,
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
@@ -58,9 +59,9 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksopplysninger(
                 fom = it.fraOgMed,
                 tom = it.tilOgMed,
+                clock = clock,
             )
         },
-        clock: Clock = this.clock,
     ): Revurdering {
         return runBlocking {
             Revurdering.opprettStans(
@@ -75,6 +76,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     }
 
     fun nyRevurderingStansKlarTilBeslutning(
+        clock: Clock = this.clock,
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
@@ -87,6 +89,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
+            clock = clock,
         ),
         valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         stansFraOgMed: LocalDate?,
@@ -105,7 +108,6 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             stansTilOgMed = OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed.create(stansTilOgMed),
         ),
         utbetaling: BehandlingUtbetaling? = null,
-        clock: Clock = this.clock,
     ): Revurdering {
         return this.nyOpprettetRevurderingStans(
             id = id,
@@ -140,6 +142,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
+            clock = clock,
         ),
         valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         attestering: Attestering = godkjentAttestering(beslutter, clock),
@@ -173,6 +176,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     }
 
     fun nyOpprettetRevurderingInnvilgelse(
+        clock: Clock = this.clock,
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
@@ -183,9 +187,9 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksopplysninger(
                 fom = it.fraOgMed,
                 tom = it.tilOgMed,
+                clock = clock,
             )
         },
-        clock: Clock = this.clock,
     ): Revurdering {
         return runBlocking {
             Revurdering.opprettInnvilgelse(
@@ -200,6 +204,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     }
 
     fun nyRevurderingInnvilgelseKlarTilBeslutning(
+        clock: Clock = this.clock,
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
@@ -211,6 +216,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
+            clock = clock,
         ),
         navkontor: Navkontor = navkontor(),
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
@@ -223,7 +229,6 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         beregning: Beregning? = null,
         simulering: Simulering? = null,
-        clock: Clock = this.clock,
     ): Revurdering {
         val kommando = OppdaterRevurderingKommando.Innvilgelse(
             sakId = sakId,
@@ -277,6 +282,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
+            clock = clock,
         ),
         attestering: Attestering = godkjentAttestering(beslutter, clock),
         navkontor: Navkontor = navkontor(),
@@ -314,6 +320,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     }
 
     fun nyOpprettetRevurderingOmgjøring(
+        clock: Clock = this.clock,
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
@@ -335,9 +342,9 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksopplysninger(
                 fom = it.fraOgMed,
                 tom = it.tilOgMed,
+                clock = clock,
             )
         },
-        clock: Clock = this.clock,
     ): Revurdering {
         return runBlocking {
             Revurdering.opprettOmgjøring(

@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltagelseDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.route.YtelseDTO
+import java.time.LocalDateTime
 
 data class SaksopplysningerDTO(
     val fødselsdato: String,
@@ -13,6 +14,7 @@ data class SaksopplysningerDTO(
     val periode: PeriodeDTO?,
     val ytelser: List<YtelseDTO>,
     val tiltakspengevedtakFraArena: List<ArenaTPVedtakDTO>,
+    val oppslagstidspunkt: LocalDateTime,
 )
 
 fun Saksopplysninger.toSaksopplysningerDTO(): SaksopplysningerDTO {
@@ -22,5 +24,6 @@ fun Saksopplysninger.toSaksopplysningerDTO(): SaksopplysningerDTO {
         periode = this.periode?.toDTO(),
         ytelser = this.ytelser.map { it.toDTO() },
         tiltakspengevedtakFraArena = this.tiltakspengevedtakFraArena.map { it.toDTO() },
+        oppslagstidspunkt = this.oppslagstidspunkt,
     )
 }

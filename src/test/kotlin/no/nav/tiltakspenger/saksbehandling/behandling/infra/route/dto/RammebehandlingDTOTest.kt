@@ -116,7 +116,8 @@ class RammebehandlingDTOTest {
                   "tilOgMed" : "2025-03-31"
                 },
                 "ytelser" : [ ],
-                "tiltakspengevedtakFraArena" : [ ]
+                "tiltakspengevedtakFraArena" : [ ],
+                "oppslagstidspunkt": "2025-01-01T01:02:05.456789"
               },
               "attesteringer" : [ {
                 "endretAv" : "B12345",
@@ -315,7 +316,8 @@ class RammebehandlingDTOTest {
                   "tilOgMed" : "2025-03-31"
                 },
                 "ytelser" : [ ],
-                "tiltakspengevedtakFraArena" : [ ]
+                "tiltakspengevedtakFraArena" : [ ],
+                "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
               },
               "attesteringer" : [ {
                 "endretAv" : "B12345",
@@ -486,7 +488,8 @@ class RammebehandlingDTOTest {
                   "tilOgMed" : "2025-03-31"
                 },
                 "ytelser" : [ ],
-                "tiltakspengevedtakFraArena" : [ ]
+                "tiltakspengevedtakFraArena" : [ ],
+                "oppslagstidspunkt": "2025-01-01T01:02:06.456789"
               },
               "attesteringer" : [ ],
               "virkningsperiode" : null,
@@ -641,7 +644,8 @@ class RammebehandlingDTOTest {
                   "tilOgMed": "2025-03-31"
                 },
                 "ytelser": [],
-                "tiltakspengevedtakFraArena": []
+                "tiltakspengevedtakFraArena": [],
+                "oppslagstidspunkt": "2025-01-01T01:02:08.456789"
               },
               "attesteringer": [
                 {
@@ -769,7 +773,8 @@ class RammebehandlingDTOTest {
                   "tilOgMed": "2025-03-31"
                 },
                 "ytelser": [],
-                "tiltakspengevedtakFraArena": []
+                "tiltakspengevedtakFraArena": [],
+                "oppslagstidspunkt": "2025-01-01T01:02:07.456789"
               },
               "attesteringer": [
                 {
@@ -906,7 +911,8 @@ class RammebehandlingDTOTest {
                   "tilOgMed": "2025-03-31"
                 },
                 "ytelser": [],
-                "tiltakspengevedtakFraArena": []
+                "tiltakspengevedtakFraArena": [],
+                "oppslagstidspunkt": "2025-01-01T01:02:12.456789"
               },
               "attesteringer": [],
               "virkningsperiode": {

@@ -94,13 +94,13 @@ interface SakMother {
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltagelser = registrerteTiltak,
-            periode = registrerteTiltak.totalPeriode,
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
             tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
                 emptyList(),
                 registrerteTiltak.totalPeriode!!,
                 iDag.atStartOfDay(),
             ),
+            oppslagstidspunkt = iDag.atStartOfDay(),
         ),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = listOf(
@@ -208,13 +208,13 @@ interface SakMother {
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltagelser = registrerteTiltak,
-            periode = registrerteTiltak.totalPeriode,
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
             tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
                 emptyList(),
                 registrerteTiltak.totalPeriode!!,
                 iDag.atStartOfDay(),
             ),
+            oppslagstidspunkt = iDag.atStartOfDay(),
         ),
         kanSendeInnHelgForMeldekort: Boolean = false,
         clock: Clock = fixedClock,
@@ -283,7 +283,7 @@ interface SakMother {
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 innvilgelsesperiode = virkningsperiode,
-                tiltaksdeltakelser = søknadsbehandling.saksopplysninger!!.tiltaksdeltagelser.map {
+                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelser.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 antallDagerPerMeldeperiode = SammenhengendePeriodisering(

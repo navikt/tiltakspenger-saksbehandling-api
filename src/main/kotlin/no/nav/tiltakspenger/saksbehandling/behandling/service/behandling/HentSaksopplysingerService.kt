@@ -41,6 +41,8 @@ class HentSaksopplysingerService(
         aktuelleTiltaksdeltagelserForBehandlingen: List<String>,
         inkluderOverlappendeTiltaksdeltagelserDetErSøktOm: Boolean,
     ): Saksopplysninger {
+        val oppslagstidspunkt = LocalDateTime.now(clock)
+
         val aktuelleTiltaksdeltagelser = hentAktuelleTiltaksdeltagelser(
             fnr = fnr,
             correlationId = correlationId,
@@ -62,7 +64,7 @@ class HentSaksopplysingerService(
             tiltakspengevedtakFraArena = saksopplysningsperiode
                 ?.let { hentTiltakspengevedtakFraArena(it, fnr, correlationId) }
                 ?: TiltakspengevedtakFraArena.IkkeBehandlingsgrunnlag,
-            oppslagstidspunkt = LocalDateTime.now(clock),
+            oppslagstidspunkt = oppslagstidspunkt,
         )
     }
 
