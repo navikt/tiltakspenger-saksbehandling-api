@@ -77,7 +77,7 @@ class SafJournalpostClientImpl(
             return null
         }
 
-        if (hentJournalpostResponse.data.journalpost.datoOpprettet == null) {
+        if (hentJournalpostResponse.data?.journalpost?.datoOpprettet == null) {
             log.error { "Klarte ikke hente data fra SAF $journalpostId" }
             return null
         }

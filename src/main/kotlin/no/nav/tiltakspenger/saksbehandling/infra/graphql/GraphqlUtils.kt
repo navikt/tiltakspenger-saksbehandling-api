@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.graphql
 
 data class GraphQLResponse<T>(
-    val data: T,
+    val data: T?,
     val errors: List<GraphQLResponseError>?,
 )
 
