@@ -46,7 +46,7 @@ class BehandlingFakeRepo : BehandlingRepo {
 
     override fun hentAlleForFnr(fnr: Fnr): List<Rammebehandling> = data.get().values.filter { it.fnr == fnr }
 
-    override fun hentSøknadsbehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
+    override fun hentBehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
         return data.get().values.filter {
             it.sendtTilDatadeling == null
         }
