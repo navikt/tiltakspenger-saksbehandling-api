@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.datadeling
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -17,7 +17,7 @@ interface DatadelingClient {
     ): Either<FeilVedSendingTilDatadeling, Unit>
 
     suspend fun send(
-        behandling: Rammebehandling,
+        behandling: Behandling,
         correlationId: CorrelationId,
     ): Either<FeilVedSendingTilDatadeling, Unit>
 

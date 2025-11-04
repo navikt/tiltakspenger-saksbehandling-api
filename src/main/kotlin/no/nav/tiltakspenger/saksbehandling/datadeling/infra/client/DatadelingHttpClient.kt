@@ -7,6 +7,7 @@ import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.FeilVedSendingTilDatadeling
@@ -67,10 +68,16 @@ class DatadelingHttpClient(
     }
 
     override suspend fun send(
-        behandling: Rammebehandling,
+        behandling: Behandling,
         correlationId: CorrelationId,
     ): Either<FeilVedSendingTilDatadeling, Unit> {
-        val jsonPayload = behandling.toBehandlingJson()
+        val jsonPayload = if (behandling is Rammebehandling) {
+            behandling.toBehandlingJson()
+        } else if (behandling is MeldekortBehandling) {
+            behandling.toBehandlingJson()
+        } else {
+            throw IllegalStateException("Kan ikke dele behandling med id ${behandling.id} som ikke er rammebehandling eller meldekortbehandling")
+        }
         return Either.catch {
             val request = createRequest(jsonPayload, behandlingsUri)
             val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
