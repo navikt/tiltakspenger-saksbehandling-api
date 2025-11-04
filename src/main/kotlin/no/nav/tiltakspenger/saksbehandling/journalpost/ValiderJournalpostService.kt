@@ -27,7 +27,7 @@ class ValiderJournalpostService(
             val gjelderInnsendtFnr = if (journalpost.bruker?.id == null) {
                 null
             } else if (fnr.verdi != journalpost.bruker.id) {
-                Sikkerlogg.debug { "Ikke samme fnr '${fnr.verdi}' '${journalpost.bruker.id}'" }
+                Sikkerlogg.debug { "Ikke samme fnr '${fnr.verdi}' '${journalpost.bruker.id}' ${journalpost.bruker.type}" }
                 logger.warn { "Journalpost med id $journalpostId tilhører en annen bruker enn innsendt fnr" }
                 false
             } else {

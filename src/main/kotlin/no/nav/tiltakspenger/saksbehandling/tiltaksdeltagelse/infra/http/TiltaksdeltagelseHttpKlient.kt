@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientGeneric
@@ -57,7 +56,7 @@ class TiltaksdeltagelseHttpKlient(
     ): List<TiltaksdeltakelseMedArrangørnavn> {
         return doRequest(
             fnr = fnr,
-            tiltaksdeltakelserDetErSøktTiltakspengerFor = emptyList<TiltaksdeltagelseDetErSøktTiltakspengerFor>() as TiltaksdeltagelserDetErSøktTiltakspengerFor,
+            tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltagelserDetErSøktTiltakspengerFor.empty(),
             correlationId = correlationId,
             mapper = {
                 mapTiltakMedArrangørnavn(
