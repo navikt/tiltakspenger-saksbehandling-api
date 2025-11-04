@@ -91,7 +91,7 @@ data class FindJournalpostRequest(val query: String, val variables: Variables)
 data class Variables(val id: String)
 
 data class HentJournalpostResponse(
-    val journalpost: Journalpost,
+    val journalpost: Journalpost?,
 )
 
 data class Journalpost(
