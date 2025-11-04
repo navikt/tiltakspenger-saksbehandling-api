@@ -61,6 +61,7 @@ data class MeldekortBehandletManuelt(
     override val dager: MeldekortDager,
     override val sendtTilDatadeling: LocalDateTime?,
     override val sistEndret: LocalDateTime,
+    override val behandlingSendtTilDatadeling: LocalDateTime?,
 ) : MeldekortBehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
 
@@ -183,6 +184,7 @@ data class MeldekortBehandletManuelt(
             dager = dager,
             status = UNDER_BEHANDLING,
             sistEndret = nå(clock),
+            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
 
         ).right()
     }
@@ -304,6 +306,7 @@ data class MeldekortBehandletManuelt(
             dager = meldeperiode.tilMeldekortDager(),
             status = UNDER_BEHANDLING,
             sistEndret = LocalDateTime.now(),
+            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
         )
     }
 
@@ -333,6 +336,7 @@ data class MeldekortBehandletManuelt(
                 begrunnelse = "Ikke rett til tiltakspenger",
             ),
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
+            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
         )
     }
 }
