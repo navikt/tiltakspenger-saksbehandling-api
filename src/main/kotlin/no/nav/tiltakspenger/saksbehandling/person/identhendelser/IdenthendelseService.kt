@@ -19,7 +19,7 @@ class IdenthendelseService(
     fun behandleIdenthendelse(aktor: Aktor) {
         try {
             val personidenter = aktor.identifikatorer.map { it.toPersonident() }
-            val gjeldendeIdent = finnGjeldendeIdent(personidenter)
+            val gjeldendeIdent = finnGjeldendeIdent(personidenter) ?: return
             val nyttFnr = Fnr.tryFromString(gjeldendeIdent.ident)
             if (nyttFnr == null) {
                 Sikkerlogg.error { "Ny ident er ikke gyldig fnr: ${gjeldendeIdent.ident}" }
@@ -68,16 +68,15 @@ class IdenthendelseService(
         }
     }
 
-    private fun finnGjeldendeIdent(personidenter: List<Personident>): Personident {
+    private fun finnGjeldendeIdent(personidenter: List<Personident>): Personident? {
         val gjeldendeIdent = personidenter.firstOrNull {
             !it.historisk && it.identtype == Identtype.FOLKEREGISTERIDENT
         } ?: personidenter.firstOrNull {
             !it.historisk && it.identtype == Identtype.NPID
         }
         if (gjeldendeIdent == null) {
-            log.error { "Kan ikke behandle identhendelse uten gjeldende ident, se sikkerlogg for mer informasjon" }
-            Sikkerlogg.error { "Kan ikke behandle identhendelse uten gjeldende ident: $personidenter" }
-            throw IllegalArgumentException("Kan ikke behandle identhendelse uten gjeldende ident")
+            log.warn { "Kan ikke behandle identhendelse uten gjeldende ident, se sikkerlogg for mer informasjon" }
+            Sikkerlogg.warn { "Kan ikke behandle identhendelse uten gjeldende ident: $personidenter" }
         }
         return gjeldendeIdent
     }
