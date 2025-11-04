@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg
 
-import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -17,7 +16,7 @@ data class BarnetilleggDTO(
     fun tilBarnetillegg(virkningsperiode: Periode): Barnetillegg =
         if (this.perioder.isNotEmpty()) {
             Barnetillegg.periodiserOgFyllUtHullMed0(
-                begrunnelse = begrunnelse?.let { (BegrunnelseVilkårsvurdering(saniter(it))) },
+                begrunnelse = begrunnelse?.let { (BegrunnelseVilkårsvurdering.saniter(it)) },
                 perioder = perioder.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) },
                 virkningsperiode = virkningsperiode,
             )
@@ -38,7 +37,7 @@ fun Barnetillegg.toBarnetilleggDTO(): BarnetilleggDTO = BarnetilleggDTO(
             periode = it.periode.toDTO(),
         )
     },
-    begrunnelse = begrunnelse?.verdi?.let { saniter(it) },
+    begrunnelse = begrunnelse?.verdi,
 )
 
 fun List<BarnetilleggPeriodeDTO>.tilPeriodisering(): Periodisering<AntallBarn> {

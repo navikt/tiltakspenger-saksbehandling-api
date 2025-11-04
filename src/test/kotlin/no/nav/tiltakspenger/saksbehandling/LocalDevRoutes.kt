@@ -7,6 +7,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.soknad.AdressebeskyttelseDTO
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
@@ -44,6 +45,7 @@ internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
                     mellomnavn = null,
                     etternavn = etternavn,
                     oppholderSegIEØS = it.oppholderSegIEØS,
+                    adressebeskyttelseDTO = AdressebeskyttelseDTO.UGRADERT,
                 )
             }.map { it.tilDomeneManuell() }
 

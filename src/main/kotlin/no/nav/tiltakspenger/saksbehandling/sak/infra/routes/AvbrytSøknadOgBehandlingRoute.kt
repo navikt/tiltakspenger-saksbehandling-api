@@ -9,7 +9,7 @@ import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
+import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniterBeholdNewline
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -89,7 +89,7 @@ data class AvsluttSøknadOgBehandlingBody(
             behandlingId = behandlingId?.let { BehandlingId.fromString(it) },
             avsluttetAv = avsluttetAv,
             correlationId = correlationId,
-            begrunnelse = saniter(begrunnelse),
+            begrunnelse = saniterBeholdNewline(begrunnelse),
 
         )
     }

@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
@@ -62,6 +61,7 @@ private data class Body(
         if (harValgtStansFraFørsteDagSomGirRett == false) requireNotNull(stansFraOgMed) { "stansFraOgMed kan ikke være null når harValgtStansFraFørsteDagSomGirRett er false" }
         if (harValgtStansTilSisteDagSomGirRett == false) requireNotNull(stansTilOgMed) { "stansTilOgMed kan ikke være null når harValgtStansTilSisteDagSomGirRett er false" }
     }
+
     fun toDomain(
         sakId: SakId,
         behandlingId: BehandlingId,
@@ -76,7 +76,7 @@ private data class Body(
         }
 
         return ForhåndsvisVedtaksbrevKommando(
-            fritekstTilVedtaksbrev = FritekstTilVedtaksbrev(saniter(fritekst)),
+            fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.saniter(fritekst),
             sakId = sakId,
             behandlingId = behandlingId,
             correlationId = correlationId,

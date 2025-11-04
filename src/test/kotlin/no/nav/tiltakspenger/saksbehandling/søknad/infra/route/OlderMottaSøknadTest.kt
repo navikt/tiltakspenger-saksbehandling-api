@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -131,6 +132,7 @@ class OlderMottaSøknadTest {
         }
     }
 
+    @Language("JSON")
     private fun søknadBodyV3(søknadId: SøknadId, saksnummer: Saksnummer) =
         """
         {
@@ -158,7 +160,8 @@ class OlderMottaSøknadTest {
                 "etternavn": "DIVA",
                 "oppholderSegIEØS": {
                   "svar": "Ja"
-                }
+                },
+                "adressebeskyttelseDTO": "UGRADERT"
               }
             ],
             "barnetilleggManuelle": [
@@ -169,7 +172,8 @@ class OlderMottaSøknadTest {
                 "etternavn": "DIVA",
                 "oppholderSegIEØS": {
                   "svar": "Ja"
-                }
+                },
+                "adressebeskyttelseDTO": "UGRADERT"
               }
             ],
             "vedlegg": 0,

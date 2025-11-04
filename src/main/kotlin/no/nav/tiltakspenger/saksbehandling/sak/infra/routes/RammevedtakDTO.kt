@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
-import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
@@ -70,5 +69,5 @@ private fun Barnetillegg.tilKrympetBarnetilleggDTO(periode: Periode): Barnetille
             periode = it.periode.toDTO(),
         )
     },
-    begrunnelse = begrunnelse?.verdi?.let { saniter(it) },
+    begrunnelse = begrunnelse?.verdi,
 )

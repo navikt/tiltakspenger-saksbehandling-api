@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
@@ -69,8 +68,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering(saniter(begrunnelseVilkårsvurdering ?: "")),
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
+                begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering.saniter(begrunnelseVilkårsvurdering ?: ""),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.saniter(it) },
                 innvilgelsesperiode = innvilgelsesperiode,
                 tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                     Pair(it.periode.toDomain(), it.eksternDeltagelseId)
@@ -114,8 +113,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering(saniter(begrunnelseVilkårsvurdering ?: "")),
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
+                begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering.saniter(begrunnelseVilkårsvurdering ?: ""),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.saniter(it) },
                 innvilgelsesperiode = innvilgelsesperiode,
                 tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                     Pair(it.periode.toDomain(), it.eksternDeltagelseId)
@@ -160,8 +159,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering(saniter(begrunnelseVilkårsvurdering ?: "")),
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
+                begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering.saniter(begrunnelseVilkårsvurdering ?: ""),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.saniter(it) },
                 stansFraOgMed = ValgtStansFraOgMed.create(stansFraOgMed),
                 stansTilOgMed = ValgtStansTilOgMed.create(stansTilOgMed),
                 valgteHjemler = valgteHjemler.toDomain().toNonEmptyListOrThrow(),
