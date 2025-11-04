@@ -180,7 +180,8 @@ class IdenthendelseServiceTest {
                         saksnummer = sak.saksnummer,
                     ),
                 )
-                val sak2 = ObjectMother.nySak(fnr = gammeltFnr2, saksnummer = Saksnummer.genererSaknummer(løpenr = "1000"))
+                val sak2 =
+                    ObjectMother.nySak(fnr = gammeltFnr2, saksnummer = Saksnummer.genererSaknummer(løpenr = "1000"))
                 testDataHelper.persisterSakOgSøknad(
                     fnr = gammeltFnr2,
                     sak = sak2,
@@ -211,24 +212,27 @@ class IdenthendelseServiceTest {
     }
 
     @Test
-    fun `behandleIdenthendelse - ingen gjeldende ident - feiler`() {
+    fun `behandleIdenthendelse - ingen gjeldende ident - ignoreres`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val identhendelseService = IdenthendelseService(sakPostgresRepo, identhendelseRepository)
+                val fnr1 = Fnr.random()
+                val fnr2 = Fnr.random()
 
-                assertFailsWith<IllegalArgumentException> {
-                    identhendelseService.behandleIdenthendelse(
-                        Aktor(
-                            listOf(
-                                Identifikator(Fnr.random().verdi, Type.FOLKEREGISTERIDENT, false),
-                                Identifikator(Fnr.random().verdi, Type.FOLKEREGISTERIDENT, false),
-                                Identifikator("1234567890123", Type.AKTORID, true),
-                            ),
+                identhendelseService.behandleIdenthendelse(
+                    Aktor(
+                        listOf(
+                            Identifikator(fnr1.verdi, Type.FOLKEREGISTERIDENT, false),
+                            Identifikator(fnr2.verdi, Type.FOLKEREGISTERIDENT, false),
+                            Identifikator("1234567890123", Type.AKTORID, true),
                         ),
-                    )
-                }
+                    ),
+                )
+
+                identhendelseRepository.hent(fnr1) shouldBe emptyList()
+                identhendelseRepository.hent(fnr2) shouldBe emptyList()
             }
         }
     }
