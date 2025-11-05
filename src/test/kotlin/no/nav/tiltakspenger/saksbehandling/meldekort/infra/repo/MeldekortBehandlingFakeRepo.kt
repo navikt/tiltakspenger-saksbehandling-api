@@ -207,6 +207,13 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
     override fun markerSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime) {
     }
 
+    override fun hentBehandlingerTilDatadeling(limit: Int): List<MeldekortBehandling> {
+        return emptyList()
+    }
+
+    override fun markerBehandlingSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime) {
+    }
+
     fun hentFnrForMeldekortId(
         meldekortId: MeldekortId,
     ): Fnr? = data.get()[meldekortId]?.fnr

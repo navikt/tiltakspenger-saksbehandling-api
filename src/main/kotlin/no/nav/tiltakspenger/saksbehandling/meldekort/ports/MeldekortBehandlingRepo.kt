@@ -96,4 +96,8 @@ interface MeldekortBehandlingRepo {
     fun hentGodkjenteMeldekortTilDatadeling(limit: Int = 10): List<MeldekortBehandling.Behandlet>
 
     fun markerSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime)
+
+    fun hentBehandlingerTilDatadeling(limit: Int = 10): List<MeldekortBehandling>
+
+    fun markerBehandlingSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime)
 }

@@ -22,6 +22,7 @@ class SendTilDatadelingService(
 
     suspend fun send() {
         sendBehandlinger()
+        sendMeldekortbehandlinger()
         sendVedtak()
         sendMeldeperioder()
         sendGodkjenteMeldekort()
@@ -67,6 +68,28 @@ class SendTilDatadelingService(
             }
         }.onLeft {
             logger.error(it) { "Ukjent feil skjedde under henting av behandling som skal sendes til datadeling." }
+        }
+    }
+
+    private suspend fun sendMeldekortbehandlinger() {
+        Either.catch {
+            meldekortBehandlingRepo.hentBehandlingerTilDatadeling().forEach { meldekortbehandling ->
+                val correlationId = CorrelationId.generate()
+
+                Either.catch {
+                    datadelingClient.send(meldekortbehandling, correlationId).onRight {
+                        logger.info { "Meldekortbehandling sendt til datadeling. Saksnummer: ${meldekortbehandling.saksnummer}, sakId: ${meldekortbehandling.sakId}, meldekortbehandlingId: ${meldekortbehandling.id}" }
+                        meldekortBehandlingRepo.markerBehandlingSendtTilDatadeling(meldekortbehandling.id, nå(clock))
+                        logger.info { "Meldekortbehandling markert som sendt til datadeling. Saksnummer: ${meldekortbehandling.saksnummer}, sakId: ${meldekortbehandling.sakId}, meldekortbehandlingId: ${meldekortbehandling.id}" }
+                    }.onLeft {
+                        logger.error { "Meldekortbehandling kunne ikke sendes til datadeling. Saksnummer: ${meldekortbehandling.saksnummer}, sakId: ${meldekortbehandling.sakId}, meldekortbehandlingId: ${meldekortbehandling.id}" }
+                    }
+                }.onLeft {
+                    logger.error(it) { "Ukjent feil skjedde under sending av meldekortbehandling til datadeling. Saksnummer: ${meldekortbehandling.saksnummer}, sakId: ${meldekortbehandling.sakId}, meldekortbehandlingId: ${meldekortbehandling.id}" }
+                }
+            }
+        }.onLeft {
+            logger.error(it) { "Ukjent feil skjedde under henting av meldekortbehandling som skal sendes til datadeling." }
         }
     }
 
