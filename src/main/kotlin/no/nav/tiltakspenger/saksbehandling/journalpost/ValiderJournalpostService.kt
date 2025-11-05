@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.journalpost
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.route.ValiderJournalpostResponse
@@ -27,7 +26,6 @@ class ValiderJournalpostService(
             val gjelderInnsendtFnr = if (journalpost.bruker?.id == null) {
                 null
             } else if (fnr.verdi != journalpost.bruker.id) {
-                Sikkerlogg.debug { "Ikke samme fnr '${fnr.verdi}' '${journalpost.bruker.id}' ${journalpost.bruker.type}" }
                 logger.warn { "Journalpost med id $journalpostId tilhører en annen bruker enn innsendt fnr" }
                 false
             } else {
