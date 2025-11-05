@@ -160,8 +160,7 @@ class OlderMottaSøknadTest {
                 "etternavn": "DIVA",
                 "oppholderSegIEØS": {
                   "svar": "Ja"
-                },
-                "adressebeskyttelseDTO": "UGRADERT"
+                }
               }
             ],
             "barnetilleggManuelle": [
@@ -172,8 +171,7 @@ class OlderMottaSøknadTest {
                 "etternavn": "DIVA",
                 "oppholderSegIEØS": {
                   "svar": "Ja"
-                },
-                "adressebeskyttelseDTO": "UGRADERT"
+                }
               }
             ],
             "vedlegg": 0,
