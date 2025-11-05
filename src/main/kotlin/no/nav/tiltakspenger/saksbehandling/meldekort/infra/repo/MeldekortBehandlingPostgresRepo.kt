@@ -433,6 +433,44 @@ class MeldekortBehandlingPostgresRepo(
         }
     }
 
+    override fun hentBehandlingerTilDatadeling(limit: Int): List<MeldekortBehandling> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    """
+                        select
+                          m.*,
+                          s.fnr,
+                          s.saksnummer
+                        from meldekortbehandling m
+                        join sak s on s.id = m.sak_id
+                        where m.behandling_sendt_til_datadeling is null or m.behandling_sendt_til_datadeling < m.sist_endret
+                        order by m.opprettet
+                        limit $limit
+                    """.trimIndent(),
+                ).map { fromRow(it, session) }.asList,
+            )
+        }
+    }
+
+    override fun markerBehandlingSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime) {
+        sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    """
+                    update meldekortbehandling
+                    set behandling_sendt_til_datadeling = :tidspunkt
+                    where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "id" to meldekortId.toString(),
+                        "tidspunkt" to tidspunkt,
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
     companion object {
         internal fun hentForMeldekortId(
             meldekortId: MeldekortId,
