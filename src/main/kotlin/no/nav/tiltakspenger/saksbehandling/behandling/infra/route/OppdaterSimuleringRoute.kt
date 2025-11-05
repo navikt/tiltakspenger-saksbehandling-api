@@ -54,7 +54,7 @@ fun Route.oppdaterSimuleringRoute(
                         KunneIkkeSimulere.Stengt -> call.respond(
                             HttpStatusCode.ServiceUnavailable,
                             ErrorJson(
-                                "Økonomisystemet er steng. Typisk åpningstider er mellom 6 og 21 på hverdager og visse lørdager.",
+                                "Økonomisystemet er stengt. Typisk åpningstider er mellom 6 og 21 på hverdager og visse lørdager.",
                                 "økonomisystemet_er_stengt",
                             ),
                         )
