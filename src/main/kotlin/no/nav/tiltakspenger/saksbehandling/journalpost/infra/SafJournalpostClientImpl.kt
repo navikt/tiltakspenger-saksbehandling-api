@@ -95,17 +95,11 @@ data class HentJournalpostResponse(
 )
 
 data class Journalpost(
-    val bruker: Bruker?,
+    val avsenderMottaker: AvsenderMottaker?,
     val datoOpprettet: String?,
 )
 
-data class Bruker(
+data class AvsenderMottaker(
     val id: String?,
-    val type: BrukerIdType?,
+    val type: String?,
 )
-
-enum class BrukerIdType {
-    AKTOERID,
-    FNR,
-    ORGNR,
-}
