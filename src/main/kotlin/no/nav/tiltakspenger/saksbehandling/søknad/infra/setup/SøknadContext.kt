@@ -42,6 +42,7 @@ open class SøknadContext(
             statistikkSakRepo = statistikkSakRepo,
             statistikkSakService = statistikkSakService,
             søknadRepo = søknadRepo,
+            journalpostService = validerJournalpostService,
             clock = clock,
         )
     }

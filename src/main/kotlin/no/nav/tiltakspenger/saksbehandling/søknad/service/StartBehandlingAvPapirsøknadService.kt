@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
+import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
@@ -28,6 +29,7 @@ class StartBehandlingAvPapirsøknadService(
     private val søknadRepo: SøknadRepo,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
+    private val journalpostService: ValiderJournalpostService,
     private val sessionFactory: SessionFactory,
 ) {
     val logger = KotlinLogging.logger { }
@@ -39,6 +41,12 @@ class StartBehandlingAvPapirsøknadService(
         correlationId: CorrelationId,
     ): Pair<Sak, Søknadsbehandling> {
         val sak = sakService.hentForSaksnummer(saksnummer)
+        val validering = journalpostService.hentOgValiderJournalpost(sak.fnr, kommando.journalpostId)
+
+        if (!validering.journalpostFinnes) {
+            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} finnes ikke")
+        }
+
         val papirsøknad = Søknad.opprett(
             sak = sak,
             journalpostId = kommando.journalpostId.toString(),
