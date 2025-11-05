@@ -66,6 +66,14 @@ fun Route.oppdaterSimuleringRoute(
                                 "ukjent_feil_ved_simulering",
                             ),
                         )
+
+                        KunneIkkeSimulere.Timeout -> call.respond(
+                            HttpStatusCode.RequestTimeout,
+                            ErrorJson(
+                                "Tjenesten for simulering svarte ikke (time-out). Du kan prøve igjen.",
+                                "timeout_ved_simulering",
+                            ),
+                        )
                     }
                 },
                 ifRight = { (sak, behandling) ->

@@ -36,6 +36,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.net.http.HttpTimeoutException
 import java.time.Clock
 import java.time.LocalDateTime
 import kotlin.time.Duration
@@ -221,7 +222,10 @@ class UtbetalingHttpKlient(
                     return@catch KunneIkkeSimulere.Stengt.left()
                 }
                 if (status == 204) {
-                    return@catch SimuleringMedMetadata(simulering = Simulering.IngenEndring(LocalDateTime.now(clock)), httpResponseBody).right()
+                    return@catch SimuleringMedMetadata(
+                        simulering = Simulering.IngenEndring(LocalDateTime.now(clock)),
+                        httpResponseBody,
+                    ).right()
                 }
                 if (status != 200) {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved simulering. Status var ulik 200. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
@@ -242,8 +246,12 @@ class UtbetalingHttpKlient(
                     KunneIkkeSimulere.UkjentFeil.left()
                 }
             }.mapLeft {
-                log.error(it) { "Ukjent feil ved simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
-                KunneIkkeSimulere.UkjentFeil
+                log.error(it) { "Feil ved simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
+
+                when (it) {
+                    is HttpTimeoutException -> KunneIkkeSimulere.Timeout
+                    else -> KunneIkkeSimulere.UkjentFeil
+                }
             }.flatten()
         }
     }
