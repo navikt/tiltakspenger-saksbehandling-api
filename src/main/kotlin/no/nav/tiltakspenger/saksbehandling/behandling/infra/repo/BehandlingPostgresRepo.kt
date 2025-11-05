@@ -353,18 +353,7 @@ class BehandlingPostgresRepo(
                 BegrunnelseVilkårsvurdering(it)
             }
 
-            val fraOgMed = localDateOrNull("saksopplysningsperiode_fra_og_med")
-            val tilOgMed = localDateOrNull("saksopplysningsperiode_til_og_med")
-            val saksopplysningsperiode = if (fraOgMed != null && tilOgMed != null) {
-                Periode(
-                    fraOgMed,
-                    tilOgMed,
-                )
-            } else {
-                null
-            }
-
-            val saksopplysninger = string("saksopplysninger").toSaksopplysninger(saksopplysningsperiode)
+            val saksopplysninger = string("saksopplysninger").toSaksopplysninger()
 
             val virkningsperiodeFraOgMed = localDateOrNull("virkningsperiode_fra_og_med")
             val virkningsperiodeTilOgMed = localDateOrNull("virkningsperiode_til_og_med")
@@ -542,8 +531,6 @@ class BehandlingPostgresRepo(
                 fritekst_vedtaksbrev,
                 begrunnelse_vilkårsvurdering,
                 saksopplysninger,
-                saksopplysningsperiode_fra_og_med,
-                saksopplysningsperiode_til_og_med,
                 barnetillegg,
                 valgte_tiltaksdeltakelser,
                 avbrutt,
@@ -583,8 +570,6 @@ class BehandlingPostgresRepo(
                 :fritekst_vedtaksbrev,
                 :begrunnelse_vilkarsvurdering,
                 to_jsonb(:saksopplysninger::jsonb),
-                :saksopplysningsperiode_fra_og_med,
-                :saksopplysningsperiode_til_og_med,
                 to_jsonb(:barnetillegg::jsonb),
                 to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 to_jsonb(:avbrutt::jsonb),
@@ -626,8 +611,6 @@ class BehandlingPostgresRepo(
                 fritekst_vedtaksbrev = :fritekst_vedtaksbrev,
                 begrunnelse_vilkårsvurdering = :begrunnelse_vilkarsvurdering,
                 saksopplysninger = to_jsonb(:saksopplysninger::jsonb),
-                saksopplysningsperiode_fra_og_med = :saksopplysningsperiode_fra_og_med,
-                saksopplysningsperiode_til_og_med = :saksopplysningsperiode_til_og_med,
                 barneTillegg = to_jsonb(:barnetillegg::jsonb),
                 valgte_tiltaksdeltakelser = to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 avbrutt = to_jsonb(:avbrutt::jsonb),
@@ -763,8 +746,6 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "fritekst_vedtaksbrev" to this.fritekstTilVedtaksbrev?.verdi,
         "begrunnelse_vilkarsvurdering" to this.begrunnelseVilkårsvurdering?.verdi,
         "saksopplysninger" to this.saksopplysninger.toDbJson(),
-        "saksopplysningsperiode_fra_og_med" to this.saksopplysningsperiode?.fraOgMed,
-        "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode?.tilOgMed,
         "avbrutt" to this.avbrutt?.toDbJson(),
         "ventestatus" to this.ventestatus.toDbJson(),
         "venter_til" to this.venterTil,

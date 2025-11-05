@@ -22,14 +22,18 @@ interface SaksopplysningerMother {
         clock: Clock = ObjectMother.clock,
         oppslagstidspunkt: LocalDateTime = LocalDateTime.now(clock),
         ytelser: Ytelser = Ytelser.fromList(emptyList(), oppslagsperiode, oppslagstidspunkt),
-        tiltakspengevedtakFraArena: TiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(emptyList(), oppslagsperiode, oppslagstidspunkt),
+        tiltakspengevedtakFraArena: TiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
+            emptyList(),
+            oppslagsperiode,
+            oppslagstidspunkt,
+        ),
     ): Saksopplysninger {
         return Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltagelser = Tiltaksdeltagelser(listOf(tiltaksdeltagelse)),
-            periode = Periode(fom, tom),
             ytelser = ytelser,
             tiltakspengevedtakFraArena = tiltakspengevedtakFraArena,
+            oppslagstidspunkt = oppslagstidspunkt,
         )
     }
 }

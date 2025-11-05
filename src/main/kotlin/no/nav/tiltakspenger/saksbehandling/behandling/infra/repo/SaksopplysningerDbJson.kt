@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.SaksopplysningerDbJson.TiltaksdeltagelseDbJson
@@ -12,12 +11,14 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakstypeSomGirRett
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 private data class SaksopplysningerDbJson(
     val fødselsdato: String,
     val tiltaksdeltagelse: List<TiltaksdeltagelseDbJson>,
     val ytelser: YtelserDbJson,
     val tiltakspengevedtakFraArena: TiltakspengevedtakFraArenaDbJson,
+    val oppslagstidspunkt: LocalDateTime,
 ) {
     data class TiltaksdeltagelseDbJson(
         val eksternDeltagelseId: String,
@@ -75,16 +76,17 @@ fun Saksopplysninger.toDbJson(): String {
         tiltaksdeltagelse = tiltaksdeltagelser.map { it.toDbJson() },
         ytelser = ytelser.toDbJson(),
         tiltakspengevedtakFraArena = tiltakspengevedtakFraArena.toDbJson(),
+        oppslagstidspunkt = oppslagstidspunkt,
     ).let { serialize(it) }
 }
 
-fun String.toSaksopplysninger(saksopplysningsperiode: Periode?): Saksopplysninger {
+fun String.toSaksopplysninger(): Saksopplysninger {
     val dbJson = deserialize<SaksopplysningerDbJson>(this)
     return Saksopplysninger(
         fødselsdato = LocalDate.parse(dbJson.fødselsdato),
         tiltaksdeltagelser = Tiltaksdeltagelser(dbJson.tiltaksdeltagelse.map { it.toDomain() }),
-        periode = saksopplysningsperiode,
         ytelser = dbJson.ytelser.toDomain(),
         tiltakspengevedtakFraArena = dbJson.tiltakspengevedtakFraArena.toDomain(),
+        oppslagstidspunkt = dbJson.oppslagstidspunkt,
     )
 }

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * Et sett med opplysninger som er relevante for saksbehandlingen.
@@ -16,15 +17,11 @@ import java.time.LocalDate
 data class Saksopplysninger(
     val fødselsdato: LocalDate,
     val tiltaksdeltagelser: Tiltaksdeltagelser,
-    val periode: Periode?,
     val ytelser: Ytelser,
     val tiltakspengevedtakFraArena: TiltakspengevedtakFraArena,
+    val oppslagstidspunkt: LocalDateTime,
 ) {
-    init {
-        require(periode == tiltaksdeltagelser.totalPeriode) {
-            "Periode $periode må være lik tiltaksdeltagelse sin totalPeriode ${tiltaksdeltagelser.totalPeriode}. Denne kan feile i en overgangsfase i dev-basen."
-        }
-    }
+    val periode: Periode? = tiltaksdeltagelser.totalPeriode
 
     fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? {
         return tiltaksdeltagelser.getTiltaksdeltagelse(eksternDeltagelseId)
