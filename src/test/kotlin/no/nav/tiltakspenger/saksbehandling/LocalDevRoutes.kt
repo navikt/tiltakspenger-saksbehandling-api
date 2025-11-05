@@ -40,12 +40,12 @@ internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
                 val fornavn = it.fornavn ?: faker.name.firstName()
                 val etternavn = it.etternavn ?: faker.name.lastName()
                 BarnetilleggDTO(
+                    fnr = null,
                     fødselsdato = fødselsdato,
                     fornavn = fornavn,
                     mellomnavn = null,
                     etternavn = etternavn,
                     oppholderSegIEØS = it.oppholderSegIEØS,
-                    adressebeskyttelseDTO = AdressebeskyttelseDTO.UGRADERT,
                 )
             }.map { it.tilDomeneManuell() }
 
