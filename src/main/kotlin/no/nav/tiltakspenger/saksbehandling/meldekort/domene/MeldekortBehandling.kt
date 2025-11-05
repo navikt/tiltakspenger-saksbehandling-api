@@ -210,15 +210,18 @@ fun Sak.validerOpprettMeldekortBehandling(kjedeId: MeldeperiodeKjedeId) {
         )
     }
 
-    this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
-        ?.also { foregåendeMeldeperiodekjede ->
-            this.meldekortbehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId)
-                .also { behandlinger ->
-                    if (behandlinger.none { it.status == GODKJENT || it.status == AUTOMATISK_BEHANDLET }) {
-                        throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
-                    }
-                }
+    this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)?.also { foregåendeMeldeperiodekjede ->
+        if (foregåendeMeldeperiodekjede.siste.ingenDagerGirRett) {
+            return@also
         }
+
+        this.meldekortbehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId)
+            .also { behandlinger ->
+                if (behandlinger.none { it.status == GODKJENT || it.status == AUTOMATISK_BEHANDLET }) {
+                    throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
+                }
+            }
+    }
 
     if (meldeperiode.ingenDagerGirRett) {
         throw IllegalStateException("Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger")
