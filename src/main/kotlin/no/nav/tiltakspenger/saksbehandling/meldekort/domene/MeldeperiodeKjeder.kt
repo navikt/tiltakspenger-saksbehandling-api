@@ -63,6 +63,10 @@ data class MeldeperiodeKjeder(
     /** Alle versjoner av meldeperiodene */
     val alleMeldeperioder: List<Meldeperiode> get() = this.flatten()
 
+    val meldeperiodeKjederMedRett: List<MeldeperiodeKjede> by lazy {
+        this.filter { !it.siste.ingenDagerGirRett }
+    }
+
     /** Henter siste versjon av en meldeperiode. Perioden må matche 1-1 med en meldeperiode. */
     fun hentMeldeperiode(periode: Periode): Meldeperiode? {
         return meldeperiodeKjeder.singleOrNullOrThrow {
@@ -221,8 +225,11 @@ data class MeldeperiodeKjeder(
     }
 
     fun hentForegåendeMeldeperiodekjede(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjede? {
-        meldeperiodeKjeder.zipWithNext { a, b -> if (b.kjedeId == kjedeId) return a }
-        return null
+        return meldeperiodeKjeder.hentForegående(kjedeId)
+    }
+
+    fun hentForegåendeMeldeperiodekjedeMedRett(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjede? {
+        return meldeperiodeKjederMedRett.hentForegående(kjedeId)
     }
 
     fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId): Meldeperiode? {
@@ -263,3 +270,8 @@ fun Periode.nesteMeldeperiode(): Periode = Periode(
     this.fraOgMed.plusDays(14),
     this.tilOgMed.plusDays(14),
 )
+
+private fun List<MeldeperiodeKjede>.hentForegående(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjede? {
+    this.zipWithNext { a, b -> if (b.kjedeId == kjedeId) return a }
+    return null
+}

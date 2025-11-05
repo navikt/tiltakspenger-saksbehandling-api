@@ -210,11 +210,7 @@ fun Sak.validerOpprettMeldekortBehandling(kjedeId: MeldeperiodeKjedeId) {
         )
     }
 
-    this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)?.also { foregåendeMeldeperiodekjede ->
-        if (foregåendeMeldeperiodekjede.siste.ingenDagerGirRett) {
-            return@also
-        }
-
+    this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjedeMedRett(kjedeId)?.also { foregåendeMeldeperiodekjede ->
         this.meldekortbehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId)
             .also { behandlinger ->
                 if (behandlinger.none { it.status == GODKJENT || it.status == AUTOMATISK_BEHANDLET }) {
