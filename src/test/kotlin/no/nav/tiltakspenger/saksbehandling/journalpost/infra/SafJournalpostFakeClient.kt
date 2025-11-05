@@ -14,9 +14,9 @@ class SafJournalpostFakeClient : SafJournalpostClient {
         // fnr her er det som brukes for den ene søknaden som finnes lokalt
         if (journalpostId.toString() == "123") {
             return Journalpost(
-                bruker = Bruker(
+                avsenderMottaker = AvsenderMottaker(
                     id = "12345678911",
-                    type = BrukerIdType.FNR,
+                    type = "FNR",
                 ),
                 datoOpprettet = objectMapper.writeValueAsString(LocalDate.now()),
             )
@@ -25,9 +25,9 @@ class SafJournalpostFakeClient : SafJournalpostClient {
         // Journalpost finnes, men på et annet fnr
         if (journalpostId.toString() == "1234") {
             return Journalpost(
-                bruker = Bruker(
+                avsenderMottaker = AvsenderMottaker(
                     id = Fnr.random().verdi,
-                    type = BrukerIdType.FNR,
+                    type = "FNR",
                 ),
                 datoOpprettet = objectMapper.writeValueAsString(LocalDate.now()),
             )
@@ -35,9 +35,9 @@ class SafJournalpostFakeClient : SafJournalpostClient {
 
         return data.get()[journalpostId]?.let {
             Journalpost(
-                bruker = Bruker(
+                avsenderMottaker = AvsenderMottaker(
                     id = it.verdi,
-                    type = BrukerIdType.FNR,
+                    type = "FNR",
                 ),
                 datoOpprettet = objectMapper.writeValueAsString(LocalDate.now()),
             )
