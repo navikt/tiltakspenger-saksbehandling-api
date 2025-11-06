@@ -129,6 +129,7 @@ interface SøknadsbehandlingBuilder {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
+        clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingKlarTilBehandling(
             tac = tac,
@@ -138,7 +139,7 @@ interface SøknadsbehandlingBuilder {
             tiltaksdeltagelse = tiltaksdeltagelse,
         )
 
-        val behandlingOppdatert = behandling.taBehandling(saksbehandler = saksbehandler).also {
+        val behandlingOppdatert = behandling.taBehandling(saksbehandler = saksbehandler, clock = clock).also {
             tac.behandlingContext.behandlingRepo.lagre(it)
         } as Søknadsbehandling
 

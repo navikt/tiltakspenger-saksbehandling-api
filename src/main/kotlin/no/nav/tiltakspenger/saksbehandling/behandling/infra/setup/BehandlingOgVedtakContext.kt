@@ -219,6 +219,7 @@ open class BehandlingOgVedtakContext(
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
             sessionFactory = sessionFactory,
+            clock = clock,
         )
     }
 
@@ -240,6 +241,7 @@ open class BehandlingOgVedtakContext(
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
             sessionFactory = sessionFactory,
+            clock = clock,
         )
     }
 

@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.NonBlankString
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.plus
@@ -17,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
@@ -36,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandlerOgBeslutter
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 internal class BehandlingPostgresRepoTest {
@@ -122,7 +121,7 @@ internal class BehandlingPostgresRepoTest {
     fun `en saksbehandler kan ta behandling`() {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo
-            val saksbehandler = ObjectMother.saksbehandler()
+            val saksbehandler = saksbehandler()
             val (_, behandling) = testDataHelper.persisterOpprettetSøknadsbehandling()
             testDataHelper.sessionFactory.withSession { sx ->
                 sx.run(
@@ -133,7 +132,12 @@ internal class BehandlingPostgresRepoTest {
                 ) > 0
             }
 
-            behandlingRepo.taBehandlingSaksbehandler(behandling.id, saksbehandler, Rammebehandlingsstatus.UNDER_BEHANDLING)
+            behandlingRepo.taBehandlingSaksbehandler(
+                behandling.id,
+                saksbehandler,
+                Rammebehandlingsstatus.UNDER_BEHANDLING,
+                LocalDateTime.now(),
+            )
             behandlingRepo.hent(behandling.id).saksbehandler shouldBe saksbehandler.navIdent
         }
     }
@@ -155,6 +159,7 @@ internal class BehandlingPostgresRepoTest {
                     beslutter = beslutter.navIdent,
                     tidspunkt = nå(clock),
                 ),
+                clock = clock,
             ).also {
                 behandlingRepo.lagre(it)
             }
@@ -163,9 +168,15 @@ internal class BehandlingPostgresRepoTest {
 
             behandlingRepo.hent(behandlingId).taBehandling(
                 saksbehandler = beslutter,
+                clock = clock,
             )
 
-            val harTatt = behandlingRepo.taBehandlingSaksbehandler(behandlingId, beslutter, Rammebehandlingsstatus.UNDER_BEHANDLING)
+            val harTatt = behandlingRepo.taBehandlingSaksbehandler(
+                behandlingId,
+                beslutter,
+                Rammebehandlingsstatus.UNDER_BEHANDLING,
+                LocalDateTime.now(),
+            )
             harTatt shouldBe true
 
             val behandling = behandlingRepo.hent(behandlingId)
@@ -194,6 +205,7 @@ internal class BehandlingPostgresRepoTest {
                     beslutter = beslutter.navIdent,
                     tidspunkt = nå(clock),
                 ),
+                clock = clock,
             ).also {
                 behandlingRepo.lagre(it)
             }
@@ -207,7 +219,12 @@ internal class BehandlingPostgresRepoTest {
                 clock = clockOmToMinutter,
             ).getOrFail()
 
-            val harOvertatt = behandlingRepo.overtaSaksbehandler(behandlingId, beslutter, saksbehandler.navIdent)
+            val harOvertatt = behandlingRepo.overtaSaksbehandler(
+                behandlingId,
+                beslutter,
+                saksbehandler.navIdent,
+                LocalDateTime.now(),
+            )
             harOvertatt shouldBe true
 
             val behandling = behandlingRepo.hent(behandlingId)
@@ -225,7 +242,12 @@ internal class BehandlingPostgresRepoTest {
             val (_, behandling) = testDataHelper.persisterKlarTilBeslutningSøknadsbehandling()
 
             behandling.beslutter shouldBe null
-            behandlingRepo.taBehandlingBeslutter(behandling.id, beslutter, Rammebehandlingsstatus.UNDER_BESLUTNING)
+            behandlingRepo.taBehandlingBeslutter(
+                behandling.id,
+                beslutter,
+                Rammebehandlingsstatus.UNDER_BESLUTNING,
+                LocalDateTime.now(),
+            )
             behandlingRepo.hent(behandling.id).beslutter shouldBe beslutter.navIdent
         }
     }
@@ -239,7 +261,12 @@ internal class BehandlingPostgresRepoTest {
 
             behandling.saksbehandler shouldNotBe null
             behandling.saksbehandler shouldNotBe nySaksbehandler.navIdent
-            behandlingRepo.overtaSaksbehandler(behandling.id, nySaksbehandler, behandling.saksbehandler!!)
+            behandlingRepo.overtaSaksbehandler(
+                behandling.id,
+                nySaksbehandler,
+                behandling.saksbehandler!!,
+                LocalDateTime.now(),
+            )
             behandlingRepo.hent(behandling.id).saksbehandler shouldBe nySaksbehandler.navIdent
         }
     }
@@ -253,7 +280,7 @@ internal class BehandlingPostgresRepoTest {
 
             behandling.beslutter shouldNotBe null
             behandling.beslutter shouldNotBe nyBeslutter.navIdent
-            behandlingRepo.overtaBeslutter(behandling.id, nyBeslutter, behandling.beslutter!!)
+            behandlingRepo.overtaBeslutter(behandling.id, nyBeslutter, behandling.beslutter!!, LocalDateTime.now())
             behandlingRepo.hent(behandling.id).beslutter shouldBe nyBeslutter.navIdent
         }
     }

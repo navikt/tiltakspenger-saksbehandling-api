@@ -168,7 +168,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             førsteDagSomGirRett = førsteDagSomGirRett,
             sisteDagSomGirRett = sisteDagSomGirRett,
             clock = clock,
-        ).taBehandling(beslutter).iverksett(
+        ).taBehandling(beslutter, clock).iverksett(
             utøvendeBeslutter = beslutter,
             attestering = attestering,
             clock = clock,
@@ -312,7 +312,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             barnetillegg = barnetillegg,
             beregning = beregning,
             clock = clock,
-        ).taBehandling(beslutter).iverksett(
+        ).taBehandling(beslutter, clock).iverksett(
             utøvendeBeslutter = beslutter,
             attestering = attestering,
             clock = clock,

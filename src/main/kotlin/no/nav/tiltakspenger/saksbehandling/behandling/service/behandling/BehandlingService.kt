@@ -68,7 +68,7 @@ class BehandlingService(
         )
 
         // Denne validerer saksbehandler
-        return behandling.underkjenn(beslutter, attestering).let {
+        return behandling.underkjenn(beslutter, attestering, clock).let {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
 
             val statistikk = statistikkSakService.genererStatistikkForUnderkjennBehandling(it)

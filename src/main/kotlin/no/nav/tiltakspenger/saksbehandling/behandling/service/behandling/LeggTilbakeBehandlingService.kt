@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import java.time.Clock
 
 class LeggTilbakeBehandlingService(
     private val behandlingService: BehandlingService,
@@ -18,6 +19,7 @@ class LeggTilbakeBehandlingService(
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
+    private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -31,7 +33,7 @@ class LeggTilbakeBehandlingService(
             behandlingId = behandlingId,
         )
 
-        return behandling.leggTilbakeBehandling(saksbehandler).let {
+        return behandling.leggTilbakeBehandling(saksbehandler, clock).let {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
@@ -42,6 +44,7 @@ class LeggTilbakeBehandlingService(
                             it.id,
                             saksbehandler,
                             it.status,
+                            it.sistEndret,
                             tx,
                         )
                         statistikkSakRepo.lagre(statistikk, tx)
@@ -54,6 +57,7 @@ class LeggTilbakeBehandlingService(
                             it.id,
                             saksbehandler,
                             it.status,
+                            it.sistEndret,
                             tx,
                         )
                         statistikkSakRepo.lagre(statistikk, tx)

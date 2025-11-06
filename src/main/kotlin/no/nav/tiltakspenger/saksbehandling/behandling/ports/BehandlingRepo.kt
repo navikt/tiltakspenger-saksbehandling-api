@@ -37,6 +37,7 @@ interface BehandlingRepo {
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 
@@ -44,6 +45,7 @@ interface BehandlingRepo {
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 
@@ -51,6 +53,7 @@ interface BehandlingRepo {
         behandlingId: BehandlingId,
         nySaksbehandler: Saksbehandler,
         nåværendeSaksbehandler: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 
@@ -58,6 +61,7 @@ interface BehandlingRepo {
         behandlingId: BehandlingId,
         nyBeslutter: Saksbehandler,
         nåværendeBeslutter: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 
@@ -65,6 +69,7 @@ interface BehandlingRepo {
         behandlingId: BehandlingId,
         nåværendeSaksbehandler: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 
@@ -72,6 +77,7 @@ interface BehandlingRepo {
         behandlingId: BehandlingId,
         nåværendeBeslutter: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 

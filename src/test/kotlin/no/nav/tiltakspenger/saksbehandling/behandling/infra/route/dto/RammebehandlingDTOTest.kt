@@ -129,7 +129,7 @@ class RammebehandlingDTOTest {
                   "endretAv": "B12345",
                   "status": "GODKJENT",
                   "begrunnelse": null,
-                  "endretTidspunkt": "2025-01-01T01:02:08.456789"
+                  "endretTidspunkt": "2025-01-01T01:02:09.456789"
                 }
               ],
               "virkningsperiode": {
@@ -139,8 +139,8 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": "nyBehandlingUnderBeslutning()",
               "begrunnelseVilkårsvurdering": "nyBehandlingUnderBeslutning()",
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:06.456789",
-              "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
+              "sistEndret": "2025-01-01T01:02:10.456789",
+              "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
               "ventestatus": null,
               "utbetaling": null,
               "innvilgelsesperiode": {
@@ -342,7 +342,7 @@ class RammebehandlingDTOTest {
                   "endretAv": "B12345",
                   "status": "GODKJENT",
                   "begrunnelse": null,
-                  "endretTidspunkt": "2025-01-01T01:02:08.456789"
+                  "endretTidspunkt": "2025-01-01T01:02:09.456789"
                 }
               ],
               "virkningsperiode": {
@@ -352,8 +352,8 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": "nyBehandlingUnderBeslutning()",
               "begrunnelseVilkårsvurdering": "nyBehandlingUnderBeslutning()",
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:06.456789",
-              "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
+              "sistEndret": "2025-01-01T01:02:10.456789",
+              "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
               "ventestatus": null,
               "utbetaling": null,
               "avslagsgrunner": [
@@ -692,8 +692,8 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": "nyRevurderingKlarTilBeslutning()",
               "begrunnelseVilkårsvurdering": "nyRevurderingKlarTilBeslutning()",
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:07.456789",
-              "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
+              "sistEndret": "2025-01-01T01:02:10.456789",
+              "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
               "ventestatus": null,
               "utbetaling": null,
               "innvilgelsesperiode": {
@@ -824,8 +824,8 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": "nyRevurderingKlarTilBeslutning()",
               "begrunnelseVilkårsvurdering": "nyRevurderingKlarTilBeslutning()",
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:07.456789",
-              "iverksattTidspunkt": "2025-01-01T01:02:08.456789",
+              "sistEndret": "2025-01-01T01:02:09.456789",
+              "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
               "ventestatus": null,
               "utbetaling": null,
               "valgtHjemmelHarIkkeRettighet": [
@@ -947,7 +947,7 @@ class RammebehandlingDTOTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-01-01T01:02:10.456789"
+                "oppslagstidspunkt": "2025-01-01T01:02:11.456789"
               },
               "attesteringer": [],
               "virkningsperiode": {
@@ -957,7 +957,7 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:11.456789",
+              "sistEndret": "2025-01-01T01:02:12.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
