@@ -71,6 +71,7 @@ class BehandlingFakeRepo : BehandlingRepo {
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
@@ -85,11 +86,13 @@ class BehandlingFakeRepo : BehandlingRepo {
             is Revurdering -> behandling.copy(
                 saksbehandler = saksbehandler.navIdent,
                 status = behandlingsstatus,
+                sistEndret = sistEndret,
             )
 
             is Søknadsbehandling -> behandling.copy(
                 saksbehandler = saksbehandler.navIdent,
                 status = behandlingsstatus,
+                sistEndret = sistEndret,
             )
         }
         return true
@@ -99,6 +102,7 @@ class BehandlingFakeRepo : BehandlingRepo {
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
@@ -113,11 +117,13 @@ class BehandlingFakeRepo : BehandlingRepo {
             is Revurdering -> behandling.copy(
                 beslutter = beslutter.navIdent,
                 status = behandlingsstatus,
+                sistEndret = sistEndret,
             )
 
             is Søknadsbehandling -> behandling.copy(
                 beslutter = beslutter.navIdent,
                 status = behandlingsstatus,
+                sistEndret = sistEndret,
             )
         }
 
@@ -128,6 +134,7 @@ class BehandlingFakeRepo : BehandlingRepo {
         behandlingId: BehandlingId,
         nySaksbehandler: Saksbehandler,
         nåværendeSaksbehandler: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
@@ -138,10 +145,12 @@ class BehandlingFakeRepo : BehandlingRepo {
         data.get()[behandlingId] = when (behandling) {
             is Revurdering -> behandling.copy(
                 saksbehandler = nySaksbehandler.navIdent,
+                sistEndret = sistEndret,
             )
 
             is Søknadsbehandling -> behandling.copy(
                 saksbehandler = nySaksbehandler.navIdent,
+                sistEndret = sistEndret,
             )
         }
         return true
@@ -151,6 +160,7 @@ class BehandlingFakeRepo : BehandlingRepo {
         behandlingId: BehandlingId,
         nyBeslutter: Saksbehandler,
         nåværendeBeslutter: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
@@ -161,10 +171,12 @@ class BehandlingFakeRepo : BehandlingRepo {
         data.get()[behandlingId] = when (behandling) {
             is Revurdering -> behandling.copy(
                 beslutter = nyBeslutter.navIdent,
+                sistEndret = sistEndret,
             )
 
             is Søknadsbehandling -> behandling.copy(
                 beslutter = nyBeslutter.navIdent,
+                sistEndret = sistEndret,
             )
         }
         return true
@@ -174,6 +186,7 @@ class BehandlingFakeRepo : BehandlingRepo {
         behandlingId: BehandlingId,
         nåværendeSaksbehandler: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
@@ -185,11 +198,13 @@ class BehandlingFakeRepo : BehandlingRepo {
             is Revurdering -> behandling.copy(
                 saksbehandler = null,
                 status = behandlingsstatus,
+                sistEndret = sistEndret,
             )
 
             is Søknadsbehandling -> behandling.copy(
                 saksbehandler = null,
                 status = behandlingsstatus,
+                sistEndret = sistEndret,
             )
         }
         return true
@@ -199,6 +214,7 @@ class BehandlingFakeRepo : BehandlingRepo {
         behandlingId: BehandlingId,
         nåværendeBeslutter: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
@@ -210,11 +226,13 @@ class BehandlingFakeRepo : BehandlingRepo {
             is Revurdering -> behandling.copy(
                 beslutter = null,
                 status = behandlingsstatus,
+                sistEndret = sistEndret,
             )
 
             is Søknadsbehandling -> behandling.copy(
                 beslutter = null,
                 status = behandlingsstatus,
+                sistEndret = sistEndret,
             )
         }
         return true

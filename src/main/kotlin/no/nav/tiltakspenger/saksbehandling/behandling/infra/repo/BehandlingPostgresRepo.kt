@@ -131,6 +131,7 @@ class BehandlingPostgresRepo(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
@@ -140,12 +141,14 @@ class BehandlingPostgresRepo(
                     update behandling set
                         saksbehandler = :saksbehandler,
                         status = :status,
-                        beslutter = CASE WHEN beslutter = :saksbehandler THEN null ELSE beslutter END                              
+                        beslutter = CASE WHEN beslutter = :saksbehandler THEN null ELSE beslutter END,
+                        sist_endret = :sist_endret
                     where id = :id and saksbehandler is null
                     """,
                     "id" to behandlingId.toString(),
                     "saksbehandler" to saksbehandler.navIdent,
                     "status" to behandlingsstatus.toDb(),
+                    "sist_endret" to sistEndret,
                 ).asUpdate,
             ) > 0
         }
@@ -158,15 +161,17 @@ class BehandlingPostgresRepo(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 sqlQuery(
-                    """update behandling set beslutter = :beslutter, status = :status where id = :id and beslutter is null""",
+                    """update behandling set beslutter = :beslutter, status = :status, sist_endret = :sist_endret where id = :id and beslutter is null""",
                     "id" to behandlingId.toString(),
                     "beslutter" to beslutter.navIdent,
                     "status" to behandlingsstatus.toDb(),
+                    "sist_endret" to sistEndret,
                 ).asUpdate,
             ) > 0
         }
@@ -179,6 +184,7 @@ class BehandlingPostgresRepo(
         behandlingId: BehandlingId,
         nySaksbehandler: Saksbehandler,
         nåværendeSaksbehandler: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
@@ -187,12 +193,14 @@ class BehandlingPostgresRepo(
                     """
                     update behandling set
                         saksbehandler = :nySaksbehandler,
-                        beslutter = CASE WHEN beslutter = :nySaksbehandler THEN null ELSE beslutter END
+                        beslutter = CASE WHEN beslutter = :nySaksbehandler THEN null ELSE beslutter END,
+                        sist_endret = :sist_endret
                     where id = :id and saksbehandler = :lagretSaksbehandler
                     """,
                     "id" to behandlingId.toString(),
                     "nySaksbehandler" to nySaksbehandler.navIdent,
                     "lagretSaksbehandler" to nåværendeSaksbehandler,
+                    "sist_endret" to sistEndret,
                 ).asUpdate,
             ) > 0
         }
@@ -206,15 +214,17 @@ class BehandlingPostgresRepo(
         behandlingId: BehandlingId,
         nyBeslutter: Saksbehandler,
         nåværendeBeslutter: String,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 sqlQuery(
-                    """update behandling set beslutter = :nyBeslutter where id = :id and beslutter = :lagretBeslutter""",
+                    """update behandling set beslutter = :nyBeslutter, sist_endret = :sist_endret where id = :id and beslutter = :lagretBeslutter""",
                     "id" to behandlingId.toString(),
                     "nyBeslutter" to nyBeslutter.navIdent,
                     "lagretBeslutter" to nåværendeBeslutter,
+                    "sist_endret" to sistEndret,
                 ).asUpdate,
             ) > 0
         }
@@ -224,15 +234,17 @@ class BehandlingPostgresRepo(
         behandlingId: BehandlingId,
         nåværendeSaksbehandler: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 sqlQuery(
-                    """update behandling set saksbehandler = null, status = :status where id = :id and saksbehandler = :lagretSaksbehandler""",
+                    """update behandling set saksbehandler = null, status = :status, sist_endret = :sist_endret where id = :id and saksbehandler = :lagretSaksbehandler""",
                     "id" to behandlingId.toString(),
                     "lagretSaksbehandler" to nåværendeSaksbehandler.navIdent,
                     "status" to behandlingsstatus.toDb(),
+                    "sist_endret" to sistEndret,
                 ).asUpdate,
             ) > 0
         }
@@ -242,15 +254,17 @@ class BehandlingPostgresRepo(
         behandlingId: BehandlingId,
         nåværendeBeslutter: Saksbehandler,
         behandlingsstatus: Rammebehandlingsstatus,
+        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 sqlQuery(
-                    """update behandling set beslutter = null, status = :status where id = :id and beslutter = :lagretBeslutter""",
+                    """update behandling set beslutter = null, status = :status, sist_endret = :sist_endret where id = :id and beslutter = :lagretBeslutter""",
                     "id" to behandlingId.toString(),
                     "lagretBeslutter" to nåværendeBeslutter.navIdent,
                     "status" to behandlingsstatus.toDb(),
+                    "sist_endret" to sistEndret,
                 ).asUpdate,
             ) > 0
         }

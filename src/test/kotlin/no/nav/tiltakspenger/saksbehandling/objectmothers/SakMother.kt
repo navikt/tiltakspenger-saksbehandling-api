@@ -296,7 +296,7 @@ interface SakMother {
         ).getOrFail().tilBeslutning(
             saksbehandler = saksbehandler,
             clock = clock,
-        ).taBehandling(beslutter)
+        ).taBehandling(beslutter, clock)
             .iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),
@@ -343,7 +343,7 @@ interface SakMother {
         ).getOrFail().tilBeslutning(
             saksbehandler = saksbehandler,
             clock = clock,
-        ).taBehandling(beslutter)
+        ).taBehandling(beslutter, clock)
             .iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),

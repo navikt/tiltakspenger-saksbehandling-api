@@ -349,7 +349,7 @@ interface BehandlingMother : MotherOfAllMothers {
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner,
             clock = clock,
-        ).taBehandling(beslutter) as Søknadsbehandling
+        ).taBehandling(beslutter, clock) as Søknadsbehandling
     }
 
     @Suppress("unused")
@@ -405,6 +405,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 beslutter = "necessitatibus",
                 tidspunkt = nå(clock),
             ),
+            clock = clock,
         ) as Søknadsbehandling
     }
 

@@ -39,6 +39,7 @@ class OvertaBehandlingService(
                             it.id,
                             saksbehandler,
                             overtarFra,
+                            it.sistEndret,
                             tx,
                         )
                     }
@@ -48,6 +49,7 @@ class OvertaBehandlingService(
                             it.id,
                             saksbehandler,
                             overtarFra,
+                            it.sistEndret,
                             tx,
                         )
                     }

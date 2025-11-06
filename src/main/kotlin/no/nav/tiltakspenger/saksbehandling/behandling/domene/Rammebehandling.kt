@@ -214,7 +214,7 @@ sealed interface Rammebehandling : Behandling {
         }
     }
 
-    fun leggTilbakeBehandling(saksbehandler: Saksbehandler): Rammebehandling {
+    fun leggTilbakeBehandling(saksbehandler: Saksbehandler, clock: Clock): Rammebehandling {
         return when (status) {
             UNDER_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
@@ -223,8 +223,16 @@ sealed interface Rammebehandling : Behandling {
                 }
 
                 when (this) {
-                    is Søknadsbehandling -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING)
-                    is Revurdering -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING)
+                    is Søknadsbehandling -> this.copy(
+                        saksbehandler = null,
+                        status = KLAR_TIL_BEHANDLING,
+                        sistEndret = nå(clock),
+                    )
+                    is Revurdering -> this.copy(
+                        saksbehandler = null,
+                        status = KLAR_TIL_BEHANDLING,
+                        sistEndret = nå(clock),
+                    )
                 }
             }
 
@@ -235,8 +243,16 @@ sealed interface Rammebehandling : Behandling {
                 }
 
                 when (this) {
-                    is Søknadsbehandling -> this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING)
-                    is Revurdering -> this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING)
+                    is Søknadsbehandling -> this.copy(
+                        beslutter = null,
+                        status = KLAR_TIL_BESLUTNING,
+                        sistEndret = nå(clock),
+                    )
+                    is Revurdering -> this.copy(
+                        beslutter = null,
+                        status = KLAR_TIL_BESLUTNING,
+                        sistEndret = nå(clock),
+                    )
                 }
             }
 
@@ -251,7 +267,7 @@ sealed interface Rammebehandling : Behandling {
     }
 
     /** Saksbehandler/beslutter tar behandlingen. */
-    fun taBehandling(saksbehandler: Saksbehandler): Rammebehandling {
+    fun taBehandling(saksbehandler: Saksbehandler, clock: Clock): Rammebehandling {
         return when (status) {
             KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
@@ -263,12 +279,14 @@ sealed interface Rammebehandling : Behandling {
                         saksbehandler = saksbehandler.navIdent,
                         beslutter = if (saksbehandler.navIdent == beslutter) null else beslutter,
                         status = UNDER_BEHANDLING,
+                        sistEndret = nå(clock),
                     )
 
                     is Revurdering -> this.copy(
                         saksbehandler = saksbehandler.navIdent,
                         beslutter = if (saksbehandler.navIdent == beslutter) null else beslutter,
                         status = UNDER_BEHANDLING,
+                        sistEndret = nå(clock),
                     )
                 }
             }
@@ -281,8 +299,16 @@ sealed interface Rammebehandling : Behandling {
                 require(this.beslutter == null) { "Behandlingen har en eksisterende beslutter. For å overta behandlingen, bruk overta() - behandlingsId: ${this.id}" }
 
                 when (this) {
-                    is Søknadsbehandling -> this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
-                    is Revurdering -> this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
+                    is Søknadsbehandling -> this.copy(
+                        beslutter = saksbehandler.navIdent,
+                        status = UNDER_BESLUTNING,
+                        sistEndret = nå(clock),
+                    )
+                    is Revurdering -> this.copy(
+                        beslutter = saksbehandler.navIdent,
+                        status = UNDER_BESLUTNING,
+                        sistEndret = nå(clock),
+                    )
                 }
             }
 
@@ -390,11 +416,13 @@ sealed interface Rammebehandling : Behandling {
             is Revurdering -> this.copy(
                 status = status,
                 sendtTilBeslutning = sendtTilBeslutning,
+                sistEndret = sendtTilBeslutning,
             )
 
             is Søknadsbehandling -> this.copy(
                 status = status,
                 sendtTilBeslutning = sendtTilBeslutning,
+                sistEndret = sendtTilBeslutning,
             )
         }.right()
     }
@@ -423,12 +451,14 @@ sealed interface Rammebehandling : Behandling {
                         status = VEDTATT,
                         attesteringer = attesteringer,
                         iverksattTidspunkt = iverksattTidspunkt,
+                        sistEndret = iverksattTidspunkt,
                     )
 
                     is Revurdering -> this.copy(
                         status = VEDTATT,
                         attesteringer = attesteringer,
                         iverksattTidspunkt = iverksattTidspunkt,
+                        sistEndret = iverksattTidspunkt,
                     )
                 }
             }
@@ -453,6 +483,7 @@ sealed interface Rammebehandling : Behandling {
     fun underkjenn(
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
+        clock: Clock,
     ): Rammebehandling {
         return when (status) {
             UNDER_BESLUTNING -> {
@@ -481,11 +512,13 @@ sealed interface Rammebehandling : Behandling {
                             saksbehandler
                         },
                         automatiskSaksbehandlet = false,
+                        sistEndret = nå(clock),
                     )
 
                     is Revurdering -> this.copy(
                         status = UNDER_BEHANDLING,
                         attesteringer = attesteringer,
+                        sistEndret = nå(clock),
                     )
                 }
             }

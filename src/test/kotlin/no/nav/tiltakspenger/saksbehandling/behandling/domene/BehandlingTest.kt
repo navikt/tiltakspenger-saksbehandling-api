@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
@@ -78,12 +79,14 @@ class BehandlingTest {
 
     @Nested
     inner class TaBehandling {
+        val clock = fixedClock
+
         @Test
         fun `en saksbehandler kan ta en ikke tildelt behandling`() {
             val behandling = ObjectMother.nyAutomatiskSøknadsbehandlingManuellBehandling()
             val saksbehandler = ObjectMother.saksbehandler()
 
-            val taBehandling = behandling.taBehandling(saksbehandler)
+            val taBehandling = behandling.taBehandling(saksbehandler, clock)
 
             taBehandling.saksbehandler shouldBe saksbehandler.navIdent
             taBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -93,7 +96,7 @@ class BehandlingTest {
         fun `en beslutter kan ta behandlingen`() {
             val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning()
             val beslutter = ObjectMother.beslutter()
-            val taBehandling = behandling.taBehandling(beslutter)
+            val taBehandling = behandling.taBehandling(beslutter, clock)
 
             taBehandling.beslutter shouldBe beslutter.navIdent
             taBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import java.time.Clock
 
 class TaBehandlingService(
     private val behandlingService: BehandlingService,
@@ -18,6 +19,7 @@ class TaBehandlingService(
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
     private val statistikkSakService: StatistikkSakService,
+    private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -31,7 +33,7 @@ class TaBehandlingService(
             behandlingId = behandlingId,
         )
 
-        return behandling.taBehandling(saksbehandler).let {
+        return behandling.taBehandling(saksbehandler, clock).let {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
@@ -42,6 +44,7 @@ class TaBehandlingService(
                             it.id,
                             saksbehandler,
                             it.status,
+                            it.sistEndret,
                             tx,
                         )
                     }
@@ -51,6 +54,7 @@ class TaBehandlingService(
                             it.id,
                             saksbehandler,
                             it.status,
+                            it.sistEndret,
                             tx,
                         )
                     }
