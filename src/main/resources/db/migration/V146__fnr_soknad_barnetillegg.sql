@@ -1,0 +1,2 @@
+ALTER TABLE søknad_barnetillegg
+    ADD COLUMN IF NOT EXISTS fnr VARCHAR DEFAULT NULL;

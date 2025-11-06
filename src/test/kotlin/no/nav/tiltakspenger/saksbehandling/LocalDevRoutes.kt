@@ -7,12 +7,11 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.soknad.AdressebeskyttelseDTO
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper.tilDomeneManuell
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper.tilDomenePdl
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySakMedNySøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySøknadForFnr
 
@@ -40,14 +39,14 @@ internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
                 val fornavn = it.fornavn ?: faker.name.firstName()
                 val etternavn = it.etternavn ?: faker.name.lastName()
                 BarnetilleggDTO(
-                    fnr = null,
+                    fnr = it.fnr ?: Fnr.random().verdi,
                     fødselsdato = fødselsdato,
                     fornavn = fornavn,
                     mellomnavn = null,
                     etternavn = etternavn,
                     oppholderSegIEØS = it.oppholderSegIEØS,
                 )
-            }.map { it.tilDomeneManuell() }
+            }.map { it.tilDomenePdl() }
 
             if (fnr == null) {
                 val saksnummer = nySakMedNySøknad(

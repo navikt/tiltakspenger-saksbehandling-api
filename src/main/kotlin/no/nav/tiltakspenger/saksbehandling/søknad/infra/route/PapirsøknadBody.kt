@@ -63,6 +63,7 @@ data class PapirsøknadBody(
         val mellomnavn: String?,
         val etternavn: String?,
         val oppholdInnenforEøs: JaNeiSpmDTO,
+        val fnr: String?,
     )
 
     enum class JaNeiSvar {
@@ -148,6 +149,7 @@ data class PapirsøknadBody(
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn,
             fødselsdato = this.fødselsdato,
+            fnr = this.fnr?.let { Fnr.fromString(it) },
         )
     }
 
