@@ -4,6 +4,7 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
@@ -51,6 +52,7 @@ internal object BarnetilleggDAO {
                         "mellomnavn" to barnetillegg.mellomnavn,
                         "etternavn" to barnetillegg.etternavn,
                         "opphold_i_eos_type" to lagreJaNeiSpmType(barnetillegg.oppholderSegIEØS),
+                        "fnr" to barnetillegg.fnr?.verdi,
                     )
 
                 is BarnetilleggFraSøknad.Manuell ->
@@ -63,6 +65,7 @@ internal object BarnetilleggDAO {
                         "mellomnavn" to barnetillegg.mellomnavn,
                         "etternavn" to barnetillegg.etternavn,
                         "opphold_i_eos_type" to lagreJaNeiSpmType(barnetillegg.oppholderSegIEØS),
+                        "fnr" to null,
                     )
             }
         txSession.run(
@@ -86,6 +89,7 @@ internal object BarnetilleggDAO {
         val mellomnavn = stringOrNull("mellomnavn")
         val etternavn = stringOrNull("etternavn")
         val oppholderSegIEØS = jaNeiSpm("opphold_i_eos")
+        val fnr = stringOrNull("fnr")
         return if (type == "PDL") {
             BarnetilleggFraSøknad.FraPdl(
                 oppholderSegIEØS = oppholderSegIEØS,
@@ -93,6 +97,7 @@ internal object BarnetilleggDAO {
                 mellomnavn = mellomnavn,
                 etternavn = etternavn,
                 fødselsdato = fødselsdato,
+                fnr = fnr?.let { Fnr.fromString(it) },
             )
         } else {
             checkNotNull(fornavn) { "Fornavn kan ikke være null for barnetillegg, manuelle barn " }
@@ -118,7 +123,8 @@ internal object BarnetilleggDAO {
             fornavn,
             mellomnavn,
             etternavn,
-            opphold_i_eos_type
+            opphold_i_eos_type,
+            fnr
         ) values (
             :id,
             :soknadId,
@@ -127,7 +133,8 @@ internal object BarnetilleggDAO {
             :fornavn,
             :mellomnavn,
             :etternavn,
-            :opphold_i_eos_type
+            :opphold_i_eos_type,
+            :fnr
         )
         """.trimIndent()
 

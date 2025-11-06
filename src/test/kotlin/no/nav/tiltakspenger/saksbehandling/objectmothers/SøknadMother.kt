@@ -44,6 +44,7 @@ interface SøknadMother {
         etternavn: String = "Etternavn Barn",
         fødselsdato: LocalDate = 14.juni(2012),
         søktBarnetillegg: Boolean = true,
+        fnr: Fnr? = null,
     ): BarnetilleggFraSøknad =
         BarnetilleggFraSøknad.FraPdl(
             oppholderSegIEØS = oppholderSegIEØS,
@@ -51,6 +52,7 @@ interface SøknadMother {
             mellomnavn = mellomnavn,
             etternavn = etternavn,
             fødselsdato = fødselsdato,
+            fnr = fnr,
         )
 
     fun barnetilleggUtenIdent(

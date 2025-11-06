@@ -228,6 +228,7 @@ sealed class BarnetilleggFraSøknad {
         override val mellomnavn: String?,
         override val etternavn: String?,
         override val fødselsdato: LocalDate,
+        val fnr: Fnr?,
     ) : BarnetilleggFraSøknad() {
         override fun under16ForDato(dato: LocalDate): Boolean = fødselsdato.plusYears(16) > dato
     }

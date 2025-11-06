@@ -98,6 +98,7 @@ class OlderMottaSøknadTest {
                             mellomnavn = null,
                             etternavn = "DIVA",
                             fødselsdato = LocalDate.parse("2010-02-13"),
+                            fnr = null,
                         ),
                         BarnetilleggFraSøknad.Manuell(
                             oppholderSegIEØS = Søknad.JaNeiSpm.Ja,

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.repo
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.dato.januar
@@ -19,8 +20,11 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nei
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.periodeIkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.periodeJa
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.periodeNei
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class SøknadPostgresRepoTest {
     @Nested
@@ -457,6 +461,89 @@ class SøknadPostgresRepoTest {
                             hentetSøknad.alderspensjon shouldBe fraOgMedDatoIkkeBesvart()
                         }
                     }
+                }
+            }
+        }
+
+        @Nested
+        inner class Barnetillegg {
+            @Test
+            fun `lagrer barnetillegg med fnr dersom fnr eksisterer`() {
+                withMigratedDb { testDataHelper ->
+                    val fnr = Fnr.random()
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val tiltak =
+                        ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
+
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
+                        periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        søknadstiltak = tiltak,
+                        fnr = fnr,
+                        alderspensjon = fraOgMedDatoIkkeBesvart(),
+                        barnetillegg = listOf(
+                            BarnetilleggFraSøknad.FraPdl(
+                                oppholderSegIEØS = Søknad.JaNeiSpm.Ja,
+                                fornavn = "skal lagre",
+                                mellomnavn = "fnr i basen",
+                                etternavn = "og hente den ut igjen",
+                                fødselsdato = LocalDate.now(fixedClock),
+                                fnr = Fnr.random(),
+                            ),
+                            BarnetilleggFraSøknad.Manuell(
+                                oppholderSegIEØS = Søknad.JaNeiSpm.Ja,
+                                fornavn = "barn lagt inn manuell",
+                                mellomnavn = "Denne har ikke fnr",
+                                etternavn = "så blir hentet ut uten fnr :)",
+                                fødselsdato = LocalDate.now(fixedClock),
+                            ),
+                        ),
+                    )
+
+                    val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
+
+                    persistertSøknad shouldBe søknad
+                }
+            }
+
+            @Test
+            fun `lagrer barnetillegg uten fnr dersom fnr er null`() {
+                withMigratedDb { testDataHelper ->
+                    val fnr = Fnr.random()
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val tiltak =
+                        ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
+
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
+                        periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        søknadstiltak = tiltak,
+                        fnr = fnr,
+                        alderspensjon = fraOgMedDatoIkkeBesvart(),
+                        barnetillegg = listOf(
+                            BarnetilleggFraSøknad.FraPdl(
+                                oppholderSegIEØS = Søknad.JaNeiSpm.Ja,
+                                fornavn = "skal lagre",
+                                mellomnavn = "tom fnr i basen",
+                                etternavn = "og hente den ut igjen",
+                                fødselsdato = LocalDate.now(fixedClock),
+                                fnr = null,
+                            ),
+                            BarnetilleggFraSøknad.Manuell(
+                                oppholderSegIEØS = Søknad.JaNeiSpm.Ja,
+                                fornavn = "barn lagt inn manuell",
+                                mellomnavn = "Denne har ikke fnr",
+                                etternavn = "så blir hentet ut uten fnr :)",
+                                fødselsdato = LocalDate.now(fixedClock),
+                            ),
+                        ),
+                    )
+
+                    val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
+
+                    persistertSøknad shouldBe søknad
                 }
             }
         }

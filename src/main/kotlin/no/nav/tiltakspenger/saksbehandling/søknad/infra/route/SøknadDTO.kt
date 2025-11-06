@@ -66,6 +66,7 @@ data class SøknadDTO(
         val etternavn: String?,
         val fødselsdato: LocalDate,
         val kilde: BarnetilleggFraSøknadKilde,
+        val fnr: String?,
     )
 
     enum class BarnetilleggFraSøknadKilde {
@@ -281,6 +282,10 @@ fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknad
         kilde = when (it) {
             is BarnetilleggFraSøknad.FraPdl -> SøknadDTO.BarnetilleggFraSøknadKilde.PDL
             is BarnetilleggFraSøknad.Manuell -> SøknadDTO.BarnetilleggFraSøknadKilde.Manuell
+        },
+        fnr = when (it) {
+            is BarnetilleggFraSøknad.FraPdl -> it.fnr?.verdi
+            is BarnetilleggFraSøknad.Manuell -> null
         },
     )
 }

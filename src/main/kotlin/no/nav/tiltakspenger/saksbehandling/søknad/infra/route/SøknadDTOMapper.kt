@@ -118,6 +118,7 @@ object SøknadDTOMapper {
             mellomnavn = this.mellomnavn,
             etternavn = this.etternavn,
             fødselsdato = this.fødselsdato!!,
+            fnr = this.fnr?.let { Fnr.fromString(it) },
         )
     }
 
