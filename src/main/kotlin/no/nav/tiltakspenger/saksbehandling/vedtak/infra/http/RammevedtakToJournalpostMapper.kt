@@ -23,7 +23,7 @@ internal fun Rammevedtak.utgåendeJournalpostRequest(
 private fun Rammevedtak.toJournalpostRequest(
     pdfOgJson: PdfOgJson,
     journalPostType: DokarkivRequest.JournalPostType,
-    kanal: String?,
+    kanal: DokarkivRequest.Distribusjonskanal?,
     avsenderMottaker: DokarkivRequest.AvsenderMottaker?,
 ): String {
     val tittel = "Vedtak om tiltakspenger"

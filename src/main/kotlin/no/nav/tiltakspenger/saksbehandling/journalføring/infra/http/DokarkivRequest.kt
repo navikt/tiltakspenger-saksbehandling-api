@@ -23,7 +23,7 @@ internal data class DokarkivRequest(
      * Kanalen som ble brukt ved innsending eller distribusjon. F.eks. NAV_NO, ALTINN eller EESSI.
      * Se Mottakskanal og Utsendingskanal for gyldige verdier for henholdsvis inngående og utgående dokumenter. Kanal skal ikke settes for notater.
      */
-    val kanal: String?,
+    val kanal: Distribusjonskanal?,
     /**
      * NAV-enheten som har journalført forsendelsen.
      * Dersom forsoekFerdigstill=true skal enhet alltid settes. Dersom  det ikke er noen Nav-enhet involvert (f.eks. ved automatisk journalføring), skal enhet være '9999'.
@@ -37,6 +37,21 @@ internal data class DokarkivRequest(
     val eksternReferanseId: String,
     val overstyrInnsynsregler: OverstyrInnsynsregler? = null,
 ) {
+
+    init {
+        if (journalpostType == JournalPostType.INNGAAENDE) {
+            require(kanal == null || kanal is DistribusjonskanalInngående) {
+                "Feil kanal for $journalpostType : $kanal"
+            }
+        }
+
+        if (journalpostType == JournalPostType.UTGAAENDE) {
+            require(kanal == null || kanal is DistribusjonskanalUtgående) {
+                "Feil kanal for $journalpostType : $kanal"
+            }
+        }
+    }
+
     /**
      * INNGAAENDE brukes for dokumentasjon som NAV har mottatt fra en ekstern part. Dette kan være søknader, ettersendelser av dokumentasjon til sak eller meldinger fra arbeidsgivere.
      * UTGAAENDE brukes for dokumentasjon som NAV har produsert og sendt ut til en ekstern part. Dette kan for eksempel være informasjons- eller vedtaksbrev til privatpersoner eller organisasjoner.
@@ -46,6 +61,43 @@ internal data class DokarkivRequest(
         INNGAAENDE,
         UTGAAENDE,
         NOTAT,
+    }
+
+    sealed interface Distribusjonskanal
+
+    // https://confluence.adeo.no/spaces/BOA/pages/316407153/Utsendingskanal
+    enum class DistribusjonskanalUtgående : Distribusjonskanal {
+        ALTINN,
+        EESSI,
+        EIA,
+        HELSENETTET,
+        INGEN_DISTRIBUSJON,
+        L,
+        NAV_NO,
+        NAV_NO_CHAT,
+        NAV_NO_UTEN_VARSLING,
+        S,
+        SDP,
+        TRYGDERETTEN,
+    }
+
+    // https://confluence.adeo.no/spaces/BOA/pages/316396050/Mottakskanal
+    enum class DistribusjonskanalInngående : Distribusjonskanal {
+        NAV_NO,
+        NAV_NO_UINNLOGGET,
+        NAV_NO_CHAT,
+        ALTINN,
+        SKAN_IM,
+        SKAN_NETS,
+        SKAN_PEN,
+        INNSENDT_NAV_ANSATT,
+        EKST_OPPS,
+        EESSI,
+        EIA,
+        HELSENETTET,
+        E_POST,
+        ALTINN_INNBOKS,
+        HR_SYSTEM_API,
     }
 
     /***
