@@ -397,7 +397,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
-                    (it as Søknadsbehandling).søknad.sykepenger?.erJa() shouldBe true
+                    (it as Søknadsbehandling).søknad.sykepenger.erJa() shouldBe true
                 }
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
@@ -480,8 +480,8 @@ class DelautomatiskBehandlingServiceTest {
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
-                    (it as Søknadsbehandling).søknad.kvp?.erJa() shouldBe true
-                    it.søknad.institusjon?.erJa() shouldBe true
+                    (it as Søknadsbehandling).søknad.kvp.erJa() shouldBe true
+                    it.søknad.institusjon.erJa() shouldBe true
                 }
                 opprettSøknadsbehandlingKlarTilBehandling(tac, fnr = sak.fnr)
 

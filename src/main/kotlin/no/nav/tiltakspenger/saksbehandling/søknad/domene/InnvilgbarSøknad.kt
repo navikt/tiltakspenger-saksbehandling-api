@@ -48,23 +48,18 @@ data class InnvilgbarSøknad(
     }
 
     fun harLivsoppholdYtelser(): Boolean =
-        sykepenger?.erJa() == true ||
-            etterlønn?.erJa() == true ||
-            trygdOgPensjon?.erJa() == true ||
-            gjenlevendepensjon?.erJa() == true ||
-            supplerendeStønadAlder?.erJa() == true ||
-            supplerendeStønadFlyktning?.erJa() == true ||
-            alderspensjon?.erJa() == true ||
-            jobbsjansen?.erJa() == true
+        sykepenger.erJa() ||
+            etterlønn.erJa() ||
+            trygdOgPensjon.erJa() ||
+            gjenlevendepensjon.erJa() ||
+            supplerendeStønadAlder.erJa() ||
+            supplerendeStønadFlyktning.erJa() ||
+            alderspensjon.erJa() ||
+            jobbsjansen.erJa()
 
-    fun harKvp(): Boolean =
-        kvp?.erJa() == true
-
-    fun harIntro(): Boolean =
-        intro?.erJa() == true
-
-    fun harInstitusjonsopphold(): Boolean =
-        institusjon?.erJa() == true
+    fun harKvp(): Boolean = kvp.erJa()
+    fun harIntro(): Boolean = intro.erJa()
+    fun harInstitusjonsopphold(): Boolean = institusjon.erJa()
 
     fun harLagtTilBarnManuelt(): Boolean =
         barnetillegg.any { it is BarnetilleggFraSøknad.Manuell }
