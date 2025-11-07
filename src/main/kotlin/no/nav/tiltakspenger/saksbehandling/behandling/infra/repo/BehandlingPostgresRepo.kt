@@ -415,7 +415,7 @@ class BehandlingPostgresRepo(
                         saksnummer = saksnummer,
                         fnr = fnr,
                         saksopplysninger = saksopplysninger,
-                        søknad = søknadId?.let { SøknadDAO.hentForSøknadId(it, session) } as InnvilgbarSøknad?
+                        søknad = søknadId?.let { SøknadDAO.hentForSøknadId(it, session) }
                             ?: throw IllegalStateException("Fant ikke søknad for søknadsbehandling, behandlingsid $id"),
                         saksbehandler = saksbehandler,
                         sendtTilBeslutning = sendtTilBeslutning,
