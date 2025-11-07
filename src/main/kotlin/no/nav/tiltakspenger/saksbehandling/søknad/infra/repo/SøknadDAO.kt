@@ -17,9 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.toFraOgMedDatoSpmParams
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.toJaNeiSpmParams
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.toPeriodeSpmParams
 
 private const val KVP_FELT = "kvp"
 private const val INTRO_FELT = "intro"
@@ -395,7 +392,15 @@ internal object SøknadDAO {
         val søknadstype = string("soknadstype").toSøknadstype()
         val manueltSattSøknadsperiodeFraOgMed = localDateOrNull("manuelt_satt_soknadsperiode_fra_og_med")
         val manueltSattSøknadsperiodeTilOgMed = localDateOrNull("manuelt_satt_soknadsperiode_til_og_med")
-
+        val manueltSattSøknadsperiode =
+            if (manueltSattSøknadsperiodeFraOgMed != null && manueltSattSøknadsperiodeTilOgMed != null) {
+                Periode(
+                    fraOgMed = manueltSattSøknadsperiodeFraOgMed,
+                    tilOgMed = manueltSattSøknadsperiodeTilOgMed,
+                )
+            } else {
+                null
+            }
         return if (søknadstiltak != null) {
             InnvilgbarSøknad(
                 versjon = versjon,
@@ -427,6 +432,7 @@ internal object SøknadDAO {
                 saksnummer = saksnummer,
                 avbrutt = avbrutt,
                 søknadstype = søknadstype,
+                manueltSattSøknadsperiode = manueltSattSøknadsperiode,
             )
         } else {
             IkkeInnvilgbarSøknad(
@@ -459,10 +465,7 @@ internal object SøknadDAO {
                 saksnummer = saksnummer,
                 avbrutt = avbrutt,
                 søknadstype = søknadstype,
-                manueltSattSøknadsperiode = Periode(
-                    manueltSattSøknadsperiodeFraOgMed!!,
-                    manueltSattSøknadsperiodeTilOgMed!!,
-                ),
+                manueltSattSøknadsperiode = manueltSattSøknadsperiode,
             )
         }
     }

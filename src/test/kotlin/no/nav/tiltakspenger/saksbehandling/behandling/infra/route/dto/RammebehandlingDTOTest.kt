@@ -188,6 +188,10 @@ class RammebehandlingDTOTest {
                   "typeKode": "GRUPPEAMO",
                   "typeNavn": "Gruppe AMO"
                 },
+                "tiltaksdeltakelseperiodeDetErSøktOm": {
+                  "fraOgMed": "2025-01-01",
+                  "tilOgMed": "2025-03-31"
+                },
                 "barnetillegg": [],
                 "opprettet": "2022-01-01T12:00:00",
                 "tidsstempelHosOss": "2022-01-01T12:00:00",
@@ -370,6 +374,10 @@ class RammebehandlingDTOTest {
                   "typeKode": "GRUPPEAMO",
                   "typeNavn": "Gruppe AMO"
                 },
+                "tiltaksdeltakelseperiodeDetErSøktOm": {
+                  "fraOgMed": "2025-01-01",
+                  "tilOgMed": "2025-03-31"
+                },
                 "barnetillegg": [],
                 "opprettet": "2022-01-01T12:00:00",
                 "tidsstempelHosOss": "2022-01-01T12:00:00",
@@ -537,6 +545,10 @@ class RammebehandlingDTOTest {
                   "tilOgMed": "2025-03-31",
                   "typeKode": "GRUPPEAMO",
                   "typeNavn": "Gruppe AMO"
+                },
+                "tiltaksdeltakelseperiodeDetErSøktOm": {
+                  "fraOgMed": "2025-01-01",
+                  "tilOgMed": "2025-03-31"
                 },
                 "barnetillegg": [],
                 "opprettet": "2022-01-01T12:00:00",
