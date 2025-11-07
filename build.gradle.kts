@@ -11,7 +11,7 @@ val testContainersVersion = "1.21.3"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 val confluentVersion = "8.1.0"
 val avroVersion = "1.12.1"
-val prometeusVersion = "1.15.5"
+val prometeusVersion = "1.16.0"
 
 dependencies {
     // Align versions of all Kotlin components
