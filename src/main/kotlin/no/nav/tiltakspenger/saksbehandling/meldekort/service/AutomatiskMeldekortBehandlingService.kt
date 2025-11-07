@@ -58,7 +58,11 @@ class AutomatiskMeldekortBehandlingService(
                 }
                 Either.catch {
                     opprettMeldekortBehandling(meldekort, sak).onLeft {
-                        logger.error { "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Feil: $it" }
+                        if (it.loggesSomError) {
+                            logger.error { "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Feil: $it" }
+                        } else {
+                            logger.info { "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Status: $it" }
+                        }
                         opprettOppgaveForAdressebeskyttetBruker(sak.fnr, meldekort.journalpostId)
                         brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                             meldekortId = meldekort.id,
