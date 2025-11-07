@@ -326,15 +326,56 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        virkningsperiode: Periode = revurderingVirkningsperiode(),
+        søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
+        omgjøringInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
+        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+            saksopplysninger(
+                fom = it.fraOgMed,
+                tom = it.tilOgMed,
+                clock = clock,
+            )
+        },
         omgjørBehandling: Rammebehandling = nyVedtattSøknadsbehandling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
+            virkningsperiode = søknadsbehandlingInnvilgelsesperiode,
+            saksopplysninger = hentSaksopplysninger(omgjøringInnvilgelsesperiode),
         ),
         omgjørRammevedtak: Rammevedtak = nyRammevedtakInnvilgelse(
             sakId = sakId,
-            periode = omgjørBehandling.virkningsperiode!!,
+            innvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
+            fnr = fnr,
+            behandling = omgjørBehandling,
+        ),
+    ): Revurdering {
+        return Revurdering.opprettOmgjøring(
+            saksbehandler = saksbehandler,
+            saksopplysninger = hentSaksopplysninger(omgjøringInnvilgelsesperiode),
+            omgjørRammevedtak = omgjørRammevedtak,
+            clock = clock,
+        ).copy(id = id)
+    }
+
+    fun nyRevurderingOmgjøringUnderTilBeslutning(
+        clock: Clock = this.clock,
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        saksbehandler: Saksbehandler = saksbehandler(),
+        beslutter: Saksbehandler = beslutter(),
+        søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
+        omgjøringInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
+        omgjørBehandling: Rammebehandling = nyVedtattSøknadsbehandling(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            virkningsperiode = søknadsbehandlingInnvilgelsesperiode,
+        ),
+        omgjørRammevedtak: Rammevedtak = nyRammevedtakInnvilgelse(
+            sakId = sakId,
+            innvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
             fnr = fnr,
             behandling = omgjørBehandling,
         ),
@@ -345,14 +386,71 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 clock = clock,
             )
         },
-    ): Revurdering {
-        return runBlocking {
-            Revurdering.opprettOmgjøring(
-                saksbehandler = saksbehandler,
-                saksopplysninger = hentSaksopplysninger(virkningsperiode),
-                omgjørRammevedtak = omgjørRammevedtak,
-                clock = clock,
-            ).copy(id = id)
-        }
+    ): Rammebehandling {
+        return nyOpprettetRevurderingOmgjøring(
+            clock = clock,
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            saksbehandler = saksbehandler,
+            søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
+            omgjøringInnvilgelsesperiode = omgjøringInnvilgelsesperiode,
+            omgjørBehandling = omgjørBehandling,
+            omgjørRammevedtak = omgjørRammevedtak,
+            hentSaksopplysninger = hentSaksopplysninger,
+        ).tilBeslutning(
+            saksbehandler = saksbehandler,
+            correlationId = CorrelationId.generate(),
+            clock = clock,
+        ).taBehandling(beslutter, clock)
     }
+
+    fun nyIverksattRevurderingOmgjøring(
+        clock: Clock = this.clock,
+        iverksettendeBeslutter: Saksbehandler = beslutter(),
+        attestering: Attestering = godkjentAttestering(),
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        beslutter: Saksbehandler = beslutter(),
+        søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
+        omgjøringInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
+        omgjørBehandling: Rammebehandling = nyVedtattSøknadsbehandling(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            virkningsperiode = søknadsbehandlingInnvilgelsesperiode,
+        ),
+        omgjørRammevedtak: Rammevedtak = nyRammevedtakInnvilgelse(
+            sakId = sakId,
+            innvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
+            fnr = fnr,
+            behandling = omgjørBehandling,
+        ),
+        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+            saksopplysninger(
+                fom = it.fraOgMed,
+                tom = it.tilOgMed,
+                clock = clock,
+            )
+        },
+    ): Rammebehandling = nyRevurderingOmgjøringUnderTilBeslutning(
+        clock = clock,
+        id = id,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        beslutter = beslutter,
+        søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
+        omgjøringInnvilgelsesperiode = omgjøringInnvilgelsesperiode,
+        omgjørBehandling = omgjørBehandling,
+        omgjørRammevedtak = omgjørRammevedtak,
+        hentSaksopplysninger = hentSaksopplysninger,
+    ).iverksett(
+        utøvendeBeslutter = iverksettendeBeslutter,
+        attestering = attestering,
+        clock = clock,
+    )
 }

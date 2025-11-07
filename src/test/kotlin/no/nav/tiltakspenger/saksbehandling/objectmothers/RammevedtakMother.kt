@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import arrow.core.nonEmptyListOf
+import arrow.core.nonEmptySetOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -9,8 +11,11 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -69,14 +74,14 @@ interface RammevedtakMother : MotherOfAllMothers {
         opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
-        periode: Periode = ObjectMother.virkningsperiode(),
+        innvilgelsesperiode: Periode = ObjectMother.virkningsperiode(),
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            periode,
+            innvilgelsesperiode,
         ),
         behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
-            virkningsperiode = periode,
+            virkningsperiode = innvilgelsesperiode,
             saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
             fnr = fnr,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
@@ -94,7 +99,48 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId = sakId,
         behandling = behandling,
         vedtaksdato = vedtaksdato,
-        periode = periode,
+        periode = behandling.innvilgelsesperiode!!,
+        journalpostId = journalpostId,
+        journalføringstidspunkt = journalføringstidspunkt,
+        distribusjonId = distribusjonId,
+        distribusjonstidspunkt = distribusjonstidspunkt,
+        sendtTilDatadeling = sendtTilDatadeling,
+        brevJson = brevJson,
+    )
+
+    fun nyRammevedtakAvslag(
+        id: VedtakId = VedtakId.random(),
+        opprettet: LocalDateTime = nå(clock),
+        sakId: SakId = SakId.random(),
+        fnr: Fnr = Fnr.random(),
+        innvilgelsesperiode: Periode = ObjectMother.virkningsperiode(),
+        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
+            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            innvilgelsesperiode,
+        ),
+        behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
+            sakId = sakId,
+            virkningsperiode = innvilgelsesperiode,
+            saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+            fnr = fnr,
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            resultat = SøknadsbehandlingType.AVSLAG,
+            avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
+        ),
+        vedtaksdato: LocalDate = 2.januar(2023),
+        journalpostId: JournalpostId? = null,
+        journalføringstidspunkt: LocalDateTime? = null,
+        distribusjonId: DistribusjonId? = null,
+        distribusjonstidspunkt: LocalDateTime? = null,
+        sendtTilDatadeling: LocalDateTime? = null,
+        brevJson: String? = null,
+    ): Rammevedtak = nyttRammevedtak(
+        id = id,
+        opprettet = opprettet,
+        sakId = sakId,
+        behandling = behandling,
+        vedtaksdato = vedtaksdato,
+        periode = behandling.virkningsperiode!!,
         journalpostId = journalpostId,
         journalføringstidspunkt = journalføringstidspunkt,
         distribusjonId = distribusjonId,
@@ -166,4 +212,40 @@ interface RammevedtakMother : MotherOfAllMothers {
             )
         }
     }
+
+    fun nyRammevedtakOmgjøring(
+        id: VedtakId = VedtakId.random(),
+        opprettet: LocalDateTime = nå(clock),
+        sakId: SakId = SakId.random(),
+        fnr: Fnr = Fnr.random(),
+        søknadsbehandlingInnvilgelsesperiode: Periode = ObjectMother.revurderingVirkningsperiode(),
+        omgjøringInnvilgelsesperiode: Periode = ObjectMother.revurderingVirkningsperiode(),
+        behandling: Rammebehandling = ObjectMother.nyIverksattRevurderingOmgjøring(
+            sakId = sakId,
+            søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
+            omgjøringInnvilgelsesperiode = omgjøringInnvilgelsesperiode,
+            saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+            fnr = fnr,
+        ),
+        vedtaksdato: LocalDate = 2.januar(2023),
+        journalpostId: JournalpostId? = null,
+        journalføringstidspunkt: LocalDateTime? = null,
+        distribusjonId: DistribusjonId? = null,
+        distribusjonstidspunkt: LocalDateTime? = null,
+        sendtTilDatadeling: LocalDateTime? = null,
+        brevJson: String? = null,
+    ): Rammevedtak = nyttRammevedtak(
+        id = id,
+        opprettet = opprettet,
+        sakId = sakId,
+        behandling = behandling,
+        vedtaksdato = vedtaksdato,
+        periode = søknadsbehandlingInnvilgelsesperiode,
+        journalpostId = journalpostId,
+        journalføringstidspunkt = journalføringstidspunkt,
+        distribusjonId = distribusjonId,
+        distribusjonstidspunkt = distribusjonstidspunkt,
+        sendtTilDatadeling = sendtTilDatadeling,
+        brevJson = brevJson,
+    )
 }

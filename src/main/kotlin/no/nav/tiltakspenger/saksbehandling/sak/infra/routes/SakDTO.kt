@@ -23,7 +23,7 @@ data class SakDTO(
     val sisteDagSomGirRett: LocalDate?,
     val søknader: List<SøknadDTO>,
     val behandlinger: List<RammebehandlingDTO>,
-    val tidslinje: List<RammevedtakDTO>,
+    val tidslinje: TidslinjeDTO,
     val alleRammevedtak: List<RammevedtakDTO>,
     val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
     val kanSendeInnHelgForMeldekort: Boolean,

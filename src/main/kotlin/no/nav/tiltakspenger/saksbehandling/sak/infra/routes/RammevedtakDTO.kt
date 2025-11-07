@@ -4,6 +4,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.maksAntallDager
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
@@ -53,12 +55,103 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
     )
 }
 
-fun Rammevedtaksliste.tilRammevedtakTidslinjeDTO(): List<RammevedtakDTO> {
-    return tidslinje.perioderMedVerdi.map {
-        it.verdi.tilRammevedtakDTO().copy(
-            gjeldendePeriode = it.periode.toDTO(),
-            barnetillegg = it.verdi.barnetillegg?.tilKrympetBarnetilleggDTO(it.periode),
-        )
+data class TidslinjeElementDTO(
+    val rammevedtak: RammevedtakDTO,
+    val periode: PeriodeDTO,
+    val tidslinjeResultat: TidslinjeResultat,
+)
+
+enum class TidslinjeResultat {
+    STANS,
+    FORLENGELSE,
+    SØKNADSBEHANDLING_INNVILGELSE,
+    REVURDERING_INNVILGELSE,
+    OMGJØRING_INNVILGELSE,
+    OMGJØRING_OPPHØR,
+}
+
+data class TidslinjeDTO(
+    val elementer: List<TidslinjeElementDTO>,
+)
+
+fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<TidslinjeElementDTO> {
+    return when (this.resultat) {
+        is RevurderingResultat.Omgjøring -> {
+            val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperiode!!)!!
+            val opphørtePeriode = tidslinjeperiode.trekkFra(innvilgelseperiode)
+
+            val innvilgelsesTidslinjeElement = TidslinjeElementDTO(
+                rammevedtak = this.tilRammevedtakDTO().copy(
+                    gjeldendePeriode = innvilgelseperiode.toDTO(),
+                    barnetillegg = this.barnetillegg?.tilKrympetBarnetilleggDTO(innvilgelseperiode),
+                ),
+                periode = innvilgelseperiode.toDTO(),
+                tidslinjeResultat = TidslinjeResultat.OMGJØRING_INNVILGELSE,
+            )
+
+            val opphørteTidslinjeElementer = opphørtePeriode.map {
+                TidslinjeElementDTO(
+                    rammevedtak = this.tilRammevedtakDTO().copy(
+                        gjeldendePeriode = it.toDTO(),
+                        barnetillegg = null,
+                    ),
+                    periode = it.toDTO(),
+                    tidslinjeResultat = TidslinjeResultat.OMGJØRING_OPPHØR,
+                )
+            }
+
+            when (opphørtePeriode.size) {
+                0 -> listOf(innvilgelsesTidslinjeElement)
+                1 -> {
+                    val singleOpphørsTidslinjeElement = opphørteTidslinjeElementer.single()
+                    if (innvilgelseperiode.fraOgMed > tidslinjeperiode.fraOgMed) {
+                        listOf(singleOpphørsTidslinjeElement, innvilgelsesTidslinjeElement)
+                    } else {
+                        listOf(innvilgelsesTidslinjeElement, singleOpphørsTidslinjeElement)
+                    }
+                }
+
+                2 -> listOf(
+                    opphørteTidslinjeElementer.first(),
+                    innvilgelsesTidslinjeElement,
+                    opphørteTidslinjeElementer.last(),
+                )
+
+                else -> throw IllegalStateException("Uventet antall opphørte perioder ved omgjøring: ${opphørtePeriode.size}")
+            }
+        }
+
+        is SøknadsbehandlingResultat.Avslag -> throw IllegalStateException("Avslag kan ikke forekomme i tidslinje")
+        is SøknadsbehandlingResultat.Innvilgelse,
+        is RevurderingResultat.Innvilgelse,
+        is RevurderingResultat.Stans,
+        ->
+            listOf(
+                TidslinjeElementDTO(
+                    rammevedtak = this.tilRammevedtakDTO().copy(
+                        gjeldendePeriode = tidslinjeperiode.toDTO(),
+                        barnetillegg = this.barnetillegg?.tilKrympetBarnetilleggDTO(tidslinjeperiode),
+                    ),
+                    periode = tidslinjeperiode.toDTO(),
+                    tidslinjeResultat = when (this.resultat) {
+                        is RevurderingResultat.Omgjøring -> throw IllegalStateException("Omgjøring skal bli håndtert spesielt")
+
+                        is SøknadsbehandlingResultat.Avslag -> throw IllegalStateException("Avslag kan ikke forekomme i tidslinje")
+
+                        is RevurderingResultat.Innvilgelse -> TidslinjeResultat.REVURDERING_INNVILGELSE
+                        is SøknadsbehandlingResultat.Innvilgelse -> TidslinjeResultat.SØKNADSBEHANDLING_INNVILGELSE
+                        is RevurderingResultat.Stans -> TidslinjeResultat.STANS
+                    },
+                ),
+            )
+    }
+}
+
+fun Rammevedtaksliste.tilRammevedtakTidslinjeDTO(): TidslinjeDTO {
+    return tidslinje.perioderMedVerdi.flatMap { (rammevedtak, tidslinjeperiode) ->
+        rammevedtak.toTidslinjeElementDto(tidslinjeperiode)
+    }.let {
+        TidslinjeDTO(elementer = it)
     }
 }
 

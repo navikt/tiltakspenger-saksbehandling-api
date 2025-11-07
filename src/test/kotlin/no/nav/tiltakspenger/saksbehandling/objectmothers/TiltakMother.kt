@@ -54,10 +54,12 @@ interface TiltakMother {
     }
 
     fun tiltaksdeltagelse(
-        eksternTiltaksdeltagelseId: String = UUID.randomUUID().toString(),
+        // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer. Så vi benytter en enkel statisk id her.
+        eksternTiltaksdeltagelseId: String = "61328250-7d5d-4961-b70e-5cb727a34371",
         typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
-        eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
+        // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer. Så vi benytter en enkel statisk id her.
+        eksternTiltaksgjennomføringsId: String = "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
         fom: LocalDate = 1.januar(2023),
         tom: LocalDate = 31.mars(2023),
         status: TiltakDeltakerstatus = Deltar,

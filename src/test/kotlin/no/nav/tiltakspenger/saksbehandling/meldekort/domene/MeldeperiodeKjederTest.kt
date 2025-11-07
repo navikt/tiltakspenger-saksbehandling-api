@@ -111,7 +111,7 @@ class MeldeperiodeKjederTest {
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val kjeder = MeldeperiodeKjeder(emptyList())
-        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(sakId = sakId, periode = periode)
+        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(sakId = sakId, innvilgelsesperiode = periode)
         val actual = kjeder.genererMeldeperioder(
             Rammevedtaksliste(
                 innvilgelseVedtak,
@@ -141,7 +141,7 @@ class MeldeperiodeKjederTest {
         val fnr = Fnr.random()
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
-        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, periode = periode)
+        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, innvilgelsesperiode = periode)
         val stansVedtak = ObjectMother.nyRammevedtakStans(
             fnr = fnr,
             sakId = sakId,
@@ -172,7 +172,7 @@ class MeldeperiodeKjederTest {
         val fnr = Fnr.random()
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
-        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, periode = periode)
+        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, innvilgelsesperiode = periode)
         val v1 = Rammevedtaksliste(listOf(innvilgelseVedtak))
         val kjederV1 = MeldeperiodeKjeder(emptyList())
 
@@ -284,7 +284,7 @@ class MeldeperiodeKjederTest {
         val kjeder = MeldeperiodeKjeder(emptyList())
         val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(
             sakId = sakId,
-            periode = periode,
+            innvilgelsesperiode = periode,
             antallDagerPerMeldeperiode = SammenhengendePeriodisering(
                 AntallDagerForMeldeperiode(5),
                 periode,

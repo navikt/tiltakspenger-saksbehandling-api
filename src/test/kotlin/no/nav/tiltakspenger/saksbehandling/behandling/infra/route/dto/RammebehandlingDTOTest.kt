@@ -883,11 +883,11 @@ class RammebehandlingDTOTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            virkningsperiode = virkningsperiode.plusFraOgMed(1),
+            søknadsbehandlingInnvilgelsesperiode = virkningsperiode.plusFraOgMed(1),
             omgjørRammevedtak = nyRammevedtakInnvilgelse(
                 id = vedtakId,
                 sakId = sakId,
-                periode = behandling.virkningsperiode!!,
+                innvilgelsesperiode = behandling.virkningsperiode!!,
                 fnr = fnr,
                 behandling = behandling,
             ),
@@ -947,7 +947,7 @@ class RammebehandlingDTOTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-01-01T01:02:11.456789"
+                "oppslagstidspunkt": "2025-01-01T01:02:12.456789"
               },
               "attesteringer": [],
               "virkningsperiode": {
@@ -957,7 +957,7 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:12.456789",
+              "sistEndret": "2025-01-01T01:02:13.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
