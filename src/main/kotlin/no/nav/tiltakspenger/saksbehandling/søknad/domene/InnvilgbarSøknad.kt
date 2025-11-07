@@ -42,11 +42,10 @@ data class InnvilgbarSøknad(
     override val fnr: Fnr = personopplysninger.fnr
     override val erAvbrutt: Boolean by lazy { avbrutt != null }
 
-    /**
-     * Merk at dette er sånn tiltaksdeltagelsen så ut i søknadsøyeblikket og kan ha endret seg i etterkant.
-     * Man kan bare søke om tiltakspenger for en tiltaksdeltagelse per søknad (aug 2025).
-     */
-    override fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom)
+    override fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode {
+        return manueltSattSøknadsperiode
+            ?: tiltak.let { Periode(it.deltakelseFom, it.deltakelseTom) }
+    }
 
     fun harLivsoppholdYtelser(): Boolean =
         sykepenger?.erJa() == true ||
