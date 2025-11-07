@@ -101,7 +101,7 @@ interface StartRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         søknadsbehandlingVirkningsperiode: Periode = 1 til 10.april(2025),
         oppdaterTiltaksdeltagelsesperiode: Periode? = 3 til 10.april(2025),
-        expectOmgjøringStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
     ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering?> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac,
@@ -123,7 +123,7 @@ interface StartRevurderingBuilder {
             sakId = sak.id,
             type = RevurderingType.OMGJØRING,
             rammevedtakIdSomOmgjøres = sak.vedtaksliste.single().id,
-            expectStatus = expectOmgjøringStatus,
+            forventetStatus = forventetStatus,
         )
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
 
@@ -142,7 +142,7 @@ interface StartRevurderingBuilder {
         type: RevurderingType,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         rammevedtakIdSomOmgjøres: VedtakId? = null,
-        expectStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
     ): Revurdering? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.texasClient.leggTilBruker(jwt, saksbehandler)
@@ -168,7 +168,7 @@ interface StartRevurderingBuilder {
                 withClue(
                     "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
                 ) {
-                    if (expectStatus != null) status shouldBe expectStatus
+                    if (forventetStatus != null) status shouldBe forventetStatus
                 }
                 if (status != HttpStatusCode.OK) return null
                 val revurderingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))

@@ -30,6 +30,7 @@ interface OppdaterSaksopplysningerBuilder {
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
     ): Triple<Sak, Rammebehandling, String> {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
@@ -47,7 +48,7 @@ interface OppdaterSaksopplysningerBuilder {
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe forventetStatus
             }
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val behandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)

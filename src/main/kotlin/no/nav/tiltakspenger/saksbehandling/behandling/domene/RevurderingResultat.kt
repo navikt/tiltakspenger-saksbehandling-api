@@ -157,11 +157,25 @@ sealed interface RevurderingResultat : BehandlingResultat {
         override fun oppdaterSaksopplysninger(
             oppdaterteSaksopplysninger: Saksopplysninger,
         ): Omgjøring {
-            return this.copy(
+            val innvilgelsesperiode =
+                oppdaterteSaksopplysninger.tiltaksdeltagelser.totalPeriode?.overlappendePeriode(innvilgelsesperiode)
+                    ?: throw IllegalArgumentException(
+                        "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere.",
+                    )
+            val valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.krympPeriode(innvilgelsesperiode)
+            val barnetillegg = barnetillegg.krympPeriode(innvilgelsesperiode)
+            val antallDagerPerMeldeperiode =
+                antallDagerPerMeldeperiode.krympPeriode(innvilgelsesperiode) as SammenhengendePeriodisering<AntallDagerForMeldeperiode>
+            return Omgjøring(
+                virkningsperiode = virkningsperiode,
+                innvilgelsesperiode = innvilgelsesperiode,
                 valgteTiltaksdeltakelser = resetTiltaksdeltagelserDersomDeErInkompatible(
                     valgteTiltaksdeltakelser,
                     oppdaterteSaksopplysninger.tiltaksdeltagelser,
                 ),
+                barnetillegg = barnetillegg,
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                omgjørRammevedtak = omgjørRammevedtak,
             )
         }
 
@@ -201,9 +215,11 @@ sealed interface RevurderingResultat : BehandlingResultat {
                             "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere.",
                         )
                 } ?: omgjørRammevedtak.periode
-                val valgteTiltaksdeltakelser = omgjørRammevedtak.valgteTiltaksdeltakelser!!.krympPeriode(innvilgelsesperiode)
+                val valgteTiltaksdeltakelser =
+                    omgjørRammevedtak.valgteTiltaksdeltakelser!!.krympPeriode(innvilgelsesperiode)
                 val barnetillegg = omgjørRammevedtak.barnetillegg!!.krympPeriode(innvilgelsesperiode)
-                val antallDagerPerMeldeperiode = omgjørRammevedtak.antallDagerPerMeldeperiode!!.krympPeriode(innvilgelsesperiode) as SammenhengendePeriodisering<AntallDagerForMeldeperiode>
+                val antallDagerPerMeldeperiode =
+                    omgjørRammevedtak.antallDagerPerMeldeperiode!!.krympPeriode(innvilgelsesperiode) as SammenhengendePeriodisering<AntallDagerForMeldeperiode>
                 return Omgjøring(
                     // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.
                     virkningsperiode = omgjørRammevedtak.periode,

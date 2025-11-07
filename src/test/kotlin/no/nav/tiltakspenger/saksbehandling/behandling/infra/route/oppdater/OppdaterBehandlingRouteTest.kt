@@ -381,7 +381,7 @@ class OppdaterBehandlingRouteTest {
                 sak.id,
                 revurdering.id,
             )
-            (revurderingMedOppdatertSaksopplysninger as Revurdering).erFerdigutfylt() shouldBe false
+            (revurderingMedOppdatertSaksopplysninger as Revurdering).erFerdigutfylt() shouldBe true
             val antallDagerPerMeldeperiodeForPerioder = listOf(
                 AntallDagerPerMeldeperiodeDTO(
                     periode = nyOmgjøringsperiodeEtterOppdatering.toDTO(),

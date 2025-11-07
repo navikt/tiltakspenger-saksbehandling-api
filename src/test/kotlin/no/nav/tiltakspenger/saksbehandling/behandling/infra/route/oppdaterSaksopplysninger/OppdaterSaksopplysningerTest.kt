@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSakso
 
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -70,35 +72,30 @@ internal class OppdaterSaksopplysningerTest {
                 sak.id,
                 revurdering.id,
             )
-            // Forventer at saksopplysningene er oppdatert, mens resultatet er ubesudlet.
+            // Forventer at saksopplysningene er oppdatert og at resultatet har resatt seg.
             (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltagelser.single() shouldBe avbruttTiltaksdeltagelse
-            oppdatertRevurdering.resultat shouldBe revurdering.resultat
-            oppdatertRevurdering.erFerdigutfylt() shouldBe false
+            oppdatertRevurdering.resultat shouldBe RevurderingResultat.Omgjøring.create(
+                omgjørRammevedtak = sak.rammevedtaksliste.single(),
+                saksopplysninger = oppdatertRevurdering.saksopplysninger,
+            )
+            oppdatertRevurdering.erFerdigutfylt() shouldBe true
             // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
             tac.sakContext.sakService.hentForSakId(sakId = revurdering.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering
         }
     }
 
     @Test
-    fun `revurdering til omgjøring - saksopplysninger mangler tiltaksdeltagelsen`() {
+    fun `revurdering til omgjøring - kan ikke oppdatere saksopplysninger dersom tiltaksdeltagelsen vi omgjør har blitt filtrert bort`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingOmgjøring(tac)
-            val forrigeTiltaksdeltagelse = revurdering!!.saksopplysninger.tiltaksdeltagelser.first()
 
             tac.oppdaterTiltaksdeltagelse(fnr = sak.fnr, tiltaksdeltagelse = null)
-            val (_, oppdatertRevurdering: Rammebehandling) = oppdaterSaksopplysningerForBehandlingId(
-                tac,
-                sak.id,
-                revurdering.id,
+            val (_, _) = oppdaterSaksopplysningerForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering!!.id,
+                forventetStatus = HttpStatusCode.InternalServerError,
             )
-            // Forventer at saksopplysningene mangler tiltaksdeltagelse, mens valgteTiltaksdeltagelser er null
-            (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltagelser.shouldBeEmpty()
-            oppdatertRevurdering.resultat shouldBe (revurdering.resultat as RevurderingResultat.Omgjøring).copy(
-                valgteTiltaksdeltakelser = null,
-            )
-            oppdatertRevurdering.erFerdigutfylt() shouldBe false
-            // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
-            tac.sakContext.sakService.hentForSakId(sakId = revurdering.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering
         }
     }
 }
