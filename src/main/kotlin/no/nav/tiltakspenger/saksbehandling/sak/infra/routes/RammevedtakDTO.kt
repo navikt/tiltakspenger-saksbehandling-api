@@ -77,7 +77,21 @@ data class TidslinjeDTO(
 fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<TidslinjeElementDTO> {
     return when (this.resultat) {
         is RevurderingResultat.Omgjøring -> {
-            val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperiode!!)!!
+            val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperiode!!)
+            // TODO - denne if'en burde vi lage en test for.
+            if (innvilgelseperiode == null) {
+                return listOf(
+                    TidslinjeElementDTO(
+                        rammevedtak = this.tilRammevedtakDTO().copy(
+                            gjeldendePeriode = tidslinjeperiode.toDTO(),
+                            barnetillegg = null,
+                        ),
+                        periode = tidslinjeperiode.toDTO(),
+                        tidslinjeResultat = TidslinjeResultat.OMGJØRING_OPPHØR,
+                    ),
+                )
+            }
+
             val opphørtePeriode = tidslinjeperiode.trekkFra(innvilgelseperiode)
 
             val innvilgelsesTidslinjeElement = TidslinjeElementDTO(
