@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.førsteNovember24
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.fraOgMedDatoNei
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class SøknadTest {
@@ -111,6 +113,107 @@ class SøknadTest {
 
         assertThrows<IllegalStateException> {
             avbruttSøknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad", førsteNovember24)
+        }
+    }
+
+    @Nested
+    inner class TiltaksdeltagelseperiodeDetErSøktOm {
+        @Nested
+        inner class InnvilgbarSøknad {
+            @Test
+            fun `Manuelt satt søknadsperiode prioriteres over tiltaksperiode`() {
+                val søknadstiltak = søknadstiltak(
+                    deltakelseFom = LocalDate.now(),
+                    deltakelseTom = LocalDate.now().plusMonths(1),
+                )
+                val søknadsperiode = Periode(
+                    fraOgMed = førsteNovember24.toLocalDate(),
+                    tilOgMed = førsteNovember24.plusMonths(1).toLocalDate(),
+                )
+
+                val søknadMedManueltSattPeriode = ObjectMother.nyInnvilgbarSøknad(
+                    søknadstiltak = søknadstiltak,
+                    søknadsperiode = søknadsperiode,
+                )
+
+                val periode = søknadMedManueltSattPeriode.tiltaksdeltagelseperiodeDetErSøktOm()
+                periode.fraOgMed shouldBe søknadsperiode.fraOgMed
+                periode.tilOgMed shouldBe søknadsperiode.tilOgMed
+            }
+
+            @Test
+            fun `Tiltaksperiode returneres om det ikke er satt noen søknadsperiode manuelt`() {
+                val søknadstiltak = søknadstiltak(
+                    deltakelseFom = LocalDate.now(),
+                    deltakelseTom = LocalDate.now().plusMonths(1),
+                )
+
+                val søknadMedManueltSattPeriode = ObjectMother.nyInnvilgbarSøknad(
+                    søknadstiltak = søknadstiltak,
+                    søknadsperiode = null,
+                )
+
+                val periode = søknadMedManueltSattPeriode.tiltaksdeltagelseperiodeDetErSøktOm()
+                periode.fraOgMed shouldBe søknadstiltak.deltakelseFom
+                periode.tilOgMed shouldBe søknadstiltak.deltakelseTom
+            }
+        }
+
+        @Nested
+        inner class IkkeInnvilgbarSøknad {
+            @Test
+            fun `Manuelt satt søknadsperiode prioriteres over tiltaksperiode`() {
+                val søknadstiltak = søknadstiltak(
+                    deltakelseFom = LocalDate.now(),
+                    deltakelseTom = LocalDate.now().plusMonths(1),
+                )
+                val søknadsperiode = Periode(
+                    fraOgMed = førsteNovember24.toLocalDate(),
+                    tilOgMed = førsteNovember24.plusMonths(1).toLocalDate(),
+                )
+
+                val søknadMedManueltSattPeriode = ObjectMother.nyIkkeInnvilgbarSøknad(
+                    søknadstiltak = søknadstiltak,
+                    søknadsperiode = søknadsperiode,
+                )
+
+                val periode = søknadMedManueltSattPeriode.tiltaksdeltagelseperiodeDetErSøktOm()
+                periode?.fraOgMed shouldBe søknadsperiode.fraOgMed
+                periode?.tilOgMed shouldBe søknadsperiode.tilOgMed
+            }
+
+            @Test
+            fun `Tiltaksperiode returneres om det ikke er satt noen søknadsperiode manuelt`() {
+                val søknadstiltak = søknadstiltak(
+                    deltakelseFom = LocalDate.now(),
+                    deltakelseTom = LocalDate.now().plusMonths(1),
+                )
+                val søknadsperiode = Periode(
+                    fraOgMed = førsteNovember24.toLocalDate(),
+                    tilOgMed = førsteNovember24.plusMonths(1).toLocalDate(),
+                )
+
+                val søknadMedManueltSattPeriode = ObjectMother.nyIkkeInnvilgbarSøknad(
+                    søknadstiltak = søknadstiltak,
+                    søknadsperiode = søknadsperiode,
+                )
+
+                val periode = søknadMedManueltSattPeriode.tiltaksdeltagelseperiodeDetErSøktOm()
+                periode?.fraOgMed shouldBe søknadsperiode.fraOgMed
+                periode?.tilOgMed shouldBe søknadsperiode.tilOgMed
+            }
+
+            @Test
+            fun `Kan være null om hverken søknadsperiode eller tiltak er satt`() {
+                val søknadMedManueltSattPeriode = ObjectMother.nyIkkeInnvilgbarSøknad(
+                    søknadstiltak = null,
+                    søknadsperiode = null,
+                )
+
+                val periode = søknadMedManueltSattPeriode.tiltaksdeltagelseperiodeDetErSøktOm()
+                periode?.fraOgMed shouldBe null
+                periode?.tilOgMed shouldBe null
+            }
         }
     }
 }

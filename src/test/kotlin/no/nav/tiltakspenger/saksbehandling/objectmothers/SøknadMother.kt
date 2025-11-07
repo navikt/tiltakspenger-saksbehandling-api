@@ -101,6 +101,7 @@ interface SøknadMother {
         vedlegg: Int = 0,
         avbrutt: Avbrutt? = null,
         søknadstype: Søknadstype = Søknadstype.DIGITAL,
+        søknadsperiode: Periode? = null,
     ): InnvilgbarSøknad =
         InnvilgbarSøknad(
             versjon = versjon,
@@ -126,7 +127,7 @@ interface SøknadMother {
             sakId = sakId,
             saksnummer = saksnummer,
             avbrutt = avbrutt,
-            manueltSattSøknadsperiode = null,
+            manueltSattSøknadsperiode = søknadsperiode,
             søknadstype = søknadstype,
         )
 
@@ -158,7 +159,7 @@ interface SøknadMother {
         vedlegg: Int = 0,
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         avbrutt: Avbrutt? = null,
-        søknadsperiode: Periode = ObjectMother.virkningsperiode(),
+        søknadsperiode: Periode? = ObjectMother.virkningsperiode(),
         søknadstype: Søknadstype = Søknadstype.PAPIR,
     ): IkkeInnvilgbarSøknad =
         IkkeInnvilgbarSøknad(
