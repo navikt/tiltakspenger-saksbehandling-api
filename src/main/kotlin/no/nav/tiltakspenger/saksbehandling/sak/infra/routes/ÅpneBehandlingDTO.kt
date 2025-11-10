@@ -140,17 +140,25 @@ private fun Sak.tilSøknaderUtenBehandling(): List<SøknadUtenBehandlingDTO> {
 }
 
 private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenRammebehandlingDTO> {
+    val sakId = this.id.toString()
+    val saksnummer = this.saksnummer.toString()
+
     return this.rammebehandlinger.åpneBehandlinger.map {
+        val id = it.id.toString()
+        val periode = it.virkningsperiode?.toDTO()
+        val status = it.status.toBehandlingsstatusDTO()
+        val underkjent = it.attesteringer.any { attestering -> attestering.isUnderkjent() }
+
         when (it) {
             is Søknadsbehandling -> ÅpenSøknadsbehandlingDTO(
-                id = it.id.toString(),
-                sakId = this.id.toString(),
-                saksnummer = this.saksnummer.toString(),
+                id = id,
+                sakId = sakId,
+                saksnummer = saksnummer,
                 opprettet = it.opprettet,
-                periode = it.virkningsperiode?.toDTO(),
-                status = it.status.toBehandlingsstatusDTO(),
+                periode = periode,
+                status = status,
                 kravtidspunkt = it.kravtidspunkt,
-                underkjent = it.attesteringer.any { attestering -> attestering.isUnderkjent() },
+                underkjent = underkjent,
                 resultat = it.resultat.tilSøknadsbehandlingResultatTypeDTO(),
                 saksbehandler = it.saksbehandler,
                 beslutter = it.beslutter,
@@ -158,13 +166,13 @@ private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenRammebehandlingDTO> {
             )
 
             is Revurdering -> ÅpenRevurderingDTO(
-                id = it.id.toString(),
-                sakId = this.id.toString(),
-                saksnummer = this.saksnummer.toString(),
+                id = id,
+                sakId = sakId,
+                saksnummer = saksnummer,
                 opprettet = it.opprettet,
-                periode = it.virkningsperiode?.toDTO(),
-                status = it.status.toBehandlingsstatusDTO(),
-                underkjent = it.attesteringer.any { attestering -> attestering.isUnderkjent() },
+                periode = periode,
+                status = status,
+                underkjent = underkjent,
                 resultat = it.resultat.tilRevurderingResultatTypeDTO(),
                 saksbehandler = it.saksbehandler,
                 beslutter = it.beslutter,
