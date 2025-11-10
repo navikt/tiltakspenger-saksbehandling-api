@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
@@ -72,17 +73,14 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
 
     override fun markerOmgjortAv(
         vedtakId: VedtakId,
-        omgjortAvRammevedtakId: VedtakId,
+        omgjortAvRammevedtak: OmgjortAvRammevedtak,
         sessionContext: SessionContext?,
     ) {
-        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(omgjortAvRammevedtakId = omgjortAvRammevedtakId)
+        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(omgjortAvRammevedtak = omgjortAvRammevedtak)
     }
 
     fun hentForSakId(sakId: SakId): Rammevedtaksliste =
         data.get().values.filter { it.behandling.sakId == sakId }.sortedBy { it.opprettet }.let {
             Rammevedtaksliste(it)
         }
-
-    fun hentForBehandlingId(behandlingId: BehandlingId): Rammevedtak? =
-        data.get().values.find { it.behandling.id == behandlingId }
 }

@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
@@ -91,6 +92,8 @@ sealed interface Rammebehandling : Behandling {
 
     val saksopplysningsperiode: Periode? get() = saksopplysninger.periode
 
+    val omgjørRammevedtak: OmgjørRammevedtak
+
     val utbetaling: BehandlingUtbetaling?
 
     fun inneholderSaksopplysningerEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
@@ -100,6 +103,8 @@ sealed interface Rammebehandling : Behandling {
         saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Rammebehandling
+
+    fun erFerdigutfylt(): Boolean
 
     fun settPåVent(
         endretAv: Saksbehandler,
@@ -228,6 +233,7 @@ sealed interface Rammebehandling : Behandling {
                         status = KLAR_TIL_BEHANDLING,
                         sistEndret = nå(clock),
                     )
+
                     is Revurdering -> this.copy(
                         saksbehandler = null,
                         status = KLAR_TIL_BEHANDLING,
@@ -248,6 +254,7 @@ sealed interface Rammebehandling : Behandling {
                         status = KLAR_TIL_BESLUTNING,
                         sistEndret = nå(clock),
                     )
+
                     is Revurdering -> this.copy(
                         beslutter = null,
                         status = KLAR_TIL_BESLUTNING,
@@ -304,6 +311,7 @@ sealed interface Rammebehandling : Behandling {
                         status = UNDER_BESLUTNING,
                         sistEndret = nå(clock),
                     )
+
                     is Revurdering -> this.copy(
                         beslutter = saksbehandler.navIdent,
                         status = UNDER_BESLUTNING,
@@ -393,6 +401,7 @@ sealed interface Rammebehandling : Behandling {
                         saksbehandler = saksbehandler.navIdent,
                         sistEndret = oppdatertSistEndret,
                     )
+
                     is Revurdering -> return KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
                 }.right()
             }
@@ -621,6 +630,7 @@ sealed interface Rammebehandling : Behandling {
                 require(iverksattTidspunkt == null)
                 require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen KLAR_TIL_BESLUTNING" }
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen KLAR_TIL_BESLUTNING" }
+                require(erFerdigutfylt())
             }
 
             UNDER_BESLUTNING -> {
@@ -630,6 +640,7 @@ sealed interface Rammebehandling : Behandling {
                 require(iverksattTidspunkt == null)
                 require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen UNDER_BESLUTNING" }
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen UNDER_BESLUTNING" }
+                require(erFerdigutfylt())
             }
 
             VEDTATT -> {
@@ -640,6 +651,7 @@ sealed interface Rammebehandling : Behandling {
                 requireNotNull(sendtTilBeslutning)
                 require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen VEDTATT" }
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen VEDTATT" }
+                require(erFerdigutfylt())
             }
 
             AVBRUTT -> {

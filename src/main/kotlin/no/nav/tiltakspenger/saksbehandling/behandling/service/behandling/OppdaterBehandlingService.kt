@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnOmgjøring
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -73,6 +74,7 @@ class OppdaterBehandlingService(
                 virkningsperiode = kommando.innvilgelsesperiode,
                 barnetilleggsperioder = kommando.barnetillegg.periodisering,
             )
+
             is OppdaterRevurderingKommando.Omgjøring,
             -> this.beregnOmgjøring(
                 behandlingId = kommando.behandlingId,
@@ -118,7 +120,19 @@ class OppdaterBehandlingService(
     ): Either<KanIkkeOppdatereBehandling, Søknadsbehandling> {
         val søknadsbehandling: Søknadsbehandling = this.hentRammebehandling(kommando.behandlingId) as Søknadsbehandling
 
-        return søknadsbehandling.oppdater(kommando, clock, utbetaling)
+        val omgjørRammevedtak = when (kommando) {
+            is OppdaterSøknadsbehandlingKommando.Avslag, is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat -> OmgjørRammevedtak.empty
+            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> this.vedtaksliste.finnRammevedtakSomOmgjøres(
+                virkningsperiode = kommando.innvilgelsesperiode,
+            )
+        }
+
+        return søknadsbehandling.oppdater(
+            kommando = kommando,
+            clock = clock,
+            utbetaling = utbetaling,
+            omgjørRammevedtak = omgjørRammevedtak,
+        )
     }
 
     private fun Sak.oppdaterRevurdering(
@@ -135,17 +149,20 @@ class OppdaterBehandlingService(
                     clock = clock,
                 )
             }
+
             is OppdaterRevurderingKommando.Innvilgelse -> {
                 revurdering.oppdaterInnvilgelse(
                     kommando = kommando,
                     utbetaling = utbetaling,
                     clock = clock,
+                    omgjørRammevedtak = this.vedtaksliste.finnRammevedtakSomOmgjøres(kommando.innvilgelsesperiode),
                 )
             }
 
             is OppdaterRevurderingKommando.Stans -> {
                 val stansperiode = kommando.utledStansperiode(førsteDagSomGirRett!!, sisteDagSomGirRett!!)
-                val overlappendeperiode = this.vedtaksliste.rammevedtaksliste.innvilgetTidslinje.overlappendePeriode(stansperiode)
+                val overlappendeperiode =
+                    this.vedtaksliste.rammevedtaksliste.innvilgetTidslinje.overlappendePeriode(stansperiode)
                 if (!overlappendeperiode.erSammenhengende) {
                     throw IllegalStateException("Stansperioden $stansperiode må være sammenhengende med eksisterende innvilgede perioder på saken. Finnes ikke sammenhengende periode i ${this.vedtaksliste.rammevedtaksliste.innvilgelsesperioder} for sakId=$id")
                 }
@@ -155,6 +172,7 @@ class OppdaterBehandlingService(
                     sisteDagSomGirRett = sisteDagSomGirRett,
                     clock = clock,
                     utbetaling = utbetaling,
+                    omgjørRammevedtak = this.vedtaksliste.finnRammevedtakSomOmgjøres(stansperiode),
                 )
             }
         }

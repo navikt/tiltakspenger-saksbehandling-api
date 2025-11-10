@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.B
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
@@ -115,7 +116,7 @@ fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.tilDTO(),
             barnetillegg = barnetillegg.toBarnetilleggDTO(),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),
-            omgjørVedtak = omgjørRammevedtak.id.toString(),
+            omgjørVedtak = omgjørRammevedtak.single().rammevedtakId.toString(),
         )
     }
 }

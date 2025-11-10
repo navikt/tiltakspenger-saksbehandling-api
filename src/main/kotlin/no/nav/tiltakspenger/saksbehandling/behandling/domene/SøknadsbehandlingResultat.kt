@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
 sealed interface SøknadsbehandlingResultat : BehandlingResultat {
@@ -25,6 +26,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         override val barnetillegg = null
         override val valgteTiltaksdeltakelser = null
         override val antallDagerPerMeldeperiode = null
+        override val omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty
 
         /**
          * True dersom [avslagsgrunner] ikke er tom. Vi må støtte at [avslagsperiode] er null for særdeles mangelfulle søknader.
@@ -46,6 +48,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
         override val barnetillegg: Barnetillegg?,
         override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
+        override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : BehandlingResultat.Innvilgelse,
         SøknadsbehandlingResultat {
         override val virkningsperiode = innvilgelsesperiode

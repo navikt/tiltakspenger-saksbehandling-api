@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterS�
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadPåSakId
@@ -225,6 +226,7 @@ interface SøknadsbehandlingBuilder {
             ),
             clock = clock,
             utbetaling = null,
+            omgjørRammevedtak = OmgjørRammevedtak.empty,
         ).getOrFail().also {
             tac.behandlingContext.behandlingRepo.lagre(it)
         }

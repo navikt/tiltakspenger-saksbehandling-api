@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -17,6 +18,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Rammebehan
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingStansTilBeslutningForBehandlingId
@@ -61,10 +65,10 @@ class SendRevurderingTilBeslutningTest {
     @Test
     fun `kan sende revurdering med forlenget innvilgelse til beslutning`() {
         withTestApplicationContext { tac ->
-            val søknadsbehandlingVirkningsperiode = Periode(1.april(2025), 10.april(2025))
+            val søknadsbehandlingVirkningsperiode = 1 til 10.april(2025)
             val revurderingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L)
 
-            val (_, _, søknadsbehandling, jsonResponse) = sendRevurderingInnvilgelseTilBeslutning(
+            val (sak, _, søknadsbehandling, jsonResponse) = sendRevurderingInnvilgelseTilBeslutning(
                 tac,
                 søknadsbehandlingVirkningsperiode = søknadsbehandlingVirkningsperiode,
                 revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
@@ -77,6 +81,7 @@ class SendRevurderingTilBeslutningTest {
                 tac.behandlingContext.behandlingRepo.hent(BehandlingId.fromString(JSONObject(jsonResponse).getString("id")))
 
             revurdering.shouldBeInstanceOf<Revurdering>()
+            val søknadsbehandlingsvedtak = sak.rammevedtaksliste.single()
 
             revurdering.resultat shouldBe RevurderingResultat.Innvilgelse(
                 valgteTiltaksdeltakelser = revurdering.valgteTiltaksdeltakelser!!,
@@ -92,6 +97,13 @@ class SendRevurderingTilBeslutningTest {
                     revurderingInnvilgelsesperiode,
                 ),
                 innvilgelsesperiode = revurderingInnvilgelsesperiode,
+                omgjørRammevedtak = OmgjørRammevedtak(
+                    Omgjøringsperiode(
+                        rammevedtakId = søknadsbehandlingsvedtak.id,
+                        periode = 1 til 10.april(2025),
+                        omgjøringsgrad = Omgjøringsgrad.HELT,
+                    ),
+                ),
             )
 
             revurdering.virkningsperiode shouldBe revurderingInnvilgelsesperiode

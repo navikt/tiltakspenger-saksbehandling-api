@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
@@ -26,6 +28,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
         val harValgtStansFraFørsteDagSomGirRett: Boolean?,
         val harValgtStansTilSisteDagSomGirRett: Boolean?,
         val stansperiode: Periode?,
+        override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : RevurderingResultat {
 
         override val virkningsperiode = stansperiode
@@ -51,6 +54,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 harValgtStansFraFørsteDagSomGirRett = null,
                 harValgtStansTilSisteDagSomGirRett = null,
                 stansperiode = null,
+                omgjørRammevedtak = OmgjørRammevedtak.empty,
             )
         }
     }
@@ -66,6 +70,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
         override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
         override val barnetillegg: Barnetillegg?,
         override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
+        override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : BehandlingResultat.Innvilgelse,
         RevurderingResultat {
         override val virkningsperiode = innvilgelsesperiode
@@ -90,6 +95,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 barnetillegg = null,
                 antallDagerPerMeldeperiode = null,
                 innvilgelsesperiode = null,
+                omgjørRammevedtak = OmgjørRammevedtak.empty,
             )
         }
     }
@@ -111,7 +117,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
         override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
         override val barnetillegg: Barnetillegg,
         override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
-        val omgjørRammevedtak: Rammevedtak,
+        override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : RevurderingResultat,
         BehandlingResultat.Innvilgelse {
 
@@ -231,27 +237,34 @@ sealed interface RevurderingResultat : BehandlingResultat {
                     ),
                     barnetillegg = barnetillegg,
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-                    omgjørRammevedtak = omgjørRammevedtak,
+                    omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
                 )
             }
         }
 
         init {
-            require(virkningsperiode.inneholderHele(omgjørRammevedtak.periode)) {
-                "Virkningsperioden ($virkningsperiode!!) må være lik eller større enn omgjort rammevedtak sin periode (${omgjørRammevedtak.periode})"
+            require(omgjørRammevedtak.perioder.all { virkningsperiode.inneholderHele(it) }) {
+                "Virkningsperioden ($virkningsperiode) må være lik eller større enn omgjort rammevedtak sin(e) periode(r): ${omgjørRammevedtak.perioder}"
             }
             require(virkningsperiode.inneholderHele(innvilgelsesperiode)) {
                 "Virkningsperioden ($virkningsperiode) må inneholde hele innvilgelsesperiode ($innvilgelsesperiode)"
             }
             if (virkningsperiode.fraOgMed < omgjørRammevedtak.fraOgMed) {
-                require(innvilgelsesperiode.fraOgMed == omgjørRammevedtak.fraOgMed) {
-                    "Når virkningsperioden ($virkningsperiode) starter før det omgjorte vedtaket (${omgjørRammevedtak.periode}), må innvilgelsesperiode ($innvilgelsesperiode) starte samtidig som det omgjorte vedtaket (${omgjørRammevedtak.periode})"
+                require(innvilgelsesperiode.fraOgMed == virkningsperiode.fraOgMed) {
+                    "Når virkningsperioden sin fraOgMed (${virkningsperiode.fraOgMed}) starter før det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed}), må innvilgelsesperioden sin fraOgMed (${innvilgelsesperiode.fraOgMed}) starte samtidig som det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed})"
                 }
             }
             if (virkningsperiode.tilOgMed > omgjørRammevedtak.tilOgMed) {
-                require(innvilgelsesperiode.tilOgMed == omgjørRammevedtak.tilOgMed) {
-                    "Når virkningsperioden ($virkningsperiode) slutter etter det omgjorte vedtaket (${omgjørRammevedtak.periode}), må innvilgelsesperiode ($innvilgelsesperiode) slutte samtidig som det omgjorte vedtaket (${omgjørRammevedtak.periode})"
+                require(innvilgelsesperiode.tilOgMed == virkningsperiode.tilOgMed) {
+                    "Når virkningsperioden sin tilOgMed (${virkningsperiode.tilOgMed}) slutter etter det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed}), må innvilgelsesperioden sin tilOgMed (${innvilgelsesperiode.tilOgMed}) slutte samtidig som det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed})"
                 }
+            }
+            require(
+                omgjørRammevedtak.size == 1 &&
+                    omgjørRammevedtak.first().omgjøringsgrad == Omgjøringsgrad.HELT &&
+                    virkningsperiode.inneholderHele(omgjørRammevedtak.first().periode),
+            ) {
+                "Omgjøring støtter kun å omgjøre ett tidligere vedtak i sin helhet per tidspunkt."
             }
         }
     }

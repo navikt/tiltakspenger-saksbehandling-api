@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
@@ -64,6 +65,8 @@ data class Revurdering(
 
     override val valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser
 
+    override val omgjørRammevedtak: OmgjørRammevedtak = resultat.omgjørRammevedtak
+
     init {
         super.init()
 
@@ -87,7 +90,7 @@ data class Revurdering(
      * Sier noe om tilstanden til behandlingen. Er den klar til å sendes til beslutter og/eller iverksettes?
      * Dette er uavhengig av [status], som sier noe om hvor i prosessen behandlingen er.
      */
-    fun erFerdigutfylt(): Boolean {
+    override fun erFerdigutfylt(): Boolean {
         return when {
             !resultat.erFerdigutfylt(saksopplysninger) -> false
             saksbehandler == null -> false
@@ -98,6 +101,7 @@ data class Revurdering(
     fun oppdaterInnvilgelse(
         kommando: OppdaterRevurderingKommando.Innvilgelse,
         utbetaling: BehandlingUtbetaling?,
+        omgjørRammevedtak: OmgjørRammevedtak,
         clock: Clock,
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
@@ -116,6 +120,7 @@ data class Revurdering(
                 barnetillegg = kommando.barnetillegg,
                 antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
                 innvilgelsesperiode = kommando.innvilgelsesperiode,
+                omgjørRammevedtak = omgjørRammevedtak,
             ),
             utbetaling = utbetaling,
         ).also {
@@ -156,6 +161,7 @@ data class Revurdering(
         førsteDagSomGirRett: LocalDate,
         sisteDagSomGirRett: LocalDate,
         utbetaling: BehandlingUtbetaling?,
+        omgjørRammevedtak: OmgjørRammevedtak,
         clock: Clock,
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
@@ -171,6 +177,7 @@ data class Revurdering(
                 harValgtStansFraFørsteDagSomGirRett = kommando.harValgtStansFraFørsteDagSomGirRett,
                 harValgtStansTilSisteDagSomGirRett = kommando.harValgtStansTilSisteDagSomGirRett,
                 stansperiode = kommando.utledStansperiode(førsteDagSomGirRett, sisteDagSomGirRett),
+                omgjørRammevedtak = omgjørRammevedtak,
             ),
             utbetaling = utbetaling,
         ).right()
