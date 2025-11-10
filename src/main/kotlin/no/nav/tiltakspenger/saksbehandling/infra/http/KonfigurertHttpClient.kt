@@ -15,6 +15,7 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.jackson.jackson
+import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import java.time.Duration
 

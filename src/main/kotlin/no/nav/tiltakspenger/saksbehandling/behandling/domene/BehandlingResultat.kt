@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 
 sealed interface BehandlingResultat {
@@ -23,6 +24,8 @@ sealed interface BehandlingResultat {
 
     /** Vil være null ved stans og når behandlingen er uferdig */
     val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
+
+    val omgjørRammevedtak: OmgjørRammevedtak
 
     /**
      * Sier noe om tilstanden til resultatet. Om det er klart for å sendes til beslutter og/eller iverksettes.

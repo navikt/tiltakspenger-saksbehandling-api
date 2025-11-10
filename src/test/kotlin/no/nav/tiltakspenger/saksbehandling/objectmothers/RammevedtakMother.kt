@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
-import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -14,11 +13,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -66,7 +66,8 @@ interface RammevedtakMother : MotherOfAllMothers {
             opprettet = opprettet,
             forrigeUtbetalingId = forrigeUtbetalingId,
         ),
-        omgjortAvRammevedtakId = omgjortAvRammevedtakId,
+        omgjørRammevedtak = OmgjørRammevedtak.empty,
+        omgjortAvRammevedtak = OmgjortAvRammevedtak.empty,
     )
 
     fun nyRammevedtakInnvilgelse(

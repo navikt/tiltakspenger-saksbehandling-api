@@ -36,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyRammeved
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyVedtattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
@@ -124,6 +125,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             sisteDagSomGirRett = sisteDagSomGirRett,
             clock = clock,
             utbetaling = utbetaling,
+            omgjørRammevedtak = OmgjørRammevedtak.empty,
         ).getOrFail().tilBeslutning(saksbehandler) as Revurdering
     }
 
@@ -264,6 +266,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                     simulering = simulering,
                 )
             },
+            omgjørRammevedtak = OmgjørRammevedtak.empty,
         ).getOrFail().tilBeslutning(saksbehandler = saksbehandler, clock = clock) as Revurdering
     }
 

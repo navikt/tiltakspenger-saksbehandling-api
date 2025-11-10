@@ -24,6 +24,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperioder
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
@@ -152,10 +155,22 @@ class IverksettBehandlingService(
             meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
-
-            if (vedtak.omgjørRammevedtak != null) {
-                // Oppdaterer omgjort vedtak slik at det peker på dette vedtaket
-                rammevedtakRepo.markerOmgjortAv(vedtak.omgjørRammevedtak.id, vedtak.id, tx)
+            vedtak.omgjørRammevedtak.forEach {
+                rammevedtakRepo.markerOmgjortAv(
+                    it.rammevedtakId,
+                    OmgjortAvRammevedtak(
+                        omgjøringsperioder = Omgjøringsperioder(
+                            listOf(
+                                Omgjøringsperiode(
+                                    rammevedtakId = vedtak.id,
+                                    periode = it.periode,
+                                    omgjøringsgrad = it.omgjøringsgrad,
+                                ),
+                            ),
+                        ),
+                    ),
+                    tx,
+                )
             }
         }
         return oppdatertSak.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)

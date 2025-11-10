@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.navkontor
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
@@ -110,6 +111,7 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
             sisteDagSomGirRett = sakMedRevurdering.sisteDagSomGirRett!!,
             clock = clock,
             utbetaling = utbetaling,
+            omgjørRammevedtak = OmgjørRammevedtak.empty,
         )
     }.getOrNull()!!.tilBeslutning().let {
         behandlingRepo.lagre(it)
@@ -277,6 +279,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
                     simulering = null,
                 )
             },
+            omgjørRammevedtak = OmgjørRammevedtak.empty,
         )
     }.getOrNull()!!.tilBeslutning().taBehandling(
         saksbehandler = beslutter,
@@ -297,9 +300,9 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
 }
 
 internal fun TestDataHelper.persisterOpprettetOmgjøring(
-    genererSak: Triple<Sak, Rammevedtak, Rammebehandling> = { this.persisterIverksattSøknadsbehandling() }(),
+    genererSak: Triple<Sak, Rammevedtak, Rammebehandling> = persisterIverksattSøknadsbehandling(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> genererSak.second.behandling.saksopplysninger!! },
+    hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> genererSak.second.behandling.saksopplysninger },
     clock: Clock = this.clock,
 ): Pair<Sak, Revurdering> {
     val (sakMedVedtak, _, _) = genererSak

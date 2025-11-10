@@ -17,6 +17,11 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperioder
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
@@ -31,12 +36,14 @@ import java.time.LocalDateTime
  * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
  * @param periode Stansperiode eller innvilgelsesperiode (ikke nødvendigvis det samme som vurderingsperiode.)
  * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
- * @param omgjortAvRammevedtakId Dersom vedtaket i sin helhet er omgjort av et annen vedtak. Vedtaket som erstattet dette er master for dette feltet.
+ * @param omgjortAvRammevedtak Dersom dette vedtaket er erstattet helt eller delvis av ett eller flere senere vedtak.
+ * @param omgjørRammevedtak Dersom dette vedtaket helt eller delvis omgjør ett eller flere tidligere vedtak.
  */
 data class Rammevedtak(
     override val id: VedtakId = VedtakId.random(),
     override val opprettet: LocalDateTime,
     override val sakId: SakId,
+    // TODO jah: Rename til virkningsperiode og fjern fra basen. Denne bør heller reflektere behandlingen.
     override val periode: Periode,
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
@@ -47,10 +54,10 @@ data class Rammevedtak(
     val distribusjonstidspunkt: LocalDateTime?,
     val sendtTilDatadeling: LocalDateTime?,
     val brevJson: String?,
-    val omgjortAvRammevedtakId: VedtakId?,
+    val omgjortAvRammevedtak: OmgjortAvRammevedtak,
+    val omgjørRammevedtak: OmgjørRammevedtak,
 ) : Vedtak,
     Periodiserbar {
-
     override val fnr: Fnr = behandling.fnr
     override val saksnummer: Saksnummer = behandling.saksnummer
     override val saksbehandler: String = behandling.saksbehandler!!
@@ -59,6 +66,11 @@ data class Rammevedtak(
     override val beregning: Beregning? = behandling.utbetaling?.beregning
 
     val resultat: BehandlingResultat = behandling.resultat!!
+
+    /** Er dette en omgjøringsbehandling? */
+    val erOmgjøringsbehandling: Boolean by lazy {
+        behandling.resultat is RevurderingResultat.Omgjøring
+    }
 
     /** Vil være null for stans, avslag eller dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
@@ -69,17 +81,49 @@ data class Rammevedtak(
 
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = behandling.valgteTiltaksdeltakelser
 
-    /** Dersom dette vedtaket i sin helhet omgjør et annet vedtak. */
-    val omgjørRammevedtak: Rammevedtak? = (behandling.resultat as? RevurderingResultat.Omgjøring)?.omgjørRammevedtak
-
     val innvilgelsesperiode = behandling.innvilgelsesperiode
+
+    val gjeldendePerioder: List<Periode> by lazy {
+        if (omgjortAvRammevedtak.isEmpty()) {
+            listOf(periode)
+        } else {
+            this.periode.trekkFra(omgjortAvRammevedtak.perioder)
+        }
+    }
+
+    /** Merk at et vedtak fremdeles er gjeldende dersom det er delvis omgjort. */
+    val erGjeldende: Boolean by lazy {
+        gjeldendePerioder.isNotEmpty()
+    }
+
+    /**
+     * Et vedtak kan bare bli helt omgjort en gang.
+     * Delvis omgjøring kan skje flere ganger, men hver periode kan kun omgjøres en gang.
+     *
+     * Tenkt kalt under behandlingen for å avgjøre hvilke rammevedtak som vil bli omgjort.
+     * Obs: Merk at en annen behandling kan ha omgjort det samme/de samme vedtakene etter at denne metoden er kalt, men før denne behandlingen iverksettes.
+     * @param virkningsperiode vurderingsperioden/vedtaksperioden til en ny behandling/vedtak som potensielt vil omgjøre dette vedtaket. Kan være en ren innvilgelse, et rent opphør eller en blanding.
+     * @return En tom liste dersom dette vedtaket ikke lenger gjelder eller [virkningsperiode] ikke overlapper, ellers en liste over perioder som omgjøres.
+     */
+    fun finnPerioderSomOmgjøres(virkningsperiode: Periode): Omgjøringsperioder {
+        return Omgjøringsperioder(
+            virkningsperiode.overlappendePerioder(gjeldendePerioder).map {
+                Omgjøringsperiode(
+                    rammevedtakId = this.id,
+                    periode = it,
+                    omgjøringsgrad = if (it == this.periode) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS,
+                )
+            },
+        )
+    }
 
     init {
         require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
         require(sakId == behandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${behandling.id}" }
         require(this@Rammevedtak.periode == behandling.virkningsperiode) { "Periode i vedtak (${this@Rammevedtak.periode}) og behandlingens virkningsperiode (${behandling.virkningsperiode}) må være lik. SakId: $sakId, Saksnummer: ${behandling.saksnummer} BehandlingId: ${behandling.id}" }
-        require(id != omgjørRammevedtak?.id)
-        require(id != omgjortAvRammevedtakId)
+        require(id !in omgjørRammevedtak.rammevedtakIDer)
+        require(id !in omgjortAvRammevedtak.rammevedtakIDer)
+        (behandling.resultat as? RevurderingResultat.Omgjøring)?.omgjørRammevedtak
 
         utbetaling?.also {
             require(id == it.vedtakId)
@@ -128,7 +172,8 @@ fun Sak.opprettVedtak(
         sakId = this.id,
         behandling = behandling,
         periode = behandling.virkningsperiode!!,
-        omgjortAvRammevedtakId = null,
+        omgjortAvRammevedtak = OmgjortAvRammevedtak.empty,
+        omgjørRammevedtak = behandling.omgjørRammevedtak,
         utbetaling = utbetaling,
         vedtaksdato = null,
         journalpostId = null,
