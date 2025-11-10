@@ -171,18 +171,22 @@ private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenBehandlingDTO.ÅpenRammeb
 
 // Returnerer meldeperiodekjeder med en åpen meldekortbehandling, eller med et brukers meldekort som ikke har blitt behandlet
 private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<ÅpenBehandlingDTO.MeldeperiodeKjedeSomMåBehandlesDTO> {
+    val sakId = this.id.toString()
+    val saksnummer = this.saksnummer.toString()
+
     return this.meldeperiodeKjeder.mapNotNull { kjede ->
         val kjedeId = kjede.kjedeId
+        val periode = kjede.periode.toDTO()
 
         val åpenMeldekortBehandling = meldekortbehandlinger.åpenMeldekortBehandling
 
-        if (åpenMeldekortBehandling != null) {
+        if (åpenMeldekortBehandling?.kjedeId == kjedeId) {
             return@mapNotNull ÅpenBehandlingDTO.MeldeperiodeKjedeSomMåBehandlesDTO(
                 id = kjedeId.toString(),
-                sakId = this.id.toString(),
-                saksnummer = this.saksnummer.toString(),
+                sakId = sakId,
+                saksnummer = saksnummer,
+                periode = periode,
                 meldekortBehandlingId = åpenMeldekortBehandling.id.toString(),
-                periode = kjede.periode.toDTO(),
                 opprettet = åpenMeldekortBehandling.opprettet,
                 status = åpenMeldekortBehandling.status.tilMeldeperiodeKjedeStatusDTO(),
                 saksbehandler = åpenMeldekortBehandling.saksbehandler,
@@ -207,8 +211,8 @@ private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<ÅpenBehandlingDTO.
                 id = kjedeId.toString(),
                 sakId = this.id.toString(),
                 saksnummer = this.saksnummer.toString(),
+                periode = periode,
                 meldekortBehandlingId = null,
-                periode = kjede.periode.toDTO(),
                 opprettet = sisteBrukersMeldekort.mottatt,
                 status = if (brukersMeldekort.size == 1) {
                     MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
