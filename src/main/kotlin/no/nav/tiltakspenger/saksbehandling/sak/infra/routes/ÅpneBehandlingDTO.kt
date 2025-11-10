@@ -113,7 +113,7 @@ fun Sak.tilÅpneBehandlingerDTO(): List<ÅpenBehandlingDTO> {
         .sortedByDescending { it.opprettet }
 }
 
-// Skal returnere søknader som ikke har en tilknyttet søknadsbehandling
+// Returnerer søknader som ikke har en tilknyttet søknadsbehandling
 private fun Sak.tilSøknaderUtenBehandling(): List<ÅpenBehandlingDTO.SøknadUtenBehandlingDTO> {
     return this.søknader
         .filter { søknad ->
@@ -165,6 +165,7 @@ private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenBehandlingDTO.ÅpenRammeb
     }
 }
 
+// Returnerer meldeperiodekjeder med en åpen meldekortbehandling, eller med et brukers meldekort som ikke har blitt behandlet
 private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<ÅpenBehandlingDTO.MeldeperiodeKjedeSomMåBehandlesDTO> {
     return this.meldeperiodeKjeder.mapNotNull { kjede ->
         val kjedeId = kjede.kjedeId
