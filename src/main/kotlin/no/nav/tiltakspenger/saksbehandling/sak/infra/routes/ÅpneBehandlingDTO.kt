@@ -12,6 +12,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandli
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeStatusDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldeperiodeKjedeStatusDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.MeldeperiodeKjedeSomMåBehandlesDTO
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.SøknadUtenBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.ÅpenRammebehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.ÅpenRevurderingDTO
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.ÅpenSøknadsbehandlingDTO
 import java.time.LocalDateTime
 
 sealed interface ÅpenBehandlingDTO {
@@ -100,11 +105,11 @@ sealed interface ÅpenBehandlingDTO {
  *  Returnerer en liste over søknader, rammebehandlinger og meldeperiodekjeder som er åpne for behandling eller beslutning
  * */
 fun Sak.tilÅpneBehandlingerDTO(): List<ÅpenBehandlingDTO> {
-    val søknaderUtenBehandling: List<ÅpenBehandlingDTO.SøknadUtenBehandlingDTO> = this.tilSøknaderUtenBehandling()
+    val søknaderUtenBehandling: List<SøknadUtenBehandlingDTO> = this.tilSøknaderUtenBehandling()
 
-    val åpneRammebehandlinger: List<ÅpenBehandlingDTO.ÅpenRammebehandlingDTO> = this.tilÅpneRammebehandlinger()
+    val åpneRammebehandlinger: List<ÅpenRammebehandlingDTO> = this.tilÅpneRammebehandlinger()
 
-    val meldeperiodeKjederSomMåBehandles: List<ÅpenBehandlingDTO.MeldeperiodeKjedeSomMåBehandlesDTO> =
+    val meldeperiodeKjederSomMåBehandles: List<MeldeperiodeKjedeSomMåBehandlesDTO> =
         this.tilMeldeperiodeKjederSomMåBehandles()
 
     return søknaderUtenBehandling
@@ -116,15 +121,15 @@ fun Sak.tilÅpneBehandlingerDTO(): List<ÅpenBehandlingDTO> {
 /**
  *  Returnerer søknader som ikke har en tilknyttet søknadsbehandling
  *  Normalt skal det opprettes søknadsbehandlinger automatisk for nye søknader
- *  men vi tar med disse for å liste ut evt. søknader der dette har feilet
+ *  men vi tar med denne for å liste ut evt. søknader der dette har feilet
  *  */
-private fun Sak.tilSøknaderUtenBehandling(): List<ÅpenBehandlingDTO.SøknadUtenBehandlingDTO> {
+private fun Sak.tilSøknaderUtenBehandling(): List<SøknadUtenBehandlingDTO> {
     return this.søknader
         .filter { søknad ->
             !søknad.erAvbrutt && rammebehandlinger.søknadsbehandlinger.none { it.søknad.id == søknad.id }
         }
         .map {
-            ÅpenBehandlingDTO.SøknadUtenBehandlingDTO(
+            SøknadUtenBehandlingDTO(
                 id = it.id.toString(),
                 sakId = this.id.toString(),
                 saksnummer = this.saksnummer.toString(),
@@ -134,10 +139,10 @@ private fun Sak.tilSøknaderUtenBehandling(): List<ÅpenBehandlingDTO.SøknadUte
         }
 }
 
-private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenBehandlingDTO.ÅpenRammebehandlingDTO> {
+private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenRammebehandlingDTO> {
     return this.rammebehandlinger.åpneBehandlinger.map {
         when (it) {
-            is Søknadsbehandling -> ÅpenBehandlingDTO.ÅpenSøknadsbehandlingDTO(
+            is Søknadsbehandling -> ÅpenSøknadsbehandlingDTO(
                 id = it.id.toString(),
                 sakId = this.id.toString(),
                 saksnummer = this.saksnummer.toString(),
@@ -152,7 +157,7 @@ private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenBehandlingDTO.ÅpenRammeb
                 erSattPåVent = it.ventestatus.erSattPåVent,
             )
 
-            is Revurdering -> ÅpenBehandlingDTO.ÅpenRevurderingDTO(
+            is Revurdering -> ÅpenRevurderingDTO(
                 id = it.id.toString(),
                 sakId = this.id.toString(),
                 saksnummer = this.saksnummer.toString(),
@@ -170,7 +175,7 @@ private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenBehandlingDTO.ÅpenRammeb
 }
 
 // Returnerer meldeperiodekjeder med en åpen meldekortbehandling, eller med et brukers meldekort som ikke har blitt behandlet
-private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<ÅpenBehandlingDTO.MeldeperiodeKjedeSomMåBehandlesDTO> {
+private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<MeldeperiodeKjedeSomMåBehandlesDTO> {
     val sakId = this.id.toString()
     val saksnummer = this.saksnummer.toString()
 
@@ -181,7 +186,7 @@ private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<ÅpenBehandlingDTO.
         val åpenMeldekortBehandling = meldekortbehandlinger.åpenMeldekortBehandling
 
         if (åpenMeldekortBehandling?.kjedeId == kjedeId) {
-            return@mapNotNull ÅpenBehandlingDTO.MeldeperiodeKjedeSomMåBehandlesDTO(
+            return@mapNotNull MeldeperiodeKjedeSomMåBehandlesDTO(
                 id = kjedeId.toString(),
                 sakId = sakId,
                 saksnummer = saksnummer,
@@ -207,7 +212,7 @@ private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<ÅpenBehandlingDTO.
         }
 
         if (sisteBehandledeMeldekort == null || sisteBrukersMeldekort.mottatt > sisteBehandledeMeldekort.iverksattTidspunkt) {
-            return@mapNotNull ÅpenBehandlingDTO.MeldeperiodeKjedeSomMåBehandlesDTO(
+            return@mapNotNull MeldeperiodeKjedeSomMåBehandlesDTO(
                 id = kjedeId.toString(),
                 sakId = this.id.toString(),
                 saksnummer = this.saksnummer.toString(),
