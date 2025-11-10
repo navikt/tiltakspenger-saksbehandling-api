@@ -23,7 +23,7 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
     kjedeId: MeldeperiodeKjedeId,
     clock: Clock,
 ): MeldeperiodeKjedeStatusDTO {
-    val brukersMeldekort = this.brukersMeldekort.filter { it.kjedeId == kjedeId }.sortedBy { it.mottatt }
+    val brukersMeldekort = this.brukersMeldekort.filter { it.kjedeId == kjedeId }
     val sisteInnsendteMeldekort = brukersMeldekort.maxByOrNull { it.mottatt }
     val sisteMeldekortBehandling =
         this.meldekortbehandlinger.filter { it.kjedeId == kjedeId }.maxByOrNull { it.opprettet }
@@ -40,16 +40,7 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
     }
 
     if (sisteMeldekortBehandling != null) {
-        return when (sisteMeldekortBehandling.status) {
-            MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
-            MeldekortBehandlingStatus.UNDER_BESLUTNING -> MeldeperiodeKjedeStatusDTO.UNDER_BESLUTNING
-            MeldekortBehandlingStatus.GODKJENT -> MeldeperiodeKjedeStatusDTO.GODKJENT
-            MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> MeldeperiodeKjedeStatusDTO.AUTOMATISK_BEHANDLET
-            MeldekortBehandlingStatus.AVBRUTT -> MeldeperiodeKjedeStatusDTO.AVBRUTT
-            MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
-            MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
-            MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
-        }
+        return sisteMeldekortBehandling.status.tilMeldeperiodeKjedeStatusDTO()
     }
 
     val meldeperiode = this.hentSisteMeldeperiodeForKjede(kjedeId)
@@ -77,4 +68,17 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
     }
 
     return MeldeperiodeKjedeStatusDTO.IKKE_KLAR_TIL_BEHANDLING
+}
+
+fun MeldekortBehandlingStatus.tilMeldeperiodeKjedeStatusDTO(): MeldeperiodeKjedeStatusDTO {
+    return when (this) {
+        MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
+        MeldekortBehandlingStatus.UNDER_BESLUTNING -> MeldeperiodeKjedeStatusDTO.UNDER_BESLUTNING
+        MeldekortBehandlingStatus.GODKJENT -> MeldeperiodeKjedeStatusDTO.GODKJENT
+        MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> MeldeperiodeKjedeStatusDTO.AUTOMATISK_BEHANDLET
+        MeldekortBehandlingStatus.AVBRUTT -> MeldeperiodeKjedeStatusDTO.AVBRUTT
+        MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+        MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
+        MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+    }
 }

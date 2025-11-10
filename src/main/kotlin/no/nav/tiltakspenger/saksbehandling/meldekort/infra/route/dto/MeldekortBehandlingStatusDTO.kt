@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 
 enum class MeldekortBehandlingStatusDTO {
@@ -14,8 +13,8 @@ enum class MeldekortBehandlingStatusDTO {
     AVBRUTT,
 }
 
-fun MeldekortBehandling.toStatusDTO(): MeldekortBehandlingStatusDTO {
-    return when (this.status) {
+fun MeldekortBehandlingStatus.toStatusDTO(): MeldekortBehandlingStatusDTO {
+    return when (this) {
         MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldekortBehandlingStatusDTO.KLAR_TIL_BEHANDLING
         MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldekortBehandlingStatusDTO.UNDER_BEHANDLING
         MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldekortBehandlingStatusDTO.KLAR_TIL_BESLUTNING
