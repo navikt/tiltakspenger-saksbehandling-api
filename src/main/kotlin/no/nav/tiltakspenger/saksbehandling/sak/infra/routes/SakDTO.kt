@@ -17,7 +17,7 @@ data class SakDTO(
     val saksnummer: String,
     val sakId: String,
     val fnr: String,
-    val behandlingsoversikt: List<SaksoversiktDTO>,
+    val åpneBehandlinger: List<ÅpenBehandlingDTO>,
     val meldeperiodeKjeder: List<MeldeperiodeKjedeDTO>,
     val førsteDagSomGirRett: LocalDate?,
     val sisteDagSomGirRett: LocalDate?,
@@ -33,15 +33,7 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     saksnummer = saksnummer.verdi,
     sakId = id.toString(),
     fnr = fnr.verdi,
-    // TODO abn: kan vi fjerne søknader her? Alle søknader får vel en behandling opprettet automatisk nå
-    behandlingsoversikt = (
-        rammebehandlinger.åpneBehandlinger.toSaksoversiktDTO() +
-            this.søknader
-                .filter { soknad ->
-                    !soknad.erAvbrutt && rammebehandlinger.søknadsbehandlinger.none { it.søknad.id == soknad.id }
-                }
-                .toSaksoversiktDTO()
-        ).sortedBy { it.opprettet },
+    åpneBehandlinger = tilÅpneBehandlingerDTO(),
     meldeperiodeKjeder = toMeldeperiodeKjederDTO(clock = clock),
     førsteDagSomGirRett = førsteDagSomGirRett,
     sisteDagSomGirRett = sisteDagSomGirRett,

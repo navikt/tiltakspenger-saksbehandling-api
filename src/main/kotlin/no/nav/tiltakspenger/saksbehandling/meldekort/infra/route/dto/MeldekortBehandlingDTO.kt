@@ -61,7 +61,7 @@ fun MeldekortBehandling.tilMeldekortBehandlingDTO(
         beslutter = beslutter,
         opprettet = opprettet,
         godkjentTidspunkt = vedtak?.opprettet ?: iverksattTidspunkt,
-        status = this.toStatusDTO(),
+        status = this.status.toStatusDTO(),
         erAvsluttet = erAvsluttet,
         navkontor = navkontor.kontornummer,
         navkontorNavn = navkontor.kontornavn,
