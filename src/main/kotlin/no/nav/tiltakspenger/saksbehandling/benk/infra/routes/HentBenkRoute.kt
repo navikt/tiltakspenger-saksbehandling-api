@@ -14,11 +14,11 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSortering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkOversiktService
+import no.nav.tiltakspenger.saksbehandling.benk.service.TilgangsfiltrertBenkOversikt
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -71,9 +71,10 @@ fun Route.hentBenkRoute(
     }
 }
 
-private fun BenkOversikt.toDTO(): BenkOversiktDTO = BenkOversiktDTO(
+private fun TilgangsfiltrertBenkOversikt.toDTO(): TilgangsfiltrertBenkOversiktDTO = TilgangsfiltrertBenkOversiktDTO(
     behandlingssammendrag = this.behandlingssammendrag.toDTO(),
     totalAntall = this.totalAntall,
+    antallFiltrertPgaTilgang = this.antallFiltrertPgaTilgang,
 )
 
 private fun List<Behandlingssammendrag>.toDTO(): List<BehandlingssammendragDTO> = this.map { it.toDTO() }

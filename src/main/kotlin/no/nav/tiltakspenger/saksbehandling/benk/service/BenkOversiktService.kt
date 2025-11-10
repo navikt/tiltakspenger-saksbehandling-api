@@ -20,20 +20,27 @@ class BenkOversiktService(
         command: HentÅpneBehandlingerCommand,
         saksbehandlerToken: String,
         saksbehandler: Saksbehandler,
-    ): BenkOversikt {
+    ): TilgangsfiltrertBenkOversikt {
         val benkOversikt = benkOversiktRepo.hentÅpneBehandlinger(command)
 
-        if (benkOversikt.isEmpty()) return benkOversikt
+        if (benkOversikt.isEmpty()) return TilgangsfiltrertBenkOversikt.empty()
         val tilganger = tilgangskontrollService.harTilgangTilPersoner(
             fnrs = benkOversikt.fødselsnummere(),
             saksbehandlerToken = saksbehandlerToken,
             saksbehandler = saksbehandler,
         )
-        return filtrerIkkeTilgang(benkOversikt, tilganger, command.saksbehandler, logger)
+        val oversiktSaksbehandlerHarTilgangTil =
+            filtrerIkkeTilgang(benkOversikt, tilganger, command.saksbehandler, logger)
+
+        return TilgangsfiltrertBenkOversikt(
+            behandlingssammendrag = oversiktSaksbehandlerHarTilgangTil.behandlingssammendrag,
+            totalAntall = benkOversikt.totalAntall,
+            antallFiltrertPgaTilgang = benkOversikt.behandlingssammendrag.size - oversiktSaksbehandlerHarTilgangTil.behandlingssammendrag.size,
+        )
     }
 }
 
-fun filtrerIkkeTilgang(
+private fun filtrerIkkeTilgang(
     benkOversikt: BenkOversikt,
     tilganger: Map<Fnr, Boolean>,
     saksbehandler: Saksbehandler,
