@@ -113,7 +113,11 @@ fun Sak.tilÅpneBehandlingerDTO(): List<ÅpenBehandlingDTO> {
         .sortedByDescending { it.opprettet }
 }
 
-// Returnerer søknader som ikke har en tilknyttet søknadsbehandling
+/**
+ *  Returnerer søknader som ikke har en tilknyttet søknadsbehandling
+ *  Normalt skal det opprettes søknadsbehandlinger automatisk for nye søknader
+ *  men vi tar med disse for å liste ut evt. søknader der dette har feilet
+ *  */
 private fun Sak.tilSøknaderUtenBehandling(): List<ÅpenBehandlingDTO.SøknadUtenBehandlingDTO> {
     return this.søknader
         .filter { søknad ->
