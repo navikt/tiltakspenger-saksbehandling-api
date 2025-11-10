@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.virkningsperiode
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
@@ -164,6 +165,7 @@ interface SakMother {
                     },
                     clock = clock,
                     utbetaling = null,
+                    omgjørRammevedtak = OmgjørRammevedtak.empty,
                 ).getOrFail()
             }
 
@@ -293,6 +295,7 @@ interface SakMother {
             ),
             clock = clock,
             utbetaling = null,
+            omgjørRammevedtak = OmgjørRammevedtak.empty,
         ).getOrFail().tilBeslutning(
             saksbehandler = saksbehandler,
             clock = clock,
@@ -340,6 +343,7 @@ interface SakMother {
             ),
             clock = clock,
             utbetaling = null,
+            omgjørRammevedtak = OmgjørRammevedtak.empty,
         ).getOrFail().tilBeslutning(
             saksbehandler = saksbehandler,
             clock = clock,

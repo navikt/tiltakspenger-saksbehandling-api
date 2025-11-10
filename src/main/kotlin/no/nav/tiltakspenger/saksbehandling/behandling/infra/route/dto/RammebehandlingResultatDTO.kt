@@ -115,7 +115,7 @@ fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.tilDTO(),
             barnetillegg = barnetillegg.toBarnetilleggDTO(),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),
-            omgjørVedtak = omgjørRammevedtak.id.toString(),
+            omgjørVedtak = omgjørRammevedtak.single().rammevedtakId.toString(),
         )
     }
 }

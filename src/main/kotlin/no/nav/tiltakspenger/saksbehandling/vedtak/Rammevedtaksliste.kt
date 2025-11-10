@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDate
@@ -57,7 +58,7 @@ data class Rammevedtaksliste(
     val tidslinje: Periodisering<Rammevedtak> by lazy {
         verdi.filter {
             // Fjerner alle vedtak som er omgjort av et annet vedtak.
-            it.omgjortAvRammevedtakId == null
+            it.erGjeldende
         }.filter {
             when (it.resultat) {
                 is BehandlingResultat.Innvilgelse,
@@ -161,6 +162,21 @@ data class Rammevedtaksliste(
 
     fun finnRammevedtakForBehandling(id: BehandlingId): Rammevedtak? {
         return this.singleOrNullOrThrow { vedtak -> vedtak.behandling.id == id }
+    }
+
+    /**
+     * Tenkt kalt under behandlingen for å avgjøre hvilke rammevedtak som vil bli omgjort.
+     * Obs: Merk at en annen behandling kan ha omgjort det samme/de samme vedtakene etter at denne metoden er kalt, men før denne behandlingen iverksettes.
+     * @param virkningsperiode vurderingsperioden/vedtaksperioden. Kan være en ren innvilgelse, et rent opphør eller en blanding.
+     */
+    fun finnVedtakSomOmgjøres(
+        virkningsperiode: Periode,
+    ): OmgjørRammevedtak {
+        return OmgjørRammevedtak(
+            this.flatMap {
+                it.finnPerioderSomOmgjøres(virkningsperiode)
+            },
+        )
     }
 
     init {

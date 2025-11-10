@@ -158,7 +158,12 @@ class DelautomatiskBehandlingService(
             ) to simuleringMedMetadata
         } ?: (null to null)
 
-        val oppdatertBehandling = behandling.oppdater(oppdaterKommando, clock, utbetaling).getOrElse {
+        val oppdatertBehandling = behandling.oppdater(
+            kommando = oppdaterKommando,
+            clock = clock,
+            utbetaling = utbetaling,
+            omgjørRammevedtak = this.vedtaksliste.finnRammevedtakSomOmgjøres(innvilgelsesperiode),
+        ).getOrElse {
             throw IllegalStateException("Kunne ikke oppdatere behandling med id ${behandling.id} fordi: ${it::class.simpleName}")
         }
 

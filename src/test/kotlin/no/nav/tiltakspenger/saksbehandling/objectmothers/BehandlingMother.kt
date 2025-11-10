@@ -48,6 +48,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.personSøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -245,6 +246,7 @@ interface BehandlingMother : MotherOfAllMothers {
             },
             clock = clock,
             utbetaling = null,
+            omgjørRammevedtak = OmgjørRammevedtak.empty,
         ).getOrFail()
     }
 
