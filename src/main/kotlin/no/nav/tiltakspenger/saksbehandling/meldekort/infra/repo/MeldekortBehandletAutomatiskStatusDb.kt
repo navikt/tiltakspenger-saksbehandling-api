@@ -16,6 +16,10 @@ private enum class MeldekortBehandletAutomatiskStatusDb {
     FOR_MANGE_DAGER_REGISTRERT,
     KAN_IKKE_MELDE_HELG,
     FOR_MANGE_DAGER_GODKJENT_FRAVÆR,
+    HAR_ÅPEN_BEHANDLING,
+    MÅ_BEHANDLE_FØRSTE_KJEDE,
+    MÅ_BEHANDLE_NESTE_KJEDE,
+    INGEN_DAGER_GIR_RETT,
 }
 
 fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
@@ -32,6 +36,10 @@ fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT
     MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_MELDE_HELG
     MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR -> MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
+    MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING -> MeldekortBehandletAutomatiskStatusDb.HAR_ÅPEN_BEHANDLING
+    MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE -> MeldekortBehandletAutomatiskStatusDb.MÅ_BEHANDLE_FØRSTE_KJEDE
+    MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE -> MeldekortBehandletAutomatiskStatusDb.MÅ_BEHANDLE_NESTE_KJEDE
+    MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatusDb.INGEN_DAGER_GIR_RETT
 }.toString()
 
 fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatiskStatus =
@@ -49,4 +57,8 @@ fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatisk
         MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT
         MeldekortBehandletAutomatiskStatusDb.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG
         MeldekortBehandletAutomatiskStatusDb.FOR_MANGE_DAGER_GODKJENT_FRAVÆR -> MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
+        MeldekortBehandletAutomatiskStatusDb.HAR_ÅPEN_BEHANDLING -> MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING
+        MeldekortBehandletAutomatiskStatusDb.MÅ_BEHANDLE_FØRSTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
+        MeldekortBehandletAutomatiskStatusDb.MÅ_BEHANDLE_NESTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE
+        MeldekortBehandletAutomatiskStatusDb.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT
     }

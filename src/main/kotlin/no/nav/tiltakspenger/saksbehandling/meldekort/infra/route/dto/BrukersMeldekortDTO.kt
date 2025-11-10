@@ -32,6 +32,10 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
     FOR_MANGE_DAGER_REGISTRERT,
     KAN_IKKE_MELDE_HELG,
     FOR_MANGE_DAGER_GODKJENT_FRAVÆR,
+    HAR_ÅPEN_BEHANDLING,
+    MÅ_BEHANDLE_FØRSTE_KJEDE,
+    MÅ_BEHANDLE_NESTE_KJEDE,
+    INGEN_DAGER_GIR_RETT,
 }
 
 data class BrukersMeldekortDTO(
@@ -75,6 +79,10 @@ private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO()
         MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT -> MeldekortBehandletAutomatiskStatusDTO.FOR_MANGE_DAGER_REGISTRERT
         MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG -> MeldekortBehandletAutomatiskStatusDTO.KAN_IKKE_MELDE_HELG
         MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR -> MeldekortBehandletAutomatiskStatusDTO.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
+        MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING -> MeldekortBehandletAutomatiskStatusDTO.HAR_ÅPEN_BEHANDLING
+        MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE -> MeldekortBehandletAutomatiskStatusDTO.MÅ_BEHANDLE_FØRSTE_KJEDE
+        MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE -> MeldekortBehandletAutomatiskStatusDTO.MÅ_BEHANDLE_NESTE_KJEDE
+        MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatusDTO.INGEN_DAGER_GIR_RETT
     }
 }
 

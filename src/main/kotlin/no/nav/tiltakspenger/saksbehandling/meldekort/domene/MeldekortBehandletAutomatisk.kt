@@ -96,7 +96,14 @@ suspend fun Sak.opprettAutomatiskMeldekortBehandling(
     val meldekortId = brukersMeldekort.id
     val kjedeId = brukersMeldekort.kjedeId
 
-    validerOpprettMeldekortBehandling(kjedeId)
+    validerOpprettMeldekortBehandling(kjedeId).onLeft {
+        return when (it) {
+            KanIkkeOppretteMeldekortbehandling.HAR_ÅPEN_BEHANDLING -> MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING
+            KanIkkeOppretteMeldekortbehandling.MÅ_BEHANDLE_FØRSTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
+            KanIkkeOppretteMeldekortbehandling.MÅ_BEHANDLE_NESTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE
+            KanIkkeOppretteMeldekortbehandling.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT
+        }.left()
+    }
 
     val sisteMeldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 

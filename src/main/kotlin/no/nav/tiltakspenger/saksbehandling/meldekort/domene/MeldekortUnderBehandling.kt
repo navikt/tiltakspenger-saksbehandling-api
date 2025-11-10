@@ -361,15 +361,32 @@ sealed interface SkalLagreEllerOppdatere {
 }
 
 /**
- * SkalLagreEllerOppdatere er en workaround for å vite hvilket database kall vi skal bruke.
- */
+ *  SkalLagreEllerOppdatere er en workaround for å vite hvilket database kall vi skal bruke.
+ *
+ *  TODO abn: Kanskje vi burde ha feilhåndtering her tilsvarende som for automatisk behandling,
+ *  for å gi bedre tilbakemelding til saksbehandler når det feiler
+ * */
 fun Sak.opprettManuellMeldekortBehandling(
     kjedeId: MeldeperiodeKjedeId,
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
     clock: Clock,
 ): Triple<Sak, MeldekortUnderBehandling, SkalLagreEllerOppdatere> {
-    validerOpprettMeldekortBehandling(kjedeId)
+    validerOpprettMeldekortBehandling(kjedeId).getOrElse {
+        when (it) {
+            KanIkkeOppretteMeldekortbehandling.HAR_ÅPEN_BEHANDLING -> throw IllegalStateException(
+                "Kan ikke opprette ny meldekortbehandling dersom en behandling er åpen på saken - $kjedeId har åpen behandling på ${this.id}",
+            )
+
+            KanIkkeOppretteMeldekortbehandling.MÅ_BEHANDLE_FØRSTE_KJEDE -> throw IllegalStateException(
+                "Dette er første meldekortbehandling på saken og må da behandle den første meldeperiode kjeden. sakId: ${this.id}, meldeperiodekjedeId: $kjedeId",
+            )
+
+            KanIkkeOppretteMeldekortbehandling.MÅ_BEHANDLE_NESTE_KJEDE -> throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
+
+            KanIkkeOppretteMeldekortbehandling.INGEN_DAGER_GIR_RETT -> throw IllegalStateException("Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger")
+        }
+    }
 
     val åpenMeldekortBehandling = this.meldekortbehandlinger.åpenMeldekortBehandling
 
