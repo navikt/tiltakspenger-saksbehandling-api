@@ -5,8 +5,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandl
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjederDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
 import java.time.Clock
 import java.time.LocalDate
 
@@ -21,7 +19,6 @@ data class SakDTO(
     val meldeperiodeKjeder: List<MeldeperiodeKjedeDTO>,
     val førsteDagSomGirRett: LocalDate?,
     val sisteDagSomGirRett: LocalDate?,
-    val søknader: List<SøknadDTO>,
     val behandlinger: List<RammebehandlingDTO>,
     val tidslinje: TidslinjeDTO,
     val alleRammevedtak: List<RammevedtakDTO>,
@@ -37,7 +34,6 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     meldeperiodeKjeder = toMeldeperiodeKjederDTO(clock = clock),
     førsteDagSomGirRett = førsteDagSomGirRett,
     sisteDagSomGirRett = sisteDagSomGirRett,
-    søknader = søknader.toSøknadDTO(),
     behandlinger = this.tilBehandlingerDTO(),
     tidslinje = rammevedtaksliste.tilRammevedtakTidslinjeDTO(),
     alleRammevedtak = rammevedtaksliste.map { it.tilRammevedtakDTO() },
