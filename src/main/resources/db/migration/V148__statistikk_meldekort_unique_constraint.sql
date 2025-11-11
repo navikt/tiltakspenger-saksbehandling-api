@@ -1,0 +1,1 @@
+create unique index idx_statistikk_meldekort_meldekortbehandling_id_unique on statistikk_meldekort (meldekortbehandling_id);
