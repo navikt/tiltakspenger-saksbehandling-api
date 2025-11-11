@@ -72,10 +72,11 @@ class ForhåndsvisVedtaksbrevService(
                     RevurderingType.INNVILGELSE -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = virkningsperiode!!,
+                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.virkningsperiode!! else behandling.innvilgelsesperiode!!,
                         kommando = kommando,
                     )
 
+                    // TODO Man treffer ikke denne branchen ved omgjøring per 11.11.2025 da frontend sender feil type ved omgjøring
                     RevurderingType.OMGJØRING -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
