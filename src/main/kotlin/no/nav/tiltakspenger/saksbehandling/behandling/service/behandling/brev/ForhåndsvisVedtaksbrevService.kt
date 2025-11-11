@@ -75,7 +75,7 @@ class ForhåndsvisVedtaksbrevService(
                     RevurderingType.INNVILGELSE, RevurderingType.OMGJØRING -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = behandling.innvilgelsesperiode!!,
+                        innvilgelsesperiode = virkningsperiode!!,
                         kommando = kommando,
                     )
 
