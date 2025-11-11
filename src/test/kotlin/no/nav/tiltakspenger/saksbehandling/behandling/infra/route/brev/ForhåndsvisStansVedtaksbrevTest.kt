@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
 
 internal class ForhåndsvisStansVedtaksbrevTest {
     @Test
-    fun `kan forhåndsvise vedtaksbrev for innvilget søknadsbehandling`() {
+    fun `kan forhåndsvise vedtaksbrev for stans under behandling`() {
         with(TestApplicationContext()) {
             val tac = this
             testApplication {
