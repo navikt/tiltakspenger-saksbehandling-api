@@ -91,8 +91,8 @@ class DatadelingHttpClient(
             Unit
         }.mapLeft {
             // Either.catch slipper igjennom CancellationException som er ønskelig.
-            log.error(it) { "Feil ved kall til pdfgen. Vedtak ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. Se sikkerlogg for detaljer." }
-            Sikkerlogg.error(it) { "Feil ved kall til pdfgen. Vedtak ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. jsonPayload: $jsonPayload, uri: $behandlingsUri" }
+            log.error(it) { "Feil ved kall til datadeling. Vedtak ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. Se sikkerlogg for detaljer." }
+            Sikkerlogg.error(it) { "Feil ved kall til datadeling. Vedtak ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. jsonPayload: $jsonPayload, uri: $behandlingsUri" }
             FeilVedSendingTilDatadeling
         }
     }
