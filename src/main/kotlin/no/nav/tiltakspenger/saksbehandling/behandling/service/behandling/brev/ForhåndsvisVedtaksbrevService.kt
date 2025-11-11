@@ -54,7 +54,7 @@ class ForhåndsvisVedtaksbrevService(
                         kommando = kommando,
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = behandling.innvilgelsesperiode ?: virkningsperiode!!,
+                        innvilgelsesperiode = virkningsperiode!!,
                     )
 
                     SøknadsbehandlingType.AVSLAG -> genererSøknadsbehandlingAvslagsbrev(
