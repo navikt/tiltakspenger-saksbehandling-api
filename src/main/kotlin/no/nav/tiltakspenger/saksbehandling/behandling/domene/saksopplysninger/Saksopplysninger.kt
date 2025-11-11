@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -22,6 +23,10 @@ data class Saksopplysninger(
     val oppslagstidspunkt: LocalDateTime,
 ) {
     val periode: Periode? = tiltaksdeltagelser.totalPeriode
+
+    fun kanInnvilges(tiltaksdeltagelseId: String): Boolean {
+        return tiltaksdeltagelser.getTiltaksdeltagelse(tiltaksdeltagelseId)?.kanInnvilges ?: false
+    }
 
     fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? {
         return tiltaksdeltagelser.getTiltaksdeltagelse(eksternDeltagelseId)

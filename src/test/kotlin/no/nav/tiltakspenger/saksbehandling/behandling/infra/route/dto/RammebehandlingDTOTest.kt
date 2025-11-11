@@ -65,7 +65,7 @@ class RammebehandlingDTOTest {
                 søknadstiltak = søknadstiltak(
                     deltakelseFom = virkningsperiode.fraOgMed,
                     deltakelseTom = virkningsperiode.tilOgMed,
-                    id = søknadTiltakId,
+                    id = eksternTiltaksdeltagelseId,
                 ),
             ),
             saksopplysninger = saksopplysninger(
@@ -182,7 +182,7 @@ class RammebehandlingDTOTest {
                 "id": "soknad_01K8QWMR32C2X5Y5T4N945BF9V",
                 "journalpostId": "journalpostId",
                 "tiltak": {
-                  "id": "06872f2f-5ca4-453a-8d41-8e91e1f777a3",
+                  "id": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
                   "fraOgMed": "2025-01-01",
                   "tilOgMed": "2025-03-31",
                   "typeKode": "GRUPPEAMO",
@@ -246,7 +246,8 @@ class RammebehandlingDTOTest {
               },
               "automatiskSaksbehandlet": false,
               "manueltBehandlesGrunner": [],
-              "type": "SØKNADSBEHANDLING"
+              "type": "SØKNADSBEHANDLING",
+              "kanInnvilges": true
             }
         """.trimIndent()
 
@@ -421,7 +422,8 @@ class RammebehandlingDTOTest {
               },
               "automatiskSaksbehandlet": false,
               "manueltBehandlesGrunner": [],
-              "type": "SØKNADSBEHANDLING"
+              "type": "SØKNADSBEHANDLING",
+              "kanInnvilges": false
             }
         """.trimIndent()
 
@@ -443,7 +445,7 @@ class RammebehandlingDTOTest {
                 søknadstiltak = søknadstiltak(
                     deltakelseFom = virkningsperiode.fraOgMed,
                     deltakelseTom = virkningsperiode.tilOgMed,
-                    id = søknadTiltakId,
+                    id = eksternTiltaksdeltagelseId,
                 ),
             ),
             hentSaksopplysninger = { _, _, _, _, _ ->
@@ -518,7 +520,7 @@ class RammebehandlingDTOTest {
                 "id": "soknad_01K8QWMR32C2X5Y5T4N945BF9V",
                 "journalpostId": "journalpostId",
                 "tiltak": {
-                  "id": "06872f2f-5ca4-453a-8d41-8e91e1f777a3",
+                  "id": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
                   "fraOgMed": "2025-01-01",
                   "tilOgMed": "2025-03-31",
                   "typeKode": "GRUPPEAMO",
@@ -582,7 +584,8 @@ class RammebehandlingDTOTest {
               },
               "automatiskSaksbehandlet": false,
               "manueltBehandlesGrunner": [],
-              "type": "SØKNADSBEHANDLING"
+              "type": "SØKNADSBEHANDLING",
+              "kanInnvilges": true
             }
         """.trimIndent()
 

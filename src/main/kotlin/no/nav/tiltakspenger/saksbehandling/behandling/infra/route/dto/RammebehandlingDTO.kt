@@ -63,6 +63,7 @@ data class SøknadsbehandlingDTO(
     val søknad: SøknadDTO,
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<String>,
+    val kanInnvilges: Boolean,
 ) : RammebehandlingDTO,
     SøknadsbehandlingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.SØKNADSBEHANDLING
@@ -147,6 +148,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
         resultatDTO = this.resultat.tilSøknadsbehandlingResultatDTO(),
+        kanInnvilges = this.kanInnvilges,
     )
 }
 
