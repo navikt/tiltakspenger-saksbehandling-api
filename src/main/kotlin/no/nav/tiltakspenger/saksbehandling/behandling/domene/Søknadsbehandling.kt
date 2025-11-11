@@ -158,7 +158,7 @@ data class Søknadsbehandling(
 
         return this.copy(
             status = AVBRUTT,
-            søknad = this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt) as InnvilgbarSøknad,
+            søknad = this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt),
             avbrutt = Avbrutt(
                 tidspunkt = tidspunkt,
                 saksbehandler = avbruttAv.navIdent,
