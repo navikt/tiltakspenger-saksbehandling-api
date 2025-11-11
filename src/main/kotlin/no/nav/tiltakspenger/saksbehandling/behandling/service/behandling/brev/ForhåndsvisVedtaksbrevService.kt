@@ -33,7 +33,7 @@ class ForhåndsvisVedtaksbrevService(
         val sak = sakService.hentForSakId(kommando.sakId)
         val behandling = sak.hentRammebehandling(kommando.behandlingId)!!
         val virkningsperiode = when (behandling.status) {
-            Rammebehandlingsstatus.UNDER_BEHANDLING -> kommando.virkningsperiode!!
+            Rammebehandlingsstatus.UNDER_BEHANDLING -> kommando.virkningsperiode
             Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
             Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
             Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
@@ -51,7 +51,7 @@ class ForhåndsvisVedtaksbrevService(
                         kommando = kommando,
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = virkningsperiode,
+                        innvilgelsesperiode = virkningsperiode!!,
                     )
 
                     SøknadsbehandlingType.AVSLAG -> genererSøknadsbehandlingAvslagsbrev(
@@ -72,7 +72,7 @@ class ForhåndsvisVedtaksbrevService(
                     RevurderingType.INNVILGELSE -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = virkningsperiode,
+                        innvilgelsesperiode = virkningsperiode!!,
                         kommando = kommando,
                     )
 
