@@ -33,16 +33,13 @@ class ForhåndsvisVedtaksbrevService(
         val sak = sakService.hentForSakId(kommando.sakId)
         val behandling = sak.hentRammebehandling(kommando.behandlingId)!!
         val virkningsperiode = when (behandling.status) {
-            Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
-            Rammebehandlingsstatus.UNDER_BEHANDLING,
-            // gir det mening at man har lyst til å se innvilgelsesbrevet hvis behandlingen er avbrutt eller til automatisk behandling?
-            Rammebehandlingsstatus.AVBRUTT,
+            Rammebehandlingsstatus.UNDER_BEHANDLING -> kommando.virkningsperiode!!
             Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
-            -> kommando.virkningsperiode ?: behandling.virkningsperiode
-
+            Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
             Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
             Rammebehandlingsstatus.UNDER_BESLUTNING,
             Rammebehandlingsstatus.VEDTATT,
+            Rammebehandlingsstatus.AVBRUTT,
             -> behandling.virkningsperiode!!
         }
         val resultat = kommando.resultat
@@ -54,7 +51,7 @@ class ForhåndsvisVedtaksbrevService(
                         kommando = kommando,
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = virkningsperiode!!,
+                        innvilgelsesperiode = virkningsperiode,
                     )
 
                     SøknadsbehandlingType.AVSLAG -> genererSøknadsbehandlingAvslagsbrev(
@@ -72,13 +69,19 @@ class ForhåndsvisVedtaksbrevService(
                 when (resultat) {
                     RevurderingType.STANS -> genererRevurderingStansbrev(sak, kommando, behandling)
                     // Kommentar jah: Første iterasjon av omgjøring vil kun endre innvilgelsesperioden, så vi kan gjenbruke innvilgelsesbrevet.
-                    RevurderingType.INNVILGELSE, RevurderingType.OMGJØRING -> genererRevurderingInnvilgelsesbrev(
+                    RevurderingType.INNVILGELSE -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = virkningsperiode!!,
+                        innvilgelsesperiode = virkningsperiode,
                         kommando = kommando,
                     )
 
+                    RevurderingType.OMGJØRING -> genererRevurderingInnvilgelsesbrev(
+                        sak = sak,
+                        behandling = behandling,
+                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.virkningsperiode!! else behandling.innvilgelsesperiode!!,
+                        kommando = kommando,
+                    )
                     is SøknadsbehandlingType -> throw IllegalArgumentException("$resultat er ikke gyldig resultat for revurdering")
                 }
             }
