@@ -43,7 +43,6 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahCo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
-import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.jobb.LeggTilMeldekortJobb
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.arena.ArenaDeltakerMapper
@@ -390,15 +389,6 @@ open class ApplicationContext(
             behandlingService = behandlingContext.behandlingService,
             statistikkSakService = statistikkContext.statistikkSakService,
             sessionFactory = sessionFactory,
-        )
-    }
-
-    val leggTilMeldekortJobb: LeggTilMeldekortJobb by lazy {
-        LeggTilMeldekortJobb(
-            sessionFactory = sessionFactory as PostgresSessionFactory,
-            clock = clock,
-            meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
-            statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
         )
     }
 }
