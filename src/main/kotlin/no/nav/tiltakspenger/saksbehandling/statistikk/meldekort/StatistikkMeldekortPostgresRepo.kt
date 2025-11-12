@@ -88,8 +88,9 @@ class StatistikkMeldekortPostgresRepo(
         :meldekortdager,
         :opprettet,
         :sist_endret
-        ) on conflict (meldeperiode_kjede_id, sak_id) do update set
-        meldekortbehandling_id = :meldekortbehandling_id,
+        ) on conflict (meldekortbehandling_id) do update set
+        meldeperiode_kjede_id = :meldeperiode_kjede_id,
+        sak_id = :sak_id,
         vedtatt_tidspunkt = :vedtatt_tidspunkt,
         behandlet_automatisk = :behandlet_automatisk,
         fra_og_med = :fra_og_med,
