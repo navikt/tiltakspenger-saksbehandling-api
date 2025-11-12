@@ -73,6 +73,18 @@ data class Søknadsbehandling(
 
     val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
 
+    /**
+     * To kriterier må være oppfylt for at en søknadsbehandling skal kunne innvilges:
+     * 1. Det må være søkt på en identifiserbar tiltaksdeltakelse som gir rett til tiltakspenger.
+     * 2. Tiltaksdeltakelsen det er søkt på må matches med tiltaksdeltagelseregisteret, ha en tiltaksstype og status som gir rett til tiltakspenger og ha en definert periode.
+     */
+    val kanInnvilges: Boolean by lazy {
+        when (søknad) {
+            is InnvilgbarSøknad -> saksopplysninger.kanInnvilges(søknad.tiltak.id)
+            is IkkeInnvilgbarSøknad -> false
+        }
+    }
+
     init {
         super.init()
 

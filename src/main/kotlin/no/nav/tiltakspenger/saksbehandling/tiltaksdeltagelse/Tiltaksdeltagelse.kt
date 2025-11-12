@@ -25,6 +25,8 @@ data class Tiltaksdeltagelse(
     val kilde: Tiltakskilde,
     val deltidsprosentGjennomforing: Double?,
 ) {
+    val kanInnvilges: Boolean = deltakelseStatus.deltarEllerHarDeltatt() && deltagelseFraOgMed != null && deltagelseTilOgMed != null
+
     /**
      * null dersom [deltagelseFraOgMed] eller [deltagelseTilOgMed] er null.
      */

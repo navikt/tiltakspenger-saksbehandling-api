@@ -73,7 +73,7 @@ class GenererFakeVedtaksbrevKlient :
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
-        vurderingsperiode: Periode,
+        innvilgelsesperiode: Periode,
         tilleggstekst: FritekstTilVedtaksbrev,
         barnetillegg: SammenhengendePeriodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
