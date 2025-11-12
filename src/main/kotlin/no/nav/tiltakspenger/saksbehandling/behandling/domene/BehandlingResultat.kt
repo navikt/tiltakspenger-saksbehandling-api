@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
@@ -85,8 +84,8 @@ fun skalNullstilleResultatVedNyeSaksopplysninger(
                 .zip(nyeSaksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }) { forrige, nye ->
                     // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltagelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
                     forrige.eksternDeltagelseId != nye.eksternDeltagelseId ||
-                        forrige.deltagelseFraOgMed == nye.deltagelseFraOgMed ||
-                        forrige.deltagelseTilOgMed == nye.deltagelseTilOgMed
+                        forrige.deltagelseFraOgMed != nye.deltagelseFraOgMed ||
+                        forrige.deltagelseTilOgMed != nye.deltagelseTilOgMed
                 }.any { it }
             )
     }

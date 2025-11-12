@@ -66,10 +66,12 @@ class BeregnRevurderingTest {
                 saksopplysninger(
                     fom = it.fraOgMed,
                     tom = it.tilOgMed,
-                    tiltaksdeltagelse = tiltaksdeltagelse(
-                        typeKode = tiltakskodeForRevurdering,
-                        fom = it.fraOgMed,
-                        tom = it.tilOgMed,
+                    tiltaksdeltagelse = listOf(
+                        tiltaksdeltagelse(
+                            typeKode = tiltakskodeForRevurdering,
+                            fom = it.fraOgMed,
+                            tom = it.tilOgMed,
+                        ),
                     ),
                 )
             },

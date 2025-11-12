@@ -267,6 +267,7 @@ open class BehandlingOgVedtakContext(
     val gjenopptaBehandlingService by lazy {
         GjenopptaBehandlingService(
             behandlingService = behandlingService,
+            hentSaksopplysingerService = hentSaksopplysingerService,
             statistikkSakService = statistikkSakService,
             clock = clock,
         )
