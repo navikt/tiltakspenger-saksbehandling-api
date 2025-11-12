@@ -100,4 +100,9 @@ interface MeldekortBehandlingRepo {
     fun hentBehandlingerTilDatadeling(limit: Int = 10): List<MeldekortBehandling>
 
     fun markerBehandlingSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime)
+
+    // kun for midlertidig jobb, slettes etterpå
+    fun hentGodkjenteKorrigerteBehandlinger(
+        sessionContext: SessionContext? = null,
+    ): List<MeldekortBehandling>
 }

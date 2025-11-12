@@ -471,6 +471,25 @@ class MeldekortBehandlingPostgresRepo(
         }
     }
 
+    override fun hentGodkjenteKorrigerteBehandlinger(sessionContext: SessionContext?): List<MeldekortBehandling> {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                queryOf(
+                    """
+                        select
+                          m.*,
+                          s.fnr,
+                          s.saksnummer
+                        from meldekortbehandling m
+                        join sak s on s.id = m.sak_id
+                        where m.type = 'KORRIGERING' and m.status='GODKJENT'
+                        order by m.opprettet
+                    """.trimIndent(),
+                ).map { fromRow(it, session) }.asList,
+            )
+        }
+    }
+
     companion object {
         internal fun hentForMeldekortId(
             meldekortId: MeldekortId,
