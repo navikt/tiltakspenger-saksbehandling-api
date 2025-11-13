@@ -100,6 +100,7 @@ internal fun start(
                         { applicationContext.personhendelseJobb.opprettOppgaveForPersonhendelser() },
                         { applicationContext.personhendelseJobb.opprydning() },
                         { applicationContext.identhendelseJobb.behandleIdenthendelser() },
+                        { applicationContext.oppdaterEndretTidspunktJobb.oppdaterEndrettidspunkt() },
                     ),
                 )
             } else {
