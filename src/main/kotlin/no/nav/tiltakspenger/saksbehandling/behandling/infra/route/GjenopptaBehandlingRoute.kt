@@ -6,6 +6,7 @@ import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KunneIkkeGjenopptaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -40,18 +42,29 @@ fun Route.gjenopptaBehandling(
                     sakId = sakId,
                     behandlingId = behandlingId,
                     saksbehandler = saksbehandler,
-                ).also { (sak) ->
-                    auditService.logMedBehandlingId(
-                        behandlingId = behandlingId,
-                        navIdent = saksbehandler.navIdent,
-                        action = AuditLogEvent.Action.UPDATE,
-                        contextMessage = "Gjenopptar behandling",
-                        correlationId = correlationId,
-                    )
+                    correlationId = correlationId,
+                ).fold(
+                    ifLeft = {
+                        val (status, error) = it.tilStatusOgErrorJson()
+                        call.respond(status, error)
+                    },
+                    ifRight = { (sak) ->
+                        auditService.logMedBehandlingId(
+                            behandlingId = behandlingId,
+                            navIdent = saksbehandler.navIdent,
+                            action = AuditLogEvent.Action.UPDATE,
+                            contextMessage = "Gjenopptar behandling",
+                            correlationId = correlationId,
+                        )
 
-                    call.respond(status = HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
-                }
+                        call.respond(status = HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
+                    },
+                )
             }
         }
     }
+}
+
+private fun KunneIkkeGjenopptaBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+    is KunneIkkeGjenopptaBehandling.FeilVedOppdateringAvSaksopplysninger -> this.originalFeil.tilStatusOgErrorJson()
 }

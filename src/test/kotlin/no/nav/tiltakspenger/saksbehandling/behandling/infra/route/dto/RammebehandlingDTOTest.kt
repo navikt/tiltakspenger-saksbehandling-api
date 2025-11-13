@@ -71,11 +71,13 @@ class RammebehandlingDTOTest {
             saksopplysninger = saksopplysninger(
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
-                tiltaksdeltagelse = tiltaksdeltagelse(
-                    fom = virkningsperiode.fraOgMed,
-                    tom = virkningsperiode.tilOgMed,
-                    eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
-                    eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                tiltaksdeltagelse = listOf(
+                    tiltaksdeltagelse(
+                        fom = virkningsperiode.fraOgMed,
+                        tom = virkningsperiode.tilOgMed,
+                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                        eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                    ),
                 ),
                 clock = clock,
             ),
@@ -278,11 +280,13 @@ class RammebehandlingDTOTest {
             saksopplysninger = saksopplysninger(
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
-                tiltaksdeltagelse = tiltaksdeltagelse(
-                    fom = virkningsperiode.fraOgMed,
-                    tom = virkningsperiode.tilOgMed,
-                    eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
-                    eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                tiltaksdeltagelse = listOf(
+                    tiltaksdeltagelse(
+                        fom = virkningsperiode.fraOgMed,
+                        tom = virkningsperiode.tilOgMed,
+                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                        eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                    ),
                 ),
                 clock = clock,
             ),
@@ -452,11 +456,13 @@ class RammebehandlingDTOTest {
                 saksopplysninger(
                     fom = virkningsperiode.fraOgMed,
                     tom = virkningsperiode.tilOgMed,
-                    tiltaksdeltagelse = tiltaksdeltagelse(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
-                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
-                        eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                    tiltaksdeltagelse = listOf(
+                        tiltaksdeltagelse(
+                            fom = virkningsperiode.fraOgMed,
+                            tom = virkningsperiode.tilOgMed,
+                            eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                            eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                        ),
                     ),
                     clock = clock,
                 )
@@ -606,11 +612,13 @@ class RammebehandlingDTOTest {
             saksopplysninger = saksopplysninger(
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
-                tiltaksdeltagelse = tiltaksdeltagelse(
-                    fom = virkningsperiode.fraOgMed,
-                    tom = virkningsperiode.tilOgMed,
-                    eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
-                    eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                tiltaksdeltagelse = listOf(
+                    tiltaksdeltagelse(
+                        fom = virkningsperiode.fraOgMed,
+                        tom = virkningsperiode.tilOgMed,
+                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                        eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                    ),
                 ),
                 clock = clock,
             ),
@@ -738,11 +746,13 @@ class RammebehandlingDTOTest {
             saksopplysninger = saksopplysninger(
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
-                tiltaksdeltagelse = tiltaksdeltagelse(
-                    fom = virkningsperiode.fraOgMed,
-                    tom = virkningsperiode.tilOgMed,
-                    eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
-                    eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                tiltaksdeltagelse = listOf(
+                    tiltaksdeltagelse(
+                        fom = virkningsperiode.fraOgMed,
+                        tom = virkningsperiode.tilOgMed,
+                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                        eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                    ),
                 ),
                 clock = clock,
             ),
@@ -846,11 +856,13 @@ class RammebehandlingDTOTest {
             saksopplysninger = saksopplysninger(
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
-                tiltaksdeltagelse = tiltaksdeltagelse(
-                    fom = virkningsperiode.fraOgMed,
-                    tom = virkningsperiode.tilOgMed,
-                    eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
-                    eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                tiltaksdeltagelse = listOf(
+                    tiltaksdeltagelse(
+                        fom = virkningsperiode.fraOgMed,
+                        tom = virkningsperiode.tilOgMed,
+                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                        eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                    ),
                 ),
                 clock = nyClock,
             ),
@@ -877,11 +889,13 @@ class RammebehandlingDTOTest {
                 saksopplysninger(
                     fom = virkningsperiode.fraOgMed,
                     tom = virkningsperiode.tilOgMed,
-                    tiltaksdeltagelse = tiltaksdeltagelse(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
-                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
-                        eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                    tiltaksdeltagelse = listOf(
+                        tiltaksdeltagelse(
+                            fom = virkningsperiode.fraOgMed,
+                            tom = virkningsperiode.tilOgMed,
+                            eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                            eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                        ),
                     ),
                     clock = nyClock,
                 )

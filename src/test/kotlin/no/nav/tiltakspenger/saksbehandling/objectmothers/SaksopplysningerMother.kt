@@ -17,8 +17,8 @@ interface SaksopplysningerMother {
         fom: LocalDate = 1.januar(2023),
         tom: LocalDate = 31.mars(2023),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
-        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelse(fom = fom, tom = tom),
-        oppslagsperiode: Periode = tiltaksdeltagelse.periode!!,
+        tiltaksdeltagelse: List<Tiltaksdeltagelse> = listOf(ObjectMother.tiltaksdeltagelse(fom = fom, tom = tom)),
+        oppslagsperiode: Periode = Periode(fom, tom),
         clock: Clock = ObjectMother.clock,
         oppslagstidspunkt: LocalDateTime = LocalDateTime.now(clock),
         ytelser: Ytelser = Ytelser.fromList(emptyList(), oppslagsperiode, oppslagstidspunkt),
@@ -30,7 +30,7 @@ interface SaksopplysningerMother {
     ): Saksopplysninger {
         return Saksopplysninger(
             fødselsdato = fødselsdato,
-            tiltaksdeltagelser = Tiltaksdeltagelser(listOf(tiltaksdeltagelse)),
+            tiltaksdeltagelser = Tiltaksdeltagelser(tiltaksdeltagelse),
             ytelser = ytelser,
             tiltakspengevedtakFraArena = tiltakspengevedtakFraArena,
             oppslagstidspunkt = oppslagstidspunkt,
