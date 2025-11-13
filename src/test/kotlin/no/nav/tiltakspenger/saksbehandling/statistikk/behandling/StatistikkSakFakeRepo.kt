@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.jobb.MinimalStatistikkSakDTO
 
 class StatistikkSakFakeRepo : StatistikkSakRepo {
     private val data = Atomic(mutableMapOf<SakId, StatistikkSakDTO>())
@@ -38,12 +37,5 @@ class StatistikkSakFakeRepo : StatistikkSakRepo {
                 fnr = nyttFnr.verdi,
             )
         }
-    }
-
-    override fun hentAlleMedFeilEndrettidspunkt(limit: Int): List<MinimalStatistikkSakDTO> {
-        return emptyList()
-    }
-
-    override fun oppdaterEndretTidspunkt(minimalStatistikkSakDTO: MinimalStatistikkSakDTO, context: TransactionContext?) {
     }
 }

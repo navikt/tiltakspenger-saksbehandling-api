@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.jobb.MinimalStatistikkSakDTO
 import org.intellij.lang.annotations.Language
 
 /**
@@ -73,57 +72,6 @@ internal class StatistikkSakPostgresRepo(
                         "gammelt_fnr" to gammeltFnr.verdi,
                     ),
                 ).asUpdate,
-            )
-        }
-    }
-
-    override fun oppdaterEndretTidspunkt(minimalStatistikkSakDTO: MinimalStatistikkSakDTO, context: TransactionContext?) {
-        sessionFactory.withTransaction(context) { tx ->
-            tx.run(
-                queryOf(
-                    """
-                        update statistikk_sak
-                        set endrettidspunkt = :endrettidspunkt
-                        where id = :id
-                          and sak_id = :sak_id
-                          and behandlingid = :behandlingid
-                    """.trimIndent(),
-                    mapOf(
-                        "endrettidspunkt" to minimalStatistikkSakDTO.tekniskTidspunkt,
-                        "id" to minimalStatistikkSakDTO.id,
-                        "sak_id" to minimalStatistikkSakDTO.sakId,
-                        "behandlingid" to minimalStatistikkSakDTO.behandlingId,
-                    ),
-                ).asUpdate,
-            )
-        }
-    }
-
-    override fun hentAlleMedFeilEndrettidspunkt(limit: Int): List<MinimalStatistikkSakDTO> {
-        return sessionFactory.withSession {
-            it.run(
-                queryOf(
-                    """
-                        with avvik as (SELECT id,
-                                              sak_id,
-                                              behandlingid,
-                                              hendelse,
-                                              (endrettidspunkt - teknisktidspunkt) as diff,
-                                              endrettidspunkt,
-                                              teknisktidspunkt
-                                       FROM statistikk_sak
-                                       ORDER BY diff ASC)
-                        
-                        select *
-                        from avvik
-                        where diff < '0 years 0 mons 0 days 0 hours -1 mins -2.91329 secs'
-                        limit :limit
-                    """.trimIndent(),
-                    mapOf(
-                        "limit" to limit,
-                    ),
-                ).map { row -> row.toMinimalStatistikkSakDTO() }
-                    .asList,
             )
         }
     }
@@ -269,14 +217,5 @@ internal class StatistikkSakPostgresRepo(
             versjon = string("versjon"),
             hendelse = string("hendelse"),
             behandlingAarsak = stringOrNull("behandling_aarsak")?.let { StatistikkBehandlingAarsak.valueOf(it) },
-        )
-
-    private fun Row.toMinimalStatistikkSakDTO() =
-        MinimalStatistikkSakDTO(
-            id = int("id"),
-            sakId = string("sak_id"),
-            behandlingId = string("behandlingid"),
-            endretTidspunkt = localDateTime("endrettidspunkt"),
-            tekniskTidspunkt = localDateTime("teknisktidspunkt"),
         )
 }

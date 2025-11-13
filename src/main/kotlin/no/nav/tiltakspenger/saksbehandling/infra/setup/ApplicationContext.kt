@@ -43,7 +43,6 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahCo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.jobb.OppdaterEndretTidspunktJobb
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.arena.ArenaDeltakerMapper
@@ -251,12 +250,6 @@ open class ApplicationContext(
             startSøknadsbehandlingService = behandlingContext.startSøknadsbehandlingService,
             delautomatiskBehandlingService = behandlingContext.delautomatiskBehandlingService,
             oppdaterSaksopplysningerService = behandlingContext.oppdaterSaksopplysningerService,
-        )
-    }
-
-    val oppdaterEndretTidspunktJobb by lazy {
-        OppdaterEndretTidspunktJobb(
-            statistikkSakRepo = statistikkContext.statistikkSakRepo,
         )
     }
 
