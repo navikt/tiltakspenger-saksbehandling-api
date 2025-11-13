@@ -53,8 +53,10 @@ class DelautomatiskBehandlingService(
             log.info { "Gjenopptar behandling med id ${behandling.id}. CorrelationId: $correlationId" }
             val gjenopptattBehandling = behandling.gjenoppta(
                 endretAv = AUTOMATISK_SAKSBEHANDLER,
+                // Den automatiske jobben bør oppdatere saksopplysningene før gjenopptak.
+                hentSaksopplysninger = null,
                 clock = clock,
-            )
+            ).getOrNull()!!
             behandlingRepo.lagre(gjenopptattBehandling)
             gjenopptattBehandling as Søknadsbehandling
         } else {

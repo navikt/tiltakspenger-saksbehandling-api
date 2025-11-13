@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.infra.route
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -17,24 +19,26 @@ class BehandlingDTOTest {
 
         @Test
         fun `Den nyeste begrunnelsen blir med`() {
-            val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
-            val behandling =
-                ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
+            runTest {
+                val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
+                val behandling =
+                    ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
-            val behandlingSattPåVent = behandling
-                .settPåVent(beslutter, "1", clock)
-                .gjenoppta(beslutter, clock)
-                .settPåVent(beslutter, "2", clock)
+                val behandlingSattPåVent = behandling
+                    .settPåVent(beslutter, "1", clock)
+                    .gjenoppta(beslutter, clock) { behandling.saksopplysninger }.getOrFail()
+                    .settPåVent(beslutter, "2", clock)
 
-            behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 3
+                behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 3
 
-            val sak = ObjectMother.nySak(behandlinger = Rammebehandlinger(listOf(behandlingSattPåVent)))
+                val sak = ObjectMother.nySak(behandlinger = Rammebehandlinger(listOf(behandlingSattPåVent)))
 
-            val dto = sak.tilBehandlingDTO(behandlingSattPåVent.id)
+                val dto = sak.tilBehandlingDTO(behandlingSattPåVent.id)
 
-            dto.ventestatus?.erSattPåVent shouldBe true
-            dto.ventestatus?.sattPåVentAv shouldBe beslutter.navIdent
-            dto.ventestatus?.begrunnelse shouldBe "2"
+                dto.ventestatus?.erSattPåVent shouldBe true
+                dto.ventestatus?.sattPåVentAv shouldBe beslutter.navIdent
+                dto.ventestatus?.begrunnelse shouldBe "2"
+            }
         }
     }
 }

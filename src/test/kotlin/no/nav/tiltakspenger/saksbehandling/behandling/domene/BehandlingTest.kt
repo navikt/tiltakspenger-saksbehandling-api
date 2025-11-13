@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
@@ -183,7 +184,7 @@ class BehandlingTest {
 
             behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
             behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 1
-            behandlingSattPåVent.ventestatus.ventestatusHendelser.last().let { it ->
+            behandlingSattPåVent.ventestatus.ventestatusHendelser.last().let {
                 it.endretAv shouldBe beslutter.navIdent
                 it.begrunnelse shouldBe "Venter på mer informasjon"
                 it.erSattPåVent shouldBe true
@@ -196,26 +197,53 @@ class BehandlingTest {
         val clock: Clock = Clock.fixed(Instant.parse("2025-08-05T12:30:00Z"), ZoneOffset.UTC)
 
         @Test
+        fun `kan gjenoppta klar til behandling som er satt på vent`() {
+            runTest {
+                val saksbehandler = ObjectMother.saksbehandler()
+                val saksbehandler2 = ObjectMother.saksbehandler(navIdent = "saksbehandler2")
+                val behandlingSattPåVent = ObjectMother
+                    .nySøknadsbehandlingUnderkjent(saksbehandler = saksbehandler)
+                    .settPåVent(saksbehandler, "1", clock)
+                    .leggTilbakeBehandling(saksbehandler, clock)
+
+                behandlingSattPåVent.saksbehandler shouldBe null
+                behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+
+                val gjenopptattBehandling =
+                    behandlingSattPåVent.gjenoppta(saksbehandler2, clock) { behandlingSattPåVent.saksopplysninger }.getOrFail()
+
+                gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                gjenopptattBehandling.saksbehandler shouldBe saksbehandler2.navIdent
+                gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
+            }
+        }
+
+        @Test
         fun `kan gjenoppta behandling som er satt på vent`() {
-            val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
-            val behandling =
-                ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
+            runTest {
+                val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
+                val behandling =
+                    ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
-            val behandlingSattPåVent = behandling.settPåVent(beslutter, "Venter på mer informasjon", clock)
-            val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(beslutter, clock)
+                val behandlingSattPåVent = behandling.settPåVent(beslutter, "Venter på mer informasjon", clock)
+                val gjenopptattBehandling =
+                    behandlingSattPåVent.gjenoppta(beslutter, clock) { behandling.saksopplysninger }.getOrFail()
 
-            gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
-            gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
+                gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+                gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
+            }
         }
 
         @Test
         fun `kan ikke gjenoppta behandling som ikke er satt på vent`() {
-            val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
-            val behandling =
-                ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
+            runTest {
+                val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
+                val behandling =
+                    ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
-            assertThrows<IllegalArgumentException> {
-                behandling.gjenoppta(beslutter, clock)
+                assertThrows<IllegalArgumentException> {
+                    behandling.gjenoppta(beslutter, clock) { behandling.saksopplysninger }
+                }
             }
         }
     }

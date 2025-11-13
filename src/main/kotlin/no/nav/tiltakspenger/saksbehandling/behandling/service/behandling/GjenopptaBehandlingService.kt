@@ -28,28 +28,25 @@ class GjenopptaBehandlingService(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>> {
-        val (sak, behandling) = behandlingService.hentSakOgBehandling(
-            sakId = sakId,
-            behandlingId = behandlingId,
-        )
+        val (sak, behandling) = behandlingService.hentSakOgBehandling(sakId, behandlingId)
 
-        val gjenopptattBehandling = behandling.gjenoppta(saksbehandler, clock)
+        val hentSaksopplysninger = suspend {
+            hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
+                fnr = sak.fnr,
+                correlationId = correlationId,
+                tiltaksdeltagelserDetErSøktTiltakspengerFor = sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+                aktuelleTiltaksdeltagelserForBehandlingen = when (behandling) {
+                    is Revurdering -> sak.tiltaksdeltagelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }
+                    is Søknadsbehandling -> listOfNotNull(behandling.søknad.tiltak?.id)
+                },
+                inkluderOverlappendeTiltaksdeltagelserDetErSøktOm = when (behandling) {
+                    is Revurdering -> false
+                    is Søknadsbehandling -> true
+                },
+            )
+        }
 
-        val nyeSaksopplysninger = hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
-            fnr = sak.fnr,
-            correlationId = correlationId,
-            tiltaksdeltagelserDetErSøktTiltakspengerFor = sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
-            aktuelleTiltaksdeltagelserForBehandlingen = when (behandling) {
-                is Revurdering -> sak.tiltaksdeltagelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }
-                is Søknadsbehandling -> listOfNotNull(behandling.søknad.tiltak?.id)
-            },
-            inkluderOverlappendeTiltaksdeltagelserDetErSøktOm = when (behandling) {
-                is Revurdering -> false
-                is Søknadsbehandling -> true
-            },
-        )
-
-        return gjenopptattBehandling.oppdaterSaksopplysninger(saksbehandler, nyeSaksopplysninger).mapLeft {
+        return behandling.gjenoppta(saksbehandler, clock, hentSaksopplysninger).mapLeft {
             KunneIkkeGjenopptaBehandling.FeilVedOppdateringAvSaksopplysninger(it)
         }.map {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
@@ -58,7 +55,6 @@ class GjenopptaBehandlingService(
                 it,
                 statistikkSakService.genererStatistikkForGjenopptattBehandling(it),
             )
-
             oppdatertSak to it
         }
     }

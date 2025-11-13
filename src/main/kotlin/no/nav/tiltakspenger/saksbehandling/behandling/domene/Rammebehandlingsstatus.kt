@@ -25,4 +25,9 @@ enum class Rammebehandlingsstatus {
 
     /** En saksbehandler har valgt at behandlingen ikke skal behandles videre */
     AVBRUTT,
+
+    ;
+
+    fun erAvsluttet(): Boolean = this == VEDTATT || this == AVBRUTT
+    fun erÅpen(): Boolean = !erAvsluttet()
 }

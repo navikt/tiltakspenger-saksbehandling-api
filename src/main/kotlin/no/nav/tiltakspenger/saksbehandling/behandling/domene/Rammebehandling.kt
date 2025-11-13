@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -157,60 +156,81 @@ sealed interface Rammebehandling : Behandling {
         }
     }
 
-    fun gjenoppta(
+    /**
+     * Kan kun gjenoppta en behandling som er satt på vent.
+     * @param hentSaksopplysninger Henter saksopplysninger på nytt dersom denne ikke er null.
+     */
+    suspend fun gjenoppta(
         endretAv: Saksbehandler,
         clock: Clock,
-    ): Rammebehandling {
-        if (status == UNDER_AUTOMATISK_BEHANDLING && endretAv != AUTOMATISK_SAKSBEHANDLER) {
-            krevSaksbehandlerRolle(endretAv)
-            require(saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID) { "Kan ikke gjenoppta automatisk behandling som ikke eies av tp-sak" }
-            require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
-            require(this is Søknadsbehandling) { "Kun søknadsbehandlinger kan være under automatisk behandling" }
-            val oppdatertBehandling = overta(endretAv, clock)
-                .getOrElse { IllegalStateException("Kan ikke gjenoppta automatisk behandling: Kunne ikke overta behandlingen") } as Søknadsbehandling
-            return oppdatertBehandling.copy(
-                ventestatus = ventestatus.leggTil(
-                    tidspunkt = nå(clock),
-                    endretAv = endretAv.navIdent,
-                    erSattPåVent = false,
-                    status = oppdatertBehandling.status,
-                ),
-                venterTil = null,
-                sistEndret = nå(clock),
-            )
-        }
-        if (status == UNDER_BEHANDLING) {
-            krevSaksbehandlerRolle(endretAv)
-            require(this.saksbehandler == endretAv.navIdent) { "Du må være saksbehandler på behandlingen for å kunne gjenoppta den." }
-        }
-        if (status == UNDER_BESLUTNING) {
-            krevBeslutterRolle(endretAv)
-            require(this.beslutter == endretAv.navIdent) { "Du må være beslutter på behandlingen for å kunne gjenoppta den." }
-        }
+        hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
+    ): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandling> {
         require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
 
-        return when (this) {
-            is Søknadsbehandling -> this.copy(
-                ventestatus = ventestatus.leggTil(
-                    tidspunkt = nå(clock),
-                    endretAv = endretAv.navIdent,
-                    erSattPåVent = false,
-                    status = status,
-                ),
-                venterTil = null,
-                sistEndret = nå(clock),
+        val nå = nå(clock)
+        suspend fun gjenopptaBehandling(
+            overta: Boolean,
+            hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
+        ): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandling> {
+            val oppdatertVentestatus = ventestatus.leggTil(
+                tidspunkt = nå,
+                endretAv = endretAv.navIdent,
+                erSattPåVent = false,
+                status = status,
             )
+            return when (this) {
+                is Søknadsbehandling -> this.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
+                is Revurdering -> this.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
+            }.let {
+                if (overta) {
+                    if (it.saksbehandler == null) {
+                        it.taBehandling(endretAv, clock)
+                    } else {
+                        it.overta(endretAv, clock).getOrNull()!!
+                    }
+                } else {
+                    it
+                }
+            }.let {
+                if (hentSaksopplysninger != null) {
+                    it.oppdaterSaksopplysninger(endretAv, hentSaksopplysninger())
+                } else {
+                    it.right()
+                }
+            }
+        }
+        return when (status) {
+            VEDTATT, AVBRUTT -> throw IllegalStateException("Kan ikke gjenoppta behandling som har status ${status.name}")
+            KLAR_TIL_BEHANDLING -> {
+                krevSaksbehandlerRolle(endretAv)
+                gjenopptaBehandling(true, hentSaksopplysninger)
+            }
 
-            is Revurdering -> this.copy(
-                ventestatus = ventestatus.leggTil(
-                    tidspunkt = nå(clock),
-                    endretAv = endretAv.navIdent,
-                    erSattPåVent = false,
-                    status = status,
-                ),
-                venterTil = null,
-                sistEndret = nå(clock),
-            )
+            UNDER_BEHANDLING -> {
+                krevSaksbehandlerRolle(endretAv)
+                require(this.saksbehandler == endretAv.navIdent) { "Du må være saksbehandler på behandlingen for å kunne gjenoppta den." }
+                gjenopptaBehandling(false, hentSaksopplysninger)
+            }
+
+            UNDER_AUTOMATISK_BEHANDLING -> {
+                if (endretAv == AUTOMATISK_SAKSBEHANDLER) {
+                    gjenopptaBehandling(false, null)
+                } else {
+                    krevSaksbehandlerRolle(endretAv)
+                    gjenopptaBehandling(true, hentSaksopplysninger)
+                }
+            }
+
+            KLAR_TIL_BESLUTNING -> {
+                krevBeslutterRolle(endretAv)
+                gjenopptaBehandling(true, null)
+            }
+
+            UNDER_BESLUTNING -> {
+                krevBeslutterRolle(endretAv)
+                require(this.beslutter == endretAv.navIdent) { "Du må være beslutter på behandlingen for å kunne gjenoppta den." }
+                gjenopptaBehandling(false, null)
+            }
         }
     }
 
@@ -228,6 +248,7 @@ sealed interface Rammebehandling : Behandling {
                         status = KLAR_TIL_BEHANDLING,
                         sistEndret = nå(clock),
                     )
+
                     is Revurdering -> this.copy(
                         saksbehandler = null,
                         status = KLAR_TIL_BEHANDLING,
@@ -248,6 +269,7 @@ sealed interface Rammebehandling : Behandling {
                         status = KLAR_TIL_BESLUTNING,
                         sistEndret = nå(clock),
                     )
+
                     is Revurdering -> this.copy(
                         beslutter = null,
                         status = KLAR_TIL_BESLUTNING,
@@ -304,6 +326,7 @@ sealed interface Rammebehandling : Behandling {
                         status = UNDER_BESLUTNING,
                         sistEndret = nå(clock),
                     )
+
                     is Revurdering -> this.copy(
                         beslutter = saksbehandler.navIdent,
                         status = UNDER_BESLUTNING,
@@ -393,6 +416,7 @@ sealed interface Rammebehandling : Behandling {
                         saksbehandler = saksbehandler.navIdent,
                         sistEndret = oppdatertSistEndret,
                     )
+
                     is Revurdering -> return KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
                 }.right()
             }
@@ -587,6 +611,9 @@ sealed interface Rammebehandling : Behandling {
                 }
                 require(iverksattTidspunkt == null)
                 require(beslutter == null)
+                require(this is Søknadsbehandling) {
+                    "Kun søknadsbehandlinger kan være under automatisk behandling"
+                }
             }
 
             KLAR_TIL_BEHANDLING -> {
