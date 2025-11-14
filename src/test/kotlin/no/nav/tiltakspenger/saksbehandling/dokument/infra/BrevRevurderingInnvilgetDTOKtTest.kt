@@ -38,6 +38,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                 barnetilleggsPerioder = null,
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
+                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -61,7 +62,8 @@ class BrevRevurderingInnvilgetDTOKtTest {
                  ],
                  "tilleggstekst":"Dette er en vurdering",
                  "forhandsvisning":true,
-                 "datoForUtsending": "31. januar 2025"
+                 "datoForUtsending": "31. januar 2025",
+                 "antallDagerTekst": "5 dager per uke"
                }
             """.trimIndent()
         }
@@ -84,6 +86,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                 barnetilleggsPerioder = null,
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
+                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -112,7 +115,8 @@ class BrevRevurderingInnvilgetDTOKtTest {
                     ],
                   "tilleggstekst":"Dette er en vurdering",
                   "forhandsvisning":true,
-                  "datoForUtsending": "31. januar 2025"
+                  "datoForUtsending": "31. januar 2025",
+                  "antallDagerTekst": "5 dager per uke"
                }
             """.trimIndent()
         }
@@ -135,6 +139,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                 barnetilleggsPerioder = SammenhengendePeriodisering(AntallBarn(2), 1.juni(2025) til 31.august(2025)),
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
+                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -148,7 +153,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                  "fraDato":"1. juni 2025",
                  "tilDato":"31. august 2025",
                  "harBarnetillegg":true,
-                 "introTekstMedBarnetillegg":"Du får tiltakspenger og barnetillegg for to barn fra og med 1. juni 2025 til og med 31. august 2025.",
+                 "introTekstMedBarnetillegg":"Du får tiltakspenger og barnetillegg for to barn fra og med 1. juni 2025 til og med 31. august 2025 for 5 dager per uke.",
                  "satser": [
                    {
                      "år": 2025,
@@ -158,7 +163,8 @@ class BrevRevurderingInnvilgetDTOKtTest {
                  ],
                  "tilleggstekst":"Dette er en vurdering",
                  "forhandsvisning":true,
-                 "datoForUtsending": "31. januar 2025"
+                 "datoForUtsending": "31. januar 2025",
+                 "antallDagerTekst": "5 dager per uke"
                }
             """.trimIndent()
         }
@@ -184,6 +190,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                 ),
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
+                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -201,7 +208,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                   "fraDato": "1. desember 2024",
                   "tilDato": "31. januar 2025",
                   "harBarnetillegg": true,
-                  "introTekstMedBarnetillegg": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025.\n\nDu får barnetillegg for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
+                  "introTekstMedBarnetillegg": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 for 5 dager per uke.\n\nDu får barnetillegg for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
                   "satser": [
                     {
                       "år": 2024,
@@ -216,7 +223,8 @@ class BrevRevurderingInnvilgetDTOKtTest {
                   ],
                   "tilleggstekst": "Dette er en vurdering",
                   "forhandsvisning": true,
-                  "datoForUtsending": "31. januar 2025"
+                  "datoForUtsending": "31. januar 2025",
+                  "antallDagerTekst": "5 dager per uke"
                 }
             """.trimIndent()
         }
@@ -243,6 +251,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                 ),
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
+                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -260,7 +269,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                   "fraDato": "1. november 2024",
                   "tilDato": "31. januar 2025",
                   "harBarnetillegg": true,
-                  "introTekstMedBarnetillegg": "Du får tiltakspenger fra og med 1. november 2024 til og med 31. januar 2025.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 30. november 2024, for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
+                  "introTekstMedBarnetillegg": "Du får tiltakspenger fra og med 1. november 2024 til og med 31. januar 2025 for 5 dager per uke.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 30. november 2024, for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
                   "satser": [
                     {
                       "år": 2024,
@@ -275,7 +284,8 @@ class BrevRevurderingInnvilgetDTOKtTest {
                   ],
                   "tilleggstekst": "Dette er en vurdering",
                   "forhandsvisning": true,
-                  "datoForUtsending": "31. januar 2025"
+                  "datoForUtsending": "31. januar 2025",
+                  "antallDagerTekst": "5 dager per uke"
                 }
             """.trimIndent()
         }

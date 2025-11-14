@@ -30,6 +30,7 @@ private data class BrevRevurderingInnvilgetDTO(
      */
     val introTekstMedBarnetillegg: String?,
     val satser: List<Any>,
+    val antallDagerTekst: String?,
 ) : BrevRammevedtakBaseDTO
 
 suspend fun Rammevedtak.tilRevurderingInnvilgetBrev(
@@ -50,6 +51,7 @@ suspend fun Rammevedtak.tilRevurderingInnvilgetBrev(
         saksnummer = saksnummer,
         forhåndsvisning = false,
         barnetilleggsPerioder = barnetillegg?.periodisering,
+        antallDagerTekst = toAntallDagerTekst(antallDagerPerMeldeperiode),
     )
 }
 
@@ -65,6 +67,7 @@ internal suspend fun genererRevurderingInnvilgetBrev(
     vedtaksdato: LocalDate,
     barnetilleggsPerioder: Periodisering<AntallBarn>?,
     forhåndsvisning: Boolean,
+    antallDagerTekst: String?,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
@@ -93,12 +96,14 @@ internal suspend fun genererRevurderingInnvilgetBrev(
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
         harBarnetillegg = barnetilleggsPerioder != null && barnetilleggsPerioder.any { it.verdi.value > 0 },
-        introTekstMedBarnetillegg = barnetilleggsPerioder?.tilIntroTekst(innvilgelsesperiode),
+        introTekstMedBarnetillegg = barnetilleggsPerioder?.tilIntroTekst(innvilgelsesperiode, antallDagerTekst),
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
+        antallDagerTekst = antallDagerTekst,
     ).let { serialize(it) }
 }
 
-private fun Periodisering<AntallBarn>.tilIntroTekst(vurderingsperiode: Periode): String? {
+private fun Periodisering<AntallBarn>.tilIntroTekst(vurderingsperiode: Periode, antallDagerTekst: String?): String? {
+    val antallDagerPerUkeTekst = antallDagerTekst?.let { " for $it" } ?: ""
     val perioderMedBarnetillegg = perioderMedVerdi
         .filter { it.verdi.value > 0 }
 
@@ -124,12 +129,12 @@ private fun Periodisering<AntallBarn>.tilIntroTekst(vurderingsperiode: Periode):
         }
 
     return if (harBarnetilleggOverHeleInnvilgelsesperiode) {
-        "Du får tiltakspenger og barnetillegg $perioderMedBarnetilleggString."
+        "Du får tiltakspenger og barnetillegg $perioderMedBarnetilleggString$antallDagerPerUkeTekst."
     } else {
         """
             Du får tiltakspenger fra og med ${vurderingsperiode.fraOgMed.format(norskDatoFormatter)} til og med ${
             vurderingsperiode.tilOgMed.format(norskDatoFormatter)
-        }.
+        }$antallDagerPerUkeTekst.
         
             Du får barnetillegg $perioderMedBarnetilleggString.
         """.trimIndent()
