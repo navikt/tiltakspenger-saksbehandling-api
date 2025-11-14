@@ -207,9 +207,6 @@ private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<MeldeperiodeKjedeSo
             )
         }
 
-        val sisteBehandledeMeldekort =
-            meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId]?.lastOrNull()
-
         val brukersMeldekort = brukersMeldekort
             .filter { it.kjedeId == kjedeId }
 
@@ -219,24 +216,39 @@ private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<MeldeperiodeKjedeSo
             return@mapNotNull null
         }
 
-        if (sisteBehandledeMeldekort == null || sisteBrukersMeldekort.mottatt > sisteBehandledeMeldekort.iverksattTidspunkt) {
-            return@mapNotNull MeldeperiodeKjedeSomMåBehandlesDTO(
-                id = kjedeId.toString(),
-                sakId = this.id.toString(),
-                saksnummer = this.saksnummer.toString(),
-                periode = periode,
-                meldekortBehandlingId = null,
-                opprettet = sisteBrukersMeldekort.mottatt,
-                status = if (brukersMeldekort.size == 1) {
-                    MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
-                } else {
-                    MeldeperiodeKjedeStatusDTO.KORRIGERT_MELDEKORT
-                },
-                saksbehandler = null,
-                beslutter = null,
-            )
+        val sisteBehandledeMeldekort =
+            meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId]?.lastOrNull()
+
+        val harBehandletMeldekortet =
+            sisteBehandledeMeldekort != null && sisteBehandledeMeldekort.sistEndret > sisteBrukersMeldekort.mottatt
+
+        if (harBehandletMeldekortet) {
+            return@mapNotNull null
         }
 
-        return@mapNotNull null
+        val harAvbruttBehandlingAvMeldekortet = meldekortbehandlinger.avbrutteMeldekortBehandlinger
+            .filter { it.kjedeId == kjedeId }
+            .any { it.avbrutt != null && it.avbrutt.tidspunkt > sisteBrukersMeldekort.mottatt }
+
+        // Stygg workaround for at saksbehandler skal kunne bli kvitt korrigeringer som ikke skal behandles i vår løsning
+        if (harAvbruttBehandlingAvMeldekortet) {
+            return@mapNotNull null
+        }
+
+        return@mapNotNull MeldeperiodeKjedeSomMåBehandlesDTO(
+            id = kjedeId.toString(),
+            sakId = this.id.toString(),
+            saksnummer = this.saksnummer.toString(),
+            periode = periode,
+            meldekortBehandlingId = null,
+            opprettet = sisteBrukersMeldekort.mottatt,
+            status = if (brukersMeldekort.size == 1) {
+                MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+            } else {
+                MeldeperiodeKjedeStatusDTO.KORRIGERT_MELDEKORT
+            },
+            saksbehandler = null,
+            beslutter = null,
+        )
     }
 }
