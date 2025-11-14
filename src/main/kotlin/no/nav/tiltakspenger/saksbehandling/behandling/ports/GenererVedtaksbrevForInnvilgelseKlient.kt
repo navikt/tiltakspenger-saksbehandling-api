@@ -43,6 +43,7 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         sakId: SakId,
         forhåndsvisning: Boolean,
         barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>?,
+        antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererInnvilgetRevurderingBrev(
@@ -58,5 +59,6 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         innvilgelsesperiode: Periode,
         tilleggstekst: FritekstTilVedtaksbrev,
         barnetillegg: SammenhengendePeriodisering<AntallBarn>?,
+        antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

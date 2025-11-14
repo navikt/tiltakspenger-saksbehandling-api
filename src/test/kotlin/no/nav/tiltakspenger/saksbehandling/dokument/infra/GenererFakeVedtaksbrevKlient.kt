@@ -59,6 +59,7 @@ class GenererFakeVedtaksbrevKlient :
         sakId: SakId,
         forhåndsvisning: Boolean,
         barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>?,
+        antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }
@@ -76,6 +77,7 @@ class GenererFakeVedtaksbrevKlient :
         innvilgelsesperiode: Periode,
         tilleggstekst: FritekstTilVedtaksbrev,
         barnetillegg: SammenhengendePeriodisering<AntallBarn>?,
+        antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
 
     override suspend fun genererStansvedtak(

@@ -29,6 +29,7 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     val kontor: String,
     val satser: List<Any>,
     val satsBarn: Int,
+    val antallDagerTekst: String?,
 ) : BrevRammevedtakBaseDTO {
 
     @Suppress("unused")
@@ -60,6 +61,7 @@ internal suspend fun Rammevedtak.tilInnvilgetSøknadsbrev(
         saksnummer = saksnummer,
         forhåndsvisning = false,
         barnetilleggsPerioder = this.behandling.barnetillegg?.periodisering,
+        antallDagerTekst = toAntallDagerTekst(this.antallDagerPerMeldeperiode),
     )
 }
 
@@ -75,6 +77,7 @@ internal suspend fun genererInnvilgetSøknadsbrev(
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
     barnetilleggsPerioder: Periodisering<AntallBarn>?,
+    antallDagerTekst: String?,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
@@ -133,5 +136,6 @@ internal suspend fun genererInnvilgetSøknadsbrev(
             barnetilleggsPerioder.first().periode == innvilgelsesperiode -> barnetilleggsPerioder.first().verdi.value
             else -> null
         },
+        antallDagerTekst = antallDagerTekst,
     ).let { serialize(it) }
 }

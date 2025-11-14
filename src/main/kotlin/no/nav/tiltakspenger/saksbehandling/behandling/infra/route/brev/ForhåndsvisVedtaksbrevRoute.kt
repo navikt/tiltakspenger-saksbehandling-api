@@ -12,11 +12,14 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
@@ -33,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import java.time.LocalDate
 
 /**
@@ -54,6 +58,7 @@ private data class Body(
     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
     val resultat: RammebehandlingResultatTypeDTO,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
+    val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>?,
 ) {
     init {
         if (harValgtStansFraFørsteDagSomGirRett == true) require(stansFraOgMed == null) { "stansFraOgMed må være null når harValgtStansFraFørsteDagSomGirRett er true" }
@@ -88,6 +93,12 @@ private data class Body(
             barnetillegg = if (barnetillegg == null || barnetillegg.isEmpty()) null else (barnetillegg.tilPeriodisering() as IkkeTomPeriodisering),
             resultat = resultat,
             avslagsgrunner = this.avslagsgrunner?.toAvslagsgrunnlag(),
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder?.map {
+                PeriodeMedVerdi(
+                    AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
+                    it.periode.toDomain(),
+                )
+            }?.tilSammenhengendePeriodisering(),
         )
     }
 }

@@ -131,6 +131,7 @@ internal class PdfgenHttpClient(
         sakId: SakId,
         forhåndsvisning: Boolean,
         barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>?,
+        antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -146,6 +147,7 @@ internal class PdfgenHttpClient(
                     saksnummer = saksnummer,
                     forhåndsvisning = forhåndsvisning,
                     barnetilleggsPerioder = barnetilleggsPerioder,
+                    antallDagerTekst = antallDagerTekst,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",
@@ -166,6 +168,7 @@ internal class PdfgenHttpClient(
         innvilgelsesperiode: Periode,
         tilleggstekst: FritekstTilVedtaksbrev,
         barnetillegg: SammenhengendePeriodisering<AntallBarn>?,
+        antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -181,6 +184,7 @@ internal class PdfgenHttpClient(
                     tilleggstekst = tilleggstekst,
                     barnetilleggsPerioder = barnetillegg,
                     vedtaksdato = vedtaksdato,
+                    antallDagerTekst = antallDagerTekst,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",

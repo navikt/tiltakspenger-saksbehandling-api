@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevFo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.toAntallDagerTekst
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.time.LocalDate
@@ -109,6 +110,7 @@ class ForhåndsvisVedtaksbrevService(
         barnetillegg = kommando.barnetillegg?.let {
             it.utvid(AntallBarn(0), innvilgelsesperiode) as SammenhengendePeriodisering
         },
+        antallDagerTekst = toAntallDagerTekst(kommando.antallDagerPerMeldeperiode),
     ).fold(
         ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
         ifRight = { it.pdf },
@@ -187,6 +189,7 @@ class ForhåndsvisVedtaksbrevService(
         barnetilleggsPerioder = kommando.barnetillegg?.let {
             it.utvid(AntallBarn(0), innvilgelsesperiode) as SammenhengendePeriodisering
         },
+        antallDagerTekst = toAntallDagerTekst(kommando.antallDagerPerMeldeperiode),
     ).fold(
         ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
         ifRight = { it.pdf },
