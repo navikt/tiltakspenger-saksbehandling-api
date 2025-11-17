@@ -115,7 +115,7 @@ class RammebehandlingDTOTest {
                     "deltakelseProsent": 100.0,
                     "antallDagerPerUke": 5.0,
                     "kilde": "Komet",
-                    "deltakelseProsentFraGjennomforing": false
+                    "gjennomforingsprosent": null
                   }
                 ],
                 "periode": {
@@ -324,7 +324,7 @@ class RammebehandlingDTOTest {
                     "deltakelseProsent": 100.0,
                     "antallDagerPerUke": 5.0,
                     "kilde": "Komet",
-                    "deltakelseProsentFraGjennomforing": false
+                    "gjennomforingsprosent": null
                   }
                 ],
                 "periode": {
@@ -501,7 +501,7 @@ class RammebehandlingDTOTest {
                     "deltakelseProsent": 100.0,
                     "antallDagerPerUke": 5.0,
                     "kilde": "Komet",
-                    "deltakelseProsentFraGjennomforing": false
+                    "gjennomforingsprosent": null
                   }
                 ],
                 "periode": {
@@ -656,7 +656,7 @@ class RammebehandlingDTOTest {
                     "deltakelseProsent": 100.0,
                     "antallDagerPerUke": 5.0,
                     "kilde": "Komet",
-                    "deltakelseProsentFraGjennomforing": false
+                    "gjennomforingsprosent": null
                   }
                 ],
                 "periode": {
@@ -790,7 +790,7 @@ class RammebehandlingDTOTest {
                     "deltakelseProsent": 100.0,
                     "antallDagerPerUke": 5.0,
                     "kilde": "Komet",
-                    "deltakelseProsentFraGjennomforing": false
+                    "gjennomforingsprosent": null
                   }
                 ],
                 "periode": {
@@ -934,7 +934,7 @@ class RammebehandlingDTOTest {
                     "deltakelseProsent": 100.0,
                     "antallDagerPerUke": 5.0,
                     "kilde": "Komet",
-                    "deltakelseProsentFraGjennomforing": false
+                    "gjennomforingsprosent": null
                   }
                 ],
                 "periode": {
