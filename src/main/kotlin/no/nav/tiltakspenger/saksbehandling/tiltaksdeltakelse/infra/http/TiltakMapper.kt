@@ -41,7 +41,7 @@ internal fun mapTiltak(
     return tiltakDTOListe
         .map { tiltakDto ->
             Tiltaksdeltakelse(
-                eksternDeltagelseId = tiltakDto.id,
+                eksternDeltakelseId = tiltakDto.id,
                 gjennomføringId = tiltakDto.gjennomforing.id,
                 typeNavn = tiltakDto.gjennomforing.typeNavn,
                 typeKode =
@@ -51,8 +51,8 @@ internal fun mapTiltak(
                     )
                 },
                 rettPåTiltakspenger = tiltakDto.gjennomforing.arenaKode.rettPåTiltakspenger,
-                deltagelseFraOgMed = tiltakDto.deltakelseFom,
-                deltagelseTilOgMed = tiltakDto.deltakelseTom,
+                deltakelseFraOgMed = tiltakDto.deltakelseFom,
+                deltakelseTilOgMed = tiltakDto.deltakelseTom,
                 deltakelseStatus = tiltakDto.deltakelseStatus.toDomain(),
                 antallDagerPerUke = tiltakDto.deltakelsePerUke,
                 deltakelseProsent = tiltakDto.deltakelseProsent,

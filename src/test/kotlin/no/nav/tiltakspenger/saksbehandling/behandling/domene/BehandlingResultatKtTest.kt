@@ -17,14 +17,14 @@ class BehandlingResultatKtTest {
         val periode = Periode(1.januar(2023), 31.mars(2023))
 
         private val valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser(
-            SammenhengendePeriodisering(PeriodeMedVerdi(ObjectMother.tiltaksdeltagelse(), periode)),
+            SammenhengendePeriodisering(PeriodeMedVerdi(ObjectMother.tiltaksdeltakelse(), periode)),
         )
         private val matchendeSaksopplysning = ObjectMother.saksopplysninger(
             fom = periode.fraOgMed,
             tom = periode.tilOgMed,
         )
         private val endretSaksopplysning = ObjectMother.saksopplysninger(
-            tiltaksdeltakelse = listOf(ObjectMother.tiltaksdeltagelse(eksternTiltaksdeltagelseId = "annen-id")),
+            tiltaksdeltakelse = listOf(ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = "annen-id")),
         )
 
         @Test
@@ -33,8 +33,8 @@ class BehandlingResultatKtTest {
                 valgteTiltaksdeltakelser,
                 ObjectMother.saksopplysninger(
                     tiltaksdeltakelse = listOf(
-                        ObjectMother.tiltaksdeltagelse(eksternTiltaksdeltagelseId = "annen-id"),
-                        ObjectMother.tiltaksdeltagelse(eksternTiltaksdeltagelseId = "annen-id2"),
+                        ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = "annen-id"),
+                        ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = "annen-id2"),
                     ),
                 ),
             )

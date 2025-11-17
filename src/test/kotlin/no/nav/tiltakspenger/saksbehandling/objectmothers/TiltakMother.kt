@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -21,10 +21,10 @@ import java.util.UUID
 interface TiltakMother {
 
     /**
-     * Dupliserer dene med [tiltaksdeltagelse] for å være bakoverkompabilitet med tester som bruker tac
+     * Dupliserer dene med [tiltaksdeltakelse] for å være bakoverkompabilitet med tester som bruker tac
      */
-    fun tiltaksdeltagelseTac(
-        eksternTiltaksdeltagelseId: String = "TA12345",
+    fun tiltaksdeltakelseTac(
+        eksternTiltaksdeltakelseId: String = "TA12345",
         typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn: String = "Testnavn",
         eksternTiltaksgjennomføringsId: String? = null,
@@ -38,13 +38,13 @@ interface TiltakMother {
         deltidsprosentGjennomforing: Double? = null,
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
-            eksternDeltagelseId = eksternTiltaksdeltagelseId,
+            eksternDeltakelseId = eksternTiltaksdeltakelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
             typeNavn = typeNavn,
             rettPåTiltakspenger = rettPåTiltakspenger,
-            deltagelseFraOgMed = fom,
-            deltagelseTilOgMed = tom,
+            deltakelseFraOgMed = fom,
+            deltakelseTilOgMed = tom,
             deltakelseStatus = status,
             deltakelseProsent = prosent,
             kilde = kilde,
@@ -53,9 +53,9 @@ interface TiltakMother {
         )
     }
 
-    fun tiltaksdeltagelse(
+    fun tiltaksdeltakelse(
         // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer. Så vi benytter en enkel statisk id her.
-        eksternTiltaksdeltagelseId: String = "61328250-7d5d-4961-b70e-5cb727a34371",
+        eksternTiltaksdeltakelseId: String = "61328250-7d5d-4961-b70e-5cb727a34371",
         typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
         // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer. Så vi benytter en enkel statisk id her.
@@ -70,13 +70,13 @@ interface TiltakMother {
         deltidsprosentGjennomforing: Double? = null,
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
-            eksternDeltagelseId = eksternTiltaksdeltagelseId,
+            eksternDeltakelseId = eksternTiltaksdeltakelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
             typeNavn = typeNavn,
             rettPåTiltakspenger = rettPåTiltakspenger,
-            deltagelseFraOgMed = fom,
-            deltagelseTilOgMed = tom,
+            deltakelseFraOgMed = fom,
+            deltakelseTilOgMed = tom,
             deltakelseStatus = status,
             deltakelseProsent = prosent,
             kilde = kilde,
@@ -86,7 +86,7 @@ interface TiltakMother {
     }
 
     fun tiltakOgSøknadstiltak(
-        eksternTiltaksdeltagelseId: String = UUID.randomUUID().toString(),
+        eksternTiltaksdeltakelseId: String = UUID.randomUUID().toString(),
         typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
         eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
@@ -102,13 +102,13 @@ interface TiltakMother {
         deltidsprosentGjennomforing: Double? = null,
     ): Pair<Tiltaksdeltakelse, Søknadstiltak> {
         val tiltaksdeltakelse = Tiltaksdeltakelse(
-            eksternDeltagelseId = eksternTiltaksdeltagelseId,
+            eksternDeltakelseId = eksternTiltaksdeltakelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
             typeNavn = typeNavn,
             rettPåTiltakspenger = rettPåTiltakspenger,
-            deltagelseFraOgMed = registerFraOgMed,
-            deltagelseTilOgMed = registerTilOgMed,
+            deltakelseFraOgMed = registerFraOgMed,
+            deltakelseTilOgMed = registerTilOgMed,
             deltakelseStatus = status,
             deltakelseProsent = prosent,
             kilde = kilde,
@@ -116,7 +116,7 @@ interface TiltakMother {
             deltidsprosentGjennomforing = deltidsprosentGjennomforing,
         )
         return tiltaksdeltakelse to søknadstiltak(
-            id = eksternTiltaksdeltagelseId,
+            id = eksternTiltaksdeltakelseId,
             deltakelseFom = søknadFraOgMed,
             deltakelseTom = søknadTilOgMed,
             typeKode = typeKode.tilTiltakstype(),
@@ -124,7 +124,7 @@ interface TiltakMother {
         )
     }
 
-    fun tiltaksdeltagelseMedArrangørnavn(
+    fun tiltaksdeltakelseMedArrangørnavn(
         eksternTiltaksdeltakelseId: String = UUID.randomUUID().toString(),
         typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
@@ -160,9 +160,9 @@ interface TiltakMother {
 fun Søknadstiltak.toTiltak(
     eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
 ): Tiltaksdeltakelse {
-    return tiltaksdeltagelse(
+    return tiltaksdeltakelse(
         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
-        eksternTiltaksdeltagelseId = this.id,
+        eksternTiltaksdeltakelseId = this.id,
         typeKode = this.typeKode.toTiltakstypeSomGirRett().getOrElse {
             throw IllegalArgumentException("Ugyldig typekode ${this.typeKode}")
         },
@@ -174,9 +174,9 @@ fun Søknadstiltak.toTiltak(
 
 fun Tiltaksdeltakelse.toSøknadstiltak(): Søknadstiltak {
     return søknadstiltak(
-        id = this.eksternDeltagelseId,
-        deltakelseFom = this.deltagelseFraOgMed!!,
-        deltakelseTom = this.deltagelseTilOgMed!!,
+        id = this.eksternDeltakelseId,
+        deltakelseFom = this.deltakelseFraOgMed!!,
+        deltakelseTom = this.deltakelseTilOgMed!!,
         typeKode = this.typeKode.tilTiltakstype(),
         typeNavn = this.typeNavn,
     )

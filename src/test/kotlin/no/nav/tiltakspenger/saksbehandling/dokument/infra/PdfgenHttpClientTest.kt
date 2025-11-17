@@ -15,7 +15,7 @@ class PdfgenHttpClientTest {
             val meldekortvedtak = ObjectMother.meldekortvedtak()
             PdfgenHttpClient("unused").genererMeldekortvedtakBrev(
                 meldekortvedtak,
-                tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltagelse())),
+                tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
                 sammenligning = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
                 hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
             )

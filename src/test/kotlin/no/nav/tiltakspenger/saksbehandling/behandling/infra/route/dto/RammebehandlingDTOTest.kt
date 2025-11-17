@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyVedtattR
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyVedtattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import org.intellij.lang.annotations.Language
@@ -37,7 +37,7 @@ class RammebehandlingDTOTest {
     private val vedtakId = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
     private val søknadId = SøknadId.fromString("soknad_01K8QWMR32C2X5Y5T4N945BF9V")
     private val søknadTiltakId = "06872f2f-5ca4-453a-8d41-8e91e1f777a3"
-    private val eksternTiltaksdeltagelseId = "f02e50df-d2ee-47f6-9afa-db66bd842bfd"
+    private val eksternTiltaksdeltakelseId = "f02e50df-d2ee-47f6-9afa-db66bd842bfd"
     private val eksternTiltaksgjennomføringsId = "68f04dee-11a9-4d69-84fd-1096a4264492"
     private val fnr = gyldigFnr()
 
@@ -65,17 +65,17 @@ class RammebehandlingDTOTest {
                 søknadstiltak = søknadstiltak(
                     deltakelseFom = virkningsperiode.fraOgMed,
                     deltakelseTom = virkningsperiode.tilOgMed,
-                    id = eksternTiltaksdeltagelseId,
+                    id = eksternTiltaksdeltakelseId,
                 ),
             ),
             saksopplysninger = saksopplysninger(
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
                 tiltaksdeltakelse = listOf(
-                    tiltaksdeltagelse(
+                    tiltaksdeltakelse(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
-                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                        eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
                 ),
@@ -281,10 +281,10 @@ class RammebehandlingDTOTest {
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
                 tiltaksdeltakelse = listOf(
-                    tiltaksdeltagelse(
+                    tiltaksdeltakelse(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
-                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                        eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
                 ),
@@ -449,7 +449,7 @@ class RammebehandlingDTOTest {
                 søknadstiltak = søknadstiltak(
                     deltakelseFom = virkningsperiode.fraOgMed,
                     deltakelseTom = virkningsperiode.tilOgMed,
-                    id = eksternTiltaksdeltagelseId,
+                    id = eksternTiltaksdeltakelseId,
                 ),
             ),
             hentSaksopplysninger = { _, _, _, _, _ ->
@@ -457,10 +457,10 @@ class RammebehandlingDTOTest {
                     fom = virkningsperiode.fraOgMed,
                     tom = virkningsperiode.tilOgMed,
                     tiltaksdeltakelse = listOf(
-                        tiltaksdeltagelse(
+                        tiltaksdeltakelse(
                             fom = virkningsperiode.fraOgMed,
                             tom = virkningsperiode.tilOgMed,
-                            eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                            eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                             eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                         ),
                     ),
@@ -613,10 +613,10 @@ class RammebehandlingDTOTest {
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
                 tiltaksdeltakelse = listOf(
-                    tiltaksdeltagelse(
+                    tiltaksdeltakelse(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
-                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                        eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
                 ),
@@ -747,10 +747,10 @@ class RammebehandlingDTOTest {
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
                 tiltaksdeltakelse = listOf(
-                    tiltaksdeltagelse(
+                    tiltaksdeltakelse(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
-                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                        eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
                 ),
@@ -857,10 +857,10 @@ class RammebehandlingDTOTest {
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
                 tiltaksdeltakelse = listOf(
-                    tiltaksdeltagelse(
+                    tiltaksdeltakelse(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
-                        eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                        eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
                 ),
@@ -890,10 +890,10 @@ class RammebehandlingDTOTest {
                     fom = virkningsperiode.fraOgMed,
                     tom = virkningsperiode.tilOgMed,
                     tiltaksdeltakelse = listOf(
-                        tiltaksdeltagelse(
+                        tiltaksdeltakelse(
                             fom = virkningsperiode.fraOgMed,
                             tom = virkningsperiode.tilOgMed,
-                            eksternTiltaksdeltagelseId = eksternTiltaksdeltagelseId,
+                            eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                             eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                         ),
                     ),

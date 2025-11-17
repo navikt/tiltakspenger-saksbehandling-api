@@ -48,7 +48,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             virkningsperiode,
         ),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),

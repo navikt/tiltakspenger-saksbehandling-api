@@ -103,12 +103,12 @@ internal class StartRevurderingTest {
     }
 
     @Test
-    fun `revurdering til omgjøring - tiltaksdeltagelse har krympet før start`() {
+    fun `revurdering til omgjøring - tiltaksdeltakelse har krympet før start`() {
         withTestApplicationContext { tac ->
             val (_, _, søknadsbehandling, omgjøring) = startRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingVirkningsperiode = 1 til 10.april(2025),
-                oppdaterTiltaksdeltagelsesperiode = 2 til 9.april(2025),
+                oppdaterTiltaksdeltakelsesperiode = 2 til 9.april(2025),
             )
             søknadsbehandling.virkningsperiode shouldBe (1 til 10.april(2025))
             søknadsbehandling.innvilgelsesperiode shouldBe (1 til 10.april(2025))
@@ -141,12 +141,12 @@ internal class StartRevurderingTest {
     }
 
     @Test
-    fun `revurdering til omgjøring - tiltaksdeltagelse har økt før start`() {
+    fun `revurdering til omgjøring - tiltaksdeltakelse har økt før start`() {
         withTestApplicationContext { tac ->
             val (_, _, søknadsbehandling, omgjøring) = startRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingVirkningsperiode = 2 til 9.april(2025),
-                oppdaterTiltaksdeltagelsesperiode = 1 til 10.april(2025),
+                oppdaterTiltaksdeltakelsesperiode = 1 til 10.april(2025),
             )
             søknadsbehandling.virkningsperiode shouldBe (2 til 9.april(2025))
             søknadsbehandling.innvilgelsesperiode shouldBe (2 til 9.april(2025))
@@ -179,12 +179,12 @@ internal class StartRevurderingTest {
     }
 
     @Test
-    fun `revurdering til omgjøring - tiltaksdeltagelse finnes ikke lenger`() {
+    fun `revurdering til omgjøring - tiltaksdeltakelse finnes ikke lenger`() {
         withTestApplicationContext { tac ->
             val (_, _, _, omgjøring) = startRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingVirkningsperiode = 2 til 9.april(2025),
-                oppdaterTiltaksdeltagelsesperiode = null,
+                oppdaterTiltaksdeltakelsesperiode = null,
                 forventetStatus = HttpStatusCode.InternalServerError,
             )
             omgjøring shouldBe null

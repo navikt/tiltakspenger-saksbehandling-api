@@ -89,7 +89,7 @@ class TestApplicationContext(
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
     private val behandlingFakeRepo = BehandlingFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
-    private val tiltaksdeltagelseFakeKlient = TiltaksdeltakelseFakeKlient { søknadFakeRepo }
+    private val tiltaksdeltakelseFakeKlient = TiltaksdeltakelseFakeKlient { søknadFakeRepo }
     private val sokosUtbetaldataFakeClient = SokosUtbetaldataFakeClient()
     private val tiltakspengerArenaFakeClient = TiltakspengerArenaFakeClient()
     private val personFakeKlient = PersonFakeKlient(clock)
@@ -112,12 +112,12 @@ class TestApplicationContext(
         tiltaksdeltakelse: Tiltaksdeltakelse,
     ) {
         personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = person)
-        tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
+        tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
         tilgangsmaskinFakeClient.leggTil(fnr, Tilgangsvurdering.Godkjent)
     }
 
-    fun oppdaterTiltaksdeltagelse(fnr: Fnr, tiltaksdeltakelse: Tiltaksdeltakelse?) {
-        tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
+    fun oppdaterTiltaksdeltakelse(fnr: Fnr, tiltaksdeltakelse: Tiltaksdeltakelse?) {
+        tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
     }
 
     private val saksoversiktFakeRepo =
@@ -189,7 +189,7 @@ class TestApplicationContext(
             sakService = sakContext.sakService,
             personService = personContext.personService,
         ) {
-            override val tiltaksdeltakelseKlient = tiltaksdeltagelseFakeKlient
+            override val tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient
         }
     }
     override val sakContext by lazy {
@@ -250,7 +250,7 @@ class TestApplicationContext(
             dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
-            tiltaksdeltakelseKlient = tiltaksdeltagelseFakeKlient,
+            tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataFakeClient,

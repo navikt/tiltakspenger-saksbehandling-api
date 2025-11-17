@@ -33,7 +33,7 @@ sealed interface Ytelser : List<Ytelse> {
         override val value = emptyList<Ytelse>()
     }
 
-    /** Vi hadde ikke behandlingsgrunnlag for å slå opp ytelser. Typisk at vi ikke har en tiltaksdeltagelsesperiode enda. */
+    /** Vi hadde ikke behandlingsgrunnlag for å slå opp ytelser. Typisk at vi ikke har en tiltaksdeltakelsesperiode enda. */
     object IkkeBehandlingsgrunnlag : Ytelser, List<Ytelse> by emptyList() {
         override val oppslagsperiode = null
         override val value = emptyList<Ytelse>()

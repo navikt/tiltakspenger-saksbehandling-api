@@ -28,7 +28,7 @@ internal class MeldekortberegningKorrigeringTest {
             .mapIndexed { index, status -> Dag(fraDato.plusDays(index.toLong()), status) }
             .toNonEmptyListOrNull()!!
 
-    private fun periodeMedFullDeltagelse(fraDato: LocalDate) = periodeMedStatuser(
+    private fun periodeMedFullDeltakelse(fraDato: LocalDate) = periodeMedStatuser(
         fraDato,
         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
         List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
@@ -46,7 +46,7 @@ internal class MeldekortberegningKorrigeringTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
                 vurderingsperiode = vurderingsperiode,
                 meldeperioder = nonEmptyListOf(
-                    periodeMedFullDeltagelse(førsteDag),
+                    periodeMedFullDeltakelse(førsteDag),
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
@@ -69,8 +69,8 @@ internal class MeldekortberegningKorrigeringTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
                 vurderingsperiode = vurderingsperiode,
                 meldeperioder = nonEmptyListOf(
-                    periodeMedFullDeltagelse(førsteDag),
-                    periodeMedFullDeltagelse(førsteDag.plusWeeks(2)),
+                    periodeMedFullDeltakelse(førsteDag),
+                    periodeMedFullDeltakelse(førsteDag.plusWeeks(2)),
 
                     periodeMedStatuser(
                         førsteDag,
@@ -94,7 +94,7 @@ internal class MeldekortberegningKorrigeringTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
                 vurderingsperiode = vurderingsperiode,
                 meldeperioder = nonEmptyListOf(
-                    periodeMedFullDeltagelse(førsteDag),
+                    periodeMedFullDeltakelse(førsteDag),
 
                     periodeMedStatuser(
                         førsteDag.plusWeeks(2),
@@ -186,7 +186,7 @@ internal class MeldekortberegningKorrigeringTest {
                     vurderingsperiode,
                 ),
                 meldeperioder = nonEmptyListOf(
-                    periodeMedFullDeltagelse(førsteDag),
+                    periodeMedFullDeltakelse(førsteDag),
 
                     periodeMedStatuser(
                         førsteDag.plusWeeks(2),
@@ -305,7 +305,7 @@ internal class MeldekortberegningKorrigeringTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
                 vurderingsperiode = Periode(førsteDag, førsteDag.plusDays(100)),
                 meldeperioder = nonEmptyListOf(
-                    periodeMedFullDeltagelse(førsteDag),
+                    periodeMedFullDeltakelse(førsteDag),
 
                     periodeMedStatuser(
                         førsteDag.plusWeeks(2),
@@ -343,7 +343,7 @@ internal class MeldekortberegningKorrigeringTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
                 vurderingsperiode = vurderingsperiode,
                 meldeperioder = nonEmptyListOf(
-                    periodeMedFullDeltagelse(førsteDag),
+                    periodeMedFullDeltakelse(førsteDag),
 
                     periodeMedStatuser(
                         førsteDag.plusWeeks(2),
@@ -386,8 +386,8 @@ internal class MeldekortberegningKorrigeringTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
                 vurderingsperiode = vurderingsperiode,
                 meldeperioder = nonEmptyListOf(
-                    periodeMedFullDeltagelse(førsteDag),
-                    periodeMedFullDeltagelse(førsteDag.plusWeeks(2)),
+                    periodeMedFullDeltakelse(førsteDag),
+                    periodeMedFullDeltakelse(førsteDag.plusWeeks(2)),
 
                     periodeMedStatuser(
                         førsteDag,
@@ -429,7 +429,7 @@ internal class MeldekortberegningKorrigeringTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
                 vurderingsperiode = vurderingsperiode,
                 meldeperioder = nonEmptyListOf(
-                    periodeMedFullDeltagelse(førsteDag),
+                    periodeMedFullDeltakelse(førsteDag),
 
                     periodeMedStatuser(
                         førsteDag.plusWeeks(2),
@@ -449,7 +449,7 @@ internal class MeldekortberegningKorrigeringTest {
                         List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
-                    periodeMedFullDeltagelse(førsteDag),
+                    periodeMedFullDeltakelse(førsteDag),
                 ),
             )
 

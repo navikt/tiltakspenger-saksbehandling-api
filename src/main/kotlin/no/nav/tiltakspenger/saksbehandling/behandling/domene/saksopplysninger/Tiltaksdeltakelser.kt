@@ -15,18 +15,18 @@ data class Tiltaksdeltakelser(
     constructor(value: Tiltaksdeltakelse) : this(listOf(value))
 
     init {
-        value.map { it.eksternDeltagelseId }.also {
+        value.map { it.eksternDeltakelseId }.also {
             require(it.size == it.distinct().size) {
-                "eksternDeltagelseId kan ikke ha duplikate verdier, men hadde: $it"
+                "eksternDeltakelseId kan ikke ha duplikate verdier, men hadde: $it"
             }
         }
     }
 
-    val tidligsteFraOgMed by lazy { value.mapNotNull { it.deltagelseFraOgMed }.minOrNull() }
-    val senesteTilOgMed by lazy { value.mapNotNull { it.deltagelseTilOgMed }.maxOrNull() }
+    val tidligsteFraOgMed by lazy { value.mapNotNull { it.deltakelseFraOgMed }.minOrNull() }
+    val senesteTilOgMed by lazy { value.mapNotNull { it.deltakelseTilOgMed }.maxOrNull() }
 
     /**
-     * Denne ignorerer mellomrom mellom tiltaksdeltagelsene.
+     * Denne ignorerer mellomrom mellom tiltaksdeltakelsene.
      * Velger tidligste fraOgMed og seneste tilOgMed.
      * Null dersom enten [tidligsteFraOgMed] eller [senesteTilOgMed] er null.
      */
@@ -38,15 +38,15 @@ data class Tiltaksdeltakelser(
         }
     }
 
-    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltakelse? {
-        return this.find { it.eksternDeltagelseId == eksternDeltagelseId }
+    fun getTiltaksdeltakelse(eksternDeltakelseId: String): Tiltaksdeltakelse? {
+        return this.find { it.eksternDeltakelseId == eksternDeltakelseId }
     }
 
-    /** Filtrerer bort tiltaksdeltagelser med ufullstendige perioder */
+    /** Filtrerer bort tiltaksdeltakelser med ufullstendige perioder */
     val perioder by lazy { value.mapNotNull { it.periode } }
 
-    fun filtrerPåTiltaksdeltagelsesIDer(tiltaksdeltagelseIder: List<String>): Tiltaksdeltakelser {
-        return this.filter { it.eksternDeltagelseId in tiltaksdeltagelseIder }
+    fun filtrerPåTiltaksdeltakelsesIDer(tiltaksdeltakelseIder: List<String>): Tiltaksdeltakelser {
+        return this.filter { it.eksternDeltakelseId in tiltaksdeltakelseIder }
     }
 
     inline fun filter(predicate: (Tiltaksdeltakelse) -> Boolean): Tiltaksdeltakelser {
@@ -66,8 +66,8 @@ data class Tiltaksdeltakelser(
      * Se [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse.overlapperMed] for mer informasjon.
      */
     fun overlappende(tiltaksdeltakelser: Tiltaksdeltakelser): Tiltaksdeltakelser {
-        return this.filter { deltagelse ->
-            tiltaksdeltakelser.any { it.overlapperMed(deltagelse) ?: true }
+        return this.filter { deltakelse ->
+            tiltaksdeltakelser.any { it.overlapperMed(deltakelse) ?: true }
         }
     }
 

@@ -23,8 +23,8 @@ data class TiltaksdeltakerKafkaDb(
         tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
     ): List<TiltaksdeltakerEndring> {
         val endringer = mutableListOf<TiltaksdeltakerEndring>()
-        val sammeFom = deltakelseFraOgMed == tiltaksdeltakelseFraBehandling.deltagelseFraOgMed
-        val sammeTom = deltakelseTilOgMed == tiltaksdeltakelseFraBehandling.deltagelseTilOgMed
+        val sammeFom = deltakelseFraOgMed == tiltaksdeltakelseFraBehandling.deltakelseFraOgMed
+        val sammeTom = deltakelseTilOgMed == tiltaksdeltakelseFraBehandling.deltakelseTilOgMed
 
         val sammeAntallDagerPerUke = floatIsEqual(dagerPerUke, tiltaksdeltakelseFraBehandling.antallDagerPerUke)
         val sammeDeltakelsesprosent = floatIsEqual(deltakelsesprosent, tiltaksdeltakelseFraBehandling.deltakelseProsent)
@@ -72,7 +72,7 @@ data class TiltaksdeltakerKafkaDb(
     }
 
     private fun erForlengelse(sammeFom: Boolean, tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse): Boolean =
-        sammeFom && deltakelseTilOgMed?.isAfter(tiltaksdeltakelseFraBehandling.deltagelseTilOgMed) == true
+        sammeFom && deltakelseTilOgMed?.isAfter(tiltaksdeltakelseFraBehandling.deltakelseTilOgMed) == true
 
     private fun erAvbruttDeltakelse(
         sammeStatus: Boolean,
@@ -84,7 +84,7 @@ data class TiltaksdeltakerKafkaDb(
         }
         if (!sammeTom &&
             deltakelseTilOgMed != null &&
-            deltakelseTilOgMed.isBefore(tiltaksdeltakelseFraBehandling.deltagelseTilOgMed) &&
+            deltakelseTilOgMed.isBefore(tiltaksdeltakelseFraBehandling.deltakelseTilOgMed) &&
             !deltakelseTilOgMed.isAfter(LocalDate.now())
         ) {
             return true

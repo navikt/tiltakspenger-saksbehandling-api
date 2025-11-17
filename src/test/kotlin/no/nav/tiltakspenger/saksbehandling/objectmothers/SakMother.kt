@@ -106,7 +106,7 @@ interface SakMother {
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = listOf(
             Pair(
                 virkningsperiode,
-                registrerteTiltak.first().eksternDeltagelseId,
+                registrerteTiltak.first().eksternDeltakelseId,
             ),
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
@@ -284,7 +284,7 @@ interface SakMother {
                 begrunnelseVilkårsvurdering = null,
                 innvilgelsesperiode = virkningsperiode,
                 tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltakelser.map {
-                    Pair(virkningsperiode, it.eksternDeltagelseId)
+                    Pair(virkningsperiode, it.eksternDeltakelseId)
                 }.toList(),
                 antallDagerPerMeldeperiode = SammenhengendePeriodisering(
                     AntallDagerForMeldeperiode(10),

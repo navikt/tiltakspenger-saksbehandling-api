@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeper
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.antallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelseDTO
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelseDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingIdReturnerRespons
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
@@ -87,7 +87,7 @@ internal class IverksettRevurderingTest {
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
                     fritekstTilVedtaksbrev = "ny brevtekst",
                     begrunnelseVilkårsvurdering = "ny begrunnelse",
-                    valgteTiltaksdeltakelser = revurdering.tiltaksdeltagelseDTO(),
+                    valgteTiltaksdeltakelser = revurdering.tiltaksdeltakelseDTO(),
                     innvilgelsesperiode = revurderingInnvilgelsesperiode.toDTO(),
                     barnetillegg = barnetillegg.toBarnetilleggDTO(),
                     antallDagerPerMeldeperiodeForPerioder = revurdering.antallDagerPerMeldeperiodeDTO(
@@ -118,7 +118,7 @@ internal class IverksettRevurderingTest {
                 revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
             )
 
-            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltakelser.single()
+            val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.single()
 
             val barnetillegg = barnetillegg(
                 begrunnelse = BegrunnelseVilkårsvurdering("barnetillegg begrunnelse"),
@@ -140,8 +140,8 @@ internal class IverksettRevurderingTest {
                     begrunnelseVilkårsvurdering = "ny begrunnelse",
                     valgteTiltaksdeltakelser = listOf(
                         TiltaksdeltakelsePeriodeDTO(
-                            eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
-                            periode = tiltaksdeltagelse.periode!!.toDTO(),
+                            eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
+                            periode = tiltaksdeltakelse.periode!!.toDTO(),
                         ),
                     ),
                     innvilgelsesperiode = revurderingInnvilgelsesperiode.toDTO(),

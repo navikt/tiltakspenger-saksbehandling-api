@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
@@ -81,7 +81,7 @@ data class Sak(
         TiltaksdeltakelserDetErSøktTiltakspengerFor(
             this.søknader.mapNotNull { søknad ->
                 søknad.tiltak?.let { tiltak ->
-                    TiltaksdeltagelseDetErSøktTiltakspengerFor(tiltak, søknad.tidsstempelHosOss)
+                    TiltaksdeltakelseDetErSøktTiltakspengerFor(tiltak, søknad.tidsstempelHosOss)
                 }
             },
         )

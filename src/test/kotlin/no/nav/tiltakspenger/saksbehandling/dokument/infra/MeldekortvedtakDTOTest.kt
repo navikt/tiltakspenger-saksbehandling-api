@@ -12,11 +12,11 @@ class MeldekortvedtakDTOTest {
     @Test
     fun `kan serialiseres`() = runTest {
         val meldekortvedtak = ObjectMother.meldekortvedtak()
-        val tiltaksdeltagelser = listOf(ObjectMother.tiltaksdeltagelse())
+        val tiltaksdeltakelser = listOf(ObjectMother.tiltaksdeltakelse())
 
         meldekortvedtak.toJsonRequest(
             hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-            tiltaksdeltakelser = Tiltaksdeltakelser(tiltaksdeltagelser),
+            tiltaksdeltakelser = Tiltaksdeltakelser(tiltaksdeltakelser),
             sammenlign = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
         )
     }

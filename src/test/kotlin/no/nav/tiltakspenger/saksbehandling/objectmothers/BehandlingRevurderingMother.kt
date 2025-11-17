@@ -224,7 +224,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             virkningsperiode,
         ),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
-            Pair(virkningsperiode, it.eksternDeltagelseId)
+            Pair(virkningsperiode, it.eksternDeltakelseId)
         },
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         beregning: Beregning? = null,
@@ -291,7 +291,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             virkningsperiode,
         ),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
-            Pair(virkningsperiode, it.eksternDeltagelseId)
+            Pair(virkningsperiode, it.eksternDeltakelseId)
         },
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         beregning: Beregning? = null,

@@ -47,7 +47,7 @@ interface SøknadsbehandlingBuilder {
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
         virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
@@ -97,7 +97,7 @@ interface SøknadsbehandlingBuilder {
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
         virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
@@ -125,7 +125,7 @@ interface SøknadsbehandlingBuilder {
         fnr: Fnr = Fnr.random(),
         virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
@@ -160,7 +160,7 @@ interface SøknadsbehandlingBuilder {
             AntallDagerForMeldeperiode(10),
             virkningsperiode,
         ),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
@@ -183,7 +183,7 @@ interface SøknadsbehandlingBuilder {
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
                 valgteTiltaksdeltakelser = nonEmptyListOf(
                     TiltaksdeltakelsePeriodeDTO(
-                        eksternDeltagelseId = tiltaksdeltakelse.eksternDeltagelseId,
+                        eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
                         periode = virkningsperiode.toDTO(),
                     ),
                 ),

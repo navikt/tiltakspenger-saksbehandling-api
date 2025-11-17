@@ -28,7 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyOpprette
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.junit.jupiter.api.Test
 
@@ -67,7 +67,7 @@ class BeregnRevurderingTest {
                     fom = it.fraOgMed,
                     tom = it.tilOgMed,
                     tiltaksdeltakelse = listOf(
-                        tiltaksdeltagelse(
+                        tiltaksdeltakelse(
                             typeKode = tiltakskodeForRevurdering,
                             fom = it.fraOgMed,
                             tom = it.tilOgMed,
@@ -98,7 +98,7 @@ class BeregnRevurderingTest {
             fritekstTilVedtaksbrev = null,
             innvilgelsesperiode = innvilgelsesperiode,
             tiltaksdeltakelser = revurdering.saksopplysninger.tiltaksdeltakelser.map {
-                Pair(innvilgelsesperiode, it.eksternDeltagelseId)
+                Pair(innvilgelsesperiode, it.eksternDeltakelseId)
             },
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             barnetillegg = barnetillegg,

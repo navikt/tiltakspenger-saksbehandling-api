@@ -28,8 +28,8 @@ data class ValgteTiltaksdeltakelser(
         ): ValgteTiltaksdeltakelser {
             return ValgteTiltaksdeltakelser(
                 (tiltaksdeltakelser.tilPeriodisering() as SammenhengendePeriodisering).mapVerdi { verdi, periode ->
-                    behandling.getTiltaksdeltagelse(verdi)
-                        ?: throw IllegalArgumentException("Fant ikke tiltaksdeltagelse med eksternDeltagelseId $verdi i saksopplysningene.")
+                    behandling.getTiltaksdeltakelse(verdi)
+                        ?: throw IllegalArgumentException("Fant ikke tiltaksdeltakelse med eksternDeltakelseId $verdi i saksopplysningene.")
                 },
             )
         }
@@ -37,12 +37,12 @@ data class ValgteTiltaksdeltakelser(
 
     init {
         periodisering.perioderMedVerdi.forEach {
-            require(it.verdi.deltagelseFraOgMed != null && it.verdi.deltagelseTilOgMed != null) {
-                "Kan ikke velge tiltaksdeltakelse med id ${it.verdi.eksternDeltagelseId} som mangler start- eller sluttdato"
+            require(it.verdi.deltakelseFraOgMed != null && it.verdi.deltakelseTilOgMed != null) {
+                "Kan ikke velge tiltaksdeltakelse med id ${it.verdi.eksternDeltakelseId} som mangler start- eller sluttdato"
             }
-            val deltagelsesperiode = Periode(it.verdi.deltagelseFraOgMed!!, it.verdi.deltagelseTilOgMed!!)
-            require(deltagelsesperiode.inneholderHele(it.periode)) {
-                "Valgt periode ${it.periode} for tiltak med id ${it.verdi.eksternDeltagelseId} må være innenfor deltakelsesperioden $deltagelsesperiode"
+            val deltakelsesperiode = Periode(it.verdi.deltakelseFraOgMed!!, it.verdi.deltakelseTilOgMed!!)
+            require(deltakelsesperiode.inneholderHele(it.periode)) {
+                "Valgt periode ${it.periode} for tiltak med id ${it.verdi.eksternDeltakelseId} må være innenfor deltakelsesperioden $deltakelsesperiode"
             }
         }
     }
@@ -50,7 +50,7 @@ data class ValgteTiltaksdeltakelser(
     fun getTiltaksdeltakelser(): Tiltaksdeltakelser {
         return this.periodisering.perioderMedVerdi.toList()
             .map { it.verdi }
-            .distinctBy { it.eksternDeltagelseId }
+            .distinctBy { it.eksternDeltakelseId }
             .let { Tiltaksdeltakelser(it) }
     }
 }

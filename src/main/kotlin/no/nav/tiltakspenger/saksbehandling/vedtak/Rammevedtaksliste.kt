@@ -71,7 +71,7 @@ data class Rammevedtaksliste(
 
     val erInnvilgelseSammenhengende by lazy { innvilgetTidslinje.erSammenhengende }
 
-    /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltagelsesperioder. Avslag og delvis avslag vil ikke være med her. */
+    /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltakelsesperioder. Avslag og delvis avslag vil ikke være med her. */
     val vedtaksperioder: List<Periode> by lazy { tidslinje.perioder }
 
     /** Nåtilstand. De periodene som gir rett til tiltakspenger. Kan ha hull. */

@@ -129,13 +129,13 @@ sealed interface RevurderingResultat : BehandlingResultat {
             saksopplysninger: Saksopplysninger,
         ): Omgjøring {
             require(
-                resetTiltaksdeltagelserDersomDeErInkompatible(
+                resetTiltaksdeltakelserDersomDeErInkompatible(
                     valgteTiltaksdeltakelser,
                     saksopplysninger.tiltaksdeltakelser,
                 ) == valgteTiltaksdeltakelser,
             ) {
                 // Dersom vi denne kaster og vi savner mer sakskontekst, bør denne returnere Either, slik at callee kan håndtere feilen.
-                "Valgte tiltaksdeltakelser er ikke kompatible med saksopplysninger.tiltaksdeltagelser."
+                "Valgte tiltaksdeltakelser er ikke kompatible med saksopplysninger.tiltaksdeltakelser."
             }
             return this.copy(
                 virkningsperiode = utledNyVirkningsperiode(this.virkningsperiode, innvilgelsesperiode),
@@ -149,7 +149,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
 
         /**
          * Validerer [oppdaterteSaksopplysninger] opp mot resultatet.
-         * Det finnes tenkte ugyldige tilstander, som f.eks. at den [valgteTiltaksdeltakelser] ikke lenger matcher tiltaksdeltagelsen i [oppdaterteSaksopplysninger].
+         * Det finnes tenkte ugyldige tilstander, som f.eks. at den [valgteTiltaksdeltakelser] ikke lenger matcher tiltaksdeltakelsen i [oppdaterteSaksopplysninger].
          */
         override fun oppdaterSaksopplysninger(
             oppdaterteSaksopplysninger: Saksopplysninger,
@@ -166,7 +166,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
             return Omgjøring(
                 virkningsperiode = virkningsperiode,
                 innvilgelsesperiode = innvilgelsesperiode,
-                valgteTiltaksdeltakelser = resetTiltaksdeltagelserDersomDeErInkompatible(
+                valgteTiltaksdeltakelser = resetTiltaksdeltakelserDersomDeErInkompatible(
                     valgteTiltaksdeltakelser,
                     oppdaterteSaksopplysninger.tiltaksdeltakelser,
                 ),
@@ -184,16 +184,16 @@ sealed interface RevurderingResultat : BehandlingResultat {
             if (saksopplysninger.tiltaksdeltakelser.isEmpty()) return false
             valgteTiltaksdeltakelser.periodisering.forEach { (deltakelse, periode) ->
                 val saksopplysningsDeltakelse =
-                    saksopplysninger.tiltaksdeltakelser.getTiltaksdeltagelse(deltakelse.eksternDeltagelseId)
+                    saksopplysninger.tiltaksdeltakelser.getTiltaksdeltakelse(deltakelse.eksternDeltakelseId)
                         ?: return false
                 return saksopplysningsDeltakelse.periode?.inneholderHele(periode) ?: false
             }
             if (innvilgelsesperiode.fraOgMed < saksopplysninger.tiltaksdeltakelser.totalPeriode!!.fraOgMed) {
-                // Innvilgelsesperioden kan ikke starte før tiltaksdeltagelsene
+                // Innvilgelsesperioden kan ikke starte før tiltaksdeltakelsene
                 return false
             }
             if (innvilgelsesperiode.tilOgMed > saksopplysninger.tiltaksdeltakelser.totalPeriode!!.tilOgMed) {
-                // Innvilgelsesperioden kan ikke slutte etter tiltaksdeltagelsene
+                // Innvilgelsesperioden kan ikke slutte etter tiltaksdeltakelsene
                 return false
             }
             return true
@@ -205,11 +205,11 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 saksopplysninger: Saksopplysninger,
             ): Omgjøring {
                 val innvilgelsesperiode = omgjørRammevedtak.innvilgelsesperiode?.let {
-                    // Vi har en generell begrensning om innvilgelseserperioden ikke kan være større enn tiltaksdeltagelsene.
+                    // Vi har en generell begrensning om innvilgelseserperioden ikke kan være større enn tiltaksdeltakelsene.
                     // TODO ved flere innvilgelsesperioder: endre denne logikken
                     saksopplysninger.tiltaksdeltakelser.totalPeriode?.overlappendePeriode(it)
                         ?: throw IllegalArgumentException(
-                            "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere. sakId: ${omgjørRammevedtak.sakId}, tidligere innvilgelsesperiode: ${omgjørRammevedtak.innvilgelsesperiode}, nye tiltaksdeltagelser: ${saksopplysninger.tiltaksdeltakelser}",
+                            "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere. sakId: ${omgjørRammevedtak.sakId}, tidligere innvilgelsesperiode: ${omgjørRammevedtak.innvilgelsesperiode}, nye tiltaksdeltakelser: ${saksopplysninger.tiltaksdeltakelser}",
                         )
                 } ?: omgjørRammevedtak.periode
                 val valgteTiltaksdeltakelser =
@@ -222,7 +222,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                     virkningsperiode = omgjørRammevedtak.periode,
                     // Hvis vedtaket vi omgjør er en delvis innvilgelse, så bruker vi denne.
                     innvilgelsesperiode = innvilgelsesperiode,
-                    valgteTiltaksdeltakelser = resetTiltaksdeltagelserDersomDeErInkompatible(
+                    valgteTiltaksdeltakelser = resetTiltaksdeltakelserDersomDeErInkompatible(
                         valgteTiltaksdeltakelser,
                         saksopplysninger.tiltaksdeltakelser,
                     ),
@@ -265,15 +265,15 @@ sealed interface RevurderingResultat : BehandlingResultat {
 }
 
 /**
- * Resetter [valgteTiltaksdeltakelser] dersom noen av tiltaksdeltagelsene ikke lenger finnes i [oppdaterteTiltaksdeltakelser].
+ * Resetter [valgteTiltaksdeltakelser] dersom noen av tiltaksdeltakelsene ikke lenger finnes i [oppdaterteTiltaksdeltakelser].
  */
-private fun resetTiltaksdeltagelserDersomDeErInkompatible(
+private fun resetTiltaksdeltakelserDersomDeErInkompatible(
     valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
     oppdaterteTiltaksdeltakelser: Tiltaksdeltakelser,
 ): ValgteTiltaksdeltakelser? {
     if (valgteTiltaksdeltakelser == null || oppdaterteTiltaksdeltakelser.isEmpty()) return null
     valgteTiltaksdeltakelser.periodisering.forEach { (verdi, _) ->
-        oppdaterteTiltaksdeltakelser.getTiltaksdeltagelse(verdi.eksternDeltagelseId) ?: return null
+        oppdaterteTiltaksdeltakelser.getTiltaksdeltakelse(verdi.eksternDeltakelseId) ?: return null
     }
     return valgteTiltaksdeltakelser
 }

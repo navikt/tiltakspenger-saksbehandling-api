@@ -66,18 +66,18 @@ interface StartRevurderingBuilder {
             virkningsperiode = søknadsbehandlingVirkningsperiode,
         )
 
-        val tiltaksdeltagelseFakeKlient =
+        val tiltaksdeltakelseFakeKlient =
             tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
 
-        val oppdatertTiltaksdeltagelse =
+        val oppdatertTiltaksdeltakelse =
             søknadsbehandling.saksopplysninger.getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
-                deltagelseFraOgMed = revurderingVirkningsperiode.fraOgMed,
-                deltagelseTilOgMed = revurderingVirkningsperiode.tilOgMed,
+                deltakelseFraOgMed = revurderingVirkningsperiode.fraOgMed,
+                deltakelseTilOgMed = revurderingVirkningsperiode.tilOgMed,
             )
 
-        tiltaksdeltagelseFakeKlient.lagre(
+        tiltaksdeltakelseFakeKlient.lagre(
             sak.fnr,
-            oppdatertTiltaksdeltagelse,
+            oppdatertTiltaksdeltakelse,
         )
 
         val revurdering = startRevurderingForSakId(tac, sak.id, RevurderingType.INNVILGELSE)
@@ -93,30 +93,30 @@ interface StartRevurderingBuilder {
 
     /**
      * Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering til omgjøring.
-     * Default: Tiltaksdeltagelsen har endret seg fra 1. til 3. april.
-     * @param oppdaterTiltaksdeltagelsesperiode Dersom null, fjernes den for dette fødselsnummeret.
+     * Default: Tiltaksdeltakelsen har endret seg fra 1. til 3. april.
+     * @param oppdaterTiltaksdeltakelsesperiode Dersom null, fjernes den for dette fødselsnummeret.
      * */
     suspend fun ApplicationTestBuilder.startRevurderingOmgjøring(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         søknadsbehandlingVirkningsperiode: Periode = 1 til 10.april(2025),
-        oppdaterTiltaksdeltagelsesperiode: Periode? = 3 til 10.april(2025),
+        oppdaterTiltaksdeltakelsesperiode: Periode? = 3 til 10.april(2025),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
     ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering?> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac,
             virkningsperiode = søknadsbehandlingVirkningsperiode,
         )
-        val oppdatertTiltaksdeltagelse = if (oppdaterTiltaksdeltagelsesperiode != null) {
+        val oppdatertTiltaksdeltakelse = if (oppdaterTiltaksdeltakelsesperiode != null) {
             søknadsbehandling.saksopplysninger
                 .getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
-                deltagelseFraOgMed = oppdaterTiltaksdeltagelsesperiode.fraOgMed,
-                deltagelseTilOgMed = oppdaterTiltaksdeltagelsesperiode.tilOgMed,
+                deltakelseFraOgMed = oppdaterTiltaksdeltakelsesperiode.fraOgMed,
+                deltakelseTilOgMed = oppdaterTiltaksdeltakelsesperiode.tilOgMed,
             )
         } else {
             null
         }
-        tac.oppdaterTiltaksdeltagelse(sak.fnr, oppdatertTiltaksdeltagelse)
+        tac.oppdaterTiltaksdeltakelse(sak.fnr, oppdatertTiltaksdeltakelse)
 
         val revurdering = startRevurderingForSakId(
             tac = tac,

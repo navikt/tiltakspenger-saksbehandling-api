@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
@@ -32,29 +32,29 @@ import java.time.ZoneOffset
 internal class HentSaksopplysingerServiceTest {
 
     @Test
-    fun `en tiltaksdeltagelse ingen ytelser`() {
+    fun `en tiltaksdeltakelse ingen ytelser`() {
         return runBlocking {
             val fnr = Fnr.random()
             val correlationId = CorrelationId.generate()
             // Lar bruker være uten tiltak første og siste dag i perioden.
             val periode: Periode = 2.januar(2023) til 30.januar(2023)
             val clock = Clock.fixed(1.februar(2023).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
-            val tiltaksdeltagelser = ObjectMother.tiltakOgSøknadstiltak(
+            val tiltaksdeltakelser = ObjectMother.tiltakOgSøknadstiltak(
                 søknadFraOgMed = periode.fraOgMed,
                 søknadTilOgMed = periode.tilOgMed,
             )
             val tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor(
-                tiltaksdeltagelser.second,
+                tiltaksdeltakelser.second,
                 periode.fraOgMed.atStartOfDay(),
             )
-            val aktuelleTiltaksdeltagelserForBehandlingen = listOf(tiltaksdeltagelser.first.eksternDeltagelseId)
+            val aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltaksdeltakelser.first.eksternDeltakelseId)
 
             val tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
                 override suspend fun hentTiltaksdeltakelser(
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = Tiltaksdeltakelser(tiltaksdeltagelser.first)
+                ) = Tiltaksdeltakelser(tiltaksdeltakelser.first)
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -92,12 +92,12 @@ internal class HentSaksopplysingerServiceTest {
                 fnr = fnr,
                 correlationId = correlationId,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltagelserForBehandlingen,
+                aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
                 inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
             )
 
             result.fødselsdato shouldBeEqual fyr.fødselsdato
-            result.tiltaksdeltakelser shouldBeEqual Tiltaksdeltakelser(tiltaksdeltagelser.first)
+            result.tiltaksdeltakelser shouldBeEqual Tiltaksdeltakelser(tiltaksdeltakelser.first)
             result.periode!! shouldBeEqual (2 til 30.januar(2023))
             result.ytelser shouldBeEqual Ytelser.IngenTreff(
                 oppslagsperiode = 1.desember(2022) til 31.januar(2023),
@@ -118,24 +118,24 @@ internal class HentSaksopplysingerServiceTest {
             // Lar bruker være uten tiltak første og siste dag i perioden.
             val periode: Periode = 2.januar(2023) til 30.januar(2023)
             val clock = Clock.fixed(1.februar(2023).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
-            val tiltaksdeltagelser = ObjectMother.tiltakOgSøknadstiltak(
+            val tiltaksdeltakelser = ObjectMother.tiltakOgSøknadstiltak(
                 søknadFraOgMed = periode.fraOgMed,
                 søknadTilOgMed = periode.tilOgMed,
                 registerFraOgMed = null,
                 registerTilOgMed = null,
             )
             val tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor(
-                tiltaksdeltagelser.second,
+                tiltaksdeltakelser.second,
                 periode.fraOgMed.atStartOfDay(),
             )
-            val aktuelleTiltaksdeltagelserForBehandlingen = listOf(tiltaksdeltagelser.first.eksternDeltagelseId)
+            val aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltaksdeltakelser.first.eksternDeltakelseId)
 
             val tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
                 override suspend fun hentTiltaksdeltakelser(
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = Tiltaksdeltakelser(tiltaksdeltagelser.first)
+                ) = Tiltaksdeltakelser(tiltaksdeltakelser.first)
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -171,11 +171,11 @@ internal class HentSaksopplysingerServiceTest {
                 fnr = fnr,
                 correlationId = correlationId,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltagelserForBehandlingen,
+                aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
                 inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = true,
             )
             result.fødselsdato shouldBeEqual fyr.fødselsdato
-            result.tiltaksdeltakelser shouldBeEqual Tiltaksdeltakelser(tiltaksdeltagelser.first)
+            result.tiltaksdeltakelser shouldBeEqual Tiltaksdeltakelser(tiltaksdeltakelser.first)
             result.periode.shouldBeNull()
             result.ytelser shouldBeEqual Ytelser.IkkeBehandlingsgrunnlag
             result.tiltakspengevedtakFraArena shouldBeEqual TiltakspengevedtakFraArena.IkkeBehandlingsgrunnlag
@@ -191,24 +191,24 @@ internal class HentSaksopplysingerServiceTest {
             val søknadsperiode: Periode = 3.januar(2023) til 29.januar(2023)
             val registerperiode: Periode = 2.januar(2023) til 30.januar(2023)
             val clock = Clock.fixed(1.februar(2023).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
-            val tiltaksdeltagelser = ObjectMother.tiltakOgSøknadstiltak(
+            val tiltaksdeltakelser = ObjectMother.tiltakOgSøknadstiltak(
                 søknadFraOgMed = søknadsperiode.fraOgMed,
                 søknadTilOgMed = søknadsperiode.tilOgMed,
                 registerFraOgMed = registerperiode.fraOgMed,
                 registerTilOgMed = registerperiode.tilOgMed,
             )
             val tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor(
-                tiltaksdeltagelser.second,
+                tiltaksdeltakelser.second,
                 søknadsperiode.fraOgMed.atStartOfDay(),
             )
-            val aktuelleTiltaksdeltagelserForBehandlingen = listOf(tiltaksdeltagelser.first.eksternDeltagelseId)
+            val aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltaksdeltakelser.first.eksternDeltakelseId)
 
             val tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
                 override suspend fun hentTiltaksdeltakelser(
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = Tiltaksdeltakelser(tiltaksdeltagelser.first)
+                ) = Tiltaksdeltakelser(tiltaksdeltakelser.first)
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -251,11 +251,11 @@ internal class HentSaksopplysingerServiceTest {
                 fnr = fnr,
                 correlationId = correlationId,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltagelserForBehandlingen,
+                aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
                 inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = true,
             )
             result.fødselsdato shouldBeEqual fyr.fødselsdato
-            result.tiltaksdeltakelser shouldBeEqual Tiltaksdeltakelser(tiltaksdeltagelser.first)
+            result.tiltaksdeltakelser shouldBeEqual Tiltaksdeltakelser(tiltaksdeltakelser.first)
             result.periode!! shouldBeEqual (2.januar(2023) til 30.januar(2023))
             result.ytelser shouldBeEqual Ytelser.IngenTreff(
                 oppslagsperiode = 1.desember(2022) til 31.januar(2023),
@@ -295,13 +295,13 @@ internal class HentSaksopplysingerServiceTest {
             )
             val tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor(
                 listOf(
-                    TiltaksdeltagelseDetErSøktTiltakspengerFor(tiltak1.second, periode1.fraOgMed.atStartOfDay()),
-                    TiltaksdeltagelseDetErSøktTiltakspengerFor(tiltak2.second, periode2.fraOgMed.atStartOfDay()),
+                    TiltaksdeltakelseDetErSøktTiltakspengerFor(tiltak1.second, periode1.fraOgMed.atStartOfDay()),
+                    TiltaksdeltakelseDetErSøktTiltakspengerFor(tiltak2.second, periode2.fraOgMed.atStartOfDay()),
                 ),
             )
             // Simulerer at vi søknadsbehandler tiltak1. Tiltak2 overlapper og algoritmen vil da hente begge tiltakene.
-            val aktuelleTiltaksdeltagelserForBehandlingen = listOf(
-                tiltak1.first.eksternDeltagelseId,
+            val aktuelleTiltaksdeltakelserForBehandlingen = listOf(
+                tiltak1.first.eksternDeltakelseId,
             )
 
             val tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
@@ -345,7 +345,7 @@ internal class HentSaksopplysingerServiceTest {
                 fnr = fnr,
                 correlationId = correlationId,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltagelserForBehandlingen,
+                aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
                 inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = true,
             )
             result.fødselsdato shouldBeEqual fyr.fødselsdato
@@ -383,13 +383,13 @@ internal class HentSaksopplysingerServiceTest {
             )
             val tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor(
                 listOf(
-                    TiltaksdeltagelseDetErSøktTiltakspengerFor(tiltak1.second, periode1.fraOgMed.atStartOfDay()),
-                    TiltaksdeltagelseDetErSøktTiltakspengerFor(tiltak2.second, periode2.fraOgMed.atStartOfDay()),
+                    TiltaksdeltakelseDetErSøktTiltakspengerFor(tiltak1.second, periode1.fraOgMed.atStartOfDay()),
+                    TiltaksdeltakelseDetErSøktTiltakspengerFor(tiltak2.second, periode2.fraOgMed.atStartOfDay()),
                 ),
             )
-            val aktuelleTiltaksdeltagelserForBehandlingen = listOf(
-                tiltak1.first.eksternDeltagelseId,
-                tiltak2.first.eksternDeltagelseId,
+            val aktuelleTiltaksdeltakelserForBehandlingen = listOf(
+                tiltak1.first.eksternDeltakelseId,
+                tiltak2.first.eksternDeltakelseId,
             )
 
             val tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
@@ -433,7 +433,7 @@ internal class HentSaksopplysingerServiceTest {
                 fnr = fnr,
                 correlationId = correlationId,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltagelserForBehandlingen,
+                aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
                 inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
             )
             result.fødselsdato shouldBeEqual fyr.fødselsdato

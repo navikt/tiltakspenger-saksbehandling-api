@@ -4,26 +4,26 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import java.time.LocalDateTime
 
 /**
- * Oversikt over hvilke tiltaksdeltagelser en bruker har søkt på, sortert på kravtidspunktet.
+ * Oversikt over hvilke tiltaksdeltakelser en bruker har søkt på, sortert på kravtidspunktet.
  * Trenger ikke være sammenhengende.
- * Kan inneholde overlappende tiltaksdeltagelser, men de vil ha forskjellige kravtidspunkt.
+ * Kan inneholde overlappende tiltaksdeltakelser, men de vil ha forskjellige kravtidspunkt.
  * Slik som de så ut på søknadstidspunktet.
  *
- * Brukes for å utlede hvilke tiltaksdeltagelser som er relevante for en behandling.
+ * Brukes for å utlede hvilke tiltaksdeltakelser som er relevante for en behandling.
  */
 data class TiltaksdeltakelserDetErSøktTiltakspengerFor(
-    val value: List<TiltaksdeltagelseDetErSøktTiltakspengerFor>,
-) : List<TiltaksdeltagelseDetErSøktTiltakspengerFor> by value {
+    val value: List<TiltaksdeltakelseDetErSøktTiltakspengerFor>,
+) : List<TiltaksdeltakelseDetErSøktTiltakspengerFor> by value {
 
-    constructor(value: TiltaksdeltagelseDetErSøktTiltakspengerFor) : this(listOf(value))
+    constructor(value: TiltaksdeltakelseDetErSøktTiltakspengerFor) : this(listOf(value))
     constructor(søknadstiltak: Søknadstiltak, kravtidspunkt: LocalDateTime) :
-        this(listOf(TiltaksdeltagelseDetErSøktTiltakspengerFor(søknadstiltak, kravtidspunkt)))
+        this(listOf(TiltaksdeltakelseDetErSøktTiltakspengerFor(søknadstiltak, kravtidspunkt)))
 
     init {
         value.zipWithNext { a, b -> a.kravtidspunkt <= b.kravtidspunkt }
     }
 
-    /** TiltaksdeltagelseIden. Uavhengig av kildesystem. */
+    /** TiltaksdeltakelseIden. Uavhengig av kildesystem. */
     val ider: List<String> by lazy { value.map { it.søknadstiltak.id }.distinct() }
 
     companion object {

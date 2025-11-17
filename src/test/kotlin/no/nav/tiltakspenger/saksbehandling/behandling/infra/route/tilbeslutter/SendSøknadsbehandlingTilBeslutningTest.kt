@@ -52,7 +52,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 it.beslutter shouldBe null
                 it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.size shouldBe 1
                 søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
-                it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.firstOrNull()?.verdi?.eksternDeltagelseId shouldBe søknad.tiltak.id
+                it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.firstOrNull()?.verdi?.eksternDeltakelseId shouldBe søknad.tiltak.id
                 it.valgteTiltaksdeltakelser?.periodisering?.totalPeriode shouldBe søknad.tiltaksdeltakelseperiodeDetErSøktOm()
             }
         }

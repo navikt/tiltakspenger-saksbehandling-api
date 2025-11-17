@@ -156,7 +156,7 @@ private fun Tiltaksdeltakelse.toTiltakDTO() =
     MeldekortvedtakDTO.TiltakDTO(
         tiltakstypenavn = typeNavn,
         tiltakstype = typeKode.name,
-        eksternDeltagelseId = eksternDeltagelseId,
+        eksternDeltagelseId = eksternDeltakelseId,
         eksternGjennomføringId = gjennomføringId,
     )
 

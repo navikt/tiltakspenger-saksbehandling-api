@@ -38,10 +38,10 @@ interface MottaSøknadRouteBuilder {
         sakId: SakId,
         søknadId: SøknadId = SøknadId.random(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = deltakelsesperiode.fraOgMed,
             tom = deltakelsesperiode.tilOgMed,
-            eksternTiltaksdeltagelseId = "ABC1234",
+            eksternTiltaksdeltakelseId = "ABC1234",
         ),
     ): Pair<Sak, Søknad> {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
@@ -56,7 +56,7 @@ interface MottaSøknadRouteBuilder {
         fnr: Fnr = Fnr.random(),
         søknadId: SøknadId = SøknadId.random(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = deltakelsesperiode.fraOgMed,
             tom = deltakelsesperiode.tilOgMed,
         ),
@@ -73,7 +73,7 @@ interface MottaSøknadRouteBuilder {
         saksnummer: Saksnummer,
         søknadId: SøknadId = SøknadId.random(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = deltakelsesperiode.fraOgMed,
             tom = deltakelsesperiode.tilOgMed,
         ),
@@ -96,7 +96,7 @@ interface MottaSøknadRouteBuilder {
                     fnr = fnr.verdi,
                     søknadId = søknadId.toString(),
                     deltakelsesperiode = deltakelsesperiode,
-                    tiltaksdeltagelse = tiltaksdeltakelse.toSøknadstiltak(),
+                    tiltaksdeltakelse = tiltaksdeltakelse.toSøknadstiltak(),
                 ),
             )
         }.apply {
@@ -125,7 +125,7 @@ interface MottaSøknadRouteBuilder {
         journalpostId: String = "123456789",
         fnr: String = Fnr.random().toString(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltagelse: Søknadstiltak,
+        tiltaksdeltakelse: Søknadstiltak,
     ): String {
         return """
         {
@@ -138,10 +138,10 @@ interface MottaSøknadRouteBuilder {
               "etternavn": "HOFTE"
             },
             "tiltak": {
-              "id": "${tiltaksdeltagelse.id}",
+              "id": "${tiltaksdeltakelse.id}",
               "arrangør": "Testarrangør",
-              "typeKode": "${tiltaksdeltagelse.typeKode.name}",
-              "typeNavn": "${tiltaksdeltagelse.typeNavn}",
+              "typeKode": "${tiltaksdeltakelse.typeKode.name}",
+              "typeNavn": "${tiltaksdeltakelse.typeNavn}",
               "deltakelseFom": "${deltakelsesperiode.fraOgMed}",
               "deltakelseTom": "${deltakelsesperiode.tilOgMed}"
             },

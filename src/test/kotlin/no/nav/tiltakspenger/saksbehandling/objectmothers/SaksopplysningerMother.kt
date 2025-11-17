@@ -17,7 +17,7 @@ interface SaksopplysningerMother {
         fom: LocalDate = 1.januar(2023),
         tom: LocalDate = 31.mars(2023),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
-        tiltaksdeltakelse: List<Tiltaksdeltakelse> = listOf(ObjectMother.tiltaksdeltagelse(fom = fom, tom = tom)),
+        tiltaksdeltakelse: List<Tiltaksdeltakelse> = listOf(ObjectMother.tiltaksdeltakelse(fom = fom, tom = tom)),
         oppslagsperiode: Periode = Periode(fom, tom),
         clock: Clock = ObjectMother.clock,
         oppslagstidspunkt: LocalDateTime = LocalDateTime.now(clock),

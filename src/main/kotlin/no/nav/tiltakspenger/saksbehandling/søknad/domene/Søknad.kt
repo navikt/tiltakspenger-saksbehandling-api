@@ -124,8 +124,8 @@ sealed interface Søknad {
     }
 
     /**
-     * Merk at dette er sånn tiltaksdeltagelsen så ut i søknadsøyeblikket og kan ha endret seg i etterkant.
-     * Man kan bare søke om tiltakspenger for en tiltaksdeltagelse per søknad (aug 2025).
+     * Merk at dette er sånn tiltaksdeltakelsen så ut i søknadsøyeblikket og kan ha endret seg i etterkant.
+     * Man kan bare søke om tiltakspenger for en tiltaksdeltakelse per søknad (aug 2025).
      */
     fun tiltaksdeltakelseperiodeDetErSøktOm(): Periode?
     fun erPapirsøknad() = søknadstype == Søknadstype.PAPIR
@@ -206,7 +206,7 @@ sealed interface Søknad {
 }
 
 /**
- * @param id mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api). Dette er tiltaksdeltagelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?). Kalles ekstern_id i databasen.
+ * @param id mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api). Dette er tiltaksdeltakelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?). Kalles ekstern_id i databasen.
  * @param typeKode f.eks. JOBBK, GRUPPEAMO, INDOPPFAG, ARBTREN ([no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.TiltakType])
  * @param typeNavn f.eks. Jobbklubb, Arbeidsmarkedsopplæring (gruppe), Oppfølging, Arbeidstrening
  */

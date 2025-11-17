@@ -31,13 +31,13 @@ internal class OppdaterSaksopplysningerTest {
                 fnr = sak.fnr,
                 person = personopplysningerForBrukerFraPdl,
                 tiltaksdeltakelse = Tiltaksdeltakelse(
-                    eksternDeltagelseId = "TA12345",
+                    eksternDeltakelseId = "TA12345",
                     gjennomføringId = null,
                     typeNavn = "Testnavn",
                     typeKode = TiltakstypeSomGirRett.JOBBKLUBB,
                     rettPåTiltakspenger = true,
-                    deltagelseFraOgMed = behandling.saksopplysningsperiode!!.fraOgMed,
-                    deltagelseTilOgMed = behandling.saksopplysningsperiode!!.tilOgMed,
+                    deltakelseFraOgMed = behandling.saksopplysningsperiode!!.fraOgMed,
+                    deltakelseTilOgMed = behandling.saksopplysningsperiode!!.tilOgMed,
                     deltakelseStatus = TiltakDeltakerstatus.Deltar,
                     deltakelseProsent = 100.0f,
                     antallDagerPerUke = 5.0f,
@@ -58,20 +58,20 @@ internal class OppdaterSaksopplysningerTest {
     fun `revurdering til omgjøring - kan oppdatere saksopplysninger`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingOmgjøring(tac)
-            val forrigeTiltaksdeltagelse = revurdering!!.saksopplysninger.tiltaksdeltakelser.first()
-            val avbruttTiltaksdeltagelse = forrigeTiltaksdeltagelse.copy(
-                deltagelseFraOgMed = forrigeTiltaksdeltagelse.deltagelseFraOgMed!!,
-                deltagelseTilOgMed = forrigeTiltaksdeltagelse.deltagelseTilOgMed!!.minusDays(1),
+            val forrigeTiltaksdeltakelse = revurdering!!.saksopplysninger.tiltaksdeltakelser.first()
+            val avbruttTiltaksdeltakelse = forrigeTiltaksdeltakelse.copy(
+                deltakelseFraOgMed = forrigeTiltaksdeltakelse.deltakelseFraOgMed!!,
+                deltakelseTilOgMed = forrigeTiltaksdeltakelse.deltakelseTilOgMed!!.minusDays(1),
                 deltakelseStatus = TiltakDeltakerstatus.Avbrutt,
             )
-            tac.oppdaterTiltaksdeltagelse(fnr = sak.fnr, tiltaksdeltakelse = avbruttTiltaksdeltagelse)
+            tac.oppdaterTiltaksdeltakelse(fnr = sak.fnr, tiltaksdeltakelse = avbruttTiltaksdeltakelse)
             val (_, oppdatertRevurdering: Rammebehandling) = oppdaterSaksopplysningerForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
             )
             // Forventer at saksopplysningene er oppdatert og at resultatet har resatt seg.
-            (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltagelse
+            (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltakelse
             oppdatertRevurdering.resultat shouldBe RevurderingResultat.Omgjøring.create(
                 omgjørRammevedtak = sak.rammevedtaksliste.single(),
                 saksopplysninger = oppdatertRevurdering.saksopplysninger,
@@ -83,11 +83,11 @@ internal class OppdaterSaksopplysningerTest {
     }
 
     @Test
-    fun `revurdering til omgjøring - kan ikke oppdatere saksopplysninger dersom tiltaksdeltagelsen vi omgjør har blitt filtrert bort`() {
+    fun `revurdering til omgjøring - kan ikke oppdatere saksopplysninger dersom tiltaksdeltakelsen vi omgjør har blitt filtrert bort`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingOmgjøring(tac)
 
-            tac.oppdaterTiltaksdeltagelse(fnr = sak.fnr, tiltaksdeltakelse = null)
+            tac.oppdaterTiltaksdeltakelse(fnr = sak.fnr, tiltaksdeltakelse = null)
             val (_, _) = oppdaterSaksopplysningerForBehandlingId(
                 tac = tac,
                 sakId = sak.id,

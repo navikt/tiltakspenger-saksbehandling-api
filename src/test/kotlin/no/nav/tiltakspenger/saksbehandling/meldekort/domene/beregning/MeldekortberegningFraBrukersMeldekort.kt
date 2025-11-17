@@ -97,7 +97,7 @@ class MeldekortberegningFraBrukersMeldekort {
     }
 
     @Test
-    fun `Skal beregne full deltagelse likt`() {
+    fun `Skal beregne full deltakelse likt`() {
         sammenlign(
             listOf(
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },

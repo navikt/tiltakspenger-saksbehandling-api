@@ -93,7 +93,7 @@ interface SendRevurderingTilBeslutningBuilder {
             revurderingVirkningsperiode = revurderingVirkningsperiode,
         )
 
-        val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltakelser.single()
+        val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.single()
 
         val antallDager = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
@@ -110,8 +110,8 @@ interface SendRevurderingTilBeslutningBuilder {
                 innvilgelsesperiode = revurderingVirkningsperiode.toDTO(),
                 valgteTiltaksdeltakelser = listOf(
                     TiltaksdeltakelsePeriodeDTO(
-                        eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
-                        periode = tiltaksdeltagelse.periode!!.toDTO(),
+                        eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
+                        periode = tiltaksdeltakelse.periode!!.toDTO(),
                     ),
                 ),
                 antallDagerPerMeldeperiodeForPerioder = antallDager.tilAntallDagerPerMeldeperiodeDTO(),

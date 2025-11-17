@@ -80,10 +80,10 @@ class DelautomatiskBehandlingService(
     private fun skalSettePaVent(behandling: Søknadsbehandling, correlationId: CorrelationId): Boolean {
         val soknadstiltakFraSaksopplysning = getSoknadstiltakFraSaksopplysning(behandling) ?: return false
 
-        if (!soknadstiltakFraSaksopplysning.deltakelseStatus.harIkkeStartet() || soknadstiltakFraSaksopplysning.deltagelseFraOgMed == null) {
+        if (!soknadstiltakFraSaksopplysning.deltakelseStatus.harIkkeStartet() || soknadstiltakFraSaksopplysning.deltakelseFraOgMed == null) {
             return false
         }
-        if (soknadstiltakFraSaksopplysning.deltagelseFraOgMed.isAfter(LocalDate.now())) {
+        if (soknadstiltakFraSaksopplysning.deltakelseFraOgMed.isAfter(LocalDate.now())) {
             log.info { "Startdato for deltakelse for behandling ${behandling.id} er ikke passert, setter på vent. CorrelationId: $correlationId" }
             return true
         }
@@ -91,7 +91,7 @@ class DelautomatiskBehandlingService(
     }
 
     private fun settBehandlingPaVent(behandling: Søknadsbehandling, correlationId: CorrelationId) {
-        val startdatoForTiltak = getSoknadstiltakFraSaksopplysning(behandling)?.deltagelseFraOgMed
+        val startdatoForTiltak = getSoknadstiltakFraSaksopplysning(behandling)?.deltakelseFraOgMed
             ?: throw IllegalStateException("Skal ikke sette behandling med id ${behandling.id} på vent siden startdato mangler")
         val venterTil = startdatoForTiltak.atTime(6, 0)
         if (behandling.ventestatus.erSattPåVent) {
@@ -316,22 +316,22 @@ class DelautomatiskBehandlingService(
     private fun tiltakManglerPeriode(
         tiltakFraSaksopplysning: Tiltaksdeltakelse,
     ): Boolean {
-        return tiltakFraSaksopplysning.deltagelseFraOgMed == null || tiltakFraSaksopplysning.deltagelseTilOgMed == null
+        return tiltakFraSaksopplysning.deltakelseFraOgMed == null || tiltakFraSaksopplysning.deltakelseTilOgMed == null
     }
 
     private fun tiltakFraSoknadHarEndretPeriode(
         tiltakFraSoknad: Søknadstiltak,
         tiltakFraSaksopplysning: Tiltaksdeltakelse,
     ): Boolean =
-        tiltakFraSaksopplysning.deltagelseFraOgMed != tiltakFraSoknad.deltakelseFom ||
-            tiltakFraSaksopplysning.deltagelseTilOgMed != tiltakFraSoknad.deltakelseTom
+        tiltakFraSaksopplysning.deltakelseFraOgMed != tiltakFraSoknad.deltakelseFom ||
+            tiltakFraSaksopplysning.deltakelseTilOgMed != tiltakFraSoknad.deltakelseTom
 
     private fun behandlingOverlapperMedAnnetVedtak(
         behandling: Søknadsbehandling,
         behandlinger: List<Rammebehandling>,
     ): Boolean {
         val vedtatteBehandlinger = behandlinger.filter { it.erVedtatt }
-        // TODO jah: Denne kan smelle dersom tiltaksdeltagelsen det er søkt på mangler fom eller tom. I så fall legg det til som en [ManueltBehandlesGrunn]
+        // TODO jah: Denne kan smelle dersom tiltaksdeltakelsen det er søkt på mangler fom eller tom. I så fall legg det til som en [ManueltBehandlesGrunn]
         return vedtatteBehandlinger.any { it.virkningsperiode!!.overlapperMed(behandling.saksopplysningsperiode!!) }
     }
 

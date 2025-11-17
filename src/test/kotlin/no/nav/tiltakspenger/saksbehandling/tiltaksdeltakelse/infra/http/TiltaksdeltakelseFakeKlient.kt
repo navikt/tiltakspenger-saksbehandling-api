@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMe
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 
 class TiltaksdeltakelseFakeKlient(
-    private val defaultTiltaksdeltagelserTilSøknadHvisDenMangler: Boolean = false,
+    private val defaultTiltaksdeltakelserTilSøknadHvisDenMangler: Boolean = false,
     private val søknadRepoProvider: suspend () -> SøknadRepo? = { null },
 ) : TiltaksdeltakelseKlient {
     private val data = Atomic(mutableMapOf<Fnr, Tiltaksdeltakelser>())
@@ -25,7 +25,7 @@ class TiltaksdeltakelseFakeKlient(
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
     ): Tiltaksdeltakelser {
-        return data.get()[fnr] ?: if (defaultTiltaksdeltagelserTilSøknadHvisDenMangler) hentTiltaksdeltagelseFraSøknad(fnr) else Tiltaksdeltakelser.empty()
+        return data.get()[fnr] ?: if (defaultTiltaksdeltakelserTilSøknadHvisDenMangler) hentTiltaksdeltakelseFraSøknad(fnr) else Tiltaksdeltakelser.empty()
     }
 
     override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
@@ -33,7 +33,7 @@ class TiltaksdeltakelseFakeKlient(
         harAdressebeskyttelse: Boolean,
         correlationId: CorrelationId,
     ): List<TiltaksdeltakelseMedArrangørnavn> {
-        return listOf(ObjectMother.tiltaksdeltagelseMedArrangørnavn())
+        return listOf(ObjectMother.tiltaksdeltakelseMedArrangørnavn())
     }
 
     fun lagre(
@@ -49,10 +49,10 @@ class TiltaksdeltakelseFakeKlient(
             data.get()[fnr] = Tiltaksdeltakelser(listOf(tiltaksdeltakelse))
             return
         }
-        data.get()[fnr] = if (current.getTiltaksdeltagelse(tiltaksdeltakelse.eksternDeltagelseId) != null) {
+        data.get()[fnr] = if (current.getTiltaksdeltakelse(tiltaksdeltakelse.eksternDeltakelseId) != null) {
             Tiltaksdeltakelser(
                 current.map {
-                    if (it.eksternDeltagelseId == tiltaksdeltakelse.eksternDeltagelseId) {
+                    if (it.eksternDeltakelseId == tiltaksdeltakelse.eksternDeltakelseId) {
                         tiltaksdeltakelse
                     } else {
                         it
@@ -64,7 +64,7 @@ class TiltaksdeltakelseFakeKlient(
         }
     }
 
-    private suspend fun hentTiltaksdeltagelseFraSøknad(fnr: Fnr): Tiltaksdeltakelser {
+    private suspend fun hentTiltaksdeltakelseFraSøknad(fnr: Fnr): Tiltaksdeltakelser {
         val søknadRepo = søknadRepoProvider()!!
         val søknader = søknadRepo.hentSøknaderForFnr(fnr)
         val tiltak = søknader.lastOrNull()?.tiltak?.toTiltak()

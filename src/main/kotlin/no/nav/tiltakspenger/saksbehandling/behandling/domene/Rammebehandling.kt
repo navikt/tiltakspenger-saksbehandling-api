@@ -92,11 +92,11 @@ sealed interface Rammebehandling : Behandling {
 
     val utbetaling: BehandlingUtbetaling?
 
-    fun inneholderSaksopplysningerEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
-        saksopplysninger.tiltaksdeltakelser.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
+    fun inneholderSaksopplysningerEksternDeltakelseId(eksternDeltakelseId: String): Boolean =
+        saksopplysninger.tiltaksdeltakelser.find { it.eksternDeltakelseId == eksternDeltakelseId } != null
 
-    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltakelse? =
-        saksopplysninger.getTiltaksdeltakelse(eksternDeltagelseId)
+    fun getTiltaksdeltakelse(eksternDeltakelseId: String): Tiltaksdeltakelse? =
+        saksopplysninger.getTiltaksdeltakelse(eksternDeltakelseId)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Rammebehandling
 

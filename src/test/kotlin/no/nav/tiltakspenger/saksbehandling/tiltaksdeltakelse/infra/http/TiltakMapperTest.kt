@@ -12,21 +12,21 @@ class TiltakMapperTest {
         @Test
         fun `viser arrangørens navn`() {
             val arrangørnavn = "Arrangør i Gjøvik AS"
-            val tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseMedArrangørnavn(
+            val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseMedArrangørnavn(
                 arrangørnavn = arrangørnavn,
                 harAdressebeskyttelse = false,
             )
-            assertEquals(arrangørnavn, tiltaksdeltagelse.arrangørnavn, "arrangørnavn")
+            assertEquals(arrangørnavn, tiltaksdeltakelse.arrangørnavn, "arrangørnavn")
         }
 
         @Test
         fun `fjerner arrangørens navn om personen har adressebeskyttelse`() {
             val arrangørnavn = "Arrangør i Gjøvik AS"
-            val tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseMedArrangørnavn(
+            val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseMedArrangørnavn(
                 arrangørnavn = arrangørnavn,
                 harAdressebeskyttelse = true,
             )
-            assertNull(tiltaksdeltagelse.arrangørnavn, "arrangørnavn")
+            assertNull(tiltaksdeltakelse.arrangørnavn, "arrangørnavn")
         }
     }
 }

@@ -58,20 +58,20 @@ class JournalførMeldekortvedtakService(
                         }
                         sammenlign(beregningFør, beregningEtter)
                     }
-                    // Et meldeperiode har ikke informasjon om tiltaksdeltagelsen, så vi må hente det fra rammevedtakene som gjelder for dette meldekortvedtaket.
+                    // Et meldeperiode har ikke informasjon om tiltaksdeltakelsen, så vi må hente det fra rammevedtakene som gjelder for dette meldekortvedtaket.
                     // Det er mulig at flere rammevedtak gjelder for samme meldekortvedtak, f.eks. ved revurdering.
-                    // Ved flere rammevedtak kan de inneholde de samme tiltaksdeltagelsene.
-                    // Derfor må vi gruppere på eksternDeltagelseId og ta den nyeste.
+                    // Ved flere rammevedtak kan de inneholde de samme tiltaksdeltakelsene.
+                    // Derfor må vi gruppere på eksternDeltakelseId og ta den nyeste.
                     val tiltak: Tiltaksdeltakelser = meldekortvedtak.rammevedtak
                         .map { sak.hentRammevedtakForId(it) }
                         .mapNotNull { vedtak -> vedtak.valgteTiltaksdeltakelser?.let { vedtak.opprettet to it } }
                         .flatMap { (opprettet, deltakelser) -> deltakelser.verdier.map { opprettet to it } }
-                        .groupBy { it.second.eksternDeltagelseId }
+                        .groupBy { it.second.eksternDeltakelseId }
                         .map { (_, verdi) -> verdi.maxBy { it.first }.second }
                         .let { Tiltaksdeltakelser(it) }
 
                     require(tiltak.isNotEmpty()) {
-                        "Forventet at et det skal finnes tiltaksdeltagelse for meldekortvedtaksperioden"
+                        "Forventet at et det skal finnes tiltaksdeltakelse for meldekortvedtaksperioden"
                     }
 
                     val hentSaksbehandlersNavn: suspend (String) -> String =

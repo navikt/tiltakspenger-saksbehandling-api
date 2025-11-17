@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.antallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelseDTO
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelseDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -63,7 +63,7 @@ class UtbetalingerIT {
                     fritekstTilVedtaksbrev = "lol",
                     begrunnelseVilkårsvurdering = "what",
                     innvilgelsesperiode = virkningsperiode.toDTO(),
-                    valgteTiltaksdeltakelser = revurdering.tiltaksdeltagelseDTO(),
+                    valgteTiltaksdeltakelser = revurdering.tiltaksdeltakelseDTO(),
                     barnetillegg = barnetillegg(
                         periode = virkningsperiode,
                         antallBarn = AntallBarn(2),
@@ -117,8 +117,8 @@ class UtbetalingerIT {
                 virkningsperiode = andreSøknadsperiode,
                 sakId = sak.id,
                 barnetillegg = barnetillegg(periode = andreSøknadsperiode, antallBarn = AntallBarn(1)),
-                tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
-                    eksternTiltaksdeltagelseId = "TA99999",
+                tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+                    eksternTiltaksdeltakelseId = "TA99999",
                     fom = andreSøknadsperiode.fraOgMed,
                     tom = andreSøknadsperiode.tilOgMed,
                 ),

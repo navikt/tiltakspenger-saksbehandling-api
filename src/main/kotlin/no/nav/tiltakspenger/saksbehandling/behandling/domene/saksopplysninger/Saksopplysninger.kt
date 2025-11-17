@@ -12,7 +12,7 @@ import java.time.LocalDateTime
  *
  * En [no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling] vil ha en referanse til [Saksopplysninger].
  *
- * @param periode perioden det er hentet saksopplysninger for. Bør henge sammen med tiltaksdeltagelsesperioden. Er null dersom tiltaksdeltagelsesperioden er null.
+ * @param periode perioden det er hentet saksopplysninger for. Bør henge sammen med tiltaksdeltakelsesperioden. Er null dersom tiltaksdeltakelsesperioden er null.
  */
 data class Saksopplysninger(
     val fødselsdato: LocalDate,
@@ -23,12 +23,12 @@ data class Saksopplysninger(
 ) {
     val periode: Periode? = tiltaksdeltakelser.totalPeriode
 
-    fun kanInnvilges(tiltaksdeltagelseId: String): Boolean {
-        return tiltaksdeltakelser.getTiltaksdeltagelse(tiltaksdeltagelseId)?.kanInnvilges ?: false
+    fun kanInnvilges(tiltaksdeltakelseId: String): Boolean {
+        return tiltaksdeltakelser.getTiltaksdeltakelse(tiltaksdeltakelseId)?.kanInnvilges ?: false
     }
 
-    fun getTiltaksdeltakelse(eksternDeltagelseId: String): Tiltaksdeltakelse? {
-        return tiltaksdeltakelser.getTiltaksdeltagelse(eksternDeltagelseId)
+    fun getTiltaksdeltakelse(eksternDeltakelseId: String): Tiltaksdeltakelse? {
+        return tiltaksdeltakelser.getTiltaksdeltakelse(eksternDeltakelseId)
     }
 
     /**
@@ -36,7 +36,7 @@ data class Saksopplysninger(
      */
     fun harOverlappendeTiltaksdeltakelse(eksternDeltakelseId: String, tiltaksperiode: Periode): Boolean {
         return tiltaksdeltakelser.any {
-            it.eksternDeltagelseId != eksternDeltakelseId && (it.overlapperMedPeriode(tiltaksperiode) ?: true)
+            it.eksternDeltakelseId != eksternDeltakelseId && (it.overlapperMedPeriode(tiltaksperiode) ?: true)
         }
     }
 
@@ -49,6 +49,6 @@ typealias HentSaksopplysninger = suspend (
     fnr: Fnr,
     correlationId: CorrelationId,
     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
-    aktuelleTiltaksdeltagelserForBehandlingen: List<String>,
-    inkluderOverlappendeTiltaksdeltagelserDetErSøktOm: Boolean,
+    aktuelleTiltaksdeltakelserForBehandlingen: List<String>,
+    inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
 ) -> Saksopplysninger

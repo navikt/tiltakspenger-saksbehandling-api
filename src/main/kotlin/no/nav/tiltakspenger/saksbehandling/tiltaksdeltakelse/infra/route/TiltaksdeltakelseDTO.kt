@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import java.time.LocalDate
 
-data class TiltaksdeltagelseDTO(
+data class TiltaksdeltakelseDTO(
     val eksternDeltagelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,
@@ -17,14 +17,14 @@ data class TiltaksdeltagelseDTO(
     val gjennomforingsprosent: Float?,
 )
 
-fun Tiltaksdeltakelse.toDTO(): TiltaksdeltagelseDTO {
-    return TiltaksdeltagelseDTO(
-        eksternDeltagelseId = this.eksternDeltagelseId,
+fun Tiltaksdeltakelse.toDTO(): TiltaksdeltakelseDTO {
+    return TiltaksdeltakelseDTO(
+        eksternDeltagelseId = this.eksternDeltakelseId,
         gjennomføringId = this.gjennomføringId,
         typeNavn = this.typeNavn,
         typeKode = this.typeKode.name,
-        deltagelseFraOgMed = this.deltagelseFraOgMed,
-        deltagelseTilOgMed = this.deltagelseTilOgMed,
+        deltagelseFraOgMed = this.deltakelseFraOgMed,
+        deltagelseTilOgMed = this.deltakelseTilOgMed,
         deltakelseStatus = this.deltakelseStatus.name,
         deltakelseProsent = this.deltakelseProsent,
         antallDagerPerUke = this.antallDagerPerUke,

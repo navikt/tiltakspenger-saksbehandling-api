@@ -117,7 +117,7 @@ class SøknadTest {
     }
 
     @Nested
-    inner class TiltaksdeltagelseperiodeDetErSøktOm {
+    inner class TiltaksdeltakelseperiodeDetErSøktOm {
         @Nested
         inner class InnvilgbarSøknad {
             @Test

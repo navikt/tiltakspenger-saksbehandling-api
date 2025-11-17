@@ -96,9 +96,9 @@ class LocalApplicationContext(
 
     private val søknadId: SøknadId = SøknadId.fromString("soknad_01HSTRQBRM443VGB4WA822TE01")
     private val fnr: Fnr = Fnr.fromString("12345678911")
-    private val tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelse(
+    private val tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(
         // Siden Komet eier GRUPPE_AMO, vil dette være en UUID. Hadde det vært Arena som var master ville det vært eksempelvis TA6509186.
-        eksternTiltaksdeltagelseId = "fa287e7-ddbb-44a2-9bfa-4da4661f8b6d",
+        eksternTiltaksdeltakelseId = "fa287e7-ddbb-44a2-9bfa-4da4661f8b6d",
         eksternTiltaksgjennomføringsId = "5667273f-784e-4521-89c3-75b0be8ee250",
         typeKode = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn = "Arbeidsmarkedsoppfølging gruppe",
@@ -140,7 +140,7 @@ class LocalApplicationContext(
         }
     }
 
-    private val tiltaksdeltagelseFakeKlient by lazy {
+    private val tiltaksdeltakelseFakeKlient by lazy {
         TiltaksdeltakelseFakeKlient(true) { søknadContext.søknadRepo }
     }
 
@@ -150,7 +150,7 @@ class LocalApplicationContext(
             sakService = sakContext.sakService,
             personService = personContext.personService,
         ) {
-            override val tiltaksdeltakelseKlient = tiltaksdeltagelseFakeKlient
+            override val tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient
         }
     }
 
@@ -225,7 +225,7 @@ class LocalApplicationContext(
             dokumentdistribusjonsklient = dokumentdistribusjonsklientFakeKlient,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
-            tiltaksdeltakelseKlient = tiltaksdeltagelseFakeKlient,
+            tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataClient,

@@ -10,9 +10,9 @@ import java.time.LocalDate
  * Seperat fra [Tiltaksdeltakelse] som lagres i databasen, slik at vi unngår at [arrangørnavn] blir lagret ved en glipp
  *
  * se [Tiltaksdeltakelse]
- * @param eksternDeltakelseId mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api). Dette er tiltaksdeltagelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?). Kalles ekstern_id i databasen.
+ * @param eksternDeltakelseId mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api). Dette er tiltaksdeltakelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?). Kalles ekstern_id i databasen.
  * @param typeNavn Navn på tiltakstypen, f.eks. "Arbeidsforberedende trening"
- * @param gjennomføringId Ekstern id fra Valp. Dette er gjennomføringen sin ID, eksempelvis Rema 1000 i Strandveien. En person knyttes til en gjennomføring og det kalles da en deltagelse. Per nå mottar vi ikke denne fra Arena, men kun fra Komet.
+ * @param gjennomføringId Ekstern id fra Valp. Dette er gjennomføringen sin ID, eksempelvis Rema 1000 i Strandveien. En person knyttes til en gjennomføring og det kalles da en deltakelse. Per nå mottar vi ikke denne fra Arena, men kun fra Komet.
  * @param deltakelseFraOgMed startdato for deltakelsen. Kan mangle, særlig når deltaker venter på oppstart
  * @param deltakelseTilOgMed sluttdato for deltakelsen. Kan mangle.
  */

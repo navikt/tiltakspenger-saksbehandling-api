@@ -11,6 +11,6 @@ data class TiltaksdeltakelsePeriodeDTO(
 )
 
 fun PeriodeMedVerdi<Tiltaksdeltakelse>.toTiltaksdeltakelsePeriodeDTO() = TiltaksdeltakelsePeriodeDTO(
-    eksternDeltagelseId = verdi.eksternDeltagelseId,
+    eksternDeltagelseId = verdi.eksternDeltakelseId,
     periode = periode.toDTO(),
 )

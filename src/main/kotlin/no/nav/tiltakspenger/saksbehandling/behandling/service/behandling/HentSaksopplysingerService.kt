@@ -25,14 +25,14 @@ class HentSaksopplysingerService(
     private val clock: Clock,
 ) {
     /**
-     * Tiltakspenger er alltid begrenset av tiltaksdeltagelsen(e) det er søkt på.
-     * Derfor begrenser tiltaksdeltagelsesperioden(e) behandlingsgrunnlaget vårt.
-     * Vi trenger kun vilkårsvurdere andre vilkår innenfor tiltaksdeltagelsen(e) sin(e) periode(r).
+     * Tiltakspenger er alltid begrenset av tiltaksdeltakelsen(e) det er søkt på.
+     * Derfor begrenser tiltaksdeltakelsesperioden(e) behandlingsgrunnlaget vårt.
+     * Vi trenger kun vilkårsvurdere andre vilkår innenfor tiltaksdeltakelsen(e) sin(e) periode(r).
      * Vi gjør et unntak for Sokos' utbetaldata, siden denne måneden ikke nødvendigvis er utbetalt enda. Derfor henter vi for en noe utvidet periode her.
      *
-     * @param tiltaksdeltakelserDetErSøktTiltakspengerFor Alle søknader. Merk at flere søknader kan gjelde samme tiltaksdeltagelse, mens periodene kan være endret.
-     * @param aktuelleTiltaksdeltakelserForBehandlingen For søknadsbehandling vil det være den tiltaksdeltagelsen det er søkt for. Husk og sett [inkluderOverlappendeTiltaksdeltakelserDetErSøktOm] til true dersom vi skal hente saksopplysninger for tiltaksdeltagelser som overlapper denne.
-     * @param inkluderOverlappendeTiltaksdeltakelserDetErSøktOm Typisk bare brukt ved søknadsbehandling når det er søkt om mer enn 1 tiltaksdeltagelse.
+     * @param tiltaksdeltakelserDetErSøktTiltakspengerFor Alle søknader. Merk at flere søknader kan gjelde samme tiltaksdeltakelse, mens periodene kan være endret.
+     * @param aktuelleTiltaksdeltakelserForBehandlingen For søknadsbehandling vil det være den tiltaksdeltakelsen det er søkt for. Husk og sett [inkluderOverlappendeTiltaksdeltakelserDetErSøktOm] til true dersom vi skal hente saksopplysninger for tiltaksdeltakelser som overlapper denne.
+     * @param inkluderOverlappendeTiltaksdeltakelserDetErSøktOm Typisk bare brukt ved søknadsbehandling når det er søkt om mer enn 1 tiltaksdeltakelse.
      */
     suspend fun hentSaksopplysningerFraRegistre(
         fnr: Fnr,
@@ -43,21 +43,21 @@ class HentSaksopplysingerService(
     ): Saksopplysninger {
         val oppslagstidspunkt = LocalDateTime.now(clock)
 
-        val aktuelleTiltaksdeltagelser = hentAktuelleTiltaksdeltagelser(
+        val aktuelleTiltaksdeltakelser = hentAktuelleTiltaksdeltakelser(
             fnr = fnr,
             correlationId = correlationId,
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
-            aktuelleTiltaksdeltagelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
-            inkluderOverlappendeTiltaksdeltagelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
+            aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
+            inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
         )
-        // TODO jah: På sikt bør vi hente per periode i listen og ikke den totale perioden. Dette er mest aktuelt ved revurdering av to eller flere tiltaksdeltagelser som ikke overlapper.
+        // TODO jah: På sikt bør vi hente per periode i listen og ikke den totale perioden. Dette er mest aktuelt ved revurdering av to eller flere tiltaksdeltakelser som ikke overlapper.
         //  TODO 2 jah + Bente: Vi bør nok også krympe perioden basert på kravtidspunktet, slik at vi ikke henter for langt tilbake i tid.
-        val saksopplysningsperiode = aktuelleTiltaksdeltagelser.totalPeriode
+        val saksopplysningsperiode = aktuelleTiltaksdeltakelser.totalPeriode
 
         return Saksopplysninger(
             fødselsdato = hentPersonopplysninger(fnr).fødselsdato,
             // Vi tar foreløpig med de periodene
-            tiltaksdeltakelser = aktuelleTiltaksdeltagelser,
+            tiltaksdeltakelser = aktuelleTiltaksdeltakelser,
             ytelser = saksopplysningsperiode
                 ?.let { hentYtelser(it, fnr, correlationId) }
                 ?: Ytelser.IkkeBehandlingsgrunnlag,
@@ -68,33 +68,33 @@ class HentSaksopplysingerService(
         )
     }
 
-    private suspend fun hentAktuelleTiltaksdeltagelser(
+    private suspend fun hentAktuelleTiltaksdeltakelser(
         fnr: Fnr,
         correlationId: CorrelationId,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
-        aktuelleTiltaksdeltagelserForBehandlingen: List<String>,
-        inkluderOverlappendeTiltaksdeltagelserDetErSøktOm: Boolean,
+        aktuelleTiltaksdeltakelserForBehandlingen: List<String>,
+        inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
     ): Tiltaksdeltakelser {
-        val tiltaksdeltagelserSomKanGiRettTilTiltakspenger = tiltaksdeltakelseKlient.hentTiltaksdeltakelser(
+        val tiltaksdeltakelserSomKanGiRettTilTiltakspenger = tiltaksdeltakelseKlient.hentTiltaksdeltakelser(
             fnr = fnr,
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
             correlationId = correlationId,
         )
-        // Henter oppdaterte tiltaksdeltagelser det er søkt på, ved forlengelse kan flere overlappe enn på søknadstidspunktet.
+        // Henter oppdaterte tiltaksdeltakelser det er søkt på, ved forlengelse kan flere overlappe enn på søknadstidspunktet.
         val tiltaksdeltakelserDetErSøktPå: Tiltaksdeltakelser =
-            tiltaksdeltagelserSomKanGiRettTilTiltakspenger.filtrerPåTiltaksdeltagelsesIDer(
+            tiltaksdeltakelserSomKanGiRettTilTiltakspenger.filtrerPåTiltaksdeltakelsesIDer(
                 tiltaksdeltakelserDetErSøktTiltakspengerFor.ider,
             )
-        val aktuelleTiltaksdeltagelser = tiltaksdeltakelserDetErSøktPå
-            .filtrerPåTiltaksdeltagelsesIDer(aktuelleTiltaksdeltagelserForBehandlingen)
+        val aktuelleTiltaksdeltakelser = tiltaksdeltakelserDetErSøktPå
+            .filtrerPåTiltaksdeltakelsesIDer(aktuelleTiltaksdeltakelserForBehandlingen)
             .let { aktuelle ->
-                if (inkluderOverlappendeTiltaksdeltagelserDetErSøktOm) {
+                if (inkluderOverlappendeTiltaksdeltakelserDetErSøktOm) {
                     tiltaksdeltakelserDetErSøktPå.overlappende(aktuelle)
                 } else {
                     aktuelle
                 }
             }
-        return aktuelleTiltaksdeltagelser
+        return aktuelleTiltaksdeltakelser
     }
 
     private suspend fun hentYtelser(

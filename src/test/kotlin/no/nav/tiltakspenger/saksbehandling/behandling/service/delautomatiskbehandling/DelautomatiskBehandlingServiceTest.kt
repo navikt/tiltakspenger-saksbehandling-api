@@ -55,7 +55,7 @@ class DelautomatiskBehandlingServiceTest {
                 }
 
                 soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
-                val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.find { it.eksternDeltagelseId == soknad.tiltak.id }!!
+                val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.find { it.eksternDeltakelseId == soknad.tiltak.id }!!
                 val virkningsperiode = soknad.tiltaksdeltakelseperiodeDetErSøktOm()
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
@@ -95,7 +95,7 @@ class DelautomatiskBehandlingServiceTest {
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
-                    tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+                    tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
                         status = TiltakDeltakerstatus.VenterPåOppstart,
@@ -137,7 +137,7 @@ class DelautomatiskBehandlingServiceTest {
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
-                    tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+                    tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
                         status = TiltakDeltakerstatus.Deltar,
@@ -186,7 +186,7 @@ class DelautomatiskBehandlingServiceTest {
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
-                    tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+                    tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
                         status = TiltakDeltakerstatus.VenterPåOppstart,
@@ -236,7 +236,7 @@ class DelautomatiskBehandlingServiceTest {
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
-                    tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+                    tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
                         status = TiltakDeltakerstatus.Venteliste,
@@ -277,7 +277,7 @@ class DelautomatiskBehandlingServiceTest {
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
-                    tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+                    tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
                         status = TiltakDeltakerstatus.Deltar,
@@ -318,7 +318,7 @@ class DelautomatiskBehandlingServiceTest {
                     routing { routes(tac) }
                 }
                 val virkningsperiode = Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
-                val tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
+                val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                     fom = virkningsperiode.fraOgMed,
                     tom = virkningsperiode.tilOgMed,
                     status = TiltakDeltakerstatus.Deltar,

@@ -108,7 +108,7 @@ class EndretTiltaksdeltakerJobb(
 
     private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: String): Rammebehandling? {
         val iverksatteBehandlingerForDeltakelse: Periodisering<Rammebehandling> = sak.rammevedtaksliste.innvilgetTidslinje
-            .filter { it.verdi.behandling.inneholderSaksopplysningerEksternDeltagelseId(tiltaksdeltakerId) }
+            .filter { it.verdi.behandling.inneholderSaksopplysningerEksternDeltakelseId(tiltaksdeltakerId) }
             .map { it.verdi.behandling }
 
         return iverksatteBehandlingerForDeltakelse.verdier.maxByOrNull { it.iverksattTidspunkt!! }
@@ -151,7 +151,7 @@ class EndretTiltaksdeltakerJobb(
     ): List<TiltaksdeltakerEndring> {
         log.info { "Fant behandling ${behandling.id} for sakId ${behandling.sakId} og deltakerId ${deltaker.id}" }
 
-        val tiltaksdeltakelseFraBehandling = behandling.getTiltaksdeltagelse(deltaker.id)
+        val tiltaksdeltakelseFraBehandling = behandling.getTiltaksdeltakelse(deltaker.id)
             ?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id} på behandling ${behandling.id}, skal ikke kunne skje")
         return deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)
     }

@@ -65,13 +65,13 @@ interface BehandlingMother : MotherOfAllMothers {
     /** Felles default vurderingsperiode for testdatatypene */
     fun virkningsperiode() = 1.januar(2023) til 31.mars(2023)
 
-    fun Rammebehandling.tiltaksdeltagelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
-        val tiltaksdeltagelse = this.saksopplysninger.tiltaksdeltakelser.single()
+    fun Rammebehandling.tiltaksdeltakelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
+        val tiltaksdeltakelse = this.saksopplysninger.tiltaksdeltakelser.single()
 
         return listOf(
             TiltaksdeltakelsePeriodeDTO(
-                eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
-                periode = tiltaksdeltagelse.periode!!.toDTO(),
+                eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
+                periode = tiltaksdeltakelse.periode!!.toDTO(),
             ),
         )
     }
@@ -198,7 +198,7 @@ interface BehandlingMother : MotherOfAllMothers {
             tom = virkningsperiode.tilOgMed,
         ),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
-            Pair(virkningsperiode, it.eksternDeltagelseId)
+            Pair(virkningsperiode, it.eksternDeltakelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
@@ -265,7 +265,7 @@ interface BehandlingMother : MotherOfAllMothers {
             tom = virkningsperiode.tilOgMed,
         ),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
-            Pair(virkningsperiode, it.eksternDeltagelseId)
+            Pair(virkningsperiode, it.eksternDeltakelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
@@ -319,7 +319,7 @@ interface BehandlingMother : MotherOfAllMothers {
             tom = virkningsperiode.tilOgMed,
         ),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
-            Pair(virkningsperiode, it.eksternDeltagelseId)
+            Pair(virkningsperiode, it.eksternDeltakelseId)
         },
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
@@ -371,7 +371,7 @@ interface BehandlingMother : MotherOfAllMothers {
             tom = virkningsperiode.tilOgMed,
         ),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
-            Pair(virkningsperiode, it.eksternDeltagelseId)
+            Pair(virkningsperiode, it.eksternDeltakelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         utdøvendeBeslutter: Saksbehandler = beslutter(),
@@ -427,7 +427,7 @@ interface BehandlingMother : MotherOfAllMothers {
             tom = virkningsperiode.tilOgMed,
         ),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
-            Pair(virkningsperiode, it.eksternDeltagelseId)
+            Pair(virkningsperiode, it.eksternDeltakelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
@@ -655,7 +655,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     val tiltaksdeltakelser = listOf(
         Pair(
             periode,
-            behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltagelseId,
+            behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
         ),
     )
 

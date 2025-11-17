@@ -37,12 +37,12 @@ private data class SaksopplysningerDbJson(
     ) {
         fun toDomain(): Tiltaksdeltakelse {
             return Tiltaksdeltakelse(
-                eksternDeltagelseId = eksternDeltagelseId,
+                eksternDeltakelseId = eksternDeltagelseId,
                 gjennomføringId = gjennomføringId,
                 typeNavn = typeNavn,
                 typeKode = typeKode.toTiltakstypeSomGirRett(),
-                deltagelseFraOgMed = deltagelseFraOgMed,
-                deltagelseTilOgMed = deltagelseTilOgMed,
+                deltakelseFraOgMed = deltagelseFraOgMed,
+                deltakelseTilOgMed = deltagelseTilOgMed,
                 deltakelseStatus = deltakelseStatus.toTiltakDeltakerstatus(),
                 deltakelseProsent = deltakelseProsent,
                 antallDagerPerUke = antallDagerPerUke,
@@ -56,12 +56,12 @@ private data class SaksopplysningerDbJson(
 
 private fun Tiltaksdeltakelse.toDbJson(): TiltaksdeltakelseDbJson {
     return TiltaksdeltakelseDbJson(
-        eksternDeltagelseId = this.eksternDeltagelseId,
+        eksternDeltagelseId = this.eksternDeltakelseId,
         gjennomføringId = this.gjennomføringId,
         typeNavn = this.typeNavn,
         typeKode = this.typeKode.toDb(),
-        deltagelseFraOgMed = this.deltagelseFraOgMed,
-        deltagelseTilOgMed = this.deltagelseTilOgMed,
+        deltagelseFraOgMed = this.deltakelseFraOgMed,
+        deltagelseTilOgMed = this.deltakelseTilOgMed,
         deltakelseStatus = this.deltakelseStatus.toDb(),
         deltakelseProsent = this.deltakelseProsent,
         antallDagerPerUke = this.antallDagerPerUke,

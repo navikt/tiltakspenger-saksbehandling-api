@@ -80,12 +80,12 @@ fun skalNullstilleResultatVedNyeSaksopplysninger(
         true
     } else {
         (
-            valgteTiltaksdeltakelser.verdier.sortedBy { it.eksternDeltagelseId }
-                .zip(nyeSaksopplysninger.tiltaksdeltakelser.sortedBy { it.eksternDeltagelseId }) { forrige, nye ->
-                    // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltagelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
-                    forrige.eksternDeltagelseId != nye.eksternDeltagelseId ||
-                        forrige.deltagelseFraOgMed != nye.deltagelseFraOgMed ||
-                        forrige.deltagelseTilOgMed != nye.deltagelseTilOgMed
+            valgteTiltaksdeltakelser.verdier.sortedBy { it.eksternDeltakelseId }
+                .zip(nyeSaksopplysninger.tiltaksdeltakelser.sortedBy { it.eksternDeltakelseId }) { forrige, nye ->
+                    // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltakelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
+                    forrige.eksternDeltakelseId != nye.eksternDeltakelseId ||
+                        forrige.deltakelseFraOgMed != nye.deltakelseFraOgMed ||
+                        forrige.deltakelseTilOgMed != nye.deltakelseTilOgMed
                 }.any { it }
             )
     }

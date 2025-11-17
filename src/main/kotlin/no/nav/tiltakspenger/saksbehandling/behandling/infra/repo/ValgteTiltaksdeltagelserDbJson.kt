@@ -36,7 +36,7 @@ fun ValgteTiltaksdeltakelser.toDbJson(): String = ValgteTiltaksdeltakelserDbJson
     value = this.periodisering.perioderMedVerdi.toList().map {
         TiltaksdeltakelsePeriodeMedVerdi(
             periode = it.periode.toDbJson(),
-            eksternDeltagelseId = it.verdi.eksternDeltagelseId,
+            eksternDeltagelseId = it.verdi.eksternDeltakelseId,
         )
     },
 ).let { serialize(it) }
