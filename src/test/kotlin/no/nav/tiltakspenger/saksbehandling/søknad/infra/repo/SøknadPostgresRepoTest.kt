@@ -280,6 +280,144 @@ class SøknadPostgresRepoTest {
             }
 
             @Test
+            fun `kan svare ja hvor fraOgMed mangler`() {
+                withMigratedDb { testDataHelper ->
+                    val søknadRepo = testDataHelper.søknadRepo
+                    val fnr = Fnr.random()
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val tiltak =
+                        ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
+                        periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        søknadstiltak = tiltak,
+                        fnr = fnr,
+                        kvp = periodeJa(fom = null),
+                        intro = periodeJa(fom = null),
+                        institusjon = periodeJa(fom = null),
+                        trygdOgPensjon = periodeJa(fom = null),
+                        gjenlevendepensjon = periodeJa(fom = null),
+                        sykepenger = periodeJa(fom = null),
+                        supplerendeStønadAlder = periodeJa(fom = null),
+                        supplerendeStønadFlyktning = periodeJa(fom = null),
+                        jobbsjansen = periodeJa(fom = null),
+                    )
+
+                    val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
+
+                    søknadRepo.hentSøknaderForFnr(fnr).also { søknader ->
+                        søknader.single().also { hentetSøknad ->
+                            hentetSøknad shouldBe persistertSøknad
+                            hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
+                            // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
+                            hentetSøknad.kvp shouldBe periodeJa(fom = null)
+                            hentetSøknad.intro shouldBe periodeJa(fom = null)
+                            hentetSøknad.institusjon shouldBe periodeJa(fom = null)
+                            hentetSøknad.trygdOgPensjon shouldBe periodeJa(fom = null)
+                            hentetSøknad.gjenlevendepensjon shouldBe periodeJa(fom = null)
+                            hentetSøknad.sykepenger shouldBe periodeJa(fom = null)
+                            hentetSøknad.supplerendeStønadAlder shouldBe periodeJa(fom = null)
+                            hentetSøknad.supplerendeStønadFlyktning shouldBe periodeJa(fom = null)
+                            hentetSøknad.jobbsjansen shouldBe periodeJa(fom = null)
+                        }
+                    }
+                }
+            }
+
+            @Test
+            fun `kan svare ja hvor tilOgMed mangler`() {
+                withMigratedDb { testDataHelper ->
+                    val søknadRepo = testDataHelper.søknadRepo
+                    val fnr = Fnr.random()
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val tiltak =
+                        ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
+                        periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        søknadstiltak = tiltak,
+                        fnr = fnr,
+                        kvp = periodeJa(tom = null),
+                        intro = periodeJa(tom = null),
+                        institusjon = periodeJa(tom = null),
+                        trygdOgPensjon = periodeJa(tom = null),
+                        gjenlevendepensjon = periodeJa(tom = null),
+                        sykepenger = periodeJa(tom = null),
+                        supplerendeStønadAlder = periodeJa(tom = null),
+                        supplerendeStønadFlyktning = periodeJa(tom = null),
+                        jobbsjansen = periodeJa(tom = null),
+                    )
+
+                    val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
+
+                    søknadRepo.hentSøknaderForFnr(fnr).also { søknader ->
+                        søknader.single().also { hentetSøknad ->
+                            hentetSøknad shouldBe persistertSøknad
+                            hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
+                            // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
+                            hentetSøknad.kvp shouldBe periodeJa(tom = null)
+                            hentetSøknad.intro shouldBe periodeJa(tom = null)
+                            hentetSøknad.institusjon shouldBe periodeJa(tom = null)
+                            hentetSøknad.trygdOgPensjon shouldBe periodeJa(tom = null)
+                            hentetSøknad.gjenlevendepensjon shouldBe periodeJa(tom = null)
+                            hentetSøknad.sykepenger shouldBe periodeJa(tom = null)
+                            hentetSøknad.supplerendeStønadAlder shouldBe periodeJa(tom = null)
+                            hentetSøknad.supplerendeStønadFlyktning shouldBe periodeJa(tom = null)
+                            hentetSøknad.jobbsjansen shouldBe periodeJa(tom = null)
+                        }
+                    }
+                }
+            }
+
+            @Test
+            fun `kan svare ja hvor fraOgMed og tilOgMed mangler`() {
+                withMigratedDb { testDataHelper ->
+                    val søknadRepo = testDataHelper.søknadRepo
+                    val fnr = Fnr.random()
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val tiltak =
+                        ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
+                        periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        søknadstiltak = tiltak,
+                        fnr = fnr,
+                        kvp = periodeJa(fom = null, tom = null),
+                        intro = periodeJa(fom = null, tom = null),
+                        institusjon = periodeJa(fom = null, tom = null),
+                        trygdOgPensjon = periodeJa(fom = null, tom = null),
+                        gjenlevendepensjon = periodeJa(fom = null, tom = null),
+                        sykepenger = periodeJa(fom = null, tom = null),
+                        supplerendeStønadAlder = periodeJa(fom = null, tom = null),
+                        supplerendeStønadFlyktning = periodeJa(fom = null, tom = null),
+                        jobbsjansen = periodeJa(fom = null, tom = null),
+                    )
+
+                    val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
+
+                    søknadRepo.hentSøknaderForFnr(fnr).also { søknader ->
+                        søknader.single().also { hentetSøknad ->
+                            hentetSøknad shouldBe persistertSøknad
+                            hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
+                            // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
+                            hentetSøknad.kvp shouldBe periodeJa(fom = null, tom = null)
+                            hentetSøknad.intro shouldBe periodeJa(fom = null, tom = null)
+                            hentetSøknad.institusjon shouldBe periodeJa(fom = null, tom = null)
+                            hentetSøknad.trygdOgPensjon shouldBe periodeJa(fom = null, tom = null)
+                            hentetSøknad.gjenlevendepensjon shouldBe periodeJa(fom = null, tom = null)
+                            hentetSøknad.sykepenger shouldBe periodeJa(fom = null, tom = null)
+                            hentetSøknad.supplerendeStønadAlder shouldBe periodeJa(fom = null, tom = null)
+                            hentetSøknad.supplerendeStønadFlyktning shouldBe periodeJa(fom = null, tom = null)
+                            hentetSøknad.jobbsjansen shouldBe periodeJa(fom = null, tom = null)
+                        }
+                    }
+                }
+            }
+
+            @Test
             fun `kan svare nei`() {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
@@ -399,6 +537,36 @@ class SøknadPostgresRepoTest {
                             hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
                             // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
                             hentetSøknad.alderspensjon shouldBe fraOgMedDatoJa()
+                        }
+                    }
+                }
+            }
+
+            @Test
+            fun `kan svare ja hvor fraOgMed mangler`() {
+                withMigratedDb { testDataHelper ->
+                    val søknadRepo = testDataHelper.søknadRepo
+                    val fnr = Fnr.random()
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val tiltak =
+                        ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
+                    val søknad = ObjectMother.nyInnvilgbarSøknad(
+                        periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        søknadstiltak = tiltak,
+                        fnr = fnr,
+                        alderspensjon = fraOgMedDatoJa(fom = null),
+                    )
+
+                    val persistertSøknad = testDataHelper.persisterSakOgSøknad(fnr = fnr, sak = sak, søknad = søknad)
+
+                    søknadRepo.hentSøknaderForFnr(fnr).also { søknader ->
+                        søknader.single().also { hentetSøknad ->
+                            hentetSøknad shouldBe persistertSøknad
+                            hentetSøknad.tiltak shouldBe persistertSøknad.tiltak
+                            // Burde være dekket av objektsammenligningen, men i tilfelle den skulle brekke!
+                            hentetSøknad.alderspensjon shouldBe fraOgMedDatoJa(fom = null)
                         }
                     }
                 }

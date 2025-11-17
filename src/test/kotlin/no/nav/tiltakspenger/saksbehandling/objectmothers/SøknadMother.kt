@@ -209,18 +209,15 @@ interface SøknadMother {
     fun periodeNei() = Søknad.PeriodeSpm.Nei
 
     fun ja() = Søknad.JaNeiSpm.Ja
-    fun fraOgMedDatoJa(fom: LocalDate = 1.januar(2022)) =
+    fun fraOgMedDatoJa(fom: LocalDate? = 1.januar(2022)) =
         Søknad.FraOgMedDatoSpm.Ja(
             fra = fom,
         )
     fun periodeJa(
-        fom: LocalDate = 1.januar(2022),
-        tom: LocalDate = 31.januar(2022),
+        fom: LocalDate? = 1.januar(2022),
+        tom: LocalDate? = 31.januar(2022),
     ) = Søknad.PeriodeSpm.Ja(
-        periode =
-        Periode(
-            fraOgMed = fom,
-            tilOgMed = tom,
-        ),
+        fraOgMed = fom,
+        tilOgMed = tom,
     )
 }

@@ -78,7 +78,10 @@ data class PapirsøknadBody(
 
     data class PeriodeSpmDTO(
         val svar: JaNeiSvar,
+        @Deprecated("Bruk fraOgMed og tilOgMed feltene i stedet fordi en periode kan ikke mangle verken eller")
         val periode: PeriodeDTO?,
+        val fraOgMed: String?,
+        val tilOgMed: String?,
     )
 
     data class FraOgMedDatoSpmDTO(
@@ -97,10 +100,11 @@ data class PapirsøknadBody(
             JaNeiSvar.IKKE_BESVART -> Søknad.PeriodeSpm.IkkeBesvart
             JaNeiSvar.NEI -> Søknad.PeriodeSpm.Nei
             JaNeiSvar.JA -> {
-                checkNotNull(this.periode?.fraOgMed) { "Det skal ikke være mulig med null i fradato hvis man har svart JA " }
-                checkNotNull(this.periode.tilOgMed) { "Det skal ikke være mulig med null i tildato hvis man har svart JA " }
                 Søknad.PeriodeSpm.Ja(
-                    periode = this.periode.toDomain(),
+                    fraOgMed = this.fraOgMed?.let { LocalDate.parse(it) }
+                        ?: this.periode?.fraOgMed?.let { LocalDate.parse(it) },
+                    tilOgMed = this.tilOgMed?.let { LocalDate.parse(it) }
+                        ?: this.periode?.tilOgMed?.let { LocalDate.parse(it) },
                 )
             }
         }
@@ -110,7 +114,6 @@ data class PapirsøknadBody(
             JaNeiSvar.IKKE_BESVART -> Søknad.FraOgMedDatoSpm.IkkeBesvart
             JaNeiSvar.NEI -> Søknad.FraOgMedDatoSpm.Nei
             JaNeiSvar.JA -> {
-                requireNotNull(this.fraOgMed) { "Det skal ikke være mulig med null i fradato hvis man har svart JA" }
                 Søknad.FraOgMedDatoSpm.Ja(
                     fra = this.fraOgMed,
                 )

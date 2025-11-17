@@ -526,8 +526,22 @@ fun TestApplicationContext.nyInnvilgbarSøknad(
             deltakelseFom = periode.fraOgMed,
             deltakelseTom = periode.tilOgMed,
         ),
-        intro = if (deltarPåIntroduksjonsprogram) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
-        kvp = if (deltarPåKvp) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
+        intro = if (deltarPåIntroduksjonsprogram) {
+            Søknad.PeriodeSpm.Ja(
+                fraOgMed = periode.fraOgMed,
+                tilOgMed = periode.tilOgMed,
+            )
+        } else {
+            Søknad.PeriodeSpm.Nei
+        },
+        kvp = if (deltarPåKvp) {
+            Søknad.PeriodeSpm.Ja(
+                fraOgMed = periode.fraOgMed,
+                tilOgMed = periode.tilOgMed,
+            )
+        } else {
+            Søknad.PeriodeSpm.Nei
+        },
         sakId = sak.id,
         saksnummer = sak.saksnummer,
         id = søknadId,
@@ -572,8 +586,22 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
             deltakelseFom = periode.fraOgMed,
             deltakelseTom = periode.tilOgMed,
         ),
-        intro = if (deltarPåIntroduksjonsprogram) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
-        kvp = if (deltarPåKvp) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
+        intro = if (deltarPåIntroduksjonsprogram) {
+            Søknad.PeriodeSpm.Ja(
+                fraOgMed = periode.fraOgMed,
+                tilOgMed = periode.tilOgMed,
+            )
+        } else {
+            Søknad.PeriodeSpm.Nei
+        },
+        kvp = if (deltarPåKvp) {
+            Søknad.PeriodeSpm.Ja(
+                fraOgMed = periode.fraOgMed,
+                tilOgMed = periode.tilOgMed,
+            )
+        } else {
+            Søknad.PeriodeSpm.Nei
+        },
         sakId = sak.id,
         saksnummer = sak.saksnummer,
     ),
