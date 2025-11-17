@@ -212,7 +212,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                     // TODO ved flere innvilgelsesperioder: endre denne logikken
                     saksopplysninger.tiltaksdeltagelser.totalPeriode?.overlappendePeriode(it)
                         ?: throw IllegalArgumentException(
-                            "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere.",
+                            "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere. sakId: ${omgjørRammevedtak.sakId}, tidligere innvilgelsesperiode: ${omgjørRammevedtak.innvilgelsesperiode}, nye tiltaksdeltagelser: ${saksopplysninger.tiltaksdeltagelser}",
                         )
                 } ?: omgjørRammevedtak.periode
                 val valgteTiltaksdeltakelser =
