@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.repo
 
 import kotliquery.Row
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 
 private const val JA = "JA"
@@ -19,9 +18,7 @@ fun Row.periodeSpm(navn: String): Søknad.PeriodeSpm {
     val tom = localDateOrNull(navn + TOM_SUFFIX)
     return when (type) {
         JA -> {
-            checkNotNull(fom) { "Fom må være satt om periodespørsmål er JA" }
-            checkNotNull(tom) { "Tom må være satt om periodespørsmål er JA" }
-            Søknad.PeriodeSpm.Ja(Periode(fom, tom))
+            Søknad.PeriodeSpm.Ja(fom, tom)
         }
         NEI -> Søknad.PeriodeSpm.Nei
         IKKE_BESVART -> Søknad.PeriodeSpm.IkkeBesvart
@@ -34,7 +31,6 @@ fun Row.fraOgMedDatoSpm(navn: String): Søknad.FraOgMedDatoSpm {
     val fom = localDateOrNull(navn + FOM_SUFFIX)
     return when (type) {
         JA -> {
-            checkNotNull(fom) { "Fom må være satt i fraOgMedDatoSpm om svaret er JA" }
             Søknad.FraOgMedDatoSpm.Ja(fom)
         }
         NEI -> Søknad.FraOgMedDatoSpm.Nei
@@ -101,13 +97,13 @@ fun lagrePeriodeSpmJa(periodeSpm: Søknad.PeriodeSpm) =
 
 fun lagrePeriodeSpmFra(periodeSpm: Søknad.PeriodeSpm) =
     when (periodeSpm) {
-        is Søknad.PeriodeSpm.Ja -> periodeSpm.periode.fraOgMed
+        is Søknad.PeriodeSpm.Ja -> periodeSpm.fraOgMed
         is Søknad.PeriodeSpm.Nei, Søknad.PeriodeSpm.IkkeBesvart -> null
     }
 
 fun lagrePeriodeSpmTil(periodeSpm: Søknad.PeriodeSpm) =
     when (periodeSpm) {
-        is Søknad.PeriodeSpm.Ja -> periodeSpm.periode.tilOgMed
+        is Søknad.PeriodeSpm.Ja -> periodeSpm.tilOgMed
         is Søknad.PeriodeSpm.Nei, Søknad.PeriodeSpm.IkkeBesvart -> null
     }
 

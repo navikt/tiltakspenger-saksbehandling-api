@@ -161,7 +161,8 @@ sealed interface Søknad {
         data object Nei : PeriodeSpm
 
         data class Ja(
-            val periode: Periode,
+            val fraOgMed: LocalDate?,
+            val tilOgMed: LocalDate?,
         ) : PeriodeSpm
 
         /** ignorerer perioden */
@@ -193,7 +194,7 @@ sealed interface Søknad {
         data object IkkeBesvart : FraOgMedDatoSpm
 
         data class Ja(
-            val fra: LocalDate,
+            val fra: LocalDate?,
         ) : FraOgMedDatoSpm
 
         fun erJa(): Boolean =

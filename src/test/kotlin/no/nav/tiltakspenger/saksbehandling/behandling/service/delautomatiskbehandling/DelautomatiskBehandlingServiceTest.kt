@@ -382,7 +382,7 @@ class DelautomatiskBehandlingServiceTest {
                         fnr = sak.fnr,
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
-                        sykepenger = Søknad.PeriodeSpm.Ja(periode),
+                        sykepenger = Søknad.PeriodeSpm.Ja(fraOgMed = periode.fraOgMed, tilOgMed = periode.tilOgMed),
                     ),
                 )
                 val behandling = sakOgBehandling.second
@@ -464,8 +464,8 @@ class DelautomatiskBehandlingServiceTest {
                         fnr = sak.fnr,
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
-                        kvp = Søknad.PeriodeSpm.Ja(periode),
-                        institusjon = Søknad.PeriodeSpm.Ja(periode),
+                        kvp = Søknad.PeriodeSpm.Ja(fraOgMed = periode.fraOgMed, tilOgMed = periode.tilOgMed),
+                        institusjon = Søknad.PeriodeSpm.Ja(fraOgMed = periode.fraOgMed, tilOgMed = periode.tilOgMed),
                     ),
                 )
                 val behandling = sakOgBehandling.second

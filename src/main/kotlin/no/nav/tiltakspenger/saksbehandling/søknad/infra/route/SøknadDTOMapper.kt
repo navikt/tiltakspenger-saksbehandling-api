@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.libs.soknad.FraOgMedDatoSpmDTO
 import no.nav.tiltakspenger.libs.soknad.JaNeiSpmDTO
@@ -63,14 +62,9 @@ object SøknadDTOMapper {
         when (this.svar) {
             SpmSvarDTO.Nei -> Søknad.PeriodeSpm.Nei
             SpmSvarDTO.Ja -> {
-                checkNotNull(this.fom) { "Det skal ikke være mulig med null i fradato hvis man har svart JA " }
-                checkNotNull(this.tom) { "Det skal ikke være mulig med null i tildato hvis man har svart JA " }
                 Søknad.PeriodeSpm.Ja(
-                    periode =
-                    Periode(
-                        fraOgMed = this.fom!!,
-                        tilOgMed = this.tom!!,
-                    ),
+                    fraOgMed = this.fom,
+                    tilOgMed = this.tom,
                 )
             }
         }
@@ -79,9 +73,8 @@ object SøknadDTOMapper {
         return when (this.svar) {
             SpmSvarDTO.Nei -> Søknad.FraOgMedDatoSpm.Nei
             SpmSvarDTO.Ja -> {
-                requireNotNull(this.fom) { "Det skal ikke være mulig med null i fradato hvis man har svart JA" }
                 Søknad.FraOgMedDatoSpm.Ja(
-                    fra = this.fom!!,
+                    fra = this.fom,
                 )
             }
         }
