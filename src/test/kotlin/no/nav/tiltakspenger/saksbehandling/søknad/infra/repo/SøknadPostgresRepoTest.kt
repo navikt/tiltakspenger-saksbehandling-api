@@ -372,7 +372,7 @@ class SøknadPostgresRepoTest {
             }
 
             @Test
-            fun `kan svare ja hvor periode`() {
+            fun `kan svare ja hvor fraOgMed og tilOgMed mangler`() {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
