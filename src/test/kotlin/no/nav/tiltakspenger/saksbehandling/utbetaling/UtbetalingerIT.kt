@@ -117,7 +117,7 @@ class UtbetalingerIT {
                 virkningsperiode = andreSøknadsperiode,
                 sakId = sak.id,
                 barnetillegg = barnetillegg(periode = andreSøknadsperiode, antallBarn = AntallBarn(1)),
-                tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
                     eksternTiltaksdeltagelseId = "TA99999",
                     fom = andreSøknadsperiode.fraOgMed,
                     tom = andreSøknadsperiode.tilOgMed,

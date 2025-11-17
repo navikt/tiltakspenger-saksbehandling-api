@@ -41,7 +41,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
@@ -64,7 +64,7 @@ open class BehandlingOgVedtakContext(
     dokumentdistribusjonsklient: Dokumentdistribusjonsklient,
     navIdentClient: NavIdentClient,
     sakService: SakService,
-    tiltaksdeltagelseKlient: TiltaksdeltagelseKlient,
+    tiltaksdeltakelseKlient: TiltaksdeltakelseKlient,
     statistikkSakService: StatistikkSakService,
     clock: Clock,
     sokosUtbetaldataClient: SokosUtbetaldataClient,
@@ -129,7 +129,7 @@ open class BehandlingOgVedtakContext(
     val hentSaksopplysingerService: HentSaksopplysingerService by lazy {
         HentSaksopplysingerService(
             hentPersonopplysninger = personService::hentPersonopplysninger,
-            tiltaksdeltagelseKlient = tiltaksdeltagelseKlient,
+            tiltaksdeltakelseKlient = tiltaksdeltakelseKlient,
             sokosUtbetaldataClient = sokosUtbetaldataClient,
             clock = clock,
             tiltakspengerArenaClient = tiltakspengerArenaClient,

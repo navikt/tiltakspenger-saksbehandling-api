@@ -249,7 +249,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
         tiltaksdeltakelser = listOf(
             Pair(
                 periode,
-                revurdering.saksopplysninger.tiltaksdeltagelser.first().eksternDeltagelseId,
+                revurdering.saksopplysninger.tiltaksdeltakelser.first().eksternDeltagelseId,
             ),
         ),
         antallDagerPerMeldeperiode = SammenhengendePeriodisering(

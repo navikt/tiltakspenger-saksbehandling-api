@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
@@ -77,8 +77,8 @@ data class Sak(
     /** Et førstegangsvedtak defineres som den første søknadsbehandlingen som førte til innvilgelse. */
     val harFørstegangsvedtak: Boolean by lazy { this.vedtaksliste.harFørstegangsvedtak }
 
-    val tiltaksdeltagelserDetErSøktTiltakspengerFor by lazy {
-        TiltaksdeltagelserDetErSøktTiltakspengerFor(
+    val tiltaksdeltakelserDetErSøktTiltakspengerFor by lazy {
+        TiltaksdeltakelserDetErSøktTiltakspengerFor(
             this.søknader.mapNotNull { søknad ->
                 søknad.tiltak?.let { tiltak ->
                     TiltaksdeltagelseDetErSøktTiltakspengerFor(tiltak, søknad.tidsstempelHosOss)

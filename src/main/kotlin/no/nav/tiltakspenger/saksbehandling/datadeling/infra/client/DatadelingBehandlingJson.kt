@@ -97,14 +97,14 @@ fun MeldekortBehandling.toBehandlingJson(): String {
 }
 
 private fun Søknadsbehandling.getFraOgMed() = virkningsperiode?.fraOgMed
-    ?: saksopplysninger.tiltaksdeltagelser.tidligsteFraOgMed
+    ?: saksopplysninger.tiltaksdeltakelser.tidligsteFraOgMed
     ?: søknad.tiltak?.deltakelseFom
-    ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm()!!.fraOgMed
+    ?: søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!.fraOgMed
 
 private fun Søknadsbehandling.getTilOgMed() = virkningsperiode?.tilOgMed
-    ?: saksopplysninger.tiltaksdeltagelser.senesteTilOgMed
+    ?: saksopplysninger.tiltaksdeltakelser.senesteTilOgMed
     ?: søknad.tiltak?.deltakelseTom
-    ?: søknad.tiltaksdeltagelseperiodeDetErSøktOm()!!.tilOgMed
+    ?: søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!.tilOgMed
 
 fun Rammebehandlingsstatus.toDatadelingStatus(): Behandlingsstatus =
     when (this) {

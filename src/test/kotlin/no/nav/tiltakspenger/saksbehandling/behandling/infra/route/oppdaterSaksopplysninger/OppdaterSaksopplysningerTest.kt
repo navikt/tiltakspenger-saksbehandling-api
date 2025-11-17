@@ -1,8 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger
 
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -14,9 +12,9 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import org.junit.jupiter.api.Test
 
 internal class OppdaterSaksopplysningerTest {
@@ -32,7 +30,7 @@ internal class OppdaterSaksopplysningerTest {
             tac.leggTilPerson(
                 fnr = sak.fnr,
                 person = personopplysningerForBrukerFraPdl,
-                tiltaksdeltagelse = Tiltaksdeltagelse(
+                tiltaksdeltakelse = Tiltaksdeltakelse(
                     eksternDeltagelseId = "TA12345",
                     gjennomføringId = null,
                     typeNavn = "Testnavn",
@@ -60,20 +58,20 @@ internal class OppdaterSaksopplysningerTest {
     fun `revurdering til omgjøring - kan oppdatere saksopplysninger`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingOmgjøring(tac)
-            val forrigeTiltaksdeltagelse = revurdering!!.saksopplysninger.tiltaksdeltagelser.first()
+            val forrigeTiltaksdeltagelse = revurdering!!.saksopplysninger.tiltaksdeltakelser.first()
             val avbruttTiltaksdeltagelse = forrigeTiltaksdeltagelse.copy(
                 deltagelseFraOgMed = forrigeTiltaksdeltagelse.deltagelseFraOgMed!!,
                 deltagelseTilOgMed = forrigeTiltaksdeltagelse.deltagelseTilOgMed!!.minusDays(1),
                 deltakelseStatus = TiltakDeltakerstatus.Avbrutt,
             )
-            tac.oppdaterTiltaksdeltagelse(fnr = sak.fnr, tiltaksdeltagelse = avbruttTiltaksdeltagelse)
+            tac.oppdaterTiltaksdeltagelse(fnr = sak.fnr, tiltaksdeltakelse = avbruttTiltaksdeltagelse)
             val (_, oppdatertRevurdering: Rammebehandling) = oppdaterSaksopplysningerForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
             )
             // Forventer at saksopplysningene er oppdatert og at resultatet har resatt seg.
-            (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltagelser.single() shouldBe avbruttTiltaksdeltagelse
+            (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltagelse
             oppdatertRevurdering.resultat shouldBe RevurderingResultat.Omgjøring.create(
                 omgjørRammevedtak = sak.rammevedtaksliste.single(),
                 saksopplysninger = oppdatertRevurdering.saksopplysninger,
@@ -89,7 +87,7 @@ internal class OppdaterSaksopplysningerTest {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingOmgjøring(tac)
 
-            tac.oppdaterTiltaksdeltagelse(fnr = sak.fnr, tiltaksdeltagelse = null)
+            tac.oppdaterTiltaksdeltagelse(fnr = sak.fnr, tiltaksdeltakelse = null)
             val (_, _) = oppdaterSaksopplysningerForBehandlingId(
                 tac = tac,
                 sakId = sak.id,

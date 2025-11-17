@@ -71,7 +71,7 @@ class RammebehandlingDTOTest {
             saksopplysninger = saksopplysninger(
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
-                tiltaksdeltagelse = listOf(
+                tiltaksdeltakelse = listOf(
                     tiltaksdeltagelse(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
@@ -280,7 +280,7 @@ class RammebehandlingDTOTest {
             saksopplysninger = saksopplysninger(
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
-                tiltaksdeltagelse = listOf(
+                tiltaksdeltakelse = listOf(
                     tiltaksdeltagelse(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
@@ -456,7 +456,7 @@ class RammebehandlingDTOTest {
                 saksopplysninger(
                     fom = virkningsperiode.fraOgMed,
                     tom = virkningsperiode.tilOgMed,
-                    tiltaksdeltagelse = listOf(
+                    tiltaksdeltakelse = listOf(
                         tiltaksdeltagelse(
                             fom = virkningsperiode.fraOgMed,
                             tom = virkningsperiode.tilOgMed,
@@ -612,7 +612,7 @@ class RammebehandlingDTOTest {
             saksopplysninger = saksopplysninger(
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
-                tiltaksdeltagelse = listOf(
+                tiltaksdeltakelse = listOf(
                     tiltaksdeltagelse(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
@@ -746,7 +746,7 @@ class RammebehandlingDTOTest {
             saksopplysninger = saksopplysninger(
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
-                tiltaksdeltagelse = listOf(
+                tiltaksdeltakelse = listOf(
                     tiltaksdeltagelse(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
@@ -856,7 +856,7 @@ class RammebehandlingDTOTest {
             saksopplysninger = saksopplysninger(
                 fom = virkningsperiode.fraOgMed,
                 tom = virkningsperiode.tilOgMed,
-                tiltaksdeltagelse = listOf(
+                tiltaksdeltakelse = listOf(
                     tiltaksdeltagelse(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
@@ -889,7 +889,7 @@ class RammebehandlingDTOTest {
                 saksopplysninger(
                     fom = virkningsperiode.fraOgMed,
                     tom = virkningsperiode.tilOgMed,
-                    tiltaksdeltagelse = listOf(
+                    tiltaksdeltakelse = listOf(
                         tiltaksdeltagelse(
                             fom = virkningsperiode.fraOgMed,
                             tom = virkningsperiode.tilOgMed,

@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -24,7 +24,7 @@ class BehandlingResultatKtTest {
             tom = periode.tilOgMed,
         )
         private val endretSaksopplysning = ObjectMother.saksopplysninger(
-            tiltaksdeltagelse = listOf(ObjectMother.tiltaksdeltagelse(eksternTiltaksdeltagelseId = "annen-id")),
+            tiltaksdeltakelse = listOf(ObjectMother.tiltaksdeltagelse(eksternTiltaksdeltagelseId = "annen-id")),
         )
 
         @Test
@@ -32,7 +32,7 @@ class BehandlingResultatKtTest {
             val actual = skalNullstilleResultatVedNyeSaksopplysninger(
                 valgteTiltaksdeltakelser,
                 ObjectMother.saksopplysninger(
-                    tiltaksdeltagelse = listOf(
+                    tiltaksdeltakelse = listOf(
                         ObjectMother.tiltaksdeltagelse(eksternTiltaksdeltagelseId = "annen-id"),
                         ObjectMother.tiltaksdeltagelse(eksternTiltaksdeltagelseId = "annen-id2"),
                     ),

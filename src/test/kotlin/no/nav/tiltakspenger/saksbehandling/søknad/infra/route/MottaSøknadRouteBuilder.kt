@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
 /**
  * Gir mulighet til å motta en søknad via endepunktene våre.
@@ -38,7 +38,7 @@ interface MottaSøknadRouteBuilder {
         sakId: SakId,
         søknadId: SøknadId = SøknadId.random(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
             fom = deltakelsesperiode.fraOgMed,
             tom = deltakelsesperiode.tilOgMed,
             eksternTiltaksdeltagelseId = "ABC1234",
@@ -46,7 +46,7 @@ interface MottaSøknadRouteBuilder {
     ): Pair<Sak, Søknad> {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val saksnummer = hentEllerOpprettSak(tac, sak.fnr)
-        mottaSøknad(tac, sak.fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltagelse)
+        mottaSøknad(tac, sak.fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltakelse)
         val oppdatertSak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         return oppdatertSak to oppdatertSak.søknader.single { it.id == søknadId }
     }
@@ -56,13 +56,13 @@ interface MottaSøknadRouteBuilder {
         fnr: Fnr = Fnr.random(),
         søknadId: SøknadId = SøknadId.random(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
             fom = deltakelsesperiode.fraOgMed,
             tom = deltakelsesperiode.tilOgMed,
         ),
     ): Pair<Sak, Søknad> {
         val saksnummer = hentEllerOpprettSak(tac, fnr)
-        mottaSøknad(tac, fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltagelse)
+        mottaSøknad(tac, fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltakelse)
         val sak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         return sak to sak.søknader.single { it.id == søknadId }
     }
@@ -73,7 +73,7 @@ interface MottaSøknadRouteBuilder {
         saksnummer: Saksnummer,
         søknadId: SøknadId = SøknadId.random(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
             fom = deltakelsesperiode.fraOgMed,
             tom = deltakelsesperiode.tilOgMed,
         ),
@@ -96,7 +96,7 @@ interface MottaSøknadRouteBuilder {
                     fnr = fnr.verdi,
                     søknadId = søknadId.toString(),
                     deltakelsesperiode = deltakelsesperiode,
-                    tiltaksdeltagelse = tiltaksdeltagelse.toSøknadstiltak(),
+                    tiltaksdeltagelse = tiltaksdeltakelse.toSøknadstiltak(),
                 ),
             )
         }.apply {
@@ -114,7 +114,7 @@ interface MottaSøknadRouteBuilder {
             tac.leggTilPerson(
                 fnr = fnr,
                 person = personopplysningerForBrukerFraPdl,
-                tiltaksdeltagelse = tiltaksdeltagelse,
+                tiltaksdeltakelse = tiltaksdeltakelse,
             )
         }
     }

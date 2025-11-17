@@ -30,12 +30,12 @@ class OppdaterSaksopplysningerService(
         val oppdaterteSaksopplysninger: Saksopplysninger = hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
             fnr = sak.fnr,
             correlationId = correlationId,
-            tiltaksdeltagelserDetErSøktTiltakspengerFor = sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
-            aktuelleTiltaksdeltagelserForBehandlingen = when (behandling) {
-                is Revurdering -> sak.tiltaksdeltagelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }
+            tiltaksdeltakelserDetErSøktTiltakspengerFor = sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
+            aktuelleTiltaksdeltakelserForBehandlingen = when (behandling) {
+                is Revurdering -> sak.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }
                 is Søknadsbehandling -> listOfNotNull(behandling.søknad.tiltak?.id)
             },
-            inkluderOverlappendeTiltaksdeltagelserDetErSøktOm = when (behandling) {
+            inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = when (behandling) {
                 is Revurdering -> false
                 is Søknadsbehandling -> true
             },

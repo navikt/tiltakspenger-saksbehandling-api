@@ -4,8 +4,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 sealed interface RevurderingResultat : BehandlingResultat {
@@ -131,7 +131,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
             require(
                 resetTiltaksdeltagelserDersomDeErInkompatible(
                     valgteTiltaksdeltakelser,
-                    saksopplysninger.tiltaksdeltagelser,
+                    saksopplysninger.tiltaksdeltakelser,
                 ) == valgteTiltaksdeltakelser,
             ) {
                 // Dersom vi denne kaster og vi savner mer sakskontekst, bør denne returnere Either, slik at callee kan håndtere feilen.
@@ -158,7 +158,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
             oppdaterteSaksopplysninger: Saksopplysninger,
         ): Omgjøring {
             val innvilgelsesperiode =
-                oppdaterteSaksopplysninger.tiltaksdeltagelser.totalPeriode?.overlappendePeriode(innvilgelsesperiode)
+                oppdaterteSaksopplysninger.tiltaksdeltakelser.totalPeriode?.overlappendePeriode(innvilgelsesperiode)
                     ?: throw IllegalArgumentException(
                         "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere.",
                     )
@@ -171,7 +171,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 innvilgelsesperiode = innvilgelsesperiode,
                 valgteTiltaksdeltakelser = resetTiltaksdeltagelserDersomDeErInkompatible(
                     valgteTiltaksdeltakelser,
-                    oppdaterteSaksopplysninger.tiltaksdeltagelser,
+                    oppdaterteSaksopplysninger.tiltaksdeltakelser,
                 ),
                 barnetillegg = barnetillegg,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
@@ -184,18 +184,18 @@ sealed interface RevurderingResultat : BehandlingResultat {
             if (valgteTiltaksdeltakelser == null) return false
             if (valgteTiltaksdeltakelser.periodisering.totalPeriode != innvilgelsesperiode) return false
             if (barnetillegg.periodisering.totalPeriode != innvilgelsesperiode) return false
-            if (saksopplysninger.tiltaksdeltagelser.isEmpty()) return false
+            if (saksopplysninger.tiltaksdeltakelser.isEmpty()) return false
             valgteTiltaksdeltakelser.periodisering.forEach { (deltakelse, periode) ->
                 val saksopplysningsDeltakelse =
-                    saksopplysninger.tiltaksdeltagelser.getTiltaksdeltagelse(deltakelse.eksternDeltagelseId)
+                    saksopplysninger.tiltaksdeltakelser.getTiltaksdeltagelse(deltakelse.eksternDeltagelseId)
                         ?: return false
                 return saksopplysningsDeltakelse.periode?.inneholderHele(periode) ?: false
             }
-            if (innvilgelsesperiode.fraOgMed < saksopplysninger.tiltaksdeltagelser.totalPeriode!!.fraOgMed) {
+            if (innvilgelsesperiode.fraOgMed < saksopplysninger.tiltaksdeltakelser.totalPeriode!!.fraOgMed) {
                 // Innvilgelsesperioden kan ikke starte før tiltaksdeltagelsene
                 return false
             }
-            if (innvilgelsesperiode.tilOgMed > saksopplysninger.tiltaksdeltagelser.totalPeriode!!.tilOgMed) {
+            if (innvilgelsesperiode.tilOgMed > saksopplysninger.tiltaksdeltakelser.totalPeriode!!.tilOgMed) {
                 // Innvilgelsesperioden kan ikke slutte etter tiltaksdeltagelsene
                 return false
             }
@@ -210,9 +210,9 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 val innvilgelsesperiode = omgjørRammevedtak.innvilgelsesperiode?.let {
                     // Vi har en generell begrensning om innvilgelseserperioden ikke kan være større enn tiltaksdeltagelsene.
                     // TODO ved flere innvilgelsesperioder: endre denne logikken
-                    saksopplysninger.tiltaksdeltagelser.totalPeriode?.overlappendePeriode(it)
+                    saksopplysninger.tiltaksdeltakelser.totalPeriode?.overlappendePeriode(it)
                         ?: throw IllegalArgumentException(
-                            "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere. sakId: ${omgjørRammevedtak.sakId}, tidligere innvilgelsesperiode: ${omgjørRammevedtak.innvilgelsesperiode}, nye tiltaksdeltagelser: ${saksopplysninger.tiltaksdeltagelser}",
+                            "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere. sakId: ${omgjørRammevedtak.sakId}, tidligere innvilgelsesperiode: ${omgjørRammevedtak.innvilgelsesperiode}, nye tiltaksdeltagelser: ${saksopplysninger.tiltaksdeltakelser}",
                         )
                 } ?: omgjørRammevedtak.periode
                 val valgteTiltaksdeltakelser =
@@ -227,7 +227,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                     innvilgelsesperiode = innvilgelsesperiode,
                     valgteTiltaksdeltakelser = resetTiltaksdeltagelserDersomDeErInkompatible(
                         valgteTiltaksdeltakelser,
-                        saksopplysninger.tiltaksdeltagelser,
+                        saksopplysninger.tiltaksdeltakelser,
                     ),
                     barnetillegg = barnetillegg,
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
@@ -258,15 +258,15 @@ sealed interface RevurderingResultat : BehandlingResultat {
 }
 
 /**
- * Resetter [valgteTiltaksdeltakelser] dersom noen av tiltaksdeltagelsene ikke lenger finnes i [oppdaterteTiltaksdeltagelser].
+ * Resetter [valgteTiltaksdeltakelser] dersom noen av tiltaksdeltagelsene ikke lenger finnes i [oppdaterteTiltaksdeltakelser].
  */
 private fun resetTiltaksdeltagelserDersomDeErInkompatible(
     valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
-    oppdaterteTiltaksdeltagelser: Tiltaksdeltagelser,
+    oppdaterteTiltaksdeltakelser: Tiltaksdeltakelser,
 ): ValgteTiltaksdeltakelser? {
-    if (valgteTiltaksdeltakelser == null || oppdaterteTiltaksdeltagelser.isEmpty()) return null
+    if (valgteTiltaksdeltakelser == null || oppdaterteTiltaksdeltakelser.isEmpty()) return null
     valgteTiltaksdeltakelser.periodisering.forEach { (verdi, _) ->
-        oppdaterteTiltaksdeltagelser.getTiltaksdeltagelse(verdi.eksternDeltagelseId) ?: return null
+        oppdaterteTiltaksdeltakelser.getTiltaksdeltagelse(verdi.eksternDeltagelseId) ?: return null
     }
     return valgteTiltaksdeltakelser
 }

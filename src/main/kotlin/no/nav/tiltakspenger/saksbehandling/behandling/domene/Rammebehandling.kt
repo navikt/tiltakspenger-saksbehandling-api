@@ -30,8 +30,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDateTime
@@ -93,10 +93,10 @@ sealed interface Rammebehandling : Behandling {
     val utbetaling: BehandlingUtbetaling?
 
     fun inneholderSaksopplysningerEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
-        saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
+        saksopplysninger.tiltaksdeltakelser.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
 
-    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? =
-        saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
+    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltakelse? =
+        saksopplysninger.getTiltaksdeltakelse(eksternDeltagelseId)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Rammebehandling
 

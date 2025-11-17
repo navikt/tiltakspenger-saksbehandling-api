@@ -42,7 +42,7 @@ data class InnvilgbarSøknad(
     override val fnr: Fnr = personopplysninger.fnr
     override val erAvbrutt: Boolean by lazy { avbrutt != null }
 
-    override fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode {
+    override fun tiltaksdeltakelseperiodeDetErSøktOm(): Periode {
         return manueltSattSøknadsperiode
             ?: tiltak.let { Periode(it.deltakelseFom, it.deltakelseTom) }
     }
@@ -77,5 +77,5 @@ data class InnvilgbarSøknad(
         kravdato.withDayOfMonth(1).minusMonths(3).isAfter(tiltak.deltakelseFom)
 
     fun erUnder18ISoknadsperioden(fodselsdato: LocalDate): Boolean =
-        fodselsdato.plusYears(18).isAfter(tiltaksdeltagelseperiodeDetErSøktOm().fraOgMed)
+        fodselsdato.plusYears(18).isAfter(tiltaksdeltakelseperiodeDetErSøktOm().fraOgMed)
 }

@@ -66,7 +66,7 @@ class BeregnRevurderingTest {
                 saksopplysninger(
                     fom = it.fraOgMed,
                     tom = it.tilOgMed,
-                    tiltaksdeltagelse = listOf(
+                    tiltaksdeltakelse = listOf(
                         tiltaksdeltagelse(
                             typeKode = tiltakskodeForRevurdering,
                             fom = it.fraOgMed,
@@ -97,7 +97,7 @@ class BeregnRevurderingTest {
             begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("lol"),
             fritekstTilVedtaksbrev = null,
             innvilgelsesperiode = innvilgelsesperiode,
-            tiltaksdeltakelser = revurdering.saksopplysninger.tiltaksdeltagelser.map {
+            tiltaksdeltakelser = revurdering.saksopplysninger.tiltaksdeltakelser.map {
                 Pair(innvilgelsesperiode, it.eksternDeltagelseId)
             },
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,

@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 
 sealed interface BehandlingResultat {
 
@@ -38,7 +38,7 @@ sealed interface BehandlingResultat {
         /**
          * True dersom disse ikke er null: [innvilgelsesperiode], [valgteTiltaksdeltakelser], [barnetillegg] og [antallDagerPerMeldeperiode]
          * Sjekker også at periodene til [valgteTiltaksdeltakelser], [barnetillegg] og [antallDagerPerMeldeperiode] er lik [innvilgelsesperiode].
-         * TODO jah: Ikke direkte relatert til omgjøring, men vi bør utvide denne til og ta høyde for saksopplysninger.tiltaksdeltagelser
+         * TODO jah: Ikke direkte relatert til omgjøring, men vi bør utvide denne til og ta høyde for saksopplysninger.tiltaksdeltakelser
          */
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
             return innvilgelsesperiode != null &&
@@ -76,12 +76,12 @@ fun skalNullstilleResultatVedNyeSaksopplysninger(
     valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
     nyeSaksopplysninger: Saksopplysninger,
 ): Boolean {
-    return if (valgteTiltaksdeltakelser.verdier.size != nyeSaksopplysninger.tiltaksdeltagelser.size) {
+    return if (valgteTiltaksdeltakelser.verdier.size != nyeSaksopplysninger.tiltaksdeltakelser.size) {
         true
     } else {
         (
             valgteTiltaksdeltakelser.verdier.sortedBy { it.eksternDeltagelseId }
-                .zip(nyeSaksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }) { forrige, nye ->
+                .zip(nyeSaksopplysninger.tiltaksdeltakelser.sortedBy { it.eksternDeltagelseId }) { forrige, nye ->
                     // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltagelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
                     forrige.eksternDeltagelseId != nye.eksternDeltagelseId ||
                         forrige.deltagelseFraOgMed != nye.deltagelseFraOgMed ||

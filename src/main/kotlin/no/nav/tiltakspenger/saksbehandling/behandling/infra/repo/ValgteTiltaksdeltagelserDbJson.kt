@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 
 private data class ValgteTiltaksdeltakelserDbJson(
     val value: List<TiltaksdeltakelsePeriodeMedVerdi>,
@@ -25,7 +25,7 @@ fun String.toValgteTiltaksdeltakelser(saksopplysninger: Saksopplysninger): Valgt
         valgteTiltaksdeltakelserDbJson.value.map {
             PeriodeMedVerdi(
                 periode = it.periode.toDomain(),
-                verdi = saksopplysninger.getTiltaksdeltagelse(it.eksternDeltagelseId)
+                verdi = saksopplysninger.getTiltaksdeltakelse(it.eksternDeltagelseId)
                     ?: throw IllegalStateException("Fant ikke tiltaksdeltakelse med id ${it.eksternDeltagelseId} fra saksopplysninger"),
             )
         }.tilSammenhengendePeriodisering(),

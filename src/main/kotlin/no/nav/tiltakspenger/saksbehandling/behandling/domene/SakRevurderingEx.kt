@@ -57,10 +57,10 @@ private suspend fun Sak.startRevurderingStans(
         saksopplysninger = hentSaksopplysninger(
             fnr,
             correlationId,
-            this.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+            this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
             // TODO jah: På sikt er det mer presist at saksbehandler velger denne når hen starter en stans.
-            //  Vi kan begrense denne litt mer ved å fjerne de tiltaksdeltagelsene det ikke er innvilget for, men vi kan utsette det til etter satsingsperioden.
-            this.tiltaksdeltagelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
+            //  Vi kan begrense denne litt mer ved å fjerne de tiltaksdeltakelsene det ikke er innvilget for, men vi kan utsette det til etter satsingsperioden.
+            this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
             false,
         ),
 
@@ -86,10 +86,10 @@ private suspend fun Sak.startRevurderingInnvilgelse(
         saksopplysninger = hentSaksopplysninger(
             fnr,
             correlationId,
-            this.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+            this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
             // TODO jah: På sikt er det mer presist at saksbehandler velger disse når hen starter en revurdering innvilgelse.
             //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
-            this.tiltaksdeltagelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
+            this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
             false,
         ),
         clock = clock,
@@ -112,10 +112,10 @@ private suspend fun Sak.startRevurderingOmgjøring(
         saksopplysninger = hentSaksopplysninger(
             fnr,
             correlationId,
-            this.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+            this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
             // TODO jah: På sikt er det mer presist at saksbehandler velger disse når hen starter en revurdering innvilgelse.
             //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
-            this.tiltaksdeltagelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
+            this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
             false,
         ),
         clock = clock,

@@ -34,7 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSø
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
 /**
  * Gjelder for både søknadsbehandling og revurdering.
@@ -58,7 +58,7 @@ interface IverksettBehandlingBuilder {
             virkningsperiode,
         ),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
-        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
@@ -71,7 +71,7 @@ interface IverksettBehandlingBuilder {
             resultat = resultat,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             barnetillegg = barnetillegg,
-            tiltaksdeltagelse = tiltaksdeltagelse,
+            tiltaksdeltakelse = tiltaksdeltakelse,
         )
         taBehanding(tac, sak.id, behandlingId, beslutter)
         val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(

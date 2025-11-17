@@ -76,7 +76,7 @@ data class Søknadsbehandling(
     /**
      * To kriterier må være oppfylt for at en søknadsbehandling skal kunne innvilges:
      * 1. Det må være søkt på en identifiserbar tiltaksdeltakelse som gir rett til tiltakspenger.
-     * 2. Tiltaksdeltakelsen det er søkt på må matches med tiltaksdeltagelseregisteret, ha en tiltaksstype og status som gir rett til tiltakspenger og ha en definert periode.
+     * 2. Tiltaksdeltakelsen det er søkt på må matches med tiltaksdeltakelseregisteret, ha en tiltaksstype og status som gir rett til tiltakspenger og ha en definert periode.
      */
     val kanInnvilges: Boolean by lazy {
         when (søknad) {
@@ -118,7 +118,7 @@ data class Søknadsbehandling(
             is OppdaterSøknadsbehandlingKommando.Avslag -> {
                 Avslag(
                     avslagsgrunner = kommando.avslagsgrunner,
-                    avslagsperiode = this.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+                    avslagsperiode = this.søknad.tiltaksdeltakelseperiodeDetErSøktOm(),
                 )
             }
 
@@ -216,7 +216,7 @@ data class Søknadsbehandling(
                 is InnvilgbarSøknad -> hentSaksopplysninger(
                     sak.fnr,
                     correlationId,
-                    sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+                    sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
                     listOf(søknad.tiltak.id),
                     true,
                 )
@@ -224,7 +224,7 @@ data class Søknadsbehandling(
                 is IkkeInnvilgbarSøknad -> hentSaksopplysninger(
                     sak.fnr,
                     correlationId,
-                    sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+                    sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
                     søknad.tiltak?.let { listOf(it.id) } ?: emptyList(),
                     true,
                 )
@@ -269,7 +269,7 @@ data class Søknadsbehandling(
             val saksopplysninger = hentSaksopplysninger(
                 søknad.fnr,
                 correlationId,
-                sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+                sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
                 listOf(søknad.tiltak.id),
                 true,
             )

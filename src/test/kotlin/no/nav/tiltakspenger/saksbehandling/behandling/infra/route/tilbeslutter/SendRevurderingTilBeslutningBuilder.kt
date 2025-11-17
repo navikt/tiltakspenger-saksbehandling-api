@@ -36,7 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRe
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 
 interface SendRevurderingTilBeslutningBuilder {
 
@@ -93,7 +93,7 @@ interface SendRevurderingTilBeslutningBuilder {
             revurderingVirkningsperiode = revurderingVirkningsperiode,
         )
 
-        val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelser.single()
+        val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltakelser.single()
 
         val antallDager = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),

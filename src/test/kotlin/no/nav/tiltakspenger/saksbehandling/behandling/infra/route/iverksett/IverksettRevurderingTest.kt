@@ -28,7 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRev
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import org.junit.jupiter.api.Test
 
 internal class IverksettRevurderingTest {
@@ -118,7 +118,7 @@ internal class IverksettRevurderingTest {
                 revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
             )
 
-            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelser.single()
+            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltakelser.single()
 
             val barnetillegg = barnetillegg(
                 begrunnelse = BegrunnelseVilkårsvurdering("barnetillegg begrunnelse"),

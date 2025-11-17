@@ -136,7 +136,7 @@ class SøknadTest {
                     søknadsperiode = søknadsperiode,
                 )
 
-                val periode = søknadMedManueltSattPeriode.tiltaksdeltagelseperiodeDetErSøktOm()
+                val periode = søknadMedManueltSattPeriode.tiltaksdeltakelseperiodeDetErSøktOm()
                 periode.fraOgMed shouldBe søknadsperiode.fraOgMed
                 periode.tilOgMed shouldBe søknadsperiode.tilOgMed
             }
@@ -153,7 +153,7 @@ class SøknadTest {
                     søknadsperiode = null,
                 )
 
-                val periode = søknadMedManueltSattPeriode.tiltaksdeltagelseperiodeDetErSøktOm()
+                val periode = søknadMedManueltSattPeriode.tiltaksdeltakelseperiodeDetErSøktOm()
                 periode.fraOgMed shouldBe søknadstiltak.deltakelseFom
                 periode.tilOgMed shouldBe søknadstiltak.deltakelseTom
             }
@@ -177,7 +177,7 @@ class SøknadTest {
                     søknadsperiode = søknadsperiode,
                 )
 
-                val periode = søknadMedManueltSattPeriode.tiltaksdeltagelseperiodeDetErSøktOm()
+                val periode = søknadMedManueltSattPeriode.tiltaksdeltakelseperiodeDetErSøktOm()
                 periode?.fraOgMed shouldBe søknadsperiode.fraOgMed
                 periode?.tilOgMed shouldBe søknadsperiode.tilOgMed
             }
@@ -198,7 +198,7 @@ class SøknadTest {
                     søknadsperiode = søknadsperiode,
                 )
 
-                val periode = søknadMedManueltSattPeriode.tiltaksdeltagelseperiodeDetErSøktOm()
+                val periode = søknadMedManueltSattPeriode.tiltaksdeltakelseperiodeDetErSøktOm()
                 periode?.fraOgMed shouldBe søknadsperiode.fraOgMed
                 periode?.tilOgMed shouldBe søknadsperiode.tilOgMed
             }
@@ -210,7 +210,7 @@ class SøknadTest {
                     søknadsperiode = null,
                 )
 
-                val periode = søknadMedManueltSattPeriode.tiltaksdeltagelseperiodeDetErSøktOm()
+                val periode = søknadMedManueltSattPeriode.tiltaksdeltakelseperiodeDetErSøktOm()
                 periode?.fraOgMed shouldBe null
                 periode?.tilOgMed shouldBe null
             }

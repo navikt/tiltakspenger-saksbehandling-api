@@ -46,10 +46,10 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.setup.TiltaksdeltagelseContext
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
@@ -96,7 +96,7 @@ class LocalApplicationContext(
 
     private val søknadId: SøknadId = SøknadId.fromString("soknad_01HSTRQBRM443VGB4WA822TE01")
     private val fnr: Fnr = Fnr.fromString("12345678911")
-    private val tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelse(
+    private val tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelse(
         // Siden Komet eier GRUPPE_AMO, vil dette være en UUID. Hadde det vært Arena som var master ville det vært eksempelvis TA6509186.
         eksternTiltaksdeltagelseId = "fa287e7-ddbb-44a2-9bfa-4da4661f8b6d",
         eksternTiltaksgjennomføringsId = "5667273f-784e-4521-89c3-75b0be8ee250",
@@ -106,7 +106,7 @@ class LocalApplicationContext(
         tom = ObjectMother.virkningsperiode().tilOgMed,
         kilde = Tiltakskilde.Komet,
     )
-    private val søknadstiltak = tiltaksdeltagelse.toSøknadstiltak()
+    private val søknadstiltak = tiltaksdeltakelse.toSøknadstiltak()
 
     override val oppgaveKlient: OppgaveKlient by lazy { OppgaveFakeKlient() }
 
@@ -141,16 +141,16 @@ class LocalApplicationContext(
     }
 
     private val tiltaksdeltagelseFakeKlient by lazy {
-        TiltaksdeltagelseFakeKlient(true) { søknadContext.søknadRepo }
+        TiltaksdeltakelseFakeKlient(true) { søknadContext.søknadRepo }
     }
 
     override val tiltakContext by lazy {
-        object : TiltaksdeltagelseContext(
+        object : TiltaksdeltakelseContext(
             texasClient = texasClient,
             sakService = sakContext.sakService,
             personService = personContext.personService,
         ) {
-            override val tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient
+            override val tiltaksdeltakelseKlient = tiltaksdeltagelseFakeKlient
         }
     }
 
@@ -225,7 +225,7 @@ class LocalApplicationContext(
             dokumentdistribusjonsklient = dokumentdistribusjonsklientFakeKlient,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
-            tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient,
+            tiltaksdeltakelseKlient = tiltaksdeltagelseFakeKlient,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataClient,

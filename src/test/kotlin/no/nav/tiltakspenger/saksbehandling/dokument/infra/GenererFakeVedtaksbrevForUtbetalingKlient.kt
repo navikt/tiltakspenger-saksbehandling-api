@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
@@ -15,7 +15,7 @@ class GenererFakeVedtaksbrevForUtbetalingKlient : GenererVedtaksbrevForUtbetalin
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json") }
     override suspend fun genererMeldekortvedtakBrev(
         meldekortvedtak: Meldekortvedtak,
-        tiltaksdeltagelser: Tiltaksdeltagelser,
+        tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {

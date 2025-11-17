@@ -3,8 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -17,26 +16,26 @@ import java.time.LocalDateTime
  */
 data class Saksopplysninger(
     val fødselsdato: LocalDate,
-    val tiltaksdeltagelser: Tiltaksdeltagelser,
+    val tiltaksdeltakelser: Tiltaksdeltakelser,
     val ytelser: Ytelser,
     val tiltakspengevedtakFraArena: TiltakspengevedtakFraArena,
     val oppslagstidspunkt: LocalDateTime,
 ) {
-    val periode: Periode? = tiltaksdeltagelser.totalPeriode
+    val periode: Periode? = tiltaksdeltakelser.totalPeriode
 
     fun kanInnvilges(tiltaksdeltagelseId: String): Boolean {
-        return tiltaksdeltagelser.getTiltaksdeltagelse(tiltaksdeltagelseId)?.kanInnvilges ?: false
+        return tiltaksdeltakelser.getTiltaksdeltagelse(tiltaksdeltagelseId)?.kanInnvilges ?: false
     }
 
-    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? {
-        return tiltaksdeltagelser.getTiltaksdeltagelse(eksternDeltagelseId)
+    fun getTiltaksdeltakelse(eksternDeltagelseId: String): Tiltaksdeltakelse? {
+        return tiltaksdeltakelser.getTiltaksdeltagelse(eksternDeltagelseId)
     }
 
     /**
      * Siden denne kun brukes av den del-automatiske behandlingen ønsker vi å behandle tvilstilfellene (null) som om de kan overlappe.
      */
     fun harOverlappendeTiltaksdeltakelse(eksternDeltakelseId: String, tiltaksperiode: Periode): Boolean {
-        return tiltaksdeltagelser.any {
+        return tiltaksdeltakelser.any {
             it.eksternDeltagelseId != eksternDeltakelseId && (it.overlapperMedPeriode(tiltaksperiode) ?: true)
         }
     }
@@ -49,7 +48,7 @@ data class Saksopplysninger(
 typealias HentSaksopplysninger = suspend (
     fnr: Fnr,
     correlationId: CorrelationId,
-    tiltaksdeltagelserDetErSøktTiltakspengerFor: TiltaksdeltagelserDetErSøktTiltakspengerFor,
+    tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
     aktuelleTiltaksdeltagelserForBehandlingen: List<String>,
     inkluderOverlappendeTiltaksdeltagelserDetErSøktOm: Boolean,
 ) -> Saksopplysninger

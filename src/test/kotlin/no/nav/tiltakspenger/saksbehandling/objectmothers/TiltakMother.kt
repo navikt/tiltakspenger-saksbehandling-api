@@ -9,12 +9,12 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadsti
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus.Deltar
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltaksdeltakelseMedArrangørnavn
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde.Komet
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Deltar
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde.Komet
 import java.time.LocalDate
 import java.util.UUID
 
@@ -36,8 +36,8 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Tiltakskilde.Arena,
         deltidsprosentGjennomforing: Double? = null,
-    ): Tiltaksdeltagelse {
-        return Tiltaksdeltagelse(
+    ): Tiltaksdeltakelse {
+        return Tiltaksdeltakelse(
             eksternDeltagelseId = eksternTiltaksdeltagelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
@@ -68,8 +68,8 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
-    ): Tiltaksdeltagelse {
-        return Tiltaksdeltagelse(
+    ): Tiltaksdeltakelse {
+        return Tiltaksdeltakelse(
             eksternDeltagelseId = eksternTiltaksdeltagelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
@@ -100,8 +100,8 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
-    ): Pair<Tiltaksdeltagelse, Søknadstiltak> {
-        val tiltaksdeltagelse = Tiltaksdeltagelse(
+    ): Pair<Tiltaksdeltakelse, Søknadstiltak> {
+        val tiltaksdeltakelse = Tiltaksdeltakelse(
             eksternDeltagelseId = eksternTiltaksdeltagelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
@@ -115,7 +115,7 @@ interface TiltakMother {
             antallDagerPerUke = dagerPrUke,
             deltidsprosentGjennomforing = deltidsprosentGjennomforing,
         )
-        return tiltaksdeltagelse to søknadstiltak(
+        return tiltaksdeltakelse to søknadstiltak(
             id = eksternTiltaksdeltagelseId,
             deltakelseFom = søknadFraOgMed,
             deltakelseTom = søknadTilOgMed,
@@ -159,7 +159,7 @@ interface TiltakMother {
 
 fun Søknadstiltak.toTiltak(
     eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
-): Tiltaksdeltagelse {
+): Tiltaksdeltakelse {
     return tiltaksdeltagelse(
         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
         eksternTiltaksdeltagelseId = this.id,
@@ -172,7 +172,7 @@ fun Søknadstiltak.toTiltak(
     )
 }
 
-fun Tiltaksdeltagelse.toSøknadstiltak(): Søknadstiltak {
+fun Tiltaksdeltakelse.toSøknadstiltak(): Søknadstiltak {
     return søknadstiltak(
         id = this.eksternDeltagelseId,
         deltakelseFom = this.deltagelseFraOgMed!!,

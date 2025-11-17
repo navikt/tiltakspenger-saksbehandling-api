@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
@@ -194,7 +194,7 @@ internal class PdfgenHttpClient(
 
     override suspend fun genererMeldekortvedtakBrev(
         meldekortvedtak: Meldekortvedtak,
-        tiltaksdeltagelser: Tiltaksdeltagelser,
+        tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
@@ -202,7 +202,7 @@ internal class PdfgenHttpClient(
             jsonPayload = {
                 meldekortvedtak.toJsonRequest(
                     hentSaksbehandlersNavn,
-                    tiltaksdeltagelser,
+                    tiltaksdeltakelser,
                     sammenligning,
                 )
             },

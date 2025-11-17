@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import org.json.JSONObject
 
 interface StartRevurderingBuilder {
@@ -67,10 +67,10 @@ interface StartRevurderingBuilder {
         )
 
         val tiltaksdeltagelseFakeKlient =
-            tac.tiltakContext.tiltaksdeltagelseKlient as TiltaksdeltagelseFakeKlient
+            tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
 
         val oppdatertTiltaksdeltagelse =
-            søknadsbehandling.saksopplysninger.getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
+            søknadsbehandling.saksopplysninger.getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
                 deltagelseFraOgMed = revurderingVirkningsperiode.fraOgMed,
                 deltagelseTilOgMed = revurderingVirkningsperiode.tilOgMed,
             )
@@ -109,7 +109,7 @@ interface StartRevurderingBuilder {
         )
         val oppdatertTiltaksdeltagelse = if (oppdaterTiltaksdeltagelsesperiode != null) {
             søknadsbehandling.saksopplysninger
-                .getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
+                .getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
                 deltagelseFraOgMed = oppdaterTiltaksdeltagelsesperiode.fraOgMed,
                 deltagelseTilOgMed = oppdaterTiltaksdeltagelsesperiode.tilOgMed,
             )

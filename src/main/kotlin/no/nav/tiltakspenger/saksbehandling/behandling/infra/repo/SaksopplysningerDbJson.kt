@@ -3,24 +3,25 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.SaksopplysningerDbJson.TiltaksdeltagelseDbJson
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toDb
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakskilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.SaksopplysningerDbJson.TiltaksdeltakelseDbJson
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toDb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toTiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toTiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toTiltakstypeSomGirRett
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 private data class SaksopplysningerDbJson(
     val fødselsdato: String,
-    val tiltaksdeltagelse: List<TiltaksdeltagelseDbJson>,
+    // TODO jah: Rename til tiltaksdeltakelse
+    val tiltaksdeltagelse: List<TiltaksdeltakelseDbJson>,
     val ytelser: YtelserDbJson,
     val tiltakspengevedtakFraArena: TiltakspengevedtakFraArenaDbJson,
     val oppslagstidspunkt: LocalDateTime,
 ) {
-    data class TiltaksdeltagelseDbJson(
+    data class TiltaksdeltakelseDbJson(
         val eksternDeltagelseId: String,
         val gjennomføringId: String?,
         val typeNavn: String,
@@ -34,8 +35,8 @@ private data class SaksopplysningerDbJson(
         val rettPåTiltakspenger: Boolean,
         val deltidsprosentGjennomforing: Double? = null,
     ) {
-        fun toDomain(): Tiltaksdeltagelse {
-            return Tiltaksdeltagelse(
+        fun toDomain(): Tiltaksdeltakelse {
+            return Tiltaksdeltakelse(
                 eksternDeltagelseId = eksternDeltagelseId,
                 gjennomføringId = gjennomføringId,
                 typeNavn = typeNavn,
@@ -53,8 +54,8 @@ private data class SaksopplysningerDbJson(
     }
 }
 
-private fun Tiltaksdeltagelse.toDbJson(): TiltaksdeltagelseDbJson {
-    return TiltaksdeltagelseDbJson(
+private fun Tiltaksdeltakelse.toDbJson(): TiltaksdeltakelseDbJson {
+    return TiltaksdeltakelseDbJson(
         eksternDeltagelseId = this.eksternDeltagelseId,
         gjennomføringId = this.gjennomføringId,
         typeNavn = this.typeNavn,
@@ -73,7 +74,7 @@ private fun Tiltaksdeltagelse.toDbJson(): TiltaksdeltagelseDbJson {
 fun Saksopplysninger.toDbJson(): String {
     return SaksopplysningerDbJson(
         fødselsdato = fødselsdato.toString(),
-        tiltaksdeltagelse = tiltaksdeltagelser.map { it.toDbJson() },
+        tiltaksdeltagelse = tiltaksdeltakelser.map { it.toDbJson() },
         ytelser = ytelser.toDbJson(),
         tiltakspengevedtakFraArena = tiltakspengevedtakFraArena.toDbJson(),
         oppslagstidspunkt = oppslagstidspunkt,
@@ -84,7 +85,7 @@ fun String.toSaksopplysninger(): Saksopplysninger {
     val dbJson = deserialize<SaksopplysningerDbJson>(this)
     return Saksopplysninger(
         fødselsdato = LocalDate.parse(dbJson.fødselsdato),
-        tiltaksdeltagelser = Tiltaksdeltagelser(dbJson.tiltaksdeltagelse.map { it.toDomain() }),
+        tiltaksdeltakelser = Tiltaksdeltakelser(dbJson.tiltaksdeltagelse.map { it.toDomain() }),
         ytelser = dbJson.ytelser.toDomain(),
         tiltakspengevedtakFraArena = dbJson.tiltakspengevedtakFraArena.toDomain(),
         oppslagstidspunkt = dbJson.oppslagstidspunkt,

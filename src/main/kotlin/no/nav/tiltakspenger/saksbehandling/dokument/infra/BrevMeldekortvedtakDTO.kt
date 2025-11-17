@@ -4,13 +4,13 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskUkedagOgDatoUtenÅrFormatter
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
 private data class MeldekortvedtakDTO(
     val meldekortId: String,
@@ -74,7 +74,7 @@ private data class MeldekortvedtakDTO(
 // TODO: må tilpasses utbetalinger fra revurdering
 suspend fun Meldekortvedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
-    tiltaksdeltagelser: Tiltaksdeltagelser,
+    tiltaksdeltakelser: Tiltaksdeltakelser,
     sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
 ): String {
     return MeldekortvedtakDTO(
@@ -91,7 +91,7 @@ suspend fun Meldekortvedtak.toJsonRequest(
             fom = beregningsperiode.fraOgMed.format(norskDatoFormatter),
             tom = beregningsperiode.tilOgMed.format(norskDatoFormatter),
         ),
-        tiltak = tiltaksdeltagelser.map { it.toTiltakDTO() },
+        tiltak = tiltaksdeltakelser.map { it.toTiltakDTO() },
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
         korrigering = erKorrigering,
         sammenligningAvBeregninger = toBeregningSammenligningDTO(sammenlign),
@@ -152,7 +152,7 @@ private fun Meldekortvedtak.toBeregningSammenligningDTO(
         }
 }
 
-private fun Tiltaksdeltagelse.toTiltakDTO() =
+private fun Tiltaksdeltakelse.toTiltakDTO() =
     MeldekortvedtakDTO.TiltakDTO(
         tiltakstypenavn = typeNavn,
         tiltakstype = typeKode.name,

@@ -46,9 +46,9 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldek
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.setup.TiltaksdeltagelseContext
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
@@ -89,7 +89,7 @@ class TestApplicationContext(
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
     private val behandlingFakeRepo = BehandlingFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
-    private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient { søknadFakeRepo }
+    private val tiltaksdeltagelseFakeKlient = TiltaksdeltakelseFakeKlient { søknadFakeRepo }
     private val sokosUtbetaldataFakeClient = SokosUtbetaldataFakeClient()
     private val tiltakspengerArenaFakeClient = TiltakspengerArenaFakeClient()
     private val personFakeKlient = PersonFakeKlient(clock)
@@ -109,15 +109,15 @@ class TestApplicationContext(
     fun leggTilPerson(
         fnr: Fnr,
         person: EnkelPerson,
-        tiltaksdeltagelse: Tiltaksdeltagelse,
+        tiltaksdeltakelse: Tiltaksdeltakelse,
     ) {
         personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = person)
-        tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
+        tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
         tilgangsmaskinFakeClient.leggTil(fnr, Tilgangsvurdering.Godkjent)
     }
 
-    fun oppdaterTiltaksdeltagelse(fnr: Fnr, tiltaksdeltagelse: Tiltaksdeltagelse?) {
-        tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
+    fun oppdaterTiltaksdeltagelse(fnr: Fnr, tiltaksdeltakelse: Tiltaksdeltakelse?) {
+        tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
     }
 
     private val saksoversiktFakeRepo =
@@ -184,12 +184,12 @@ class TestApplicationContext(
     }
 
     override val tiltakContext by lazy {
-        object : TiltaksdeltagelseContext(
+        object : TiltaksdeltakelseContext(
             texasClient = texasClient,
             sakService = sakContext.sakService,
             personService = personContext.personService,
         ) {
-            override val tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient
+            override val tiltaksdeltakelseKlient = tiltaksdeltagelseFakeKlient
         }
     }
     override val sakContext by lazy {
@@ -250,7 +250,7 @@ class TestApplicationContext(
             dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
-            tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient,
+            tiltaksdeltakelseKlient = tiltaksdeltagelseFakeKlient,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataFakeClient,

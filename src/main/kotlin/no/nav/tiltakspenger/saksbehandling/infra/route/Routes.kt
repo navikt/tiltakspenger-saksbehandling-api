@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonopplysni
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.sakRoutes
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.route.meRoute
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.søknadRoutes
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.hentTiltakdeltakelserRoute
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.hentTiltakdeltakelserRoute
 
 fun Route.routes(
     applicationContext: ApplicationContext,

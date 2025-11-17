@@ -30,8 +30,8 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -55,8 +55,8 @@ class DelautomatiskBehandlingServiceTest {
                 }
 
                 soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
-                val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == soknad.tiltak.id }!!
-                val virkningsperiode = soknad.tiltaksdeltagelseperiodeDetErSøktOm()
+                val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.find { it.eksternDeltagelseId == soknad.tiltak.id }!!
+                val virkningsperiode = soknad.tiltaksdeltakelseperiodeDetErSøktOm()
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
 
@@ -66,7 +66,7 @@ class DelautomatiskBehandlingServiceTest {
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe true
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
 
-                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.tiltaksdeltagelseperiodeDetErSøktOm())
+                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.tiltaksdeltakelseperiodeDetErSøktOm())
                 oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
                 oppdatertBehandling.virkningsperiode shouldBe virkningsperiode
                 oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(virkningsperiode)
@@ -95,7 +95,7 @@ class DelautomatiskBehandlingServiceTest {
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
-                    tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                    tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
                         status = TiltakDeltakerstatus.VenterPåOppstart,
@@ -137,7 +137,7 @@ class DelautomatiskBehandlingServiceTest {
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
-                    tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                    tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
                         status = TiltakDeltakerstatus.Deltar,
@@ -186,7 +186,7 @@ class DelautomatiskBehandlingServiceTest {
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
-                    tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                    tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
                         status = TiltakDeltakerstatus.VenterPåOppstart,
@@ -236,7 +236,7 @@ class DelautomatiskBehandlingServiceTest {
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
-                    tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                    tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
                         status = TiltakDeltakerstatus.Venteliste,
@@ -277,7 +277,7 @@ class DelautomatiskBehandlingServiceTest {
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
-                    tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                    tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
                         fom = virkningsperiode.fraOgMed,
                         tom = virkningsperiode.tilOgMed,
                         status = TiltakDeltakerstatus.Deltar,
@@ -329,7 +329,7 @@ class DelautomatiskBehandlingServiceTest {
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
-                    tiltaksdeltagelse = tiltaksdeltakelse,
+                    tiltaksdeltakelse = tiltaksdeltakelse,
                 )
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
@@ -346,7 +346,7 @@ class DelautomatiskBehandlingServiceTest {
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe true
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
 
-                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.tiltaksdeltagelseperiodeDetErSøktOm())
+                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.tiltaksdeltakelseperiodeDetErSøktOm())
                 oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
                 oppdatertBehandling.virkningsperiode shouldBe virkningsperiode
                 oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(virkningsperiode)
@@ -391,7 +391,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.leggTilPerson(
                     fnr = sak.fnr,
                     person = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
-                    tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first(),
+                    tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first(),
                 )
 
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
@@ -474,7 +474,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.leggTilPerson(
                     fnr = sak.fnr,
                     person = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
-                    tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first(),
+                    tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first(),
                 )
 
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {

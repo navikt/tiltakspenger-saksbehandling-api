@@ -22,8 +22,8 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Ik
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortstatusDb
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toDb
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toDb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toTiltakstypeSomGirRett
 import java.time.LocalDate
 
 /**

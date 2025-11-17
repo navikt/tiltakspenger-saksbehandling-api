@@ -127,7 +127,7 @@ sealed interface Søknad {
      * Merk at dette er sånn tiltaksdeltagelsen så ut i søknadsøyeblikket og kan ha endret seg i etterkant.
      * Man kan bare søke om tiltakspenger for en tiltaksdeltagelse per søknad (aug 2025).
      */
-    fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode?
+    fun tiltaksdeltakelseperiodeDetErSøktOm(): Periode?
     fun erPapirsøknad() = søknadstype == Søknadstype.PAPIR
     fun erDigitalSøknad() = søknadstype == Søknadstype.DIGITAL
     fun kanInnvilges() =

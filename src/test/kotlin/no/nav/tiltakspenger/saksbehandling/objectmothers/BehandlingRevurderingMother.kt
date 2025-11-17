@@ -223,7 +223,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
@@ -290,7 +290,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),

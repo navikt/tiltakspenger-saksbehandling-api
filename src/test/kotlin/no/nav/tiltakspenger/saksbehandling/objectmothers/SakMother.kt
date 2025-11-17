@@ -25,7 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
@@ -90,10 +90,10 @@ interface SakMother {
                     deltakelseTom = virkningsperiode.tilOgMed,
                 ),
             ),
-        registrerteTiltak: Tiltaksdeltagelser = Tiltaksdeltagelser(listOf(søknad.tiltak.toTiltak())),
+        registrerteTiltak: Tiltaksdeltakelser = Tiltaksdeltakelser(listOf(søknad.tiltak.toTiltak())),
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
-            tiltaksdeltagelser = registrerteTiltak,
+            tiltaksdeltakelser = registrerteTiltak,
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
             tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
                 emptyList(),
@@ -204,10 +204,10 @@ interface SakMother {
                     deltakelseTom = virkningsperiode.tilOgMed,
                 ),
             ),
-        registrerteTiltak: Tiltaksdeltagelser = Tiltaksdeltagelser(listOf(søknad.tiltak.toTiltak())),
+        registrerteTiltak: Tiltaksdeltakelser = Tiltaksdeltakelser(listOf(søknad.tiltak.toTiltak())),
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
-            tiltaksdeltagelser = registrerteTiltak,
+            tiltaksdeltakelser = registrerteTiltak,
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
             tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
                 emptyList(),
@@ -283,7 +283,7 @@ interface SakMother {
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 innvilgelsesperiode = virkningsperiode,
-                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelser.map {
+                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltakelser.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 antallDagerPerMeldeperiode = SammenhengendePeriodisering(

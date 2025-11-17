@@ -55,8 +55,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -66,7 +66,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun virkningsperiode() = 1.januar(2023) til 31.mars(2023)
 
     fun Rammebehandling.tiltaksdeltagelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
-        val tiltaksdeltagelse = this.saksopplysninger.tiltaksdeltagelser.single()
+        val tiltaksdeltagelse = this.saksopplysninger.tiltaksdeltakelser.single()
 
         return listOf(
             TiltaksdeltakelsePeriodeDTO(
@@ -197,7 +197,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
@@ -264,7 +264,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
@@ -318,7 +318,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
@@ -370,7 +370,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
@@ -426,7 +426,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
@@ -514,8 +514,8 @@ fun TestApplicationContext.nyInnvilgbarSøknad(
     deltarPåIntroduksjonsprogram: Boolean = false,
     deltarPåKvp: Boolean = false,
     tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
-    tiltaksdeltagelse: Tiltaksdeltagelse? = null,
-    søknadstiltak: Søknadstiltak? = tiltaksdeltagelse?.toSøknadstiltak(),
+    tiltaksdeltakelse: Tiltaksdeltakelse? = null,
+    søknadstiltak: Søknadstiltak? = tiltaksdeltakelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
     søknadId: SøknadId = SøknadId.random(),
     søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(
@@ -548,7 +548,7 @@ fun TestApplicationContext.nyInnvilgbarSøknad(
     ),
 ): Søknad {
     this.søknadContext.søknadService.nySøknad(søknad)
-    this.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltaksdeltagelse ?: søknad.tiltak.toTiltak())
+    this.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltaksdeltakelse ?: søknad.tiltak.toTiltak())
     return søknad
 }
 
@@ -575,8 +575,8 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
         etternavn = etternavn,
     ),
     tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
-    tiltaksdeltagelse: Tiltaksdeltagelse? = null,
-    søknadstiltak: Søknadstiltak? = tiltaksdeltagelse?.toSøknadstiltak(),
+    tiltaksdeltakelse: Tiltaksdeltakelse? = null,
+    søknadstiltak: Søknadstiltak? = tiltaksdeltakelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
     søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(
         fnr = fnr,
@@ -616,7 +616,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
         søknad = søknad,
         personopplysningerFraSøknad = personopplysningerFraSøknad,
         personopplysningerForBrukerFraPdl = personopplysningerForBrukerFraPdl,
-        tiltaksdeltagelse = tiltaksdeltagelse,
+        tiltaksdeltakelse = tiltaksdeltakelse,
         sak = sak,
     )
     val behandling = this.behandlingContext.startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
@@ -655,7 +655,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     val tiltaksdeltakelser = listOf(
         Pair(
             periode,
-            behandling.saksopplysninger.tiltaksdeltagelser.first().eksternDeltagelseId,
+            behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltagelseId,
         ),
     )
 

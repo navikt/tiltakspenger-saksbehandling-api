@@ -44,9 +44,9 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import org.junit.jupiter.api.Test
 
 class OppdaterBehandlingRouteTest {
@@ -79,7 +79,7 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
-            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first()
+            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
             val nyInnvilgelsesperiode = tiltaksdeltagelse.periode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
@@ -153,7 +153,7 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingInnvilgelse(tac)
 
-            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelser.first()
+            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
             val nyInnvilgelsesperiode = tiltaksdeltagelse.periode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
@@ -273,7 +273,7 @@ class OppdaterBehandlingRouteTest {
                 it.beslutter shouldBe null
             }
 
-            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.single()
+            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltakelser.single()
             val tiltaksdeltakelsePeriode = tiltaksdeltagelse.periode!!
 
             val oppdatertTiltaksdeltagelsesPeriode = tiltaksdeltakelsePeriode.minusFraOgMed(7)
@@ -367,7 +367,7 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             // Omgjøringen starter med at tiltaksdeltagelsesperioden er endret siden søknadsvedtaket.
             val (sak, _, søknadsbehandling, revurdering) = startRevurderingOmgjøring(tac)
-            val tiltaksdeltagelseVedOpprettelseAvRevurdering = revurdering!!.saksopplysninger.tiltaksdeltagelser.first()
+            val tiltaksdeltagelseVedOpprettelseAvRevurdering = revurdering!!.saksopplysninger.tiltaksdeltakelser.first()
             val nyOmgjøringsperiodeEtterOppdatering = (3 til 9.april(2025))
             val avbruttTiltaksdeltagelse = tiltaksdeltagelseVedOpprettelseAvRevurdering.copy(
                 deltagelseFraOgMed = tiltaksdeltagelseVedOpprettelseAvRevurdering.deltagelseFraOgMed!!,
@@ -375,7 +375,7 @@ class OppdaterBehandlingRouteTest {
                 deltakelseStatus = TiltakDeltakerstatus.Avbrutt,
             )
             // Under behandlingen endrer tiltaksdeltakelsen seg igjen.
-            tac.oppdaterTiltaksdeltagelse(fnr = sak.fnr, tiltaksdeltagelse = avbruttTiltaksdeltagelse)
+            tac.oppdaterTiltaksdeltagelse(fnr = sak.fnr, tiltaksdeltakelse = avbruttTiltaksdeltagelse)
             val (_, revurderingMedOppdatertSaksopplysninger: Rammebehandling) = oppdaterSaksopplysningerForBehandlingId(
                 tac,
                 sak.id,
@@ -411,7 +411,7 @@ class OppdaterBehandlingRouteTest {
             )
             (oppdatertRevurdering as Revurdering).erFerdigutfylt() shouldBe true
             // Forventer at saksopplysningene er oppdatert, mens resultatet er ubesudlet.
-            oppdatertRevurdering.saksopplysninger.tiltaksdeltagelser.single() shouldBe avbruttTiltaksdeltagelse
+            oppdatertRevurdering.saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltagelse
             val resultat = oppdatertRevurdering.resultat as RevurderingResultat.Omgjøring
             // Kommentar jah: Beklager for alt todomain-greiene. Her bør det expectes på eksplisitte verdier uten å bruke domenekode for mapping.
             resultat.barnetillegg shouldBe barnetillegg.tilBarnetillegg(oppdatertRevurdering.innvilgelsesperiode!!)

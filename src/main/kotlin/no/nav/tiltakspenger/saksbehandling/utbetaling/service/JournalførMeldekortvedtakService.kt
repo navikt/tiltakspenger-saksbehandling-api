@@ -5,7 +5,7 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
@@ -62,13 +62,13 @@ class JournalførMeldekortvedtakService(
                     // Det er mulig at flere rammevedtak gjelder for samme meldekortvedtak, f.eks. ved revurdering.
                     // Ved flere rammevedtak kan de inneholde de samme tiltaksdeltagelsene.
                     // Derfor må vi gruppere på eksternDeltagelseId og ta den nyeste.
-                    val tiltak: Tiltaksdeltagelser = meldekortvedtak.rammevedtak
+                    val tiltak: Tiltaksdeltakelser = meldekortvedtak.rammevedtak
                         .map { sak.hentRammevedtakForId(it) }
                         .mapNotNull { vedtak -> vedtak.valgteTiltaksdeltakelser?.let { vedtak.opprettet to it } }
                         .flatMap { (opprettet, deltakelser) -> deltakelser.verdier.map { opprettet to it } }
                         .groupBy { it.second.eksternDeltagelseId }
                         .map { (_, verdi) -> verdi.maxBy { it.first }.second }
-                        .let { Tiltaksdeltagelser(it) }
+                        .let { Tiltaksdeltakelser(it) }
 
                     require(tiltak.isNotEmpty()) {
                         "Forventet at et det skal finnes tiltaksdeltagelse for meldekortvedtaksperioden"
@@ -86,7 +86,7 @@ class JournalførMeldekortvedtakService(
                             meldekortvedtak,
                             sammenligning = sammenligning,
                             hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                            tiltaksdeltagelser = tiltak,
+                            tiltaksdeltakelser = tiltak,
                         ).getOrElse { return@forEach }
                     log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
                     val journalpostId = journalførMeldekortKlient.journalførMeldekortvedtak(

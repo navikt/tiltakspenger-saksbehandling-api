@@ -27,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 import java.time.LocalDate
@@ -117,7 +117,7 @@ class DelautomatiskBehandlingService(
 
     private suspend fun Sak.sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
-        val innvilgelsesperiode = behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
+        val innvilgelsesperiode = behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()
         val barnetillegg = utledBarnetillegg(behandling)
         val tiltaksdeltakelser = utledTiltaksdeltakelser(behandling)
         val saksbehandler = AUTOMATISK_SAKSBEHANDLER
@@ -130,7 +130,7 @@ class DelautomatiskBehandlingService(
             begrunnelseVilkårsvurdering = null,
             innvilgelsesperiode = innvilgelsesperiode,
             barnetillegg = barnetillegg,
-            // Kommentar jah: Det føles litt vondt og gjenbruke denne kommandoen for det tilfellet her. For automatisk behandling krever vi at det er 1 søknad for 1 tiltak og saksopplysningene bare har funnet en tiltaksdeltagelse.
+            // Kommentar jah: Det føles litt vondt og gjenbruke denne kommandoen for det tilfellet her. For automatisk behandling krever vi at det er 1 søknad for 1 tiltak og saksopplysningene bare har funnet en tiltaksdeltakelse.
             tiltaksdeltakelser = tiltaksdeltakelser,
             antallDagerPerMeldeperiode = utledAntallDagerPerMeldeperiode(behandling),
             automatiskSaksbehandlet = true,
@@ -216,10 +216,10 @@ class DelautomatiskBehandlingService(
         if (behandling.søknad.harBarnUtenforEOS()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_BARN_UTENFOR_EOS)
         }
-        if (behandling.søknad.harBarnSomFyller16FørDato(behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm().tilOgMed)) {
+        if (behandling.søknad.harBarnSomFyller16FørDato(behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm().tilOgMed)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_BARN_FYLLER_16_I_SOKNADSPERIODEN)
         }
-        if (behandling.søknad.harBarnSomBleFødtEtterDato(behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm().fraOgMed)) {
+        if (behandling.søknad.harBarnSomBleFødtEtterDato(behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm().fraOgMed)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_BARN_FODT_I_SOKNADSPERIODEN)
         }
         if (behandling.søknad.harKvp()) {
@@ -305,23 +305,23 @@ class DelautomatiskBehandlingService(
         return manueltBehandlesGrunner
     }
 
-    private fun getSoknadstiltakFraSaksopplysning(behandling: Søknadsbehandling): Tiltaksdeltagelse? {
+    private fun getSoknadstiltakFraSaksopplysning(behandling: Søknadsbehandling): Tiltaksdeltakelse? {
         require(
             behandling.søknad is InnvilgbarSøknad &&
                 behandling.søknad.erDigitalSøknad(),
         ) { "Kan ikke automatisk behandle papirsøknad ${behandling.søknad.id}" }
-        return behandling.saksopplysninger.getTiltaksdeltagelse(behandling.søknad.tiltak.id)
+        return behandling.saksopplysninger.getTiltaksdeltakelse(behandling.søknad.tiltak.id)
     }
 
     private fun tiltakManglerPeriode(
-        tiltakFraSaksopplysning: Tiltaksdeltagelse,
+        tiltakFraSaksopplysning: Tiltaksdeltakelse,
     ): Boolean {
         return tiltakFraSaksopplysning.deltagelseFraOgMed == null || tiltakFraSaksopplysning.deltagelseTilOgMed == null
     }
 
     private fun tiltakFraSoknadHarEndretPeriode(
         tiltakFraSoknad: Søknadstiltak,
-        tiltakFraSaksopplysning: Tiltaksdeltagelse,
+        tiltakFraSaksopplysning: Tiltaksdeltakelse,
     ): Boolean =
         tiltakFraSaksopplysning.deltagelseFraOgMed != tiltakFraSoknad.deltakelseFom ||
             tiltakFraSaksopplysning.deltagelseTilOgMed != tiltakFraSoknad.deltakelseTom
@@ -337,7 +337,7 @@ class DelautomatiskBehandlingService(
 
     private fun utledBarnetillegg(behandling: Søknadsbehandling): Barnetillegg {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
-        val periode = behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
+        val periode = behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()
 
         return if (behandling.søknad.barnetillegg.isNotEmpty()) {
             val antallBarnFraSøknad = behandling.søknad.barnetillegg.size
@@ -359,7 +359,7 @@ class DelautomatiskBehandlingService(
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
         return listOf(
             Pair(
-                behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+                behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm(),
                 behandling.søknad.tiltak.id,
             ),
         )
@@ -370,7 +370,7 @@ class DelautomatiskBehandlingService(
     ): SammenhengendePeriodisering<AntallDagerForMeldeperiode> {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad. BehandlingId: ${behandling.id}" }
         val soknadstiltakFraSaksopplysning = behandling.søknad.tiltak
-            .let { tiltak -> behandling.saksopplysninger.getTiltaksdeltagelse(tiltak.id) }
+            .let { tiltak -> behandling.saksopplysninger.getTiltaksdeltakelse(tiltak.id) }
             ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk. BehandlingId: ${behandling.id}")
         require((soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) || soknadstiltakFraSaksopplysning.getDeltakelsesprosent() == 100.0F) {
             "Tiltaksdeltakelser som mangler dagerPerUke og ikke har deltakelsesprosent 100% kan ikke behandles automatisk. BehandlingId: ${behandling.id}"
@@ -378,17 +378,17 @@ class DelautomatiskBehandlingService(
         return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
             SammenhengendePeriodisering(
                 AntallDagerForMeldeperiode(getDagerPerMeldeperiode(soknadstiltakFraSaksopplysning.antallDagerPerUke)),
-                behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+                behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm(),
             )
         } else {
             SammenhengendePeriodisering(
                 AntallDagerForMeldeperiode(10),
-                behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+                behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm(),
             )
         }
     }
 
-    private fun Tiltaksdeltagelse.getDeltakelsesprosent(): Float? {
+    private fun Tiltaksdeltakelse.getDeltakelsesprosent(): Float? {
         return deltakelseProsent
             ?: deltidsprosentGjennomforing?.toFloat()
     }

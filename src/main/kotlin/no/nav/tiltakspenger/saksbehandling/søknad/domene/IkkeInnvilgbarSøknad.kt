@@ -38,7 +38,7 @@ data class IkkeInnvilgbarSøknad(
     override val fnr: Fnr = personopplysninger.fnr
     override val erAvbrutt: Boolean by lazy { avbrutt != null }
 
-    override fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode? {
+    override fun tiltaksdeltakelseperiodeDetErSøktOm(): Periode? {
         return manueltSattSøknadsperiode
             ?: tiltak?.let { Periode(it.deltakelseFom, it.deltakelseTom) }
     }

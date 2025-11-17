@@ -35,8 +35,8 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.Clock
 
 interface SøknadsbehandlingBuilder {
@@ -47,7 +47,7 @@ interface SøknadsbehandlingBuilder {
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
         virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
@@ -57,14 +57,14 @@ interface SøknadsbehandlingBuilder {
                 tac = tac,
                 fnr = fnr,
                 deltakelsesperiode = virkningsperiode,
-                tiltaksdeltagelse = tiltaksdeltagelse,
+                tiltaksdeltakelse = tiltaksdeltakelse,
             )
         } else {
             opprettSøknadPåSakId(
                 tac = tac,
                 sakId = sakId,
                 deltakelsesperiode = virkningsperiode,
-                tiltaksdeltagelse = tiltaksdeltagelse,
+                tiltaksdeltakelse = tiltaksdeltakelse,
             )
         }
         søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
@@ -97,7 +97,7 @@ interface SøknadsbehandlingBuilder {
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
         virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
@@ -107,7 +107,7 @@ interface SøknadsbehandlingBuilder {
             sakId = sakId,
             fnr = fnr,
             virkningsperiode = virkningsperiode,
-            tiltaksdeltagelse = tiltaksdeltagelse,
+            tiltaksdeltakelse = tiltaksdeltakelse,
         )
         val behandlingOppdatert = behandling.copy(
             status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
@@ -125,7 +125,7 @@ interface SøknadsbehandlingBuilder {
         fnr: Fnr = Fnr.random(),
         virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
@@ -136,7 +136,7 @@ interface SøknadsbehandlingBuilder {
             sakId = sakId,
             fnr = fnr,
             virkningsperiode = virkningsperiode,
-            tiltaksdeltagelse = tiltaksdeltagelse,
+            tiltaksdeltakelse = tiltaksdeltakelse,
         )
 
         val behandlingOppdatert = behandling.taBehandling(saksbehandler = saksbehandler, clock = clock).also {
@@ -160,7 +160,7 @@ interface SøknadsbehandlingBuilder {
             AntallDagerForMeldeperiode(10),
             virkningsperiode,
         ),
-        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltagelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
@@ -172,7 +172,7 @@ interface SøknadsbehandlingBuilder {
             fnr = fnr,
             virkningsperiode = virkningsperiode,
             saksbehandler = saksbehandler,
-            tiltaksdeltagelse = tiltaksdeltagelse,
+            tiltaksdeltakelse = tiltaksdeltakelse,
         )
         oppdaterBehandling(
             tac = tac,
@@ -183,7 +183,7 @@ interface SøknadsbehandlingBuilder {
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
                 valgteTiltaksdeltakelser = nonEmptyListOf(
                     TiltaksdeltakelsePeriodeDTO(
-                        eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
+                        eksternDeltagelseId = tiltaksdeltakelse.eksternDeltagelseId,
                         periode = virkningsperiode.toDTO(),
                     ),
                 ),

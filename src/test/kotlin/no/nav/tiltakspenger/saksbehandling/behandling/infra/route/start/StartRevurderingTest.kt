@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
 
@@ -112,8 +112,8 @@ internal class StartRevurderingTest {
             )
             søknadsbehandling.virkningsperiode shouldBe (1 til 10.april(2025))
             søknadsbehandling.innvilgelsesperiode shouldBe (1 til 10.april(2025))
-            søknadsbehandling.saksopplysninger.tiltaksdeltagelser.single().periode shouldBe (1 til 10.april(2025))
-            omgjøring!!.saksopplysninger.tiltaksdeltagelser.single().periode shouldBe (2 til 9.april(2025))
+            søknadsbehandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
+            omgjøring!!.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
             omgjøring.virkningsperiode shouldBe (1 til 10.april(2025))
             omgjøring.innvilgelsesperiode shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(
@@ -150,8 +150,8 @@ internal class StartRevurderingTest {
             )
             søknadsbehandling.virkningsperiode shouldBe (2 til 9.april(2025))
             søknadsbehandling.innvilgelsesperiode shouldBe (2 til 9.april(2025))
-            søknadsbehandling.saksopplysninger.tiltaksdeltagelser.single().periode shouldBe (2 til 9.april(2025))
-            omgjøring!!.saksopplysninger.tiltaksdeltagelser.single().periode shouldBe (1 til 10.april(2025))
+            søknadsbehandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
+            omgjøring!!.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
             omgjøring.virkningsperiode shouldBe (2 til 9.april(2025))
             omgjøring.innvilgelsesperiode shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(
