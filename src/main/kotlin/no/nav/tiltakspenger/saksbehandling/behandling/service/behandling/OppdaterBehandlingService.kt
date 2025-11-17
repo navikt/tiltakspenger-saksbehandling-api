@@ -73,10 +73,14 @@ class OppdaterBehandlingService(
                 virkningsperiode = kommando.innvilgelsesperiode,
                 barnetilleggsperioder = kommando.barnetillegg.periodisering,
             )
+
             is OppdaterRevurderingKommando.Omgjøring,
             -> this.beregnOmgjøring(
                 behandlingId = kommando.behandlingId,
-                virkningsperiode = (behandling.resultat as RevurderingResultat.Omgjøring).virkningsperiode,
+                virkningsperiode = kommando.utledNyVirkningsperiode(
+                    (behandling.resultat as RevurderingResultat.Omgjøring).virkningsperiode,
+                    kommando.innvilgelsesperiode,
+                ),
                 innvilgelsesperiode = kommando.innvilgelsesperiode,
                 barnetilleggsperioder = kommando.barnetillegg.periodisering,
             )
@@ -135,6 +139,7 @@ class OppdaterBehandlingService(
                     clock = clock,
                 )
             }
+
             is OppdaterRevurderingKommando.Innvilgelse -> {
                 revurdering.oppdaterInnvilgelse(
                     kommando = kommando,
@@ -145,7 +150,8 @@ class OppdaterBehandlingService(
 
             is OppdaterRevurderingKommando.Stans -> {
                 val stansperiode = kommando.utledStansperiode(førsteDagSomGirRett!!, sisteDagSomGirRett!!)
-                val overlappendeperiode = this.vedtaksliste.rammevedtaksliste.innvilgetTidslinje.overlappendePeriode(stansperiode)
+                val overlappendeperiode =
+                    this.vedtaksliste.rammevedtaksliste.innvilgetTidslinje.overlappendePeriode(stansperiode)
                 if (!overlappendeperiode.erSammenhengende) {
                     throw IllegalStateException("Stansperioden $stansperiode må være sammenhengende med eksisterende innvilgede perioder på saken. Finnes ikke sammenhengende periode i ${this.vedtaksliste.rammevedtaksliste.innvilgelsesperioder} for sakId=$id")
                 }

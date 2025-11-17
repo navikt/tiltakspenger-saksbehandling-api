@@ -138,10 +138,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 "Valgte tiltaksdeltakelser er ikke kompatible med saksopplysninger.tiltaksdeltagelser."
             }
             return this.copy(
-                virkningsperiode = Periode(
-                    minOf(this.virkningsperiode.fraOgMed, innvilgelsesperiode.fraOgMed),
-                    maxOf(this.virkningsperiode.tilOgMed, innvilgelsesperiode.tilOgMed),
-                ),
+                virkningsperiode = utledNyVirkningsperiode(this.virkningsperiode, innvilgelsesperiode),
                 innvilgelsesperiode = innvilgelsesperiode,
                 valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
                 barnetillegg = barnetillegg,
@@ -232,6 +229,16 @@ sealed interface RevurderingResultat : BehandlingResultat {
                     barnetillegg = barnetillegg,
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     omgjørRammevedtak = omgjørRammevedtak,
+                )
+            }
+
+            fun utledNyVirkningsperiode(
+                eksisterendeVirkningsperiode: Periode,
+                nyInnvilgelsesperiode: Periode,
+            ): Periode {
+                return Periode(
+                    fraOgMed = minOf(eksisterendeVirkningsperiode.fraOgMed, nyInnvilgelsesperiode.fraOgMed),
+                    tilOgMed = maxOf(eksisterendeVirkningsperiode.tilOgMed, nyInnvilgelsesperiode.tilOgMed),
                 )
             }
         }
