@@ -245,7 +245,7 @@ data class Revurdering(
             saksopplysninger: Saksopplysninger,
             omgjørRammevedtak: Rammevedtak,
             clock: Clock,
-        ): Either<Omgjøring.Companion.KunneIkkeOppretteOmgjøring, Revurdering> {
+        ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
             return opprett(
                 sakId = omgjørRammevedtak.sakId,
                 saksnummer = omgjørRammevedtak.saksnummer,

@@ -50,7 +50,7 @@ suspend fun Sak.startRevurdering(
 }
 
 sealed interface KunneIkkeStarteRevurdering {
-    data class Omgjøring(val årsak: RevurderingResultat.Omgjøring.Companion.KunneIkkeOppretteOmgjøring) : KunneIkkeStarteRevurdering
+    data class Omgjøring(val årsak: KunneIkkeOppretteOmgjøring) : KunneIkkeStarteRevurdering
 }
 
 private suspend fun Sak.startRevurderingStans(
@@ -112,7 +112,7 @@ private suspend fun Sak.startRevurderingOmgjøring(
     correlationId: CorrelationId,
     rammevedtakIdSomOmgjøres: VedtakId,
     clock: Clock,
-): Either<RevurderingResultat.Omgjøring.Companion.KunneIkkeOppretteOmgjøring, Revurdering> {
+): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
     require(this.erRammevedtakGjeldendeForHeleSinPeriode(rammevedtakIdSomOmgjøres)) {
         "I første versjon, kan man kun omgjøre et (delvis) innvilget rammevedtak som er gjeldende for hele sin periode."
     }

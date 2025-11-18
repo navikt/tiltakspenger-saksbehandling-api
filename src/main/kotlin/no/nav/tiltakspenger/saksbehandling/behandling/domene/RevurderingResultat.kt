@@ -202,10 +202,6 @@ sealed interface RevurderingResultat : BehandlingResultat {
         }
 
         companion object {
-            sealed interface KunneIkkeOppretteOmgjøring {
-                object KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag : KunneIkkeOppretteOmgjøring
-            }
-
             fun create(
                 omgjørRammevedtak: Rammevedtak,
                 saksopplysninger: Saksopplysninger,
