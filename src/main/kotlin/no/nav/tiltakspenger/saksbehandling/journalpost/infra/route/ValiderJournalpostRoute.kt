@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
+import java.time.LocalDateTime
 
 fun Route.validerJournalpostRoute(
     validerJournalpostService: ValiderJournalpostService,
@@ -48,4 +49,5 @@ data class ValiderJournalpostBody(
 data class ValiderJournalpostResponse(
     val journalpostFinnes: Boolean,
     val gjelderInnsendtFnr: Boolean?,
+    val datoOpprettet: LocalDateTime?,
 )

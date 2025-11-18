@@ -41,16 +41,20 @@ class StartBehandlingAvPapirsøknadService(
         correlationId: CorrelationId,
     ): Pair<Sak, Søknadsbehandling> {
         val sak = sakService.hentForSaksnummer(saksnummer)
-        val validering = journalpostService.hentOgValiderJournalpost(sak.fnr, kommando.journalpostId)
+        val journalpostValidering = journalpostService.hentOgValiderJournalpost(sak.fnr, kommando.journalpostId)
 
-        if (!validering.journalpostFinnes) {
+        if (!journalpostValidering.journalpostFinnes) {
             throw IllegalArgumentException("Journalpost ${kommando.journalpostId} finnes ikke")
+        }
+
+        if (journalpostValidering.datoOpprettet == null) {
+            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} mangler datoOpprettet")
         }
 
         val papirsøknad = Søknad.opprett(
             sak = sak,
             journalpostId = kommando.journalpostId.toString(),
-            opprettet = kommando.opprettet,
+            opprettet = journalpostValidering.datoOpprettet,
             tidsstempelHosOss = nå(clock),
             personopplysninger = kommando.personopplysninger,
             søknadstiltak = kommando.søknadstiltak,
