@@ -48,7 +48,7 @@ fun genererStønadsstatistikkForRammevedtak(
         virkningsperiodeFraOgMed = vedtak.periode.fraOgMed,
         virkningsperiodeTilOgMed = vedtak.periode.tilOgMed,
         innvilgelsesperioder = listOfNotNull(vedtak.innvilgelsesperiode).map { it.toDTO() },
-        omgjørRammevedtakId = vedtak.omgjørRammevedtak?.toString(),
+        omgjørRammevedtakId = vedtak.omgjørRammevedtak?.id?.toString(),
         ytelse = "IND",
 
         søknadId = søknad?.id?.toString(),
