@@ -185,7 +185,7 @@ internal class StartRevurderingTest {
                 tac = tac,
                 søknadsbehandlingVirkningsperiode = 2 til 9.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = null,
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventetStatus = HttpStatusCode.Forbidden,
             )
             omgjøring shouldBe null
         }

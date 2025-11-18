@@ -354,7 +354,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksopplysninger = hentSaksopplysninger(omgjøringInnvilgelsesperiode),
             omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
-        ).copy(id = id)
+        ).getOrFail().copy(id = id)
     }
 
     fun nyRevurderingOmgjøringUnderTilBeslutning(

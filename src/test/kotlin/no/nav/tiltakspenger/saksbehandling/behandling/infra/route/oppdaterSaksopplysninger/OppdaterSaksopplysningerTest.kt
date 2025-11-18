@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger
 
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.januar
@@ -72,7 +73,7 @@ internal class OppdaterSaksopplysningerTest {
             )
             // Forventer at saksopplysningene er oppdatert og at resultatet har resatt seg.
             (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltakelse
-            oppdatertRevurdering.resultat shouldBe RevurderingResultat.Omgjøring.create(
+            oppdatertRevurdering.resultat.right() shouldBe RevurderingResultat.Omgjøring.create(
                 omgjørRammevedtak = sak.rammevedtaksliste.single(),
                 saksopplysninger = oppdatertRevurdering.saksopplysninger,
             )
@@ -92,7 +93,7 @@ internal class OppdaterSaksopplysningerTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering!!.id,
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventetStatus = HttpStatusCode.Forbidden,
             )
         }
     }

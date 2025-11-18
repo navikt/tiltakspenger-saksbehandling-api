@@ -1,8 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
@@ -29,7 +34,7 @@ class StartRevurderingService(
 
     suspend fun startRevurdering(
         kommando: StartRevurderingKommando,
-    ): Pair<Sak, Revurdering> {
+    ): Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>> {
         val (sakId: SakId) = kommando
         val sak: Sak = sakService.hentForSakId(sakId)
 
@@ -37,7 +42,9 @@ class StartRevurderingService(
             kommando = kommando,
             clock = clock,
             hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
-        )
+        ).getOrElse {
+            return it.left()
+        }
 
         val statistikk = statistikkSakService.genererStatistikkForRevurdering(revurdering)
 
@@ -45,6 +52,6 @@ class StartRevurderingService(
             behandlingRepo.lagre(revurdering, tx)
             statistikkSakRepo.lagre(statistikk, tx)
         }
-        return Pair(oppdatertSak, revurdering)
+        return Pair(oppdatertSak, revurdering).right()
     }
 }

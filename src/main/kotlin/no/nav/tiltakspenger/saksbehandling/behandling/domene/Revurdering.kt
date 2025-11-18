@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -244,7 +245,7 @@ data class Revurdering(
             saksopplysninger: Saksopplysninger,
             omgjørRammevedtak: Rammevedtak,
             clock: Clock,
-        ): Revurdering {
+        ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
             return opprett(
                 sakId = omgjørRammevedtak.sakId,
                 saksnummer = omgjørRammevedtak.saksnummer,
@@ -252,8 +253,10 @@ data class Revurdering(
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
-                resultat = Omgjøring.create(omgjørRammevedtak, saksopplysninger),
-            )
+                resultat = Omgjøring.create(omgjørRammevedtak, saksopplysninger).getOrElse {
+                    return it.left()
+                },
+            ).right()
         }
 
         private fun opprett(
