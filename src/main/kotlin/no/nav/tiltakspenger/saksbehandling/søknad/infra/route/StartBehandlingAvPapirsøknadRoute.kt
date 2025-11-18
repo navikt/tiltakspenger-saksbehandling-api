@@ -54,7 +54,7 @@ fun Route.startBehandlingAvPapirsøknadRoute(
                     navIdent = saksbehandler.navIdent,
                     action = AuditLogEvent.Action.CREATE,
                     correlationId = call.correlationId(),
-                    contextMessage = "Started behandling av papirsøknad med id ${søknad.id} for sak $saksnummer",
+                    contextMessage = "Startet behandling av papirsøknad med id ${søknad.id} for sak $saksnummer",
                 )
                 call.respond(
                     status = HttpStatusCode.OK,
@@ -74,7 +74,6 @@ data class StartBehandlingAvPapirsøknadCommand(
     val journalpostId: JournalpostId,
     val manueltSattSøknadsperiode: Periode?,
     val søknadstiltak: Søknadstiltak?,
-    val opprettet: LocalDateTime,
     val barnetillegg: List<BarnetilleggFraSøknad>,
     val antallVedlegg: Int,
     val kvp: Søknad.PeriodeSpm,

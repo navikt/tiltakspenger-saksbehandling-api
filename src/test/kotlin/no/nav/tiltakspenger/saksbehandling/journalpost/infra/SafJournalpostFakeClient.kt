@@ -18,7 +18,7 @@ class SafJournalpostFakeClient : SafJournalpostClient {
                     id = "12345678911",
                     type = "FNR",
                 ),
-                datoOpprettet = objectMapper.writeValueAsString(LocalDate.now()),
+                datoOpprettet = LocalDate.now().toString(),
             )
         }
 
@@ -29,7 +29,7 @@ class SafJournalpostFakeClient : SafJournalpostClient {
                     id = Fnr.random().verdi,
                     type = "FNR",
                 ),
-                datoOpprettet = objectMapper.writeValueAsString(LocalDate.now()),
+                datoOpprettet = LocalDate.now().toString(),
             )
         }
 
@@ -39,7 +39,7 @@ class SafJournalpostFakeClient : SafJournalpostClient {
                     id = it.verdi,
                     type = "FNR",
                 ),
-                datoOpprettet = objectMapper.writeValueAsString(LocalDate.now()),
+                datoOpprettet = LocalDate.now().toString(),
             )
         }
     }
