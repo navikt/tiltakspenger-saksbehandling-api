@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.Either
 import arrow.core.NonEmptySet
+import arrow.core.right
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -9,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltak
 
 sealed interface SøknadsbehandlingResultat : BehandlingResultat {
 
-    override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): SøknadsbehandlingResultat?
+    override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, SøknadsbehandlingResultat?>
 
     /**
      * Virkningsperioden/vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
@@ -33,7 +35,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean = avslagsgrunner.isNotEmpty()
 
         /** Avslag påvirkes ikke av oppdaterte saksopplysninger */
-        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Avslag = this
+        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Avslag> = this.right()
     }
 
     /**
@@ -50,7 +52,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         SøknadsbehandlingResultat {
         override val virkningsperiode = innvilgelsesperiode
 
-        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Innvilgelse? {
+        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Innvilgelse?> {
             return if (skalNullstilleResultatVedNyeSaksopplysninger(
                     valgteTiltaksdeltakelser,
                     oppdaterteSaksopplysninger,
@@ -59,7 +61,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
                 null
             } else {
                 this
-            }
+            }.right()
         }
     }
 }

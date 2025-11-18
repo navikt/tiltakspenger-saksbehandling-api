@@ -67,4 +67,11 @@ fun Route.oppdaterSaksopplysningerRoute(
 
 internal fun KunneIkkeOppdatereSaksopplysninger.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
     is KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling -> this.valideringsfeil.tilStatusOgErrorJson()
+    KunneIkkeOppdatereSaksopplysninger.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag -> Pair(
+        HttpStatusCode.Forbidden,
+        ErrorJson(
+            "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere.",
+            "kan_kun_starte_omgjøring_dersom_vi_kan_innvilge_minst_1_dag",
+        ),
+    )
 }

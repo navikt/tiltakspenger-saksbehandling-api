@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -567,12 +568,16 @@ sealed interface Rammebehandling : Behandling {
             when (this) {
                 is Søknadsbehandling -> this.copy(
                     saksopplysninger = nyeSaksopplysninger,
-                    resultat = this.resultat?.oppdaterSaksopplysninger(nyeSaksopplysninger),
+                    resultat = this.resultat?.oppdaterSaksopplysninger(nyeSaksopplysninger)?.getOrElse {
+                        return it.left()
+                    },
                 )
 
                 is Revurdering -> this.copy(
                     saksopplysninger = nyeSaksopplysninger,
-                    resultat = this.resultat.oppdaterSaksopplysninger(nyeSaksopplysninger),
+                    resultat = this.resultat.oppdaterSaksopplysninger(nyeSaksopplysninger).getOrElse {
+                        return it.left()
+                    },
                 )
             }
         }

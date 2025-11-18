@@ -1,5 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -10,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 sealed interface RevurderingResultat : BehandlingResultat {
 
-    override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): RevurderingResultat
+    override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, RevurderingResultat>
 
     /**
      * Når man oppretter en revurdering til stans, lagres det før saksbehandler tar stilling til disse feltene.
@@ -43,7 +46,8 @@ sealed interface RevurderingResultat : BehandlingResultat {
         }
 
         /** En stans er ikke avhengig av saksopplysningene */
-        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Stans = this
+        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Stans> =
+            this.right()
 
         companion object {
             val empty: Stans = Stans(
@@ -72,7 +76,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
 
         fun nullstill() = empty
 
-        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Innvilgelse {
+        override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Innvilgelse> {
             return if (valgteTiltaksdeltakelser == null || skalNullstilleResultatVedNyeSaksopplysninger(
                     valgteTiltaksdeltakelser,
                     oppdaterteSaksopplysninger,
@@ -81,7 +85,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 nullstill()
             } else {
                 this
-            }
+            }.right()
         }
 
         companion object {
@@ -153,12 +157,10 @@ sealed interface RevurderingResultat : BehandlingResultat {
          */
         override fun oppdaterSaksopplysninger(
             oppdaterteSaksopplysninger: Saksopplysninger,
-        ): Omgjøring {
+        ): Either<KunneIkkeOppdatereSaksopplysninger, Omgjøring> {
             val innvilgelsesperiode =
                 oppdaterteSaksopplysninger.tiltaksdeltakelser.totalPeriode?.overlappendePeriode(innvilgelsesperiode)
-                    ?: throw IllegalArgumentException(
-                        "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere.",
-                    )
+                    ?: return KunneIkkeOppdatereSaksopplysninger.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag.left()
             val valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.krympPeriode(innvilgelsesperiode)
             val barnetillegg = barnetillegg.krympPeriode(innvilgelsesperiode)
             val antallDagerPerMeldeperiode =
@@ -173,7 +175,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 barnetillegg = barnetillegg,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                 omgjørRammevedtak = omgjørRammevedtak,
-            )
+            ).right()
         }
 
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
@@ -200,17 +202,19 @@ sealed interface RevurderingResultat : BehandlingResultat {
         }
 
         companion object {
+            sealed interface KunneIkkeOppretteOmgjøring {
+                object KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag : KunneIkkeOppretteOmgjøring
+            }
+
             fun create(
                 omgjørRammevedtak: Rammevedtak,
                 saksopplysninger: Saksopplysninger,
-            ): Omgjøring {
+            ): Either<KunneIkkeOppretteOmgjøring, Omgjøring> {
                 val innvilgelsesperiode = omgjørRammevedtak.innvilgelsesperiode?.let {
                     // Vi har en generell begrensning om innvilgelseserperioden ikke kan være større enn tiltaksdeltakelsene.
                     // TODO ved flere innvilgelsesperioder: endre denne logikken
                     saksopplysninger.tiltaksdeltakelser.totalPeriode?.overlappendePeriode(it)
-                        ?: throw IllegalArgumentException(
-                            "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere. sakId: ${omgjørRammevedtak.sakId}, tidligere innvilgelsesperiode: ${omgjørRammevedtak.innvilgelsesperiode}, nye tiltaksdeltakelser: ${saksopplysninger.tiltaksdeltakelser}",
-                        )
+                        ?: return KunneIkkeOppretteOmgjøring.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag.left()
                 } ?: omgjørRammevedtak.periode
                 val valgteTiltaksdeltakelser =
                     omgjørRammevedtak.valgteTiltaksdeltakelser!!.krympPeriode(innvilgelsesperiode)
@@ -229,7 +233,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                     barnetillegg = barnetillegg,
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     omgjørRammevedtak = omgjørRammevedtak,
-                )
+                ).right()
             }
 
             fun utledNyVirkningsperiode(

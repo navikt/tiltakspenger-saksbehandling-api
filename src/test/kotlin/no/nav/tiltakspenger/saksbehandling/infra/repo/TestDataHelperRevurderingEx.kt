@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
@@ -67,7 +68,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             ),
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
-        )
+        ).getOrFail()
     }.also {
         behandlingRepo.lagre(it.second)
     }
@@ -314,7 +315,7 @@ internal fun TestDataHelper.persisterOpprettetOmgjøring(
             ),
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
-        )
+        ).getOrFail()
     }.also {
         behandlingRepo.lagre(it.second)
     }

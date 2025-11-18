@@ -1,5 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -13,7 +17,7 @@ suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
     clock: Clock,
     hentSaksopplysninger: HentSaksopplysninger,
-): Pair<Sak, Revurdering> {
+): Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>> {
     val revurdering = when (kommando.revurderingType) {
         RevurderingType.STANS -> startRevurderingStans(
             saksbehandler = kommando.saksbehandler,
@@ -35,12 +39,18 @@ suspend fun Sak.startRevurdering(
             correlationId = kommando.correlationId,
             rammevedtakIdSomOmgjøres = kommando.vedtakIdSomOmgjøres!!,
             clock = clock,
-        )
+        ).getOrElse {
+            return KunneIkkeStarteRevurdering.Omgjøring(it).left()
+        }
     }
     return Pair(
         this.leggTilRevurdering(revurdering),
         revurdering,
-    )
+    ).right()
+}
+
+sealed interface KunneIkkeStarteRevurdering {
+    data class Omgjøring(val årsak: RevurderingResultat.Omgjøring.Companion.KunneIkkeOppretteOmgjøring) : KunneIkkeStarteRevurdering
 }
 
 private suspend fun Sak.startRevurderingStans(
@@ -102,7 +112,7 @@ private suspend fun Sak.startRevurderingOmgjøring(
     correlationId: CorrelationId,
     rammevedtakIdSomOmgjøres: VedtakId,
     clock: Clock,
-): Revurdering {
+): Either<RevurderingResultat.Omgjøring.Companion.KunneIkkeOppretteOmgjøring, Revurdering> {
     require(this.erRammevedtakGjeldendeForHeleSinPeriode(rammevedtakIdSomOmgjøres)) {
         "I første versjon, kan man kun omgjøre et (delvis) innvilget rammevedtak som er gjeldende for hele sin periode."
     }

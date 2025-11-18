@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.Either
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -51,7 +52,7 @@ sealed interface BehandlingResultat {
         }
     }
 
-    fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): BehandlingResultat?
+    fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, BehandlingResultat?>
 }
 
 sealed interface BehandlingResultatType
