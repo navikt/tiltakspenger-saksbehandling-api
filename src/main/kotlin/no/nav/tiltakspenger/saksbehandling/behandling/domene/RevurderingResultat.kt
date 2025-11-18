@@ -251,13 +251,13 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 "Virkningsperioden ($virkningsperiode) må inneholde hele innvilgelsesperiode ($innvilgelsesperiode)"
             }
             if (virkningsperiode.fraOgMed < omgjørRammevedtak.fraOgMed) {
-                require(innvilgelsesperiode.fraOgMed == omgjørRammevedtak.fraOgMed) {
-                    "Når virkningsperioden ($virkningsperiode) starter før det omgjorte vedtaket (${omgjørRammevedtak.periode}), må innvilgelsesperiode ($innvilgelsesperiode) starte samtidig som det omgjorte vedtaket (${omgjørRammevedtak.periode})"
+                require(innvilgelsesperiode.fraOgMed == virkningsperiode.fraOgMed) {
+                    "Når virkningsperioden ($virkningsperiode) starter før det omgjorte vedtaket (${omgjørRammevedtak.periode}), må innvilgelsesperiode ($innvilgelsesperiode) starte samtidig som virkningsperioden"
                 }
             }
             if (virkningsperiode.tilOgMed > omgjørRammevedtak.tilOgMed) {
-                require(innvilgelsesperiode.tilOgMed == omgjørRammevedtak.tilOgMed) {
-                    "Når virkningsperioden ($virkningsperiode) slutter etter det omgjorte vedtaket (${omgjørRammevedtak.periode}), må innvilgelsesperiode ($innvilgelsesperiode) slutte samtidig som det omgjorte vedtaket (${omgjørRammevedtak.periode})"
+                require(innvilgelsesperiode.tilOgMed == virkningsperiode.tilOgMed) {
+                    "Når virkningsperioden ($virkningsperiode) slutter etter det omgjorte vedtaket (${omgjørRammevedtak.periode}), må innvilgelsesperiode ($innvilgelsesperiode) slutte samtidig som virkningsperioden"
                 }
             }
         }
