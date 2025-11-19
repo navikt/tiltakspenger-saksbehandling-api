@@ -209,6 +209,7 @@ interface BehandlingMother : MotherOfAllMothers {
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = this.clock,
+        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
     ): Søknadsbehandling {
         return this.nyOpprettetSøknadsbehandling(
             id = id,
@@ -246,7 +247,7 @@ interface BehandlingMother : MotherOfAllMothers {
             },
             clock = clock,
             utbetaling = null,
-            omgjørRammevedtak = OmgjørRammevedtak.empty,
+            omgjørRammevedtak = omgjørRammevedtak,
         ).getOrFail()
     }
 
@@ -277,6 +278,7 @@ interface BehandlingMother : MotherOfAllMothers {
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = this.clock,
+        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
     ): Søknadsbehandling {
         return this.oppdatertSøknadsbehandling(
             id = id,
@@ -296,6 +298,7 @@ interface BehandlingMother : MotherOfAllMothers {
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner,
             resultat = resultat,
+            omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
         ).tilBeslutning(
             saksbehandler = saksbehandler,
@@ -330,6 +333,7 @@ interface BehandlingMother : MotherOfAllMothers {
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         clock: Clock = fixedClock,
     ): Søknadsbehandling {
         return nySøknadsbehandlingKlarTilBeslutning(
@@ -350,6 +354,7 @@ interface BehandlingMother : MotherOfAllMothers {
             resultat = resultat,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner,
+            omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
         ).taBehandling(beslutter, clock) as Søknadsbehandling
     }
@@ -378,6 +383,7 @@ interface BehandlingMother : MotherOfAllMothers {
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         utdøvendeBeslutter: Saksbehandler = beslutter(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         clock: Clock = fixedClock,
     ): Søknadsbehandling {
         return nySøknadsbehandlingUnderBeslutning(
@@ -397,6 +403,7 @@ interface BehandlingMother : MotherOfAllMothers {
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             oppgaveId = oppgaveId,
             resultat = resultat,
+            omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
         ).underkjenn(
             utøvendeBeslutter = utdøvendeBeslutter,
@@ -439,6 +446,7 @@ interface BehandlingMother : MotherOfAllMothers {
             virkningsperiode,
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
     ): Søknadsbehandling {
         return nySøknadsbehandlingUnderBeslutning(
             id = id,
@@ -460,6 +468,7 @@ interface BehandlingMother : MotherOfAllMothers {
             clock = clock,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner,
+            omgjørRammevedtak = omgjørRammevedtak,
         ).iverksett(
             utøvendeBeslutter = beslutter,
             attestering = godkjentAttestering(beslutter, clock),
@@ -758,7 +767,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         barnetillegg = barnetillegg,
         avslagsgrunner = avslagsgrunner,
     )
-    val behandling = tac.behandlingContext.iverksettBehandlingService.iverksett(
+    val behandling = tac.behandlingContext.iverksettBehandlingService.iverksettRammebehandling(
         behandlingId = underBeslutning.rammebehandlinger.singleOrNullOrThrow()!!.id,
         beslutter = beslutter,
         sakId = underBeslutning.id,

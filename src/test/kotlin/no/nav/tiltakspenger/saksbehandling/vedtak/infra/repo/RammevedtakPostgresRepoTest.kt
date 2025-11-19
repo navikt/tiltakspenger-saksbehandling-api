@@ -5,11 +5,10 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingInnvilgelseIverksatt
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.clock
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import org.junit.jupiter.api.Test
 
@@ -18,7 +17,7 @@ class RammevedtakPostgresRepoTest {
     @Test
     fun `henter vedtak for datadeling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (_, rammevedtak, _, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort()
+            val (_, rammevedtak, _, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort()
             testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling() shouldBe listOf(rammevedtak)
         }
     }
@@ -35,7 +34,7 @@ class RammevedtakPostgresRepoTest {
     fun `kan lagre rammevedtak med utbetaling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val clock = TikkendeKlokke()
-            val (sak) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(clock = clock)
+            val (sak) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(clock = clock)
             val innvilgesesperiode = Periode(sak.førsteDagSomGirRett!!, sak.sisteDagSomGirRett!!)
 
             val (oppdatertSak, revurdering) = testDataHelper.persisterRevurderingInnvilgelseIverksatt(
@@ -47,11 +46,14 @@ class RammevedtakPostgresRepoTest {
                 clock = clock,
             )
 
-            val (_, vedtak) = oppdatertSak.opprettVedtak(revurdering, clock)
+            val (sakMedNyttVedtak, vedtak) = oppdatertSak.opprettVedtak(revurdering, clock)
 
             testDataHelper.sessionFactory.withTransactionContext { tx ->
                 testDataHelper.behandlingRepo.lagre(vedtak.behandling, tx)
                 testDataHelper.vedtakRepo.lagre(vedtak, tx)
+                sakMedNyttVedtak.rammevedtaksliste.dropLast(1).forEach {
+                    testDataHelper.vedtakRepo.markerOmgjortAv(it.id, it.omgjortAvRammevedtak, tx)
+                }
             }
             val finalSak = testDataHelper.sakRepo.hentForSakId(sak.id)!!
 

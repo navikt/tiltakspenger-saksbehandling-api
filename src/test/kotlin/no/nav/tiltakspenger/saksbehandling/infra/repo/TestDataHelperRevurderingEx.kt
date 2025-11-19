@@ -93,25 +93,29 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
     genererSak: (Sak?) -> Pair<Sak, Revurdering> = { s -> this.persisterOpprettetRevurdering(s) },
 ): Pair<Sak, Revurdering> {
     val (sakMedRevurdering, revurdering) = genererSak(s)
-
+    var kommando = OppdaterRevurderingKommando.Stans(
+        sakId = sakMedRevurdering.id,
+        behandlingId = revurdering.id,
+        saksbehandler = saksbehandler,
+        correlationId = CorrelationId.generate(),
+        begrunnelseVilkårsvurdering = begrunnelse,
+        stansFraOgMed = OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed.create(stansFraOgMed),
+        stansTilOgMed = OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed.create(stansTilOgMed),
+        valgteHjemler = valgteHjemler,
+        fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("TestDataHelper.persisterRevurderingTilBeslutning"),
+    )
+    val stansperiode = kommando.utledStansperiode(
+        førsteDagSomGirRett = sakMedRevurdering.førsteDagSomGirRett!!,
+        sisteDagSomGirRett = sakMedRevurdering.sisteDagSomGirRett!!,
+    )
     return runBlocking {
         revurdering.oppdaterStans(
-            kommando = OppdaterRevurderingKommando.Stans(
-                sakId = sakMedRevurdering.id,
-                behandlingId = revurdering.id,
-                saksbehandler = saksbehandler,
-                correlationId = CorrelationId.generate(),
-                begrunnelseVilkårsvurdering = begrunnelse,
-                stansFraOgMed = OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed.create(stansFraOgMed),
-                stansTilOgMed = OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed.create(stansTilOgMed),
-                valgteHjemler = valgteHjemler,
-                fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("TestDataHelper.persisterRevurderingTilBeslutning"),
-            ),
-            førsteDagSomGirRett = sakMedRevurdering.førsteDagSomGirRett!!,
-            sisteDagSomGirRett = sakMedRevurdering.sisteDagSomGirRett!!,
+            kommando = kommando,
+            førsteDagSomGirRett = sakMedRevurdering.førsteDagSomGirRett,
+            sisteDagSomGirRett = sakMedRevurdering.sisteDagSomGirRett,
             clock = clock,
             utbetaling = utbetaling,
-            omgjørRammevedtak = OmgjørRammevedtak.empty,
+            omgjørRammevedtak = sakMedRevurdering.vedtaksliste.finnRammevedtakSomOmgjøres(stansperiode),
         )
     }.getOrNull()!!.tilBeslutning().let {
         behandlingRepo.lagre(it)
@@ -181,10 +185,16 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
     val iverksattRevurdering =
         revurderingTilBeslutning.iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
 
-    behandlingRepo.lagre(iverksattRevurdering)
+    val stansVedtak = sessionFactory.withTransactionContext { tx ->
+        behandlingRepo.lagre(iverksattRevurdering, tx)
 
-    val (_, stansVedtak) = sakMedRevurderingTilBeslutning.opprettVedtak(iverksattRevurdering, clock)
-    vedtakRepo.lagre(stansVedtak)
+        val (sakMedNyttVedtak, stansVedtak) = sakMedRevurderingTilBeslutning.opprettVedtak(iverksattRevurdering, clock)
+        vedtakRepo.lagre(stansVedtak, tx)
+        sakMedNyttVedtak.rammevedtaksliste.dropLast(1).forEach {
+            vedtakRepo.markerOmgjortAv(it.id, it.omgjortAvRammevedtak, tx)
+        }
+        stansVedtak
+    }
 
     return Triple(sakRepo.hentForSakId(sakMedRevurderingTilBeslutning.id)!!, stansVedtak, iverksattRevurdering)
 }
@@ -279,7 +289,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
                     simulering = null,
                 )
             },
-            omgjørRammevedtak = OmgjørRammevedtak.empty,
+            omgjørRammevedtak = sakMedRevurdering.vedtaksliste.finnRammevedtakSomOmgjøres(periode),
         )
     }.getOrNull()!!.tilBeslutning().taBehandling(
         saksbehandler = beslutter,

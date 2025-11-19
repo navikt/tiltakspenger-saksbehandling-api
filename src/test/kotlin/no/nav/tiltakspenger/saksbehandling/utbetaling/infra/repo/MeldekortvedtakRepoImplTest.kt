@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakMedBehandletMeldekort
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import org.junit.jupiter.api.Test
@@ -16,7 +16,7 @@ class MeldekortvedtakRepoImplTest {
     fun `kan lagre og hente`() {
         val tidspunkt = nå(fixedClock)
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (sak, _, meldekortvedtak, meldekort) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+            val (sak, _, meldekortvedtak, meldekort) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )

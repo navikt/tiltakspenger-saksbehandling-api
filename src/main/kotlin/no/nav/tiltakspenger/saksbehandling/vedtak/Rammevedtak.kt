@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
@@ -55,7 +56,6 @@ data class Rammevedtak(
     val sendtTilDatadeling: LocalDateTime?,
     val brevJson: String?,
     val omgjortAvRammevedtak: OmgjortAvRammevedtak,
-    val omgjørRammevedtak: OmgjørRammevedtak,
 ) : Vedtak,
     Periodiserbar {
     override val fnr: Fnr = behandling.fnr
@@ -67,9 +67,15 @@ data class Rammevedtak(
 
     val resultat: BehandlingResultat = behandling.resultat!!
 
+    val omgjørRammevedtak: OmgjørRammevedtak by lazy { behandling.resultat!!.omgjørRammevedtak }
+
     /** Er dette en omgjøringsbehandling? */
     val erOmgjøringsbehandling: Boolean by lazy {
         behandling.resultat is RevurderingResultat.Omgjøring
+    }
+
+    val erAvslag: Boolean by lazy {
+        behandling.resultat is SøknadsbehandlingResultat.Avslag
     }
 
     /** Vil være null for stans, avslag eller dersom bruker ikke har rett på barnetillegg  */
@@ -83,7 +89,11 @@ data class Rammevedtak(
 
     val innvilgelsesperiode = behandling.innvilgelsesperiode
 
+    /**
+     * Avslag anses ikke som gjeldende.
+     */
     val gjeldendePerioder: List<Periode> by lazy {
+        if (erAvslag) return@lazy emptyList()
         if (omgjortAvRammevedtak.isEmpty()) {
             listOf(periode)
         } else {
@@ -91,7 +101,7 @@ data class Rammevedtak(
         }
     }
 
-    /** Merk at et vedtak fremdeles er gjeldende dersom det er delvis omgjort. */
+    /** Merk at et vedtak fremdeles er gjeldende dersom det er delvis omgjort. Avslag anses ikke som gjeldende. */
     val erGjeldende: Boolean by lazy {
         gjeldendePerioder.isNotEmpty()
     }
@@ -102,12 +112,12 @@ data class Rammevedtak(
      *
      * Tenkt kalt under behandlingen for å avgjøre hvilke rammevedtak som vil bli omgjort.
      * Obs: Merk at en annen behandling kan ha omgjort det samme/de samme vedtakene etter at denne metoden er kalt, men før denne behandlingen iverksettes.
-     * @param virkningsperiode vurderingsperioden/vedtaksperioden til en ny behandling/vedtak som potensielt vil omgjøre dette vedtaket. Kan være en ren innvilgelse, et rent opphør eller en blanding.
-     * @return En tom liste dersom dette vedtaket ikke lenger gjelder eller [virkningsperiode] ikke overlapper, ellers en liste over perioder som omgjøres.
+     * @param vedtaksperiode til en ny behandling/vedtak som potensielt vil omgjøre dette vedtaket. Kan være en ren innvilgelse, et rent opphør eller en blanding.
+     * @return En tom liste dersom dette vedtaket ikke lenger gjelder eller [vedtaksperiode] ikke overlapper, ellers en liste over perioder som omgjøres.
      */
-    fun finnPerioderSomOmgjøres(virkningsperiode: Periode): Omgjøringsperioder {
+    fun finnPerioderSomOmgjøres(vedtaksperiode: Periode): Omgjøringsperioder {
         return Omgjøringsperioder(
-            virkningsperiode.overlappendePerioder(gjeldendePerioder).map {
+            vedtaksperiode.overlappendePerioder(gjeldendePerioder).map {
                 Omgjøringsperiode(
                     rammevedtakId = this.id,
                     periode = it,
@@ -117,13 +127,29 @@ data class Rammevedtak(
         )
     }
 
+    /**
+     * Når et nytt vedtak iverksettes, gjør vi en sjekk på om det nye vedtaket omgjør det eksisterende vedtaket eller ikke.
+     */
+    fun oppdaterOmgjortAvRammevedtak(nyttRammevedtak: Rammevedtak): Rammevedtak {
+        val nyeOmgjøringsperioder = Omgjøringsperioder(
+            nyttRammevedtak.periode.overlappendePerioder(gjeldendePerioder).map {
+                Omgjøringsperiode(
+                    rammevedtakId = nyttRammevedtak.id,
+                    periode = it,
+                    omgjøringsgrad = if (it == this.periode) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS,
+                )
+            },
+        )
+        if (nyeOmgjøringsperioder.isEmpty()) return this
+        return this.copy(omgjortAvRammevedtak = this.omgjortAvRammevedtak.leggTil(nyeOmgjøringsperioder))
+    }
+
     init {
         require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
         require(sakId == behandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${behandling.id}" }
         require(this@Rammevedtak.periode == behandling.virkningsperiode) { "Periode i vedtak (${this@Rammevedtak.periode}) og behandlingens virkningsperiode (${behandling.virkningsperiode}) må være lik. SakId: $sakId, Saksnummer: ${behandling.saksnummer} BehandlingId: ${behandling.id}" }
         require(id !in omgjørRammevedtak.rammevedtakIDer)
         require(id !in omgjortAvRammevedtak.rammevedtakIDer)
-        (behandling.resultat as? RevurderingResultat.Omgjøring)?.omgjørRammevedtak
 
         utbetaling?.also {
             require(id == it.vedtakId)
@@ -133,6 +159,11 @@ data class Rammevedtak(
             require(saksbehandler == it.saksbehandler)
             require(beslutter == it.beslutter)
             require(behandling.id == it.beregningKilde.id)
+        }
+        if (erAvslag) {
+            require(utbetaling == null) { "Vedtak som er avslag kan ikke ha utbetaling. VedtakId: $id" }
+            require(omgjørRammevedtak.isEmpty())
+            require(omgjortAvRammevedtak.isEmpty())
         }
     }
 }
@@ -173,7 +204,6 @@ fun Sak.opprettVedtak(
         behandling = behandling,
         periode = behandling.virkningsperiode!!,
         omgjortAvRammevedtak = OmgjortAvRammevedtak.empty,
-        omgjørRammevedtak = behandling.omgjørRammevedtak,
         utbetaling = utbetaling,
         vedtaksdato = null,
         journalpostId = null,

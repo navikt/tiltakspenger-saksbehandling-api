@@ -878,7 +878,7 @@ class RammebehandlingDTOTest {
             saksnummer = saksnummer,
             fnr = fnr,
             søknadsbehandlingInnvilgelsesperiode = virkningsperiode.plusFraOgMed(1),
-            omgjørRammevedtak = nyRammevedtakInnvilgelse(
+            vedtattInnvilgetSøknadsbehandling = nyRammevedtakInnvilgelse(
                 id = vedtakId,
                 sakId = sakId,
                 innvilgelsesperiode = behandling.virkningsperiode!!,

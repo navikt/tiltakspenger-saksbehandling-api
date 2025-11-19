@@ -199,14 +199,6 @@ data class Sak(
         return this.copy(behandlinger = this.behandlinger.oppdaterRammebehandling(behandling))
     }
 
-    fun oppdaterSøknadsbehandling(behandling: Søknadsbehandling): Sak {
-        return this.oppdaterRammebehandling(behandling)
-    }
-
-    fun oppdaterRevurdering(behandling: Revurdering): Sak {
-        return this.oppdaterRammebehandling(behandling)
-    }
-
     fun leggTilMeldekortvedtak(vedtak: Meldekortvedtak): Sak {
         return this.copy(vedtaksliste = this.vedtaksliste.leggTilMeldekortvedtak(vedtak))
     }

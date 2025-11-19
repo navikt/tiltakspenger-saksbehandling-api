@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurdering
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakMedBehandletMeldekort
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import org.junit.jupiter.api.Test
 
@@ -24,7 +24,7 @@ class PersonPostgresRepoTest {
                 testDataHelper.personRepo.hentFnrForSøknadId(sak.rammebehandlinger.søknadsbehandlinger.singleOrNullOrThrow()!!.søknad.id) shouldBe sak.fnr
             }
             val innvilgelsesperiode = Periode(2.januar(2023), 31.mars(2023))
-            testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+            testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = innvilgelsesperiode.fraOgMed,
                 deltakelseTom = innvilgelsesperiode.tilOgMed,
             ).also {

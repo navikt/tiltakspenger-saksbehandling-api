@@ -632,7 +632,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
 /**
  * Persisterer behandlingen, rammevedtaket og utbetalingen
  */
-internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
+internal fun TestDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 2.januar(2023),

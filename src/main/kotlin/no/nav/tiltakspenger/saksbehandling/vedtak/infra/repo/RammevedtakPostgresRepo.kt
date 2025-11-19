@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toOmgjortAvRammevedtak
-import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toOmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -283,8 +282,7 @@ class RammevedtakPostgresRepo(
                         til_og_med, 
                         saksbehandler, 
                         beslutter,
-                        opprettet,
-                        omgjør_rammevedtak
+                        opprettet
                     ) values (
                         :id, 
                         :sak_id, 
@@ -295,8 +293,7 @@ class RammevedtakPostgresRepo(
                         :til_og_med, 
                         :saksbehandler, 
                         :beslutter,
-                        :opprettet,
-                        to_jsonb(:omgjoer_rammevedtak::jsonb)
+                        :opprettet
                     )
                     """,
                     "id" to vedtak.id.toString(),
@@ -309,7 +306,6 @@ class RammevedtakPostgresRepo(
                     "saksbehandler" to vedtak.saksbehandler,
                     "beslutter" to vedtak.beslutter,
                     "opprettet" to vedtak.opprettet,
-                    "omgjoer_rammevedtak" to vedtak.omgjørRammevedtak.toDbJson(),
                 ).asUpdate,
             )
         }
@@ -337,7 +333,6 @@ class RammevedtakPostgresRepo(
                 brevJson = stringOrNull("brev_json"),
                 opprettet = localDateTime("opprettet"),
                 utbetaling = utbetaling,
-                omgjørRammevedtak = stringOrNull("omgjør_rammevedtak").toOmgjørRammevedtak(),
                 omgjortAvRammevedtak = stringOrNull("omgjort_av_rammevedtak").toOmgjortAvRammevedtak(),
             )
         }
