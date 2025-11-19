@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toDbJson
+import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo.Companion.toRammevedtak
 import org.flywaydb.core.api.migration.BaseJavaMigration
@@ -29,7 +30,7 @@ class V151__migrer_omgjort_rammevedtak : BaseJavaMigration() {
 
         sessionFactory.withTransactionContext { tx ->
             tx.withSession { session ->
-                hentAlleRammevedtak(session).groupBy { it.sakId }.forEach { (_, rammevedtaksliste) ->
+                hentAlleRammevedtak(session).groupBy { it.sakId }.forEach { (sakId, rammevedtaksliste) ->
                     val sortert = rammevedtaksliste.sortedBy { it.opprettet }
                     sortert.forEachIndexed { index, vedtak ->
                         val tidslinjeFørDetteVedtaket = sortert.take(index).toTidslinje()
@@ -58,6 +59,8 @@ class V151__migrer_omgjort_rammevedtak : BaseJavaMigration() {
                             }
                         markerOmgjortAv(vedtak.id, omgjortAvRammevedtak, session)
                     }
+                    // Ekstra init sjekk
+                    SakPostgresRepo.hentForSakId(sakId,tx)
                 }
             }
         }
