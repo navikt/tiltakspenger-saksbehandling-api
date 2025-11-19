@@ -35,7 +35,10 @@ data class Meldeperiode(
         return girRett.values.toList().all { !it }
     }
 
-    // TODO Anders: når skal vi tillate at meldekortet fylles ut? Siste fredag i perioden?
+    /**
+     *  Saksbehandler kan fylle ut meldekortet når meldeperioden har begynt.
+     *  For bruker har vi en annen logikk.
+     * */
     fun erKlarTilUtfylling(clock: Clock): Boolean {
         return periode.fraOgMed <= LocalDate.now(clock)
     }
