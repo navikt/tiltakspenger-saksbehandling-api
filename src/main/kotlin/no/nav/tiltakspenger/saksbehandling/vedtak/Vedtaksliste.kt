@@ -55,6 +55,9 @@ data class Vedtaksliste(
         return rammevedtaksliste.harInnvilgetTiltakspengerEtterDato(dato)
     }
 
+    /**
+     * Legger til et rammevedtak i vedtaklisten og oppdaterer omgjortAvRammevedtak per vedtak
+     */
     fun leggTilRammevedtak(rammevedtak: Rammevedtak): Vedtaksliste {
         return copy(rammevedtaksliste = rammevedtaksliste.leggTil(rammevedtak))
     }

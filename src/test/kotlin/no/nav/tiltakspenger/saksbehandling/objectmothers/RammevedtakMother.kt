@@ -34,10 +34,12 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
         fnr: Fnr = Fnr.random(),
+        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             virkningsperiode = periode,
             fnr = fnr,
+            omgjørRammevedtak = omgjørRammevedtak,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
         journalpostId: JournalpostId? = null,
@@ -48,6 +50,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         brevJson: String? = null,
         forrigeUtbetalingId: UtbetalingId? = null,
         omgjortAvRammevedtakId: VedtakId? = null,
+
     ) = Rammevedtak(
         id = id,
         opprettet = opprettet,
@@ -66,7 +69,6 @@ interface RammevedtakMother : MotherOfAllMothers {
             opprettet = opprettet,
             forrigeUtbetalingId = forrigeUtbetalingId,
         ),
-        omgjørRammevedtak = OmgjørRammevedtak.empty,
         omgjortAvRammevedtak = OmgjortAvRammevedtak.empty,
     )
 
@@ -156,6 +158,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
+        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         behandling: Rammebehandling = ObjectMother.nyVedtattRevurderingStans(
             sakId = sakId,
             virkningsperiode = periode,
@@ -165,6 +168,7 @@ interface RammevedtakMother : MotherOfAllMothers {
             sisteDagSomGirRett = periode.tilOgMed,
             stansFraOgMed = periode.fraOgMed,
             stansTilOgMed = periode.tilOgMed,
+            omgjørRammevedtak = omgjørRammevedtak,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
         journalpostId: JournalpostId? = null,
@@ -173,6 +177,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         distribusjonstidspunkt: LocalDateTime? = null,
         sendtTilDatadeling: LocalDateTime? = null,
         brevJson: String? = null,
+
     ): Rammevedtak = nyttRammevedtak(
         id = id,
         opprettet = opprettet,
@@ -186,6 +191,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         distribusjonstidspunkt = distribusjonstidspunkt,
         sendtTilDatadeling = sendtTilDatadeling,
         brevJson = brevJson,
+        omgjørRammevedtak = omgjørRammevedtak,
     )
 
     fun Rammebehandling.tilRammevedtakUtbetaling(

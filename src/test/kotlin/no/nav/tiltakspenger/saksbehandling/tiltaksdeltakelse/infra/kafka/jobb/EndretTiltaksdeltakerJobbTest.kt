@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetAutomatiskSøknadsbehandling
@@ -440,6 +441,7 @@ class EndretTiltaksdeltakerJobbTest {
 
         @Test
         fun `innvilgelse + stans (over hele perioden) lager ikke oppgave`() {
+            withTestApplicationContext { }
             withMigratedDb(runIsolated = true) { testDataHelper ->
                 runBlocking {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository

@@ -38,7 +38,7 @@ fun Route.iverksettBehandlingRoute(
                 val correlationId = call.correlationId()
                 krevBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                iverksettBehandlingService.iverksett(behandlingId, saksbehandler, sakId).fold(
+                iverksettBehandlingService.iverksettRammebehandling(behandlingId, saksbehandler, sakId).fold(
                     {
                         when (it) {
                             is KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter -> call.respond400BadRequest(

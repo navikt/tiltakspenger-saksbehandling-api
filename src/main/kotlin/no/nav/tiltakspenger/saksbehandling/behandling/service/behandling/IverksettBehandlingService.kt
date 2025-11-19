@@ -24,9 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
-import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
-import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperioder
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
@@ -48,7 +45,7 @@ class IverksettBehandlingService(
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
 ) {
-    suspend fun iverksett(
+    suspend fun iverksettRammebehandling(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
         sakId: SakId,
@@ -83,8 +80,8 @@ class IverksettBehandlingService(
             genererStønadsstatistikkForRammevedtak(vedtak)
         }
 
-        when (behandling) {
-            is Revurdering -> oppdatertSak.iverksett(
+        val doubleOppdatertSak = when (behandling) {
+            is Revurdering -> oppdatertSak.iverksettRammebehandling(
                 vedtak = vedtak,
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk!!,
@@ -97,7 +94,7 @@ class IverksettBehandlingService(
             )
         }
 
-        return (oppdatertSak to iverksattBehandling).right()
+        return (doubleOppdatertSak to iverksattBehandling).right()
     }
 
     private fun Sak.iverksettSøknadsbehandling(
@@ -106,7 +103,7 @@ class IverksettBehandlingService(
         stønadStatistikk: StatistikkStønadDTO?,
     ): Sak {
         return when (vedtak.resultat) {
-            is BehandlingResultat.Innvilgelse -> iverksett(vedtak, sakStatistikk, stønadStatistikk!!)
+            is BehandlingResultat.Innvilgelse -> this.iverksettRammebehandling(vedtak, sakStatistikk, stønadStatistikk!!)
 
             is SøknadsbehandlingResultat.Avslag -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
@@ -127,7 +124,7 @@ class IverksettBehandlingService(
         }
     }
 
-    private fun Sak.iverksett(
+    private fun Sak.iverksettRammebehandling(
         vedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
@@ -136,15 +133,20 @@ class IverksettBehandlingService(
             "Kan kun iverksette innvilgelse eller stans"
         }
 
-        val (oppdatertSak, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
-        val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
-            this.meldekortbehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder, clock)
+        val (sakOppdatertMedMeldeperioder, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
+        val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) = this.meldekortbehandlinger.oppdaterMedNyeKjeder(
+            oppdaterteKjeder = sakOppdatertMedMeldeperioder.meldeperiodeKjeder,
+            tiltakstypePerioder = tiltakstypeperioder,
+            clock = clock,
+        )
+        val sakOppdatertMedMeldekortbehandlinger =
+            sakOppdatertMedMeldeperioder.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)
             sakService.oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
-                sakId = oppdatertSak.id,
+                sakId = sakOppdatertMedMeldeperioder.id,
                 skalSendesTilMeldekortApi = true,
                 skalSendeMeldeperioderTilDatadeling = true,
                 sessionContext = tx,
@@ -155,24 +157,15 @@ class IverksettBehandlingService(
             meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
-            vedtak.omgjørRammevedtak.forEach {
+            // Marker tidligere omgjorte vedtak som omgjort av dette vedtaket. Trenger ikke oppdatere det siste, da det er det nye vedtaket.
+            sakOppdatertMedMeldekortbehandlinger.rammevedtaksliste.dropLast(1).forEach {
                 rammevedtakRepo.markerOmgjortAv(
-                    it.rammevedtakId,
-                    OmgjortAvRammevedtak(
-                        omgjøringsperioder = Omgjøringsperioder(
-                            listOf(
-                                Omgjøringsperiode(
-                                    rammevedtakId = vedtak.id,
-                                    periode = it.periode,
-                                    omgjøringsgrad = it.omgjøringsgrad,
-                                ),
-                            ),
-                        ),
-                    ),
+                    it.id,
+                    it.omgjortAvRammevedtak,
                     tx,
                 )
             }
         }
-        return oppdatertSak.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)
+        return sakOppdatertMedMeldekortbehandlinger
     }
 }
