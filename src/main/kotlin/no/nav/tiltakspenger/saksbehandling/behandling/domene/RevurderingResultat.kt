@@ -256,22 +256,24 @@ sealed interface RevurderingResultat : BehandlingResultat {
             require(virkningsperiode.inneholderHele(innvilgelsesperiode)) {
                 "Virkningsperioden ($virkningsperiode) må inneholde hele innvilgelsesperiode ($innvilgelsesperiode)"
             }
-            if (virkningsperiode.fraOgMed < omgjørRammevedtak.fraOgMed) {
+            if (omgjørRammevedtak.fraOgMed != null && virkningsperiode.fraOgMed < omgjørRammevedtak.fraOgMed) {
                 require(innvilgelsesperiode.fraOgMed == virkningsperiode.fraOgMed) {
                     "Når virkningsperioden sin fraOgMed (${virkningsperiode.fraOgMed}) starter før det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed}), må innvilgelsesperioden sin fraOgMed (${innvilgelsesperiode.fraOgMed}) starte samtidig som det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed})"
                 }
             }
-            if (virkningsperiode.tilOgMed > omgjørRammevedtak.tilOgMed) {
+            if (omgjørRammevedtak.tilOgMed != null && virkningsperiode.tilOgMed > omgjørRammevedtak.tilOgMed) {
                 require(innvilgelsesperiode.tilOgMed == virkningsperiode.tilOgMed) {
                     "Når virkningsperioden sin tilOgMed (${virkningsperiode.tilOgMed}) slutter etter det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed}), må innvilgelsesperioden sin tilOgMed (${innvilgelsesperiode.tilOgMed}) slutte samtidig som det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed})"
                 }
             }
-            require(
-                omgjørRammevedtak.size == 1 &&
-                    omgjørRammevedtak.first().omgjøringsgrad == Omgjøringsgrad.HELT &&
-                    virkningsperiode.inneholderHele(omgjørRammevedtak.first().periode),
-            ) {
-                "Omgjøring støtter kun å omgjøre ett tidligere vedtak i sin helhet per tidspunkt."
+            if (omgjørRammevedtak.isNotEmpty()) {
+                require(
+                    omgjørRammevedtak.size == 1 &&
+                        omgjørRammevedtak.first().omgjøringsgrad == Omgjøringsgrad.HELT &&
+                        virkningsperiode.inneholderHele(omgjørRammevedtak.first().periode),
+                ) {
+                    "Omgjøring støtter kun å omgjøre ett tidligere vedtak i sin helhet per tidspunkt."
+                }
             }
         }
     }
