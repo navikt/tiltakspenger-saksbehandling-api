@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -40,7 +41,12 @@ data class Saksopplysninger(
         }
     }
 
-    fun harAndreYtelser(): Boolean = ytelser.isNotEmpty()
+    fun harAndreYtelserEnnTiltakspenger(): Boolean {
+        if (ytelser.isNotEmpty()) {
+            return ytelser.value.any { it.ytelsetype != Ytelsetype.TILTAKSPENGER }
+        }
+        return false
+    }
 
     fun harTiltakspengevedtakFraArena(): Boolean = tiltakspengevedtakFraArena.isNotEmpty()
 }

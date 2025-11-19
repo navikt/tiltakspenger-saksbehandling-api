@@ -279,7 +279,7 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_MINDRE_ENN_14_DAGER_MELLOM_TILTAK_OG_SOKNAD)
         }
 
-        if (behandling.saksopplysninger.harAndreYtelser()) {
+        if (behandling.saksopplysninger.harAndreYtelserEnnTiltakspenger()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ANDRE_YTELSER)
         }
 
