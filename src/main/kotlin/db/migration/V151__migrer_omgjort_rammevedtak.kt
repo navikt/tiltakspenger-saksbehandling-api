@@ -101,12 +101,13 @@ private fun persisterOmgjørRammevedtak(
     session.run(
         queryOf(
             """
-                    update rammevedtak
+                    update behandling
                     set omgjør_rammevedtak = to_jsonb(:omgjoer_rammevedtak::jsonb)
-                    where id = :id
+                    join rammevedtak on behandling.id = rammevedtak.behandling_id
+                    where rammevedtak.id = :rammevedtak_id
                     """.trimIndent(),
             mapOf(
-                "id" to vedtakId.toString(),
+                "rammevedtak_id" to vedtakId.toString(),
                 "omgjoer_rammevedtak" to omgjørRammevedtak.toDbJson(),
             ),
         ).asUpdate,
