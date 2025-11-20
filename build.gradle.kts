@@ -112,7 +112,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
     // need quarkus-junit-4-mock because of https://github.com/testcontainers/testcontainers-java/issues/970
-    testImplementation("io.quarkus:quarkus-junit4-mock:3.29.3")
+    testImplementation("io.quarkus:quarkus-junit4-mock:3.30.0")
     testImplementation("io.github.serpro69:kotlin-faker:1.16.0")
     testApi("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
     testApi("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")
@@ -123,7 +123,7 @@ dependencies {
 plugins {
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
     kotlin("jvm") version "2.2.21"
-    id("com.diffplug.spotless") version "8.0.0"
+    id("com.diffplug.spotless") version "8.1.0"
     application
 }
 application {

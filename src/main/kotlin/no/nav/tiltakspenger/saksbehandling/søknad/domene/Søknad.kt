@@ -43,6 +43,13 @@ sealed interface Søknad {
     // Blir ikke satt for digitale søknader
     val manueltSattSøknadsperiode: Periode?
 
+    /**
+     * Fritekstfelt for at saksbehandler kan skrive inn hvilket tiltak søknaden gjelder for ved papirsøknader, hvor man ikke
+     * har kunne velge et relevant tiltak. Enten fordi man ikke fikk treff på tiltaket når papirsøknaden ble registrert eller
+     * fordi tiltaket ikke gir rett til tiltakspenger.
+     */
+    val manueltSattTiltak: String?
+
     companion object {
         fun randomId() = SøknadId.random()
         fun opprett(
@@ -66,6 +73,7 @@ sealed interface Søknad {
             trygdOgPensjon: PeriodeSpm,
             antallVedlegg: Int,
             manueltSattSøknadsperiode: Periode?,
+            manueltSattTiltak: String?,
             søknadstype: Søknadstype,
         ): Søknad =
             if (søknadstiltak != null) {
@@ -92,6 +100,7 @@ sealed interface Søknad {
                     trygdOgPensjon = trygdOgPensjon,
                     vedlegg = antallVedlegg,
                     manueltSattSøknadsperiode = manueltSattSøknadsperiode,
+                    manueltSattTiltak = manueltSattTiltak,
                     søknadstype = søknadstype,
                 )
             } else {
@@ -118,6 +127,7 @@ sealed interface Søknad {
                     trygdOgPensjon = trygdOgPensjon,
                     vedlegg = antallVedlegg,
                     manueltSattSøknadsperiode = manueltSattSøknadsperiode,
+                    manueltSattTiltak = manueltSattTiltak,
                     søknadstype = søknadstype,
                 )
             }

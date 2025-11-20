@@ -33,6 +33,7 @@ data class IkkeInnvilgbarSøknad(
     override val trygdOgPensjon: Søknad.PeriodeSpm,
     override val vedlegg: Int,
     override val manueltSattSøknadsperiode: Periode?,
+    override val manueltSattTiltak: String?,
     override val søknadstype: Søknadstype,
 ) : Søknad {
     override val fnr: Fnr = personopplysninger.fnr

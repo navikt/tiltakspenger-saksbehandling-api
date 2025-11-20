@@ -72,6 +72,7 @@ class StartBehandlingAvPapirsøknadService(
             trygdOgPensjon = kommando.trygdOgPensjon,
             antallVedlegg = kommando.antallVedlegg,
             manueltSattSøknadsperiode = kommando.manueltSattSøknadsperiode,
+            manueltSattTiltak = kommando.manueltSattTiltak,
             søknadstype = Søknadstype.PAPIR,
         )
 

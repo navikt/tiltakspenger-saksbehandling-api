@@ -14,6 +14,7 @@ data class PapirsøknadBody(
     val journalpostId: String,
     val personopplysninger: PersonopplysningerDTO,
     val manueltSattSøknadsperiode: PeriodeDTO?,
+    val manueltSattTiltak: String?,
     val antallVedlegg: Int,
     val svar: PapirsøknadSvarDTO,
 ) {
@@ -22,6 +23,7 @@ data class PapirsøknadBody(
             personopplysninger = personopplysninger.tilDomene(),
             journalpostId = JournalpostId(journalpostId),
             manueltSattSøknadsperiode = manueltSattSøknadsperiode?.toDomain(),
+            manueltSattTiltak = manueltSattTiltak,
             søknadstiltak = this.svar.tiltak?.tilDomene(),
             barnetillegg = this.svar.barnetilleggPdl.map { it.tilDomenePdl() } +
                 this.svar.barnetilleggManuelle.map { it.tilDomeneManuell() },
