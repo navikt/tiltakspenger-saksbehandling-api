@@ -28,7 +28,7 @@ class TiltaksdeltakelseService(
             return KunneIkkeHenteTiltaksdeltakelser.OppslagsperiodeMangler.left()
         }
 
-        if (!fraOgMed.isAfter(tilOgMed)) {
+        if (tilOgMed.isBefore(fraOgMed)) {
             return KunneIkkeHenteTiltaksdeltakelser.NegativOppslagsperiode.left()
         }
 
