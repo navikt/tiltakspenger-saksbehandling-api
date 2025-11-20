@@ -258,7 +258,8 @@ internal object SøknadDAO {
                     oppgave_id,
                     soknadstype,
                     manuelt_satt_soknadsperiode_fra_og_med,
-                    manuelt_satt_soknadsperiode_til_og_med
+                    manuelt_satt_soknadsperiode_til_og_med,
+                    manuelt_satt_tiltak
                 ) values (
                     :id,
                     :versjon,
@@ -313,7 +314,8 @@ internal object SøknadDAO {
                     :oppgave_id,
                     :soknadstype,
                     :manuelt_satt_soknadsperiode_fra_og_med,
-                    :manuelt_satt_soknadsperiode_til_og_med
+                    :manuelt_satt_soknadsperiode_til_og_med,
+                    :manuelt_satt_tiltak
                 )
                 """.trimIndent(),
                 paramMap =
@@ -333,6 +335,7 @@ internal object SøknadDAO {
                         "soknadstype" to søknad.søknadstype.toDbValue(),
                         "manuelt_satt_soknadsperiode_fra_og_med" to søknad.manueltSattSøknadsperiode?.fraOgMed,
                         "manuelt_satt_soknadsperiode_til_og_med" to søknad.manueltSattSøknadsperiode?.tilOgMed,
+                        "manuelt_satt_tiltak" to søknad.manueltSattTiltak,
                     ),
             ).asUpdate,
         )
@@ -401,6 +404,7 @@ internal object SøknadDAO {
             } else {
                 null
             }
+        val manueltSattTiltak = stringOrNull("manuelt_satt_tiltak")
         return if (søknadstiltak != null) {
             InnvilgbarSøknad(
                 versjon = versjon,
@@ -433,6 +437,7 @@ internal object SøknadDAO {
                 avbrutt = avbrutt,
                 søknadstype = søknadstype,
                 manueltSattSøknadsperiode = manueltSattSøknadsperiode,
+                manueltSattTiltak = manueltSattTiltak,
             )
         } else {
             IkkeInnvilgbarSøknad(
@@ -466,6 +471,7 @@ internal object SøknadDAO {
                 avbrutt = avbrutt,
                 søknadstype = søknadstype,
                 manueltSattSøknadsperiode = manueltSattSøknadsperiode,
+                manueltSattTiltak = manueltSattTiltak,
             )
         }
     }
