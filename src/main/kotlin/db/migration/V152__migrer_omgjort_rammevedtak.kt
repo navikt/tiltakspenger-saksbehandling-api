@@ -5,12 +5,14 @@ package db.migration
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Session
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.overlappendePerioder
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresTransactionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
@@ -44,7 +46,7 @@ class V152__migrer_omgjort_rammevedtak : BaseJavaMigration() {
                                 )
                             },
                         )
-                        persisterOmgjørRammevedtak(vedtak.id, omgjør, session)
+                        persisterOmgjørRammevedtak(vedtak.behandling.id, omgjør, session)
 
                         val omgjortAvRammevedtak =
                             sortert.drop(index + 1).fold(OmgjortAvRammevedtak.empty) { acc, omgjortAvRammevedtak ->
@@ -60,7 +62,7 @@ class V152__migrer_omgjort_rammevedtak : BaseJavaMigration() {
                         markerOmgjortAv(vedtak.id, omgjortAvRammevedtak, session)
                     }
                     // Ekstra init sjekk
-                    SakPostgresRepo.hentForSakId(sakId,tx)
+                    SakPostgresRepo.hentForSakId(sakId, tx)
                 }
             }
         }
@@ -94,22 +96,19 @@ private fun markerOmgjortAv(
 }
 
 private fun persisterOmgjørRammevedtak(
-    vedtakId: VedtakId,
+    behandlingId: BehandlingId,
     omgjørRammevedtak: OmgjørRammevedtak,
     session: Session,
 ) {
     session.run(
-        queryOf(
+        sqlQuery(
             """
-                    update behandling
-                    set omgjør_rammevedtak = to_jsonb(:omgjoer_rammevedtak::jsonb)
-                    join rammevedtak on behandling.id = rammevedtak.behandling_id
-                    where rammevedtak.id = :rammevedtak_id
-                    """.trimIndent(),
-            mapOf(
-                "rammevedtak_id" to vedtakId.toString(),
-                "omgjoer_rammevedtak" to omgjørRammevedtak.toDbJson(),
-            ),
+                 UPDATE behandling
+                 SET omgjør_rammevedtak = to_jsonb(:omgjoer_rammevedtak::jsonb)
+                 WHERE id = :behandling_id
+                 """.trimIndent(),
+            "behandling_id" to behandlingId.toString(),
+            "omgjoer_rammevedtak" to omgjørRammevedtak.toDbJson(),
         ).asUpdate,
     )
 }
