@@ -73,6 +73,7 @@ data class StartBehandlingAvPapirsøknadCommand(
     val personopplysninger: Søknad.Personopplysninger,
     val journalpostId: JournalpostId,
     val manueltSattSøknadsperiode: Periode?,
+    val manueltSattTiltak: String?,
     val søknadstiltak: Søknadstiltak?,
     val barnetillegg: List<BarnetilleggFraSøknad>,
     val antallVedlegg: Int,

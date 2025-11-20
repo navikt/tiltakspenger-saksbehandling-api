@@ -160,6 +160,7 @@ interface SøknadMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         avbrutt: Avbrutt? = null,
         søknadsperiode: Periode? = ObjectMother.virkningsperiode(),
+        manueltSattTiltak: String? = null,
         søknadstype: Søknadstype = Søknadstype.PAPIR,
     ): IkkeInnvilgbarSøknad =
         IkkeInnvilgbarSøknad(
@@ -187,6 +188,7 @@ interface SøknadMother {
             saksnummer = saksnummer,
             avbrutt = avbrutt,
             manueltSattSøknadsperiode = søknadsperiode,
+            manueltSattTiltak = manueltSattTiltak,
             søknadstype = søknadstype,
         )
 

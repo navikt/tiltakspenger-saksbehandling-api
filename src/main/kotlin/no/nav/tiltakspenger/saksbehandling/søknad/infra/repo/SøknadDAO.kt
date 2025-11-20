@@ -401,6 +401,7 @@ internal object SøknadDAO {
             } else {
                 null
             }
+        val manueltSattTiltak = stringOrNull("manuelt_satt_tiltak")
         return if (søknadstiltak != null) {
             InnvilgbarSøknad(
                 versjon = versjon,
@@ -433,6 +434,7 @@ internal object SøknadDAO {
                 avbrutt = avbrutt,
                 søknadstype = søknadstype,
                 manueltSattSøknadsperiode = manueltSattSøknadsperiode,
+                manueltSattTiltak = manueltSattTiltak,
             )
         } else {
             IkkeInnvilgbarSøknad(
@@ -466,6 +468,7 @@ internal object SøknadDAO {
                 avbrutt = avbrutt,
                 søknadstype = søknadstype,
                 manueltSattSøknadsperiode = manueltSattSøknadsperiode,
+                manueltSattTiltak = manueltSattTiltak,
             )
         }
     }

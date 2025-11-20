@@ -36,6 +36,7 @@ data class InnvilgbarSøknad(
     override val trygdOgPensjon: Søknad.PeriodeSpm,
     override val vedlegg: Int,
     override val manueltSattSøknadsperiode: Periode? = null,
+    override val manueltSattTiltak: String? = null,
     override val søknadstype: Søknadstype,
 ) : Søknad {
     val kravdato: LocalDate = tidsstempelHosOss.toLocalDate()

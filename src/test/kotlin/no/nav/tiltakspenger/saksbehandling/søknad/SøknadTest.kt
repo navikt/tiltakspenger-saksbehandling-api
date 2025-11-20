@@ -47,6 +47,7 @@ class SøknadTest {
                 trygdOgPensjon = periodeNei(),
                 antallVedlegg = 1,
                 manueltSattSøknadsperiode = null,
+                manueltSattTiltak = null,
                 søknadstype = Søknadstype.PAPIR,
                 sak = sak,
             )
@@ -78,6 +79,7 @@ class SøknadTest {
                 trygdOgPensjon = periodeNei(),
                 antallVedlegg = 1,
                 manueltSattSøknadsperiode = null,
+                manueltSattTiltak = null,
                 søknadstype = Søknadstype.PAPIR,
                 sak = sak,
             )
