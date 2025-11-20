@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgres
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 
-class V151__migrer_omgjort_rammevedtak : BaseJavaMigration() {
+class V152__migrer_omgjort_rammevedtak : BaseJavaMigration() {
     override fun migrate(context: Context) {
         val logger = KotlinLogging.logger {}
         val dataSource = context.configuration.dataSource
