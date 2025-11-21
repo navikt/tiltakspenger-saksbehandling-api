@@ -44,7 +44,7 @@ data class Rammevedtak(
     override val id: VedtakId = VedtakId.random(),
     override val opprettet: LocalDateTime,
     override val sakId: SakId,
-    // TODO jah: Rename til virkningsperiode og fjern fra basen. Denne bør heller reflektere behandlingen.
+    // TODO jah: Rename til vedtaksperiode og fjern fra basen. Denne bør heller reflektere behandlingen.
     override val periode: Periode,
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
