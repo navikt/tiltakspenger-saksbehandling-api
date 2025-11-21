@@ -7,7 +7,7 @@ val kotestVersion = "6.0.5"
 val felleslibVersion = "0.0.622"
 val mockkVersion = "1.14.6"
 val ktorVersion = "3.3.2"
-val testContainersVersion = "1.21.3"
+val testContainersVersion = "2.0.2"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 val confluentVersion = "8.1.0"
 val avroVersion = "1.12.1"
@@ -109,8 +109,8 @@ dependencies {
     testImplementation("org.skyscreamer:jsonassert:1.5.3")
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlinxCoroutinesVersion")
-    testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
-    testImplementation("org.testcontainers:postgresql:$testContainersVersion")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:$testContainersVersion")
+    testImplementation("org.testcontainers:testcontainers-postgresql:$testContainersVersion")
     // need quarkus-junit-4-mock because of https://github.com/testcontainers/testcontainers-java/issues/970
     testImplementation("io.quarkus:quarkus-junit4-mock:3.30.0")
     testImplementation("io.github.serpro69:kotlin-faker:1.16.0")
