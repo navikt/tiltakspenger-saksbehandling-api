@@ -33,9 +33,9 @@ class V152__migrer_omgjort_rammevedtak : BaseJavaMigration() {
         sessionFactory.withTransactionContext { tx ->
             tx.withSession { session ->
                 hentAlleRammevedtak(session).groupBy { it.sakId }.forEach { (sakId, rammevedtaksliste) ->
-                    val sortert = rammevedtaksliste.sortedBy { it.opprettet }
-                    sortert.forEachIndexed { index, vedtak ->
-                        val tidslinjeFørDetteVedtaket = sortert.take(index).toTidslinje()
+                    val sortertUtenAvslag = rammevedtaksliste.sortedBy { it.opprettet }.filterNot { it.erAvslag }
+                    sortertUtenAvslag.forEachIndexed { index, vedtak ->
+                        val tidslinjeFørDetteVedtaket = sortertUtenAvslag.take(index).toTidslinje()
                         val overlapp = tidslinjeFørDetteVedtaket.overlappendePeriode(vedtak.periode)
                         val omgjør = OmgjørRammevedtak(
                             overlapp.perioderMedVerdi.map {
@@ -49,7 +49,7 @@ class V152__migrer_omgjort_rammevedtak : BaseJavaMigration() {
                         persisterOmgjørRammevedtak(vedtak.behandling.id, omgjør, session)
 
                         val omgjortAvRammevedtak =
-                            sortert.drop(index + 1).fold(OmgjortAvRammevedtak.empty) { acc, omgjortAvRammevedtak ->
+                            sortertUtenAvslag.drop(index + 1).fold(OmgjortAvRammevedtak.empty) { acc, omgjortAvRammevedtak ->
                                 (omgjortAvRammevedtak.periode.trekkFra(acc.perioder)).overlappendePerioder(listOf(vedtak.periode))
                                     .map {
                                         Omgjøringsperiode(
