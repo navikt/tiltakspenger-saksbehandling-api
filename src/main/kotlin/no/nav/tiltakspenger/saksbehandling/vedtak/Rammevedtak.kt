@@ -162,8 +162,12 @@ data class Rammevedtak(
         }
         if (erAvslag) {
             require(utbetaling == null) { "Vedtak som er avslag kan ikke ha utbetaling. VedtakId: $id" }
-            require(omgjørRammevedtak.isEmpty())
-            require(omgjortAvRammevedtak.isEmpty())
+            require(omgjørRammevedtak.isEmpty()) {
+                "Avslagsvedtak kan ikke omgjøre andre vedtak. SakId: $sakId. VedtakId: $id. omgjørRammevedtak: $omgjørRammevedtak"
+            }
+            require(omgjortAvRammevedtak.isEmpty()) {
+                "Avslagsvedtak kan ikke bli omgjort av andre vedtak. SakId: $sakId. VedtakId: $id. omgjortAvRammevedtak: $omgjortAvRammevedtak"
+            }
         }
     }
 }
