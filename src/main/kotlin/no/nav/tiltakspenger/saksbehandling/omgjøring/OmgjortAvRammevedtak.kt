@@ -29,7 +29,9 @@ data class OmgjortAvRammevedtak(
 
     fun leggTil(omgjøringsperioder: List<Omgjøringsperiode>): OmgjortAvRammevedtak {
         return OmgjortAvRammevedtak(
-            Omgjøringsperioder(this.omgjøringsperioder + omgjøringsperioder),
+            Omgjøringsperioder(
+                (this.omgjøringsperioder + omgjøringsperioder).sortedBy { it.periode.fraOgMed },
+            ),
         )
     }
 
