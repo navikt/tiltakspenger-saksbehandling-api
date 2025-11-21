@@ -246,6 +246,6 @@ data class Rammevedtaksliste(
             vedtak.gjeldendePerioder.map {
                 PeriodeMedVerdi(vedtak, it)
             }
-        }.tilPeriodisering()
+        }.sortedBy { it.periode.fraOgMed }.tilPeriodisering()
     }
 }
