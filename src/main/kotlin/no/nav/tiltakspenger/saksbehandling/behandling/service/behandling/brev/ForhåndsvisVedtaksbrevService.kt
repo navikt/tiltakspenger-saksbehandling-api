@@ -34,7 +34,16 @@ class ForhåndsvisVedtaksbrevService(
         val sak = sakService.hentForSakId(kommando.sakId)
         val behandling = sak.hentRammebehandling(kommando.behandlingId)!!
         val virkningsperiode = when (behandling.status) {
-            Rammebehandlingsstatus.UNDER_BEHANDLING -> kommando.virkningsperiode
+            Rammebehandlingsstatus.UNDER_BEHANDLING -> when (kommando.resultat) {
+                RevurderingType.STANS,
+                RevurderingType.INNVILGELSE,
+                RevurderingType.OMGJØRING,
+                SøknadsbehandlingType.INNVILGELSE,
+                -> kommando.virkningsperiode
+
+                SøknadsbehandlingType.AVSLAG -> (behandling as Søknadsbehandling).søknad.tiltaksdeltakelseperiodeDetErSøktOm()
+            }
+
             Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
             Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
             Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
@@ -84,6 +93,7 @@ class ForhåndsvisVedtaksbrevService(
                         innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.virkningsperiode!! else behandling.innvilgelsesperiode!!,
                         kommando = kommando,
                     )
+
                     is SøknadsbehandlingType -> throw IllegalArgumentException("$resultat er ikke gyldig resultat for revurdering")
                 }
             }

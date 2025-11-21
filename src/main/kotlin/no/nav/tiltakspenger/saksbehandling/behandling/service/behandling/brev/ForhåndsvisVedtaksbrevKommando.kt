@@ -85,7 +85,8 @@ data class ForhåndsvisVedtaksbrevKommando(
             }
             SøknadsbehandlingType.AVSLAG -> {
                 requireNotNull(avslagsgrunner)
-                requireNotNull(virkningsperiode)
+                // Kan enable denne når frontend er oppdatert til ikke å sende den
+//                require(virkningsperiode == null) { "Kan ikke sende inn virkningsperiode ved avslag" }
                 require(valgteHjemler == null) { "Kan ikke sende inn valgteHjemler ved avslag" }
                 require(barnetillegg == null) { "Kan ikke sende inn barnetillegg ved avslag" }
                 require(stansFraOgMed == null && stansTilOgMed == null) { "Kan ikke sende inn stansFraOgMed/stansTilOgMed ved avslag" }
