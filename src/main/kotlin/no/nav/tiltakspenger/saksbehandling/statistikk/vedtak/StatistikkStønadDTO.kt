@@ -71,15 +71,14 @@ data class StatistikkStønadDTO(
 
 enum class VedtakStatistikkResultat {
     Innvilgelse,
-    Avslag,
     Stans,
     ;
 
     companion object {
         fun BehandlingResultat.toVedtakStatistikkResultat(): VedtakStatistikkResultat = when (this) {
             is BehandlingResultat.Innvilgelse -> Innvilgelse
-            is SøknadsbehandlingResultat.Avslag -> Avslag
             is RevurderingResultat.Stans -> Stans
+            is SøknadsbehandlingResultat.Avslag -> throw IllegalStateException("Skal ikke opprette vedtaksstatistikk for avslag")
         }
     }
 }

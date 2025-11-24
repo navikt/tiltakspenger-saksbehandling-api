@@ -74,13 +74,17 @@ class IverksettBehandlingService(
         val sakStatistikk = statistikkSakService.genererStatistikkForRammevedtak(
             rammevedtak = vedtak,
         )
-        val stønadStatistikk = genererStønadsstatistikkForRammevedtak(vedtak)
+        val stønadStatistikk = if (vedtak.resultat is SøknadsbehandlingResultat.Avslag) {
+            null
+        } else {
+            genererStønadsstatistikkForRammevedtak(vedtak)
+        }
 
         when (behandling) {
             is Revurdering -> oppdatertSak.iverksett(
                 vedtak = vedtak,
                 sakStatistikk = sakStatistikk,
-                stønadStatistikk = stønadStatistikk,
+                stønadStatistikk = stønadStatistikk!!,
             )
 
             is Søknadsbehandling -> oppdatertSak.iverksettSøknadsbehandling(
@@ -96,10 +100,10 @@ class IverksettBehandlingService(
     private fun Sak.iverksettSøknadsbehandling(
         vedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
-        stønadStatistikk: StatistikkStønadDTO,
+        stønadStatistikk: StatistikkStønadDTO?,
     ): Sak {
         return when (vedtak.resultat) {
-            is BehandlingResultat.Innvilgelse -> iverksett(vedtak, sakStatistikk, stønadStatistikk)
+            is BehandlingResultat.Innvilgelse -> iverksett(vedtak, sakStatistikk, stønadStatistikk!!)
 
             is SøknadsbehandlingResultat.Avslag -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
@@ -112,7 +116,6 @@ class IverksettBehandlingService(
                     )
                     rammevedtakRepo.lagre(vedtak, tx)
                     statistikkSakRepo.lagre(sakStatistikk, tx)
-                    statistikkStønadRepo.lagre(stønadStatistikk, tx)
                 }
                 this
             }
