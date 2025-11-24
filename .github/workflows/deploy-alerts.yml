@@ -1,0 +1,31 @@
+name: Deploy alerts
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .nais/alerts.yml
+      - .github/workflows/deploy-alerts.yml
+
+jobs:
+  deploy:
+    name: Deploy to nais
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cluster: [ prod, dev ]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: ${{ matrix.cluster }}-gcp
+          RESOURCE: .nais/alerts.yml
+          VAR: datasource=${{ matrix.cluster }}-gcp-loki
+          VARS: .nais/vars/${{ matrix.cluster }}.yml
+          PRINT_PAYLOAD: true

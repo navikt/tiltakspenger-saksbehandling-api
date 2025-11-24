@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: tiltakspenger-saksbehandling-api-alerts
+  namespace: tpts
+  labels:
+    team: tpts
+spec:
+  groups:
+    - name: tiltakspenger-saksbehandling-api-alerts
+      rules:
+        - alert: Utbetaling har feilet!
+          expr: sum(increase(tpts_saksbehandlingapi_utbetaling_feilet_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"}[100h])) > 0
+          annotations:
+            action: "Sjekk loggene til saksbehandling-api for å se hva som har skjedd"
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service/tiltakspenger-saksbehandling-api/logs?var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&from=now-3h&to=now&var-levels=detected_level%7C%3D%7Cerror&var-ds={{datasource}}'
+          labels:
+            namespace: tpts
+            severity: critical
+            send_resolved: "false"
+        - alert: Utbetaling har ikke gått ok etter 3 dager!
+          expr: sum(increase(tpts_saksbehandlingapi_utbetaling_ikke_ok_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"}[2m])) > 0
+          annotations:
+            action: "Sjekk loggene til saksbehandling-api for å se hva som har skjedd"
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service/tiltakspenger-saksbehandling-api/logs?var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&from=now-3h&to=now&var-levels=detected_level%7C%3D%7Cerror&var-ds={{datasource}}'
+          labels:
+            namespace: tpts
+            severity: critical
+            send_resolved: "false"
