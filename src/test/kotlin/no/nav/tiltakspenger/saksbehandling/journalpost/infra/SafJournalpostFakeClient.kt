@@ -2,9 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.journalpost.infra
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 class SafJournalpostFakeClient : SafJournalpostClient {
     val data = arrow.atomic.Atomic(mutableMapOf<JournalpostId, Fnr>())
@@ -18,7 +17,7 @@ class SafJournalpostFakeClient : SafJournalpostClient {
                     id = "12345678911",
                     type = "FNR",
                 ),
-                datoOpprettet = LocalDate.now().toString(),
+                datoOpprettet = LocalDateTime.now().toString(),
             )
         }
 
@@ -29,7 +28,7 @@ class SafJournalpostFakeClient : SafJournalpostClient {
                     id = Fnr.random().verdi,
                     type = "FNR",
                 ),
-                datoOpprettet = LocalDate.now().toString(),
+                datoOpprettet = LocalDateTime.now().toString(),
             )
         }
 
@@ -39,7 +38,7 @@ class SafJournalpostFakeClient : SafJournalpostClient {
                     id = it.verdi,
                     type = "FNR",
                 ),
-                datoOpprettet = LocalDate.now().toString(),
+                datoOpprettet = LocalDateTime.now().toString(),
             )
         }
     }
