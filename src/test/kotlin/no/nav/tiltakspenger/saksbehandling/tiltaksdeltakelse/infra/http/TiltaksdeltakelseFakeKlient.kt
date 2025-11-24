@@ -67,8 +67,8 @@ class TiltaksdeltakelseFakeKlient(
     private suspend fun hentTiltaksdeltakelseFraSøknad(fnr: Fnr): Tiltaksdeltakelser {
         val søknadRepo = søknadRepoProvider()!!
         val søknader = søknadRepo.hentSøknaderForFnr(fnr)
-        val tiltak = søknader.lastOrNull()?.tiltak?.toTiltak()
+        val tiltak = søknader.mapNotNull { it.tiltak?.toTiltak() }.distinctBy { it.eksternDeltakelseId }
 
-        return tiltak?.let { Tiltaksdeltakelser(listOf(it)) } ?: Tiltaksdeltakelser(emptyList())
+        return Tiltaksdeltakelser(tiltak)
     }
 }
