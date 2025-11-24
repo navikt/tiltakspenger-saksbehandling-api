@@ -40,13 +40,11 @@ fun genererStønadsstatistikkForRammevedtak(
         // vår sak har ikke resultat, så bruker vedtak sin resultat
         resultat = vedtak.resultat.toVedtakStatistikkResultat(),
         sakDato = vedtak.saksnummer.dato,
-        vedtakFom = vedtak.periode.fraOgMed,
-        vedtakTom = vedtak.periode.tilOgMed,
+        vedtaksperiodeFraOgMed = vedtak.periode.fraOgMed,
+        vedtaksperiodeTilOgMed = vedtak.periode.tilOgMed,
         // sak har ikke periode lengre, så bruker vedtak sin periode
         sakFraDato = vedtak.periode.fraOgMed,
         sakTilDato = vedtak.periode.tilOgMed,
-        virkningsperiodeFraOgMed = vedtak.periode.fraOgMed,
-        virkningsperiodeTilOgMed = vedtak.periode.tilOgMed,
         innvilgelsesperioder = listOfNotNull(vedtak.innvilgelsesperiode).map { it.toDTO() },
         omgjørRammevedtakId = vedtak.omgjørRammevedtak?.id?.toString(),
         ytelse = "IND",

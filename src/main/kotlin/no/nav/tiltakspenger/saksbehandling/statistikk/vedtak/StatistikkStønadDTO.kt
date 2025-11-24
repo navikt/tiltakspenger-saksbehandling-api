@@ -19,20 +19,17 @@ data class StatistikkStønadDTO(
     val saksnummer: String,
     val resultat: VedtakStatistikkResultat,
     val sakDato: LocalDate,
-    val vedtakFom: LocalDate,
-    val vedtakTom: LocalDate,
+
+    // For søknadsbehandling+forlengelse (ren innvilgese), vil de tilsvare innvilgelsesperiode. For omgjøring, vil de tilsvare omgjøringsperioden (innvilgelse + implisitt opphør/ikke rett). For stans vil de tilsvare stansperiode. For opphør vil de tilsvare opphørsperiode.
+    // Selv om det på lang sikt kan tenkes at vi støtter omgjøringer av vedtak med hull (forskjellige ikke-overlappende tiltak o.l), så innfører vi ikke denne om til en liste den 2025-10-20.
+    val vedtaksperiodeFraOgMed: LocalDate,
+    val vedtaksperiodeTilOgMed: LocalDate,
     // sakFraDato og sakTilDato er de samme som datoene for vedtaket siden sak ikke har periode lenger.
     // For innvilgelse, vil de tilsvare innvilgelsesperiode. For stans vil de tilsvare stansperiode. For opphør vil de tilsvare opphørsperiode. For avslag vil de være avslagsperiode.
     // Fra vi utvidet med et omgjøringsvedtak, vil de ikke formidle hvilken periode som ikke lenger gir rett i et omgjøringsvedtak.
     // Derfor er de deprecated.
     val sakFraDato: LocalDate,
     val sakTilDato: LocalDate,
-
-    // Lagt til 2025-10-20, vil være null for rader før dette. Kan vurdere migrere rader som mangler dette senere.
-    // For søknadsbehandling+forlengelse (ren innvilgese), vil de tilsvare innvilgelsesperiode. For omgjøring, vil de tilsvare omgjøringsperioden (innvilgelse + implisitt opphør/ikke rett). For stans vil de tilsvare stansperiode. For opphør vil de tilsvare opphørsperiode. For avslag vil de være avslagsperiode.
-    // Selv om det på lang sikt kan tenkes at vi støtter omgjøringer av vedtak med hull (forskjellige ikke-overlappende tiltak o.l), så innfører vi ikke denne om til en liste den 2025-10-20.
-    val virkningsperiodeFraOgMed: LocalDate?,
-    val virkningsperiodeTilOgMed: LocalDate?,
 
     // Per 2025-10-20 har vi kun støtte for én innvilgelsesperiode per vedtak, men på sikt vil vi kunne ha flere. Dette for å hovedsakelig støtte hull i innvilgelsesperioden ved omgjøringsvedtak. Men kan tenkes at den kan bli brukt i søknadsbehandling og forlengelse også.
     // Listen er tom for stans og avslag
