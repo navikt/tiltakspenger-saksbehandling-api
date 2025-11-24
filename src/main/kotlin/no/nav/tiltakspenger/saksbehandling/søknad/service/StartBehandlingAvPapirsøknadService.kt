@@ -76,7 +76,7 @@ class StartBehandlingAvPapirsøknadService(
             søknadstype = Søknadstype.PAPIR,
         )
 
-        // Legg søknaden inn i sak før vi oppretter behandlingen eventuelt tiltak innkluderes i saksopplysningene
+        // Legg søknaden inn i sak før vi oppretter behandlingen eventuelt tiltak inkluderes i saksopplysningene
         val sakMedSøknad = sak.copy(søknader = sak.søknader + papirsøknad)
 
         val søknadsbehandling = Søknadsbehandling.opprett(
