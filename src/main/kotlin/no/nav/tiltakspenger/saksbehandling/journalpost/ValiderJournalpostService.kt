@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.Journalpost
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.route.ValiderJournalpostResponse
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 class ValiderJournalpostService(
@@ -30,7 +29,7 @@ class ValiderJournalpostService(
             return ValiderJournalpostResponse(
                 journalpostFinnes = true,
                 gjelderInnsendtFnr = journalpost.gjelderFnr(fnr, journalpostId),
-                datoOpprettet = journalpost.datoOpprettet?.let { LocalDate.parse(it).atStartOfDay() },
+                datoOpprettet = journalpost.datoOpprettet?.let { LocalDateTime.parse(it) },
             )
         }
     }
