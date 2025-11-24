@@ -6,6 +6,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.header
@@ -111,16 +112,25 @@ internal class DokarkivHttpClient(
                 }
             }
         } catch (throwable: Throwable) {
-            if (throwable is ClientRequestException) {
+            if (throwable is ResponseException) {
                 val status = throwable.response.status
-                if (status == Unauthorized || status == Forbidden) {
-                    log.error(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot dokarkiv. status: $status." }
-                    token.invaliderCache()
-                }
-                if (status == Conflict) {
-                    log.warn { "Har allerede blitt journalført (409 Conflict)" }
-                    val response = throwable.response.call.body<DokarkivResponse>()
-                    return JournalpostId(response.journalpostId.orEmpty())
+                if (throwable is ClientRequestException) {
+                    when (status) {
+                        Unauthorized, Forbidden -> {
+                            log.error(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot dokarkiv. status: $status." }
+                            token.invaliderCache()
+                        }
+                        Conflict -> {
+                            log.warn { "Har allerede blitt journalført (409 Conflict)" }
+                            val response = throwable.response.call.body<DokarkivResponse>()
+                            return JournalpostId(response.journalpostId.orEmpty())
+                        }
+                        else -> {
+                            log.error(throwable) { "Fikk klientside-feilkode fra dokarkiv: $status." }
+                        }
+                    }
+                } else {
+                    log.error(throwable) { "Fikk feilkode fra dokarkiv: $status." }
                 }
             }
             if (throwable is IllegalStateException) {
