@@ -300,7 +300,7 @@ class StatistikkStønadPostgresRepo(
             harBarnetillegg = boolean("har_barnetillegg"),
             virkningsperiodeFraOgMed = localDateOrNull("virkningsperiodeFraOgMed"),
             virkningsperiodeTilOgMed = localDateOrNull("virkningsperiodeTilOgMed"),
-            innvilgelsesperioder = stringOrNull("innvilgelsesperioder")?.let { deserialize(it) },
+            innvilgelsesperioder = deserialize(string("innvilgelsesperioder")),
             omgjørRammevedtakId = stringOrNull("omgjor_rammevedtak_id"),
         )
 }
