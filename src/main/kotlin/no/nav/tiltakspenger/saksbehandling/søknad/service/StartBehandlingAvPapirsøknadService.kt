@@ -76,8 +76,11 @@ class StartBehandlingAvPapirsøknadService(
             søknadstype = Søknadstype.PAPIR,
         )
 
+        // Legg søknaden inn i sak før vi oppretter behandlingen eventuelt tiltak innkluderes i saksopplysningene
+        val sakMedSøknad = sak.copy(søknader = sak.søknader + papirsøknad)
+
         val søknadsbehandling = Søknadsbehandling.opprett(
-            sak = sak,
+            sak = sakMedSøknad,
             søknad = papirsøknad,
             saksbehandler = saksbehandler,
             hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
@@ -100,7 +103,7 @@ class StartBehandlingAvPapirsøknadService(
                 sessionContext = tx,
             )
         }
-        val oppdatertSak = sak.leggTilSøknadsbehandling(søknadsbehandling)
+        val oppdatertSak = sakMedSøknad.leggTilSøknadsbehandling(søknadsbehandling)
         MetricRegister.STARTET_BEHANDLING.inc()
         MetricRegister.STARTET_BEHANDLING_PAPIRSØKNAD.inc()
         return (oppdatertSak to søknadsbehandling)
