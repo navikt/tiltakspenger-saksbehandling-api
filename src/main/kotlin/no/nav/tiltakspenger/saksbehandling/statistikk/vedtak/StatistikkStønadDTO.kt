@@ -34,9 +34,9 @@ data class StatistikkStønadDTO(
     val virkningsperiodeFraOgMed: LocalDate?,
     val virkningsperiodeTilOgMed: LocalDate?,
 
-    // Lagt til 2025-10-20, vil være null for rader før dette. Kan vurdere migrere rader som mangler dette senere.
     // Per 2025-10-20 har vi kun støtte for én innvilgelsesperiode per vedtak, men på sikt vil vi kunne ha flere. Dette for å hovedsakelig støtte hull i innvilgelsesperioden ved omgjøringsvedtak. Men kan tenkes at den kan bli brukt i søknadsbehandling og forlengelse også.
-    val innvilgelsesperioder: List<PeriodeDTO>?,
+    // Listen er tom for stans og avslag
+    val innvilgelsesperioder: List<PeriodeDTO>,
 
     // Lagt til 2025-10-20, vil være null for rader før dette. Kan vurdere migrere rader som mangler dette senere.
     // Dette vedtaket omgjør et tidligere rammevedtak i sin helhet.
