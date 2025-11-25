@@ -42,9 +42,6 @@ fun genererStønadsstatistikkForRammevedtak(
         sakDato = vedtak.saksnummer.dato,
         vedtaksperiodeFraOgMed = vedtak.periode.fraOgMed,
         vedtaksperiodeTilOgMed = vedtak.periode.tilOgMed,
-        // sak har ikke periode lengre, så bruker vedtak sin periode
-        sakFraDato = vedtak.periode.fraOgMed,
-        sakTilDato = vedtak.periode.tilOgMed,
         innvilgelsesperioder = listOfNotNull(vedtak.innvilgelsesperiode).map { it.toDTO() },
         omgjørRammevedtakId = vedtak.omgjørRammevedtak?.id?.toString(),
         ytelse = "IND",

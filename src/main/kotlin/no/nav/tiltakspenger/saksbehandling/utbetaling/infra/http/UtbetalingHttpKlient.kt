@@ -55,11 +55,19 @@ class UtbetalingHttpKlient(
     private val timeout: Duration = 15.seconds,
     private val clock: Clock,
 ) : Utbetalingsklient {
+    private val simuleringTimeout: Duration = 45.seconds
 
     private val client =
         HttpClient
             .newBuilder()
             .connectTimeout(connectTimeout.toJavaDuration())
+            .followRedirects(HttpClient.Redirect.NEVER)
+            .build()
+
+    private val simuleringClient =
+        HttpClient
+            .newBuilder()
+            .connectTimeout(simuleringTimeout.toJavaDuration())
             .followRedirects(HttpClient.Redirect.NEVER)
             .build()
 
@@ -206,7 +214,7 @@ class UtbetalingHttpKlient(
                 val request = HttpRequest
                     .newBuilder()
                     .uri(URI.create(path))
-                    .timeout(30.seconds.toJavaDuration())
+                    .timeout(simuleringTimeout.toJavaDuration())
                     .header("Authorization", "Bearer $token")
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
@@ -214,7 +222,7 @@ class UtbetalingHttpKlient(
                     .build()
 
                 val requestHeaders = request.headers().map().filterKeys { it != "Authorization" }
-                val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
+                val httpResponse = simuleringClient.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
                 val httpResponseBody = httpResponse.body()
                 val status = httpResponse.statusCode()
                 val responseHeaders = httpResponse.headers().map()
