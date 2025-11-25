@@ -52,7 +52,7 @@ class RammevedtakPostgresRepoTest {
                 testDataHelper.behandlingRepo.lagre(vedtak.behandling, tx)
                 testDataHelper.vedtakRepo.lagre(vedtak, tx)
                 sakMedNyttVedtak.rammevedtaksliste.dropLast(1).forEach {
-                    testDataHelper.vedtakRepo.markerOmgjortAv(it.id, it.omgjortAvRammevedtak, tx)
+                    testDataHelper.vedtakRepo.oppdaterOmgjortAv(it.id, it.omgjortAvRammevedtak, tx)
                 }
             }
             val finalSak = testDataHelper.sakRepo.hentForSakId(sak.id)!!

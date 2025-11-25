@@ -103,7 +103,11 @@ class IverksettBehandlingService(
         stønadStatistikk: StatistikkStønadDTO?,
     ): Sak {
         return when (vedtak.resultat) {
-            is BehandlingResultat.Innvilgelse -> this.iverksettRammebehandling(vedtak, sakStatistikk, stønadStatistikk!!)
+            is BehandlingResultat.Innvilgelse -> this.iverksettRammebehandling(
+                vedtak,
+                sakStatistikk,
+                stønadStatistikk!!,
+            )
 
             is SøknadsbehandlingResultat.Avslag -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
@@ -133,6 +137,10 @@ class IverksettBehandlingService(
             "Kan kun iverksette innvilgelse eller stans"
         }
 
+        require(this.rammevedtaksliste.last().id == vedtak.id) {
+            "Vedtaket som iverksettes må være siste vedtak på saken (forventet at ${vedtak.id} skal være siste vedtak på ${this.id})"
+        }
+
         val (sakOppdatertMedMeldeperioder, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
         val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) = this.meldekortbehandlinger.oppdaterMedNyeKjeder(
             oppdaterteKjeder = sakOppdatertMedMeldeperioder.meldeperiodeKjeder,
@@ -141,6 +149,8 @@ class IverksettBehandlingService(
         )
         val sakOppdatertMedMeldekortbehandlinger =
             sakOppdatertMedMeldeperioder.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)
+
+        val tidligereVedtak = sakOppdatertMedMeldekortbehandlinger.rammevedtaksliste.dropLast(1)
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
@@ -157,9 +167,10 @@ class IverksettBehandlingService(
             meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
-            // Marker tidligere omgjorte vedtak som omgjort av dette vedtaket. Trenger ikke oppdatere det siste, da det er det nye vedtaket.
-            sakOppdatertMedMeldekortbehandlinger.rammevedtaksliste.dropLast(1).forEach {
-                rammevedtakRepo.markerOmgjortAv(
+
+            // Oppdaterer omgjort-status for tidligere vedtak. Ikke alle (eller noen) vedtak er nødvendigvis omgjort.
+            tidligereVedtak.forEach {
+                rammevedtakRepo.oppdaterOmgjortAv(
                     it.id,
                     it.omgjortAvRammevedtak,
                     tx,

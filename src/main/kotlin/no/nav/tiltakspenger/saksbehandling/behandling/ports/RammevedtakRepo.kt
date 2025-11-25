@@ -34,5 +34,5 @@ interface RammevedtakRepo {
 
     fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime)
 
-    fun markerOmgjortAv(vedtakId: VedtakId, omgjortAvRammevedtak: OmgjortAvRammevedtak, sessionContext: SessionContext?)
+    fun oppdaterOmgjortAv(vedtakId: VedtakId, omgjortAvRammevedtak: OmgjortAvRammevedtak, sessionContext: SessionContext?)
 }

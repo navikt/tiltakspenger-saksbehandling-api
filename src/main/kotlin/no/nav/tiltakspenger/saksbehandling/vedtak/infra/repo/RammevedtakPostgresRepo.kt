@@ -210,7 +210,7 @@ class RammevedtakPostgresRepo(
         }
     }
 
-    override fun markerOmgjortAv(
+    override fun oppdaterOmgjortAv(
         vedtakId: VedtakId,
         omgjortAvRammevedtak: OmgjortAvRammevedtak,
         sessionContext: SessionContext?,

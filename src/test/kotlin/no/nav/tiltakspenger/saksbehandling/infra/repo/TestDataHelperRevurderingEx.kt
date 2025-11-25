@@ -31,7 +31,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.navkontor
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
-import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
@@ -191,7 +190,7 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
         val (sakMedNyttVedtak, stansVedtak) = sakMedRevurderingTilBeslutning.opprettVedtak(iverksattRevurdering, clock)
         vedtakRepo.lagre(stansVedtak, tx)
         sakMedNyttVedtak.rammevedtaksliste.dropLast(1).forEach {
-            vedtakRepo.markerOmgjortAv(it.id, it.omgjortAvRammevedtak, tx)
+            vedtakRepo.oppdaterOmgjortAv(it.id, it.omgjortAvRammevedtak, tx)
         }
         stansVedtak
     }

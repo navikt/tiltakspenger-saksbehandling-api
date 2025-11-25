@@ -71,7 +71,7 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
         data.get()[id] = data.get()[id]!!.copy(sendtTilDatadeling = tidspunkt)
     }
 
-    override fun markerOmgjortAv(
+    override fun oppdaterOmgjortAv(
         vedtakId: VedtakId,
         omgjortAvRammevedtak: OmgjortAvRammevedtak,
         sessionContext: SessionContext?,
