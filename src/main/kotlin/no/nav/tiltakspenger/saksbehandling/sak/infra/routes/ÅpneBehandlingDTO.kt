@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Rammebehan
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRevurderingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsstatusDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeStatusDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldeperiodeKjedeStatusDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -213,6 +214,11 @@ private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<MeldeperiodeKjedeSo
         val sisteBrukersMeldekort = brukersMeldekort.maxByOrNull { it.mottatt }
 
         if (sisteBrukersMeldekort == null) {
+            return@mapNotNull null
+        }
+
+        // Skal ikke fremheve meldekort hvis de venter på automatisk behandling
+        if (sisteBrukersMeldekort.behandletAutomatiskStatus === MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING) {
             return@mapNotNull null
         }
 
