@@ -45,7 +45,7 @@ class IverksettBehandlingService(
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
 ) {
-    suspend fun iverksett(
+    suspend fun iverksettRammebehandling(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
         sakId: SakId,
@@ -80,8 +80,8 @@ class IverksettBehandlingService(
             genererStønadsstatistikkForRammevedtak(vedtak)
         }
 
-        when (behandling) {
-            is Revurdering -> oppdatertSak.iverksett(
+        val doubleOppdatertSak = when (behandling) {
+            is Revurdering -> oppdatertSak.iverksettRammebehandling(
                 vedtak = vedtak,
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk!!,
@@ -94,7 +94,7 @@ class IverksettBehandlingService(
             )
         }
 
-        return (oppdatertSak to iverksattBehandling).right()
+        return (doubleOppdatertSak to iverksattBehandling).right()
     }
 
     private fun Sak.iverksettSøknadsbehandling(
@@ -103,7 +103,11 @@ class IverksettBehandlingService(
         stønadStatistikk: StatistikkStønadDTO?,
     ): Sak {
         return when (vedtak.resultat) {
-            is BehandlingResultat.Innvilgelse -> iverksett(vedtak, sakStatistikk, stønadStatistikk!!)
+            is BehandlingResultat.Innvilgelse -> this.iverksettRammebehandling(
+                vedtak,
+                sakStatistikk,
+                stønadStatistikk!!,
+            )
 
             is SøknadsbehandlingResultat.Avslag -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
@@ -124,7 +128,7 @@ class IverksettBehandlingService(
         }
     }
 
-    private fun Sak.iverksett(
+    private fun Sak.iverksettRammebehandling(
         vedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
@@ -133,15 +137,26 @@ class IverksettBehandlingService(
             "Kan kun iverksette innvilgelse eller stans"
         }
 
-        val (oppdatertSak, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
-        val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
-            this.meldekortbehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder, clock)
+        require(this.rammevedtaksliste.last().id == vedtak.id) {
+            "Vedtaket som iverksettes må være siste vedtak på saken (forventet at ${vedtak.id} skal være siste vedtak på ${this.id})"
+        }
+
+        val (sakOppdatertMedMeldeperioder, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
+        val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) = this.meldekortbehandlinger.oppdaterMedNyeKjeder(
+            oppdaterteKjeder = sakOppdatertMedMeldeperioder.meldeperiodeKjeder,
+            tiltakstypePerioder = tiltakstypeperioder,
+            clock = clock,
+        )
+        val sakOppdatertMedMeldekortbehandlinger =
+            sakOppdatertMedMeldeperioder.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)
+
+        val tidligereVedtak = sakOppdatertMedMeldekortbehandlinger.rammevedtaksliste.dropLast(1)
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)
             sakService.oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
-                sakId = oppdatertSak.id,
+                sakId = sakOppdatertMedMeldeperioder.id,
                 skalSendesTilMeldekortApi = true,
                 skalSendeMeldeperioderTilDatadeling = true,
                 sessionContext = tx,
@@ -153,11 +168,15 @@ class IverksettBehandlingService(
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
 
-            if (vedtak.omgjørRammevedtak != null) {
-                // Oppdaterer omgjort vedtak slik at det peker på dette vedtaket
-                rammevedtakRepo.markerOmgjortAv(vedtak.omgjørRammevedtak.id, vedtak.id, tx)
+            // Oppdaterer omgjort-status for tidligere vedtak. Ikke alle (eller noen) vedtak er nødvendigvis omgjort.
+            tidligereVedtak.forEach {
+                rammevedtakRepo.oppdaterOmgjortAv(
+                    it.id,
+                    it.omgjortAvRammevedtak,
+                    tx,
+                )
             }
         }
-        return oppdatertSak.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)
+        return sakOppdatertMedMeldekortbehandlinger
     }
 }

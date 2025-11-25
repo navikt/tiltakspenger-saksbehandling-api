@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
-import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -14,11 +13,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -34,10 +34,12 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
         fnr: Fnr = Fnr.random(),
+        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             virkningsperiode = periode,
             fnr = fnr,
+            omgjørRammevedtak = omgjørRammevedtak,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
         journalpostId: JournalpostId? = null,
@@ -48,6 +50,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         brevJson: String? = null,
         forrigeUtbetalingId: UtbetalingId? = null,
         omgjortAvRammevedtakId: VedtakId? = null,
+
     ) = Rammevedtak(
         id = id,
         opprettet = opprettet,
@@ -66,7 +69,7 @@ interface RammevedtakMother : MotherOfAllMothers {
             opprettet = opprettet,
             forrigeUtbetalingId = forrigeUtbetalingId,
         ),
-        omgjortAvRammevedtakId = omgjortAvRammevedtakId,
+        omgjortAvRammevedtak = OmgjortAvRammevedtak.empty,
     )
 
     fun nyRammevedtakInnvilgelse(
@@ -155,6 +158,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
+        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         behandling: Rammebehandling = ObjectMother.nyVedtattRevurderingStans(
             sakId = sakId,
             virkningsperiode = periode,
@@ -164,6 +168,7 @@ interface RammevedtakMother : MotherOfAllMothers {
             sisteDagSomGirRett = periode.tilOgMed,
             stansFraOgMed = periode.fraOgMed,
             stansTilOgMed = periode.tilOgMed,
+            omgjørRammevedtak = omgjørRammevedtak,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
         journalpostId: JournalpostId? = null,
@@ -172,6 +177,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         distribusjonstidspunkt: LocalDateTime? = null,
         sendtTilDatadeling: LocalDateTime? = null,
         brevJson: String? = null,
+
     ): Rammevedtak = nyttRammevedtak(
         id = id,
         opprettet = opprettet,
@@ -185,6 +191,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         distribusjonstidspunkt = distribusjonstidspunkt,
         sendtTilDatadeling = sendtTilDatadeling,
         brevJson = brevJson,
+        omgjørRammevedtak = omgjørRammevedtak,
     )
 
     fun Rammebehandling.tilRammevedtakUtbetaling(

@@ -4,11 +4,13 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
 
@@ -53,12 +55,26 @@ data class Vedtaksliste(
         return rammevedtaksliste.harInnvilgetTiltakspengerEtterDato(dato)
     }
 
+    /**
+     * Legger til et rammevedtak i vedtaklisten og oppdaterer omgjortAvRammevedtak per vedtak
+     */
     fun leggTilRammevedtak(rammevedtak: Rammevedtak): Vedtaksliste {
         return copy(rammevedtaksliste = rammevedtaksliste.leggTil(rammevedtak))
     }
 
     fun leggTilMeldekortvedtak(meldekortvedtak: Meldekortvedtak): Vedtaksliste {
         return copy(meldekortvedtaksliste = meldekortvedtaksliste.leggTil(meldekortvedtak))
+    }
+
+    /**
+     * Tenkt kalt under behandlingen for å avgjøre hvilke rammevedtak som vil bli omgjort.
+     * Husk og dobbeltsjekk denne ved iverksettelse.
+     * @param virkningsperiode vurderingsperioden/vedtaksperioden. Kan være en ren innvilgelse, et rent opphør eller en blanding.
+     */
+    fun finnRammevedtakSomOmgjøres(
+        virkningsperiode: Periode,
+    ): OmgjørRammevedtak {
+        return rammevedtaksliste.finnVedtakSomOmgjøres(virkningsperiode)
     }
 
     init {

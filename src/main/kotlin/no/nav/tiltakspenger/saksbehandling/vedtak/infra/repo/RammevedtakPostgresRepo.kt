@@ -16,6 +16,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toDbJson
+import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toOmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -51,7 +54,7 @@ class RammevedtakPostgresRepo(
                             "fnr" to fnr.verdi,
                         ),
                     ).map { row ->
-                        row.toVedtak(session)
+                        row.toRammevedtak(session)
                     }.asList,
                 )
             }
@@ -74,7 +77,7 @@ class RammevedtakPostgresRepo(
                         "limit" to limit,
                     ),
                 ).map { row ->
-                    row.toVedtak(session)
+                    row.toRammevedtak(session)
                 }.asList,
             )
         }
@@ -189,7 +192,7 @@ class RammevedtakPostgresRepo(
                     limit $limit
                     """.trimIndent(),
                 ).map { row ->
-                    row.toVedtak(session)
+                    row.toRammevedtak(session)
                 }.asList,
             )
         }
@@ -207,18 +210,22 @@ class RammevedtakPostgresRepo(
         }
     }
 
-    override fun markerOmgjortAv(vedtakId: VedtakId, omgjortAvRammevedtakId: VedtakId, sessionContext: SessionContext?) {
+    override fun oppdaterOmgjortAv(
+        vedtakId: VedtakId,
+        omgjortAvRammevedtak: OmgjortAvRammevedtak,
+        sessionContext: SessionContext?,
+    ) {
         sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 queryOf(
                     """
                     update rammevedtak
-                    set omgjort_av_rammevedtak_id = :omgjort_av_rammevedtak_id
+                    set omgjort_av_rammevedtak = to_jsonb(:omgjort_av_rammevedtak::jsonb)
                     where id = :id
                     """.trimIndent(),
                     mapOf(
                         "id" to vedtakId.toString(),
-                        "omgjort_av_rammevedtak_id" to omgjortAvRammevedtakId.toString(),
+                        "omgjort_av_rammevedtak" to omgjortAvRammevedtak.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -237,7 +244,7 @@ class RammevedtakPostgresRepo(
                         "sak_id" to sakId.toString(),
                     ),
                 ).map { row ->
-                    row.toVedtak(session)
+                    row.toRammevedtak(session)
                 }.asList,
             ).let { Rammevedtaksliste(it) }
         }
@@ -253,7 +260,7 @@ class RammevedtakPostgresRepo(
                         "id" to vedtakId.toString(),
                     ),
                 ).map { row ->
-                    row.toVedtak(session)
+                    row.toRammevedtak(session)
                 }.asSingle,
             )
         }
@@ -275,8 +282,7 @@ class RammevedtakPostgresRepo(
                         til_og_med, 
                         saksbehandler, 
                         beslutter,
-                        opprettet,
-                        brev_json
+                        opprettet
                     ) values (
                         :id, 
                         :sak_id, 
@@ -287,8 +293,7 @@ class RammevedtakPostgresRepo(
                         :til_og_med, 
                         :saksbehandler, 
                         :beslutter,
-                        :opprettet,
-                        :brev_json
+                        :opprettet
                     )
                     """,
                     "id" to vedtak.id.toString(),
@@ -305,7 +310,7 @@ class RammevedtakPostgresRepo(
             )
         }
 
-        private fun Row.toVedtak(session: Session): Rammevedtak {
+        fun Row.toRammevedtak(session: Session): Rammevedtak {
             val utbetaling = stringOrNull("utbetaling_id")?.let {
                 UtbetalingPostgresRepo.hent(UtbetalingId.fromString(it), session)
             }
@@ -328,7 +333,7 @@ class RammevedtakPostgresRepo(
                 brevJson = stringOrNull("brev_json"),
                 opprettet = localDateTime("opprettet"),
                 utbetaling = utbetaling,
-                omgjortAvRammevedtakId = stringOrNull("omgjort_av_rammevedtak_id")?.let { VedtakId.fromString(it) },
+                omgjortAvRammevedtak = stringOrNull("omgjort_av_rammevedtak").toOmgjortAvRammevedtak(),
             )
         }
     }

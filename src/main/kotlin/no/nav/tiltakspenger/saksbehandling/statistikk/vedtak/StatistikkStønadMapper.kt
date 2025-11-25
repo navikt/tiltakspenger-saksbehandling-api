@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.VedtakStatistikkResultat.Companion.toVedtakStatistikkResultat
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -43,7 +44,11 @@ fun genererStønadsstatistikkForRammevedtak(
         vedtaksperiodeFraOgMed = vedtak.periode.fraOgMed,
         vedtaksperiodeTilOgMed = vedtak.periode.tilOgMed,
         innvilgelsesperioder = listOfNotNull(vedtak.innvilgelsesperiode).map { it.toDTO() },
-        omgjørRammevedtakId = vedtak.omgjørRammevedtak?.id?.toString(),
+        omgjørRammevedtakId = if (vedtak.resultat is RevurderingResultat.Omgjøring) {
+            vedtak.resultat.omgjørRammevedtak.single().rammevedtakId.toString()
+        } else {
+            null
+        },
         ytelse = "IND",
 
         søknadId = søknad?.id?.toString(),

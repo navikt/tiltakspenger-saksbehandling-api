@@ -36,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyRammeved
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyVedtattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
@@ -54,7 +55,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        virkningsperiode: Periode = revurderingVirkningsperiode(),
+        saksopplysningsperiode: Periode = revurderingVirkningsperiode(),
         hentSaksopplysninger: (Periode) -> Saksopplysninger = {
             saksopplysninger(
                 fom = it.fraOgMed,
@@ -69,7 +70,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 saksbehandler = saksbehandler,
-                saksopplysninger = hentSaksopplysninger(virkningsperiode),
+                saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
                 clock = clock,
             ).copy(id = id)
         }
@@ -96,6 +97,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         stansTilOgMed: LocalDate?,
         førsteDagSomGirRett: LocalDate,
         sisteDagSomGirRett: LocalDate,
+        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         kommando: OppdaterRevurderingKommando.Stans = OppdaterRevurderingKommando.Stans(
             sakId = sakId,
             behandlingId = id,
@@ -115,7 +117,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksnummer = saksnummer,
             fnr = fnr,
             saksbehandler = saksbehandler,
-            virkningsperiode = virkningsperiode,
+            saksopplysningsperiode = virkningsperiode,
             hentSaksopplysninger = { saksopplysninger },
             clock = clock,
         ).oppdaterStans(
@@ -124,6 +126,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             sisteDagSomGirRett = sisteDagSomGirRett,
             clock = clock,
             utbetaling = utbetaling,
+            omgjørRammevedtak = omgjørRammevedtak,
         ).getOrFail().tilBeslutning(saksbehandler) as Revurdering
     }
 
@@ -150,6 +153,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         stansTilOgMed: LocalDate?,
         førsteDagSomGirRett: LocalDate,
         sisteDagSomGirRett: LocalDate,
+        omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
     ): Revurdering {
         return nyRevurderingStansKlarTilBeslutning(
             id = id,
@@ -167,6 +171,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             stansTilOgMed = stansTilOgMed,
             førsteDagSomGirRett = førsteDagSomGirRett,
             sisteDagSomGirRett = sisteDagSomGirRett,
+            omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
         ).taBehandling(beslutter, clock).iverksett(
             utøvendeBeslutter = beslutter,
@@ -264,6 +269,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                     simulering = simulering,
                 )
             },
+            omgjørRammevedtak = OmgjørRammevedtak.empty,
         ).getOrFail().tilBeslutning(saksbehandler = saksbehandler, clock = clock) as Revurdering
     }
 
@@ -335,24 +341,24 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 clock = clock,
             )
         },
-        omgjørBehandling: Rammebehandling = nyVedtattSøknadsbehandling(
+        innvilgetSøknadsbehandling: Rammebehandling = nyVedtattSøknadsbehandling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
             virkningsperiode = søknadsbehandlingInnvilgelsesperiode,
             saksopplysninger = hentSaksopplysninger(omgjøringInnvilgelsesperiode),
         ),
-        omgjørRammevedtak: Rammevedtak = nyRammevedtakInnvilgelse(
+        vedtattInnvilgetSøknadsbehandling: Rammevedtak = nyRammevedtakInnvilgelse(
             sakId = sakId,
             innvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
             fnr = fnr,
-            behandling = omgjørBehandling,
+            behandling = innvilgetSøknadsbehandling,
         ),
     ): Revurdering {
         return Revurdering.opprettOmgjøring(
             saksbehandler = saksbehandler,
             saksopplysninger = hentSaksopplysninger(omgjøringInnvilgelsesperiode),
-            omgjørRammevedtak = omgjørRammevedtak,
+            omgjørRammevedtak = vedtattInnvilgetSøknadsbehandling,
             clock = clock,
         ).getOrFail().copy(id = id)
     }
@@ -396,8 +402,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
             omgjøringInnvilgelsesperiode = omgjøringInnvilgelsesperiode,
-            omgjørBehandling = omgjørBehandling,
-            omgjørRammevedtak = omgjørRammevedtak,
+            innvilgetSøknadsbehandling = omgjørBehandling,
+            vedtattInnvilgetSøknadsbehandling = omgjørRammevedtak,
             hentSaksopplysninger = hentSaksopplysninger,
         ).tilBeslutning(
             saksbehandler = saksbehandler,

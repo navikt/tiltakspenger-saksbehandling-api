@@ -45,7 +45,7 @@ class BeregnRevurderingStansTest {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            virkningsperiode = virkningsperiode,
+            saksopplysningsperiode = virkningsperiode,
         )
 
         return (sakMedMeldekortBehandlinger.leggTilRevurdering(revurdering)) to revurdering

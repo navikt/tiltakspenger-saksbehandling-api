@@ -32,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
@@ -231,6 +232,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
         ),
         clock = clock,
         utbetaling = null,
+        omgjørRammevedtak = OmgjørRammevedtak.empty,
     ).getOrFail().tilBeslutning(saksbehandler = AUTOMATISK_SAKSBEHANDLER)
 
     behandlingRepo.lagre(klarTilBeslutning)
@@ -302,7 +304,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     val tiltaksdeltakelser = listOf(
         Pair(
             tiltaksOgVurderingsperiode,
-            søknadsbehandling.saksopplysninger!!.tiltaksdeltakelser.first().eksternDeltakelseId,
+            søknadsbehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
         ),
     )
 
@@ -335,6 +337,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                 },
                 clock = clock,
                 utbetaling = null,
+                omgjørRammevedtak = OmgjørRammevedtak.empty,
             ).getOrFail()
 
     val søknadsbehandlingKlarTilBeslutning = oppdatertSøknadsbehandling.tilBeslutning(
@@ -629,7 +632,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
 /**
  * Persisterer behandlingen, rammevedtaket og utbetalingen
  */
-internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
+internal fun TestDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 2.januar(2023),

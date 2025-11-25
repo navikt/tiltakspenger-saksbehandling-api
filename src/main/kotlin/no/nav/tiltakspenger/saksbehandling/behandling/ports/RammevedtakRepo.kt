@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import java.time.LocalDate
@@ -33,5 +34,5 @@ interface RammevedtakRepo {
 
     fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime)
 
-    fun markerOmgjortAv(vedtakId: VedtakId, omgjortAvRammevedtakId: VedtakId, sessionContext: SessionContext?)
+    fun oppdaterOmgjortAv(vedtakId: VedtakId, omgjortAvRammevedtak: OmgjortAvRammevedtak, sessionContext: SessionContext?)
 }

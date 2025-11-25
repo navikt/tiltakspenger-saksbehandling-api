@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakMedBehandletMeldekort
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
@@ -23,7 +23,7 @@ class UtbetalingRepoImplTest {
     fun `kan lagre og hente utbetaling fra meldekortvedtak`() {
         val tidspunkt = nå(fixedClock)
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (_, _, meldekortvedtak, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+            val (_, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
@@ -45,7 +45,7 @@ class UtbetalingRepoImplTest {
     @Test
     fun `kan lagre feil ved utbetaling fra meldekortvedtak`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (_, _, meldekortvedtak, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+            val (_, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
@@ -66,7 +66,7 @@ class UtbetalingRepoImplTest {
     @Test
     fun utbetalingsstatus() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (sak, _, meldekortvedtak, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+            val (sak, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
                 fnr = gyldigFnr(),

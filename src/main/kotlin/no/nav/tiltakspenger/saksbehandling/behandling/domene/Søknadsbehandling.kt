@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
@@ -61,6 +62,7 @@ data class Søknadsbehandling(
 ) : Rammebehandling {
 
     override val virkningsperiode = resultat?.virkningsperiode
+    override val omgjørRammevedtak: OmgjørRammevedtak = resultat?.omgjørRammevedtak ?: OmgjørRammevedtak.empty
 
     /** Vil være null ved avslag og ved innvilgelse frem til saksbehandler har valgt innvilgelsesperioden */
     override val innvilgelsesperiode = (resultat as? Innvilgelse)?.innvilgelsesperiode
@@ -111,6 +113,7 @@ data class Søknadsbehandling(
         kommando: OppdaterSøknadsbehandlingKommando,
         clock: Clock,
         utbetaling: BehandlingUtbetaling?,
+        omgjørRammevedtak: OmgjørRammevedtak,
     ): Either<KanIkkeOppdatereBehandling, Søknadsbehandling> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
 
@@ -128,6 +131,7 @@ data class Søknadsbehandling(
                     barnetillegg = kommando.barnetillegg,
                     antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
                     innvilgelsesperiode = kommando.innvilgelsesperiode,
+                    omgjørRammevedtak = omgjørRammevedtak,
                 )
             }
 
@@ -178,6 +182,10 @@ data class Søknadsbehandling(
             ),
             sistEndret = tidspunkt,
         )
+    }
+
+    override fun erFerdigutfylt(): Boolean {
+        return resultat?.erFerdigutfylt(saksopplysninger) ?: false
     }
 
     override fun oppdaterSimulering(nySimulering: Simulering?): Søknadsbehandling {

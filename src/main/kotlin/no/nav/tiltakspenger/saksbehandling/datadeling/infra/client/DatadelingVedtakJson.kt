@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingVedtakJson.ValgtHjemmelHarIkkeRettighet
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
@@ -68,8 +69,12 @@ fun Rammevedtak.toDatadelingJson(): String {
         tom = periode.tilOgMed,
         virkningsperiode = periode.toDTO(),
         innvilgelsesperiode = innvilgelsesperiode?.toDTO(),
-        omgjørRammevedtakId = this.omgjørRammevedtak?.toString(),
-        omgjortAvRammevedtakId = this.omgjortAvRammevedtakId?.toString(),
+        // TODO jah: omgjørRammevedtakId og omgjortAvRammevedtakId bør gjøres om etter vi har lagt på eksplisitt omgjøring på vedtakene.
+        // Kommentar jah: Disse ble lagt til utelukkende for revurdering til omgjøring for å tydeliggjøre at vedtaket omgjør et annet vedtak i sin helhet.
+        // Det vil være en ny avgjørelse dersom vi skal dele informasjon fra andre vedtak her. Det vil være redundant med virkningsperioden/vurderingsperioden.
+        omgjørRammevedtakId = if (this.erOmgjøringsbehandling) this.omgjørRammevedtak.single().rammevedtakId.toString() else null,
+        // Kommentar jah: Hvis vi skulle beholdt dagens logikk her, måtte vi sjekket om rammevedtaket som omgjorde dette vedtaket var en omgjøringsbehandling. Istedenfor å gjøre det, deler vi det vedtaket som har omgjort dette vedtaket helt.
+        omgjortAvRammevedtakId = if (this.omgjortAvRammevedtak.size == 1 && this.omgjortAvRammevedtak.first().omgjøringsgrad == Omgjøringsgrad.HELT) this.omgjortAvRammevedtak.first().rammevedtakId.toString() else null,
         rettighet = when (this.resultat) {
             is BehandlingResultat.Innvilgelse -> {
                 if (barnetillegg?.harBarnetillegg == true) {

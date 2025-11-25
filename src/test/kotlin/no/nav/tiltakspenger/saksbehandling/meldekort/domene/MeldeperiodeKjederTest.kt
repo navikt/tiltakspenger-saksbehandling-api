@@ -19,6 +19,10 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import org.junit.jupiter.api.Nested
@@ -141,18 +145,32 @@ class MeldeperiodeKjederTest {
         val fnr = Fnr.random()
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
-        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, innvilgelsesperiode = periode)
+        val innvilgelseVedtak =
+            ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, innvilgelsesperiode = periode)
         val stansVedtak = ObjectMother.nyRammevedtakStans(
             fnr = fnr,
             sakId = sakId,
             periode = periode,
-            opprettet = nå(
-                enUkeEtterFixedClock,
+            opprettet = nå(enUkeEtterFixedClock),
+            omgjørRammevedtak = OmgjørRammevedtak(
+                Omgjøringsperiode(
+                    rammevedtakId = innvilgelseVedtak.id,
+                    periode = periode,
+                    omgjøringsgrad = Omgjøringsgrad.HELT,
+                ),
             ),
         )
         val vedtaksliste = Rammevedtaksliste(
             listOf(
-                innvilgelseVedtak,
+                innvilgelseVedtak.copy(
+                    omgjortAvRammevedtak = OmgjortAvRammevedtak(
+                        Omgjøringsperiode(
+                            rammevedtakId = stansVedtak.id,
+                            periode = periode,
+                            omgjøringsgrad = Omgjøringsgrad.HELT,
+                        ),
+                    ),
+                ),
                 stansVedtak,
             ),
         )
@@ -172,7 +190,8 @@ class MeldeperiodeKjederTest {
         val fnr = Fnr.random()
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
-        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, innvilgelsesperiode = periode)
+        val innvilgelseVedtak =
+            ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, innvilgelsesperiode = periode)
         val v1 = Rammevedtaksliste(listOf(innvilgelseVedtak))
         val kjederV1 = MeldeperiodeKjeder(emptyList())
 
@@ -200,10 +219,25 @@ class MeldeperiodeKjederTest {
             opprettet = nå(
                 enUkeEtterFixedClock,
             ),
+            omgjørRammevedtak = OmgjørRammevedtak(
+                Omgjøringsperiode(
+                    rammevedtakId = innvilgelseVedtak.id,
+                    periode = periode,
+                    omgjøringsgrad = Omgjøringsgrad.HELT,
+                ),
+            ),
         )
         val v2 = Rammevedtaksliste(
             listOf(
-                innvilgelseVedtak,
+                innvilgelseVedtak.copy(
+                    omgjortAvRammevedtak = OmgjortAvRammevedtak(
+                        Omgjøringsperiode(
+                            rammevedtakId = stansVedtak.id,
+                            periode = periode,
+                            omgjøringsgrad = Omgjøringsgrad.HELT,
+                        ),
+                    ),
+                ),
                 stansVedtak,
             ),
         )
@@ -272,7 +306,10 @@ class MeldeperiodeKjederTest {
         kjeder.hentMeldeperiodeKjedeForPeriode(periode2) shouldBe MeldeperiodeKjede(meldeperiode2)
         kjeder.hentMeldeperiodeKjedeForPeriode(14 til 15.september(2025)) shouldBe null
         kjeder.hentForegåendeMeldeperiodekjede(meldeperiode1V1.kjedeId) shouldBe null
-        kjeder.hentForegåendeMeldeperiodekjede(meldeperiode2.kjedeId) shouldBe MeldeperiodeKjede(meldeperiode1V1, meldeperiode1V2)
+        kjeder.hentForegåendeMeldeperiodekjede(meldeperiode2.kjedeId) shouldBe MeldeperiodeKjede(
+            meldeperiode1V1,
+            meldeperiode1V2,
+        )
         kjeder.hentSisteMeldeperiodeForKjedeId(meldeperiode1V1.kjedeId) shouldBe meldeperiode1V2
         kjeder.hentSisteMeldeperiodeForKjedeId(meldeperiode2.kjedeId) shouldBe meldeperiode2
     }

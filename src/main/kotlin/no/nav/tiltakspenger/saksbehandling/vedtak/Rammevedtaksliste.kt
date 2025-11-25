@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.overlappendePerioder
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -16,6 +17,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDate
@@ -42,6 +47,18 @@ data class Rammevedtaksliste(
         verdi.filter { it.resultat is SøknadsbehandlingResultat.Avslag }
     }
 
+    val vedtakUtenAvslag: List<Rammevedtak> by lazy {
+        verdi.filter {
+            when (it.resultat) {
+                is BehandlingResultat.Innvilgelse,
+                is RevurderingResultat.Stans,
+                -> true
+
+                is SøknadsbehandlingResultat.Avslag -> false
+            }
+        }
+    }
+
     /**
      * Vedtakstidslinjen tar kun for seg vedtak som kan påvirke en utbetaling ([BehandlingResultat.Innvilgelse] og [RevurderingResultat.Stans]) og skal aldri inkludere [SøknadsbehandlingResultat.Avslag].
      * Dersom man ønsker å opphøre en tidligere innvilget periode, skal man bruke stans, aldri [SøknadsbehandlingResultat.Avslag].
@@ -54,30 +71,13 @@ data class Rammevedtaksliste(
      * [no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering] ved etter første innvilgelse.
      * Og [no.nav.tiltakspenger.libs.periodisering.IkkesammenhengendePeriodisering] dersom vi får en ny innvilgelse som ikke overlapper med den første.
      */
-    val tidslinje: Periodisering<Rammevedtak> by lazy {
-        verdi.filter {
-            // Fjerner alle vedtak som er omgjort av et annet vedtak.
-            it.omgjortAvRammevedtakId == null
-        }.filter {
-            when (it.resultat) {
-                is BehandlingResultat.Innvilgelse,
-                is RevurderingResultat.Stans,
-                -> true
-
-                is SøknadsbehandlingResultat.Avslag -> false
-            }
-        }.toTidslinje()
-    }
-
-    val erInnvilgelseSammenhengende by lazy { innvilgetTidslinje.erSammenhengende }
+    val tidslinje: Periodisering<Rammevedtak> by lazy { vedtakUtenAvslag.toTidslinje() }
 
     /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltakelsesperioder. Avslag og delvis avslag vil ikke være med her. */
     val vedtaksperioder: List<Periode> by lazy { tidslinje.perioder }
 
     /** Nåtilstand. De periodene som gir rett til tiltakspenger. Kan ha hull. */
-    val innvilgelsesperioder: List<Periode> by lazy {
-        innvilgetTidslinje.perioder
-    }
+    val innvilgelsesperioder: List<Periode> by lazy { innvilgetTidslinje.perioder }
 
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
         tidslinje.filter {
@@ -93,14 +93,10 @@ data class Rammevedtaksliste(
     }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den første innvilget dagen. */
-    val førsteDagSomGirRett: LocalDate? by lazy {
-        innvilgelsesperioder.minOfOrNull { it.fraOgMed }
-    }
+    val førsteDagSomGirRett: LocalDate? by lazy { innvilgelsesperioder.minOfOrNull { it.fraOgMed } }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
-    val sisteDagSomGirRett: LocalDate? by lazy {
-        innvilgelsesperioder.maxOfOrNull { it.tilOgMed }
-    }
+    val sisteDagSomGirRett: LocalDate? by lazy { innvilgelsesperioder.maxOfOrNull { it.tilOgMed } }
 
     /**
      * Tar utgangspunkt i [innvilgetTidslinje]
@@ -153,7 +149,20 @@ data class Rammevedtaksliste(
         valgteTiltaksdeltakelser.mapVerdi { verdi, _ -> verdi.typeKode }
     }
 
-    fun leggTil(vedtak: Rammevedtak): Rammevedtaksliste = copy(verdi = this.verdi.plus(vedtak))
+    /**
+     * Legger til et rammevedtak i vedtaklisten og oppdaterer omgjortAvRammevedtak per vedtak
+     */
+    fun leggTil(vedtak: Rammevedtak): Rammevedtaksliste {
+        if (vedtak.resultat is SøknadsbehandlingResultat.Avslag) {
+            // Avslag omgjør aldri noe
+            return copy(verdi = this.verdi.plus(vedtak))
+        }
+        val vedtaksliste = this.verdi
+        val oppdatertVedtaksliste = vedtaksliste.map {
+            it.oppdaterOmgjortAvRammevedtak(vedtak)
+        }
+        return copy(verdi = oppdatertVedtaksliste.plus(vedtak))
+    }
 
     fun hentRammevedtakForId(rammevedtakId: VedtakId): Rammevedtak {
         return verdi.single { it.id == rammevedtakId }
@@ -161,6 +170,21 @@ data class Rammevedtaksliste(
 
     fun finnRammevedtakForBehandling(id: BehandlingId): Rammevedtak? {
         return this.singleOrNullOrThrow { vedtak -> vedtak.behandling.id == id }
+    }
+
+    /**
+     * Tenkt kalt under behandlingen for å avgjøre hvilke rammevedtak som vil bli omgjort.
+     * Obs: Merk at en annen behandling kan ha omgjort det samme/de samme vedtakene etter at denne metoden er kalt, men før denne behandlingen iverksettes.
+     * @param virkningsperiode vurderingsperioden/vedtaksperioden. Kan være en ren innvilgelse, et rent opphør eller en blanding.
+     */
+    fun finnVedtakSomOmgjøres(
+        virkningsperiode: Periode,
+    ): OmgjørRammevedtak {
+        return OmgjørRammevedtak(
+            this.flatMap {
+                it.finnPerioderSomOmgjøres(virkningsperiode)
+            },
+        )
     }
 
     init {
@@ -173,9 +197,60 @@ data class Rammevedtaksliste(
         verdi.zipWithNext().forEach {
             require(it.first.opprettet.isBefore(it.second.opprettet)) { "Vedtakene må være sortert på opprettet-tidspunkt, men var: ${verdi.map { it.opprettet }}" }
         }
+        require(tidslinjeFraGjeldendeVedtak() == this.tidslinje) {
+            "Ugyldig gjeldende tidslinje. For vedtaksliste med vedtak ${this.map { it.id }}, forventet gjeldende tidslinje: ${this.tidslinje},"
+        }
+        validerOmgjøringer()
     }
 
     companion object {
         fun empty() = Rammevedtaksliste(emptyList())
+    }
+
+    private fun validerOmgjøringer() {
+        vedtakUtenAvslag.forEachIndexed { index, vedtak ->
+            val tidslinjeFørDetteVedtaket = vedtakUtenAvslag.take(index).toTidslinje()
+            val overlapp = tidslinjeFørDetteVedtaket.overlappendePeriode(vedtak.periode)
+            val omgjør = OmgjørRammevedtak(
+                overlapp.perioderMedVerdi.map {
+                    Omgjøringsperiode(
+                        rammevedtakId = it.verdi.id,
+                        periode = it.periode,
+                        omgjøringsgrad = if (it.verdi.periode == it.periode) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS,
+                    )
+                },
+            )
+            require(vedtak.omgjørRammevedtak == omgjør) {
+                "Ugyldig [omgjørRammevedtak] på vedtak ${vedtak.id}. Forventet omgjøringsdata: $omgjør, men fant: ${vedtak.omgjørRammevedtak}"
+            }
+
+            val alleSenereVedtak = vedtakUtenAvslag.drop(index + 1)
+
+            val omgjortAvRammevedtak = alleSenereVedtak.fold(OmgjortAvRammevedtak.empty) { acc, senereVedtak ->
+                val perioderSomOmgjøres = senereVedtak.periode
+                    .trekkFra(acc.perioder)
+                    .overlappendePerioder(listOf(vedtak.periode))
+
+                perioderSomOmgjøres.map {
+                    Omgjøringsperiode(
+                        rammevedtakId = senereVedtak.id,
+                        periode = it,
+                        omgjøringsgrad = if (vedtak.periode == it) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS,
+                    )
+                }.let { acc.leggTil(it) }
+            }
+
+            require(vedtak.omgjortAvRammevedtak == omgjortAvRammevedtak) {
+                "Ugyldig [omgjortAvRammevedtak] på vedtak ${vedtak.id}. Forventet: $omgjortAvRammevedtak, men fant: ${vedtak.omgjortAvRammevedtak}"
+            }
+        }
+    }
+
+    private fun tidslinjeFraGjeldendeVedtak(): Periodisering<Rammevedtak> {
+        return vedtakUtenAvslag.flatMap { vedtak ->
+            vedtak.gjeldendePerioder.map {
+                PeriodeMedVerdi(vedtak, it)
+            }
+        }.sortedBy { it.periode.fraOgMed }.tilPeriodisering()
     }
 }
