@@ -20,7 +20,7 @@ fun nySøknadForFnr(
     val periode = deltakelsesperiode ?: Periode(1.april(2025), 10.april(2025))
 
     return runBlocking {
-        val sak = applicationContext.sakContext.sakService.hentEllerOpprettSak(
+        val (sak, _) = applicationContext.sakContext.sakService.hentEllerOpprettSak(
             fnr,
             CorrelationId.generate(),
         )
@@ -47,7 +47,7 @@ fun nySakMedNySøknad(
     val periode = deltakelsesperiode ?: Periode(1.april(2025), 10.april(2025))
 
     return runBlocking {
-        val sak = applicationContext.sakContext.sakService.hentEllerOpprettSak(
+        val (sak, _) = applicationContext.sakContext.sakService.hentEllerOpprettSak(
             Fnr.random(),
             CorrelationId.generate(),
         )
