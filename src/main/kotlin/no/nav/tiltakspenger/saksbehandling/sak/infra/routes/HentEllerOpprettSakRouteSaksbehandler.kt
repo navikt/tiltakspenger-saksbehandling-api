@@ -8,6 +8,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -18,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.fantIkkeFnr
 
 fun Route.hentEllerOpprettSakRoute(
     sakService: SakService,
@@ -41,7 +43,7 @@ fun Route.hentEllerOpprettSakRoute(
         )
         personService.hentEnkelPersonFnr(fnr).fold(
             ifLeft = {
-                call.respond(HttpStatusCode.NotFound, "Fant ikke person")
+                call.respond404NotFound(fantIkkeFnr())
             },
             ifRight = {
                 val (sak, opprettet) = sakService.hentEllerOpprettSak(
