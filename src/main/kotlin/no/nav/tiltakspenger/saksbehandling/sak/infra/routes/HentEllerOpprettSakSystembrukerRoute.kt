@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
 
 const val SAKSNUMMER_PATH = "/saksnummer"
 
-fun Route.hentEllerOpprettSakRoute(
+fun Route.hentEllerOpprettSakSystembrukerRoute(
     sakService: SakService,
 ) {
     val logger = KotlinLogging.logger {}
@@ -26,7 +26,7 @@ fun Route.hentEllerOpprettSakRoute(
         val systembruker = call.systembruker(getSystemBrukerMapper()) as? Systembruker ?: return@post
         krevHentEllerOpprettSakRollen(systembruker)
         val fnr = call.receive<FnrDTO>().fnr
-        val sak = sakService.hentEllerOpprettSak(
+        val (sak, _) = sakService.hentEllerOpprettSak(
             fnr = Fnr.fromString(fnr),
             correlationId = CorrelationId.generate(),
         )

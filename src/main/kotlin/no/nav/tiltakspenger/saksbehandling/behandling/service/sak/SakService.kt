@@ -36,13 +36,13 @@ class SakService(
     fun hentEllerOpprettSak(
         fnr: Fnr,
         correlationId: CorrelationId,
-    ): Sak {
+    ): Pair<Sak, Boolean> {
         val saker = sakRepo.hentForFnr(fnr)
         if (saker.size > 1) {
             throw IllegalStateException("Vi støtter ikke flere saker per søker i piloten. correlationId: $correlationId")
         }
         if (saker.isNotEmpty()) {
-            return saker.single()
+            return saker.single() to false
         }
 
         val sak = Sak(
@@ -58,7 +58,7 @@ class SakService(
         )
         sakRepo.opprettSak(sak)
         logger.info { "Opprettet ny sak med saksnummer ${sak.saksnummer}, correlationId $correlationId" }
-        return sak
+        return sak to true
     }
 
     fun hentForSaksnummer(
