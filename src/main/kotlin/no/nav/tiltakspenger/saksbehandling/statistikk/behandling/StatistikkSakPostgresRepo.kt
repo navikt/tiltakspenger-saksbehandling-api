@@ -16,6 +16,8 @@ import org.intellij.lang.annotations.Language
  * komme som nye rader. DVH bruker kombinasjonen behandlingid + endrettidspunkt for å identifisere en hendelse, så
  * ved f.eks. teknisk patching av data må man inserte en ny rad med samme behandlingid + endrettidspunkt og endringene
  * man ønsker å gjøre pr rad som skal patches.
+ *
+ * Dokumentasjon: https://confluence.adeo.no/spaces/DVH/pages/459904637/Funksjonell+tid+teknisk+tid+og+lastet+tids+rolle+i+modell
  */
 internal class StatistikkSakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -32,7 +34,7 @@ internal class StatistikkSakPostgresRepo(
             it.run(
                 queryOf(
                     """
-                        update statistikk_sak set opprettetAv = :verdi, saksbehandler = :verdi, ansvarligbeslutter = :verdi where sak_id = :sak_id
+                        update statistikk_sak set opprettetAv = :verdi, saksbehandler = :verdi, ansvarligbeslutter = :verdi, ansvarligenhet = :verdi where sak_id = :sak_id
                     """.trimIndent(),
                     mapOf(
                         "verdi" to "-5",
@@ -112,6 +114,9 @@ internal class StatistikkSakPostgresRepo(
                         "avsender" to dto.avsender,
                         "versjon" to dto.versjon,
                         "behandling_aarsak" to dto.behandlingAarsak?.name,
+                        "relatertfagsystem" to dto.relatertFagsystem,
+                        "sakutland" to dto.sakUtland,
+                        "ansvarligenhet" to dto.ansvarligenhet,
                     ),
                 ).asUpdateAndReturnGeneratedKey,
             )
@@ -149,7 +154,10 @@ internal class StatistikkSakPostgresRepo(
             hendelse,
             avsender,
             versjon,
-            behandling_aarsak
+            behandling_aarsak,
+            relatertfagsystem,
+            sakutland,
+            ansvarligenhet
         ) values (
             :sakId,
             :saksnummer,
@@ -180,7 +188,10 @@ internal class StatistikkSakPostgresRepo(
             :hendelse,
             :avsender,
             :versjon,
-            :behandling_aarsak
+            :behandling_aarsak,
+            :relatertfagsystem,
+            :sakutland,
+            :ansvarligenhet
         )
         """.trimIndent()
     }
@@ -217,5 +228,8 @@ internal class StatistikkSakPostgresRepo(
             versjon = string("versjon"),
             hendelse = string("hendelse"),
             behandlingAarsak = stringOrNull("behandling_aarsak")?.let { StatistikkBehandlingAarsak.valueOf(it) },
+            relatertFagsystem = string("relatertfagsystem"),
+            sakUtland = string("sakutland"),
+            ansvarligenhet = string("ansvarligenhet"),
         )
 }

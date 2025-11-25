@@ -59,6 +59,9 @@ data class StatistikkSakDTO(
     val hendelse: String,
     /** Årsaken til behandlingen */
     val behandlingAarsak: StatistikkBehandlingAarsak?,
+    val relatertFagsystem: String = "TPSAK",
+    val sakUtland: String = "NASJONAL",
+    val ansvarligenhet: String,
 )
 
 enum class StatistikkFormat {

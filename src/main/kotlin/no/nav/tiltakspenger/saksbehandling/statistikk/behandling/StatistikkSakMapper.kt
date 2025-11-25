@@ -54,6 +54,7 @@ fun genererSaksstatistikkForRammevedtak(
         opprettetAv = if (gjelderKode6) "-5" else "system",
         saksbehandler = if (gjelderKode6) "-5" else behandling.saksbehandler,
         ansvarligBeslutter = if (gjelderKode6) "-5" else behandling.beslutter,
+        ansvarligenhet = if (gjelderKode6) "-5" else "0387",
 
         tilbakekrevingsbeløp = null,
         funksjonellPeriodeFom = null,
@@ -102,6 +103,7 @@ fun genererSaksstatistikkForBehandling(
         opprettetAv = if (gjelderKode6) "-5" else "system",
         saksbehandler = if (gjelderKode6) "-5" else behandling.saksbehandler,
         ansvarligBeslutter = if (gjelderKode6) "-5" else behandling.beslutter,
+        ansvarligenhet = if (gjelderKode6) "-5" else "0387",
 
         tilbakekrevingsbeløp = null,
         funksjonellPeriodeFom = null,
