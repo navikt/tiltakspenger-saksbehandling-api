@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
@@ -44,6 +45,8 @@ class AutomatiskMeldekortBehandlingService(
     val logger = KotlinLogging.logger { }
 
     suspend fun behandleBrukersMeldekort() {
+        if (!erInnenforØkonomisystemetsÅpningstider(clock)) return
+
         Either.catch {
             val meldekortListe = brukersMeldekortRepo.hentMeldekortSomSkalBehandlesAutomatisk()
 
