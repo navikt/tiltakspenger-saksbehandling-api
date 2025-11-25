@@ -92,7 +92,7 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
     genererSak: (Sak?) -> Pair<Sak, Revurdering> = { s -> this.persisterOpprettetRevurdering(s) },
 ): Pair<Sak, Revurdering> {
     val (sakMedRevurdering, revurdering) = genererSak(s)
-    var kommando = OppdaterRevurderingKommando.Stans(
+    val kommando = OppdaterRevurderingKommando.Stans(
         sakId = sakMedRevurdering.id,
         behandlingId = revurdering.id,
         saksbehandler = saksbehandler,

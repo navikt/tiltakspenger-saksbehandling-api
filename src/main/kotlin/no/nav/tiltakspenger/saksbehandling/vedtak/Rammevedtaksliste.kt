@@ -197,6 +197,9 @@ data class Rammevedtaksliste(
         verdi.zipWithNext().forEach {
             require(it.first.opprettet.isBefore(it.second.opprettet)) { "Vedtakene må være sortert på opprettet-tidspunkt, men var: ${verdi.map { it.opprettet }}" }
         }
+        require(tidslinjeFraGjeldendeVedtak() == this.tidslinje) {
+            "Ugyldig gjeldende tidslinje. For vedtaksliste med vedtak ${this.map { it.id }}, forventet gjeldende tidslinje: ${this.tidslinje},"
+        }
         validerOmgjøringer()
     }
 
@@ -221,22 +224,24 @@ data class Rammevedtaksliste(
                 "Ugyldig [omgjørRammevedtak] på vedtak ${vedtak.id}. Forventet omgjøringsdata: $omgjør, men fant: ${vedtak.omgjørRammevedtak}"
             }
 
-            val omgjortAvRammevedtak =
-                vedtakUtenAvslag.drop(index + 1).fold(OmgjortAvRammevedtak.empty) { acc, omgjortAvRammevedtak ->
-                    (omgjortAvRammevedtak.periode.trekkFra(acc.perioder)).overlappendePerioder(listOf(vedtak.periode))
-                        .map {
-                            Omgjøringsperiode(
-                                rammevedtakId = omgjortAvRammevedtak.id,
-                                periode = it,
-                                omgjøringsgrad = if (vedtak.periode == it) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS,
-                            )
-                        }.let { acc.leggTil(it) }
-                }
+            val alleSenereVedtak = vedtakUtenAvslag.drop(index + 1)
+
+            val omgjortAvRammevedtak = alleSenereVedtak.fold(OmgjortAvRammevedtak.empty) { acc, senereVedtak ->
+                val perioderSomOmgjøres = senereVedtak.periode
+                    .trekkFra(acc.perioder)
+                    .overlappendePerioder(listOf(vedtak.periode))
+
+                perioderSomOmgjøres.map {
+                    Omgjøringsperiode(
+                        rammevedtakId = senereVedtak.id,
+                        periode = it,
+                        omgjøringsgrad = if (vedtak.periode == it) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS,
+                    )
+                }.let { acc.leggTil(it) }
+            }
+
             require(vedtak.omgjortAvRammevedtak == omgjortAvRammevedtak) {
                 "Ugyldig [omgjortAvRammevedtak] på vedtak ${vedtak.id}. Forventet: $omgjortAvRammevedtak, men fant: ${vedtak.omgjortAvRammevedtak}"
-            }
-            require(tidslinjeFraGjeldendeVedtak() == this.tidslinje) {
-                "Ugyldig gjeldende tidslinje. For vedtaksliste med vedtak ${this.map { it.id }}, forventet gjeldende tidslinje: ${this.tidslinje},"
             }
         }
     }
