@@ -31,7 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -73,7 +73,7 @@ interface IverksettBehandlingBuilder {
             barnetillegg = barnetillegg,
             tiltaksdeltakelse = tiltaksdeltakelse,
         )
-        taBehanding(tac, sak.id, behandlingId, beslutter)
+        taBehandling(tac, sak.id, behandlingId, beslutter)
         val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
             tac,
             sak.id,
@@ -105,7 +105,7 @@ interface IverksettBehandlingBuilder {
             fnr = fnr,
             virkningsperiode = virkningsperiode,
         )
-        taBehanding(tac, sak.id, behandling.id, beslutter)
+        taBehandling(tac, sak.id, behandling.id, beslutter)
         val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
             tac,
             sak.id,

@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.fixedClock
-import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -21,17 +20,18 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterSøknadsbehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadPåSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -101,6 +101,8 @@ interface SøknadsbehandlingBuilder {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
+        manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = emptyList(),
+        clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
             tac = tac,
@@ -109,13 +111,22 @@ interface SøknadsbehandlingBuilder {
             virkningsperiode = virkningsperiode,
             tiltaksdeltakelse = tiltaksdeltakelse,
         )
-        val behandlingOppdatert = behandling.copy(
-            status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
-            saksbehandler = null,
+
+        behandling.tilManuellBehandling(
+            manueltBehandlesGrunner = manueltBehandlesGrunner,
+            clock = clock,
+        )
+
+        val behandlingOppdatert = behandling.tilManuellBehandling(
+            manueltBehandlesGrunner = manueltBehandlesGrunner,
+            clock = clock,
         ).also {
             tac.behandlingContext.behandlingRepo.lagre(it)
         }
-        return Triple(sak, søknad, behandlingOppdatert)
+
+        val oppdaterSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+
+        return Triple(oppdaterSak, søknad, behandlingOppdatert)
     }
 
     /** oppretter sak  (hvis sakId er null), søknad og behandling som er under manuell behandling*/
@@ -137,13 +148,17 @@ interface SøknadsbehandlingBuilder {
             fnr = fnr,
             virkningsperiode = virkningsperiode,
             tiltaksdeltakelse = tiltaksdeltakelse,
+            clock = clock,
         )
 
-        val behandlingOppdatert = behandling.taBehandling(saksbehandler = saksbehandler, clock = clock).also {
-            tac.behandlingContext.behandlingRepo.lagre(it)
-        } as Søknadsbehandling
+        val (oppdaterSak, behandlingOppdatert) = taBehandling(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = behandling.id,
+            saksbehandler = saksbehandler,
+        )
 
-        return Triple(sak, søknad, behandlingOppdatert)
+        return Triple(oppdaterSak, søknad, behandlingOppdatert as Søknadsbehandling)
     }
 
     /** oppretter sak (hvis sakId er null), søknad og behandling som er under manuell behandling med data*/
@@ -173,8 +188,10 @@ interface SøknadsbehandlingBuilder {
             virkningsperiode = virkningsperiode,
             saksbehandler = saksbehandler,
             tiltaksdeltakelse = tiltaksdeltakelse,
+            clock = clock,
         )
-        oppdaterBehandling(
+
+        val (oppdatertSak, oppdatertBehandling) = oppdaterBehandling(
             tac = tac,
             sakId = sak.id,
             behandlingId = behandling.id,
@@ -192,7 +209,8 @@ interface SøknadsbehandlingBuilder {
                 antallDagerPerMeldeperiodeForPerioder = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),
             ),
         )
-        return Triple(sak, søknad, behandling)
+
+        return Triple(oppdatertSak, søknad, oppdatertBehandling as Søknadsbehandling)
     }
 
     // oppretter sak, søknad og behandling som er under manuell behandling med data
@@ -211,23 +229,21 @@ interface SøknadsbehandlingBuilder {
             fnr = fnr,
             virkningsperiode = virkningsperiode,
             saksbehandler = saksbehandler,
-        )
-        behandling.oppdater(
-            kommando = OppdaterSøknadsbehandlingKommando.Avslag(
-                sakId = sak.id,
-                behandlingId = behandling.id,
-                saksbehandler = saksbehandler,
-                correlationId = CorrelationId.generate(),
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                automatiskSaksbehandlet = false,
-                avslagsgrunner = avslagsgrunner,
-            ),
             clock = clock,
-            utbetaling = null,
-        ).getOrFail().also {
-            tac.behandlingContext.behandlingRepo.lagre(it)
-        }
-        return Triple(sak, søknad, behandling)
+        )
+
+        val (oppdatertSak, oppdatertBehandling) = oppdaterBehandling(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = behandling.id,
+            saksbehandler = saksbehandler,
+            oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Avslag(
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
+                avslagsgrunner = avslagsgrunner.toValgtHjemmelForAvslagDTO(),
+            ),
+        )
+
+        return Triple(oppdatertSak, søknad, oppdatertBehandling as Søknadsbehandling)
     }
 }

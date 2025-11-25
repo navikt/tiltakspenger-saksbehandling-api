@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingForSakId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Disabled
@@ -77,7 +77,7 @@ class UtbetalingerIT {
                 sak.id,
                 revurdering.id,
             )
-            taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
 
             val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)
 
@@ -182,7 +182,7 @@ class UtbetalingerIT {
                 sak.id,
                 revurdering.id,
             )
-            taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
 
             val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)
 

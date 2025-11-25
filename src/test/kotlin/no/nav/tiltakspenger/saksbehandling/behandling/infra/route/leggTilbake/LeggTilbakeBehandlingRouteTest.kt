@@ -25,7 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
@@ -76,7 +76,7 @@ class LeggTilbakeBehandlingRouteTest {
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                 }
-                taBehanding(tac, sak.id, behandlingId, ObjectMother.beslutter()).also {
+                taBehandling(tac, sak.id, behandlingId, ObjectMother.beslutter()).also {
                     tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                         it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                         it.beslutter shouldBe "B12345"

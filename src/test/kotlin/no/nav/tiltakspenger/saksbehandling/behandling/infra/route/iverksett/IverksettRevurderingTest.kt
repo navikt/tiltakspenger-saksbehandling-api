@@ -27,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRev
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingStansTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import org.junit.jupiter.api.Test
 
@@ -57,7 +57,7 @@ internal class IverksettRevurderingTest {
                 sak.id,
                 revurdering.id,
             )
-            taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
             iverksettForBehandlingId(tac, sak.id, revurdering.id)
         }
     }
@@ -101,7 +101,7 @@ internal class IverksettRevurderingTest {
                 sak.id,
                 revurdering.id,
             )
-            taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
             iverksettForBehandlingId(tac, sak.id, revurdering.id)
         }
     }
@@ -155,7 +155,7 @@ internal class IverksettRevurderingTest {
                 sak.id,
                 revurdering.id,
             )
-            taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
             iverksettForBehandlingId(tac, sak.id, revurdering.id)
         }
     }
@@ -185,7 +185,7 @@ internal class IverksettRevurderingTest {
                 sak.id,
                 revurdering.id,
             )
-            taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
             iverksettForBehandlingIdReturnerRespons(
                 tac,
                 sak.id,

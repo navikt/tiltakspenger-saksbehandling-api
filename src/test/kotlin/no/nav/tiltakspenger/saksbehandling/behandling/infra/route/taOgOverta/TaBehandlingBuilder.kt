@@ -14,18 +14,20 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 interface TaBehandlingBuilder {
 
     /** Forventer at det allerede finnes en behandling. Denne fungerer både for saksbehandler og beslutter. */
-    suspend fun ApplicationTestBuilder.taBehanding(
+    suspend fun ApplicationTestBuilder.taBehandling(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): String {
+    ): Triple<Sak, Behandling, String> {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
@@ -44,7 +46,11 @@ interface TaBehandlingBuilder {
             ) {
                 status shouldBe HttpStatusCode.OK
             }
-            return bodyAsText
+
+            val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+            val behandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
+
+            return Triple(sak, behandling, bodyAsText)
         }
     }
 }

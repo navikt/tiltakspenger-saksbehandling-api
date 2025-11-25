@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
 
 class IverksettSøknadsbehandlingTest {
@@ -72,7 +72,7 @@ class IverksettSøknadsbehandlingTest {
                 behandlingId,
                 saksbehandler,
             )
-            taBehanding(tac, sak.id, behandlingId, beslutter)
+            taBehandling(tac, sak.id, behandlingId, beslutter)
 
             val response = iverksettForBehandlingIdReturnerRespons(
                 tac,
@@ -108,7 +108,7 @@ class IverksettSøknadsbehandlingTest {
                 behandlingId,
                 saksbehandler,
             )
-            taBehanding(tac, sak.id, behandlingId, beslutter)
+            taBehandling(tac, sak.id, behandlingId, beslutter)
 
             val response = iverksettForBehandlingIdReturnerRespons(
                 tac,
