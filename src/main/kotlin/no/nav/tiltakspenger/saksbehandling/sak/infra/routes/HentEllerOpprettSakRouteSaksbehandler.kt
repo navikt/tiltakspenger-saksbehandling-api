@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
@@ -22,6 +23,7 @@ fun Route.hentEllerOpprettSakRoute(
     sakService: SakService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
+    personService: PersonService,
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -37,21 +39,28 @@ fun Route.hentEllerOpprettSakRoute(
             saksbehandlerToken = token,
             saksbehandler = saksbehandler,
         )
-        val (sak, opprettet) = sakService.hentEllerOpprettSak(
-            fnr = fnr,
-            correlationId = correlationId,
-        )
-        auditService.logMedSakId(
-            sakId = sak.id,
-            navIdent = saksbehandler.navIdent,
-            action = if (opprettet) AuditLogEvent.Action.CREATE else AuditLogEvent.Action.ACCESS,
-            contextMessage = "Hentet eller opprettet sak.",
-            correlationId = correlationId,
-        )
+        personService.hentEnkelPersonFnr(fnr).fold(
+            ifLeft = {
+                call.respond(HttpStatusCode.NotFound, "Fant ikke person")
+            },
+            ifRight = {
+                val (sak, opprettet) = sakService.hentEllerOpprettSak(
+                    fnr = fnr,
+                    correlationId = correlationId,
+                )
+                auditService.logMedSakId(
+                    sakId = sak.id,
+                    navIdent = saksbehandler.navIdent,
+                    action = if (opprettet) AuditLogEvent.Action.CREATE else AuditLogEvent.Action.ACCESS,
+                    contextMessage = "Hentet eller opprettet sak.",
+                    correlationId = correlationId,
+                )
 
-        call.respond(
-            message = HentEllerOpprettSakResponse(saksnummer = sak.saksnummer.verdi, opprettet = opprettet),
-            status = HttpStatusCode.OK,
+                call.respond(
+                    message = HentEllerOpprettSakResponse(saksnummer = sak.saksnummer.verdi, opprettet = opprettet),
+                    status = HttpStatusCode.OK,
+                )
+            },
         )
     }
 }

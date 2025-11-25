@@ -60,6 +60,7 @@ fun Route.routes(
             avbrytSøknadOgBehandlingService = applicationContext.avbrytSøknadOgBehandlingContext.avsluttSøknadOgBehandlingService,
             clock = applicationContext.clock,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
+            personService = applicationContext.personContext.personService,
         )
         meldekortRoutes(
             iverksettMeldekortService = applicationContext.meldekortContext.iverksettMeldekortService,
