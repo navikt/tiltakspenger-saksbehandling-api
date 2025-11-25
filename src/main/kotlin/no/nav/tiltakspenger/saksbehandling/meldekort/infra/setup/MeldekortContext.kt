@@ -109,7 +109,6 @@ open class MeldekortContext(
             meldekortvedtakRepo = meldekortvedtakRepo,
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,
-            clock = clock,
             simulerService = simulerService,
             personKlient = personKlient,
             oppgaveKlient = oppgaveKlient,

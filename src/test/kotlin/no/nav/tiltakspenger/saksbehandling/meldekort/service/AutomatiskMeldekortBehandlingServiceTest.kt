@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
@@ -18,9 +19,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAu
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
 import org.junit.jupiter.api.Test
+import java.time.temporal.ChronoUnit
 
 class AutomatiskMeldekortBehandlingServiceTest {
-    val clock = fixedClockAt(1.april(2025))
+    val clock = fixedClockAt(1.april(2025).atTime(12, 0))
     val virkningsperiode = Periode(6.januar(2025), 31.mars(2025))
 
     @Test
@@ -46,7 +48,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         brukersMeldekortRepo.lagre(brukersMeldekort)
 
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val meldekortBehandlinger = meldekortBehandlingRepo.hentForSakId(sak.id)!!
@@ -79,7 +81,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         brukersMeldekortRepo.lagre(brukersMeldekort)
 
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val meldekortBehandlinger = meldekortBehandlingRepo.hentForSakId(sak.id)
@@ -120,7 +122,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         brukersMeldekortRepo.lagre(brukersMeldekort)
 
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val meldekortBehandlinger = meldekortBehandlingRepo.hentForSakId(sak.id)
@@ -158,7 +160,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         brukersMeldekortRepo.lagre(brukersMeldekort2)
 
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val meldekortBehandlinger = meldekortBehandlingRepo.hentForSakId(sak.id)!!
@@ -168,7 +170,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         meldekortBehandlinger.sisteGodkjenteMeldekort!!.brukersMeldekort!!.id shouldBe brukersMeldekort1.id
 
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock.plus(1, ChronoUnit.MINUTES))
         }
 
         val meldekortBehandlingerNeste = meldekortBehandlingRepo.hentForSakId(sak.id)!!
@@ -200,7 +202,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
 
         brukersMeldekortRepo.lagre(brukersMeldekort)
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val brukersMeldekortDuplikat = ObjectMother.brukersMeldekort(
@@ -211,7 +213,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
 
         brukersMeldekortRepo.lagre(brukersMeldekortDuplikat)
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val meldekortBehandlinger = meldekortBehandlingRepo.hentForSakId(sak.id)
