@@ -98,7 +98,7 @@ private fun hentAlleÅpneBehandlinger(
                 select b.*,s.fnr, s.saksnummer
                 from behandling b
                 join sak s on s.id = b.sak_id
-                where status not in ('VEDTATT', 'AVBRUTT')
+                where status not in ('VEDTATT')
                 and resultat is not null and resultat != 'AVSLAG'
             """.trimIndent(),
         ).map { it.toBehandling(session) }.asList,
