@@ -21,11 +21,12 @@ spec:
   liveness:
     path: /isalive
     initialDelay: 15
+    failureThreshold: 10
   readiness:
     path: /isready
     initialDelay: 15
     periodSeconds: 5
-    failureThreshold: 1
+    failureThreshold: 10
   prometheus:
     enabled: true
     path: /metrics
