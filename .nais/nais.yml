@@ -21,12 +21,12 @@ spec:
   liveness:
     path: /isalive
     initialDelay: 15
-    timeout: 30
+    timeout: 120
   readiness:
     path: /isready
     initialDelay: 15
     periodSeconds: 5
-    timeout: 30
+    timeout: 120
     failureThreshold: 1
   prometheus:
     enabled: true
