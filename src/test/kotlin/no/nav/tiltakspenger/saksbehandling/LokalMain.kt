@@ -17,6 +17,11 @@ fun main() {
 
     val log = KotlinLogging.logger {}
     log.info { "Starter lokal server. Bruker default postgres i docker og in-memory fakes." }
+
+    Thread.setDefaultUncaughtExceptionHandler { _, e ->
+        log.error(e) { e.message }
+    }
+
     val clock = Clock.system(zoneIdOslo)
     val localApplicationContext = LocalApplicationContext(usePdfGen = true, clock)
     start(

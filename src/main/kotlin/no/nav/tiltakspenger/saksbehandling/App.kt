@@ -29,6 +29,11 @@ fun main() {
     System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile())
 
     val log = KotlinLogging.logger {}
+
+    Thread.setDefaultUncaughtExceptionHandler { _, e ->
+        log.error(e) { e.message }
+    }
+
     log.info { "starting server" }
     start(log)
 }
@@ -44,10 +49,6 @@ internal fun start(
     ),
     devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
-    Thread.setDefaultUncaughtExceptionHandler { _, e ->
-        log.error(e) { e.message }
-    }
-
     val server = embeddedServer(
         factory = Netty,
         port = port,
