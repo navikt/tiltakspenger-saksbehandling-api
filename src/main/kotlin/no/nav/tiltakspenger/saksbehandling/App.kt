@@ -89,7 +89,7 @@ internal fun start(
             { applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør() },
             { applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer() },
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },
-            { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort() },
+            { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock) },
         ).let {
             if (Configuration.isNais()) {
                 it.plus(

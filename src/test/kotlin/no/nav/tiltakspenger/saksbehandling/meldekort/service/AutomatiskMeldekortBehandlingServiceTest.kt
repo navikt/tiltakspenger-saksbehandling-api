@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
@@ -18,18 +19,21 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAu
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNull
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 class AutomatiskMeldekortBehandlingServiceTest {
-    val clock = fixedClockAt(1.april(2025))
+    val clock = fixedClockAt(1.april(2025).atTime(12, 0))
     val virkningsperiode = Periode(6.januar(2025), 31.mars(2025))
+    val tac = TestApplicationContext()
+    val meldekortBehandlingRepo = tac.meldekortContext.meldekortBehandlingRepo
+    val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+    val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
 
     @Test
     fun `skal behandle brukers meldekort automatisk ved behandlesAutomatisk=true`() {
-        val tac = TestApplicationContext()
-        val meldekortBehandlingRepo = tac.meldekortContext.meldekortBehandlingRepo
-        val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-        val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
-
         val sak = runBlocking {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
@@ -46,7 +50,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         brukersMeldekortRepo.lagre(brukersMeldekort)
 
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val meldekortBehandlinger = meldekortBehandlingRepo.hentForSakId(sak.id)!!
@@ -58,11 +62,6 @@ class AutomatiskMeldekortBehandlingServiceTest {
 
     @Test
     fun `skal ikke behandle automatisk ved behandlesAutomatisk=false`() {
-        val tac = TestApplicationContext()
-        val meldekortBehandlingRepo = tac.meldekortContext.meldekortBehandlingRepo
-        val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-        val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
-
         val sak = runBlocking {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
@@ -79,7 +78,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         brukersMeldekortRepo.lagre(brukersMeldekort)
 
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val meldekortBehandlinger = meldekortBehandlingRepo.hentForSakId(sak.id)
@@ -89,11 +88,6 @@ class AutomatiskMeldekortBehandlingServiceTest {
 
     @Test
     fun `skal ikke behandle automatisk med for mange dager registrert`() {
-        val tac = TestApplicationContext()
-        val meldekortBehandlingRepo = tac.meldekortContext.meldekortBehandlingRepo
-        val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-        val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
-
         val sak = runBlocking {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
@@ -120,7 +114,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         brukersMeldekortRepo.lagre(brukersMeldekort)
 
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val meldekortBehandlinger = meldekortBehandlingRepo.hentForSakId(sak.id)
@@ -130,11 +124,6 @@ class AutomatiskMeldekortBehandlingServiceTest {
 
     @Test
     fun `skal kun behandle det neste meldekortet på en sak for hvert kall`() {
-        val tac = TestApplicationContext()
-        val meldekortBehandlingRepo = tac.meldekortContext.meldekortBehandlingRepo
-        val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-        val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
-
         val sak = runBlocking {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
@@ -158,7 +147,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         brukersMeldekortRepo.lagre(brukersMeldekort2)
 
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val meldekortBehandlinger = meldekortBehandlingRepo.hentForSakId(sak.id)!!
@@ -168,7 +157,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         meldekortBehandlinger.sisteGodkjenteMeldekort!!.brukersMeldekort!!.id shouldBe brukersMeldekort1.id
 
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock.plus(1, ChronoUnit.MINUTES))
         }
 
         val meldekortBehandlingerNeste = meldekortBehandlingRepo.hentForSakId(sak.id)!!
@@ -180,11 +169,6 @@ class AutomatiskMeldekortBehandlingServiceTest {
 
     @Test
     fun `skal feile dersom det allerede finnes en behandling på meldeperiodekjeden`() {
-        val tac = TestApplicationContext()
-        val meldekortBehandlingRepo = tac.meldekortContext.meldekortBehandlingRepo
-        val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-        val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
-
         val sak = runBlocking {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
@@ -200,7 +184,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
 
         brukersMeldekortRepo.lagre(brukersMeldekort)
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val brukersMeldekortDuplikat = ObjectMother.brukersMeldekort(
@@ -211,7 +195,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
 
         brukersMeldekortRepo.lagre(brukersMeldekortDuplikat)
         runBlocking {
-            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock)
         }
 
         val meldekortBehandlinger = meldekortBehandlingRepo.hentForSakId(sak.id)
@@ -224,5 +208,45 @@ class AutomatiskMeldekortBehandlingServiceTest {
         brukersMeldekortRepo
             .hentForMeldekortId(brukersMeldekortDuplikat.id)!!
             .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+    }
+
+    @Test
+    fun `skal ikke behandle brukers meldekort automatisk utenfor økonomisystemets åpningstider`() {
+        val nå = LocalDate.now()
+        val mandag = nå.with(DayOfWeek.MONDAY)
+
+        val sak =
+            runBlocking {
+                tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = virkningsperiode,
+                    clock = clock,
+                )
+            }
+
+        val brukersMeldekort = ObjectMother.brukersMeldekort(
+            behandlesAutomatisk = true,
+            sakId = sak.id,
+            meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+        )
+
+        brukersMeldekortRepo.lagre(brukersMeldekort)
+
+        for (dagOffset in DayOfWeek.MONDAY.ordinal..DayOfWeek.FRIDAY.ordinal) {
+            val dag = mandag.plusDays(dagOffset.toLong())
+            runBlocking {
+                automatiskMeldekortBehandlingService.behandleBrukersMeldekort(fixedClockAt(dag.atTime(5, 59)))
+                automatiskMeldekortBehandlingService.behandleBrukersMeldekort(fixedClockAt(dag.atTime(21, 0)))
+                automatiskMeldekortBehandlingService.behandleBrukersMeldekort(fixedClockAt(dag.atTime(21, 1)))
+            }
+        }
+
+        for (dagOffset in DayOfWeek.SATURDAY.ordinal..DayOfWeek.SUNDAY.ordinal) {
+            val dag = mandag.plusDays(dagOffset.toLong())
+            runBlocking {
+                automatiskMeldekortBehandlingService.behandleBrukersMeldekort(fixedClockAt(dag.atTime(12, 0)))
+            }
+        }
+
+        assertNull(meldekortBehandlingRepo.hentForSakId(sak.id), "Forventet ingen meldekortbehandlinger for bruker")
     }
 }

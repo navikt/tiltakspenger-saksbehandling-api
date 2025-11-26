@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
@@ -34,7 +35,6 @@ class AutomatiskMeldekortBehandlingService(
     private val sakRepo: SakRepo,
     private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val navkontorService: NavkontorService,
-    private val clock: Clock,
     private val sessionFactory: SessionFactory,
     private val simulerService: SimulerService,
     private val personKlient: PersonKlient,
@@ -43,7 +43,9 @@ class AutomatiskMeldekortBehandlingService(
 ) {
     val logger = KotlinLogging.logger { }
 
-    suspend fun behandleBrukersMeldekort() {
+    suspend fun behandleBrukersMeldekort(clock: Clock) {
+        if (!erInnenforØkonomisystemetsÅpningstider(clock)) return
+
         Either.catch {
             val meldekortListe = brukersMeldekortRepo.hentMeldekortSomSkalBehandlesAutomatisk()
 
@@ -57,7 +59,7 @@ class AutomatiskMeldekortBehandlingService(
                     throw e
                 }
                 Either.catch {
-                    opprettMeldekortBehandling(meldekort, sak).onLeft {
+                    opprettMeldekortBehandling(meldekort, sak, clock).onLeft {
                         if (it.loggesSomError) {
                             logger.error { "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Feil: $it" }
                         } else {
@@ -90,6 +92,7 @@ class AutomatiskMeldekortBehandlingService(
     private suspend fun opprettMeldekortBehandling(
         meldekort: BrukersMeldekort,
         sak: Sak,
+        clock: Clock,
     ): Either<MeldekortBehandletAutomatiskStatus, MeldekortBehandletAutomatisk> {
         val meldekortId = meldekort.id
 
