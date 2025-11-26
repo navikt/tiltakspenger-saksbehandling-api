@@ -3,6 +3,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http
 
 import arrow.core.getOrElse
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.AVBRUTT
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.DELTAR
@@ -135,5 +136,13 @@ fun TiltakTilSaksbehandlingDTO.harFomOgTomEllerRelevantStatus(
     return deltakelseStatus == VENTER_PA_OPPSTART
 }
 
-fun TiltakTilSaksbehandlingDTO.rettPaTiltakspenger(): Boolean =
-    gjennomforing.arenaKode.toTiltakstypeSomGirRett().isRight()
+private val log = KotlinLogging.logger {}
+
+fun TiltakTilSaksbehandlingDTO.rettPaTiltakspenger(): Boolean {
+    try {
+        return gjennomforing.arenaKode.toTiltakstypeSomGirRett().isRight()
+    } catch (e: Exception) {
+        log.error(e) { "Sjekk av om tiltakstypen gir rett kastet feil: ${e.message}, antar ikke rett" }
+        return false
+    }
+}
