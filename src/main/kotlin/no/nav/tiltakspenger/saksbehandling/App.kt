@@ -49,6 +49,7 @@ internal fun start(
     ),
     devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
+    log.info { "App context initialized" }
     val server = embeddedServer(
         factory = Netty,
         port = port,
@@ -56,6 +57,7 @@ internal fun start(
     )
     server.application.attributes.put(isReadyKey, true)
 
+    log.info { "Server created" }
     val runCheckFactory = if (isNais) {
         RunCheckFactory(
             leaderPodLookup =
