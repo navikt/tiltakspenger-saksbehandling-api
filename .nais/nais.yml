@@ -20,13 +20,11 @@ spec:
     - {{ ingress.url }}
   liveness:
     path: /isalive
-    initialDelay: 150
-    timeout: 120
+    initialDelay: 15
   readiness:
     path: /isready
-    initialDelay: 150
+    initialDelay: 15
     periodSeconds: 5
-    timeout: 120
     failureThreshold: 1
   prometheus:
     enabled: true
