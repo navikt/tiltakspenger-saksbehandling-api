@@ -72,12 +72,14 @@ class V159__migrer_omgjort_rammevedtak : BaseJavaMigration() {
                     // Ekstra init sjekk
                     SakPostgresRepo.hentForSakId(sakId, tx)
                 }
+                logger.info { "Migrerte rammevedtak (igjen)" }
                 hentAlleÅpneBehandlinger(session).forEach {
                     val sak = SakPostgresRepo.hentForSakId(it.sakId, tx)!!
                     if (it.virkningsperiode == null) return@forEach
                     val omgjørRammevedtak = sak.vedtaksliste.finnRammevedtakSomOmgjøres(it.virkningsperiode!!)
                     persisterOmgjørRammevedtak(it.id, omgjørRammevedtak, session)
                 }
+                logger.info { "Migrerte behandlinger" }
             }
         }
     }

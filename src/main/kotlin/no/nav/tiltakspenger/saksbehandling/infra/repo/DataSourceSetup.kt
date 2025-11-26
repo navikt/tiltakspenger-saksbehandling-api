@@ -20,7 +20,9 @@ object DataSourceSetup {
             initializationFailTimeout = 5000
             maximumPoolSize = MAX_POOLS
         }.also {
+            LOG.info { "Starter migrering" }
             flywayMigrate(it)
+            LOG.info { "Migrering utført!" }
         }
     }
 }
