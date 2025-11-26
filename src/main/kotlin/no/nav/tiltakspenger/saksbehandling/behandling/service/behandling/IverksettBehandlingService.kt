@@ -150,7 +150,7 @@ class IverksettBehandlingService(
         val sakOppdatertMedMeldekortbehandlinger =
             sakOppdatertMedMeldeperioder.oppdaterMeldekortbehandlinger(oppdaterteMeldekortbehandlinger)
 
-        val tidligereVedtak = sakOppdatertMedMeldekortbehandlinger.rammevedtaksliste.dropLast(1)
+        val tidligereVedtak = sakOppdatertMedMeldekortbehandlinger.rammevedtaksliste
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
@@ -168,7 +168,6 @@ class IverksettBehandlingService(
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
 
-            // Oppdaterer omgjort-status for tidligere vedtak. Ikke alle (eller noen) vedtak er nødvendigvis omgjort.
             tidligereVedtak.forEach {
                 rammevedtakRepo.oppdaterOmgjortAv(
                     it.id,
