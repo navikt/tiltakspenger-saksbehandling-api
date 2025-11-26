@@ -1,11 +1,10 @@
+package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
+
+import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import kotlin.test.assertEquals
 
 class ÅpningstiderTest {
@@ -42,17 +41,12 @@ class ÅpningstiderTest {
     }
 
     private fun assertÅpningstid(forventetÅpent: Boolean, dato: LocalDate, time: Int, minutt: Int) {
-        val klokkeslett = LocalTime.of(time, minutt)
-        val clock = lagClock(dato, klokkeslett)
+        val tidspunkt = dato.atTime(time, minutt)
+        val clock = fixedClockAt(tidspunkt)
         assertEquals(
             forventetÅpent,
             erInnenforØkonomisystemetsÅpningstider(clock),
-            "forventetÅpent=$forventetÅpent for ${dato.dayOfWeek} $klokkeslett",
+            "forventetÅpent=$forventetÅpent for ${dato.dayOfWeek} $tidspunkt",
         )
-    }
-
-    private fun lagClock(dato: LocalDate, tid: LocalTime): Clock {
-        val zoned = ZonedDateTime.of(dato, tid, ZoneId.systemDefault())
-        return Clock.fixed(zoned.toInstant(), ZoneId.systemDefault())
     }
 }
