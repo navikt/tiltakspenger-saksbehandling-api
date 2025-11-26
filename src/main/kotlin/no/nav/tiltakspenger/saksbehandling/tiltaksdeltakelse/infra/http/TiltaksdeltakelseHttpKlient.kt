@@ -73,29 +73,34 @@ class TiltaksdeltakelseHttpKlient(
         correlationId: CorrelationId,
         mapper: suspend (List<TiltakTilSaksbehandlingDTO>) -> T,
     ): T {
-        val token = getToken()
-        val httpResponse = httpClient.preparePost("$baseUrl/azure/tiltak") {
-            header(NAV_CALL_ID_HEADER, correlationId.value)
-            bearerAuth(token.token)
-            accept(ContentType.Application.Json)
-            contentType(ContentType.Application.Json)
-            setBody(TiltakRequestDTO(fnr.verdi))
-        }.execute()
-        return when (httpResponse.status) {
-            HttpStatusCode.OK -> httpResponse.call.response.body<List<TiltakTilSaksbehandlingDTO>>().let { dto ->
-                val relevanteTiltak =
-                    dto.filter { it.harFomOgTomEllerRelevantStatus(tiltaksdeltakelserDetErSøktTiltakspengerFor) }
-                        .filter { it.rettPaTiltakspenger() }
-                mapper(relevanteTiltak)
-            }
-
-            else -> {
-                if (httpResponse.status == Unauthorized || httpResponse.status == Forbidden) {
-                    log.error(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot tiltakspenger-tiltak. status: $httpResponse.status." }
-                    token.invaliderCache()
+        try {
+            val token = getToken()
+            val httpResponse = httpClient.preparePost("$baseUrl/azure/tiltak") {
+                header(NAV_CALL_ID_HEADER, correlationId.value)
+                bearerAuth(token.token)
+                accept(ContentType.Application.Json)
+                contentType(ContentType.Application.Json)
+                setBody(TiltakRequestDTO(fnr.verdi))
+            }.execute()
+            return when (httpResponse.status) {
+                HttpStatusCode.OK -> httpResponse.call.response.body<List<TiltakTilSaksbehandlingDTO>>().let { dto ->
+                    val relevanteTiltak =
+                        dto.filter { it.harFomOgTomEllerRelevantStatus(tiltaksdeltakelserDetErSøktTiltakspengerFor) }
+                            .filter { it.rettPaTiltakspenger() }
+                    mapper(relevanteTiltak)
                 }
-                throw RuntimeException("error (responseCode=${httpResponse.status.value}) from Tiltak")
+
+                else -> {
+                    if (httpResponse.status == Unauthorized || httpResponse.status == Forbidden) {
+                        log.error(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot tiltakspenger-tiltak. status: $httpResponse.status." }
+                        token.invaliderCache()
+                    }
+                    throw RuntimeException("error (responseCode=${httpResponse.status.value}) from Tiltak")
+                }
             }
+        } catch (e: Exception) {
+            log.error(e) { "Noe gikk galt ved henting av tiltaksdeltakelser: ${e.message}" }
+            throw e
         }
     }
 

@@ -48,30 +48,35 @@ class SokosUtbetaldataHttpClient(
         periode: Periode,
         correlationId: CorrelationId,
     ): List<Ytelse> {
-        // Siden domenet lagrer perioden vi har søkt på, må den ha kontroll på dette selv, den kan ikke bli hemmelig mutert av klienten.
-        if (periode.tilOgMed > LocalDate.now(clock)) throw IllegalStateException("Utbetaldata godtar ikke datoer frem i tid.")
-        val jsonPayload = serialize(
-            HentUtbetalingsinformasjonRequest(
-                ident = fnr.verdi,
-                periode = UtbetalingDto.UtbetalingsperiodeDto(
-                    fom = periode.fraOgMed,
-                    tom = periode.tilOgMed,
+        try {
+            // Siden domenet lagrer perioden vi har søkt på, må den ha kontroll på dette selv, den kan ikke bli hemmelig mutert av klienten.
+            if (periode.tilOgMed > LocalDate.now(clock)) throw IllegalStateException("Utbetaldata godtar ikke datoer frem i tid.")
+            val jsonPayload = serialize(
+                HentUtbetalingsinformasjonRequest(
+                    ident = fnr.verdi,
+                    periode = UtbetalingDto.UtbetalingsperiodeDto(
+                        fom = periode.fraOgMed,
+                        tom = periode.tilOgMed,
+                    ),
                 ),
-            ),
-        )
-        val request = createPostRequest(jsonPayload, getToken().token, correlationId)
-        val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-        val status = httpResponse.statusCode()
-        val jsonResponse = httpResponse.body()
-        if (status != 200) {
-            log.error { "Kunne ikke hente utbetalingsinformasjon, statuskode $status. CorrelationId: $correlationId" }
-            Sikkerlogg.error { "Feil mot utbetaldata: Request: $jsonPayload, response: $jsonResponse" }
-            error("Kunne ikke hente utbetalingsinformasjon, statuskode $status")
+            )
+            val request = createPostRequest(jsonPayload, getToken().token, correlationId)
+            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
+            val status = httpResponse.statusCode()
+            val jsonResponse = httpResponse.body()
+            if (status != 200) {
+                log.error { "Kunne ikke hente utbetalingsinformasjon, statuskode $status. CorrelationId: $correlationId" }
+                Sikkerlogg.error { "Feil mot utbetaldata: Request: $jsonPayload, response: $jsonResponse" }
+                error("Kunne ikke hente utbetalingsinformasjon, statuskode $status")
+            }
+            val utbetalinger = objectMapper.readValue<List<UtbetalingDto>>(jsonResponse)
+            val ytelser = utbetalinger.tilYtelser()
+            log.info { "Fant ${ytelser.size} relevante ytelser for correlationId $correlationId" }
+            return ytelser
+        } catch (e: Exception) {
+            log.error(e) { "Noe gikk galt ved henting av ytelser fra Utbetaldata: ${e.message}" }
+            throw e
         }
-        val utbetalinger = objectMapper.readValue<List<UtbetalingDto>>(jsonResponse)
-        val ytelser = utbetalinger.tilYtelser()
-        log.info { "Fant ${ytelser.size} relevante ytelser for correlationId $correlationId" }
-        return ytelser
     }
 
     private fun List<UtbetalingDto>.tilYtelser(): List<Ytelse> {

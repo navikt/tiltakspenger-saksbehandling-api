@@ -81,6 +81,7 @@ enum class StatistikkBehandlingResultat {
     AVSLAG,
     STANS,
     FORLENGELSE,
+    AVBRUTT,
 }
 
 enum class StatistikkBehandlingStatus {

@@ -41,23 +41,28 @@ class TiltakspengerArenaHttpClient(
         periode: Periode,
         correlationId: CorrelationId,
     ): List<ArenaTPVedtak> {
-        val jsonPayload = serialize(
-            VedtakRequest(
-                ident = fnr.verdi,
-                fom = periode.fraOgMed,
-                tom = periode.tilOgMed,
-            ),
-        )
-        val request = createPostRequest(jsonPayload, getToken().token)
-        val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-        val status = httpResponse.statusCode()
-        val jsonResponse = httpResponse.body()
-        if (status != 200) {
-            log.error { "Kunne ikke hente vedtak fra arena for correlationId $correlationId, statuskode $status." }
-            Sikkerlogg.error { "Feil mot tiltakspenger-arena for correlationId $correlationId: Request: $jsonPayload, response: $jsonResponse" }
-            error("Kunne ikke hente vedtak fra arena, statuskode $status")
+        try {
+            val jsonPayload = serialize(
+                VedtakRequest(
+                    ident = fnr.verdi,
+                    fom = periode.fraOgMed,
+                    tom = periode.tilOgMed,
+                ),
+            )
+            val request = createPostRequest(jsonPayload, getToken().token)
+            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
+            val status = httpResponse.statusCode()
+            val jsonResponse = httpResponse.body()
+            if (status != 200) {
+                log.error { "Kunne ikke hente vedtak fra arena for correlationId $correlationId, statuskode $status." }
+                Sikkerlogg.error { "Feil mot tiltakspenger-arena for correlationId $correlationId: Request: $jsonPayload, response: $jsonResponse" }
+                error("Kunne ikke hente vedtak fra arena, statuskode $status")
+            }
+            return objectMapper.readValue<List<ArenaTPVedtak>>(jsonResponse)
+        } catch (e: Exception) {
+            log.error(e) { "Noe gikk galt ved henting av tiltakspengevedtak fra Arena: ${e.message}" }
+            throw e
         }
-        return objectMapper.readValue<List<ArenaTPVedtak>>(jsonResponse)
     }
 
     private fun createPostRequest(
