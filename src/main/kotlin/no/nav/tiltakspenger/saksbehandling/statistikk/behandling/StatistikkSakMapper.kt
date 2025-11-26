@@ -97,7 +97,11 @@ fun genererSaksstatistikkForBehandling(
         } else {
             StatistikkBehandlingStatus.UNDER_BEHANDLING
         },
-        behandlingResultat = null,
+        behandlingResultat = if (behandling.erAvbrutt) {
+            StatistikkBehandlingResultat.AVBRUTT
+        } else {
+            null
+        },
         resultatBegrunnelse = null,
         // skal være -5 for kode 6
         opprettetAv = if (gjelderKode6) "-5" else "system",
