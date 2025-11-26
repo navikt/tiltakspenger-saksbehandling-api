@@ -123,7 +123,7 @@ data class Rammevedtak(
                     periode = it,
                     omgjøringsgrad = if (it == this.periode) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS,
                 )
-            },
+            }.sortedBy { it.periode.fraOgMed },
         )
     }
 

@@ -183,7 +183,7 @@ data class Rammevedtaksliste(
         return OmgjørRammevedtak(
             this.flatMap {
                 it.finnPerioderSomOmgjøres(virkningsperiode)
-            },
+            }.sortedBy { it.periode.fraOgMed },
         )
     }
 

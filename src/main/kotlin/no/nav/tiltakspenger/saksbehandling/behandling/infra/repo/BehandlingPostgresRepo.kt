@@ -343,7 +343,7 @@ class BehandlingPostgresRepo(
                 ).map { it.localDateTime("sist_endret") }.asSingle,
             )
 
-        private fun Row.toBehandling(session: Session): Rammebehandling {
+        fun Row.toBehandling(session: Session): Rammebehandling {
             val behandlingstype = string("behandlingstype").toBehandlingstype()
             val id = BehandlingId.fromString(string("id"))
             val sakId = SakId.fromString(string("sak_id"))
