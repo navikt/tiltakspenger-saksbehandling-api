@@ -266,13 +266,31 @@ sealed interface RevurderingResultat : BehandlingResultat {
                     "Når virkningsperioden sin tilOgMed (${virkningsperiode.tilOgMed}) slutter etter det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed}), må innvilgelsesperioden sin tilOgMed (${innvilgelsesperiode.tilOgMed}) slutte samtidig som det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed})"
                 }
             }
-            if (omgjørRammevedtak.isNotEmpty()) {
-                require(
-                    omgjørRammevedtak.size == 1 &&
-                        omgjørRammevedtak.first().omgjøringsgrad == Omgjøringsgrad.HELT &&
-                        virkningsperiode.inneholderHele(omgjørRammevedtak.first().periode),
-                ) {
-                    "Omgjøring støtter kun å omgjøre ett tidligere vedtak i sin helhet per tidspunkt."
+
+            // Husk å fjern denne etter migrering!!
+            if (omgjørRammevedtak.size > 0) {
+                require(omgjørRammevedtak.size >= 1) {
+                    "En omgjøring må omgjøre minst ett vedtak"
+                }
+
+                require(omgjørRammevedtak.any { it.omgjøringsgrad == Omgjøringsgrad.HELT }) {
+                    "Minst ett vedtak må være omgjort i sin helhet"
+                }
+
+                val heltOmgjort = omgjørRammevedtak.single {
+                    it.omgjøringsgrad == Omgjøringsgrad.HELT
+                }
+
+                if (virkningsperiode.fraOgMed < heltOmgjort.periode.fraOgMed) {
+                    require(innvilgelsesperiode.fraOgMed == virkningsperiode.fraOgMed) {
+                        "Når virkningsperioden sin fraOgMed (${virkningsperiode.fraOgMed}) starter før det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed}), må innvilgelsesperioden sin fraOgMed (${innvilgelsesperiode.fraOgMed}) starte samtidig som det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed})"
+                    }
+                }
+
+                if (virkningsperiode.tilOgMed > heltOmgjort.periode.tilOgMed) {
+                    require(innvilgelsesperiode.tilOgMed == virkningsperiode.tilOgMed) {
+                        "Når virkningsperioden sin tilOgMed (${virkningsperiode.tilOgMed}) slutter etter det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed}), må innvilgelsesperioden sin tilOgMed (${innvilgelsesperiode.tilOgMed}) slutte samtidig som det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed})"
+                    }
                 }
             }
         }
