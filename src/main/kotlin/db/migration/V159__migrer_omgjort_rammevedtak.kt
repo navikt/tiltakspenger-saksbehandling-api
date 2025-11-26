@@ -36,6 +36,7 @@ class V159__migrer_omgjort_rammevedtak : BaseJavaMigration() {
         sessionFactory.withTransactionContext { tx ->
             tx.withSession { session ->
                 hentAlleRammevedtak(session).groupBy { it.sakId }.forEach { (sakId, rammevedtaksliste) ->
+                    logger.info { "Migrerer ${rammevedtaksliste.size} rammevedtak for sak $sakId" }
                     val sortertUtenAvslag = rammevedtaksliste.sortedBy { it.opprettet }.filterNot { it.erAvslag }
                     sortertUtenAvslag.forEachIndexed { index, vedtak ->
                         val tidslinjeFørDetteVedtaket = sortertUtenAvslag.take(index).toTidslinje()
@@ -69,8 +70,15 @@ class V159__migrer_omgjort_rammevedtak : BaseJavaMigration() {
                                 }
                         markerOmgjortAv(vedtak.id, omgjortAvRammevedtak, session)
                     }
+                    logger.info { "Ferdig med sak $sakId" }
                     // Ekstra init sjekk
-                    SakPostgresRepo.hentForSakId(sakId, tx)
+                    try {
+                        SakPostgresRepo.hentForSakId(sakId, tx)
+                    } catch (e: Exception) {
+                        logger.error(e) { "Feil ved henting av sak $sakId - $e" }
+                        throw e
+                    }
+
                 }
                 logger.info { "Migrerte rammevedtak (igjen)" }
                 hentAlleÅpneBehandlinger(session).forEach {
