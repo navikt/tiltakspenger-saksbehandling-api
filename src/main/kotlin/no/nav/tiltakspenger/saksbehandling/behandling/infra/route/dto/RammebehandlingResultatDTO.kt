@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.B
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.toTiltaksdeltakelsePeriodeDTO
@@ -115,7 +116,10 @@ fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.tilDTO(),
             barnetillegg = barnetillegg.toBarnetilleggDTO(),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),
-            omgjørVedtak = omgjørRammevedtak.single().rammevedtakId.toString(),
+            // Per 27. nov 2025 krever vi at en omgjøringsbehandling omgjør ett enkelt vedtak, men vi har ikke noen begrensning på å utvide omgjøringen, slik at den omgjør flere vedtak.
+            // Tanken med dette feltet er de tilfellene man har spesifikt valgt å omgjøre et spesifikt vedtak i sin helhet.
+            // TODO jah: Anders, hva gjør vi? Legger tilbake omgjørVedtakId? Det føles forvirrende. Skal vi heller sperre for at den kan omgjøre flere vedtak?
+            omgjørVedtak = omgjørRammevedtak.single { it.omgjøringsgrad == Omgjøringsgrad.HELT }.rammevedtakId.toString(),
         )
     }
 }
