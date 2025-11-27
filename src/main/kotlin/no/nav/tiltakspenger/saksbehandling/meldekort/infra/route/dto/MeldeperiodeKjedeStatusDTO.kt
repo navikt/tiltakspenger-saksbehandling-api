@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
@@ -17,6 +18,7 @@ enum class MeldeperiodeKjedeStatusDTO {
     IKKE_KLAR_TIL_BEHANDLING,
     AVBRUTT,
     KORRIGERT_MELDEKORT,
+    VENTER_AUTOMATISK_BEHANDLING,
 }
 
 fun Sak.toMeldeperiodeKjedeStatusDTO(
@@ -32,10 +34,12 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
         sisteInnsendteMeldekort != null && (sisteMeldekortBehandling == null || sisteInnsendteMeldekort.mottatt > sisteMeldekortBehandling.opprettet)
 
     if (harMottattMeldekortEtterSisteBehandling) {
-        return if (brukersMeldekort.size == 1) {
-            MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
-        } else {
+        return if (brukersMeldekort.size > 1) {
             MeldeperiodeKjedeStatusDTO.KORRIGERT_MELDEKORT
+        } else if (sisteInnsendteMeldekort.behandletAutomatiskStatus == MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING) {
+            MeldeperiodeKjedeStatusDTO.VENTER_AUTOMATISK_BEHANDLING
+        } else {
+            MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
         }
     }
 
