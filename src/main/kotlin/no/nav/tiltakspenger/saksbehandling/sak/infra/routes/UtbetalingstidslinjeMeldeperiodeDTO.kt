@@ -9,8 +9,7 @@ data class UtbetalingstidslinjeMeldeperiodeDTO(
     val kjedeId: String,
     val periode: PeriodeDTO,
     val beløp: BeløpDTO,
-    // TODO - denne kan være utbetalingsstatusDTO
-    val status: String?,
+    val status: UtbetalingsstatusDTO?,
 )
 
 fun Sak.tilUtbetalingstidslinjeMeldeperiodeDTO(): List<UtbetalingstidslinjeMeldeperiodeDTO> {
@@ -19,7 +18,7 @@ fun Sak.tilUtbetalingstidslinjeMeldeperiodeDTO(): List<UtbetalingstidslinjeMelde
             .filter { it.periode.overlapperMed(periode) }
             .map { meldeperiodeberegning ->
                 UtbetalingstidslinjeMeldeperiodeDTO(
-                    status = utbetaling.status?.name,
+                    status = utbetaling.status?.toDTO(),
                     kjedeId = meldeperiodeberegning.kjedeId.verdi,
                     periode = meldeperiodeberegning.periode.toDTO(),
                     beløp = BeløpDTO(

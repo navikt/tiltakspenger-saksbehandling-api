@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutte
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
+import no.nav.tiltakspenger.saksbehandling.person.infra.route.FnrDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock

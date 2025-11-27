@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.fantIkkeFnr
+import no.nav.tiltakspenger.saksbehandling.person.infra.route.FnrDTO
 
 fun Route.hentEllerOpprettSakRoute(
     sakService: SakService,

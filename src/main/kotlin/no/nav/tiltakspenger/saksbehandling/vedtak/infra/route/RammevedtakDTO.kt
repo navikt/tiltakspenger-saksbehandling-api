@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
+package no.nav.tiltakspenger.saksbehandling.vedtak.infra.route
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO

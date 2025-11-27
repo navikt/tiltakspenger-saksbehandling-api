@@ -5,6 +5,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandl
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjederDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.RammevedtakDTO
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.TidslinjeDTO
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.tilRammevedtakDTO
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.tilRammevedtakTidslinjeDTO
 import java.time.Clock
 import java.time.LocalDate
 
