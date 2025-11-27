@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak.infra.route
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
@@ -13,14 +14,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.t
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtakskommando
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
  * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
- * @param periode Deprecated. Duplikat av [opprinneligVedtaksperiode]
- * @param gjeldendePeriode Perioden der vedtaket fortsatt er gjeldende for sakens nå-tilstand
  * @param opprinneligVedtaksperiode Vedtaksperioden da den ble vedtatt. Er ikke sikkert den er gjeldende lenger, hvis den har blitt omgjort. Avslagsvedtak er aldri gjeldende.
  * @param gjeldendeVedtaksperioder Listen over perioder der vedtaket fortsatt er gjeldende for sakens nå-tilstand. Den var opprinnelig en hel periode, men kan ha blitt splittet av en eller flere omgjøringer. Vil alltid være tom for avslag siden de aldri er gjeldende.
  * @param opprinneligInnvilgetPerioder Vil alltid være tom for avslag, stans og rene opphør. For innvilgelser (inkl. omgjøring) og forlengelser vil dette være perioden(e) som opprinnelig ble innvilget i vedtaket.
@@ -41,6 +41,7 @@ data class RammevedtakDTO(
     val antallDagerPerMeldeperiode: Int,
     val barnetillegg: BarnetilleggDTO?,
     val erGjeldende: Boolean,
+    val gyldigeKommandoer: Set<RammevedtakKommandoDTO>,
 )
 
 fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
@@ -62,6 +63,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         opprinneligInnvilgetPerioder = listOfNotNull(this.innvilgelsesperiode?.toDTO()),
         gjeldendeInnvilgetPerioder = this.gjeldendeInnvilgelsesperioder.map { it.toDTO() },
         erGjeldende = this.erGjeldende,
+        gyldigeKommandoer = this.gyldigeKommandoer.toDTO(),
     )
 }
 
