@@ -21,7 +21,7 @@ import java.time.LocalDateTime
  * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
  * @param periode Deprecated. Duplikat av [opprinneligVedtaksperiode]
  * @param gjeldendePeriode Perioden der vedtaket fortsatt er gjeldende for sakens nå-tilstand
- * @param opprinneligVedtaksperiode Vedtaksperioden når den ble vedtatt. Er ikke sikkert den er gjeldende lenger, hvis den har blitt omgjort. Avslagsvedtak er aldri gjeldende.
+ * @param opprinneligVedtaksperiode Vedtaksperioden da den ble vedtatt. Er ikke sikkert den er gjeldende lenger, hvis den har blitt omgjort. Avslagsvedtak er aldri gjeldende.
  * @param gjeldendeVedtaksperioder Listen over perioder der vedtaket fortsatt er gjeldende for sakens nå-tilstand. Den var opprinnelig en hel periode, men kan ha blitt splittet av en eller flere omgjøringer. Vil alltid være tom for avslag siden de aldri er gjeldende.
  * @param opprinneligInnvilgetPerioder Vil alltid være tom for avslag, stans og rene opphør. For innvilgelser (inkl. omgjøring) og forlengelser vil dette være perioden(e) som opprinnelig ble innvilget i vedtaket.
  * @param gjeldendeInnvilgetPerioder Vil alltid være tom for avslag, stans og rene opphør. For innvilgelser (inkl. omgjøring) og forlengelser vil dette være perioden(e) som fortsatt er innvilget i vedtaket for sakens nå-tilstand.
@@ -32,12 +32,8 @@ data class RammevedtakDTO(
     val opprettet: LocalDateTime,
     val vedtaksdato: LocalDate?,
     val resultat: RammebehandlingResultatTypeDTO,
-    @Deprecated("Erstattes av opprinneligVedtaksperiode. Slettes når frontend er oppdatert")
-    val periode: PeriodeDTO,
     val opprinneligVedtaksperiode: PeriodeDTO,
     val opprinneligInnvilgetPerioder: List<PeriodeDTO>,
-    @Deprecated("Erstattes av gjeldendeVedtaksperioder. Slettes når frontend er oppdatert")
-    val gjeldendePeriode: PeriodeDTO,
     val gjeldendeVedtaksperioder: List<PeriodeDTO>,
     val gjeldendeInnvilgetPerioder: List<PeriodeDTO>,
     val saksbehandler: String,
@@ -56,9 +52,6 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         opprettet = opprettet,
         vedtaksdato = vedtaksdato,
         resultat = resultat.tilRammebehandlingResultatTypeDTO(),
-        periode = periodeDTO,
-        // TODO jah: Merk at denne er deprecated og feil. Slett når vi ikke lenger bruker den i frontend.
-        gjeldendePeriode = periodeDTO,
         gjeldendeVedtaksperioder = this.gjeldendePerioder.map { it.toDTO() },
         saksbehandler = saksbehandler,
         beslutter = beslutter,
@@ -94,26 +87,18 @@ data class TidslinjeDTO(
 fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<TidslinjeElementDTO> {
     return when (this.resultat) {
         is RevurderingResultat.Omgjøring -> {
-            val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperiode!!)
-            // TODO - denne if'en burde vi lage en test for.
-            if (innvilgelseperiode == null) {
-                return listOf(
-                    TidslinjeElementDTO(
-                        rammevedtak = this.tilRammevedtakDTO().copy(
-                            gjeldendePeriode = tidslinjeperiode.toDTO(),
-                            barnetillegg = null,
-                        ),
-                        periode = tidslinjeperiode.toDTO(),
-                        tidslinjeResultat = TidslinjeResultat.OMGJØRING_OPPHØR,
-                    ),
-                )
-            }
-
+            val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperiode!!) ?: return listOf(
+                // Dette omgjøringsvedtaket har ingen gjeldende innvilgelser. Hele perioden er et opphør.
+                TidslinjeElementDTO(
+                    rammevedtak = this.tilRammevedtakDTO().copy(barnetillegg = null),
+                    periode = tidslinjeperiode.toDTO(),
+                    tidslinjeResultat = TidslinjeResultat.OMGJØRING_OPPHØR,
+                ),
+            )
             val opphørtePeriode = tidslinjeperiode.trekkFra(innvilgelseperiode)
 
             val innvilgelsesTidslinjeElement = TidslinjeElementDTO(
                 rammevedtak = this.tilRammevedtakDTO().copy(
-                    gjeldendePeriode = innvilgelseperiode.toDTO(),
                     barnetillegg = this.barnetillegg?.tilKrympetBarnetilleggDTO(innvilgelseperiode),
                 ),
                 periode = innvilgelseperiode.toDTO(),
@@ -122,10 +107,7 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
 
             val opphørteTidslinjeElementer = opphørtePeriode.map {
                 TidslinjeElementDTO(
-                    rammevedtak = this.tilRammevedtakDTO().copy(
-                        gjeldendePeriode = it.toDTO(),
-                        barnetillegg = null,
-                    ),
+                    rammevedtak = this.tilRammevedtakDTO().copy(barnetillegg = null),
                     periode = it.toDTO(),
                     tidslinjeResultat = TidslinjeResultat.OMGJØRING_OPPHØR,
                 )
@@ -160,7 +142,6 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
             listOf(
                 TidslinjeElementDTO(
                     rammevedtak = this.tilRammevedtakDTO().copy(
-                        gjeldendePeriode = tidslinjeperiode.toDTO(),
                         barnetillegg = this.barnetillegg?.tilKrympetBarnetilleggDTO(tidslinjeperiode),
                     ),
                     periode = tidslinjeperiode.toDTO(),
@@ -181,9 +162,13 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
 fun Rammevedtaksliste.tilRammevedtakTidslinjeDTO(): TidslinjeDTO {
     return tidslinje.perioderMedVerdi.flatMap { (rammevedtak, tidslinjeperiode) ->
         rammevedtak.toTidslinjeElementDto(tidslinjeperiode)
-    }.let {
-        TidslinjeDTO(elementer = it)
-    }
+    }.let { TidslinjeDTO(it) }
+}
+
+fun Rammevedtaksliste.tilRammevedtakInnvilgetTidslinjeDTO(): TidslinjeDTO {
+    return innvilgetTidslinje.perioderMedVerdi.flatMap { (rammevedtak, tidslinjeperiode) ->
+        rammevedtak.toTidslinjeElementDto(tidslinjeperiode)
+    }.let { TidslinjeDTO(it) }
 }
 
 private fun Barnetillegg.tilKrympetBarnetilleggDTO(periode: Periode): BarnetilleggDTO = BarnetilleggDTO(
