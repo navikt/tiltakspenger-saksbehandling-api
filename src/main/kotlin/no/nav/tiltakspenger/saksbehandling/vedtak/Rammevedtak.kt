@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
@@ -78,6 +79,10 @@ data class Rammevedtak(
         behandling.resultat is SøknadsbehandlingResultat.Avslag
     }
 
+    val erStans: Boolean by lazy {
+        behandling.resultat is RevurderingResultat.Stans
+    }
+
     /** Vil være null for stans, avslag eller dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
 
@@ -88,6 +93,15 @@ data class Rammevedtak(
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = behandling.valgteTiltaksdeltakelser
 
     val innvilgelsesperiode = behandling.innvilgelsesperiode
+
+    val gjeldendeInnvilgelsesperioder: List<Periode> by lazy {
+        if (erAvslag || erStans) return@lazy emptyList()
+        if (omgjortAvRammevedtak.isEmpty()) {
+            listOfNotNull(innvilgelsesperiode)
+        } else {
+            innvilgelsesperiode?.trekkFra(omgjortAvRammevedtak.perioder) ?: emptyList()
+        }
+    }
 
     /**
      * Avslag anses ikke som gjeldende.

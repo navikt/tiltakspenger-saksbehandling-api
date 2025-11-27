@@ -19,8 +19,12 @@ import java.time.LocalDateTime
 
 /**
  * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
- * @param periode Den opprinnelige perioden for vedtaket
+ * @param periode Deprecated. Duplikat av [opprinneligVedtaksperiode]
  * @param gjeldendePeriode Perioden der vedtaket fortsatt er gjeldende for sakens nå-tilstand
+ * @param opprinneligVedtaksperiode Vedtaksperioden når den ble vedtatt. Er ikke sikkert den er gjeldende lenger, hvis den har blitt omgjort. Avslagsvedtak er aldri gjeldende.
+ * @param gjeldendeVedtaksperioder Listen over perioder der vedtaket fortsatt er gjeldende for sakens nå-tilstand. Den var opprinnelig en hel periode, men kan ha blitt splittet av en eller flere omgjøringer. Vil alltid være tom for avslag siden de aldri er gjeldende.
+ * @param opprinneligInnvilgetPerioder Vil alltid være tom for avslag, stans og rene opphør. For innvilgelser (inkl. omgjøring) og forlengelser vil dette være perioden(e) som opprinnelig ble innvilget i vedtaket.
+ * @param gjeldendeInnvilgetPerioder Vil alltid være tom for avslag, stans og rene opphør. For innvilgelser (inkl. omgjøring) og forlengelser vil dette være perioden(e) som fortsatt er innvilget i vedtaket for sakens nå-tilstand.
  */
 data class RammevedtakDTO(
     val id: String,
@@ -28,12 +32,19 @@ data class RammevedtakDTO(
     val opprettet: LocalDateTime,
     val vedtaksdato: LocalDate?,
     val resultat: RammebehandlingResultatTypeDTO,
+    @Deprecated("Erstattes av opprinneligVedtaksperiode. Slettes når frontend er oppdatert")
     val periode: PeriodeDTO,
+    val opprinneligVedtaksperiode: PeriodeDTO,
+    val opprinneligInnvilgetPerioder: List<PeriodeDTO>,
+    @Deprecated("Erstattes av gjeldendeVedtaksperioder. Slettes når frontend er oppdatert")
     val gjeldendePeriode: PeriodeDTO,
+    val gjeldendeVedtaksperioder: List<PeriodeDTO>,
+    val gjeldendeInnvilgetPerioder: List<PeriodeDTO>,
     val saksbehandler: String,
     val beslutter: String,
     val antallDagerPerMeldeperiode: Int,
     val barnetillegg: BarnetilleggDTO?,
+    val erGjeldende: Boolean,
 )
 
 fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
@@ -46,12 +57,18 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         vedtaksdato = vedtaksdato,
         resultat = resultat.tilRammebehandlingResultatTypeDTO(),
         periode = periodeDTO,
+        // TODO jah: Merk at denne er deprecated og feil. Slett når vi ikke lenger bruker den i frontend.
         gjeldendePeriode = periodeDTO,
+        gjeldendeVedtaksperioder = this.gjeldendePerioder.map { it.toDTO() },
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         // TODO: sett en periodisering istedenfor bare maks
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.maksAntallDager(),
         barnetillegg = barnetillegg?.toBarnetilleggDTO(),
+        opprinneligVedtaksperiode = periodeDTO,
+        opprinneligInnvilgetPerioder = listOfNotNull(this.innvilgelsesperiode?.toDTO()),
+        gjeldendeInnvilgetPerioder = this.gjeldendeInnvilgelsesperioder.map { it.toDTO() },
+        erGjeldende = this.erGjeldende,
     )
 }
 
