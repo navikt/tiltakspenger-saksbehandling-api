@@ -41,7 +41,7 @@ data class RammevedtakDTO(
     val antallDagerPerMeldeperiode: Int,
     val barnetillegg: BarnetilleggDTO?,
     val erGjeldende: Boolean,
-    val gyldigeKommandoer: Set<RammevedtakKommandoDTO>,
+    val gyldigeKommandoer: Map<RammevedtakKommandoDTO.KommandoType, RammevedtakKommandoDTO>,
 )
 
 fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {

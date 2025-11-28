@@ -9,30 +9,36 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtakskommandoer
  * Se også [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtakskommando]
  */
 sealed interface RammevedtakKommandoDTO {
-    val type: String
+    val type: KommandoType
+
+    enum class KommandoType {
+        OMGJØR,
+        OPPHØR,
+        STANS,
+    }
 
     data class Omgjør(
         val tvungenOmgjøringsperiode: PeriodeDTO,
     ) : RammevedtakKommandoDTO {
-        override val type: String = "OMGJØR"
+        override val type = KommandoType.OMGJØR
     }
 
     data class Opphør(
         val innvilgelsesperioder: List<PeriodeDTO>,
     ) : RammevedtakKommandoDTO {
-        override val type: String = "OPPHØR"
+        override val type = KommandoType.OPPHØR
     }
 
     data class Stans(
         val tidligsteFraOgMedDato: String,
         val tvungenStansTilOgMedDato: String,
     ) : RammevedtakKommandoDTO {
-        override val type: String = "STANS"
+        override val type = KommandoType.STANS
     }
 }
 
-fun Rammevedtakskommandoer.toDTO(): Set<RammevedtakKommandoDTO> {
-    return this.map { it.toDTO() }.toSet()
+fun Rammevedtakskommandoer.toDTO(): Map<RammevedtakKommandoDTO.KommandoType, RammevedtakKommandoDTO> {
+    return this.map { it.toDTO() }.associateBy { it.type }
 }
 
 fun Rammevedtakskommando.toDTO(): RammevedtakKommandoDTO {
