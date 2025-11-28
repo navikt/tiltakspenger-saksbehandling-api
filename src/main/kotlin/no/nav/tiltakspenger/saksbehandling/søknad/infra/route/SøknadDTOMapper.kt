@@ -41,6 +41,8 @@ object SøknadDTOMapper {
             opprettet = dto.opprettet,
             tidsstempelHosOss = innhentet,
             vedlegg = dto.vedlegg,
+            harSøktPåTiltak = Søknad.JaNeiSpm.Ja,
+            harSøktOmBarnetillegg = if (dto.barnetilleggPdl.isNotEmpty() || dto.barnetilleggManuelle.isNotEmpty()) Søknad.JaNeiSpm.Ja else Søknad.JaNeiSpm.Nei,
             kvp = dto.kvp.tilDomene(),
             intro = dto.intro.tilDomene(),
             institusjon = dto.institusjon.tilDomene(),

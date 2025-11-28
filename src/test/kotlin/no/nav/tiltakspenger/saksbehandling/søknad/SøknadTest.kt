@@ -28,12 +28,15 @@ class SøknadTest {
         fun `oppretter en innvilgbar søknad`() {
             val sak = ObjectMother.nySak()
             val opprettetSøknad = Søknad.opprett(
-                søknadstiltak = søknadstiltak(),
+                sak = sak,
                 journalpostId = "99999",
                 opprettet = LocalDateTime.now(),
                 tidsstempelHosOss = LocalDateTime.now(),
                 personopplysninger = ObjectMother.personSøknad(fnr = sak.fnr),
+                søknadstiltak = søknadstiltak(),
                 barnetillegg = emptyList(),
+                harSøktPåTiltak = Søknad.JaNeiSpm.Ja,
+                harSøktOmBarnetillegg = Søknad.JaNeiSpm.Nei,
                 kvp = periodeNei(),
                 intro = periodeNei(),
                 institusjon = periodeNei(),
@@ -49,7 +52,6 @@ class SøknadTest {
                 manueltSattSøknadsperiode = null,
                 manueltSattTiltak = null,
                 søknadstype = Søknadstype.PAPIR,
-                sak = sak,
             )
 
             opprettetSøknad.shouldBeInstanceOf<InnvilgbarSøknad>()
@@ -60,12 +62,15 @@ class SøknadTest {
         fun `oppretter en ikke innvilgbar søknad`() {
             val sak = ObjectMother.nySak()
             val opprettetSøknad = Søknad.opprett(
-                søknadstiltak = null,
+                sak = sak,
                 journalpostId = "99999",
                 opprettet = LocalDateTime.now(),
                 tidsstempelHosOss = LocalDateTime.now(),
                 personopplysninger = ObjectMother.personSøknad(fnr = sak.fnr),
+                søknadstiltak = null,
                 barnetillegg = emptyList(),
+                harSøktPåTiltak = Søknad.JaNeiSpm.Nei,
+                harSøktOmBarnetillegg = Søknad.JaNeiSpm.Nei,
                 kvp = periodeNei(),
                 intro = periodeNei(),
                 institusjon = periodeNei(),
@@ -81,7 +86,6 @@ class SøknadTest {
                 manueltSattSøknadsperiode = null,
                 manueltSattTiltak = null,
                 søknadstype = Søknadstype.PAPIR,
-                sak = sak,
             )
 
             opprettetSøknad.shouldBeInstanceOf<IkkeInnvilgbarSøknad>()

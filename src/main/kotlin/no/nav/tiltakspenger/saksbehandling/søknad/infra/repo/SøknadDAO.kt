@@ -18,6 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 
+private const val HAR_SOKT_PAA_TILTAK = "har_sokt_paa_tiltak"
+private const val HAR_SØKT_OM_BARNETILLEGG = "har_sokt_om_barnetillegg"
 private const val KVP_FELT = "kvp"
 private const val INTRO_FELT = "intro"
 private const val INSTITUSJON_FELT = "institusjon"
@@ -214,6 +216,8 @@ internal object SøknadDAO {
                     fnr, 
                     opprettet,
                     tidsstempel_hos_oss,
+                    har_sokt_paa_tiltak_type,
+                    har_sokt_om_barnetillegg_type,
                     kvp_type,
                     kvp_ja,
                     kvp_fom,
@@ -270,6 +274,8 @@ internal object SøknadDAO {
                     :fnr,
                     :opprettet,
                     :tidsstempel_hos_oss,
+                    :har_sokt_paa_tiltak_type,
+                    :har_sokt_om_barnetillegg_type,
                     :kvp_type,
                     :kvp_ja,
                     :kvp_fom,
@@ -358,6 +364,8 @@ internal object SøknadDAO {
     ).toFraOgMedDatoSpmParams()
 
     private fun jaNeiSpørsmålMap(søknad: Søknad) = mapOf(
+        HAR_SØKT_OM_BARNETILLEGG to søknad.harSøktOmBarnetillegg,
+        HAR_SOKT_PAA_TILTAK to søknad.harSøktPåTiltak,
         ETTERLØNN_FELT to søknad.etterlønn,
     ).toJaNeiSpmParams()
 
@@ -380,6 +388,8 @@ internal object SøknadDAO {
         val vedlegg = int("vedlegg")
         val sakId = SakId.fromString(string("sak_id"))
         val saksnummer = Saksnummer(string("saksnummer"))
+        val harSøktPåTiltak = jaNeiSpm(HAR_SOKT_PAA_TILTAK)
+        val harSøktOmBarnetillegg = jaNeiSpm(HAR_SØKT_OM_BARNETILLEGG)
         val kvp = periodeSpm(KVP_FELT)
         val intro = periodeSpm(INTRO_FELT)
         val institusjon = periodeSpm(INSTITUSJON_FELT)
@@ -421,6 +431,8 @@ internal object SøknadDAO {
                 opprettet = opprettet,
                 tidsstempelHosOss = tidsstempelHosOss,
                 vedlegg = vedlegg,
+                harSøktPåTiltak = harSøktPåTiltak,
+                harSøktOmBarnetillegg = harSøktOmBarnetillegg,
                 kvp = kvp,
                 intro = intro,
                 institusjon = institusjon,
@@ -455,6 +467,8 @@ internal object SøknadDAO {
                 opprettet = opprettet,
                 tidsstempelHosOss = tidsstempelHosOss,
                 vedlegg = vedlegg,
+                harSøktPåTiltak = harSøktPåTiltak,
+                harSøktOmBarnetillegg = harSøktOmBarnetillegg,
                 kvp = kvp,
                 intro = intro,
                 institusjon = institusjon,

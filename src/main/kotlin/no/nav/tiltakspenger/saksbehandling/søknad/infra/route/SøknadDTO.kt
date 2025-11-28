@@ -73,6 +73,8 @@ data class SøknadDTO(
     )
 
     data class SøknadSvarDTO(
+        val harSøktPåTiltak: JaNeiSpmDTO,
+        val harSøktOmBarnetillegg: JaNeiSpmDTO,
         val kvp: PeriodeSpmDTO,
         val intro: PeriodeSpmDTO,
         val institusjon: PeriodeSpmDTO,
@@ -108,6 +110,8 @@ fun InnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         avbrutt = avbrutt?.toAvbruttDTO(),
         kanInnvilges = this.kanInnvilges(),
         svar = SøknadDTO.SøknadSvarDTO(
+            harSøktPåTiltak = harSøktPåTiltak.toDTO(),
+            harSøktOmBarnetillegg = harSøktOmBarnetillegg.toDTO(),
             kvp = kvp.toDTO(),
             intro = intro.toDTO(),
             institusjon = institusjon.toDTO(),
@@ -137,6 +141,8 @@ fun IkkeInnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         avbrutt = avbrutt?.toAvbruttDTO(),
         kanInnvilges = this.kanInnvilges(),
         svar = SøknadDTO.SøknadSvarDTO(
+            harSøktPåTiltak = harSøktPåTiltak.toDTO(),
+            harSøktOmBarnetillegg = harSøktOmBarnetillegg.toDTO(),
             kvp = kvp.toDTO(),
             intro = intro.toDTO(),
             institusjon = institusjon.toDTO(),

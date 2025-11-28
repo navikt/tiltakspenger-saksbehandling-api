@@ -28,6 +28,8 @@ data class PapirsøknadBody(
             barnetillegg = this.svar.barnetilleggPdl.map { it.tilDomenePdl() } +
                 this.svar.barnetilleggManuelle.map { it.tilDomeneManuell() },
             antallVedlegg = antallVedlegg,
+            harSøktPåTiltak = this.svar.harSøktPåTiltak.tilDomene(),
+            harSøktOmBarnetillegg = this.svar.harSøktOmBarnetillegg.tilDomene(),
             kvp = this.svar.kvp.tilDomene(),
             intro = this.svar.intro.tilDomene(),
             institusjon = this.svar.institusjon.tilDomene(),

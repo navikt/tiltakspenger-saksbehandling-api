@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvPapirsøknadService
-import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -77,6 +76,8 @@ data class StartBehandlingAvPapirsøknadCommand(
     val søknadstiltak: Søknadstiltak?,
     val barnetillegg: List<BarnetilleggFraSøknad>,
     val antallVedlegg: Int,
+    val harSøktPåTiltak: Søknad.JaNeiSpm,
+    val harSøktOmBarnetillegg: Søknad.JaNeiSpm,
     val kvp: Søknad.PeriodeSpm,
     val intro: Søknad.PeriodeSpm,
     val institusjon: Søknad.PeriodeSpm,
