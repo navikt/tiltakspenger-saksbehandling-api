@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -7,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
@@ -118,6 +118,49 @@ data class Rammevedtak(
     /** Merk at et vedtak fremdeles er gjeldende dersom det er delvis omgjort. Avslag anses ikke som gjeldende. */
     val erGjeldende: Boolean by lazy {
         gjeldendePerioder.isNotEmpty()
+    }
+
+    val gyldigeKommandoer: Rammevedtakskommandoer by lazy {
+        Rammevedtakskommandoer(
+            setOfNotNull(
+                gyldigStanskommando,
+                gyldigOmgjøringskommando,
+                gyldigOpphørskommando,
+            ),
+        )
+    }
+
+    /**
+     * Krever at det finnes en gjeldende innvilgelsesperiode.
+     * Hvis det er flere perioder (hull), støtter vi bare og stanse den siste.
+     * Merk at til og med-verdien ikke kan styres av saksbehandler.
+     * Saksbehandler kan kun velge fra og med-dato, og stanses alltid ut hele den gjeldende innvilgede vedtaksperioden.
+     */
+    val gyldigStanskommando: Rammevedtakskommando.Stans? by lazy {
+        gjeldendeInnvilgelsesperioder.lastOrNull()?.let {
+            Rammevedtakskommando.Stans(
+                tidligsteFraOgMedDato = it.fraOgMed,
+                tvungenStansTilOgMedDato = it.tilOgMed,
+            )
+        }
+    }
+
+    /**
+     * Krever at vedtaket er gjeldende i sin helhet.
+     * Kan kun omgjøres helt, ikke delvis.
+     */
+    val gyldigOmgjøringskommando: Rammevedtakskommando.Omgjør? by lazy {
+        if (omgjortAvRammevedtak.isNotEmpty()) return@lazy null
+        Rammevedtakskommando.Omgjør(tvungenOmgjøringsperiode = periode)
+    }
+
+    /**
+     * Ikke implementert enda.
+     * Merk at man bare skal kunne opphøre en sammenhengende periode.
+     */
+    val gyldigOpphørskommando: Rammevedtakskommando.Opphør? by lazy {
+        if (gjeldendeInnvilgelsesperioder.isEmpty()) return@lazy null
+        Rammevedtakskommando.Opphør(gjeldendeInnvilgelsesperioder.toNonEmptyListOrNull()!!)
     }
 
     /**
