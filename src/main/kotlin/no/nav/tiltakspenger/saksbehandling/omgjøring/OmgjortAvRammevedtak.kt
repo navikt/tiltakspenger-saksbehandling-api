@@ -27,6 +27,8 @@ data class OmgjortAvRammevedtak(
     val tilOgMed: LocalDate? = omgjøringsperioder.tilOgMed
     val totalPeriode: Periode? = omgjøringsperioder.totalPeriode
 
+    val omgjøringsgrad: Omgjøringsgrad? = omgjøringsperioder.map { it.omgjøringsgrad }.distinct().singleOrNull()
+
     fun leggTil(omgjøringsperioder: List<Omgjøringsperiode>): OmgjortAvRammevedtak {
         return OmgjortAvRammevedtak(
             Omgjøringsperioder(

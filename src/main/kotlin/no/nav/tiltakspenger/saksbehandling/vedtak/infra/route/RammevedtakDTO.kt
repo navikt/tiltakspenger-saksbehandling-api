@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak.infra.route
 
-import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
@@ -13,9 +12,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.B
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtakskommando
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.OmgjøringsgradDTO.Companion.tilDTO
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -42,7 +42,23 @@ data class RammevedtakDTO(
     val barnetillegg: BarnetilleggDTO?,
     val erGjeldende: Boolean,
     val gyldigeKommandoer: Map<RammevedtakKommandoDTO.KommandoType, RammevedtakKommandoDTO>,
+    val omgjortGrad: OmgjøringsgradDTO?,
 )
+
+enum class OmgjøringsgradDTO {
+    HELT,
+    DELVIS,
+    ;
+
+    companion object {
+        fun Omgjøringsgrad.tilDTO(): OmgjøringsgradDTO {
+            return when (this) {
+                Omgjøringsgrad.HELT -> HELT
+                Omgjøringsgrad.DELVIS -> DELVIS
+            }
+        }
+    }
+}
 
 fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
     val periodeDTO = periode.toDTO()
@@ -64,6 +80,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         gjeldendeInnvilgetPerioder = this.gjeldendeInnvilgelsesperioder.map { it.toDTO() },
         erGjeldende = this.erGjeldende,
         gyldigeKommandoer = this.gyldigeKommandoer.toDTO(),
+        omgjortGrad = this.omgjortAvRammevedtak.omgjøringsgrad?.tilDTO(),
     )
 }
 
