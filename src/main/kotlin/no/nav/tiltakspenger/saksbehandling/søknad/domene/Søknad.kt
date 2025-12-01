@@ -24,7 +24,9 @@ sealed interface Søknad {
     val avbrutt: Avbrutt?
     val erAvbrutt: Boolean
     val fnr: Fnr
+    val harSøktPåTiltak: JaNeiSpm
     val tiltak: Søknadstiltak?
+    val harSøktOmBarnetillegg: JaNeiSpm
     val barnetillegg: List<BarnetilleggFraSøknad>
     val kvp: PeriodeSpm
     val intro: PeriodeSpm
@@ -60,6 +62,8 @@ sealed interface Søknad {
             personopplysninger: Personopplysninger,
             søknadstiltak: Søknadstiltak?,
             barnetillegg: List<BarnetilleggFraSøknad>,
+            harSøktPåTiltak: JaNeiSpm,
+            harSøktOmBarnetillegg: JaNeiSpm,
             kvp: PeriodeSpm,
             intro: PeriodeSpm,
             institusjon: PeriodeSpm,
@@ -87,6 +91,8 @@ sealed interface Søknad {
                     tidsstempelHosOss = tidsstempelHosOss,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
+                    harSøktPåTiltak = harSøktPåTiltak,
+                    harSøktOmBarnetillegg = harSøktOmBarnetillegg,
                     kvp = kvp,
                     intro = intro,
                     institusjon = institusjon,
@@ -114,6 +120,8 @@ sealed interface Søknad {
                     tidsstempelHosOss = tidsstempelHosOss,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
+                    harSøktPåTiltak = harSøktPåTiltak,
+                    harSøktOmBarnetillegg = harSøktOmBarnetillegg,
                     kvp = kvp,
                     intro = intro,
                     institusjon = institusjon,
@@ -217,7 +225,7 @@ sealed interface Søknad {
 
 /**
  * @param id mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api). Dette er tiltaksdeltakelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?). Kalles ekstern_id i databasen.
- * @param typeKode f.eks. JOBBK, GRUPPEAMO, INDOPPFAG, ARBTREN ([no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.TiltakType])
+ * @param typeKode f.eks. JOBBK, GRUPPEAMO, INDOPPFAG, ARBTREN ([TiltakResponsDTO.TiltakType])
  * @param typeNavn f.eks. Jobbklubb, Arbeidsmarkedsopplæring (gruppe), Oppfølging, Arbeidstrening
  */
 data class Søknadstiltak(

@@ -202,6 +202,12 @@ class RammebehandlingDTOTest {
                 "avbrutt": null,
                 "kanInnvilges": true,
                 "svar": {
+                  "harSøktPåTiltak": {
+                    "svar": "JA"
+                  },
+                  "harSøktOmBarnetillegg": {
+                    "svar": "NEI"
+                  },
                   "kvp": {
                     "svar": "NEI",
                     "periode": null
@@ -381,6 +387,12 @@ class RammebehandlingDTOTest {
                 "avbrutt": null,
                 "kanInnvilges": true,
                 "svar": {
+                  "harSøktPåTiltak": {
+                    "svar": "JA"
+                  },
+                  "harSøktOmBarnetillegg": {
+                    "svar": "NEI"
+                  },
                   "kvp": {
                     "svar": "NEI",
                     "periode": null
@@ -546,6 +558,12 @@ class RammebehandlingDTOTest {
                 "avbrutt": null,
                 "kanInnvilges": true,
                 "svar": {
+                  "harSøktPåTiltak": {
+                    "svar": "JA"
+                  },
+                  "harSøktOmBarnetillegg": {
+                    "svar": "NEI"
+                  },
                   "kvp": {
                     "svar": "NEI",
                     "periode": null
