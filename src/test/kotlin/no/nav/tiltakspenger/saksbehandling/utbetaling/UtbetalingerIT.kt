@@ -114,7 +114,7 @@ class UtbetalingerIT {
             )
             val (oppdatertSak, _, _, _) = iverksettSøknadsbehandling(
                 tac = tac,
-                virkningsperiode = andreSøknadsperiode,
+                vedtaksperiode = andreSøknadsperiode,
                 sakId = sak.id,
                 barnetillegg = barnetillegg(periode = andreSøknadsperiode, antallBarn = AntallBarn(1)),
                 tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(

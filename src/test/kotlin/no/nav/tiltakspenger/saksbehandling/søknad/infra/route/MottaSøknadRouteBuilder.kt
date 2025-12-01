@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
@@ -37,7 +38,7 @@ interface MottaSøknadRouteBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         søknadId: SøknadId = SøknadId.random(),
-        deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        deltakelsesperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = deltakelsesperiode.fraOgMed,
             tom = deltakelsesperiode.tilOgMed,
@@ -55,7 +56,7 @@ interface MottaSøknadRouteBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
         søknadId: SøknadId = SøknadId.random(),
-        deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        deltakelsesperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = deltakelsesperiode.fraOgMed,
             tom = deltakelsesperiode.tilOgMed,
@@ -72,7 +73,7 @@ interface MottaSøknadRouteBuilder {
         fnr: Fnr,
         saksnummer: Saksnummer,
         søknadId: SøknadId = SøknadId.random(),
-        deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        deltakelsesperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = deltakelsesperiode.fraOgMed,
             tom = deltakelsesperiode.tilOgMed,
@@ -124,7 +125,7 @@ interface MottaSøknadRouteBuilder {
         saksnummer: String = Saksnummer.genererSaknummer(løpenr = "0001").verdi,
         journalpostId: String = "123456789",
         fnr: String = Fnr.random().toString(),
-        deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        deltakelsesperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Søknadstiltak,
     ): String {
         return """

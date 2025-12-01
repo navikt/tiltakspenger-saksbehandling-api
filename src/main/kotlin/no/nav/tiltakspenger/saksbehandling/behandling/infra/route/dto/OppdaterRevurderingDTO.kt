@@ -131,8 +131,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
     }
 
     data class Stans(
-        override val begrunnelseVilkårsvurdering: String?,
-        override val fritekstTilVedtaksbrev: String?,
+        override val begrunnelseVilkårsvurdering: String? = null,
+        override val fritekstTilVedtaksbrev: String? = null,
         val valgteHjemler: List<ValgtHjemmelForStansDTO>,
         val harValgtStansFraFørsteDagSomGirRett: Boolean,
         val harValgtStansTilSisteDagSomGirRett: Boolean,

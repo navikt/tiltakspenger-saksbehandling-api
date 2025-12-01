@@ -19,8 +19,6 @@ import java.time.LocalDateTime
 
 /**
  * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
- * @param periode Deprecated. Duplikat av [opprinneligVedtaksperiode]
- * @param gjeldendePeriode Perioden der vedtaket fortsatt er gjeldende for sakens nå-tilstand
  * @param opprinneligVedtaksperiode Vedtaksperioden da den ble vedtatt. Er ikke sikkert den er gjeldende lenger, hvis den har blitt omgjort. Avslagsvedtak er aldri gjeldende.
  * @param gjeldendeVedtaksperioder Listen over perioder der vedtaket fortsatt er gjeldende for sakens nå-tilstand. Den var opprinnelig en hel periode, men kan ha blitt splittet av en eller flere omgjøringer. Vil alltid være tom for avslag siden de aldri er gjeldende.
  * @param opprinneligInnvilgetPerioder Vil alltid være tom for avslag, stans og rene opphør. For innvilgelser (inkl. omgjøring) og forlengelser vil dette være perioden(e) som opprinnelig ble innvilget i vedtaket.

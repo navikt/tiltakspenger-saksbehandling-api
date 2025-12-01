@@ -18,7 +18,7 @@ fun Route.sakRoutes(
     tilgangskontrollService: TilgangskontrollService,
     personService: PersonService,
 ) {
-    hentSakRoute(sakService, auditService, clock, tilgangskontrollService)
+    søkFnrSaksnummerOgSakIdRoute(sakService, auditService, clock, tilgangskontrollService)
     hentSakForSaksnummerRoute(sakService, auditService, clock, tilgangskontrollService)
     hentEllerOpprettSakSystembrukerRoute(sakService)
     hentEllerOpprettSakRoute(sakService, auditService, tilgangskontrollService, personService)

@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -34,7 +35,7 @@ interface BehandleSøknadPåNyttBuilder {
         sak: Sak,
         søknad: Søknad,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        virkningsperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
         val (behandling, response) = startBehandlingAvSøknadPåyttForSøknadId(tac, sak.id, søknad.id)

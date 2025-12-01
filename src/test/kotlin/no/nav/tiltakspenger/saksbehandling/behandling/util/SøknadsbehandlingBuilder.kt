@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -46,7 +47,7 @@ interface SøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        virkningsperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
@@ -79,7 +80,7 @@ interface SøknadsbehandlingBuilder {
     suspend fun ApplicationTestBuilder.opprettAutomatiskBehandlingKlarTilBeslutning(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        virkningsperiode: Periode = 1.til(10.april(2025)),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad) = opprettSakOgSøknad(tac, fnr, deltakelsesperiode = virkningsperiode)
         søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
@@ -96,7 +97,7 @@ interface SøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        virkningsperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
@@ -134,7 +135,7 @@ interface SøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        virkningsperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = virkningsperiode.fraOgMed,
@@ -166,7 +167,7 @@ interface SøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        virkningsperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
@@ -217,7 +218,7 @@ interface SøknadsbehandlingBuilder {
     suspend fun ApplicationTestBuilder.opprettSøknadsbehandlingUnderBehandlingMedAvslag(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        virkningsperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
