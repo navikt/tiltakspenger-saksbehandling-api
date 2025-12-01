@@ -307,6 +307,8 @@ open class ApplicationContext(
             simulerService = utbetalingContext.simulerService,
             personKlient = personContext.personKlient,
             statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
+            genererVedtaksbrevForUtbetalingKlient = dokumentContext.genererVedtaksbrevForUtbetalingKlient,
+
         )
     }
     open val behandlingContext by lazy {

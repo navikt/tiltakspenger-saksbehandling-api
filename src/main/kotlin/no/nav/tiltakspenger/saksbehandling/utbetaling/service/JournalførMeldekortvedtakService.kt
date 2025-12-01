@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
@@ -58,17 +57,7 @@ class JournalførMeldekortvedtakService(
                         }
                         sammenlign(beregningFør, beregningEtter)
                     }
-                    // Et meldeperiode har ikke informasjon om tiltaksdeltakelsen, så vi må hente det fra rammevedtakene som gjelder for dette meldekortvedtaket.
-                    // Det er mulig at flere rammevedtak gjelder for samme meldekortvedtak, f.eks. ved revurdering.
-                    // Ved flere rammevedtak kan de inneholde de samme tiltaksdeltakelsene.
-                    // Derfor må vi gruppere på eksternDeltakelseId og ta den nyeste.
-                    val tiltak: Tiltaksdeltakelser = meldekortvedtak.rammevedtak
-                        .map { sak.hentRammevedtakForId(it) }
-                        .mapNotNull { vedtak -> vedtak.valgteTiltaksdeltakelser?.let { vedtak.opprettet to it } }
-                        .flatMap { (opprettet, deltakelser) -> deltakelser.verdier.map { opprettet to it } }
-                        .groupBy { it.second.eksternDeltakelseId }
-                        .map { (_, verdi) -> verdi.maxBy { it.first }.second }
-                        .let { Tiltaksdeltakelser(it) }
+                    val tiltak = sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(meldekortvedtak.rammevedtak)
 
                     require(tiltak.isNotEmpty()) {
                         "Forventet at et det skal finnes tiltaksdeltakelse for meldekortvedtaksperioden"

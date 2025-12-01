@@ -22,6 +22,11 @@ class PdfgenHttpClientTest {
         }
     }
 
+    @Test
+    fun `genererer meldekort pdf fra command`() {
+        TODO()
+    }
+
     private fun sammenlign(sammenligning: MeldeperiodeBeregning): SammenligningAvBeregninger.MeldeperiodeSammenligninger {
         return SammenligningAvBeregninger.MeldeperiodeSammenligninger(
             periode = sammenligning.periode,

@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.frameldekortapi.mottaMeldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortBehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
@@ -32,6 +33,7 @@ fun Route.meldekortRoutes(
     avbrytMeldekortBehandlingService: AvbrytMeldekortBehandlingService,
     clock: Clock,
     tilgangskontrollService: TilgangskontrollService,
+    forhåndsvisBrevMeldekortBehandlingService: ForhåndsvisBrevMeldekortBehandlingService,
 ) {
     hentMeldekortRoute(sakService, auditService, clock, tilgangskontrollService)
     iverksettMeldekortRoute(iverksettMeldekortService, auditService, clock, tilgangskontrollService)
@@ -44,4 +46,5 @@ fun Route.meldekortRoutes(
     underkjennMeldekortBehandlingRoute(underkjennMeldekortBehandlingService, auditService, tilgangskontrollService)
     leggTilbakeMeldekortBehandlingRoute(auditService, leggTilbakeMeldekortBehandlingService, tilgangskontrollService)
     avbrytMeldekortBehandlingRoute(auditService, avbrytMeldekortBehandlingService, tilgangskontrollService)
+    forhåndsvisBrevMeldekortbehandling(forhåndsvisBrevMeldekortBehandlingService, auditService, tilgangskontrollService)
 }

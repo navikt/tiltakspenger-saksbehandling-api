@@ -50,6 +50,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                             correlationId = correlationId,
                             dager = dager,
                             begrunnelse = null,
+                            tekstTilVedtaksbrev = null,
                         ),
                     )
                 }.message shouldBe "Et meldekort må være 14 dager, men var 1"
@@ -96,6 +97,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                             correlationId = correlationId,
                             dager = dager,
                             begrunnelse = null,
+                            tekstTilVedtaksbrev = null,
                         ),
                     )
                 }.message shouldBe "Meldekortet må starte på en mandag"
@@ -143,6 +145,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                             correlationId = correlationId,
                             dager = dager,
                             begrunnelse = null,
+                            tekstTilVedtaksbrev = null,
                         ),
                     )
                 }.message shouldBe "Et meldekort må være 14 dager, men var 15"
@@ -189,6 +192,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                             correlationId = correlationId,
                             dager = dager,
                             begrunnelse = null,
+                            tekstTilVedtaksbrev = null,
                         ),
                     )
                 }.message shouldContain "Kan ikke endre dag til IKKE_RETT_TIL_TILTAKSPENGER"
@@ -236,6 +240,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                             correlationId = correlationId,
                             dager = dager,
                             begrunnelse = null,
+                            tekstTilVedtaksbrev = null,
                         ),
                     )
                 }.message.shouldContain("Kan ikke endre dag fra IKKE_RETT_TIL_TILTAKSPENGER.")
@@ -280,6 +285,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                             ),
                         ),
                         begrunnelse = null,
+                        tekstTilVedtaksbrev = null,
                     ),
                 ).getOrFail()
             }

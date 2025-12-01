@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
@@ -80,7 +81,6 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import kotlin.collections.emptyList
 import kotlin.math.ceil
 
 interface MeldekortMother : MotherOfAllMothers {
@@ -135,6 +135,7 @@ interface MeldekortMother : MotherOfAllMothers {
             status = status,
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+            tekstTilVedtaksbrev = null,
         )
     }
 
@@ -179,6 +180,7 @@ interface MeldekortMother : MotherOfAllMothers {
         simulering: Simulering? = null,
         sistEndret: LocalDateTime = iverksattTidspunkt ?: sendtTilBeslutning,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
+        tekstTilVedtaksbrev: NonBlankString? = null,
     ): MeldekortBehandletManuelt {
         return MeldekortBehandletManuelt(
             id = id,
@@ -204,6 +206,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sendtTilDatadeling = null,
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+            tekstTilVedtaksbrev = tekstTilVedtaksbrev,
         )
     }
 
@@ -258,6 +261,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sendtTilDatadeling = null,
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+
         )
     }
 
@@ -493,6 +497,7 @@ interface MeldekortMother : MotherOfAllMothers {
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        tekstTilVedtaksbrev: NonBlankString? = null,
     ): Meldekortbehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
             OppdaterMeldekortKommando(
@@ -502,6 +507,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 dager = Dager(meldeperiode),
                 correlationId = CorrelationId.generate(),
                 begrunnelse = begrunnelse,
+                tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             )
         }
 
@@ -557,6 +563,7 @@ interface MeldekortMother : MotherOfAllMothers {
         simulering: Simulering? = null,
         sistEndret: LocalDateTime = opprettet,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
+        tekstTilVedtaksbrev: NonBlankString? = null,
     ): Pair<Meldekortbehandlinger, MeldekortBehandletManuelt> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -593,6 +600,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     status = status,
                     sistEndret = sistEndret,
                     behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+                    tekstTilVedtaksbrev = tekstTilVedtaksbrev,
                 ),
             ),
         )
@@ -683,6 +691,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 status = status,
                 sistEndret = sistEndret,
                 behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+                tekstTilVedtaksbrev = null,
             ),
         ).sendTilBeslutter(
             kommando = kommando.tilSendMeldekortTilBeslutterKommando(),
@@ -822,6 +831,7 @@ interface MeldekortMother : MotherOfAllMothers {
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
         dager: Dager,
+        tekstTilVedtaksbrev: NonBlankString? = null,
     ): OppdaterMeldekortKommando {
         return OppdaterMeldekortKommando(
             sakId = sakId,
@@ -830,6 +840,7 @@ interface MeldekortMother : MotherOfAllMothers {
             dager = dager,
             begrunnelse = begrunnelse,
             correlationId = correlationId,
+            tekstTilVedtaksbrev = tekstTilVedtaksbrev,
         )
     }
 
@@ -840,6 +851,7 @@ interface MeldekortMother : MotherOfAllMothers {
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
         dager: Dager,
+        tekstTilVedtaksbrev: NonBlankString? = null,
     ): SendMeldekortTilBeslutterKommando {
         return SendMeldekortTilBeslutterKommando(
             sakId = sakId,
@@ -848,6 +860,7 @@ interface MeldekortMother : MotherOfAllMothers {
             dager = dager,
             begrunnelse = begrunnelse,
             correlationId = correlationId,
+            tekstTilVedtaksbrev = tekstTilVedtaksbrev,
         )
     }
 }
@@ -946,6 +959,7 @@ fun OppdaterMeldekortKommando.tilSendMeldekortTilBeslutterKommando(): SendMeldek
         dager = dager,
         begrunnelse = begrunnelse,
         correlationId = correlationId,
+        tekstTilVedtaksbrev = tekstTilVedtaksbrev,
     )
 }
 

@@ -268,7 +268,7 @@ object Configuration {
     val identhendelseTopic: String by lazy { config()[Key("IDENTHENDELSE_TOPIC", stringType)] }
 
     val brukFakeMeldekortApiLokalt: Boolean = config().getOrNull(Key("BRUK_FAKE_MELDEKORT_API", stringType))?.toBooleanStrictOrNull() ?: true
-    val brukFakeTexasClientLokalt: Boolean = config().getOrNull(Key("BRUK_FAKE_AUTH", stringType))?.toBooleanStrictOrNull() ?: true
+    val brukFakeTexasClientLokalt: Boolean = config().getOrNull(Key("BRUK_FAKE_AUTH", stringType))?.toBooleanStrictOrNull() ?: false
 
     fun httpPort() = config()[Key("application.httpPort", intType)]
 

@@ -4,6 +4,7 @@ import arrow.core.left
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar
@@ -163,6 +164,7 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
     val (sakMedOpprettetMeldekortBehandling, opprettetMeldekortBehandling) = genererSak(sak)
     val dager = saksbehandlerFyllerUtMeldeperiodeDager(opprettetMeldekortBehandling.meldeperiode)
     val begrunnelse = MeldekortBehandlingBegrunnelse("TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning")
+    val tekstTilVedtaksbrev = NonBlankString.create("TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning")
 
     return runBlocking {
         val (sakMedOppdatertMeldekortbehandling, meldekortBehandling, simuleringMedMetadata) = sakMedOpprettetMeldekortBehandling.oppdaterMeldekort(
@@ -187,6 +189,7 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
                 dager = dager,
                 begrunnelse = begrunnelse,
                 correlationId = CorrelationId.generate(),
+                tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             ),
             beregn = {
                 sakMedOppdatertMeldekortbehandling.beregnMeldekort(

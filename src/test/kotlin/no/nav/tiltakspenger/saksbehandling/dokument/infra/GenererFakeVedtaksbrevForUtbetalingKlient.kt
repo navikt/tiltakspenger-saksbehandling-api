@@ -21,4 +21,11 @@ class GenererFakeVedtaksbrevForUtbetalingKlient : GenererVedtaksbrevForUtbetalin
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response.right()
     }
+
+    override suspend fun genererMeldekortvedtakBrev(
+        command: GenererMeldekortVedtakBrevCommand,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.right()
+    }
 }

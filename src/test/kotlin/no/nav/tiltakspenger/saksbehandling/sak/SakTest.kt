@@ -3,17 +3,34 @@ package no.nav.tiltakspenger.saksbehandling.sak
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.førsteNovember24
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.desember
+import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.fixedClock
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 
 class SakTest {
     @Test
@@ -140,5 +157,108 @@ class SakTest {
         val oppdatertSak = sak.leggTilSøknadsbehandling(behandling)
 
         oppdatertSak.harSoknadUnderBehandling() shouldBe true
+    }
+
+    @Test
+    fun `henter de nyeste tiltaksdeltakelsene basert på rammevedtak`() {
+        val deltakelsesId = "deltakelses-id"
+        val sakId = SakId.random()
+        val fnr = Fnr.random()
+
+        val vedtaksperiode = Periode(1.april(2025), 30.april(2025))
+        val v1 = Rammevedtak(
+            id = VedtakId.random(),
+            opprettet = LocalDateTime.now(fixedClock),
+            sakId = sakId,
+            periode = vedtaksperiode,
+            journalpostId = null,
+            journalføringstidspunkt = null,
+            utbetaling = null,
+            behandling = ObjectMother.nyVedtattSøknadsbehandling(
+                sakId = sakId,
+                fnr = fnr,
+                virkningsperiode = vedtaksperiode,
+                valgteTiltaksdeltakelser = listOf(
+                    Pair(vedtaksperiode, deltakelsesId),
+                ),
+                saksopplysninger = ObjectMother.saksopplysninger(
+                    fom = vedtaksperiode.fraOgMed,
+                    tom = vedtaksperiode.tilOgMed,
+                    tiltaksdeltakelse = listOf(
+                        ObjectMother.tiltaksdeltakelse(
+                            eksternTiltaksdeltakelseId = deltakelsesId,
+                            fom = vedtaksperiode.fraOgMed,
+                            tom = vedtaksperiode.tilOgMed,
+                        ),
+                    ),
+                ),
+            ),
+            vedtaksdato = null,
+            distribusjonId = null,
+            distribusjonstidspunkt = null,
+            sendtTilDatadeling = null,
+            brevJson = "",
+            omgjortAvRammevedtak = OmgjortAvRammevedtak(emptyList()),
+        )
+
+        val andreVedtaksPeriode = Periode(1.mai(2025), 31.mai(2025))
+        val v2 = Rammevedtak(
+            id = VedtakId.random(),
+            opprettet = LocalDateTime.now(enUkeEtterFixedClock),
+            sakId = sakId,
+            periode = andreVedtaksPeriode,
+            journalpostId = null,
+            journalføringstidspunkt = null,
+            utbetaling = null,
+            behandling = ObjectMother.nyVedtattRevurderingInnvilgelse(
+                sakId = sakId,
+                fnr = fnr,
+                virkningsperiode = andreVedtaksPeriode,
+                valgteTiltaksdeltakelser = listOf(
+                    Pair(andreVedtaksPeriode, deltakelsesId),
+                ),
+                saksopplysninger = ObjectMother.saksopplysninger(
+                    fom = andreVedtaksPeriode.fraOgMed,
+                    tom = andreVedtaksPeriode.tilOgMed,
+                    tiltaksdeltakelse = listOf(
+                        ObjectMother.tiltaksdeltakelse(
+                            eksternTiltaksdeltakelseId = deltakelsesId,
+                            fom = andreVedtaksPeriode.fraOgMed,
+                            tom = andreVedtaksPeriode.tilOgMed,
+                        ),
+                    ),
+                ),
+            ),
+            vedtaksdato = null,
+            distribusjonId = null,
+            distribusjonstidspunkt = null,
+            sendtTilDatadeling = null,
+            brevJson = "",
+            omgjortAvRammevedtak = OmgjortAvRammevedtak(emptyList()),
+        )
+
+        val sak = Sak(
+            id = sakId,
+            fnr = fnr,
+            saksnummer = Saksnummer.genererSaknummer(1.desember(2025), "0001"),
+            behandlinger = Behandlinger(
+                Rammebehandlinger(emptyList()),
+                Meldekortbehandlinger(emptyList()),
+            ),
+            vedtaksliste = Vedtaksliste(
+                Rammevedtaksliste(listOf(v1, v2)),
+                Meldekortvedtaksliste(emptyList()),
+            ),
+            meldeperiodeKjeder = MeldeperiodeKjeder(),
+            brukersMeldekort = listOf(),
+            søknader = listOf(),
+            kanSendeInnHelgForMeldekort = false,
+        )
+
+        sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(
+            listOf(v1.id, v2.id),
+        ) shouldBe Tiltaksdeltakelser(
+            v2.valgteTiltaksdeltakelser!!.verdier.single(),
+        )
     }
 }

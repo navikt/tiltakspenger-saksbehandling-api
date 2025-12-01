@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -18,6 +19,7 @@ class SendMeldekortTilBeslutterKommando(
     val saksbehandler: Saksbehandler,
     val dager: OppdaterMeldekortKommando.Dager?,
     val begrunnelse: MeldekortBehandlingBegrunnelse?,
+    val tekstTilVedtaksbrev: NonBlankString?,
     val correlationId: CorrelationId,
 ) {
     val periode: Periode? = dager?.let { Periode(dager.first().dag, dager.last().dag) }

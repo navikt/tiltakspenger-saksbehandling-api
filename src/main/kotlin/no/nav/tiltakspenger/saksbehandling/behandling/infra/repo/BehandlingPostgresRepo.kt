@@ -207,7 +207,6 @@ class BehandlingPostgresRepo(
 
     /**
      * Oppdaterer saksbehandler på behandlingen. Skal du inserte saksbehandler bruk [taBehandlingSaksbehandler]
-     * TODO - test
      */
     override fun overtaBeslutter(
         behandlingId: BehandlingId,
