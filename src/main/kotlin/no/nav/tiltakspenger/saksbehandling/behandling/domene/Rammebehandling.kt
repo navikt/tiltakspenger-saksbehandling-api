@@ -127,6 +127,20 @@ sealed interface Rammebehandling : Behandling {
                     require(this.beslutter == endretAv.navIdent) { "Du må være beslutter på behandlingen for å kunne sette den på vent." }
                 }
 
+                val oppdatertSaksbehandler = if (status == UNDER_AUTOMATISK_BEHANDLING || status == UNDER_BESLUTNING) {
+                    saksbehandler
+                } else {
+                    null
+                }
+
+                val oppdatertStatus = if (status == UNDER_BESLUTNING) {
+                    KLAR_TIL_BESLUTNING
+                } else if (status == UNDER_BEHANDLING) {
+                    KLAR_TIL_BEHANDLING
+                } else {
+                    status
+                }
+
                 return when (this) {
                     is Søknadsbehandling -> this.copy(
                         ventestatus = ventestatus.leggTil(
@@ -136,6 +150,9 @@ sealed interface Rammebehandling : Behandling {
                             erSattPåVent = true,
                             status = status,
                         ),
+                        saksbehandler = oppdatertSaksbehandler,
+                        beslutter = null,
+                        status = oppdatertStatus,
                         venterTil = venterTil,
                         sistEndret = nå(clock),
                     )
@@ -148,6 +165,9 @@ sealed interface Rammebehandling : Behandling {
                             erSattPåVent = true,
                             status = status,
                         ),
+                        saksbehandler = oppdatertSaksbehandler,
+                        beslutter = null,
+                        status = oppdatertStatus,
                         venterTil = venterTil,
                         sistEndret = nå(clock),
                     )
@@ -189,7 +209,7 @@ sealed interface Rammebehandling : Behandling {
                 is Revurdering -> this.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
             }.let {
                 if (overta) {
-                    if (it.saksbehandler == null) {
+                    if (it.saksbehandler == null || (status == KLAR_TIL_BESLUTNING && beslutter == null)) {
                         it.taBehandling(endretAv, clock)
                     } else {
                         it.overta(endretAv, clock).getOrNull()!!
@@ -219,12 +239,8 @@ sealed interface Rammebehandling : Behandling {
             }
 
             UNDER_AUTOMATISK_BEHANDLING -> {
-                if (endretAv == AUTOMATISK_SAKSBEHANDLER) {
-                    gjenopptaBehandling(false, null)
-                } else {
-                    krevSaksbehandlerRolle(endretAv)
-                    gjenopptaBehandling(true, hentSaksopplysninger)
-                }
+                require(endretAv == AUTOMATISK_SAKSBEHANDLER) { "Automatisk behandling kan ikke være tildelt ikke-automatisk saksbehandler" }
+                gjenopptaBehandling(false, null)
             }
 
             KLAR_TIL_BESLUTNING -> {
