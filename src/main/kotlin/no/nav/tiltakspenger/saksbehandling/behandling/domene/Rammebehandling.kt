@@ -239,8 +239,12 @@ sealed interface Rammebehandling : Behandling {
             }
 
             UNDER_AUTOMATISK_BEHANDLING -> {
-                require(endretAv == AUTOMATISK_SAKSBEHANDLER) { "Automatisk behandling kan ikke være tildelt ikke-automatisk saksbehandler" }
-                gjenopptaBehandling(false, null)
+                if (endretAv == AUTOMATISK_SAKSBEHANDLER) {
+                    gjenopptaBehandling(false, null)
+                } else {
+                    krevSaksbehandlerRolle(endretAv)
+                    gjenopptaBehandling(true, hentSaksopplysninger)
+                }
             }
 
             KLAR_TIL_BESLUTNING -> {
