@@ -12,7 +12,9 @@ data class VentestatusHendelseJson(
     val status: Behandlingsstatus,
 ) {
     enum class Behandlingsstatus {
+        KLAR_TIL_BEHANDLING,
         UNDER_BEHANDLING,
+        KLAR_TIL_BESLUTNING,
         UNDER_BESLUTNING,
         UNDER_AUTOMATISK_BEHANDLING,
     }
@@ -25,7 +27,9 @@ fun VentestatusHendelseJson.toSattPåVentBegrunnelse(): VentestatusHendelse {
         begrunnelse = begrunnelse,
         erSattPåVent = erSattPåVent,
         status = when (status) {
+            VentestatusHendelseJson.Behandlingsstatus.KLAR_TIL_BEHANDLING -> Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
             VentestatusHendelseJson.Behandlingsstatus.UNDER_BEHANDLING -> Rammebehandlingsstatus.UNDER_BEHANDLING
+            VentestatusHendelseJson.Behandlingsstatus.KLAR_TIL_BESLUTNING -> Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             VentestatusHendelseJson.Behandlingsstatus.UNDER_BESLUTNING -> Rammebehandlingsstatus.UNDER_BESLUTNING
             VentestatusHendelseJson.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
         },
@@ -41,6 +45,8 @@ fun VentestatusHendelse.toDbJson(): VentestatusHendelseJson = VentestatusHendels
         Rammebehandlingsstatus.UNDER_BEHANDLING -> VentestatusHendelseJson.Behandlingsstatus.UNDER_BEHANDLING
         Rammebehandlingsstatus.UNDER_BESLUTNING -> VentestatusHendelseJson.Behandlingsstatus.UNDER_BESLUTNING
         Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> VentestatusHendelseJson.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+        Rammebehandlingsstatus.KLAR_TIL_BEHANDLING -> VentestatusHendelseJson.Behandlingsstatus.KLAR_TIL_BEHANDLING
+        Rammebehandlingsstatus.KLAR_TIL_BESLUTNING -> VentestatusHendelseJson.Behandlingsstatus.KLAR_TIL_BESLUTNING
         else -> throw IllegalArgumentException("Ugyldig behandlingsstatus for VentestatusHendelse: ${this.status}")
     },
 )
