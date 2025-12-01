@@ -7,6 +7,8 @@ data class PapirsøknadSvarDTO(
     val tiltak: SøknadsTiltakDTO?,
     val barnetilleggPdl: List<BarnetilleggDTO> = emptyList(),
     val barnetilleggManuelle: List<BarnetilleggDTO> = emptyList(),
+    val harSøktPåTiltak: PapirsøknadBody.JaNeiSpmDTO,
+    val harSøktOmBarnetillegg: PapirsøknadBody.JaNeiSpmDTO,
     val kvp: PapirsøknadBody.PeriodeSpmDTO,
     val intro: PapirsøknadBody.PeriodeSpmDTO,
     val institusjon: PapirsøknadBody.PeriodeSpmDTO,

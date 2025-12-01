@@ -59,6 +59,8 @@ class StartBehandlingAvPapirsøknadService(
             personopplysninger = kommando.personopplysninger,
             søknadstiltak = kommando.søknadstiltak,
             barnetillegg = kommando.barnetillegg,
+            harSøktPåTiltak = kommando.harSøktPåTiltak,
+            harSøktOmBarnetillegg = kommando.harSøktOmBarnetillegg,
             kvp = kommando.kvp,
             intro = kommando.intro,
             institusjon = kommando.institusjon,
