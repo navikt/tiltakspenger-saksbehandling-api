@@ -212,7 +212,17 @@ sealed interface Rammebehandling : Behandling {
                     if (it.saksbehandler == null || (status == KLAR_TIL_BESLUTNING && beslutter == null)) {
                         it.taBehandling(endretAv, clock)
                     } else {
-                        it.overta(endretAv, clock).getOrNull()!!
+                        // Vi må overta behandlingen før vi oppdaterer sistEndret og ventestatus
+                        when (this) {
+                            is Søknadsbehandling -> {
+                                val overtattBehandling = this.overta(endretAv, clock).getOrNull() as Søknadsbehandling
+                                overtattBehandling.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
+                            }
+                            is Revurdering -> {
+                                val overtattBehandling = this.overta(endretAv, clock).getOrNull() as Revurdering
+                                overtattBehandling.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
+                            }
+                        }
                     }
                 } else {
                     it
@@ -225,6 +235,7 @@ sealed interface Rammebehandling : Behandling {
                 }
             }
         }
+
         return when (status) {
             VEDTATT, AVBRUTT -> throw IllegalStateException("Kan ikke gjenoppta behandling som har status ${status.name}")
             KLAR_TIL_BEHANDLING -> {

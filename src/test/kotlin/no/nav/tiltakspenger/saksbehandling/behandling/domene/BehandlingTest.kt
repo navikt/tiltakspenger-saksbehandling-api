@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 class BehandlingTest {
@@ -299,6 +301,35 @@ class BehandlingTest {
                 gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
                 gjenopptattBehandling.saksbehandler shouldBe behandling.saksbehandler
                 gjenopptattBehandling.beslutter shouldBe beslutter.navIdent
+            }
+        }
+
+        @Test
+        fun `saksbehandler kan gjenoppta en automatisk behandling som er satt på vent`() {
+            runTest {
+                val saksbehandler = ObjectMother.saksbehandler(navIdent = "Z111111")
+                val clockPaVent = Clock.fixed(Instant.parse("2025-07-01T12:00:00Z"), ZoneOffset.UTC)
+                val behandling = ObjectMother.nyOpprettetAutomatiskSøknadsbehandling()
+                val behandlingSattPåVent = behandling.settPåVent(
+                    endretAv = AUTOMATISK_SAKSBEHANDLER,
+                    begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                    clock = clockPaVent,
+                    venterTil = LocalDateTime.now().plusWeeks(1),
+                )
+                val gjenopptaClock = Clock.fixed(Instant.parse("2025-07-01T13:30:00Z"), ZoneOffset.UTC)
+
+                behandlingSattPåVent.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER.navIdent
+                behandlingSattPåVent.beslutter shouldBe null
+                behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                behandlingSattPåVent.ventestatus.erSattPåVent shouldBe true
+
+                val gjenopptattBehandling =
+                    behandlingSattPåVent.gjenoppta(saksbehandler, gjenopptaClock) { behandling.saksopplysninger }.getOrFail()
+
+                gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
+                gjenopptattBehandling.saksbehandler shouldBe saksbehandler.navIdent
+                gjenopptattBehandling.beslutter shouldBe null
             }
         }
 
