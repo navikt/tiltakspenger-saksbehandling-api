@@ -29,15 +29,15 @@ class ValiderKanIverksetteUtbetalingTest {
     val periodePåTversAvMåned = Periode(27.januar(2025), 9.februar(2025))
 
     private fun simuleringMedJusteringer(
-        vararg justeringer: Pair<Periode, List<DatoOgBeløp>>,
+        vararg perioderMedJusteringer: Pair<Periode, List<DatoOgBeløp>>,
     ): Simulering {
         return Simulering.Endring(
-            datoBeregnet = justeringer.first().first.tilOgMed,
+            datoBeregnet = perioderMedJusteringer.first().first.fraOgMed,
             totalBeløp = 0,
-            simuleringPerMeldeperiode = justeringer.toList().toNonEmptyListOrThrow().map {
+            simuleringPerMeldeperiode = perioderMedJusteringer.toList().toNonEmptyListOrThrow().map { (periode, justering) ->
                 SimuleringForMeldeperiode(
-                    meldeperiode = meldeperiode(periode = it.first),
-                    simuleringsdager = it.second.toNonEmptyListOrThrow().map { (dato, beløp) ->
+                    meldeperiode = meldeperiode(periode = periode),
+                    simuleringsdager = justering.toNonEmptyListOrThrow().map { (dato, beløp) ->
                         Simuleringsdag(
                             dato = dato,
                             tidligereUtbetalt = 0,
