@@ -6,7 +6,7 @@ import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.NonBlankString
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
@@ -564,9 +564,7 @@ class MeldekortBehandlingPostgresRepo(
                 ?.tilMeldeperiodeBeregningerFraMeldekort(id)
                 ?.let { Beregning(it) }
 
-            val tekstTilVedtaksbrev = row.stringOrNull("tekst_til_vedtaksbrev")?.let {
-                NonBlankString.create(it)
-            }
+            val tekstTilVedtaksbrev = row.stringOrNull("tekst_til_vedtaksbrev")?.toNonBlankString()
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> {
