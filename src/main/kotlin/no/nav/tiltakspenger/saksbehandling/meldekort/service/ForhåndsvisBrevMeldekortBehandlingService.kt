@@ -59,7 +59,6 @@ class ForhåndsvisBrevMeldekortBehandlingService(
                 erKorrigering = meldekortBehandling.erKorrigering,
                 beregninger = tidligereBeregninger,
                 totaltBeløp = meldekortBehandling.beregning!!.totalBeløp,
-                begrunnelse = meldekortBehandling.begrunnelse,
                 tekstTilVedtaksbrev = command.tekstTilVedtaksbrev,
             ),
             hentSaksbehandlersNavn = { saksbehandlerId -> "Saksbehandler Navn for $saksbehandlerId" },

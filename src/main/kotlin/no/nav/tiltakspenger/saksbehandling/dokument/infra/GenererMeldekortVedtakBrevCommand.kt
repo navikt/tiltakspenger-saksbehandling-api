@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDateTime
 
@@ -24,6 +23,5 @@ data class GenererMeldekortVedtakBrevCommand(
     val erKorrigering: Boolean,
     val beregninger: List<Pair<MeldeperiodeBeregning?, MeldeperiodeBeregning>>,
     val totaltBeløp: Int,
-    val begrunnelse: MeldekortBehandlingBegrunnelse?,
     val tekstTilVedtaksbrev: NonBlankString?,
 )

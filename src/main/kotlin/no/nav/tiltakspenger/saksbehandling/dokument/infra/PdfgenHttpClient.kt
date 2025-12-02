@@ -216,7 +216,6 @@ internal class PdfgenHttpClient(
         )
     }
 
-    // TODO - test
     override suspend fun genererMeldekortvedtakBrev(
         command: GenererMeldekortVedtakBrevCommand,
         hentSaksbehandlersNavn: suspend (String) -> String,
