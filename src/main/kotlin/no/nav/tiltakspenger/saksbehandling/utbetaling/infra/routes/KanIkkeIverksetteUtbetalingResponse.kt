@@ -17,7 +17,7 @@ fun KanIkkeIverksetteUtbetaling.tilUtbetalingErrorJson(): Pair<HttpStatusCode, E
         )
 
         KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> HttpStatusCode.BadRequest to ErrorJson(
-            "Behandling med justering støttes ikke på nåværende tidspunkt",
+            "Behandling med justering på tvers av måneder eller meldeperioder støttes ikke på nåværende tidspunkt",
             "støtter_ikke_justering",
         )
     }
