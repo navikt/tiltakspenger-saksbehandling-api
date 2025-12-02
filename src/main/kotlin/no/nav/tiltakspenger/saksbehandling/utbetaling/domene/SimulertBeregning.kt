@@ -35,6 +35,7 @@ data class SimulertBeregning(
     val simuleringsdato: LocalDate?,
     val simuleringTotalBeløp: Int?,
     val simuleringResultat: SimuleringResultat,
+    val utbetalingValideringsfeil: KanIkkeIverksetteUtbetaling?,
 ) {
     val simuleringsdager: NonEmptyList<Simuleringsdag>? by lazy {
         meldeperioder.mapNotNull { it.simuleringsdager }.flatten().toNonEmptyListOrNull()
@@ -167,6 +168,7 @@ data class SimulertBeregning(
                     is Simulering.IngenEndring -> SimuleringResultat.INGEN_ENDRING
                     null -> SimuleringResultat.IKKE_SIMULERT
                 },
+                utbetalingValideringsfeil = simulering.validerKanIverksetteUtbetaling().leftOrNull(),
             )
         }
     }
