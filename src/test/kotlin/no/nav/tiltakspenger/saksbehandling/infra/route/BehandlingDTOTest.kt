@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
@@ -30,6 +31,9 @@ class BehandlingDTOTest {
                     .settPåVent(beslutter, "2", clock)
 
                 behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 3
+                behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+                behandlingSattPåVent.saksbehandler shouldBe behandling.saksbehandler
+                behandlingSattPåVent.beslutter shouldBe null
 
                 val sak = ObjectMother.nySak(behandlinger = Rammebehandlinger(listOf(behandlingSattPåVent)))
 
@@ -38,6 +42,7 @@ class BehandlingDTOTest {
                 dto.ventestatus?.erSattPåVent shouldBe true
                 dto.ventestatus?.sattPåVentAv shouldBe beslutter.navIdent
                 dto.ventestatus?.begrunnelse shouldBe "2"
+                dto.beslutter shouldBe null
             }
         }
     }

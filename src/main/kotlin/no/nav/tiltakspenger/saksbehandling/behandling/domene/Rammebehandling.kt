@@ -127,6 +127,20 @@ sealed interface Rammebehandling : Behandling {
                     require(this.beslutter == endretAv.navIdent) { "Du må være beslutter på behandlingen for å kunne sette den på vent." }
                 }
 
+                val oppdatertSaksbehandler = if (status == UNDER_AUTOMATISK_BEHANDLING || status == UNDER_BESLUTNING) {
+                    saksbehandler
+                } else {
+                    null
+                }
+
+                val oppdatertStatus = if (status == UNDER_BESLUTNING) {
+                    KLAR_TIL_BESLUTNING
+                } else if (status == UNDER_BEHANDLING) {
+                    KLAR_TIL_BEHANDLING
+                } else {
+                    status
+                }
+
                 return when (this) {
                     is Søknadsbehandling -> this.copy(
                         ventestatus = ventestatus.leggTil(
@@ -136,6 +150,9 @@ sealed interface Rammebehandling : Behandling {
                             erSattPåVent = true,
                             status = status,
                         ),
+                        saksbehandler = oppdatertSaksbehandler,
+                        beslutter = null,
+                        status = oppdatertStatus,
                         venterTil = venterTil,
                         sistEndret = nå(clock),
                     )
@@ -148,6 +165,9 @@ sealed interface Rammebehandling : Behandling {
                             erSattPåVent = true,
                             status = status,
                         ),
+                        saksbehandler = oppdatertSaksbehandler,
+                        beslutter = null,
+                        status = oppdatertStatus,
                         venterTil = venterTil,
                         sistEndret = nå(clock),
                     )
@@ -189,10 +209,20 @@ sealed interface Rammebehandling : Behandling {
                 is Revurdering -> this.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
             }.let {
                 if (overta) {
-                    if (it.saksbehandler == null) {
+                    if (it.saksbehandler == null || (status == KLAR_TIL_BESLUTNING && beslutter == null)) {
                         it.taBehandling(endretAv, clock)
                     } else {
-                        it.overta(endretAv, clock).getOrNull()!!
+                        // Vi må overta behandlingen før vi oppdaterer sistEndret og ventestatus
+                        when (this) {
+                            is Søknadsbehandling -> {
+                                val overtattBehandling = this.overta(endretAv, clock).getOrNull() as Søknadsbehandling
+                                overtattBehandling.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
+                            }
+                            is Revurdering -> {
+                                val overtattBehandling = this.overta(endretAv, clock).getOrNull() as Revurdering
+                                overtattBehandling.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
+                            }
+                        }
                     }
                 } else {
                     it
@@ -205,6 +235,7 @@ sealed interface Rammebehandling : Behandling {
                 }
             }
         }
+
         return when (status) {
             VEDTATT, AVBRUTT -> throw IllegalStateException("Kan ikke gjenoppta behandling som har status ${status.name}")
             KLAR_TIL_BEHANDLING -> {

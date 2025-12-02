@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 class BehandlingTest {
@@ -192,7 +194,8 @@ class BehandlingTest {
             val behandling = ObjectMother.nySøknadsbehandlingUnderkjent(saksbehandler = saksbehandler)
             val behandlingSattPåVent = behandling.settPåVent(saksbehandler, "Venter på mer informasjon", clock)
 
-            behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+            behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+            behandlingSattPåVent.saksbehandler shouldBe null
             behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 1
             behandlingSattPåVent.ventestatus.ventestatusHendelser.last().let {
                 it.endretAv shouldBe saksbehandler.navIdent
@@ -218,7 +221,9 @@ class BehandlingTest {
 
             val behandlingSattPåVent = behandling.settPåVent(beslutter, "Venter på mer informasjon", clock)
 
-            behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+            behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            behandlingSattPåVent.saksbehandler shouldBe behandling.saksbehandler
+            behandlingSattPåVent.beslutter shouldBe null
             behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 1
             behandlingSattPåVent.ventestatus.ventestatusHendelser.last().let {
                 it.endretAv shouldBe beslutter.navIdent
@@ -253,25 +258,6 @@ class BehandlingTest {
         val clock: Clock = Clock.fixed(Instant.parse("2025-08-05T12:30:00Z"), ZoneOffset.UTC)
 
         @Test
-        fun `kaster exception dersom man prøver å gjenoppta behandling (klar til behandling)`() {
-            runTest {
-                val saksbehandler = ObjectMother.saksbehandler()
-                val behandling = ObjectMother.nyOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
-                    .leggTilbakeBehandling(saksbehandler = saksbehandler, clock = clock)
-
-                assertThrows<IllegalStateException> {
-                    val behandlingPåVent = behandling.settPåVent(
-                        saksbehandler,
-                        "Denne kaster exception og skal ikke kunne bli gjenopptatt",
-                        clock,
-                    )
-
-                    behandlingPåVent.gjenoppta(saksbehandler, clock) { behandling.saksopplysninger }
-                }
-            }
-        }
-
-        @Test
         fun `kan gjenoppta behandling (under behandling) som er satt på vent`() {
             runTest {
                 val saksbehandler = ObjectMother.saksbehandler()
@@ -279,9 +265,9 @@ class BehandlingTest {
                 val behandlingSattPåVent = ObjectMother
                     .nySøknadsbehandlingUnderkjent(saksbehandler = saksbehandler)
                     .settPåVent(saksbehandler, "1", clock)
-                    .leggTilbakeBehandling(saksbehandler, clock)
 
                 behandlingSattPåVent.saksbehandler shouldBe null
+                behandlingSattPåVent.beslutter shouldBe null
                 behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
 
                 val gjenopptattBehandling =
@@ -291,24 +277,7 @@ class BehandlingTest {
                 gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 gjenopptattBehandling.saksbehandler shouldBe saksbehandler2.navIdent
                 gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
-            }
-        }
-
-        @Test
-        fun `kaster exception dersom man prøver å gjenoppta behandling (klar til beslutning)`() {
-            runTest {
-                val saksbehandler = ObjectMother.saksbehandler()
-                val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(saksbehandler = saksbehandler)
-
-                assertThrows<IllegalStateException> {
-                    val behandlingPåVent = behandling.settPåVent(
-                        saksbehandler,
-                        "Denne kaster exception og skal ikke kunne bli gjenopptatt",
-                        clock,
-                    )
-
-                    behandlingPåVent.gjenoppta(saksbehandler, clock) { behandling.saksopplysninger }
-                }
+                gjenopptattBehandling.beslutter shouldBe null
             }
         }
 
@@ -320,11 +289,47 @@ class BehandlingTest {
                     ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
                 val behandlingSattPåVent = behandling.settPåVent(beslutter, "Venter på mer informasjon", clock)
+
+                behandlingSattPåVent.saksbehandler shouldBe behandling.saksbehandler
+                behandlingSattPåVent.beslutter shouldBe null
+                behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+
                 val gjenopptattBehandling =
                     behandlingSattPåVent.gjenoppta(beslutter, clock) { behandling.saksopplysninger }.getOrFail()
 
                 gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                 gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
+                gjenopptattBehandling.saksbehandler shouldBe behandling.saksbehandler
+                gjenopptattBehandling.beslutter shouldBe beslutter.navIdent
+            }
+        }
+
+        @Test
+        fun `saksbehandler kan gjenoppta en automatisk behandling som er satt på vent`() {
+            runTest {
+                val saksbehandler = ObjectMother.saksbehandler(navIdent = "Z111111")
+                val clockPaVent = Clock.fixed(Instant.parse("2025-07-01T12:00:00Z"), ZoneOffset.UTC)
+                val behandling = ObjectMother.nyOpprettetAutomatiskSøknadsbehandling()
+                val behandlingSattPåVent = behandling.settPåVent(
+                    endretAv = AUTOMATISK_SAKSBEHANDLER,
+                    begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                    clock = clockPaVent,
+                    venterTil = LocalDateTime.now().plusWeeks(1),
+                )
+                val gjenopptaClock = Clock.fixed(Instant.parse("2025-07-01T13:30:00Z"), ZoneOffset.UTC)
+
+                behandlingSattPåVent.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER.navIdent
+                behandlingSattPåVent.beslutter shouldBe null
+                behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                behandlingSattPåVent.ventestatus.erSattPåVent shouldBe true
+
+                val gjenopptattBehandling =
+                    behandlingSattPåVent.gjenoppta(saksbehandler, gjenopptaClock) { behandling.saksopplysninger }.getOrFail()
+
+                gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
+                gjenopptattBehandling.saksbehandler shouldBe saksbehandler.navIdent
+                gjenopptattBehandling.beslutter shouldBe null
             }
         }
 
