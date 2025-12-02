@@ -14,7 +14,7 @@ fun MeldekortBehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverkset
     return simulering.validerKanIverksetteUtbetaling()
 }
 
-private fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
+fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
     return when (this) {
         is Simulering.Endring -> {
             if ((totalFeilutbetaling != 0 || totalMotpostering != 0)) {
