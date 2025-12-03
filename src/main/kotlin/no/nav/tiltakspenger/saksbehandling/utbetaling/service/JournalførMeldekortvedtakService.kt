@@ -73,9 +73,10 @@ class JournalførMeldekortvedtakService(
                     val pdfOgJson =
                         genererVedtaksbrevForUtbetalingKlient.genererMeldekortvedtakBrev(
                             meldekortvedtak,
-                            sammenligning = sammenligning,
-                            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                             tiltaksdeltakelser = tiltak,
+                            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                            sammenligning = sammenligning,
+                            false,
                         ).getOrElse { return@forEach }
                     log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
                     val journalpostId = journalførMeldekortKlient.journalførMeldekortvedtak(

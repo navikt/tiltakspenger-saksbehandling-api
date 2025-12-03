@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test
 
 class PdfgenHttpClientTest {
 
-    // TODO - hva tester denne egentlig? :thinkies:
+    // TODO - hva tester denne egentlig? :thinkies: - burde vel ha en assert?
     @Test
     fun genererMeldekortPdf() {
         runTest {
@@ -31,8 +31,9 @@ class PdfgenHttpClientTest {
             PdfgenHttpClient("unused").genererMeldekortvedtakBrev(
                 meldekortvedtak,
                 tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
-                sammenligning = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
                 hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
+                sammenligning = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
+                false,
             )
         }
     }
@@ -68,6 +69,7 @@ class PdfgenHttpClientTest {
                         beregninger = listOf(),
                         totaltBeløp = 50,
                         tekstTilVedtaksbrev = NonBlankString.create("Bacon ipsum dolor amet"),
+                        forhåndsvisning = true,
                     ),
                     hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
                 ).getOrFail()

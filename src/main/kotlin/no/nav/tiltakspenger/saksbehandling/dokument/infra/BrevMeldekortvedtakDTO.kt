@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
@@ -12,25 +14,31 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
-// TODO - inn med tekstTilBrev
 data class BrevMeldekortvedtakDTO(
     val meldekortId: String,
     val saksnummer: String,
     val meldekortPeriode: PeriodeDTO,
-    val saksbehandler: SaksbehandlerDTO,
+    val saksbehandler: SaksbehandlerDTO?,
     val beslutter: SaksbehandlerDTO?,
     val tiltak: List<TiltakDTO>,
-    // TODO - sjekk at denne ikke er problematisk som null i pdf
     val iverksattTidspunkt: String?,
     val fødselsnummer: String,
     val sammenligningAvBeregninger: SammenligningAvBeregningerDTO,
     val korrigering: Boolean,
     val totaltBelop: Int,
     val brevTekst: String?,
+    val forhandsvisning: Boolean,
 ) {
-    data class SaksbehandlerDTO(
-        val navn: String,
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    @JsonSubTypes(
+        JsonSubTypes.Type(value = SaksbehandlerDTO.Automatisk::class, name = "AUTOMATISK"),
+        JsonSubTypes.Type(value = SaksbehandlerDTO.Manuell::class, name = "MANUELL"),
     )
+    sealed interface SaksbehandlerDTO {
+        data object Automatisk : SaksbehandlerDTO
+        data class Manuell(val navn: String) : SaksbehandlerDTO
+    }
 
     data class PeriodeDTO(
         val fom: String,
@@ -94,15 +102,12 @@ suspend fun Meldekortvedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
     tiltaksdeltakelser: Tiltaksdeltakelser,
     sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+    forhåndsvisning: Boolean,
 ): String {
     return BrevMeldekortvedtakDTO(
         fødselsnummer = fnr.verdi,
-        saksbehandler = tilSaksbehandlerDto(saksbehandler, hentSaksbehandlersNavn),
-        beslutter = if (saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID && beslutter == AUTOMATISK_SAKSBEHANDLER_ID) {
-            null
-        } else {
-            tilSaksbehandlerDto(beslutter, hentSaksbehandlersNavn)
-        },
+        saksbehandler = saksbehandler.tilSaksbehandlerDto(hentSaksbehandlersNavn),
+        beslutter = beslutter.tilSaksbehandlerDto(hentSaksbehandlersNavn),
         meldekortId = meldekortId.toString(),
         saksnummer = saksnummer.toString(),
         meldekortPeriode = BrevMeldekortvedtakDTO.PeriodeDTO(
@@ -115,6 +120,7 @@ suspend fun Meldekortvedtak.toJsonRequest(
         sammenligningAvBeregninger = toBeregningSammenligningDTO(sammenlign),
         totaltBelop = meldekortBehandling.beløpTotal,
         brevTekst = this.meldekortBehandling.tekstTilVedtaksbrev?.value,
+        forhandsvisning = forhåndsvisning,
     ).let { serialize(it) }
 }
 
@@ -165,11 +171,11 @@ fun Tiltaksdeltakelse.toTiltakDTO() =
         eksternGjennomføringId = gjennomføringId,
     )
 
-suspend fun tilSaksbehandlerDto(
-    navIdent: String,
+suspend fun String.tilSaksbehandlerDto(
     hentSaksbehandlersNavn: suspend (String) -> String,
-): BrevMeldekortvedtakDTO.SaksbehandlerDTO {
-    return BrevMeldekortvedtakDTO.SaksbehandlerDTO(navn = hentSaksbehandlersNavn(navIdent))
+): BrevMeldekortvedtakDTO.SaksbehandlerDTO? = when (this) {
+    AUTOMATISK_SAKSBEHANDLER_ID -> BrevMeldekortvedtakDTO.SaksbehandlerDTO.Automatisk
+    else -> BrevMeldekortvedtakDTO.SaksbehandlerDTO.Manuell(navn = hentSaksbehandlersNavn(this))
 }
 
 private fun MeldeperiodeBeregningDag.toStatus(): String {

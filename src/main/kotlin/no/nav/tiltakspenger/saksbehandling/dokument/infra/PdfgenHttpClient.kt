@@ -31,7 +31,6 @@ import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.person.Navn
@@ -202,6 +201,7 @@ internal class PdfgenHttpClient(
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+        forhåndsvisning: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -209,6 +209,7 @@ internal class PdfgenHttpClient(
                     hentSaksbehandlersNavn,
                     tiltaksdeltakelser,
                     sammenligning,
+                    forhåndsvisning,
                 )
             },
             errorContext = "SakId: ${meldekortvedtak.sakId}, saksnummer: ${meldekortvedtak.saksnummer}, vedtakId: ${meldekortvedtak.id}",
@@ -224,14 +225,8 @@ internal class PdfgenHttpClient(
             jsonPayload = {
                 BrevMeldekortvedtakDTO(
                     fødselsnummer = command.fnr.verdi,
-                    saksbehandler = tilSaksbehandlerDto(command.saksbehandler, hentSaksbehandlersNavn),
-                    beslutter = if (command.saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID && command.beslutter == AUTOMATISK_SAKSBEHANDLER_ID) {
-                        null
-                    } else {
-                        command.beslutter?.let {
-                            tilSaksbehandlerDto(it, hentSaksbehandlersNavn)
-                        }
-                    },
+                    saksbehandler = command.saksbehandler?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
+                    beslutter = command.beslutter?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
                     meldekortId = command.meldekortbehandlingId.toString(),
                     saksnummer = command.saksnummer.verdi,
                     meldekortPeriode = BrevMeldekortvedtakDTO.PeriodeDTO(
@@ -251,6 +246,7 @@ internal class PdfgenHttpClient(
                     },
                     totaltBelop = command.totaltBeløp,
                     brevTekst = command.tekstTilVedtaksbrev?.value,
+                    forhandsvisning = command.forhåndsvisning,
                 ).let {
                     serialize(it)
                 }

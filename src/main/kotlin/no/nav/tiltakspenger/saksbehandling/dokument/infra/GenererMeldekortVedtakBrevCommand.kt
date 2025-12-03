@@ -14,7 +14,7 @@ data class GenererMeldekortVedtakBrevCommand(
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
-    val saksbehandler: String,
+    val saksbehandler: String?,
     val beslutter: String?,
     val meldekortbehandlingId: MeldekortId,
     val beregningsperiode: Periode,
@@ -24,4 +24,5 @@ data class GenererMeldekortVedtakBrevCommand(
     val beregninger: List<Pair<MeldeperiodeBeregning?, MeldeperiodeBeregning>>,
     val totaltBeløp: Int,
     val tekstTilVedtaksbrev: NonBlankString?,
+    val forhåndsvisning: Boolean,
 )

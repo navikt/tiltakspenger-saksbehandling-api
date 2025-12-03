@@ -18,6 +18,7 @@ class GenererFakeVedtaksbrevForUtbetalingKlient : GenererVedtaksbrevForUtbetalin
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+        forhåndsvisning: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response.right()
     }

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 
 class MeldekortvedtakDTOTest {
 
+    // TODO - denne burde vel ha en assert?
     @Test
     fun `kan serialiseres`() = runTest {
         val meldekortvedtak = ObjectMother.meldekortvedtak()
@@ -18,6 +19,7 @@ class MeldekortvedtakDTOTest {
             hentSaksbehandlersNavn = { "Saksbehandler Navn" },
             tiltaksdeltakelser = Tiltaksdeltakelser(tiltaksdeltakelser),
             sammenlign = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
+            false,
         )
     }
 

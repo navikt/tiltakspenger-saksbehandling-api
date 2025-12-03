@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortVedtakBrevCommand
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 
@@ -49,9 +48,8 @@ class ForhåndsvisBrevMeldekortBehandlingService(
                 sakId = meldekortBehandling.sakId,
                 saksnummer = meldekortBehandling.saksnummer,
                 fnr = meldekortBehandling.fnr,
-                saksbehandler = meldekortBehandling.saksbehandler ?: command.saksbehandler.navIdent,
-                beslutter = meldekortBehandling.beslutter
-                    ?: if (meldekortBehandling.status == MeldekortBehandlingStatus.UNDER_BESLUTNING) command.saksbehandler.navIdent else null,
+                saksbehandler = meldekortBehandling.saksbehandler,
+                beslutter = meldekortBehandling.beslutter,
                 meldekortbehandlingId = meldekortBehandling.id,
                 beregningsperiode = meldekortBehandling.beregning!!.periode,
                 tiltaksdeltakelser = tiltaksdeltakelser,
@@ -60,6 +58,7 @@ class ForhåndsvisBrevMeldekortBehandlingService(
                 beregninger = tidligereBeregninger,
                 totaltBeløp = meldekortBehandling.beregning!!.totalBeløp,
                 tekstTilVedtaksbrev = command.tekstTilVedtaksbrev,
+                forhåndsvisning = true,
             ),
             hentSaksbehandlersNavn = { saksbehandlerId -> "Saksbehandler Navn for $saksbehandlerId" },
         ).map {

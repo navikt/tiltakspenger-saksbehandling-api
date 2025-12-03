@@ -15,6 +15,7 @@ interface GenererVedtaksbrevForUtbetalingKlient {
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+        forhåndsvisning: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererMeldekortvedtakBrev(
