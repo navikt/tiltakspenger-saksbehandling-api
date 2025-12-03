@@ -50,7 +50,8 @@ class ForhåndsvisBrevMeldekortBehandlingService(
                 saksnummer = meldekortBehandling.saksnummer,
                 fnr = meldekortBehandling.fnr,
                 saksbehandler = meldekortBehandling.saksbehandler ?: command.saksbehandler.navIdent,
-                beslutter = if (meldekortBehandling.status == MeldekortBehandlingStatus.UNDER_BESLUTNING) command.saksbehandler.navIdent else null,
+                beslutter = meldekortBehandling.beslutter
+                    ?: if (meldekortBehandling.status == MeldekortBehandlingStatus.UNDER_BESLUTNING) command.saksbehandler.navIdent else null,
                 meldekortbehandlingId = meldekortBehandling.id,
                 beregningsperiode = meldekortBehandling.beregning!!.periode,
                 tiltaksdeltakelser = tiltaksdeltakelser,
