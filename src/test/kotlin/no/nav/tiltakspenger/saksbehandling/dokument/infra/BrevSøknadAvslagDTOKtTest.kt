@@ -25,7 +25,7 @@ class BrevSøknadAvslagDTOKtTest {
             val actual = genererAvslagSøknadsbrev(
                 hentBrukersNavn = { _ -> Navn("Fornavn", null, "Etternavn") },
                 hentSaksbehandlersNavn = { _ -> "Saksbehandlernavn" },
-                tilleggstekst = FritekstTilVedtaksbrev("genererer og serialiserer brevdata for pdf test"),
+                tilleggstekst = FritekstTilVedtaksbrev.create("genererer og serialiserer brevdata for pdf test"),
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
                 fnr = fnr,
                 saksbehandlerNavIdent = "SaksbehandlerNavIdent",

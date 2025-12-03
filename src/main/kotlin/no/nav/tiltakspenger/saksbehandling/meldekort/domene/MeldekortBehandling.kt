@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -105,7 +104,6 @@ sealed interface MeldekortBehandling : Behandling {
 
     val rammevedtak: List<VedtakId>? get() = meldeperiode.rammevedtak.verdier.distinct()
 
-    val tekstTilVedtaksbrev: NonBlankString?
     val erKorrigering: Boolean get() = type == MeldekortBehandlingType.KORRIGERING
 
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */

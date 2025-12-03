@@ -360,7 +360,7 @@ class BehandlingPostgresRepo(
             val ventestatus = stringOrNull("ventestatus")?.toVentestatus() ?: Ventestatus()
             val venterTil = localDateTimeOrNull("venter_til")
             val sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling")
-            val fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) }
+            val fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev.create(it) }
             val begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let {
                 BegrunnelseVilkårsvurdering(it)
             }

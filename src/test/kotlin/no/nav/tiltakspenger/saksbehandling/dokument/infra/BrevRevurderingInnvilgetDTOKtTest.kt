@@ -29,7 +29,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
             val actual = genererRevurderingInnvilgetBrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-                tilleggstekst = FritekstTilVedtaksbrev("Dette er en vurdering"),
+                tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
                 fnr = fnr,
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
@@ -77,7 +77,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
             val actual = genererRevurderingInnvilgetBrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-                tilleggstekst = FritekstTilVedtaksbrev("Dette er en vurdering"),
+                tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
                 fnr = fnr,
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
@@ -130,7 +130,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
             val actual = genererRevurderingInnvilgetBrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-                tilleggstekst = FritekstTilVedtaksbrev("Dette er en vurdering"),
+                tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
                 fnr = fnr,
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
@@ -178,7 +178,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
             val actual = genererRevurderingInnvilgetBrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-                tilleggstekst = FritekstTilVedtaksbrev("Dette er en vurdering"),
+                tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
                 fnr = fnr,
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
@@ -238,7 +238,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
             val actual = genererRevurderingInnvilgetBrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-                tilleggstekst = FritekstTilVedtaksbrev("Dette er en vurdering"),
+                tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
                 fnr = fnr,
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",

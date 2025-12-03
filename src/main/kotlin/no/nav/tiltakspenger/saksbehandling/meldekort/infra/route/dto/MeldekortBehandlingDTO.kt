@@ -75,7 +75,7 @@ fun MeldekortBehandling.tilMeldekortBehandlingDTO(
         beregning = beregning?.tilMeldekortBeregningDTO(),
         avbrutt = avbrutt?.toAvbruttDTO(),
         simulertBeregning = this.toSimulertBeregning(beregninger)?.toSimulertBeregningDTO(),
-        tekstTilVedtaksbrev = this.tekstTilVedtaksbrev?.value,
+        tekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
     )
 }
 

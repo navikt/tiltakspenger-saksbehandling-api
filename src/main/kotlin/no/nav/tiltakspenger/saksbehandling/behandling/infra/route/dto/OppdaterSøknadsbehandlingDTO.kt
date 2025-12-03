@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
@@ -54,7 +54,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.tilFritekstVedtaksbrev(),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.tilBegrunnelseVilkårsvurdering(),
                 innvilgelsesperiode = innvilgelsesperiode,
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode),
@@ -89,7 +89,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.tilFritekstVedtaksbrev(),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.tilBegrunnelseVilkårsvurdering(),
                 avslagsgrunner = avslagsgrunner.toAvslagsgrunnlag(),
             )
@@ -114,15 +114,12 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.tilFritekstVedtaksbrev(),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.tilBegrunnelseVilkårsvurdering(),
             )
         }
     }
 }
-
-private fun String.tilFritekstVedtaksbrev(): FritekstTilVedtaksbrev =
-    FritekstTilVedtaksbrev.saniter(this)
 
 private fun String.tilBegrunnelseVilkårsvurdering(): BegrunnelseVilkårsvurdering =
     BegrunnelseVilkårsvurdering.saniter(this)

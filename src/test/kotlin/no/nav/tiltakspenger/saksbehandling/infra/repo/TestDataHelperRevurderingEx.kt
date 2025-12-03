@@ -101,7 +101,7 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
         stansFraOgMed = OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed.create(stansFraOgMed),
         stansTilOgMed = OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed.create(stansTilOgMed),
         valgteHjemler = valgteHjemler,
-        fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("TestDataHelper.persisterRevurderingTilBeslutning"),
+        fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("TestDataHelper.persisterRevurderingTilBeslutning"),
     )
     val stansperiode = kommando.utledStansperiode(
         førsteDagSomGirRett = sakMedRevurdering.førsteDagSomGirRett!!,
@@ -256,7 +256,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
         saksbehandler = saksbehandler,
         correlationId = CorrelationId.generate(),
         begrunnelseVilkårsvurdering = begrunnelse,
-        fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("TestDataHelper.persisterRevurderingTilBeslutning"),
+        fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("TestDataHelper.persisterRevurderingTilBeslutning"),
         innvilgelsesperiode = periode,
         tiltaksdeltakelser = listOf(
             Pair(

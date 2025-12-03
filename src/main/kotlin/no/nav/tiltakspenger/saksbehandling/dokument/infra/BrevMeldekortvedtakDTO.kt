@@ -119,7 +119,7 @@ suspend fun Meldekortvedtak.toJsonRequest(
         korrigering = erKorrigering,
         sammenligningAvBeregninger = toBeregningSammenligningDTO(sammenlign),
         totaltBelop = meldekortBehandling.beløpTotal,
-        brevTekst = this.meldekortBehandling.tekstTilVedtaksbrev?.value,
+        brevTekst = this.meldekortBehandling.fritekstTilVedtaksbrev?.verdi,
         forhandsvisning = forhåndsvisning,
     ).let { serialize(it) }
 }

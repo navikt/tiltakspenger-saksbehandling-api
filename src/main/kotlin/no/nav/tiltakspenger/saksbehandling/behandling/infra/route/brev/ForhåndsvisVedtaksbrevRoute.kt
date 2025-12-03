@@ -81,7 +81,7 @@ private data class Body(
         }
 
         return ForhåndsvisVedtaksbrevKommando(
-            fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.saniter(fritekst),
+            fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create(fritekst),
             sakId = sakId,
             behandlingId = behandlingId,
             correlationId = correlationId,

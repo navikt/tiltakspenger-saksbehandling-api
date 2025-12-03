@@ -7,11 +7,11 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -61,7 +61,7 @@ data class MeldekortUnderBehandling(
     override val status: MeldekortBehandlingStatus,
     override val sistEndret: LocalDateTime,
     override val behandlingSendtTilDatadeling: LocalDateTime?,
-    override val tekstTilVedtaksbrev: NonBlankString?,
+    override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
 ) : MeldekortBehandling {
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
@@ -89,7 +89,7 @@ data class MeldekortUnderBehandling(
             // Dersom saksbehandler vil tømme begrunnelsen kan hen sende en tom streng.
             begrunnelse = kommando.begrunnelse ?: this.begrunnelse,
             beregning = beregning,
-            tekstTilVedtaksbrev = kommando.tekstTilVedtaksbrev,
+            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
         )
         // TODO jah: I første omgang kjører vi simulering som best effort. Men dersom den feiler, er det viktig at vi nuller den ut. Også kan vi senere tvinge den på, evt. kunne ha et flagg som dropper kjøre simulering.
         val simuleringMedMetadata = simuler(oppdatertBehandling).getOrElse { null }
@@ -117,7 +117,7 @@ data class MeldekortUnderBehandling(
                 dager = kommando.dager!!,
                 begrunnelse = kommando.begrunnelse,
                 correlationId = kommando.correlationId,
-                tekstTilVedtaksbrev = kommando.tekstTilVedtaksbrev,
+                fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             ),
             beregn = beregn,
             simuler = simuler,
@@ -148,7 +148,7 @@ data class MeldekortUnderBehandling(
                 sendtTilDatadeling = null,
                 sistEndret = nå(clock),
                 behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-                tekstTilVedtaksbrev = this.tekstTilVedtaksbrev,
+                fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             ) to simulering
             ).right()
     }
@@ -310,7 +310,7 @@ data class MeldekortUnderBehandling(
             ),
             sistEndret = tidspunkt,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-            tekstTilVedtaksbrev = this.tekstTilVedtaksbrev,
+            fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
         ).right()
     }
 
@@ -341,7 +341,7 @@ data class MeldekortUnderBehandling(
             ),
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-            tekstTilVedtaksbrev = this.tekstTilVedtaksbrev,
+            fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
         )
     }
 
@@ -445,7 +445,7 @@ fun Sak.opprettManuellMeldekortBehandling(
         status = UNDER_BEHANDLING,
         sistEndret = nå(clock),
         behandlingSendtTilDatadeling = null,
-        tekstTilVedtaksbrev = null,
+        fritekstTilVedtaksbrev = null,
     ).let {
         Triple(this.leggTilMeldekortbehandling(it), it, SkalLagreEllerOppdatere.Lagre)
     }

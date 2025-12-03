@@ -275,7 +275,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sak.id,
         saksnummer = sak.saksnummer,
     ),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterKlarTilBeslutningSøknadsbehandling()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("persisterKlarTilBeslutningSøknadsbehandling()"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningSøknadsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
@@ -381,7 +381,7 @@ internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
         sakId = sak.id,
         saksnummer = sak.saksnummer,
     ),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterKlarTilBeslutningSøknadsbehandling()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("persisterKlarTilBeslutningSøknadsbehandling()"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningSøknadsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
     /**
@@ -527,7 +527,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
             saksnummer = sak.saksnummer,
         ),
     correlationId: CorrelationId = CorrelationId.generate(),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterIverksattSøknadsbehandling()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("persisterIverksattSøknadsbehandling()"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterIverksattSøknadsbehandling()"),
     /**
      * Brukt for å styre meldeperiode generering
@@ -594,7 +594,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
         saksnummer = sak.saksnummer,
     ),
     correlationId: CorrelationId = CorrelationId.generate(),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterIverksattSøknadsbehandlingAvslag()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("persisterIverksattSøknadsbehandlingAvslag()"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterIverksattSøknadsbehandlingAvslag()"),
     /**
      * Brukt for å styre meldeperiode generering

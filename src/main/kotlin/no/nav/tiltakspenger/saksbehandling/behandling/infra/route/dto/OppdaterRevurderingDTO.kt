@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.B
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.LocalDate
-import kotlin.collections.List
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
 @JsonSubTypes(
@@ -69,7 +68,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
                 begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering.saniter(begrunnelseVilkårsvurdering ?: ""),
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.saniter(it) },
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 innvilgelsesperiode = innvilgelsesperiode,
                 tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                     Pair(it.periode.toDomain(), it.eksternDeltagelseId)
@@ -114,7 +113,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
                 begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering.saniter(begrunnelseVilkårsvurdering ?: ""),
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.saniter(it) },
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 innvilgelsesperiode = innvilgelsesperiode,
                 tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                     Pair(it.periode.toDomain(), it.eksternDeltagelseId)
@@ -160,7 +159,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
                 begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering.saniter(begrunnelseVilkårsvurdering ?: ""),
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.saniter(it) },
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 stansFraOgMed = ValgtStansFraOgMed.create(stansFraOgMed),
                 stansTilOgMed = ValgtStansTilOgMed.create(stansTilOgMed),
                 valgteHjemler = valgteHjemler.toDomain().toNonEmptyListOrThrow(),

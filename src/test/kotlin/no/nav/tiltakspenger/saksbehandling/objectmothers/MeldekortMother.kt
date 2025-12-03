@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
@@ -27,6 +26,7 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
@@ -135,7 +135,7 @@ interface MeldekortMother : MotherOfAllMothers {
             status = status,
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-            tekstTilVedtaksbrev = null,
+            fritekstTilVedtaksbrev = null,
         )
     }
 
@@ -180,7 +180,7 @@ interface MeldekortMother : MotherOfAllMothers {
         simulering: Simulering? = null,
         sistEndret: LocalDateTime = iverksattTidspunkt ?: sendtTilBeslutning,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
-        tekstTilVedtaksbrev: NonBlankString? = null,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): MeldekortBehandletManuelt {
         return MeldekortBehandletManuelt(
             id = id,
@@ -206,7 +206,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sendtTilDatadeling = null,
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-            tekstTilVedtaksbrev = tekstTilVedtaksbrev,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         )
     }
 
@@ -497,7 +497,7 @@ interface MeldekortMother : MotherOfAllMothers {
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
-        tekstTilVedtaksbrev: NonBlankString? = null,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): Meldekortbehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
             OppdaterMeldekortKommando(
@@ -507,7 +507,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 dager = Dager(meldeperiode),
                 correlationId = CorrelationId.generate(),
                 begrunnelse = begrunnelse,
-                tekstTilVedtaksbrev = tekstTilVedtaksbrev,
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             )
         }
 
@@ -563,7 +563,7 @@ interface MeldekortMother : MotherOfAllMothers {
         simulering: Simulering? = null,
         sistEndret: LocalDateTime = opprettet,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
-        tekstTilVedtaksbrev: NonBlankString? = null,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): Pair<Meldekortbehandlinger, MeldekortBehandletManuelt> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -600,7 +600,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     status = status,
                     sistEndret = sistEndret,
                     behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-                    tekstTilVedtaksbrev = tekstTilVedtaksbrev,
+                    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 ),
             ),
         )
@@ -691,7 +691,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 status = status,
                 sistEndret = sistEndret,
                 behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-                tekstTilVedtaksbrev = null,
+                fritekstTilVedtaksbrev = null,
             ),
         ).sendTilBeslutter(
             kommando = kommando.tilSendMeldekortTilBeslutterKommando(),
@@ -831,7 +831,7 @@ interface MeldekortMother : MotherOfAllMothers {
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
         dager: Dager,
-        tekstTilVedtaksbrev: NonBlankString? = null,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): OppdaterMeldekortKommando {
         return OppdaterMeldekortKommando(
             sakId = sakId,
@@ -840,7 +840,7 @@ interface MeldekortMother : MotherOfAllMothers {
             dager = dager,
             begrunnelse = begrunnelse,
             correlationId = correlationId,
-            tekstTilVedtaksbrev = tekstTilVedtaksbrev,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         )
     }
 
@@ -851,7 +851,7 @@ interface MeldekortMother : MotherOfAllMothers {
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
         dager: Dager,
-        tekstTilVedtaksbrev: NonBlankString? = null,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): SendMeldekortTilBeslutterKommando {
         return SendMeldekortTilBeslutterKommando(
             sakId = sakId,
@@ -860,7 +860,7 @@ interface MeldekortMother : MotherOfAllMothers {
             dager = dager,
             begrunnelse = begrunnelse,
             correlationId = correlationId,
-            tekstTilVedtaksbrev = tekstTilVedtaksbrev,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         )
     }
 }
@@ -959,7 +959,7 @@ fun OppdaterMeldekortKommando.tilSendMeldekortTilBeslutterKommando(): SendMeldek
         dager = dager,
         begrunnelse = begrunnelse,
         correlationId = correlationId,
-        tekstTilVedtaksbrev = tekstTilVedtaksbrev,
+        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
     )
 }
 

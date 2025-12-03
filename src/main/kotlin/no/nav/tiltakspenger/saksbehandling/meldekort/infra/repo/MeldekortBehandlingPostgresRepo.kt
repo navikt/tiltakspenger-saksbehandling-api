@@ -6,7 +6,6 @@ import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
@@ -14,6 +13,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
@@ -235,7 +235,7 @@ class MeldekortBehandlingPostgresRepo(
                     "sendt_til_datadeling" to meldekortBehandling.sendtTilDatadeling,
                     "sist_endret" to meldekortBehandling.sistEndret,
                     "behandling_sendt_til_datadeling" to meldekortBehandling.behandlingSendtTilDatadeling,
-                    "tekst_til_vedtaksbrev" to meldekortBehandling.tekstTilVedtaksbrev?.value,
+                    "tekst_til_vedtaksbrev" to meldekortBehandling.fritekstTilVedtaksbrev?.verdi,
                 ).asUpdate,
             )
         }
@@ -564,7 +564,9 @@ class MeldekortBehandlingPostgresRepo(
                 ?.tilMeldeperiodeBeregningerFraMeldekort(id)
                 ?.let { Beregning(it) }
 
-            val tekstTilVedtaksbrev = row.stringOrNull("tekst_til_vedtaksbrev")?.toNonBlankString()
+            val fritekstTilVedtaksbrev = row.stringOrNull("tekst_til_vedtaksbrev")?.let {
+                FritekstTilVedtaksbrev.create(it)
+            }
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> {
@@ -617,7 +619,7 @@ class MeldekortBehandlingPostgresRepo(
                         sendtTilDatadeling = sendtTilDatadeling,
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-                        tekstTilVedtaksbrev = tekstTilVedtaksbrev,
+                        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     )
                 }
 
@@ -643,7 +645,7 @@ class MeldekortBehandlingPostgresRepo(
                         status = status,
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-                        tekstTilVedtaksbrev = tekstTilVedtaksbrev,
+                        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     )
                 }
 
@@ -668,7 +670,7 @@ class MeldekortBehandlingPostgresRepo(
                         avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-                        tekstTilVedtaksbrev = tekstTilVedtaksbrev,
+                        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     )
                 }
             }

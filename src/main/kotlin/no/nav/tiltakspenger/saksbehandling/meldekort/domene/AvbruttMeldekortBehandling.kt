@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -42,7 +42,7 @@ data class AvbruttMeldekortBehandling(
     override val avbrutt: Avbrutt?,
     override val sistEndret: LocalDateTime,
     override val behandlingSendtTilDatadeling: LocalDateTime?,
-    override val tekstTilVedtaksbrev: NonBlankString?,
+    override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
 ) : MeldekortBehandling {
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null

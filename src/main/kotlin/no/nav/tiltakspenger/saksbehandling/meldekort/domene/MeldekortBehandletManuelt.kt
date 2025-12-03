@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
@@ -62,7 +63,7 @@ data class MeldekortBehandletManuelt(
     override val sendtTilDatadeling: LocalDateTime?,
     override val sistEndret: LocalDateTime,
     override val behandlingSendtTilDatadeling: LocalDateTime?,
-    override val tekstTilVedtaksbrev: NonBlankString?,
+    override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
 ) : MeldekortBehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
 
@@ -186,7 +187,7 @@ data class MeldekortBehandletManuelt(
             status = UNDER_BEHANDLING,
             sistEndret = nå(clock),
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-            tekstTilVedtaksbrev = this.tekstTilVedtaksbrev,
+            fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
         ).right()
     }
 
@@ -308,7 +309,7 @@ data class MeldekortBehandletManuelt(
             status = UNDER_BEHANDLING,
             sistEndret = LocalDateTime.now(),
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-            tekstTilVedtaksbrev = this.tekstTilVedtaksbrev,
+            fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
         )
     }
 
@@ -339,7 +340,7 @@ data class MeldekortBehandletManuelt(
             ),
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-            tekstTilVedtaksbrev = this.tekstTilVedtaksbrev,
+            fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
         )
     }
 }

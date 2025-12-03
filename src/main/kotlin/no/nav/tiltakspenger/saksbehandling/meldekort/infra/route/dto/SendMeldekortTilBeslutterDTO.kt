@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
@@ -47,7 +47,7 @@ data class SendMeldekortTilBeslutterDTO(
             },
             meldekortId = meldekortId,
             begrunnelse = begrunnelse?.let { MeldekortBehandlingBegrunnelse.saniter(it) },
-            tekstTilVedtaksbrev = tekstTilVedtaksbrev?.toNonBlankString(),
+            fritekstTilVedtaksbrev = tekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
         )
     }
 }

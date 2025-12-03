@@ -6,10 +6,10 @@ import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -57,7 +57,7 @@ data class MeldekortBehandletAutomatisk(
     override val beslutter = AUTOMATISK_SAKSBEHANDLER_ID
 
     override val begrunnelse = null
-    override val tekstTilVedtaksbrev: NonBlankString? = null
+    override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null
     override val ikkeRettTilTiltakspengerTidspunkt = null
 
     override val attesteringer = Attesteringer.empty()

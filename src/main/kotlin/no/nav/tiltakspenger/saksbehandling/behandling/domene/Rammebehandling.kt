@@ -64,7 +64,6 @@ sealed interface Rammebehandling : Behandling {
     override val sendtTilBeslutning: LocalDateTime?
     override val attesteringer: Attesteringer
 
-    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
     val ventestatus: Ventestatus
     val venterTil: LocalDateTime?
