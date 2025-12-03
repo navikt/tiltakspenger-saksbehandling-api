@@ -2,18 +2,34 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
+import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 
 class MeldekortvedtakDTOTest {
 
-    // TODO - denne burde vel ha en assert?
     @Test
     fun `kan serialiseres`() = runTest {
-        val meldekortvedtak = ObjectMother.meldekortvedtak()
+        val saksnummer = Saksnummer.genererSaknummer(3.desember(2025), "4050")
+        val fnr = Fnr.random()
+        val meldekortId = MeldekortId.random()
+        val meldekortvedtak = ObjectMother.meldekortvedtak(
+            saksnummer = saksnummer,
+            fnr = fnr,
+            meldekortBehandling = ObjectMother.meldekortBehandletManuelt(
+                id = meldekortId,
+            ),
+            opprettet = LocalDateTime.now(fixedClock),
+        )
         val tiltaksdeltakelser = listOf(ObjectMother.tiltaksdeltakelse())
 
         meldekortvedtak.toJsonRequest(
@@ -21,7 +37,7 @@ class MeldekortvedtakDTOTest {
             tiltaksdeltakelser = Tiltaksdeltakelser(tiltaksdeltakelser),
             sammenlign = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
             false,
-        )
+        ) shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","meldekortPeriode":{"fom":"6. januar 2025","tom":"19. januar 2025"},"saksbehandler":{"type":"MANUELL","navn":"Saksbehandler Navn"},"beslutter":{"type":"MANUELL","navn":"Saksbehandler Navn"},"tiltak":[{"tiltakstypenavn":"Arbeidsmarkedsoppfølging gruppe","tiltakstype":"GRUPPE_AMO","eksternDeltagelseId":"61328250-7d5d-4961-b70e-5cb727a34371","eksternGjennomføringId":"358f6fe9-ebbe-4f7d-820f-2c0f04055c23"}],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","sammenligningAvBeregninger":{"meldeperioder":[{"tittel":"Meldekort 6. januar 2025 - 19. januar 2025","differanseFraForrige":0,"harBarnetillegg":false,"dager":[]}],"totalDifferanse":0},"korrigering":false,"totaltBelop":2980,"brevTekst":null,"forhandsvisning":false}"""
     }
 
     @Test
