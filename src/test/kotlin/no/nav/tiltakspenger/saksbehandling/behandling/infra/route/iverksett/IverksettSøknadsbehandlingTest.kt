@@ -96,7 +96,7 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext { tac ->
             val saksbehandler = saksbehandler()
             val beslutter = ObjectMother.beslutter()
-            val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac, saksbehandler = saksbehandler)
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac, saksbehandler = saksbehandler)
             val behandlingId = behandling.id
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -132,7 +132,7 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext { tac ->
             val saksbehandler = saksbehandler()
             val beslutter = ObjectMother.beslutter()
-            val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac, saksbehandler = saksbehandler)
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac, saksbehandler = saksbehandler)
             val behandlingId = behandling.id
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING

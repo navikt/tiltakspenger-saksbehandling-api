@@ -151,6 +151,7 @@ data class Rammevedtak(
      */
     val gyldigOmgjøringskommando: Rammevedtakskommando.Omgjør? by lazy {
         if (omgjortAvRammevedtak.isNotEmpty()) return@lazy null
+        if (erAvslag) return@lazy null
         Rammevedtakskommando.Omgjør(tvungenOmgjøringsperiode = periode)
     }
 

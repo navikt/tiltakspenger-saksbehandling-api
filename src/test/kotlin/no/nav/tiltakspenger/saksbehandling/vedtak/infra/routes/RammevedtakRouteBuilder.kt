@@ -5,7 +5,6 @@ import io.kotest.assertions.json.NumberFormat
 import io.kotest.assertions.json.PropertyOrder
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.dato.april
-import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
@@ -42,6 +41,44 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
           }
     """.trimIndent(),
     vedtaksdato: String? = null,
+    omgjortGrad: String? = null,
+    omgjøringskommando: String? = if (gjeldendeVedtaksperioder.size != 1 || opprinneligVedtaksperiode != gjeldendeVedtaksperioder.single()) {
+        null
+    } else {
+        """"OMGJØR": {
+              "tvungenOmgjøringsperiode": {
+                "fraOgMed": "${gjeldendeInnvilgetPerioder.single().fraOgMed}",
+                "tilOgMed": "${gjeldendeInnvilgetPerioder.single().tilOgMed}"
+              },
+              "type": "OMGJØR"
+            }"""
+    },
+    stanskommando: String? = if (gjeldendeInnvilgetPerioder.isEmpty()) {
+        null
+    } else {
+        """"STANS": {
+              "tidligsteFraOgMedDato": "${gjeldendeInnvilgetPerioder.last().fraOgMed}",
+              "type": "STANS",
+              "tvungenStansTilOgMedDato": "${gjeldendeInnvilgetPerioder.last().tilOgMed}"
+            }"""
+    },
+    opphørskommando: String? = if (gjeldendeInnvilgetPerioder.isEmpty()) {
+        null
+    } else {
+        """"OPPHØR": {
+             "innvilgelsesperioder": [
+                ${gjeldendeInnvilgetPerioder.joinToString {
+            """
+                    {
+                      "fraOgMed": "${it.fraOgMed}",
+                      "tilOgMed": "${it.tilOgMed}"
+                    }
+            """.trimIndent()
+        } }
+              ],
+              "type": "OPPHØR"
+            }"""
+    },
 ) {
     shouldBeEqualToRammevedtakDTO(
         erGjeldende = erGjeldende,
@@ -58,6 +95,10 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
         vedtaksdato = vedtaksdato,
         opprinneligInnvilgetPerioder = opprinneligInnvilgetPerioder,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+        omgjortGrad = omgjortGrad,
+        omgjøringskommando = omgjøringskommando,
+        stanskommando = stanskommando,
+        opphørskommando = opphørskommando,
     )
 }
 
@@ -88,6 +129,10 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOavslag(
         vedtaksdato = vedtaksdato,
         opprinneligInnvilgetPerioder = emptyList(),
         antallDagerPerMeldeperiode = 0,
+        omgjortGrad = null,
+        omgjøringskommando = null,
+        stanskommando = null,
+        opphørskommando = null,
     )
 }
 
@@ -109,6 +154,10 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
     vedtaksdato: String?,
     barnetillegg: String?,
     antallDagerPerMeldeperiode: Int,
+    omgjortGrad: String?,
+    omgjøringskommando: String? = null,
+    stanskommando: String? = null,
+    opphørskommando: String? = null,
 ) {
     this.toString().shouldEqualJson {
         fieldComparison = FieldComparison.Strict
@@ -123,35 +172,43 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
               "erGjeldende": $erGjeldende,
               "saksbehandler": "$saksbehandler",
               "barnetillegg": $barnetillegg,
-              "gjeldendeVedtaksperioder": ${gjeldendeVedtaksperioder.map {
-            """{
+              "gjeldendeVedtaksperioder": ${
+            gjeldendeVedtaksperioder.map {
+                """{
                     "fraOgMed": "${it.fraOgMed}",
                     "tilOgMed": "${it.tilOgMed}"
                 }"""
-        }},
+            }
+        },
               "resultat": "$resultat",
-              "gjeldendeInnvilgetPerioder": ${gjeldendeInnvilgetPerioder.map {
-            """{
+              "gjeldendeInnvilgetPerioder": ${
+            gjeldendeInnvilgetPerioder.map {
+                """{
                     "fraOgMed": "${it.fraOgMed}",
                     "tilOgMed": "${it.tilOgMed}"
                 }"""
-        }
+            }
         },
               "beslutter": "$beslutter",
               "opprinneligVedtaksperiode": {
                 "fraOgMed": "${opprinneligVedtaksperiode.fraOgMed}",
                 "tilOgMed": "${opprinneligVedtaksperiode.tilOgMed}"
               },
-              "vedtaksdato": ${vedtaksdato?.let { "\"$vedtaksdato\"" } },
-              "opprinneligInnvilgetPerioder": ${opprinneligInnvilgetPerioder.map {
-            """{
+              "vedtaksdato": ${vedtaksdato?.let { "\"$vedtaksdato\"" }},
+              "opprinneligInnvilgetPerioder": ${
+            opprinneligInnvilgetPerioder.map {
+                """{
                     "fraOgMed": "${it.fraOgMed}",
                     "tilOgMed": "${it.tilOgMed}"
                 }"""
-        }
-        },
-              "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode
             }
+        },
+              "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode,
+              "omgjortGrad": ${omgjortGrad?.let { "\"$omgjortGrad\"" }},
+              "gyldigeKommandoer": {
+                ${listOfNotNull(omgjøringskommando, opphørskommando, stanskommando).joinToString(",\n")}
+              }
+        }
         """.trimIndent()
     }
 }

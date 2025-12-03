@@ -206,7 +206,7 @@ internal class IverksettRevurderingTest {
     @Test
     fun `verifiser vedtak dto ved revurdering til innvilgelse`() {
         withTestApplicationContext { tac ->
-            val (sak, søknad, søknadsbehandling, revurdering) = iverksettRevurderingInnvilgelse(
+            val (sak, _, søknadsbehandling, revurdering) = iverksettRevurderingInnvilgelse(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 1.til(10.april(2025)),
                 revurderingInnvilgelsesperiode = 9.til(11.april(2025)),
@@ -222,6 +222,7 @@ internal class IverksettRevurderingTest {
                 behandlingId = søknadsbehandling.id.toString(),
                 gjeldendeVedtaksperioder = listOf(1.til(8.april(2025))),
                 gjeldendeInnvilgetPerioder = listOf(1.til(8.april(2025))),
+                omgjortGrad = "DELVIS",
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
                 id = sak.rammevedtaksliste[1].id.toString(),
@@ -269,6 +270,7 @@ internal class IverksettRevurderingTest {
                 behandlingId = søknadsbehandling.id.toString(),
                 gjeldendeVedtaksperioder = listOf(1.til(4.april(2025))),
                 gjeldendeInnvilgetPerioder = listOf(1.til(4.april(2025))),
+                omgjortGrad = "DELVIS",
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTO(
                 id = sak.rammevedtaksliste[1].id.toString(),
@@ -285,6 +287,18 @@ internal class IverksettRevurderingTest {
                 beslutter = revurdering.beslutter!!,
                 erGjeldende = true,
                 vedtaksdato = null,
+                omgjortGrad = null,
+                omgjøringskommando = """
+                    "OMGJØR": {
+                      "tvungenOmgjøringsperiode": {
+                        "fraOgMed": "2025-04-05",
+                        "tilOgMed": "2025-04-10"
+                      },
+                      "type": "OMGJØR"
+                    }
+                """.trimIndent(),
+                stanskommando = null,
+                opphørskommando = null,
             )
         }
     }
@@ -305,6 +319,7 @@ internal class IverksettRevurderingTest {
                 gjeldendeVedtaksperioder = emptyList(),
                 gjeldendeInnvilgetPerioder = emptyList(),
                 erGjeldende = false,
+                omgjortGrad = "HELT",
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTO(
                 id = sak.rammevedtaksliste[1].id.toString(),
@@ -333,6 +348,33 @@ internal class IverksettRevurderingTest {
                           }
                         ]
                       }
+                """.trimIndent(),
+                omgjortGrad = null,
+                omgjøringskommando = """
+                    "OMGJØR": {
+                      "tvungenOmgjøringsperiode": {
+                        "fraOgMed": "2025-04-01",
+                        "tilOgMed": "2025-04-10"
+                      },
+                      "type": "OMGJØR"
+                    }
+                """.trimIndent(),
+                stanskommando = """
+                    "STANS": {
+                        "tidligsteFraOgMedDato": "2025-04-01",
+                        "type": "STANS",
+                        "tvungenStansTilOgMedDato": "2025-04-10"
+                    }
+                """.trimIndent(),
+                opphørskommando = """"OPPHØR": {
+                      "innvilgelsesperioder": [
+                        {
+                          "fraOgMed": "2025-04-01",
+                          "tilOgMed": "2025-04-10"
+                        }
+                      ],
+                      "type": "OPPHØR"
+                    }
                 """.trimIndent(),
             )
         }
