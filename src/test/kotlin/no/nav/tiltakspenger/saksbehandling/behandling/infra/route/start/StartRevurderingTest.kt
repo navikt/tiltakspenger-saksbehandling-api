@@ -107,7 +107,7 @@ internal class StartRevurderingTest {
         withTestApplicationContext { tac ->
             val (_, _, søknadsbehandling, omgjøring) = startRevurderingOmgjøring(
                 tac = tac,
-                søknadsbehandlingVirkningsperiode = 1 til 10.april(2025),
+                søknadsbehandlingInnvilgelsesperiode = 1 til 10.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = 2 til 9.april(2025),
             )
             søknadsbehandling.virkningsperiode shouldBe (1 til 10.april(2025))
@@ -145,7 +145,7 @@ internal class StartRevurderingTest {
         withTestApplicationContext { tac ->
             val (_, _, søknadsbehandling, omgjøring) = startRevurderingOmgjøring(
                 tac = tac,
-                søknadsbehandlingVirkningsperiode = 2 til 9.april(2025),
+                søknadsbehandlingInnvilgelsesperiode = 2 til 9.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = 1 til 10.april(2025),
             )
             søknadsbehandling.virkningsperiode shouldBe (2 til 9.april(2025))
@@ -183,7 +183,7 @@ internal class StartRevurderingTest {
         withTestApplicationContext { tac ->
             val (_, _, _, omgjøring) = startRevurderingOmgjøring(
                 tac = tac,
-                søknadsbehandlingVirkningsperiode = 2 til 9.april(2025),
+                søknadsbehandlingInnvilgelsesperiode = 2 til 9.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = null,
                 forventetStatus = HttpStatusCode.Forbidden,
             )

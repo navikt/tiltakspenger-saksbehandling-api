@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
@@ -40,7 +41,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        virkningsperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(

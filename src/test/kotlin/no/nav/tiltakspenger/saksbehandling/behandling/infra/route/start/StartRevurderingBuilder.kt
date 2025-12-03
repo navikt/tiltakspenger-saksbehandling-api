@@ -13,9 +13,11 @@ import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -23,6 +25,7 @@ import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -31,18 +34,26 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import org.json.JSONObject
+import java.time.LocalDate
 
 interface StartRevurderingBuilder {
 
     /** Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering. */
     suspend fun ApplicationTestBuilder.startRevurderingStans(
         tac: TestApplicationContext,
+        sakId: SakId? = null,
+        fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
+        søknadsbehandlingInnvilgelsesperiode: Periode = 1.til(10.april(2025)),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac = tac,
-            virkningsperiode = virkningsperiode,
+            vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
+            fnr = fnr,
+            sakId = sakId,
+            saksbehandler = saksbehandler,
+            beslutter = beslutter,
         )
         val revurdering = startRevurderingForSakId(tac, sak.id, RevurderingType.STANS)
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
@@ -58,21 +69,27 @@ interface StartRevurderingBuilder {
     suspend fun ApplicationTestBuilder.startRevurderingInnvilgelse(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        søknadsbehandlingVirkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-        revurderingVirkningsperiode: Periode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
+        søknadsbehandlingInnvilgelsesperiode: Periode = 1.til(10.april(2025)),
+        revurderingVedtaksperiode: Periode = søknadsbehandlingInnvilgelsesperiode.plusTilOgMed(14L),
+        fnr: Fnr = Fnr.random(),
+        sakId: SakId? = null,
     ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac,
-            virkningsperiode = søknadsbehandlingVirkningsperiode,
+            vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
+            fnr = fnr,
+            beslutter = beslutter,
+            resultat = SøknadsbehandlingType.INNVILGELSE,
+            sakId = sakId,
         )
 
-        val tiltaksdeltakelseFakeKlient =
-            tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
+        val tiltaksdeltakelseFakeKlient = tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
 
         val oppdatertTiltaksdeltakelse =
             søknadsbehandling.saksopplysninger.getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
-                deltakelseFraOgMed = revurderingVirkningsperiode.fraOgMed,
-                deltakelseTilOgMed = revurderingVirkningsperiode.tilOgMed,
+                deltakelseFraOgMed = revurderingVedtaksperiode.fraOgMed,
+                deltakelseTilOgMed = revurderingVedtaksperiode.tilOgMed,
             )
 
         tiltaksdeltakelseFakeKlient.lagre(
@@ -98,14 +115,21 @@ interface StartRevurderingBuilder {
      * */
     suspend fun ApplicationTestBuilder.startRevurderingOmgjøring(
         tac: TestApplicationContext,
+        sakId: SakId? = null,
+        fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        søknadsbehandlingVirkningsperiode: Periode = 1 til 10.april(2025),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
+        søknadsbehandlingInnvilgelsesperiode: Periode = 1 til 10.april(2025),
         oppdaterTiltaksdeltakelsesperiode: Periode? = 3 til 10.april(2025),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
     ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering?> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
-            tac,
-            virkningsperiode = søknadsbehandlingVirkningsperiode,
+            tac = tac,
+            vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
+            beslutter = beslutter,
+            saksbehandler = saksbehandler,
+            sakId = sakId,
+            fnr = fnr,
         )
         val oppdatertTiltaksdeltakelse = if (oppdaterTiltaksdeltakelsesperiode != null) {
             søknadsbehandling.saksopplysninger

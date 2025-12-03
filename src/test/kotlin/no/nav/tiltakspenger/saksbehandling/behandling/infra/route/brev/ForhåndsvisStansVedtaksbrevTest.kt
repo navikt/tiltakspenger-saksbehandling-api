@@ -32,7 +32,7 @@ internal class ForhåndsvisStansVedtaksbrevTest {
                 }
                 val (sak, _, _, revurdering) = startRevurderingStans(
                     tac = tac,
-                    virkningsperiode = 1.januar(2025) til 31.mars(2025),
+                    søknadsbehandlingInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025),
                 )
                 val behandlingId = revurdering.id
                 val fritekstTilVedtaksbrev = "some_tekst"

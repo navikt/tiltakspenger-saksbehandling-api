@@ -37,7 +37,7 @@ class ToBehandlingerIT {
                     val (sak) = this.iverksettSøknadsbehandling(
                         tac,
                         fnr = fnr,
-                        virkningsperiode = førsteVirkningsperiode,
+                        vedtaksperiode = førsteVirkningsperiode,
                     )
 
                     sak.let {
@@ -49,7 +49,7 @@ class ToBehandlingerIT {
                     val (sakEtterAndreSøknadsbehandling) = this.iverksettSøknadsbehandling(
                         tac,
                         fnr = fnr,
-                        virkningsperiode = andreVirkningsperiode,
+                        vedtaksperiode = andreVirkningsperiode,
                     )
 
                     sakEtterAndreSøknadsbehandling.let {

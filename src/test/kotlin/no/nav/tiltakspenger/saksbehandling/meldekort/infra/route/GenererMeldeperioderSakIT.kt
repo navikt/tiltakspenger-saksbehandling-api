@@ -47,8 +47,8 @@ class GenererMeldeperioderSakIT {
     ): Sak {
         val (sak, _, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
             tac,
-            søknadsbehandlingVirkningsperiode = søknadsbehandlingInnvilgelse,
-            revurderingVirkningsperiode = revurderingInnvilgelse,
+            søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelse,
+            revurderingVedtaksperiode = revurderingInnvilgelse,
         )
 
         oppdaterBehandling(
@@ -108,7 +108,7 @@ class GenererMeldeperioderSakIT {
                      * 7 april - 20 april
                      * 21 april - 4 mai (genereres ikke før 2.mai)
                      */
-                    virkningsperiode = Periode(9.april(2025), 1.mai(2025)),
+                    vedtaksperiode = Periode(9.april(2025), 1.mai(2025)),
                     beslutter = ObjectMother.beslutter(),
                 )
                 sak.meldeperiodeKjeder.let {
@@ -238,7 +238,7 @@ class GenererMeldeperioderSakIT {
                     tac = tac,
                     fnr = fnr,
                     // To meldeperioder i denne perioden
-                    virkningsperiode = Periode(7.april(2025), 21.april(2025)),
+                    vedtaksperiode = Periode(7.april(2025), 21.april(2025)),
                     beslutter = ObjectMother.beslutter(),
                 )
 
@@ -252,7 +252,7 @@ class GenererMeldeperioderSakIT {
                     tac = tac,
                     fnr = fnr,
                     // 4 meldeperioder i denne perioden (første fra 19.mai - 1.juni)
-                    virkningsperiode = Periode(1.juni(2025), 1.juli(2025)),
+                    vedtaksperiode = Periode(1.juni(2025), 1.juli(2025)),
                     beslutter = ObjectMother.beslutter(),
                 )
 

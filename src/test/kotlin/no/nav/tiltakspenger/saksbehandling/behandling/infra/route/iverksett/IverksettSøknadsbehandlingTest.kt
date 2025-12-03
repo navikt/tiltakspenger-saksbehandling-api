@@ -11,15 +11,20 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettAutomatiskBehandletSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingIdReturnerRespons
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTOavslag
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTOinnvilgelse
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 class IverksettSøknadsbehandlingTest {
@@ -51,6 +56,38 @@ class IverksettSøknadsbehandlingTest {
             behandling.virkningsperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
             behandling.resultat shouldBe instanceOf<SøknadsbehandlingResultat.Avslag>()
+        }
+    }
+
+    @Test
+    fun `iverksett - verifiser avslag vedtak dto`() = runTest {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = this.iverksettSøknadsbehandling(
+                tac,
+                resultat = SøknadsbehandlingType.AVSLAG,
+            )
+            val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, behandling.saksnummer)!!
+            val rammevedtakDTOJson: RammevedtakDTOJson = sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(0)
+            rammevedtakDTOJson.shouldBeEqualToRammevedtakDTOavslag(
+                id = sak.rammevedtaksliste.single().id.toString(),
+                behandlingId = behandling.id.toString(),
+            )
+        }
+    }
+
+    @Test
+    fun `iverksett - verifiser innvilgelse vedtak dto`() = runTest {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = this.iverksettSøknadsbehandling(
+                tac,
+                resultat = SøknadsbehandlingType.INNVILGELSE,
+            )
+            val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, behandling.saksnummer)!!
+            val rammevedtakDTOJson: RammevedtakDTOJson = sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(0)
+            rammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
+                id = sak.rammevedtaksliste.single().id.toString(),
+                behandlingId = behandling.id.toString(),
+            )
         }
     }
 

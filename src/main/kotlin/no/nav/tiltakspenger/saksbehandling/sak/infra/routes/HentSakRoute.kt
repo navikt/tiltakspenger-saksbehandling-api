@@ -32,7 +32,7 @@ import java.time.Clock
 /**
  *  Brukes i hovedsak til å slå opp sak på fnr fra frontend, men vi støtter også søk på saksnummer eller sak-id
  * */
-fun Route.hentSakRoute(
+fun Route.søkFnrSaksnummerOgSakIdRoute(
     sakService: SakService,
     auditService: AuditService,
     clock: Clock,

@@ -22,7 +22,7 @@ internal class VedtakslisteTest {
             val innvilgelsesperiode = 1 til 31.januar(2025)
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                virkningsperiode = innvilgelsesperiode,
+                vedtaksperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
             )
             sak.rammevedtaksliste.antallDagerPerMeldeperiode shouldBe Periodisering(
@@ -48,7 +48,7 @@ internal class VedtakslisteTest {
             )
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                virkningsperiode = innvilgelsesperiode,
+                vedtaksperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )
@@ -69,7 +69,7 @@ internal class VedtakslisteTest {
             )
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                virkningsperiode = innvilgelsesperiode,
+                vedtaksperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )
@@ -90,7 +90,7 @@ internal class VedtakslisteTest {
             )
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                virkningsperiode = innvilgelsesperiode,
+                vedtaksperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )

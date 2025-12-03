@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -83,14 +84,14 @@ interface SendRevurderingTilBeslutningBuilder {
     /** Oppretter ny sak, søknad og behandling. */
     suspend fun ApplicationTestBuilder.sendRevurderingInnvilgelseTilBeslutning(
         tac: TestApplicationContext,
-        søknadsbehandlingVirkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        søknadsbehandlingVirkningsperiode: Periode = 1.til(10.april(2025)),
         revurderingVirkningsperiode: Periode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
         val (sak, søknad, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
             tac,
-            søknadsbehandlingVirkningsperiode = søknadsbehandlingVirkningsperiode,
-            revurderingVirkningsperiode = revurderingVirkningsperiode,
+            søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode,
+            revurderingVedtaksperiode = revurderingVirkningsperiode,
         )
 
         val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.single()

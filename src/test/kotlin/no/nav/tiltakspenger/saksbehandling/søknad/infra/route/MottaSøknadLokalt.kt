@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -17,7 +18,7 @@ fun nySøknadForFnr(
     barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     applicationContext: ApplicationContext,
 ): Saksnummer {
-    val periode = deltakelsesperiode ?: Periode(1.april(2025), 10.april(2025))
+    val periode = deltakelsesperiode ?: 1.til(10.april(2025))
 
     return runBlocking {
         val (sak, _) = applicationContext.sakContext.sakService.hentEllerOpprettSak(
@@ -44,7 +45,7 @@ fun nySakMedNySøknad(
     barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     applicationContext: ApplicationContext,
 ): Saksnummer {
-    val periode = deltakelsesperiode ?: Periode(1.april(2025), 10.april(2025))
+    val periode = deltakelsesperiode ?: 1.til(10.april(2025))
 
     return runBlocking {
         val (sak, _) = applicationContext.sakContext.sakService.hentEllerOpprettSak(
