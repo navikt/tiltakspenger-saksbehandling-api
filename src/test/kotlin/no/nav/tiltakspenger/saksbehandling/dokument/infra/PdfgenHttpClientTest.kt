@@ -74,7 +74,7 @@ class PdfgenHttpClientTest {
                     hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
                 ).getOrFail()
 
-                actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","meldekortPeriode":{"fom":"1. mai 2025","tom":"7. mai 2025"},"saksbehandler":{"navn":"Sak Behandler"},"beslutter":null,"tiltak":[],"iverksattTidspunkt":null,"fødselsnummer":"${fnr.verdi}","sammenligningAvBeregninger":{"meldeperioder":[],"totalDifferanse":0},"korrigering":false,"totaltBelop":50,"brevTekst":"Bacon ipsum dolor amet"}"""
+                actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","meldekortPeriode":{"fom":"1. mai 2025","tom":"7. mai 2025"},"saksbehandler":{"type":"MANUELL","navn":"Sak Behandler"},"beslutter":null,"tiltak":[],"iverksattTidspunkt":null,"fødselsnummer":"${fnr.verdi}","sammenligningAvBeregninger":{"meldeperioder":[],"totalDifferanse":0},"korrigering":false,"totaltBelop":50,"brevTekst":"Bacon ipsum dolor amet","forhandsvisning":true}"""
             }
         }
     }
