@@ -47,6 +47,17 @@ where mb.id = mv.meldekort_id
   and mb.tekst_til_vedtaksbrev is null
   and mb.begrunnelse is not null
   and mb.begrunnelse != ''
-  and mv.journalføringstidspunkt > '2025-11-13 12:48:00'
+  and mv.journalføringstidspunkt > '2025-11-13 12:48:00';
 
+/*
+ Alle migreringene over tar i utgangspunkt at vi har sendt et brev - dvs at det finnes et meldekortvedtak for meldekortbehandlingen.
+
+ Denne er for behandlinger som enda ikke har sendt ut et brev - men som vi vet kommer til å komme til å gjøre det
+ */
+UPDATE meldekortbehandling mb
+set tekst_til_vedtaksbrev = mb.begrunnelse
+from meldekortbehandling
+         left join meldekortvedtak mv on meldekortbehandling.id = mv.meldekort_id
+where mv.id is null
+  and mb.opprettet > '2025-11-13 12:48:00';
 

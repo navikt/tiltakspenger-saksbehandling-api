@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortVedtakBrevCommand
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 
@@ -48,10 +49,8 @@ class ForhåndsvisBrevMeldekortBehandlingService(
                 sakId = meldekortBehandling.sakId,
                 saksnummer = meldekortBehandling.saksnummer,
                 fnr = meldekortBehandling.fnr,
-                // TODO - skal hele tiden bruke saksbeahndleren som eier behandlingen, eller den som forhåndsviser brevet?
                 saksbehandler = meldekortBehandling.saksbehandler ?: command.saksbehandler.navIdent,
-                // TODO - vi har kanskje lyst til å injecte beslutteren som ser på brevet - ellers vises den ikke.
-                beslutter = meldekortBehandling.beslutter,
+                beslutter = if (meldekortBehandling.status == MeldekortBehandlingStatus.UNDER_BESLUTNING) command.saksbehandler.navIdent else null,
                 meldekortbehandlingId = meldekortBehandling.id,
                 beregningsperiode = meldekortBehandling.beregning!!.periode,
                 tiltaksdeltakelser = tiltaksdeltakelser,
