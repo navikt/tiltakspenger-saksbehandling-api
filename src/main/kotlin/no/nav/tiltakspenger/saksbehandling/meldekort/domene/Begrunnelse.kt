@@ -20,7 +20,7 @@ value class Begrunnelse private constructor(
     companion object {
         /** @return null dersom strengen er blank */
         fun create(verdi: String): Begrunnelse? {
-            if (verdi.isEmpty()) return null
+            if (verdi.isBlank()) return null
             return Begrunnelse(NonBlankString.create(saniterBeholdNewline(verdi)))
         }
 

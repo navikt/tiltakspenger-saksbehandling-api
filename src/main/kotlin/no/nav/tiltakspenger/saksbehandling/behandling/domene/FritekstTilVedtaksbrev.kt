@@ -18,7 +18,7 @@ value class FritekstTilVedtaksbrev private constructor(
     companion object {
         /** @return null dersom strengen er blank */
         fun create(verdi: String): FritekstTilVedtaksbrev? {
-            if (verdi.isEmpty()) return null
+            if (verdi.isBlank()) return null
             return FritekstTilVedtaksbrev(NonBlankString.create(saniterBeholdNewline(verdi)))
         }
 
