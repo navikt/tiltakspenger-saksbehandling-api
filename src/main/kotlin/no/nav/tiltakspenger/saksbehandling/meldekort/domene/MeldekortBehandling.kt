@@ -64,7 +64,7 @@ sealed interface MeldekortBehandling : Behandling {
     val navkontor: Navkontor
     override val iverksattTidspunkt: LocalDateTime?
     override val sendtTilBeslutning: LocalDateTime?
-    val begrunnelse: MeldekortBehandlingBegrunnelse?
+    val begrunnelse: Begrunnelse?
     val sendtTilDatadeling: LocalDateTime?
     val sistEndret: LocalDateTime
     val behandlingSendtTilDatadeling: LocalDateTime?
@@ -103,6 +103,8 @@ sealed interface MeldekortBehandling : Behandling {
         get() = avbrutt != null
 
     val rammevedtak: List<VedtakId>? get() = meldeperiode.rammevedtak.verdier.distinct()
+
+    val erKorrigering: Boolean get() = type == MeldekortBehandlingType.KORRIGERING
 
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     fun erÅpen(): Boolean = !erAvsluttet

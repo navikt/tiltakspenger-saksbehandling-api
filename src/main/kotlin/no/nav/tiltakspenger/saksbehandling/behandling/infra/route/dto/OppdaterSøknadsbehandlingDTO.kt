@@ -10,11 +10,11 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
@@ -54,8 +54,8 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.tilFritekstVedtaksbrev(),
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.tilBegrunnelseVilkårsvurdering(),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 innvilgelsesperiode = innvilgelsesperiode,
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode),
                 tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
@@ -89,8 +89,8 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.tilFritekstVedtaksbrev(),
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.tilBegrunnelseVilkårsvurdering(),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 avslagsgrunner = avslagsgrunner.toAvslagsgrunnlag(),
             )
         }
@@ -114,15 +114,9 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.tilFritekstVedtaksbrev(),
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.tilBegrunnelseVilkårsvurdering(),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
             )
         }
     }
 }
-
-private fun String.tilFritekstVedtaksbrev(): FritekstTilVedtaksbrev =
-    FritekstTilVedtaksbrev.saniter(this)
-
-private fun String.tilBegrunnelseVilkårsvurdering(): BegrunnelseVilkårsvurdering =
-    BegrunnelseVilkårsvurdering.saniter(this)

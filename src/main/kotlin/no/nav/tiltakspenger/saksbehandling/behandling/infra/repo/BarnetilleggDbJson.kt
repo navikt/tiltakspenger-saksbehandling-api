@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
 private data class BarnetilleggDbJson(
     val value: List<BarnetilleggPeriodeMedVerdi>,
@@ -29,7 +29,7 @@ fun String.toBarnetillegg(): Barnetillegg {
                 verdi = AntallBarn(it.verdi),
             )
         }.tilSammenhengendePeriodisering(),
-        begrunnelse = barnetilleggDbJson.begrunnelse?.let { BegrunnelseVilkårsvurdering(it) },
+        begrunnelse = barnetilleggDbJson.begrunnelse?.let { Begrunnelse.create(it) },
     )
 }
 

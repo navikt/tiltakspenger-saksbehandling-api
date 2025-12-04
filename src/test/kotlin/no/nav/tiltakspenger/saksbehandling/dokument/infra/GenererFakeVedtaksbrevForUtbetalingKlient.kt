@@ -18,6 +18,14 @@ class GenererFakeVedtaksbrevForUtbetalingKlient : GenererVedtaksbrevForUtbetalin
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+        forhåndsvisning: Boolean,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.right()
+    }
+
+    override suspend fun genererMeldekortvedtakBrev(
+        command: GenererMeldekortVedtakBrevCommand,
+        hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response.right()
     }

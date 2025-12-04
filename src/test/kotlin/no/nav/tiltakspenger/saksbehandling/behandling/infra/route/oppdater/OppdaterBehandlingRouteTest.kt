@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -35,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemm
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
@@ -83,7 +83,7 @@ class OppdaterBehandlingRouteTest {
             val nyInnvilgelsesperiode = tiltaksdeltakelse.periode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
-                begrunnelse = BegrunnelseVilkårsvurdering("barnetillegg begrunnelse"),
+                begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
                 periode = nyInnvilgelsesperiode,
                 antallBarn = AntallBarn(1),
             )
@@ -157,7 +157,7 @@ class OppdaterBehandlingRouteTest {
             val nyInnvilgelsesperiode = tiltaksdeltakelse.periode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
-                begrunnelse = BegrunnelseVilkårsvurdering("barnetillegg begrunnelse"),
+                begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
                 periode = nyInnvilgelsesperiode,
                 antallBarn = AntallBarn(1),
             )

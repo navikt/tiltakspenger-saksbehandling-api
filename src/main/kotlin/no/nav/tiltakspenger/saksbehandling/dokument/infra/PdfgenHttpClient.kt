@@ -9,9 +9,12 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
+import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
@@ -24,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevFo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
@@ -166,7 +170,7 @@ internal class PdfgenHttpClient(
         sakId: SakId,
         forhåndsvisning: Boolean,
         innvilgelsesperiode: Periode,
-        tilleggstekst: FritekstTilVedtaksbrev,
+        tilleggstekst: FritekstTilVedtaksbrev?,
         barnetillegg: SammenhengendePeriodisering<AntallBarn>?,
         antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
@@ -197,6 +201,7 @@ internal class PdfgenHttpClient(
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+        forhåndsvisning: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -204,9 +209,49 @@ internal class PdfgenHttpClient(
                     hentSaksbehandlersNavn,
                     tiltaksdeltakelser,
                     sammenligning,
+                    forhåndsvisning,
                 )
             },
             errorContext = "SakId: ${meldekortvedtak.sakId}, saksnummer: ${meldekortvedtak.saksnummer}, vedtakId: ${meldekortvedtak.id}",
+            uri = meldekortvedtakUri,
+        )
+    }
+
+    override suspend fun genererMeldekortvedtakBrev(
+        command: GenererMeldekortVedtakBrevCommand,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                BrevMeldekortvedtakDTO(
+                    fødselsnummer = command.fnr.verdi,
+                    saksbehandler = command.saksbehandler?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
+                    beslutter = command.beslutter?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
+                    meldekortId = command.meldekortbehandlingId.toString(),
+                    saksnummer = command.saksnummer.verdi,
+                    meldekortPeriode = BrevMeldekortvedtakDTO.PeriodeDTO(
+                        fom = command.beregningsperiode.fraOgMed.format(norskDatoFormatter),
+                        tom = command.beregningsperiode.tilOgMed.format(norskDatoFormatter),
+                    ),
+                    tiltak = command.tiltaksdeltakelser.map { it.toTiltakDTO() },
+                    iverksattTidspunkt = command.iverksattTidspunkt?.format(norskTidspunktFormatter),
+                    korrigering = command.erKorrigering,
+                    sammenligningAvBeregninger = command.beregninger.map {
+                        sammenlign(it.first, it.second).toDTO()
+                    }.let {
+                        BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO(
+                            meldeperioder = it,
+                            totalDifferanse = it.sumOf { periode -> periode.differanseFraForrige },
+                        )
+                    },
+                    totaltBelop = command.totaltBeløp,
+                    brevTekst = command.tekstTilVedtaksbrev?.value,
+                    forhandsvisning = command.forhåndsvisning,
+                ).let {
+                    serialize(it)
+                }
+            },
+            errorContext = "SakId: ${command.sakId}, saksnummer: ${command.saksnummer}, meldekortbehandlingId: ${command.meldekortbehandlingId}",
             uri = meldekortvedtakUri,
         )
     }
@@ -283,7 +328,7 @@ internal class PdfgenHttpClient(
         avslagsperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
-        tilleggstekst: FritekstTilVedtaksbrev,
+        tilleggstekst: FritekstTilVedtaksbrev?,
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
         datoForUtsending: LocalDate,

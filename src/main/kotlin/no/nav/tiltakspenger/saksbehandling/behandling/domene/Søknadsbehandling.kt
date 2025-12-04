@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -54,7 +55,7 @@ data class Søknadsbehandling(
     override val ventestatus: Ventestatus,
     override val venterTil: LocalDateTime?,
     override val resultat: SøknadsbehandlingResultat?,
-    override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+    override val begrunnelseVilkårsvurdering: Begrunnelse?,
     val søknad: Søknad,
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,

@@ -42,6 +42,7 @@ data class MeldekortBehandlingDTO(
     val beregning: MeldekortBeregningDTO?,
     val avbrutt: AvbruttDTO?,
     val simulertBeregning: SimulertBeregningDTO?,
+    val tekstTilVedtaksbrev: String?,
 )
 
 fun MeldekortBehandling.tilMeldekortBehandlingDTO(
@@ -74,6 +75,7 @@ fun MeldekortBehandling.tilMeldekortBehandlingDTO(
         beregning = beregning?.tilMeldekortBeregningDTO(),
         avbrutt = avbrutt?.toAvbruttDTO(),
         simulertBeregning = this.toSimulertBeregning(beregninger)?.toSimulertBeregningDTO(),
+        tekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
     )
 }
 

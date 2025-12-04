@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
@@ -27,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
@@ -275,8 +275,8 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sak.id,
         saksnummer = sak.saksnummer,
     ),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterKlarTilBeslutningSøknadsbehandling()"),
-    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningSøknadsbehandling()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("persisterKlarTilBeslutningSøknadsbehandling()"),
+    begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("persisterKlarTilBeslutningSøknadsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
@@ -381,8 +381,8 @@ internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
         sakId = sak.id,
         saksnummer = sak.saksnummer,
     ),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterKlarTilBeslutningSøknadsbehandling()"),
-    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningSøknadsbehandling()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("persisterKlarTilBeslutningSøknadsbehandling()"),
+    begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("persisterKlarTilBeslutningSøknadsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
     /**
      * Brukt for å styre meldeperiode generering
@@ -527,8 +527,8 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
             saksnummer = sak.saksnummer,
         ),
     correlationId: CorrelationId = CorrelationId.generate(),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterIverksattSøknadsbehandling()"),
-    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterIverksattSøknadsbehandling()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("persisterIverksattSøknadsbehandling()"),
+    begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("persisterIverksattSøknadsbehandling()"),
     /**
      * Brukt for å styre meldeperiode generering
      */
@@ -594,8 +594,8 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
         saksnummer = sak.saksnummer,
     ),
     correlationId: CorrelationId = CorrelationId.generate(),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterIverksattSøknadsbehandlingAvslag()"),
-    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterIverksattSøknadsbehandlingAvslag()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("persisterIverksattSøknadsbehandlingAvslag()"),
+    begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("persisterIverksattSøknadsbehandlingAvslag()"),
     /**
      * Brukt for å styre meldeperiode generering
      */

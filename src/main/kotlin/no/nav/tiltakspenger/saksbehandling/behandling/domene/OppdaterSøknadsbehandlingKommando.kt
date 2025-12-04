@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 
 sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando {
@@ -16,7 +17,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
     override val saksbehandler: Saksbehandler
     override val correlationId: CorrelationId
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
-    override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
+    override val begrunnelseVilkårsvurdering: Begrunnelse?
     val automatiskSaksbehandlet: Boolean
 
     data class Innvilgelse(
@@ -25,7 +26,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-        override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+        override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val automatiskSaksbehandlet: Boolean = false,
         override val tiltaksdeltakelser: List<Pair<Periode, String>>,
         override val innvilgelsesperiode: Periode,
@@ -47,7 +48,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-        override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+        override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val automatiskSaksbehandlet: Boolean = false,
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
     ) : OppdaterSøknadsbehandlingKommando
@@ -61,7 +62,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-        override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+        override val begrunnelseVilkårsvurdering: Begrunnelse?,
     ) : OppdaterSøknadsbehandlingKommando {
         override val automatiskSaksbehandlet: Boolean = false
     }

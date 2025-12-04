@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
@@ -22,10 +23,10 @@ import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.AvbruttMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
@@ -211,7 +212,8 @@ class MeldekortBehandlingPostgresRepo(
                         avbrutt = to_jsonb(:avbrutt::jsonb),
                         sendt_til_datadeling = :sendt_til_datadeling,
                         sist_endret = :sist_endret,
-                        behandling_sendt_til_datadeling = :behandling_sendt_til_datadeling
+                        behandling_sendt_til_datadeling = :behandling_sendt_til_datadeling,
+                        tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev
                     where id = :id
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -233,6 +235,7 @@ class MeldekortBehandlingPostgresRepo(
                     "sendt_til_datadeling" to meldekortBehandling.sendtTilDatadeling,
                     "sist_endret" to meldekortBehandling.sistEndret,
                     "behandling_sendt_til_datadeling" to meldekortBehandling.behandlingSendtTilDatadeling,
+                    "tekst_til_vedtaksbrev" to meldekortBehandling.fritekstTilVedtaksbrev?.verdi,
                 ).asUpdate,
             )
         }
@@ -534,7 +537,7 @@ class MeldekortBehandlingPostgresRepo(
             val opprettet = row.localDateTime("opprettet")
             val ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt")
             val type = row.string("type").tilMeldekortBehandlingType()
-            val begrunnelse = row.stringOrNull("begrunnelse")?.let { MeldekortBehandlingBegrunnelse(verdi = it) }
+            val begrunnelse = row.stringOrNull("begrunnelse")?.let { Begrunnelse.create(it) }
 
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
             val attesteringer = row.string("attesteringer").toAttesteringer().toAttesteringer()
@@ -560,6 +563,10 @@ class MeldekortBehandlingPostgresRepo(
             val beregning = row.stringOrNull("beregninger")
                 ?.tilMeldeperiodeBeregningerFraMeldekort(id)
                 ?.let { Beregning(it) }
+
+            val fritekstTilVedtaksbrev = row.stringOrNull("tekst_til_vedtaksbrev")?.let {
+                FritekstTilVedtaksbrev.create(it)
+            }
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> {
@@ -612,6 +619,7 @@ class MeldekortBehandlingPostgresRepo(
                         sendtTilDatadeling = sendtTilDatadeling,
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+                        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     )
                 }
 
@@ -637,6 +645,7 @@ class MeldekortBehandlingPostgresRepo(
                         status = status,
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+                        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     )
                 }
 
@@ -661,6 +670,7 @@ class MeldekortBehandlingPostgresRepo(
                         avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+                        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     )
                 }
             }

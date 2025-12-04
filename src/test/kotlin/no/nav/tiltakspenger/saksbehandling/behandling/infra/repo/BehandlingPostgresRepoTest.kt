@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
@@ -28,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknads
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingStansTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
@@ -55,7 +55,7 @@ internal class BehandlingPostgresRepoTest {
                         AntallBarn(1),
                         Periode(deltakelseFom, deltakelseTom),
                     ),
-                    begrunnelse = BegrunnelseVilkårsvurdering("Begrunnelse"),
+                    begrunnelse = Begrunnelse.create("Begrunnelse"),
                 ),
             )
             sakRepo.hentForSakId(sak.id) shouldBe sak

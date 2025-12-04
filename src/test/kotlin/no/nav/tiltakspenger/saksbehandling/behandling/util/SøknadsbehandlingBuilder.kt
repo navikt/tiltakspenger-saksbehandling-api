@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -28,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterS�
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
@@ -170,7 +170,7 @@ interface SøknadsbehandlingBuilder {
         virkningsperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
-        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
+        begrunnelseVilkårsvurdering: Begrunnelse? = null,
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(10),
@@ -221,7 +221,7 @@ interface SøknadsbehandlingBuilder {
         virkningsperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
-        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
+        begrunnelseVilkårsvurdering: Begrunnelse? = null,
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag> = nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {

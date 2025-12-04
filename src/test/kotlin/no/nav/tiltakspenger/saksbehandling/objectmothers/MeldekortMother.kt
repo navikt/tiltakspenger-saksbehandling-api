@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
@@ -45,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
@@ -53,7 +55,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAu
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
@@ -80,7 +81,6 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import kotlin.collections.emptyList
 import kotlin.math.ceil
 
 interface MeldekortMother : MotherOfAllMothers {
@@ -135,6 +135,7 @@ interface MeldekortMother : MotherOfAllMothers {
             status = status,
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+            fritekstTilVedtaksbrev = null,
         )
     }
 
@@ -175,10 +176,11 @@ interface MeldekortMother : MotherOfAllMothers {
         erFørsteBehandlingForPerioden: Boolean = true,
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         attesteringer: Attesteringer = Attesteringer.empty(),
-        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        begrunnelse: Begrunnelse? = null,
         simulering: Simulering? = null,
         sistEndret: LocalDateTime = iverksattTidspunkt ?: sendtTilBeslutning,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): MeldekortBehandletManuelt {
         return MeldekortBehandletManuelt(
             id = id,
@@ -204,6 +206,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sendtTilDatadeling = null,
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         )
     }
 
@@ -258,6 +261,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sendtTilDatadeling = null,
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+
         )
     }
 
@@ -492,7 +496,8 @@ interface MeldekortMother : MotherOfAllMothers {
         meldeperioder: NonEmptyList<NonEmptyList<Dager.Dag>>,
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        begrunnelse: Begrunnelse? = null,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): Meldekortbehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
             OppdaterMeldekortKommando(
@@ -502,6 +507,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 dager = Dager(meldeperiode),
                 correlationId = CorrelationId.generate(),
                 begrunnelse = begrunnelse,
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             )
         }
 
@@ -551,12 +557,13 @@ interface MeldekortMother : MotherOfAllMothers {
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
-        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        begrunnelse: Begrunnelse? = null,
         attesteringer: Attesteringer = Attesteringer.empty(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         simulering: Simulering? = null,
         sistEndret: LocalDateTime = opprettet,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): Pair<Meldekortbehandlinger, MeldekortBehandletManuelt> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -593,6 +600,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     status = status,
                     sistEndret = sistEndret,
                     behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+                    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 ),
             ),
         )
@@ -683,6 +691,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 status = status,
                 sistEndret = sistEndret,
                 behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+                fritekstTilVedtaksbrev = null,
             ),
         ).sendTilBeslutter(
             kommando = kommando.tilSendMeldekortTilBeslutterKommando(),
@@ -819,9 +828,10 @@ interface MeldekortMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         meldekortId: MeldekortId = MeldekortId.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        begrunnelse: Begrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
         dager: Dager,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): OppdaterMeldekortKommando {
         return OppdaterMeldekortKommando(
             sakId = sakId,
@@ -830,6 +840,7 @@ interface MeldekortMother : MotherOfAllMothers {
             dager = dager,
             begrunnelse = begrunnelse,
             correlationId = correlationId,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         )
     }
 
@@ -837,9 +848,10 @@ interface MeldekortMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         meldekortId: MeldekortId = MeldekortId.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        begrunnelse: Begrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
         dager: Dager,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): SendMeldekortTilBeslutterKommando {
         return SendMeldekortTilBeslutterKommando(
             sakId = sakId,
@@ -848,6 +860,7 @@ interface MeldekortMother : MotherOfAllMothers {
             dager = dager,
             begrunnelse = begrunnelse,
             correlationId = correlationId,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         )
     }
 }
@@ -946,6 +959,7 @@ fun OppdaterMeldekortKommando.tilSendMeldekortTilBeslutterKommando(): SendMeldek
         dager = dager,
         begrunnelse = begrunnelse,
         correlationId = correlationId,
+        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
     )
 }
 

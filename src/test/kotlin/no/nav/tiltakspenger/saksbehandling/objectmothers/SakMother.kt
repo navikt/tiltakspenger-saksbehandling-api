@@ -337,7 +337,7 @@ interface SakMother {
                 behandlingId = søknadsbehandling.id,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
-                fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nySakMedAvslagsvedtak"),
+                fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nySakMedAvslagsvedtak"),
                 begrunnelseVilkårsvurdering = null,
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
             ),

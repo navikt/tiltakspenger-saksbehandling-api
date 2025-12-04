@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -38,7 +38,7 @@ class MeldekortBehandlingRepoImplTest {
                 saksnummer = sak.saksnummer,
                 meldeperiode = sak.meldeperiodeKjeder.first().first(),
                 periode = sak.meldeperiodeKjeder.first().first().periode,
-                begrunnelse = MeldekortBehandlingBegrunnelse("begrunnelse"),
+                begrunnelse = Begrunnelse.create("begrunnelse"),
             ).let {
                 val simuleringMedMetadata = sak.genererSimuleringFraMeldekortBehandling(it)
                 val medSimulering = it.copy(simulering = simuleringMedMetadata.simulering)

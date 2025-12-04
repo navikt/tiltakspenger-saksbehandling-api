@@ -24,4 +24,5 @@ interface Behandling {
     val iverksattTidspunkt: LocalDateTime?
     val erAvsluttet: Boolean
     val erAvbrutt: Boolean
+    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
 }

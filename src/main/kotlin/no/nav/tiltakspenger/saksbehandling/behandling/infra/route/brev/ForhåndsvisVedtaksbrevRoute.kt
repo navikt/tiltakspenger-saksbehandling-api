@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
@@ -48,7 +48,7 @@ import java.time.LocalDate
  * @param virkningsperiode Brukes ved avslag og innvilgelse (søknadsbehandling+revurdering). Brukes kun hvis den ikke er satt på behandlingen.
  */
 private data class Body(
-    val fritekst: String,
+    val fritekst: String?,
     val virkningsperiode: PeriodeDTO?,
     val harValgtStansFraFørsteDagSomGirRett: Boolean?,
     val harValgtStansTilSisteDagSomGirRett: Boolean?,
@@ -81,7 +81,7 @@ private data class Body(
         }
 
         return ForhåndsvisVedtaksbrevKommando(
-            fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.saniter(fritekst),
+            fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
             sakId = sakId,
             behandlingId = behandlingId,
             correlationId = correlationId,

@@ -9,12 +9,13 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
@@ -162,7 +163,8 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
 ): Pair<Sak, MeldekortBehandling> {
     val (sakMedOpprettetMeldekortBehandling, opprettetMeldekortBehandling) = genererSak(sak)
     val dager = saksbehandlerFyllerUtMeldeperiodeDager(opprettetMeldekortBehandling.meldeperiode)
-    val begrunnelse = MeldekortBehandlingBegrunnelse("TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning")
+    val begrunnelse = Begrunnelse.create("TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning")
+    val fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning")
 
     return runBlocking {
         val (sakMedOppdatertMeldekortbehandling, meldekortBehandling, simuleringMedMetadata) = sakMedOpprettetMeldekortBehandling.oppdaterMeldekort(
@@ -187,6 +189,7 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
                 dager = dager,
                 begrunnelse = begrunnelse,
                 correlationId = CorrelationId.generate(),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             ),
             beregn = {
                 sakMedOppdatertMeldekortbehandling.beregnMeldekort(

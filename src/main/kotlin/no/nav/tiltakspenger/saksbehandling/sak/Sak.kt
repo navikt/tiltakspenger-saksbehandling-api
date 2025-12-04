@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelseDetErSøktTiltakspengerFor
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
@@ -220,4 +221,17 @@ data class Sak(
     fun erRammevedtakGjeldendeForHeleSinPeriode(rammevedtakId: VedtakId): Boolean {
         return hentRammevedtakForId(rammevedtakId).omgjortAvRammevedtak.omgjøringsgrad == null
     }
+
+    // Et meldeperiode har ikke informasjon om tiltaksdeltakelsen, så vi må hente det fra rammevedtakene som gjelder for dette meldekortvedtaket.
+    // Det er mulig at flere rammevedtak gjelder for samme meldekortvedtak, f.eks. ved revurdering.
+    // Ved flere rammevedtak kan de inneholde de samme tiltaksdeltakelsene.
+    // Derfor må vi gruppere på eksternDeltakelseId og ta den nyeste.
+    fun hentNyesteTiltaksdeltakelserForRammevedtakIder(rammevedtakIder: List<VedtakId>): Tiltaksdeltakelser =
+        rammevedtakIder
+            .map { this.hentRammevedtakForId(it) }
+            .mapNotNull { vedtak -> vedtak.valgteTiltaksdeltakelser?.let { vedtak.opprettet to it } }
+            .flatMap { (opprettet, deltakelser) -> deltakelser.verdier.map { opprettet to it } }
+            .groupBy { it.second.eksternDeltakelseId }
+            .map { (_, verdi) -> verdi.maxBy { it.first }.second }
+            .let { Tiltaksdeltakelser(it) }
 }

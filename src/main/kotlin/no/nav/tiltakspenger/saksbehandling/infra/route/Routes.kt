@@ -77,6 +77,7 @@ fun Route.routes(
             avbrytMeldekortBehandlingService = applicationContext.meldekortContext.avbrytMeldekortBehandlingService,
             clock = applicationContext.clock,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
+            forhåndsvisBrevMeldekortBehandlingService = applicationContext.meldekortContext.forhåndsvisBrevMeldekortBehandlingService,
         )
         søknadRoutes(
             auditService = applicationContext.personContext.auditService,

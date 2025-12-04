@@ -5,14 +5,14 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.inneholderOverlapp
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
 /**
  * Representerer en periodisering av barnetillegg.
  */
 data class Barnetillegg(
     val periodisering: SammenhengendePeriodisering<AntallBarn>,
-    val begrunnelse: BegrunnelseVilkårsvurdering?,
+    val begrunnelse: Begrunnelse?,
 ) {
     val harBarnetillegg: Boolean by lazy {
         periodisering.any { it.verdi != AntallBarn.ZERO }
@@ -27,7 +27,7 @@ data class Barnetillegg(
 
         fun periodiserOgFyllUtHullMed0(
             perioder: BarnetilleggPerioder,
-            begrunnelse: BegrunnelseVilkårsvurdering?,
+            begrunnelse: Begrunnelse?,
             virkningsperiode: Periode,
         ) = Barnetillegg(
             periodisering = perioder.periodiserOgFyllUtHullMed0(virkningsperiode),

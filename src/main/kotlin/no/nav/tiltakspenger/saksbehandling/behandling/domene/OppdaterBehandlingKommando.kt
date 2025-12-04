@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
 sealed interface OppdaterBehandlingKommando {
     val sakId: SakId
@@ -14,7 +15,7 @@ sealed interface OppdaterBehandlingKommando {
     val saksbehandler: Saksbehandler
     val correlationId: CorrelationId
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
-    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
+    val begrunnelseVilkårsvurdering: Begrunnelse?
 
     sealed interface Innvilgelse {
         val innvilgelsesperiode: Periode
