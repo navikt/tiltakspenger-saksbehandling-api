@@ -21,7 +21,7 @@ object ExceptionHandler {
         cause: Throwable,
     ) {
         val uri = call.request.uri
-        logger.error(cause) { "Ktor mottok exception i ytterste lag. Uri: $uri." }
+        logger.error(cause) { "Feil mot frontend: ${cause.message}. Uri: $uri." }
         when (cause) {
             is IllegalStateException -> {
                 call.respond500InternalServerError(serverfeil())

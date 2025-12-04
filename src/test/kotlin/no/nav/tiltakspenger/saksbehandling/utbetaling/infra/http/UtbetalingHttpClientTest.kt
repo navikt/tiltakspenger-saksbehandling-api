@@ -25,7 +25,7 @@ import java.time.temporal.ChronoUnit
  */
 internal class UtbetalingHttpClientTest {
     @Test
-    fun `should handle `() {
+    fun `bør håndtere OK_UTEN_UTBETALING fra helved`() {
         val saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001")
         val utbetalingId = UtbetalingId.random()
         val sakId = SakId.random()
