@@ -37,7 +37,7 @@ private data class BrevSøknadAvslagDTO(
 internal suspend fun genererAvslagSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
-    tilleggstekst: FritekstTilVedtaksbrev,
+    tilleggstekst: FritekstTilVedtaksbrev?,
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
     fnr: Fnr,
     saksbehandlerNavIdent: String,
@@ -59,7 +59,7 @@ internal suspend fun genererAvslagSøknadsbrev(
             etternavn = brukersNavn.mellomnavnOgEtternavn,
         ),
         saksnummer = saksnummer.verdi,
-        tilleggstekst = tilleggstekst.verdi,
+        tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
         avslagsgrunner = avslagsgrunner.toAvslagsgrunnerBrevDto(),
         hjemlerTekst = if (avslagsgrunner.size > 1) avslagsgrunner.createBrevForskrifter(harSøktBarnetillegg) else null,

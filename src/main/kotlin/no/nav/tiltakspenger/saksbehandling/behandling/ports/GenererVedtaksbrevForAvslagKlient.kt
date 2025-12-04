@@ -25,7 +25,7 @@ interface GenererVedtaksbrevForAvslagKlient {
         avslagsperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
-        tilleggstekst: FritekstTilVedtaksbrev,
+        tilleggstekst: FritekstTilVedtaksbrev?,
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
         datoForUtsending: LocalDate,

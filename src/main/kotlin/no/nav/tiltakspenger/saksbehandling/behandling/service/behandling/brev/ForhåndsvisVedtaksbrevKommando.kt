@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import java.time.LocalDate
 
 /**
@@ -34,7 +33,7 @@ data class ForhåndsvisVedtaksbrevKommando(
     val behandlingId: BehandlingId,
     val correlationId: CorrelationId,
     val saksbehandler: Saksbehandler,
-    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
+    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val resultat: BehandlingResultatType,
     val valgteHjemler: List<ValgtHjemmelForStans>?,
     val virkningsperiode: Periode?,
