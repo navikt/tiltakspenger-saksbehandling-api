@@ -22,7 +22,6 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
@@ -42,6 +41,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgbarSøknad
@@ -191,7 +191,7 @@ interface BehandlingMother : MotherOfAllMothers {
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         sendtTilBeslutning: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nySøknadsbehandlingKlarTilBeslutning()"),
-        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nySøknadsbehandlingKlarTilBeslutning()"),
+        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("nySøknadsbehandlingKlarTilBeslutning()"),
         virkningsperiode: Periode = virkningsperiode(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         saksopplysninger: Saksopplysninger = saksopplysninger(
@@ -260,7 +260,7 @@ interface BehandlingMother : MotherOfAllMothers {
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         sendtTilBeslutning: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nySøknadsbehandlingKlarTilBeslutning()"),
-        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nySøknadsbehandlingKlarTilBeslutning()"),
+        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("nySøknadsbehandlingKlarTilBeslutning()"),
         virkningsperiode: Periode = virkningsperiode(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         saksopplysninger: Saksopplysninger = saksopplysninger(
@@ -316,7 +316,7 @@ interface BehandlingMother : MotherOfAllMothers {
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         beslutter: Saksbehandler = beslutter(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nyBehandlingUnderBeslutning()"),
-        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
+        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("nyBehandlingUnderBeslutning()"),
         virkningsperiode: Periode = virkningsperiode(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         saksopplysninger: Saksopplysninger = saksopplysninger(
@@ -370,7 +370,7 @@ interface BehandlingMother : MotherOfAllMothers {
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         beslutter: Saksbehandler = beslutter(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nyBehandlingUnderBeslutning()"),
-        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
+        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("nyBehandlingUnderBeslutning()"),
         virkningsperiode: Periode = virkningsperiode(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         saksopplysninger: Saksopplysninger = saksopplysninger(
@@ -428,7 +428,7 @@ interface BehandlingMother : MotherOfAllMothers {
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         beslutter: Saksbehandler = beslutter(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nyBehandlingUnderBeslutning()"),
-        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
+        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("nyBehandlingUnderBeslutning()"),
         virkningsperiode: Periode = virkningsperiode(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         saksopplysninger: Saksopplysninger = saksopplysninger(
@@ -649,7 +649,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     saksbehandler: Saksbehandler = saksbehandler(),
     correlationId: CorrelationId = CorrelationId.generate(),
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("Fritekst"),
-    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("Begrunnelse"),
+    begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("Begrunnelse"),
     antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
         AntallDagerForMeldeperiode((DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         periode,

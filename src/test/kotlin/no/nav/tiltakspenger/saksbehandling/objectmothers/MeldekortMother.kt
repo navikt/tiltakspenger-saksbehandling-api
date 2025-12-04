@@ -46,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
@@ -54,7 +55,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAu
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
@@ -176,7 +176,7 @@ interface MeldekortMother : MotherOfAllMothers {
         erFørsteBehandlingForPerioden: Boolean = true,
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         attesteringer: Attesteringer = Attesteringer.empty(),
-        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        begrunnelse: Begrunnelse? = null,
         simulering: Simulering? = null,
         sistEndret: LocalDateTime = iverksattTidspunkt ?: sendtTilBeslutning,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
@@ -496,7 +496,7 @@ interface MeldekortMother : MotherOfAllMothers {
         meldeperioder: NonEmptyList<NonEmptyList<Dager.Dag>>,
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        begrunnelse: Begrunnelse? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): Meldekortbehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
@@ -557,7 +557,7 @@ interface MeldekortMother : MotherOfAllMothers {
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
-        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        begrunnelse: Begrunnelse? = null,
         attesteringer: Attesteringer = Attesteringer.empty(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         simulering: Simulering? = null,
@@ -828,7 +828,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         meldekortId: MeldekortId = MeldekortId.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        begrunnelse: Begrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
         dager: Dager,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
@@ -848,7 +848,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         meldekortId: MeldekortId = MeldekortId.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        begrunnelse: Begrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
         dager: Dager,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,

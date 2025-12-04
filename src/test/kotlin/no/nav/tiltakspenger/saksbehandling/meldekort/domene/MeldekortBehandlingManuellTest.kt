@@ -21,7 +21,7 @@ class MeldekortBehandlingManuellTest {
             iverksattTidspunkt = null,
             beslutter = ObjectMother.saksbehandler().navIdent,
             opprettet = LocalDateTime.now(fixedClock),
-            begrunnelse = MeldekortBehandlingBegrunnelse("asdf"),
+            begrunnelse = Begrunnelse.create("asdf"),
         )
 
         val actual = meldekortBehandlet.underkjenn(
@@ -43,7 +43,7 @@ class MeldekortBehandlingManuellTest {
             it.shouldBeInstanceOf<MeldekortUnderBehandling>()
             it.attesteringer.size shouldBe 1
             it.attesteringer.first().shouldBeEqualToIgnoringFields(expectedAttestering, Attestering::id)
-            it.begrunnelse shouldBe MeldekortBehandlingBegrunnelse("asdf")
+            it.begrunnelse shouldBe Begrunnelse.create("asdf")
         }
     }
 }

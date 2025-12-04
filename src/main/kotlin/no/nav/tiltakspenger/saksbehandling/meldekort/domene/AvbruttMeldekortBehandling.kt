@@ -36,7 +36,7 @@ data class AvbruttMeldekortBehandling(
     override val brukersMeldekort: BrukersMeldekort?,
     override val saksbehandler: String?,
     override val navkontor: Navkontor,
-    override val begrunnelse: MeldekortBehandlingBegrunnelse?,
+    override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
     override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
     override val avbrutt: Avbrutt?,

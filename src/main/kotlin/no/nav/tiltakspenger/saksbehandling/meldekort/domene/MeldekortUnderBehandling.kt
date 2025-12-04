@@ -52,7 +52,7 @@ data class MeldekortUnderBehandling(
     override val meldeperiode: Meldeperiode,
     override val saksbehandler: String?,
     override val type: MeldekortBehandlingType,
-    override val begrunnelse: MeldekortBehandlingBegrunnelse?,
+    override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
     override val sendtTilBeslutning: LocalDateTime?,
     override val dager: MeldekortDager,

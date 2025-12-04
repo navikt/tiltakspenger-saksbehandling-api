@@ -1,10 +1,12 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.domene
+package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniterBeholdNewline
 
+// TODO - denne burde flyttes til libs
+
 @JvmInline
-value class FritekstTilVedtaksbrev private constructor(
+value class Begrunnelse private constructor(
     private val nonBlankString: NonBlankString,
 ) {
     val verdi: String get() = nonBlankString.value
@@ -15,9 +17,9 @@ value class FritekstTilVedtaksbrev private constructor(
     }
 
     companion object {
-        fun create(verdi: String): FritekstTilVedtaksbrev =
-            FritekstTilVedtaksbrev(NonBlankString.create(saniterBeholdNewline(verdi)))
+        fun create(verdi: String): Begrunnelse =
+            Begrunnelse(NonBlankString.create(saniterBeholdNewline(verdi)))
 
-        fun String.toFritekstTilVedtaksbrev(): FritekstTilVedtaksbrev = create(this)
+        fun String.toBegrunnelse(): Begrunnelse = create(this)
     }
 }

@@ -55,7 +55,7 @@ data class MeldekortBehandletManuelt(
     override val brukersMeldekort: BrukersMeldekort?,
     override val meldeperiode: Meldeperiode,
     override val type: MeldekortBehandlingType,
-    override val begrunnelse: MeldekortBehandlingBegrunnelse?,
+    override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
     override val beregning: Beregning,
     override val simulering: Simulering?,

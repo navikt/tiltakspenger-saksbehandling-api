@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import java.time.LocalDate
 
@@ -39,7 +39,7 @@ data class OppdaterMeldekortDTO(
                 }.toNonEmptyListOrNull()!!,
             ),
             meldekortId = meldekortId,
-            begrunnelse = begrunnelse?.let { MeldekortBehandlingBegrunnelse.saniter(it) },
+            begrunnelse = begrunnelse?.let { Begrunnelse.create(it) },
             fritekstTilVedtaksbrev = tekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
         )
     }

@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import java.time.LocalDate
 
 sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
@@ -16,14 +17,14 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
     override val saksbehandler: Saksbehandler
     override val correlationId: CorrelationId
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
-    override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering
+    override val begrunnelseVilkårsvurdering: Begrunnelse?
 
     data class Stans(
         override val sakId: SakId,
         override val behandlingId: BehandlingId,
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
-        override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
+        override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         val valgteHjemler: NonEmptyList<ValgtHjemmelForStans>,
         val stansFraOgMed: ValgtStansFraOgMed,
@@ -107,7 +108,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val behandlingId: BehandlingId,
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
-        override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
+        override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val innvilgelsesperiode: Periode,
         override val tiltaksdeltakelser: List<Pair<Periode, String>>,
@@ -121,7 +122,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val behandlingId: BehandlingId,
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
-        override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
+        override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val innvilgelsesperiode: Periode,
         override val tiltaksdeltakelser: List<Pair<Periode, String>>,

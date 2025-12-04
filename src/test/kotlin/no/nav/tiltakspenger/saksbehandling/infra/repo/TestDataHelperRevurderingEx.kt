@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
@@ -28,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.navkontor
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
@@ -83,7 +83,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
 internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
     s: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
+    begrunnelse: Begrunnelse = Begrunnelse.create("TestDataHelper.persisterRevurderingTilBeslutning"),
     stansFraOgMed: LocalDate? = s?.førsteDagSomGirRett ?: ObjectMother.revurderingVirkningsperiode().fraOgMed,
     stansTilOgMed: LocalDate? = s?.sisteDagSomGirRett ?: ObjectMother.revurderingVirkningsperiode().tilOgMed,
     valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
@@ -126,7 +126,7 @@ internal fun TestDataHelper.persisterRevurderingStansUnderBeslutning(
     sak: Sak? = null,
     opprettetAv: Saksbehandler = ObjectMother.saksbehandler(),
     beslutterAv: Saksbehandler = ObjectMother.beslutter(),
-    begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingUnderBeslutning"),
+    begrunnelse: Begrunnelse = Begrunnelse.create("TestDataHelper.persisterRevurderingUnderBeslutning"),
     stansFraOgMed: LocalDate? = ObjectMother.revurderingVirkningsperiode().fraOgMed,
     stansTilOgMed: LocalDate? = ObjectMother.revurderingVirkningsperiode().tilOgMed,
     valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
@@ -161,7 +161,7 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
     sak: Sak? = null,
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
+    begrunnelse: Begrunnelse = Begrunnelse.create("TestDataHelper.persisterRevurderingTilBeslutning"),
     stansFraOgMed: LocalDate = ObjectMother.revurderingVirkningsperiode().fraOgMed,
     stansTilOgMed: LocalDate = ObjectMother.revurderingVirkningsperiode().tilOgMed,
     valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
@@ -230,7 +230,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
-    begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
+    begrunnelse: Begrunnelse = Begrunnelse.create("TestDataHelper.persisterRevurderingTilBeslutning"),
     innvilgelsesperiode: Periode? = null,
     barnetillegg: Barnetillegg? = null,
     clock: Clock = this.clock,

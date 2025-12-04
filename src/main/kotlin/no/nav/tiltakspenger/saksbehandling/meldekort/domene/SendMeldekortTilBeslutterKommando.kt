@@ -18,7 +18,7 @@ class SendMeldekortTilBeslutterKommando(
     val meldekortId: MeldekortId,
     val saksbehandler: Saksbehandler,
     val dager: OppdaterMeldekortKommando.Dager?,
-    val begrunnelse: MeldekortBehandlingBegrunnelse?,
+    val begrunnelse: Begrunnelse?,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val correlationId: CorrelationId,
 ) {

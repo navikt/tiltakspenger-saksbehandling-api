@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
@@ -53,7 +54,7 @@ data class Revurdering(
     override val ventestatus: Ventestatus,
     override val venterTil: LocalDateTime?,
     override val resultat: RevurderingResultat,
-    override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+    override val begrunnelseVilkårsvurdering: Begrunnelse?,
     override val utbetaling: BehandlingUtbetaling?,
 ) : Rammebehandling {
 

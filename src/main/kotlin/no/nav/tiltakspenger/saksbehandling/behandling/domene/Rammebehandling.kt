@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -70,7 +71,7 @@ sealed interface Rammebehandling : Behandling {
     val resultat: BehandlingResultat?
     val virkningsperiode: Periode?
     val innvilgelsesperiode: Periode?
-    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
+    val begrunnelseVilkårsvurdering: Begrunnelse?
 
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
     val barnetillegg: Barnetillegg?

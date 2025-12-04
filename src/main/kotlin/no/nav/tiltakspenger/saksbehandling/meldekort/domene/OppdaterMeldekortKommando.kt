@@ -22,7 +22,7 @@ class OppdaterMeldekortKommando(
     val meldekortId: MeldekortId,
     val saksbehandler: Saksbehandler,
     val dager: Dager,
-    val begrunnelse: MeldekortBehandlingBegrunnelse?,
+    val begrunnelse: Begrunnelse?,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val correlationId: CorrelationId,
 ) {

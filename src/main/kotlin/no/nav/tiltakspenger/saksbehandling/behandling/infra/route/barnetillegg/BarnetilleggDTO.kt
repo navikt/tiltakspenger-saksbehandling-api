@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
 data class BarnetilleggDTO(
     val perioder: List<BarnetilleggPeriodeDTO>,
@@ -16,7 +16,7 @@ data class BarnetilleggDTO(
     fun tilBarnetillegg(virkningsperiode: Periode): Barnetillegg =
         if (this.perioder.isNotEmpty()) {
             Barnetillegg.periodiserOgFyllUtHullMed0(
-                begrunnelse = begrunnelse?.let { (BegrunnelseVilkårsvurdering.saniter(it)) },
+                begrunnelse = begrunnelse?.let { (Begrunnelse.create(it)) },
                 perioder = perioder.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) },
                 virkningsperiode = virkningsperiode,
             )

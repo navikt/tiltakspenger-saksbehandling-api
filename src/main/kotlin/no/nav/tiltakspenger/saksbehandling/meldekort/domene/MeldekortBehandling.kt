@@ -64,7 +64,7 @@ sealed interface MeldekortBehandling : Behandling {
     val navkontor: Navkontor
     override val iverksattTidspunkt: LocalDateTime?
     override val sendtTilBeslutning: LocalDateTime?
-    val begrunnelse: MeldekortBehandlingBegrunnelse?
+    val begrunnelse: Begrunnelse?
     val sendtTilDatadeling: LocalDateTime?
     val sistEndret: LocalDateTime
     val behandlingSendtTilDatadeling: LocalDateTime?
