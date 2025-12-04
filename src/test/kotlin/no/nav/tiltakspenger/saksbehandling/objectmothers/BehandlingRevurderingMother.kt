@@ -84,8 +84,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         sendtTilBeslutning: LocalDateTime? = null,
-        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nyRevurderingKlarTilBeslutning()"),
-        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("nyRevurderingKlarTilBeslutning()"),
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("nyRevurderingKlarTilBeslutning()"),
+        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("nyRevurderingKlarTilBeslutning()"),
         virkningsperiode: Periode = revurderingVirkningsperiode(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
@@ -139,8 +139,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         sendtTilBeslutning: LocalDateTime? = null,
-        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nyRevurderingKlarTilBeslutning()"),
-        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("nyRevurderingKlarTilBeslutning()"),
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("nyRevurderingKlarTilBeslutning()"),
+        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("nyRevurderingKlarTilBeslutning()"),
         virkningsperiode: Periode = revurderingVirkningsperiode(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
@@ -215,8 +215,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nyRevurderingKlarTilBeslutning()"),
-        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("nyRevurderingKlarTilBeslutning()"),
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("nyRevurderingKlarTilBeslutning()"),
+        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("nyRevurderingKlarTilBeslutning()"),
         virkningsperiode: Periode = revurderingVirkningsperiode(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
@@ -282,8 +282,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         sendtTilBeslutning: LocalDateTime? = null,
-        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nyRevurderingKlarTilBeslutning()"),
-        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.create("nyRevurderingKlarTilBeslutning()"),
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("nyRevurderingKlarTilBeslutning()"),
+        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("nyRevurderingKlarTilBeslutning()"),
         virkningsperiode: Periode = revurderingVirkningsperiode(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,

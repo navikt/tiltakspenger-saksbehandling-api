@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniterBeholdNewline
+import org.jetbrains.annotations.TestOnly
 
 @JvmInline
 value class FritekstTilVedtaksbrev private constructor(
@@ -15,9 +16,19 @@ value class FritekstTilVedtaksbrev private constructor(
     }
 
     companion object {
-        fun create(verdi: String): FritekstTilVedtaksbrev =
-            FritekstTilVedtaksbrev(NonBlankString.create(saniterBeholdNewline(verdi)))
+        /** @return null dersom strengen er blank */
+        fun create(verdi: String): FritekstTilVedtaksbrev? {
+            if (verdi.isEmpty()) return null
+            return FritekstTilVedtaksbrev(NonBlankString.create(saniterBeholdNewline(verdi)))
+        }
 
-        fun String.toFritekstTilVedtaksbrev(): FritekstTilVedtaksbrev = create(this)
+        @TestOnly
+        fun createOrThrow(verdi: String): FritekstTilVedtaksbrev = create(verdi)!!
+
+        /** @return null dersom strengen er blank */
+        fun String.toFritekstTilVedtaksbrev(): FritekstTilVedtaksbrev? = create(this)
+
+        @TestOnly
+        fun String.toFritekstTilVedtaksbrevOrThrow(): FritekstTilVedtaksbrev = create(this)!!
     }
 }

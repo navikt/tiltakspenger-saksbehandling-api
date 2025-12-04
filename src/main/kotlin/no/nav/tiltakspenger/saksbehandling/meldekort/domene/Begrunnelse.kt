@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniterBeholdNewline
+import org.jetbrains.annotations.TestOnly
 
 // TODO - denne burde flyttes til libs
 
@@ -17,9 +18,19 @@ value class Begrunnelse private constructor(
     }
 
     companion object {
-        fun create(verdi: String): Begrunnelse =
-            Begrunnelse(NonBlankString.create(saniterBeholdNewline(verdi)))
+        /** @return null dersom strengen er blank */
+        fun create(verdi: String): Begrunnelse? {
+            if (verdi.isEmpty()) return null
+            return Begrunnelse(NonBlankString.create(saniterBeholdNewline(verdi)))
+        }
 
-        fun String.toBegrunnelse(): Begrunnelse = create(this)
+        @TestOnly
+        fun createOrThrow(verdi: String): Begrunnelse = create(verdi)!!
+
+        /** @return null dersom strengen er blank */
+        fun String.toBegrunnelse(): Begrunnelse? = create(this)
+
+        @TestOnly
+        fun String.toFritekstTilVedtaksbrevOrThrow(): Begrunnelse = create(this)!!
     }
 }
