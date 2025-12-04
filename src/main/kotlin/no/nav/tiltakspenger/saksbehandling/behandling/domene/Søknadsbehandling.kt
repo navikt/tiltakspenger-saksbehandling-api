@@ -66,7 +66,7 @@ data class Søknadsbehandling(
     override val omgjørRammevedtak: OmgjørRammevedtak = resultat?.omgjørRammevedtak ?: OmgjørRammevedtak.empty
 
     /** Vil være null ved avslag og ved innvilgelse frem til saksbehandler har valgt innvilgelsesperioden */
-    override val innvilgelsesperiode = (resultat as? Innvilgelse)?.innvilgelsesperiode
+    override val innvilgelsesperiode = (resultat as? Innvilgelse)?.innvilgelsesperioder
 
     override val antallDagerPerMeldeperiode = resultat?.antallDagerPerMeldeperiode
 
@@ -131,7 +131,7 @@ data class Søknadsbehandling(
                     valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
                     barnetillegg = kommando.barnetillegg,
                     antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                    innvilgelsesperiode = kommando.innvilgelsesperiode,
+                    innvilgelsesperioder = kommando.innvilgelsesperiode,
                     omgjørRammevedtak = omgjørRammevedtak,
                 )
             }

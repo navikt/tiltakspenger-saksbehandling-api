@@ -59,7 +59,7 @@ data class Revurdering(
 ) : Rammebehandling {
 
     override val virkningsperiode: Periode? = resultat.virkningsperiode
-    override val innvilgelsesperiode: Periode? = resultat.innvilgelsesperiode
+    override val innvilgelsesperiode: Periode? = resultat.innvilgelsesperioder
 
     override val barnetillegg = resultat.barnetillegg
 
@@ -121,7 +121,7 @@ data class Revurdering(
                 ),
                 barnetillegg = kommando.barnetillegg,
                 antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                innvilgelsesperiode = kommando.innvilgelsesperiode,
+                innvilgelsesperioder = kommando.innvilgelsesperiode,
                 omgjørRammevedtak = omgjørRammevedtak,
             ),
             utbetaling = utbetaling,

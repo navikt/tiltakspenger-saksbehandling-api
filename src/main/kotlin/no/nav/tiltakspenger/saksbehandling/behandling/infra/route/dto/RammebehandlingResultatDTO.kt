@@ -86,7 +86,7 @@ fun SøknadsbehandlingResultat?.tilSøknadsbehandlingResultatDTO(): Søknadsbeha
         )
 
         is SøknadsbehandlingResultat.Innvilgelse -> SøknadsbehandlingResultatDTO.Innvilgelse(
-            innvilgelsesperiode = innvilgelsesperiode.toDTO(),
+            innvilgelsesperiode = innvilgelsesperioder.toDTO(),
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser.tilDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode?.tilAntallDagerPerMeldeperiodeDTO(),
@@ -99,7 +99,7 @@ fun SøknadsbehandlingResultat?.tilSøknadsbehandlingResultatDTO(): Søknadsbeha
 fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
     return when (this) {
         is RevurderingResultat.Innvilgelse -> RevurderingResultatDTO.Innvilgelse(
-            innvilgelsesperiode = innvilgelsesperiode?.toDTO(),
+            innvilgelsesperiode = innvilgelsesperioder?.toDTO(),
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.tilDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode?.tilAntallDagerPerMeldeperiodeDTO(),
@@ -112,7 +112,7 @@ fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
         )
 
         is RevurderingResultat.Omgjøring -> RevurderingResultatDTO.Omgjøring(
-            innvilgelsesperiode = innvilgelsesperiode.toDTO(),
+            innvilgelsesperiode = innvilgelsesperioder.toDTO(),
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.tilDTO(),
             barnetillegg = barnetillegg.toBarnetilleggDTO(),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),

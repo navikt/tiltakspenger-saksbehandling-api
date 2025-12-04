@@ -427,9 +427,9 @@ class OppdaterBehandlingRouteTest {
                 },
                 behandling = oppdatertRevurdering,
             )
-            oppdatertRevurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
-            resultat.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
-            resultat.innvilgelsesperiode shouldBe nyOmgjøringsperiodeEtterOppdatering
+            oppdatertRevurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.virkningsperiode
+            resultat.virkningsperiode shouldBe rammevedtakSøknadsbehandling.virkningsperiode
+            resultat.innvilgelsesperioder shouldBe nyOmgjøringsperiodeEtterOppdatering
             oppdatertRevurdering.utbetaling shouldBe null
 
             // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.

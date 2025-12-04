@@ -77,8 +77,8 @@ internal class StartRevurderingTest {
             revurdering.saksnummer shouldBe sak.saksnummer
             revurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.periode
             revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.virkningsperiode
-            revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.innvilgelsesperiode
-            revurdering.resultat.innvilgelsesperiode shouldBe (3 til 10.april(2025))
+            revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.innvilgelsesperioder
+            revurdering.resultat.innvilgelsesperioder shouldBe (3 til 10.april(2025))
             revurdering.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
                     søknadsbehandling.barnetillegg!!.periodisering.verdier.single(),

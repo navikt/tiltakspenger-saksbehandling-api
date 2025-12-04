@@ -97,7 +97,7 @@ class SendRevurderingTilBeslutningTest {
                     AntallDagerForMeldeperiode.default,
                     revurderingInnvilgelsesperiode,
                 ),
-                innvilgelsesperiode = revurderingInnvilgelsesperiode,
+                innvilgelsesperioder = revurderingInnvilgelsesperiode,
                 omgjørRammevedtak = OmgjørRammevedtak(
                     Omgjøringsperiode(
                         rammevedtakId = søknadsbehandlingsvedtak.id,

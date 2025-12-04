@@ -24,7 +24,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         val avslagsperiode: Periode?,
     ) : SøknadsbehandlingResultat {
         override val virkningsperiode = avslagsperiode
-        override val innvilgelsesperiode = null
+        override val innvilgelsesperioder = null
         override val barnetillegg = null
         override val valgteTiltaksdeltakelser = null
         override val antallDagerPerMeldeperiode = null
@@ -43,17 +43,17 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
     /**
      * Virkningsperioden/vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
      *
-     * Når saksbehandler velger at en søknadsbehandling skal innvilges, får de ikke lagret før de har valgt [innvilgelsesperiode] og [valgteTiltaksdeltakelser]
+     * Når saksbehandler velger at en søknadsbehandling skal innvilges, får de ikke lagret før de har valgt [innvilgelsesperioder] og [valgteTiltaksdeltakelser]
      */
     data class Innvilgelse(
-        override val innvilgelsesperiode: Periode,
+        override val innvilgelsesperioder: Periode,
         override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
         override val barnetillegg: Barnetillegg?,
         override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
         override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : BehandlingResultat.Innvilgelse,
         SøknadsbehandlingResultat {
-        override val virkningsperiode = innvilgelsesperiode
+        override val virkningsperiode = innvilgelsesperioder
 
         override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Innvilgelse?> {
             return if (skalNullstilleResultatVedNyeSaksopplysninger(

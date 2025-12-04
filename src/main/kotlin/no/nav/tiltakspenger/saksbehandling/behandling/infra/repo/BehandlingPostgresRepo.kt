@@ -392,7 +392,7 @@ class BehandlingPostgresRepo(
                                 .toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
-                            innvilgelsesperiode = virkningsperiode!!,
+                            innvilgelsesperioder = virkningsperiode!!,
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
@@ -465,13 +465,13 @@ class BehandlingPostgresRepo(
                                 ?.toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
-                            innvilgelsesperiode = virkningsperiode,
+                            innvilgelsesperioder = virkningsperiode,
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
                         RevurderingType.OMGJØRING -> RevurderingResultat.Omgjøring(
                             virkningsperiode = virkningsperiode!!,
-                            innvilgelsesperiode = deserialize<PeriodeDbJson>(string("innvilgelsesperiode")).toDomain(),
+                            innvilgelsesperioder = deserialize<PeriodeDbJson>(string("innvilgelsesperiode")).toDomain(),
                             valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
                                 ?.toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = string("barnetillegg").toBarnetillegg(),
@@ -788,7 +788,7 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
         "barnetillegg" to this.barnetillegg.toDbJson(),
         "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
         "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode.toDbJson(),
-        "innvilgelsesperiode" to serialize(this.innvilgelsesperiode.toDbJson()),
+        "innvilgelsesperiode" to serialize(this.innvilgelsesperioder.toDbJson()),
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 
