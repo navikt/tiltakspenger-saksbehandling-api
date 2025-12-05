@@ -85,8 +85,8 @@ internal fun KunneIkkeForhåndsviseBrevMeldekortBehandling.tilStatusOgErrorJson(
         KunneIkkeForhåndsviseBrevMeldekortBehandling.BehandlingMåHaBeregningForÅForhåndsviseBrev -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
-                "Behandlingen må beregnes først, før du kan forhåndsvise brev.",
-                "behandlingen_ma_beregnes_først",
+                "Behandlingen må beregnes før du kan forhåndsvise brev.",
+                "behandling_må_ha_beregning_for_å_forhåndsvise_brev",
             ),
         )
 
