@@ -67,6 +67,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                         it.periode.toDomain(),
                     )
                 }.tilSammenhengendePeriodisering(),
+                automatiskSaksbehandlet = false,
             )
         }
     }
@@ -92,6 +93,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 avslagsgrunner = avslagsgrunner.toAvslagsgrunnlag(),
+                automatiskSaksbehandlet = false,
             )
         }
     }

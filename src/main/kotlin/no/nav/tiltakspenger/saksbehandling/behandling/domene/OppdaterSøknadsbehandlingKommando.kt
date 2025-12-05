@@ -27,7 +27,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
-        override val automatiskSaksbehandlet: Boolean = false,
+        override val automatiskSaksbehandlet: Boolean,
         override val tiltaksdeltakelser: List<Pair<Periode, String>>,
         override val innvilgelsesperiode: Periode,
         override val barnetillegg: Barnetillegg,
@@ -49,7 +49,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
-        override val automatiskSaksbehandlet: Boolean = false,
+        override val automatiskSaksbehandlet: Boolean,
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
     ) : OppdaterSøknadsbehandlingKommando
 

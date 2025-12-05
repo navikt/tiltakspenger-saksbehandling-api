@@ -216,11 +216,20 @@ sealed interface Rammebehandling : Behandling {
                         when (this) {
                             is Søknadsbehandling -> {
                                 val overtattBehandling = this.overta(endretAv, clock).getOrNull() as Søknadsbehandling
-                                overtattBehandling.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
+                                overtattBehandling.copy(
+                                    ventestatus = oppdatertVentestatus,
+                                    venterTil = null,
+                                    sistEndret = nå,
+                                )
                             }
+
                             is Revurdering -> {
                                 val overtattBehandling = this.overta(endretAv, clock).getOrNull() as Revurdering
-                                overtattBehandling.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
+                                overtattBehandling.copy(
+                                    ventestatus = oppdatertVentestatus,
+                                    venterTil = null,
+                                    sistEndret = nå,
+                                )
                             }
                         }
                     }
@@ -574,6 +583,7 @@ sealed interface Rammebehandling : Behandling {
                         },
                         automatiskSaksbehandlet = false,
                         sistEndret = nå(clock),
+                        resultat = if (automatiskSaksbehandlet) null else resultat,
                     )
 
                     is Revurdering -> this.copy(

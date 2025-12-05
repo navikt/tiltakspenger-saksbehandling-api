@@ -4,12 +4,15 @@ import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
+import no.nav.tiltakspenger.saksbehandling.felles.Attestering
+import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -19,7 +22,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-class BehandlingTest {
+class RammebehandlingTest {
 
     @Test
     fun `kan avbryte en behandling`() {
@@ -324,7 +327,8 @@ class BehandlingTest {
                 behandlingSattPåVent.ventestatus.erSattPåVent shouldBe true
 
                 val gjenopptattBehandling =
-                    behandlingSattPåVent.gjenoppta(saksbehandler, gjenopptaClock) { behandling.saksopplysninger }.getOrFail()
+                    behandlingSattPåVent.gjenoppta(saksbehandler, gjenopptaClock) { behandling.saksopplysninger }
+                        .getOrFail()
 
                 gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
@@ -379,6 +383,60 @@ class BehandlingTest {
                 assertThrows<IllegalArgumentException> {
                     behandling.gjenoppta(beslutter, clock) { behandling.saksopplysninger }
                 }
+            }
+        }
+    }
+
+    @Nested
+    inner class Underkjenning {
+        val attestering = Attestering(
+            status = Attesteringsstatus.SENDT_TILBAKE,
+            begrunnelse = "Manglende dokumentasjon".toNonBlankString(),
+            beslutter = ObjectMother.beslutter().navIdent,
+            tidspunkt = førsteNovember24,
+        )
+
+        @Test
+        fun `underkjenner en behandling`() {
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(automatiskBehandling = false)
+            behandling.underkjenn(
+                utøvendeBeslutter = ObjectMother.beslutter(),
+                attestering = attestering,
+                clock = fixedClock,
+            ).let {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+
+                it.attesteringer.size shouldBe 1
+                it.attesteringer.first().let { attestering ->
+                    attestering.status shouldBe Attesteringsstatus.SENDT_TILBAKE
+                    attestering.begrunnelse shouldBe "Manglende dokumentasjon".toNonBlankString()
+                    attestering.beslutter shouldBe ObjectMother.beslutter().navIdent
+                    attestering.tidspunkt shouldBe førsteNovember24
+                }
+            }
+        }
+
+        @Test
+        fun `resetter ikke resultatet av en manuell søknadsbehandling når man underkjenner`() {
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(automatiskBehandling = false)
+            behandling.underkjenn(
+                utøvendeBeslutter = ObjectMother.beslutter(),
+                attestering = attestering,
+                clock = fixedClock,
+            ).let {
+                it.resultat shouldBe behandling.resultat
+            }
+        }
+
+        @Test
+        fun `resetter resultatet av en automatisk søknadsbehandling når man underkjenner`() {
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(automatiskBehandling = true)
+            behandling.underkjenn(
+                utøvendeBeslutter = ObjectMother.beslutter(),
+                attestering = attestering,
+                clock = fixedClock,
+            ).let {
+                it.resultat shouldBe null
             }
         }
     }

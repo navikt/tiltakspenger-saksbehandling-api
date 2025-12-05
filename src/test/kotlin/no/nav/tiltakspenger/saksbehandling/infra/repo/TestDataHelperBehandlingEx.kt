@@ -286,6 +286,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         AntallDagerForMeldeperiode((DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         Periode(deltakelseFom, deltakelseTom),
     ),
+    automatiskSaksbehandlet: Boolean = false,
 ): Pair<Sak, Rammebehandling> {
     val (sak, søknadsbehandling) = persisterOpprettetSøknadsbehandling(
         sakId = sak.id,
@@ -323,6 +324,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                         barnetillegg = Barnetillegg.utenBarnetillegg(tiltaksOgVurderingsperiode),
                         tiltaksdeltakelser = tiltaksdeltakelser,
                         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                        automatiskSaksbehandlet = automatiskSaksbehandlet,
                     )
 
                     SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
@@ -333,6 +335,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avslagsgrunner = avslagsgrunner!!,
+                        automatiskSaksbehandlet = automatiskSaksbehandlet,
                     )
                 },
                 clock = clock,

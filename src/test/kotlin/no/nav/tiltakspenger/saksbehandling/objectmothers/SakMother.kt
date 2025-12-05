@@ -126,6 +126,7 @@ interface SakMother {
             kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         ),
         correlationId: CorrelationId = CorrelationId.generate(),
+        automatiskSaksbehandlet: Boolean = false,
     ): Pair<Sak, Søknadsbehandling> {
         val søknadsbehandling =
             runBlocking {
@@ -151,6 +152,7 @@ interface SakMother {
                             innvilgelsesperiode = virkningsperiode,
                             tiltaksdeltakelser = valgteTiltaksdeltakelser,
                             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                            automatiskSaksbehandlet = automatiskSaksbehandlet,
                         )
 
                         SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
@@ -161,6 +163,7 @@ interface SakMother {
                             fritekstTilVedtaksbrev = null,
                             begrunnelseVilkårsvurdering = null,
                             avslagsgrunner = avslagsgrunner!!,
+                            automatiskSaksbehandlet = automatiskSaksbehandlet,
                         )
                     },
                     clock = clock,
@@ -292,6 +295,7 @@ interface SakMother {
                     AntallDagerForMeldeperiode(10),
                     virkningsperiode,
                 ),
+                automatiskSaksbehandlet = søknadsbehandling.automatiskSaksbehandlet,
             ),
             clock = clock,
             utbetaling = null,
@@ -340,6 +344,7 @@ interface SakMother {
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nySakMedAvslagsvedtak"),
                 begrunnelseVilkårsvurdering = null,
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
+                automatiskSaksbehandlet = søknadsbehandling.automatiskSaksbehandlet,
             ),
             clock = clock,
             utbetaling = null,
