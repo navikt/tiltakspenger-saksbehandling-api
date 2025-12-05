@@ -227,6 +227,7 @@ class TestApplicationContext(
                 personKlient = personContext.personKlient,
                 statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
                 genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
+                navIdentClient = personContext.navIdentClient,
             ) {
             override val meldekortBehandlingRepo = meldekortBehandlingFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo

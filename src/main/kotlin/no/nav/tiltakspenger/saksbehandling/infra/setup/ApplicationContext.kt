@@ -308,6 +308,7 @@ open class ApplicationContext(
             personKlient = personContext.personKlient,
             statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
             genererVedtaksbrevForUtbetalingKlient = dokumentContext.genererVedtaksbrevForUtbetalingKlient,
+            navIdentClient = personContext.navIdentClient,
 
         )
     }

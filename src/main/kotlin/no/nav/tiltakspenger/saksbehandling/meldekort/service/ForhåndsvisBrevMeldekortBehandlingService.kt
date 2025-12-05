@@ -11,13 +11,16 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortVedtakBrevCommand
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 
 class ForhåndsvisBrevMeldekortBehandlingService(
     val genererBrevClient: GenererVedtaksbrevForUtbetalingKlient,
     val sakService: SakService,
     val meldekortbehandlingRepo: MeldekortBehandlingRepo,
+    val navIdentClient: NavIdentClient,
 ) {
     suspend fun forhåndsvisBrev(command: ForhåndsvisBrevMeldekortbehandlingCommand): Either<KunneIkkeForhåndsviseBrevMeldekortBehandling, PdfOgJson> {
         val meldekortBehandling = meldekortbehandlingRepo.hent(command.meldekortbehandlingId)
@@ -43,6 +46,13 @@ class ForhåndsvisBrevMeldekortBehandlingService(
             tidligereBeregning.getOrElse { null } to it
         }
 
+        val hentSaksbehandlersNavn: suspend (String) -> String =
+            if (meldekortBehandling is MeldekortBehandletAutomatisk) {
+                { "Automatisk behandlet" }
+            } else {
+                navIdentClient::hentNavnForNavIdent
+            }
+
         return genererBrevClient.genererMeldekortvedtakBrev(
             command = GenererMeldekortVedtakBrevCommand(
                 sakId = meldekortBehandling.sakId,
@@ -60,7 +70,7 @@ class ForhåndsvisBrevMeldekortBehandlingService(
                 tekstTilVedtaksbrev = command.tekstTilVedtaksbrev,
                 forhåndsvisning = true,
             ),
-            hentSaksbehandlersNavn = { saksbehandlerId -> "Saksbehandler Navn for $saksbehandlerId" },
+            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
         ).map {
             it
         }.mapLeft {

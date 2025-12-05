@@ -192,6 +192,7 @@ class LocalApplicationContext(
             personKlient = personContext.personKlient,
             statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
             genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
+            navIdentClient = personContext.navIdentClient,
         ) {
             override val meldekortApiHttpClient: MeldekortApiKlient
                 // Ved kjøring lokalt kan vi styre kjøring av fake eller ekte API med env-var BRUK_FAKE_MELDEKORT_API
