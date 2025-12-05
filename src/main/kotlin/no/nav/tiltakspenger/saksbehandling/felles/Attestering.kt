@@ -20,7 +20,6 @@ enum class Attesteringsstatus {
     SENDT_TILBAKE,
 }
 
-// TODO - test
 data class Attesteringer(
     private val attesteringer: List<Attestering>,
 ) : List<Attestering> by attesteringer {

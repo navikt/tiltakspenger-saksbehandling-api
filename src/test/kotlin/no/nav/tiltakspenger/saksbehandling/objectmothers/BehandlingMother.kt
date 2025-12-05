@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -96,6 +97,20 @@ interface BehandlingMother : MotherOfAllMothers {
             tidspunkt = nå(clock),
         )
 
+    fun underkjentAttestering(
+        id: AttesteringId = AttesteringId.random(),
+        begrunnelse: NonBlankString = "Manglende dokumentasjon".toNonBlankString(),
+        beslutter: Saksbehandler = beslutter(),
+        clock: Clock = this.clock,
+    ): Attestering =
+        Attestering(
+            id = AttesteringId.random(),
+            status = Attesteringsstatus.SENDT_TILBAKE,
+            begrunnelse = begrunnelse,
+            beslutter = beslutter.navIdent,
+            tidspunkt = nå(clock),
+        )
+
     fun nyOpprettetSøknadsbehandling(
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
@@ -112,6 +127,7 @@ interface BehandlingMother : MotherOfAllMothers {
         clock: Clock = this.clock,
         sak: Sak = ObjectMother.nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
         correlationId: CorrelationId = CorrelationId.generate(),
+        automatiskBehandling: Boolean = false,
     ): Søknadsbehandling {
         return runBlocking {
             Søknadsbehandling.opprett(
@@ -210,6 +226,7 @@ interface BehandlingMother : MotherOfAllMothers {
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = this.clock,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
+        automatiskBehandling: Boolean = false,
     ): Søknadsbehandling {
         return this.nyOpprettetSøknadsbehandling(
             id = id,
@@ -233,6 +250,7 @@ interface BehandlingMother : MotherOfAllMothers {
                     barnetillegg = barnetillegg,
                     tiltaksdeltakelser = valgteTiltaksdeltakelser,
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                    automatiskSaksbehandlet = automatiskBehandling,
                 )
 
                 SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
@@ -243,6 +261,7 @@ interface BehandlingMother : MotherOfAllMothers {
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                     avslagsgrunner = avslagsgrunner!!,
+                    automatiskSaksbehandlet = automatiskBehandling,
                 )
             },
             clock = clock,
@@ -279,6 +298,7 @@ interface BehandlingMother : MotherOfAllMothers {
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = this.clock,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
+        automatiskBehandling: Boolean = false,
     ): Søknadsbehandling {
         return this.oppdatertSøknadsbehandling(
             id = id,
@@ -300,6 +320,7 @@ interface BehandlingMother : MotherOfAllMothers {
             resultat = resultat,
             omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
+            automatiskBehandling = automatiskBehandling,
         ).tilBeslutning(
             saksbehandler = saksbehandler,
             clock = clock,
@@ -335,6 +356,7 @@ interface BehandlingMother : MotherOfAllMothers {
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         clock: Clock = fixedClock,
+        automatiskBehandling: Boolean = false,
     ): Søknadsbehandling {
         return nySøknadsbehandlingKlarTilBeslutning(
             id = id,
@@ -356,6 +378,7 @@ interface BehandlingMother : MotherOfAllMothers {
             avslagsgrunner = avslagsgrunner,
             omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
+            automatiskBehandling = automatiskBehandling,
         ).taBehandling(beslutter, clock) as Søknadsbehandling
     }
 
@@ -657,6 +680,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
     resultat: SøknadsbehandlingType,
+    automatiskBehandling: Boolean = false,
 ): Sak {
     val (sakMedSøknadsbehandling) = startSøknadsbehandling(
         periode = periode,
@@ -683,6 +707,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
                 barnetillegg = barnetillegg,
                 tiltaksdeltakelser = tiltaksdeltakelser,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                automatiskSaksbehandlet = automatiskBehandling,
             )
 
             SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
@@ -693,6 +718,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                 avslagsgrunner = avslagsgrunner!!,
+                automatiskSaksbehandlet = automatiskBehandling,
             )
         },
     ).getOrFail()
