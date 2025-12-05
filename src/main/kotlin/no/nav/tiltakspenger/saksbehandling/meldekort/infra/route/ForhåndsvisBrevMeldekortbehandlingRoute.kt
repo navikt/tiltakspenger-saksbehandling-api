@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
-import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
@@ -47,7 +47,7 @@ fun Route.forhåndsvisBrevMeldekortbehandling(
             call.withMeldekortId { meldekortId ->
                 call.withBody<ForhåndsvisBrevMeldekortbehandlingBody> { body ->
                     val correlationId = call.correlationId()
-                    krevBeslutterRolle(saksbehandler)
+                    krevSaksbehandlerRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
 
                     forhåndsvisBrevMeldekortBehandlingService.forhåndsvisBrev(
