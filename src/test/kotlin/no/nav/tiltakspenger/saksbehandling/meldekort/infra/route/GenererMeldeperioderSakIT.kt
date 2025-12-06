@@ -81,7 +81,7 @@ class GenererMeldeperioderSakIT {
 
         taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
 
-        val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)
+        val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)!!
 
         return oppdatertSak
     }

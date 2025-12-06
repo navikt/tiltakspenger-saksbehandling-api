@@ -194,12 +194,13 @@ internal class IverksettRevurderingTest {
                 revurdering.id,
             )
             taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
-            iverksettForBehandlingIdReturnerRespons(
+            iverksettForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
                 beslutter = ObjectMother.saksbehandler(),
-            ).status shouldBe HttpStatusCode.Forbidden
+                forventetStatus = HttpStatusCode.Forbidden,
+            )
         }
     }
 

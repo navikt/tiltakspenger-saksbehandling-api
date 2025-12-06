@@ -65,87 +65,6 @@ interface IverksettBehandlingBuilder {
      *
      * @param fnr ignoreres hvis sakId er satt
      * */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandling(
-        tac: TestApplicationContext,
-        sakId: SakId? = null,
-        fnr: Fnr = Fnr.random(),
-        vedtaksperiode: Periode = 1.til(10.april(2025)),
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        beslutter: Saksbehandler = ObjectMother.beslutter(),
-        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
-        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            vedtaksperiode,
-        ),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = vedtaksperiode.fraOgMed,
-            tom = vedtaksperiode.tilOgMed,
-        ),
-    ): Tuple4<Sak, Søknad, Søknadsbehandling, RammebehandlingDTOJson> {
-        val (sak, søknad, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(
-            tac = tac,
-            sakId = sakId,
-            fnr = fnr,
-            virkningsperiode = vedtaksperiode,
-            resultat = resultat,
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-            barnetillegg = barnetillegg,
-            tiltaksdeltakelse = tiltaksdeltakelse,
-            saksbehandler = saksbehandler,
-        )
-        taBehandling(tac, sak.id, behandlingId, beslutter)
-        val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
-            tac,
-            sak.id,
-            behandlingId,
-            beslutter,
-        )
-        return Tuple4(
-            oppdatertSak,
-            søknad,
-            oppdatertBehandling as Søknadsbehandling,
-            jsonResponse,
-        )
-    }
-
-    /** Oppretter ny sak, søknad og behandling. */
-    suspend fun ApplicationTestBuilder.iverksettAutomatiskBehandletSøknadsbehandling(
-        tac: TestApplicationContext,
-        fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = 1.til(10.april(2025)),
-        beslutter: Saksbehandler = ObjectMother.beslutter(),
-        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
-        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            virkningsperiode,
-        ),
-    ): Tuple4<Sak, Søknad, Søknadsbehandling, RammebehandlingDTOJson> {
-        val (sak, søknad, behandling) = opprettAutomatiskBehandlingKlarTilBeslutning(
-            tac = tac,
-            fnr = fnr,
-            virkningsperiode = virkningsperiode,
-        )
-        taBehandling(tac, sak.id, behandling.id, beslutter)
-        val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
-            tac,
-            sak.id,
-            behandling.id,
-            beslutter,
-        )
-        return Tuple4(
-            oppdatertSak,
-            søknad,
-            oppdatertBehandling as Søknadsbehandling,
-            jsonResponse,
-        )
-    }
-
-    /**
-     * Oppretter kun ny sak hvis sakId er null. Oppretter alltid ny søknad med søknadsbehandling.
-     *
-     * @param fnr ignoreres hvis sakId er satt
-     * */
     suspend fun ApplicationTestBuilder.iverksettRevurderingInnvilgelse(
         tac: TestApplicationContext,
         sakId: SakId? = null,
@@ -320,7 +239,7 @@ interface IverksettBehandlingBuilder {
             sakId = sak.id,
             behandlingId = revurdering.id,
             beslutter = beslutter,
-        )
+        )!!
         return Tuple5(
             oppdatertSak,
             søknad,
@@ -336,7 +255,8 @@ interface IverksettBehandlingBuilder {
         sakId: SakId,
         behandlingId: BehandlingId,
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson> {
+        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = beslutter,
         )
@@ -353,8 +273,9 @@ interface IverksettBehandlingBuilder {
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe forventetStatus
             }
+            if (status != HttpStatusCode.OK) return null
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val behandling = sak.rammebehandlinger.hentBehandling(behandlingId)!!
             return Triple(sak, behandling, JSONObject(bodyAsText))

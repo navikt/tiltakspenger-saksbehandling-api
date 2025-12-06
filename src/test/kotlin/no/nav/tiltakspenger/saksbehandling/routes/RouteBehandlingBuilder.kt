@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.routes
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlePåNytt.BehandleSøknadPåNyttBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.ForhåndsvisVedtaksbrevTestbuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettBehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettRevurderingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettSøknadsbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater.OppdaterBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger.OppdaterSaksopplysningerBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start.StartRevurderingBuilder
@@ -27,6 +29,8 @@ object RouteBehandlingBuilder :
     SendRevurderingTilBeslutningBuilder,
     UnderkjennBehandlingBuilder,
     IverksettBehandlingBuilder,
+    IverksettSøknadsbehandlingBuilder,
+    IverksettRevurderingBuilder,
     StartRevurderingBuilder,
     OppdaterSaksopplysningerBuilder,
     OvertaBehandlingBuilder,

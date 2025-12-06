@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettAutomatiskBehandletSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingIdReturnerRespons
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
@@ -111,15 +112,15 @@ class IverksettSøknadsbehandlingTest {
             )
             taBehandling(tac, sak.id, behandlingId, beslutter)
 
-            val response = iverksettForBehandlingIdReturnerRespons(
+            val (_, _, jsonBody) = iverksettForBehandlingId(
                 tac,
                 sak.id,
                 behandlingId,
                 ObjectMother.beslutter(navIdent = "B999999"),
-            )
+                forventetStatus = HttpStatusCode.BadRequest,
+            )!!
 
-            response.status shouldBe HttpStatusCode.BadRequest
-            response.bodyAsText() shouldBe objectMapper.writeValueAsString(
+            jsonBody.toString() shouldBe objectMapper.writeValueAsString(
                 Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
                     beslutter.navIdent,
                 ),
