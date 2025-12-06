@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetille
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelseDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingIdReturnerRespons
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
@@ -194,12 +193,13 @@ internal class IverksettRevurderingTest {
                 revurdering.id,
             )
             taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
-            iverksettForBehandlingIdReturnerRespons(
+            iverksettForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
                 beslutter = ObjectMother.saksbehandler(),
-            ).status shouldBe HttpStatusCode.Forbidden
+                forventetStatus = HttpStatusCode.Forbidden,
+            )
         }
     }
 
