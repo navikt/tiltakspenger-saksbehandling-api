@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -40,11 +39,15 @@ class ForhåndsvisBrevMeldekortBehandlingService(
             "Forventet at et det skal finnes tiltaksdeltakelse for meldekortvedtaksperioden"
         }
 
-        val tidligereBeregninger = meldekortBehandling.beregning!!.beregninger.map {
-            val tidligereBeregning = sak.meldeperiodeBeregninger.hentForrigeBeregning(it.id, it.kjedeId)
+        val nåværendeBeregningMedTidligereBeregning =
+            meldekortBehandling.beregning!!.beregninger.map { meldeperiodeBeregning ->
+                val tidligereBeregning = sak.meldeperiodeBeregninger.hentForrigeBeregningEllerSiste(
+                    meldeperiodeBeregning.id,
+                    meldeperiodeBeregning.kjedeId,
+                )
 
-            tidligereBeregning.getOrElse { null } to it
-        }
+                tidligereBeregning to meldeperiodeBeregning
+            }
 
         val hentSaksbehandlersNavn: suspend (String) -> String =
             if (meldekortBehandling is MeldekortBehandletAutomatisk) {
@@ -65,7 +68,7 @@ class ForhåndsvisBrevMeldekortBehandlingService(
                 tiltaksdeltakelser = tiltaksdeltakelser,
                 iverksattTidspunkt = null,
                 erKorrigering = meldekortBehandling.erKorrigering,
-                beregninger = tidligereBeregninger,
+                beregninger = nåværendeBeregningMedTidligereBeregning,
                 totaltBeløp = meldekortBehandling.beregning!!.totalBeløp,
                 tekstTilVedtaksbrev = command.tekstTilVedtaksbrev,
                 forhåndsvisning = true,

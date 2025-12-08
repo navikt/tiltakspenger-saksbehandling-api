@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
@@ -57,6 +58,23 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
         }
 
         return beregningerForKjede[beregningIndex - 1].right()
+    }
+
+    /**
+     * Henter forrige beregning på [kjedeId] før [beregningId], eller siste gjeldende beregning på kjeden dersom
+     * beregningen med [beregningId] ikke finnes.
+     */
+    fun hentForrigeBeregningEllerSiste(
+        beregningId: BeregningId,
+        kjedeId: MeldeperiodeKjedeId,
+    ): MeldeperiodeBeregning? = hentForrigeBeregning(beregningId, kjedeId).getOrElse {
+        when (it) {
+            ForrigeBeregningFinnesIkke.IngenBeregningerForKjede,
+            ForrigeBeregningFinnesIkke.IngenTidligereBeregninger,
+            -> null
+
+            ForrigeBeregningFinnesIkke.BeregningFinnesIkke -> gjeldendeBeregningPerKjede[kjedeId]
+        }
     }
 
     fun sisteBeregningerForPeriode(periode: Periode): List<MeldeperiodeBeregning> {

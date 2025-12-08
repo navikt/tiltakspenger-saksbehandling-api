@@ -50,7 +50,11 @@ interface RammevedtakMother : MotherOfAllMothers {
         brevJson: String? = null,
         forrigeUtbetalingId: UtbetalingId? = null,
         omgjortAvRammevedtakId: VedtakId? = null,
-
+        utbetaling: VedtattUtbetaling? = behandling.tilRammevedtakUtbetaling(
+            vedtakId = id,
+            opprettet = opprettet,
+            forrigeUtbetalingId = forrigeUtbetalingId,
+        ),
     ) = Rammevedtak(
         id = id,
         opprettet = opprettet,
@@ -64,11 +68,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         distribusjonstidspunkt = distribusjonstidspunkt,
         sendtTilDatadeling = sendtTilDatadeling,
         brevJson = brevJson,
-        utbetaling = behandling.tilRammevedtakUtbetaling(
-            vedtakId = id,
-            opprettet = opprettet,
-            forrigeUtbetalingId = forrigeUtbetalingId,
-        ),
+        utbetaling = utbetaling,
         omgjortAvRammevedtak = OmgjortAvRammevedtak.empty,
     )
 
