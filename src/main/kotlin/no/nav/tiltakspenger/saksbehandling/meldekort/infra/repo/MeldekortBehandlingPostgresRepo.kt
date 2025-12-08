@@ -409,8 +409,8 @@ class MeldekortBehandlingPostgresRepo(
                         from meldekortbehandling m
                         join sak s on s.id = m.sak_id
                         where m.sendt_til_datadeling is null
-                        and status in ('GODKJENT', 'AUTOMATISK_BEHANDLET')
-                        order by opprettet
+                        and m.status in ('GODKJENT', 'AUTOMATISK_BEHANDLET')
+                        order by m.opprettet
                         limit $limit
                     """.trimIndent(),
                 ).map { fromRow(it, session) }.asList,
