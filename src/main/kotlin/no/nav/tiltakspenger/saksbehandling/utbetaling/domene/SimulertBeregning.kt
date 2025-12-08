@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.Nel
 import arrow.core.NonEmptyList
-import arrow.core.getOrElse
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
@@ -13,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning.SimulertBeregningMeldeperiode.SimulertBeregningDag
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.Int
 
 /**
  * I visse tilfeller der man simulerer en beregning, vil vi kunne få "ingen endring" som svar.
@@ -174,25 +172,15 @@ data class SimulertBeregning(
     }
 }
 
-fun MeldeperiodeBeregningerVedtatt.hentForrigeBeregningForSimulering(meldeperiodeBeregning: MeldeperiodeBeregning): MeldeperiodeBeregning? {
-    return hentForrigeBeregning(
+/**
+ *  Dersom beregningen vi prøvde å finne forrige beregning til ikke finnes (men det finnes andre beregninger på kjeden),
+ *  betyr det at denne beregningen ikke er iverksatt ennå, og forrige beregning er den gjeldende/sist iverksatte beregningen
+ * */
+fun MeldeperiodeBeregningerVedtatt.hentForrigeBeregningForSimulering(meldeperiodeBeregning: MeldeperiodeBeregning): MeldeperiodeBeregning? =
+    hentForrigeBeregningEllerSiste(
         meldeperiodeBeregning.id,
         meldeperiodeBeregning.kjedeId,
-    ).getOrElse {
-        when (it) {
-            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenBeregningerForKjede,
-            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenTidligereBeregninger,
-            -> null
-
-            /**
-             *  Dersom beregningen vi prøvde å finne forrige beregning til ikke finnes (men det finnes andre beregninger på kjeden),
-             *  betyr det at denne beregningen ikke er iverksatt ennå, og forrige beregning er den gjeldende/sist iverksatte beregningen
-             * */
-            MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.BeregningFinnesIkke,
-            -> gjeldendeBeregningPerKjede[meldeperiodeBeregning.kjedeId]
-        }
-    }
-}
+    )
 
 private fun NonEmptyList<SimulertBeregning.BeregningBeløp>.summer(): SimulertBeregning.BeregningBeløp {
     return SimulertBeregning.BeregningBeløp(
