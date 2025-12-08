@@ -50,10 +50,10 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
-                it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.size shouldBe 1
+                it.valgteTiltaksdeltakelser?.perioderMedVerdi?.size shouldBe 1
                 søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
-                it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.firstOrNull()?.verdi?.eksternDeltakelseId shouldBe søknad.tiltak.id
-                it.valgteTiltaksdeltakelser?.periodisering?.totalPeriode shouldBe søknad.tiltaksdeltakelseperiodeDetErSøktOm()
+                it.valgteTiltaksdeltakelser?.perioderMedVerdi?.firstOrNull()?.verdi?.eksternDeltakelseId shouldBe søknad.tiltak.id
+                it.valgteTiltaksdeltakelser?.totalPeriode shouldBe søknad.tiltaksdeltakelseperiodeDetErSøktOm()
             }
         }
     }

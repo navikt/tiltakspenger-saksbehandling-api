@@ -1,11 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.felles.tilUnikePerioderUtenOverlapp
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import java.time.LocalDate
 
@@ -73,22 +75,8 @@ data class Innvilgelsesperioder(
             val unikePerioder = innvilgelsesperioder
                 .plus(antallDagerPerMeldeperiode.map { it.first })
                 .plus(tiltaksdeltakelser.map { it.first })
-                .distinctBy { it }
-                .sortedBy { it.fraOgMed }
-
-            if (unikePerioder.size == 1) {
-                val periode = unikePerioder.first()
-
-                return Innvilgelsesperioder(
-                    periodisering = listOf(
-                        Innvilgelsesperiode(
-                            periode = periode,
-                            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.single().second,
-                            valgtTiltaksdeltakelse = saksopplysninger.getTiltaksdeltakelse(tiltaksdeltakelser.single().second)!!,
-                        ).tilPeriodeMedVerdi(),
-                    ).tilIkkeTomPeriodisering(),
-                )
-            }
+                .toNonEmptyListOrNull()!!
+                .tilUnikePerioderUtenOverlapp()
 
             val antallDagerPeriodisert = antallDagerPerMeldeperiode.map {
                 PeriodeMedVerdi(it.second, it.first)
@@ -98,40 +86,14 @@ data class Innvilgelsesperioder(
                 PeriodeMedVerdi(it.second, it.first)
             }.tilIkkeTomPeriodisering()
 
-            val innvilgelsesperioder: List<PeriodeMedVerdi<Innvilgelsesperiode>> = unikePerioder.zipWithNext { a, b ->
-                val periode = Periode(
-                    fraOgMed = a.fraOgMed,
-                    tilOgMed = minOf(
-                        a.tilOgMed,
-                        b.fraOgMed.minusDays(1),
-                    ),
-                )
-
+            val innvilgelsesperioder: List<PeriodeMedVerdi<Innvilgelsesperiode>> = unikePerioder.map {
                 Innvilgelsesperiode(
-                    periode = periode,
+                    periode = it,
                     valgtTiltaksdeltakelse = saksopplysninger.getTiltaksdeltakelse(
-                        tiltakPeriodisert.hentVerdiForDag(periode.fraOgMed)!!,
+                        tiltakPeriodisert.hentVerdiForDag(it.fraOgMed)!!,
                     )!!,
-                    antallDagerPerMeldeperiode = antallDagerPeriodisert.hentVerdiForDag(periode.tilOgMed)!!,
+                    antallDagerPerMeldeperiode = antallDagerPeriodisert.hentVerdiForDag(it.tilOgMed)!!,
                 ).tilPeriodeMedVerdi()
-            }.let {
-                val nestSistePeriode = it.last().periode
-                val sistePeriode = unikePerioder.last()
-
-                val nySistePeriode = Periode(
-                    fraOgMed = maxOf(sistePeriode.fraOgMed, nestSistePeriode.tilOgMed.plusDays(1)),
-                    tilOgMed = sistePeriode.tilOgMed,
-                )
-
-                it.plus(
-                    Innvilgelsesperiode(
-                        periode = nySistePeriode,
-                        valgtTiltaksdeltakelse = saksopplysninger.getTiltaksdeltakelse(
-                            tiltakPeriodisert.hentVerdiForDag(nySistePeriode.fraOgMed)!!,
-                        )!!,
-                        antallDagerPerMeldeperiode = antallDagerPeriodisert.hentVerdiForDag(nySistePeriode.tilOgMed)!!,
-                    ).tilPeriodeMedVerdi(),
-                )
             }
 
             return Innvilgelsesperioder(periodisering = innvilgelsesperioder.tilIkkeTomPeriodisering())

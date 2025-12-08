@@ -170,7 +170,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
         }
 
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
-            if (barnetillegg.periodisering.totalPeriode != innvilgelsesperioder) return false
+            if (barnetillegg.periodisering.totalPeriode != innvilgelsesperioder.totalPeriode) return false
             if (saksopplysninger.tiltaksdeltakelser.isEmpty()) return false
 
             valgteTiltaksdeltakelser.forEach { (deltakelse, periode) ->

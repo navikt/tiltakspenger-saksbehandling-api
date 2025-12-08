@@ -8,10 +8,8 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
@@ -78,10 +76,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         innvilgelsesperiode: Periode = ObjectMother.virkningsperiode(),
-        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            innvilgelsesperiode,
-        ),
+        antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>> = listOf(innvilgelsesperiode to AntallDagerForMeldeperiode.default),
         behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             virkningsperiode = innvilgelsesperiode,
@@ -102,7 +97,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId = sakId,
         behandling = behandling,
         vedtaksdato = vedtaksdato,
-        periode = behandling.innvilgelsesperioder!!,
+        periode = behandling.innvilgelsesperioder!!.totalPeriode,
         journalpostId = journalpostId,
         journalføringstidspunkt = journalføringstidspunkt,
         distribusjonId = distribusjonId,
@@ -117,10 +112,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         innvilgelsesperiode: Periode = ObjectMother.virkningsperiode(),
-        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            innvilgelsesperiode,
-        ),
+        antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>> = listOf(innvilgelsesperiode to AntallDagerForMeldeperiode.default),
         behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             virkningsperiode = innvilgelsesperiode,

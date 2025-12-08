@@ -3,13 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 
 private data class ValgteTiltaksdeltakelserDbJson(
     val value: List<TiltaksdeltakelsePeriodeMedVerdi>,
@@ -20,36 +16,11 @@ private data class TiltaksdeltakelsePeriodeMedVerdi(
     val eksternDeltagelseId: String,
 )
 
-// TODO: fjern
-fun String.toValgteTiltaksdeltakelser(saksopplysninger: Saksopplysninger): ValgteTiltaksdeltakelser {
-    val valgteTiltaksdeltakelserDbJson = deserialize<ValgteTiltaksdeltakelserDbJson>(this)
-    return ValgteTiltaksdeltakelser(
-        periodisering =
-        valgteTiltaksdeltakelserDbJson.value.map {
-            PeriodeMedVerdi(
-                periode = it.periode.toDomain(),
-                verdi = saksopplysninger.getTiltaksdeltakelse(it.eksternDeltagelseId)
-                    ?: throw IllegalStateException("Fant ikke tiltaksdeltakelse med id ${it.eksternDeltagelseId} fra saksopplysninger"),
-            )
-        }.tilSammenhengendePeriodisering(),
-    )
-}
-
 fun String.tilValgteTiltaksdeltakelser(): List<Pair<Periode, String>> {
     return deserialize<ValgteTiltaksdeltakelserDbJson>(this).value.map {
         it.periode.toDomain() to it.eksternDeltagelseId
     }
 }
-
-// TODO: fjern
-fun ValgteTiltaksdeltakelser.toDbJson(): String = ValgteTiltaksdeltakelserDbJson(
-    value = this.periodisering.perioderMedVerdi.toList().map {
-        TiltaksdeltakelsePeriodeMedVerdi(
-            periode = it.periode.toDbJson(),
-            eksternDeltagelseId = it.verdi.eksternDeltakelseId,
-        )
-    },
-).let { serialize(it) }
 
 fun Innvilgelsesperioder.tilValgteTiltaksdeltakelserDbJson(): String {
     return ValgteTiltaksdeltakelserDbJson(

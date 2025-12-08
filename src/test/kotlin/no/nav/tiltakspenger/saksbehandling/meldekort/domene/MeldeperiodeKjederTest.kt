@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -322,10 +321,7 @@ class MeldeperiodeKjederTest {
         val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(
             sakId = sakId,
             innvilgelsesperiode = periode,
-            antallDagerPerMeldeperiode = SammenhengendePeriodisering(
-                AntallDagerForMeldeperiode(5),
-                periode,
-            ),
+            antallDagerPerMeldeperiode = listOf(periode to AntallDagerForMeldeperiode(5)),
         )
         val actual = kjeder.genererMeldeperioder(
             Rammevedtaksliste(

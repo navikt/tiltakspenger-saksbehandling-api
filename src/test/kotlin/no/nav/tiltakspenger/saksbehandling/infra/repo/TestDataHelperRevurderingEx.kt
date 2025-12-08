@@ -10,11 +10,9 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -264,10 +262,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
                 revurdering.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
             ),
         ),
-        antallDagerPerMeldeperiode = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            periode,
-        ),
+        antallDagerPerMeldeperiode = listOf(periode to AntallDagerForMeldeperiode.default),
         barnetillegg = barnetillegg,
     )
 

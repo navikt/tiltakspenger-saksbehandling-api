@@ -4,11 +4,9 @@ import arrow.core.Either
 import arrow.core.NonEmptySet
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 
 sealed interface SøknadsbehandlingResultat : BehandlingResultat {
 

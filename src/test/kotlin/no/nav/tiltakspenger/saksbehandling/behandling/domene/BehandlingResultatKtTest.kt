@@ -4,10 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -16,9 +13,8 @@ class BehandlingResultatKtTest {
     inner class NullstilleResultatVedSaksopplysninger {
         val periode = Periode(1.januar(2023), 31.mars(2023))
 
-        private val valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser(
-            SammenhengendePeriodisering(PeriodeMedVerdi(ObjectMother.tiltaksdeltakelse(), periode)),
-        )
+        private val valgteTiltaksdeltakelser = listOf(ObjectMother.tiltaksdeltakelse())
+
         private val matchendeSaksopplysning = ObjectMother.saksopplysninger(
             fom = periode.fraOgMed,
             tom = periode.tilOgMed,

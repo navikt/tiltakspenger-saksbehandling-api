@@ -12,12 +12,10 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -45,6 +43,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
 import java.time.LocalDate
+import kotlin.Pair
 
 interface SakMother {
     fun nySak(
@@ -113,10 +112,7 @@ interface SakMother {
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
-        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode((DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
-            virkningsperiode,
-        ),
+        antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>> = listOf(virkningsperiode to AntallDagerForMeldeperiode.default),
         kanSendeInnHelgForMeldekort: Boolean = false,
         sak: Sak = ObjectMother.nySak(
             sakId = sakId,
@@ -291,10 +287,7 @@ interface SakMother {
                 tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltakelser.map {
                     Pair(virkningsperiode, it.eksternDeltakelseId)
                 }.toList(),
-                antallDagerPerMeldeperiode = SammenhengendePeriodisering(
-                    AntallDagerForMeldeperiode(10),
-                    virkningsperiode,
-                ),
+                antallDagerPerMeldeperiode = listOf(virkningsperiode to AntallDagerForMeldeperiode.default),
                 automatiskSaksbehandlet = søknadsbehandling.automatiskSaksbehandlet,
             ),
             clock = clock,

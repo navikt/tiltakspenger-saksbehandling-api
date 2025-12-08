@@ -14,11 +14,9 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -225,9 +223,11 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
             ),
             innvilgelsesperiode = tiltaksOgVurderingsperiode,
             barnetillegg = Barnetillegg.utenBarnetillegg(tiltaksOgVurderingsperiode),
-            antallDagerPerMeldeperiode = SammenhengendePeriodisering(
-                AntallDagerForMeldeperiode(10),
-                behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!,
+            antallDagerPerMeldeperiode = listOf(
+                Pair(
+                    behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!,
+                    AntallDagerForMeldeperiode.default,
+                ),
             ),
         ),
         clock = clock,
@@ -282,9 +282,11 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     /** Brukt for å styre meldeperiode generering */
     clock: Clock = this.clock,
-    antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-        AntallDagerForMeldeperiode((DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
-        Periode(deltakelseFom, deltakelseTom),
+    antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>> = listOf(
+        Pair(
+            Periode(deltakelseFom, deltakelseTom),
+            AntallDagerForMeldeperiode.default,
+        ),
     ),
     automatiskSaksbehandlet: Boolean = false,
 ): Pair<Sak, Rammebehandling> {

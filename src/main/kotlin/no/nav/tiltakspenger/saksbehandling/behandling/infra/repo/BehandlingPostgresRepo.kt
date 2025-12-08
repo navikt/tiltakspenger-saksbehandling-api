@@ -387,11 +387,11 @@ class BehandlingPostgresRepo(
                         stringOrNull("manuelt_behandles_grunner")?.toManueltBehandlesGrunner() ?: emptyList()
                     val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
 
-                    val valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
-                        .tilValgteTiltaksdeltakelser()
+                    val valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
+                        ?.tilValgteTiltaksdeltakelser()
 
-                    val antallDagerPerMeldeperiode = string("antall_dager_per_meldeperiode")
-                        .tilAntallDagerForMeldeperiode()
+                    val antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")
+                        ?.tilAntallDagerForMeldeperiode()
 
                     val resultat = when (resultatType) {
                         SøknadsbehandlingType.INNVILGELSE -> SøknadsbehandlingResultat.Innvilgelse(
@@ -399,8 +399,8 @@ class BehandlingPostgresRepo(
                             innvilgelsesperioder = Innvilgelsesperioder.create(
                                 saksopplysninger,
                                 listOf(virkningsperiode!!),
-                                antallDagerPerMeldeperiode,
-                                valgteTiltaksdeltakelser,
+                                antallDagerPerMeldeperiode!!,
+                                valgteTiltaksdeltakelser!!,
                             ),
                             omgjørRammevedtak = omgjørRammevedtak,
                         )

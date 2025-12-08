@@ -5,8 +5,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -77,8 +79,8 @@ internal class StartRevurderingTest {
             revurdering.saksnummer shouldBe sak.saksnummer
             revurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.periode
             revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.virkningsperiode
-            revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.innvilgelsesperioder
-            revurdering.resultat.innvilgelsesperioder shouldBe (3 til 10.april(2025))
+            revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.innvilgelsesperioder.totalPeriode
+            revurdering.resultat.innvilgelsesperioder.totalPeriode shouldBe (3 til 10.april(2025))
             revurdering.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
                     søknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
@@ -86,16 +88,18 @@ internal class StartRevurderingTest {
                 ),
                 begrunnelse = søknadsbehandling.barnetillegg.begrunnelse,
             )
-            revurdering.antallDagerPerMeldeperiode shouldBe SammenhengendePeriodisering(
-                søknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
-                (3 til 10.april(2025)),
-            )
-            revurdering.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
-                periodisering = SammenhengendePeriodisering(
-                    søknadsbehandling.valgteTiltaksdeltakelser!!.periodisering.verdier.single(),
+            revurdering.antallDagerPerMeldeperiode shouldBe listOf(
+                PeriodeMedVerdi(
+                    søknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
                     (3 til 10.april(2025)),
                 ),
-            )
+            ).tilIkkeTomPeriodisering()
+            revurdering.valgteTiltaksdeltakelser shouldBe listOf(
+                PeriodeMedVerdi(
+                    revurdering.saksopplysninger.tiltaksdeltakelser.single(),
+                    (3 til 10.april(2025)),
+                ),
+            ).tilIkkeTomPeriodisering()
             revurdering.attesteringer shouldBe emptyList()
             revurdering.saksopplysninger.shouldNotBeNull()
             revurdering.erFerdigutfylt() shouldBe true
@@ -111,11 +115,11 @@ internal class StartRevurderingTest {
                 oppdaterTiltaksdeltakelsesperiode = 2 til 9.april(2025),
             )!!
             rammevedtakSøknadsbehandling.behandling.virkningsperiode shouldBe (1 til 10.april(2025))
-            rammevedtakSøknadsbehandling.behandling.innvilgelsesperiode shouldBe (1 til 10.april(2025))
+            rammevedtakSøknadsbehandling.behandling.innvilgelsesperioder!!.totalPeriode shouldBe (1 til 10.april(2025))
             rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
-            omgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
+            omgjøring!!.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
             omgjøring.virkningsperiode shouldBe (1 til 10.april(2025))
-            omgjøring.innvilgelsesperioder shouldBe (2 til 9.april(2025))
+            omgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
                     rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
@@ -123,12 +127,12 @@ internal class StartRevurderingTest {
                 ),
                 begrunnelse = rammevedtakSøknadsbehandling.behandling.barnetillegg!!.begrunnelse,
             )
-            omgjøring.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
-                periodisering = SammenhengendePeriodisering(
-                    rammevedtakSøknadsbehandling.valgteTiltaksdeltakelser!!.periodisering.verdier.single(),
+            omgjøring.valgteTiltaksdeltakelser shouldBe listOf(
+                PeriodeMedVerdi(
+                    omgjøring.saksopplysninger.tiltaksdeltakelser.single(),
                     (2 til 9.april(2025)),
                 ),
-            )
+            ).tilIkkeTomPeriodisering()
             omgjøring.antallDagerPerMeldeperiode shouldBe SammenhengendePeriodisering(
                 rammevedtakSøknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
                 (2 til 9.april(2025)),
@@ -148,13 +152,12 @@ internal class StartRevurderingTest {
                 søknadsbehandlingInnvilgelsesperiode = 2 til 9.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = 1 til 10.april(2025),
             )!!
-            omgjøring!!.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
             rammevedtakSøknadsbehandling.behandling.virkningsperiode shouldBe (2 til 9.april(2025))
-            rammevedtakSøknadsbehandling.behandling.innvilgelsesperiode shouldBe (2 til 9.april(2025))
+            rammevedtakSøknadsbehandling.behandling.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
             rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
             omgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
             omgjøring.virkningsperiode shouldBe (2 til 9.april(2025))
-            omgjøring.innvilgelsesperioder shouldBe (2 til 9.april(2025))
+            omgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
                     rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
@@ -162,12 +165,12 @@ internal class StartRevurderingTest {
                 ),
                 begrunnelse = rammevedtakSøknadsbehandling.behandling.barnetillegg!!.begrunnelse,
             )
-            omgjøring.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
-                periodisering = SammenhengendePeriodisering(
-                    rammevedtakSøknadsbehandling.valgteTiltaksdeltakelser!!.periodisering.verdier.single(),
+            omgjøring.valgteTiltaksdeltakelser shouldBe listOf(
+                PeriodeMedVerdi(
+                    omgjøring.saksopplysninger.tiltaksdeltakelser.single(),
                     (2 til 9.april(2025)),
                 ),
-            )
+            ).tilIkkeTomPeriodisering()
             omgjøring.antallDagerPerMeldeperiode shouldBe SammenhengendePeriodisering(
                 rammevedtakSøknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
                 (2 til 9.april(2025)),
