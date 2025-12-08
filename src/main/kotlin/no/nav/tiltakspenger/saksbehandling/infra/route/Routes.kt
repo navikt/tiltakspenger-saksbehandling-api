@@ -82,7 +82,7 @@ fun Route.routes(
         søknadRoutes(
             auditService = applicationContext.personContext.auditService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
-            startBehandlingAvPapirsøknadService = applicationContext.søknadContext.registrerPapirsøknadService,
+            startBehandlingAvManueltRegistrertSøknadService = applicationContext.søknadContext.startBehandlingAvManueltRegistrertSøknadService,
             søknadService = applicationContext.søknadContext.søknadService,
             sakService = applicationContext.sakContext.sakService,
             validerJournalpostService = applicationContext.søknadContext.validerJournalpostService,

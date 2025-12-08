@@ -10,16 +10,16 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import java.time.LocalDate
 
-data class PapirsøknadBody(
+data class ManueltRegistrertSøknadBody(
     val journalpostId: String,
     val personopplysninger: PersonopplysningerDTO,
     val manueltSattSøknadsperiode: PeriodeDTO?,
     val manueltSattTiltak: String?,
     val antallVedlegg: Int,
-    val svar: PapirsøknadSvarDTO,
+    val svar: ManueltRegistrertSøknadSvarDTO,
 ) {
-    fun tilKommando(): StartBehandlingAvPapirsøknadCommand {
-        return StartBehandlingAvPapirsøknadCommand(
+    fun tilKommando(): StartBehandlingAvManueltRegistrertSøknadCommand {
+        return StartBehandlingAvManueltRegistrertSøknadCommand(
             personopplysninger = personopplysninger.tilDomene(),
             journalpostId = JournalpostId(journalpostId),
             manueltSattSøknadsperiode = manueltSattSøknadsperiode?.toDomain(),
