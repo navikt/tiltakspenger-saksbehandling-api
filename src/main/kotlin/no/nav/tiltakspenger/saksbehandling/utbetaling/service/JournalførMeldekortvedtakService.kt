@@ -47,7 +47,6 @@ class JournalførMeldekortvedtakService(
                             when (it) {
                                 MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenTidligereBeregninger -> null
                                 MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenBeregningerForKjede,
-                                MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.BeregningFinnesIkke,
                                 -> {
                                     // TODO abn: kanskje vi burde kaste exception her?
                                     log.error { "Fant ikke beregningen ${beregningEtter.id} på kjede ${beregningEtter.kjedeId} - Dette er sannsynligvis en feil!" }

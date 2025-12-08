@@ -40,7 +40,7 @@ class ForhåndsvisBrevMeldekortBehandlingService(
             "Forventet at et det skal finnes tiltaksdeltakelse for meldekortvedtaksperioden"
         }
 
-        val tidligereBeregninger = meldekortBehandling.beregning!!.beregninger.map {
+        val nåværendeBeregningMedTidligereBeregning = meldekortBehandling.beregning!!.beregninger.map {
             val tidligereBeregning = sak.meldeperiodeBeregninger.hentForrigeBeregning(it.id, it.kjedeId)
 
             tidligereBeregning.getOrElse { null } to it
@@ -65,7 +65,7 @@ class ForhåndsvisBrevMeldekortBehandlingService(
                 tiltaksdeltakelser = tiltaksdeltakelser,
                 iverksattTidspunkt = null,
                 erKorrigering = meldekortBehandling.erKorrigering,
-                beregninger = tidligereBeregninger,
+                beregninger = nåværendeBeregningMedTidligereBeregning,
                 totaltBeløp = meldekortBehandling.beregning!!.totalBeløp,
                 tekstTilVedtaksbrev = command.tekstTilVedtaksbrev,
                 forhåndsvisning = true,

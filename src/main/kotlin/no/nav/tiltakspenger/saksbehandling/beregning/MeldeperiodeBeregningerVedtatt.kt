@@ -37,7 +37,6 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
      *  @return
      *  [ForrigeBeregningFinnesIkke.IngenBeregningerForKjede] dersom kjeden til [kjedeId] ikke har noen beregninger.
      *  [ForrigeBeregningFinnesIkke.IngenTidligereBeregninger] dersom beregningen til [beregningId] er første beregning på kjeden.
-     *  [ForrigeBeregningFinnesIkke.BeregningFinnesIkke] dersom beregningen til [beregningId] ikke finnes på kjeden.
      * */
     fun hentForrigeBeregning(
         beregningId: BeregningId,
@@ -49,7 +48,7 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
         val beregningIndex = beregningerForKjede.indexOfFirst { it.id == beregningId }
 
         if (beregningIndex == -1) {
-            return ForrigeBeregningFinnesIkke.BeregningFinnesIkke.left()
+            return beregningerForKjede.last().right()
         }
 
         if (beregningIndex == 0) {
@@ -84,6 +83,5 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
     enum class ForrigeBeregningFinnesIkke {
         IngenBeregningerForKjede,
         IngenTidligereBeregninger,
-        BeregningFinnesIkke,
     }
 }
