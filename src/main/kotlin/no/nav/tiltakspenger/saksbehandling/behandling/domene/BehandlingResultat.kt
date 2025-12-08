@@ -1,13 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
 sealed interface BehandlingResultat {
 
@@ -18,13 +17,13 @@ sealed interface BehandlingResultat {
     val innvilgelsesperioder: Innvilgelsesperioder?
 
     /** Vil være null ved stans og når behandlingen er uferdig */
+    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<Tiltaksdeltakelse>?
+
+    /** Vil være null ved stans og når behandlingen er uferdig */
+    val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>?
+
+    /** Vil være null ved stans og når behandlingen er uferdig */
     val barnetillegg: Barnetillegg?
-
-    /** Vil være null ved stans og når behandlingen er uferdig */
-    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
-
-    /** Vil være null ved stans og når behandlingen er uferdig */
-    val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
 
     val omgjørRammevedtak: OmgjørRammevedtak
 
@@ -46,13 +45,7 @@ sealed interface BehandlingResultat {
          * TODO jah: Ikke direkte relatert til omgjøring, men vi bør utvide denne til og ta høyde for saksopplysninger.tiltaksdeltakelser
          */
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
-            return innvilgelsesperioder != null &&
-                valgteTiltaksdeltakelser != null &&
-                barnetillegg != null &&
-                antallDagerPerMeldeperiode != null &&
-                antallDagerPerMeldeperiode!!.totalPeriode == innvilgelsesperioder &&
-                valgteTiltaksdeltakelser!!.periodisering.totalPeriode == innvilgelsesperioder &&
-                barnetillegg!!.periodisering.totalPeriode == innvilgelsesperioder
+            return innvilgelsesperioder != null && barnetillegg != null
         }
     }
 
@@ -78,14 +71,14 @@ enum class RevurderingType : BehandlingResultatType {
  */
 @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
 fun skalNullstilleResultatVedNyeSaksopplysninger(
-    valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
+    valgteTiltaksdeltakelser: List<Tiltaksdeltakelse>,
     nyeSaksopplysninger: Saksopplysninger,
 ): Boolean {
-    return if (valgteTiltaksdeltakelser.verdier.size != nyeSaksopplysninger.tiltaksdeltakelser.size) {
+    return if (valgteTiltaksdeltakelser.size != nyeSaksopplysninger.tiltaksdeltakelser.size) {
         true
     } else {
         (
-            valgteTiltaksdeltakelser.verdier.sortedBy { it.eksternDeltakelseId }
+            valgteTiltaksdeltakelser.sortedBy { it.eksternDeltakelseId }
                 .zip(nyeSaksopplysninger.tiltaksdeltakelser.sortedBy { it.eksternDeltakelseId }) { forrige, nye ->
                     // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltakelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
                     forrige.eksternDeltakelseId != nye.eksternDeltakelseId ||

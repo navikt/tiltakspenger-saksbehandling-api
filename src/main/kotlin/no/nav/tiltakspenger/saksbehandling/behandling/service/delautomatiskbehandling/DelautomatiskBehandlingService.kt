@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -132,7 +133,7 @@ class DelautomatiskBehandlingService(
             barnetillegg = barnetillegg,
             // Kommentar jah: Det føles litt vondt og gjenbruke denne kommandoen for det tilfellet her. For automatisk behandling krever vi at det er 1 søknad for 1 tiltak og saksopplysningene bare har funnet en tiltaksdeltakelse.
             tiltaksdeltakelser = tiltaksdeltakelser,
-            antallDagerPerMeldeperiode = utledAntallDagerPerMeldeperiode(behandling),
+            antallDagerPerMeldeperiode = listOf(utledAntallDagerPerMeldeperiode(behandling)),
             automatiskSaksbehandlet = true,
         )
 
@@ -252,7 +253,8 @@ class DelautomatiskBehandlingService(
                 manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_IKKE_DELTATT_PA_TILTAK)
             }
             val deltakelsesprosent = soknadstiltakFraSaksopplysning.getDeltakelsesprosent()
-            val manglerDagerPerUke = soknadstiltakFraSaksopplysning.antallDagerPerUke == null || soknadstiltakFraSaksopplysning.antallDagerPerUke == 0F
+            val manglerDagerPerUke =
+                soknadstiltakFraSaksopplysning.antallDagerPerUke == null || soknadstiltakFraSaksopplysning.antallDagerPerUke == 0F
             if (manglerDagerPerUke && deltakelsesprosent == null) {
                 manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_TILTAK_MANGLER_DELTAKELSESMENGDE)
             }
@@ -372,25 +374,25 @@ class DelautomatiskBehandlingService(
 
     private fun utledAntallDagerPerMeldeperiode(
         behandling: Søknadsbehandling,
-    ): SammenhengendePeriodisering<AntallDagerForMeldeperiode> {
+    ): Pair<Periode, AntallDagerForMeldeperiode> {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad. BehandlingId: ${behandling.id}" }
+
         val soknadstiltakFraSaksopplysning = behandling.søknad.tiltak
             .let { tiltak -> behandling.saksopplysninger.getTiltaksdeltakelse(tiltak.id) }
             ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk. BehandlingId: ${behandling.id}")
+
         require((soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) || soknadstiltakFraSaksopplysning.getDeltakelsesprosent() == 100.0F) {
             "Tiltaksdeltakelser som mangler dagerPerUke og ikke har deltakelsesprosent 100% kan ikke behandles automatisk. BehandlingId: ${behandling.id}"
         }
-        return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
-            SammenhengendePeriodisering(
-                AntallDagerForMeldeperiode(getDagerPerMeldeperiode(soknadstiltakFraSaksopplysning.antallDagerPerUke)),
-                behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm(),
-            )
-        } else {
-            SammenhengendePeriodisering(
-                AntallDagerForMeldeperiode(10),
-                behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm(),
-            )
-        }
+
+        val antallDager =
+            if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
+                getDagerPerMeldeperiode(soknadstiltakFraSaksopplysning.antallDagerPerUke)
+            } else {
+                DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+            }
+
+        return behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm() to AntallDagerForMeldeperiode(antallDager)
     }
 
     private fun Tiltaksdeltakelse.getDeltakelsesprosent(): Float? {

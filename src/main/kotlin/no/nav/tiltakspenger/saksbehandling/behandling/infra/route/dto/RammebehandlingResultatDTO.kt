@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.t
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.toTiltaksdeltakelsePeriodeDTO
 
@@ -86,10 +85,10 @@ fun SøknadsbehandlingResultat?.tilSøknadsbehandlingResultatDTO(): Søknadsbeha
         )
 
         is SøknadsbehandlingResultat.Innvilgelse -> SøknadsbehandlingResultatDTO.Innvilgelse(
-            innvilgelsesperiode = innvilgelsesperioder.toDTO(),
-            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser.tilDTO(),
+            innvilgelsesperiode = innvilgelsesperioder.totalPeriode.toDTO(),
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser.toTiltaksdeltakelsePeriodeDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode?.tilAntallDagerPerMeldeperiodeDTO(),
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),
         )
 
         null -> SøknadsbehandlingResultatDTO.IkkeValgt
@@ -99,8 +98,8 @@ fun SøknadsbehandlingResultat?.tilSøknadsbehandlingResultatDTO(): Søknadsbeha
 fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
     return when (this) {
         is RevurderingResultat.Innvilgelse -> RevurderingResultatDTO.Innvilgelse(
-            innvilgelsesperiode = innvilgelsesperioder?.toDTO(),
-            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.tilDTO(),
+            innvilgelsesperiode = innvilgelsesperioder?.totalPeriode?.toDTO(),
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.toTiltaksdeltakelsePeriodeDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode?.tilAntallDagerPerMeldeperiodeDTO(),
         )
@@ -112,8 +111,8 @@ fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
         )
 
         is RevurderingResultat.Omgjøring -> RevurderingResultatDTO.Omgjøring(
-            innvilgelsesperiode = innvilgelsesperioder.toDTO(),
-            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.tilDTO(),
+            innvilgelsesperiode = innvilgelsesperioder.totalPeriode.toDTO(),
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser.toTiltaksdeltakelsePeriodeDTO(),
             barnetillegg = barnetillegg.toBarnetilleggDTO(),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),
             // Per 27. nov 2025 krever vi at en omgjøringsbehandling omgjør ett enkelt vedtak, men vi har ikke noen begrensning på å utvide omgjøringen, slik at den omgjør flere vedtak.
@@ -122,8 +121,4 @@ fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
             omgjørVedtak = omgjørRammevedtak.single { it.omgjøringsgrad == Omgjøringsgrad.HELT }.rammevedtakId.toString(),
         )
     }
-}
-
-private fun ValgteTiltaksdeltakelser.tilDTO(): List<TiltaksdeltakelsePeriodeDTO> {
-    return periodisering.perioderMedVerdi.toList().map { it.toTiltaksdeltakelsePeriodeDTO() }
 }

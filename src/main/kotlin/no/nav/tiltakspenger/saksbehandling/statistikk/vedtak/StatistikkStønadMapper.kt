@@ -17,9 +17,11 @@ fun genererStønadsstatistikkForRammevedtak(
     val erSøknadsbehandling = vedtak.behandling is Søknadsbehandling
 
     val søknad = if (erSøknadsbehandling) vedtak.behandling.søknad else null
-    val tiltaksdeltakelser = vedtak.behandling.valgteTiltaksdeltakelser?.let { valgteTiltaksdeltakelser ->
-        valgteTiltaksdeltakelser.getTiltaksdeltakelser().map { it.eksternDeltakelseId }
-    }
+
+    val innvilgelsesperioder = vedtak.innvilgelsesperioder?.perioder?.map { it.toDTO() }
+
+    val tiltaksdeltakelseEksterneIder =
+        vedtak.behandling.valgteTiltaksdeltakelser?.verdier?.map { it.eksternDeltakelseId }
 
     val barnetillegg = vedtak.barnetillegg?.periodisering?.mapNotNull { bt ->
         if (bt.verdi.value > 0) {
@@ -43,7 +45,7 @@ fun genererStønadsstatistikkForRammevedtak(
         sakDato = vedtak.saksnummer.dato,
         vedtaksperiodeFraOgMed = vedtak.periode.fraOgMed,
         vedtaksperiodeTilOgMed = vedtak.periode.tilOgMed,
-        innvilgelsesperioder = listOfNotNull(vedtak.innvilgelsesperiode).map { it.toDTO() },
+        innvilgelsesperioder = innvilgelsesperioder ?: emptyList(),
         omgjørRammevedtakId = if (vedtak.resultat is RevurderingResultat.Omgjøring) {
             vedtak.resultat.omgjørRammevedtak.single().rammevedtakId.toString()
         } else {
@@ -61,7 +63,7 @@ fun genererStønadsstatistikkForRammevedtak(
         // TODO post-mvp: Denne skal kanskje egentlig være datoen fra brevet. Ta en prat med statistikk.
         vedtakDato = vedtak.opprettet.toLocalDate(),
 
-        tiltaksdeltakelser = tiltaksdeltakelser ?: emptyList(),
+        tiltaksdeltakelser = tiltaksdeltakelseEksterneIder ?: emptyList(),
         barnetillegg = barnetillegg,
         harBarnetillegg = barnetillegg.isNotEmpty(),
     )

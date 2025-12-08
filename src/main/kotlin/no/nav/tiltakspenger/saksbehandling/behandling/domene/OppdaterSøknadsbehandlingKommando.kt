@@ -31,7 +31,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val tiltaksdeltakelser: List<Pair<Periode, String>>,
         override val innvilgelsesperiode: Periode,
         override val barnetillegg: Barnetillegg,
-        override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
+        override val antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>>,
     ) : OppdaterSøknadsbehandlingKommando,
         OppdaterBehandlingKommando.Innvilgelse {
 

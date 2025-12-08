@@ -1,7 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route
 
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
@@ -10,7 +11,17 @@ data class TiltaksdeltakelsePeriodeDTO(
     val periode: PeriodeDTO,
 )
 
-fun PeriodeMedVerdi<Tiltaksdeltakelse>.toTiltaksdeltakelsePeriodeDTO() = TiltaksdeltakelsePeriodeDTO(
-    eksternDeltagelseId = verdi.eksternDeltakelseId,
-    periode = periode.toDTO(),
-)
+fun Periodisering<Tiltaksdeltakelse>.toTiltaksdeltakelsePeriodeDTO(): List<TiltaksdeltakelsePeriodeDTO> {
+    return this.perioderMedVerdi.map {
+        TiltaksdeltakelsePeriodeDTO(
+            eksternDeltagelseId = it.verdi.eksternDeltakelseId,
+            periode = it.periode.toDTO(),
+        )
+    }
+}
+
+fun List<TiltaksdeltakelsePeriodeDTO>.tilDomene(): List<Pair<Periode, String>> {
+    return this.map {
+        it.periode.toDomain() to it.eksternDeltagelseId
+    }
+}

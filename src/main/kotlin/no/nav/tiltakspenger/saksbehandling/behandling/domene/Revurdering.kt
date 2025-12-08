@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Omgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -27,7 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
@@ -59,7 +57,7 @@ data class Revurdering(
 ) : Rammebehandling {
 
     override val virkningsperiode: Periode? = resultat.virkningsperiode
-    override val innvilgelsesperiode: Periode? = resultat.innvilgelsesperioder
+    override val innvilgelsesperioder: Innvilgelsesperioder? = resultat.innvilgelsesperioder
 
     override val barnetillegg = resultat.barnetillegg
 
@@ -115,13 +113,8 @@ data class Revurdering(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             resultat = Innvilgelse(
-                valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
-                    tiltaksdeltakelser = kommando.tiltaksdeltakelser,
-                    behandling = this,
-                ),
+                innvilgelsesperioder = kommando.tilInnvilgelseperioder(this),
                 barnetillegg = kommando.barnetillegg,
-                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                innvilgelsesperioder = kommando.innvilgelsesperiode,
                 omgjørRammevedtak = omgjørRammevedtak,
             ),
             utbetaling = utbetaling,
@@ -138,20 +131,15 @@ data class Revurdering(
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
 
-        require(this.resultat is Omgjøring)
+        require(this.resultat is RevurderingResultat.Omgjøring)
 
         return this.copy(
             sistEndret = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             resultat = resultat.oppdater(
-                innvilgelsesperiode = kommando.innvilgelsesperiode,
-                valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
-                    tiltaksdeltakelser = kommando.tiltaksdeltakelser,
-                    behandling = this,
-                ),
-                barnetillegg = kommando.barnetillegg,
-                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                oppdatertInnvilgelsesperioder = kommando.tilInnvilgelseperioder(this),
+                oppdatertBarnetillegg = kommando.barnetillegg,
                 saksopplysninger = saksopplysninger,
             ),
             utbetaling = utbetaling,
@@ -261,7 +249,7 @@ data class Revurdering(
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
-                resultat = Omgjøring.create(omgjørRammevedtak, saksopplysninger).getOrElse {
+                resultat = RevurderingResultat.Omgjøring.create(omgjørRammevedtak, saksopplysninger).getOrElse {
                     return it.left()
                 },
             ).right()

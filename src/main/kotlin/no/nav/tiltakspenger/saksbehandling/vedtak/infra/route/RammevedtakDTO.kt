@@ -76,7 +76,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.maksAntallDager(),
         barnetillegg = barnetillegg?.toBarnetilleggDTO(),
         opprinneligVedtaksperiode = periodeDTO,
-        opprinneligInnvilgetPerioder = listOfNotNull(this.innvilgelsesperiode?.toDTO()),
+        opprinneligInnvilgetPerioder = this.innvilgelsesperioder?.perioder?.map { it.toDTO() } ?: emptyList(),
         gjeldendeInnvilgetPerioder = this.gjeldendeInnvilgelsesperioder.map { it.toDTO() },
         erGjeldende = this.erGjeldende,
         gyldigeKommandoer = this.gyldigeKommandoer.toDTO(),
@@ -106,7 +106,8 @@ data class TidslinjeDTO(
 fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<TidslinjeElementDTO> {
     return when (this.resultat) {
         is RevurderingResultat.Omgjøring -> {
-            val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperiode!!) ?: return listOf(
+            // TODO: må støtte flere perioder
+            val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperioder!!.totalPeriode) ?: return listOf(
                 // Dette omgjøringsvedtaket har ingen gjeldende innvilgelser. Hele perioden er et opphør.
                 TidslinjeElementDTO(
                     rammevedtak = this.tilRammevedtakDTO().copy(barnetillegg = null),

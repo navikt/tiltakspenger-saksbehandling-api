@@ -4,13 +4,10 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 sealed interface RevurderingResultat : BehandlingResultat {
@@ -70,20 +67,20 @@ sealed interface RevurderingResultat : BehandlingResultat {
      * Virkningsperioden/vedtaksperioden og innvilgelsesperioden vil være 1-1 ved denne revurderingstypen.
      */
     data class Innvilgelse(
-        override val innvilgelsesperioder: Periode?,
-        override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
+        override val innvilgelsesperioder: Innvilgelsesperioder?,
         override val barnetillegg: Barnetillegg?,
-        override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
         override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : BehandlingResultat.Innvilgelse,
         RevurderingResultat {
-        override val virkningsperiode = innvilgelsesperioder
+        override val virkningsperiode = innvilgelsesperioder?.totalPeriode
+        override val valgteTiltaksdeltakelser = innvilgelsesperioder?.valgteTiltaksdeltagelser
+        override val antallDagerPerMeldeperiode = innvilgelsesperioder?.antallDagerPerMeldeperiode
 
         fun nullstill() = empty
 
         override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Innvilgelse> {
             return if (valgteTiltaksdeltakelser == null || skalNullstilleResultatVedNyeSaksopplysninger(
-                    valgteTiltaksdeltakelser,
+                    valgteTiltaksdeltakelser.verdier,
                     oppdaterteSaksopplysninger,
                 )
             ) {
@@ -95,9 +92,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
 
         companion object {
             val empty = Innvilgelse(
-                valgteTiltaksdeltakelser = null,
                 barnetillegg = null,
-                antallDagerPerMeldeperiode = null,
                 innvilgelsesperioder = null,
                 omgjørRammevedtak = OmgjørRammevedtak.empty,
             )
@@ -117,13 +112,13 @@ sealed interface RevurderingResultat : BehandlingResultat {
      */
     data class Omgjøring(
         override val virkningsperiode: Periode,
-        override val innvilgelsesperioder: Periode,
-        override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
+        override val innvilgelsesperioder: Innvilgelsesperioder,
         override val barnetillegg: Barnetillegg,
-        override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
         override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : RevurderingResultat,
         BehandlingResultat.Innvilgelse {
+        override val valgteTiltaksdeltakelser = innvilgelsesperioder.valgteTiltaksdeltagelser
+        override val antallDagerPerMeldeperiode = innvilgelsesperioder.antallDagerPerMeldeperiode
 
         // Kommentar jah: Avventer med å extende BehandlingResultat.Innvilgelse inntil vi har på plass periodisering av innvilgelsesperioden.
         // Det er ikke sikkert at vi ønsker å gjenbruke logikken derfra.
@@ -132,27 +127,22 @@ sealed interface RevurderingResultat : BehandlingResultat {
         // Fjernes når omgjøring ikke lengre alltid skal føre til innvilgelse. Må da ha en annen mekanisme for å avgjøre om omgjøringen er en innvilgelse
 
         fun oppdater(
-            innvilgelsesperiode: Periode,
-            valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
-            barnetillegg: Barnetillegg,
-            antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
+            oppdatertInnvilgelsesperioder: Innvilgelsesperioder,
+            oppdatertBarnetillegg: Barnetillegg,
             saksopplysninger: Saksopplysninger,
         ): Omgjøring {
-            require(
-                resetTiltaksdeltakelserDersomDeErInkompatible(
-                    valgteTiltaksdeltakelser,
-                    saksopplysninger.tiltaksdeltakelser,
-                ) == valgteTiltaksdeltakelser,
-            ) {
+            val innvilgelsesperioderMedTiltaksdeltakelse =
+                oppdatertInnvilgelsesperioder.krympTilTiltaksdeltakelsesperioder(saksopplysninger.tiltaksdeltakelser)
+
+            requireNotNull(innvilgelsesperioderMedTiltaksdeltakelse) {
                 // Dersom vi denne kaster og vi savner mer sakskontekst, bør denne returnere Either, slik at callee kan håndtere feilen.
-                "Valgte tiltaksdeltakelser er ikke kompatible med saksopplysninger.tiltaksdeltakelser."
+                "Valgte innvilgelsesperioder har ingen overlapp med tiltaksdeltakelser fra saksopplysningene"
             }
+
             return this.copy(
-                virkningsperiode = utledNyVirkningsperiode(this.virkningsperiode, innvilgelsesperiode),
-                innvilgelsesperioder = innvilgelsesperiode,
-                valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
-                barnetillegg = barnetillegg,
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                virkningsperiode = utledNyVirkningsperiode(this.virkningsperiode, oppdatertInnvilgelsesperioder),
+                innvilgelsesperioder = innvilgelsesperioderMedTiltaksdeltakelse,
+                barnetillegg = oppdatertBarnetillegg,
                 omgjørRammevedtak = this.omgjørRammevedtak,
             )
         }
@@ -164,46 +154,42 @@ sealed interface RevurderingResultat : BehandlingResultat {
         override fun oppdaterSaksopplysninger(
             oppdaterteSaksopplysninger: Saksopplysninger,
         ): Either<KunneIkkeOppdatereSaksopplysninger, Omgjøring> {
-            val innvilgelsesperiode =
-                oppdaterteSaksopplysninger.tiltaksdeltakelser.totalPeriode?.overlappendePeriode(innvilgelsesperioder)
+            val innvilgelsesperioder =
+                innvilgelsesperioder.krympTilTiltaksdeltakelsesperioder(oppdaterteSaksopplysninger.tiltaksdeltakelser)
                     ?: return KunneIkkeOppdatereSaksopplysninger.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag.left()
-            val valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.krympPeriode(innvilgelsesperiode)
-            val barnetillegg = barnetillegg.krympPeriode(innvilgelsesperiode)
-            val antallDagerPerMeldeperiode =
-                antallDagerPerMeldeperiode.krympPeriode(innvilgelsesperiode) as SammenhengendePeriodisering<AntallDagerForMeldeperiode>
+
+            // TODO abn: denne må oppdateres for hver enkelt innvilgelsesperiode, ikke bare totalperioden
+            val barnetillegg = barnetillegg.krympPeriode(innvilgelsesperioder.totalPeriode)
+
             return Omgjøring(
                 virkningsperiode = virkningsperiode,
-                innvilgelsesperioder = innvilgelsesperiode,
-                valgteTiltaksdeltakelser = resetTiltaksdeltakelserDersomDeErInkompatible(
-                    valgteTiltaksdeltakelser,
-                    oppdaterteSaksopplysninger.tiltaksdeltakelser,
-                ),
+                innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                 omgjørRammevedtak = omgjørRammevedtak,
             ).right()
         }
 
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
-            if (antallDagerPerMeldeperiode.totalPeriode != innvilgelsesperioder) return false
-            if (valgteTiltaksdeltakelser == null) return false
-            if (valgteTiltaksdeltakelser.periodisering.totalPeriode != innvilgelsesperioder) return false
             if (barnetillegg.periodisering.totalPeriode != innvilgelsesperioder) return false
             if (saksopplysninger.tiltaksdeltakelser.isEmpty()) return false
-            valgteTiltaksdeltakelser.periodisering.forEach { (deltakelse, periode) ->
+
+            valgteTiltaksdeltakelser.forEach { (deltakelse, periode) ->
                 val saksopplysningsDeltakelse =
                     saksopplysninger.tiltaksdeltakelser.getTiltaksdeltakelse(deltakelse.eksternDeltakelseId)
                         ?: return false
                 return saksopplysningsDeltakelse.periode?.inneholderHele(periode) ?: false
             }
+
             if (innvilgelsesperioder.fraOgMed < saksopplysninger.tiltaksdeltakelser.totalPeriode!!.fraOgMed) {
                 // Innvilgelsesperioden kan ikke starte før tiltaksdeltakelsene
                 return false
             }
+
             if (innvilgelsesperioder.tilOgMed > saksopplysninger.tiltaksdeltakelser.totalPeriode!!.tilOgMed) {
                 // Innvilgelsesperioden kan ikke slutte etter tiltaksdeltakelsene
                 return false
             }
+
             return true
         }
 
@@ -212,39 +198,31 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 omgjørRammevedtak: Rammevedtak,
                 saksopplysninger: Saksopplysninger,
             ): Either<KunneIkkeOppretteOmgjøring, Omgjøring> {
-                val innvilgelsesperiode = omgjørRammevedtak.innvilgelsesperiode?.let {
-                    // Vi har en generell begrensning om innvilgelseserperioden ikke kan være større enn tiltaksdeltakelsene.
-                    // TODO ved flere innvilgelsesperioder: endre denne logikken
-                    saksopplysninger.tiltaksdeltakelser.totalPeriode?.overlappendePeriode(it)
+                // Vi har en generell begrensning om innvilgelseserperioden ikke kan være større enn tiltaksdeltakelsene.
+                val innvilgelsesperioder =
+                    omgjørRammevedtak.innvilgelsesperioder?.krympTilTiltaksdeltakelsesperioder(saksopplysninger.tiltaksdeltakelser)
                         ?: return KunneIkkeOppretteOmgjøring.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag.left()
-                } ?: omgjørRammevedtak.periode
-                val valgteTiltaksdeltakelser =
-                    omgjørRammevedtak.valgteTiltaksdeltakelser!!.krympPeriode(innvilgelsesperiode)
-                val barnetillegg = omgjørRammevedtak.barnetillegg!!.krympPeriode(innvilgelsesperiode)
-                val antallDagerPerMeldeperiode =
-                    omgjørRammevedtak.antallDagerPerMeldeperiode!!.krympPeriode(innvilgelsesperiode) as SammenhengendePeriodisering<AntallDagerForMeldeperiode>
+
+                // TODO abn: denne må oppdateres for hver enkelt innvilgelsesperiode, ikke bare totalperioden
+                val barnetillegg = omgjørRammevedtak.barnetillegg!!.krympPeriode(innvilgelsesperioder.totalPeriode)
+
                 return Omgjøring(
                     // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.
                     virkningsperiode = omgjørRammevedtak.periode,
                     // Hvis vedtaket vi omgjør er en delvis innvilgelse, så bruker vi denne.
-                    innvilgelsesperioder = innvilgelsesperiode,
-                    valgteTiltaksdeltakelser = resetTiltaksdeltakelserDersomDeErInkompatible(
-                        valgteTiltaksdeltakelser,
-                        saksopplysninger.tiltaksdeltakelser,
-                    ),
+                    innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = barnetillegg,
-                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
                 ).right()
             }
 
             fun utledNyVirkningsperiode(
                 eksisterendeVirkningsperiode: Periode,
-                nyInnvilgelsesperiode: Periode,
+                nyeInnvilgelsesperioder: Innvilgelsesperioder,
             ): Periode {
                 return Periode(
-                    fraOgMed = minOf(eksisterendeVirkningsperiode.fraOgMed, nyInnvilgelsesperiode.fraOgMed),
-                    tilOgMed = maxOf(eksisterendeVirkningsperiode.tilOgMed, nyInnvilgelsesperiode.tilOgMed),
+                    fraOgMed = minOf(eksisterendeVirkningsperiode.fraOgMed, nyeInnvilgelsesperioder.fraOgMed),
+                    tilOgMed = maxOf(eksisterendeVirkningsperiode.tilOgMed, nyeInnvilgelsesperioder.tilOgMed),
                 )
             }
         }
@@ -253,8 +231,8 @@ sealed interface RevurderingResultat : BehandlingResultat {
             require(omgjørRammevedtak.perioder.all { virkningsperiode.inneholderHele(it) }) {
                 "Virkningsperioden ($virkningsperiode) må være lik eller større enn omgjort rammevedtak sin(e) periode(r): ${omgjørRammevedtak.perioder}"
             }
-            require(virkningsperiode.inneholderHele(innvilgelsesperioder)) {
-                "Virkningsperioden ($virkningsperiode) må inneholde hele innvilgelsesperiode ($innvilgelsesperioder)"
+            require(virkningsperiode.inneholderHele(innvilgelsesperioder.totalPeriode)) {
+                "Virkningsperioden ($virkningsperiode) må inneholde alle innvilgelsesperiodene ($innvilgelsesperioder)"
             }
             if (omgjørRammevedtak.fraOgMed != null && virkningsperiode.fraOgMed < omgjørRammevedtak.fraOgMed) {
                 require(innvilgelsesperioder.fraOgMed == virkningsperiode.fraOgMed) {
@@ -295,18 +273,4 @@ sealed interface RevurderingResultat : BehandlingResultat {
             }
         }
     }
-}
-
-/**
- * Resetter [valgteTiltaksdeltakelser] dersom noen av tiltaksdeltakelsene ikke lenger finnes i [oppdaterteTiltaksdeltakelser].
- */
-private fun resetTiltaksdeltakelserDersomDeErInkompatible(
-    valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
-    oppdaterteTiltaksdeltakelser: Tiltaksdeltakelser,
-): ValgteTiltaksdeltakelser? {
-    if (valgteTiltaksdeltakelser == null || oppdaterteTiltaksdeltakelser.isEmpty()) return null
-    valgteTiltaksdeltakelser.periodisering.forEach { (verdi, _) ->
-        oppdaterteTiltaksdeltakelser.getTiltaksdeltakelse(verdi.eksternDeltakelseId) ?: return null
-    }
-    return valgteTiltaksdeltakelser
 }

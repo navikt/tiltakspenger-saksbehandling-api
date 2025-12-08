@@ -5,9 +5,10 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
@@ -26,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperioder
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.utsjekk.kontrakter.felles.Satstype
@@ -87,19 +88,19 @@ data class Rammevedtak(
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
 
     /** Vil være null for stans og avslag */
-    val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>? =
+    val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>? =
         behandling.antallDagerPerMeldeperiode
 
-    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = behandling.valgteTiltaksdeltakelser
+    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<Tiltaksdeltakelse>? = behandling.valgteTiltaksdeltakelser
 
-    val innvilgelsesperiode = behandling.innvilgelsesperiode
+    val innvilgelsesperioder = behandling.innvilgelsesperioder
 
     val gjeldendeInnvilgelsesperioder: List<Periode> by lazy {
         if (erAvslag || erStans) return@lazy emptyList()
         if (omgjortAvRammevedtak.isEmpty()) {
-            listOfNotNull(innvilgelsesperiode)
+            innvilgelsesperioder?.perioder ?: emptyList()
         } else {
-            innvilgelsesperiode?.trekkFra(omgjortAvRammevedtak.perioder) ?: emptyList()
+            innvilgelsesperioder?.perioder?.trekkFra(omgjortAvRammevedtak.perioder) ?: emptyList()
         }
     }
 

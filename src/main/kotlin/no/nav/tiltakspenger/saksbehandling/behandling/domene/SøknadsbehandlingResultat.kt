@@ -46,18 +46,18 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
      * Når saksbehandler velger at en søknadsbehandling skal innvilges, får de ikke lagret før de har valgt [innvilgelsesperioder] og [valgteTiltaksdeltakelser]
      */
     data class Innvilgelse(
-        override val innvilgelsesperioder: Periode,
-        override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
+        override val innvilgelsesperioder: Innvilgelsesperioder,
         override val barnetillegg: Barnetillegg?,
-        override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
         override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : BehandlingResultat.Innvilgelse,
         SøknadsbehandlingResultat {
-        override val virkningsperiode = innvilgelsesperioder
+        override val virkningsperiode = innvilgelsesperioder.totalPeriode
+        override val valgteTiltaksdeltakelser = innvilgelsesperioder.valgteTiltaksdeltagelser
+        override val antallDagerPerMeldeperiode = innvilgelsesperioder.antallDagerPerMeldeperiode
 
         override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Innvilgelse?> {
             return if (skalNullstilleResultatVedNyeSaksopplysninger(
-                    valgteTiltaksdeltakelser,
+                    valgteTiltaksdeltakelser.verdier,
                     oppdaterteSaksopplysninger,
                 )
             ) {

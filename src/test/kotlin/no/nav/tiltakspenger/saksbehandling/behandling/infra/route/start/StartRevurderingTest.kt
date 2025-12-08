@@ -115,7 +115,7 @@ internal class StartRevurderingTest {
             rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
             omgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
             omgjøring.virkningsperiode shouldBe (1 til 10.april(2025))
-            omgjøring.innvilgelsesperiode shouldBe (2 til 9.april(2025))
+            omgjøring.innvilgelsesperioder shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
                     rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
@@ -148,12 +148,13 @@ internal class StartRevurderingTest {
                 søknadsbehandlingInnvilgelsesperiode = 2 til 9.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = 1 til 10.april(2025),
             )!!
+            omgjøring!!.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
             rammevedtakSøknadsbehandling.behandling.virkningsperiode shouldBe (2 til 9.april(2025))
             rammevedtakSøknadsbehandling.behandling.innvilgelsesperiode shouldBe (2 til 9.april(2025))
             rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
             omgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
             omgjøring.virkningsperiode shouldBe (2 til 9.april(2025))
-            omgjøring.innvilgelsesperiode shouldBe (2 til 9.april(2025))
+            omgjøring.innvilgelsesperioder shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
                     rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),

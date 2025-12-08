@@ -80,7 +80,7 @@ class OppdaterBehandlingService(
                 behandlingId = kommando.behandlingId,
                 virkningsperiode = kommando.utledNyVirkningsperiode(
                     (behandling.resultat as RevurderingResultat.Omgjøring).virkningsperiode,
-                    kommando.innvilgelsesperiode,
+                    kommando.tilInnvilgelseperioder(behandling),
                 ),
                 innvilgelsesperiode = kommando.innvilgelsesperiode,
                 barnetilleggsperioder = kommando.barnetillegg.periodisering,
