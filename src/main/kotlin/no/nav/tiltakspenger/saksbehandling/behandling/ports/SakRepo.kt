@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakDb
+import java.time.LocalDateTime
 
 interface SakRepo {
     fun hentForFnr(fnr: Fnr): Saker
@@ -61,6 +63,14 @@ interface SakRepo {
     fun oppdaterKanSendeInnHelgForMeldekort(
         sakId: SakId,
         kanSendeInnHelgForMeldekort: Boolean,
+        sessionContext: SessionContext? = null,
+    )
+
+    fun hentSakerTilDatadeling(limit: Int = 10): List<SakDb>
+
+    fun markerSendtTilDatadeling(
+        id: SakId,
+        tidspunkt: LocalDateTime,
         sessionContext: SessionContext? = null,
     )
 }

@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.datadeling.FeilVedSendingTilDatadelin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakDb
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.net.URI
 import java.net.http.HttpClient
@@ -42,6 +43,7 @@ class DatadelingHttpClient(
     private val vedtaksUri = URI.create("$baseUrl/vedtak")
     private val meldeperioderUri = URI.create("$baseUrl/meldeperioder")
     private val meldekortUri = URI.create("$baseUrl/meldekort")
+    private val sakUri = URI.create("$baseUrl/sak")
 
     override suspend fun send(
         rammevedtak: Rammevedtak,
@@ -149,6 +151,27 @@ class DatadelingHttpClient(
             // Either.catch slipper igjennom CancellationException som er ønskelig.
             log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${godkjentMeldekort.id} for saksnummer ${godkjentMeldekort.saksnummer}, sakId: ${godkjentMeldekort.sakId}. uri: $meldekortUri. Se sikkerlogg for detaljer." }
             Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${godkjentMeldekort.id} for saksnummer ${godkjentMeldekort.saksnummer}, sakId: ${godkjentMeldekort.sakId}, uri: $meldekortUri, jsonPayload: $jsonPayload" }
+            FeilVedSendingTilDatadeling
+        }
+    }
+
+    override suspend fun send(sakDb: SakDb, correlationId: CorrelationId): Either<FeilVedSendingTilDatadeling, Unit> {
+        val jsonPayload = sakDb.toDatadelingJson()
+        return Either.catch {
+            val request = createRequest(jsonPayload, sakUri)
+            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
+            val jsonResponse = httpResponse.body()
+            val status = httpResponse.statusCode()
+            if (status != 200) {
+                log.error { "Feil ved kall til tiltakspenger-datadeling. Sak ${sakDb.id}, saksnummer ${sakDb.saksnummer}. Status: $status. uri: $sakUri. Se sikkerlogg for detaljer." }
+                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Sak ${sakDb.id}, saksnummer ${sakDb.saksnummer}. uri: $sakUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
+                return FeilVedSendingTilDatadeling.left()
+            }
+            Unit
+        }.mapLeft {
+            // Either.catch slipper igjennom CancellationException som er ønskelig.
+            log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Sak ${sakDb.id}, saksnummer ${sakDb.saksnummer}. uri: $sakUri. Se sikkerlogg for detaljer." }
+            Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Sak ${sakDb.id}, saksnummer ${sakDb.saksnummer}, uri: $sakUri, jsonPayload: $jsonPayload" }
             FeilVedSendingTilDatadeling
         }
     }
