@@ -66,7 +66,7 @@ interface SakRepo {
         sessionContext: SessionContext? = null,
     )
 
-    fun hentSakerTilDatadeling(limit: Int = 10): List<SakDb>
+    fun hentSakerTilDatadeling(limit: Int = 20): List<SakDb>
 
     fun markerSendtTilDatadeling(
         id: SakId,
