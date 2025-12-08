@@ -15,7 +15,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
     /**
      * Virkningsperioden/vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
      * Den vil ikke påvirke vedtakstidslinjen, beregninger eller utbetalinger.
-     * @param avslagsperiode Kan være null ved papirsøknad, dersom det ikke er søkt for et spesifikt tiltak eller periode.
+     * @param avslagsperiode Kan være null ved manuelt registrert søknad, dersom det ikke er søkt for et spesifikt tiltak eller periode.
      */
     data class Avslag(
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,

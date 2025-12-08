@@ -7,17 +7,26 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.route.validerJournalpostRoute
-import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvPapirsøknadService
+import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvManueltRegistrertSøknadService
 
 fun Route.søknadRoutes(
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
-    startBehandlingAvPapirsøknadService: StartBehandlingAvPapirsøknadService,
+    startBehandlingAvManueltRegistrertSøknadService: StartBehandlingAvManueltRegistrertSøknadService,
     søknadService: SøknadService,
     sakService: SakService,
     validerJournalpostService: ValiderJournalpostService,
 ) {
     mottaSøknadRoute(søknadService, sakService)
-    startBehandlingAvPapirsøknadRoute(auditService, tilgangskontrollService, startBehandlingAvPapirsøknadService)
+    startBehandlingAvPapirsøknadRoute(
+        auditService,
+        tilgangskontrollService,
+        startBehandlingAvManueltRegistrertSøknadService,
+    )
+    startBehandlingAvManueltRegistrertSøknadRoute(
+        auditService,
+        tilgangskontrollService,
+        startBehandlingAvManueltRegistrertSøknadService,
+    )
     validerJournalpostRoute(validerJournalpostService, tilgangskontrollService)
 }
