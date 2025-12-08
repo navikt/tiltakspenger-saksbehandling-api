@@ -66,6 +66,10 @@ data class Innvilgelsesperioder(
 
     companion object {
 
+        /**
+         *  TODO abn: dette er en midlertidig løsning for å opprette [Innvilgelsesperioder] fra eksisterende db-schema
+         *  og DTO/kommando-formater. Når vi får migrert databasen etc trenger vi ikke denne lengre.
+         * **/
         fun create(
             saksopplysninger: Saksopplysninger,
             innvilgelsesperioder: List<Periode>,
