@@ -3,21 +3,18 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.instanceOf
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
-import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettAutomatiskBehandletSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingIdReturnerRespons
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
@@ -111,19 +108,20 @@ class IverksettSøknadsbehandlingTest {
             )
             taBehandling(tac, sak.id, behandlingId, beslutter)
 
-            val response = iverksettForBehandlingIdReturnerRespons(
+            iverksettForBehandlingId(
                 tac,
                 sak.id,
                 behandlingId,
                 ObjectMother.beslutter(navIdent = "B999999"),
-            )
-
-            response.status shouldBe HttpStatusCode.BadRequest
-            response.bodyAsText() shouldBe objectMapper.writeValueAsString(
-                Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
-                    beslutter.navIdent,
-                ),
-            )
+                forventetStatus = HttpStatusCode.BadRequest,
+                // language=JSON
+                forventetJsonBody = """
+                    {
+                      "melding" : "Du kan ikke utføre handlinger på en behandling som ikke er tildelt deg. Behandlingen er tildelt B12345",
+                      "kode" : "behandling_eies_av_annen_saksbehandler"
+                    }
+                """.trimIndent(),
+            ) shouldBe null
         }
     }
 
@@ -147,14 +145,20 @@ class IverksettSøknadsbehandlingTest {
             )
             taBehandling(tac, sak.id, behandlingId, beslutter)
 
-            val response = iverksettForBehandlingIdReturnerRespons(
-                tac,
-                sak.id,
-                behandlingId,
-                saksbehandler,
-            )
-
-            response.status shouldBe HttpStatusCode.Forbidden
+            iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandlingId,
+                beslutter = saksbehandler,
+                forventetStatus = HttpStatusCode.Forbidden,
+                // language=JSON
+                forventetJsonBody = """
+                    {
+                      "melding" : "Saksbehandler Z12345 mangler rollen BESLUTTER. Saksbehandlers roller: Saksbehandlerroller(value=[SAKSBEHANDLER])",
+                      "kode" : "tilgang_nektet_krev_rolle"
+                    }
+                """.trimIndent(),
+            ) shouldBe null
         }
     }
 }
