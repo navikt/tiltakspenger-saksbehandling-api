@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgres
 import org.intellij.lang.annotations.Language
 import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class SakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -102,7 +103,7 @@ class SakPostgresRepo(
         sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 queryOf(
-                    "select fnr from sak  where sak.id = :sak_id",
+                    "select fnr from sak where sak.id = :sak_id",
                     mapOf("sak_id" to sakId.toString()),
                 ).map { row ->
                     Fnr.fromString(row.string("fnr"))
@@ -127,7 +128,8 @@ class SakPostgresRepo(
                             sist_endret,
                             opprettet,
                             skal_sendes_til_meldekort_api,
-                            skal_sende_meldeperioder_til_datadeling
+                            skal_sende_meldeperioder_til_datadeling,
+                            sendt_til_datadeling
                         ) values (
                             :id,
                             :fnr,
@@ -135,7 +137,8 @@ class SakPostgresRepo(
                             :sist_endret,
                             :opprettet,
                             :skal_sendes_til_meldekort_api,
-                            :skal_sende_meldeperioder_til_datadeling
+                            :skal_sende_meldeperioder_til_datadeling,
+                            :sendt_til_datadeling
                         )
                         """,
                         "id" to sak.id.toString(),
@@ -145,6 +148,7 @@ class SakPostgresRepo(
                         "opprettet" to nå,
                         "skal_sendes_til_meldekort_api" to false,
                         "skal_sende_meldeperioder_til_datadeling" to false,
+                        "sendt_til_datadeling" to null,
                     ).asUpdate,
                 )
             }
@@ -305,6 +309,49 @@ class SakPostgresRepo(
         }
     }
 
+    override fun hentSakerTilDatadeling(limit: Int): List<SakDb> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    """
+                            select * 
+                            from sak 
+                            where sendt_til_datadeling is null 
+                            order by opprettet
+                            limit :limit
+                    """.trimIndent(),
+                    mapOf(
+                        "limit" to limit,
+                    ),
+                ).map { row ->
+                    row.toSakDb()
+                }.asList,
+            )
+        }
+    }
+
+    override fun markerSendtTilDatadeling(
+        id: SakId,
+        tidspunkt: LocalDateTime,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        """
+                            update sak
+                                set sendt_til_datadeling = :sendt_til_datadeling 
+                            where id = :id
+                        """,
+                        "sendt_til_datadeling" to tidspunkt,
+                        "id" to id.toString(),
+                    ).asUpdate,
+                )
+            }
+        }
+    }
+
     private fun sakFinnes(
         sakId: SakId,
         session: Session,
@@ -360,6 +407,16 @@ class SakPostgresRepo(
 
         private fun Row.toFnr(): Fnr {
             return Fnr.fromString(string("fnr"))
+        }
+
+        private fun Row.toSakDb(): SakDb {
+            return SakDb(
+                id = SakId.fromString(string("id")),
+                fnr = Fnr.fromString(string("fnr")),
+                saksnummer = Saksnummer(verdi = string("saksnummer")),
+                sistEndret = localDateTime("sist_endret"),
+                opprettet = localDateTime("opprettet"),
+            )
         }
 
         @Language("SQL")

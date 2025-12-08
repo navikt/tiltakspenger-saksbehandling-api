@@ -9,9 +9,9 @@
 !.idea/inspectionProfiles
 !.idea/inspectionProfiles/profiles_settings.xml
 !.idea/inspectionProfiles/Project_Default.xml
-!.idea/codeStyles
-!.idea/codeStyles/codeStyleConfig.xml
-!.idea/codeStyles/Project.xml
+.idea/codeStyles
+.idea/codeStyles/codeStyleConfig.xml
+.idea/codeStyles/Project.xml
 
 # Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-249601023
 .run

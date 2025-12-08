@@ -21,11 +21,33 @@ class SendTilDatadelingService(
     val logger = KotlinLogging.logger { }
 
     suspend fun send() {
+        sendSak()
         sendBehandlinger()
         sendMeldekortbehandlinger()
         sendVedtak()
         sendMeldeperioder()
         sendGodkjenteMeldekort()
+    }
+
+    private suspend fun sendSak() {
+        Either.catch {
+            sakRepo.hentSakerTilDatadeling().forEach { sakDb ->
+                val correlationId = CorrelationId.generate()
+                Either.catch {
+                    datadelingClient.send(sakDb, correlationId).onRight {
+                        logger.info { "Sak sendt til datadeling. SakId: ${sakDb.id}" }
+                        sakRepo.markerSendtTilDatadeling(sakDb.id, nå(clock))
+                        logger.info { "Sak med id ${sakDb.id} markert som sendt til datadeling." }
+                    }.onLeft {
+                        // Disse logges av klienten, trenger ikke duplikat logglinje.
+                    }
+                }.onLeft {
+                    logger.error(it) { "Ukjent feil skjedde under sending av sak med id ${sakDb.id} til datadeling." }
+                }
+            }
+        }.onLeft {
+            logger.error(it) { "Ukjent feil skjedde under henting av saker som skal sendes til datadeling." }
+        }
     }
 
     private suspend fun sendVedtak() {

@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class SakFakeRepo(
     private val behandlingRepo: BehandlingFakeRepo,
@@ -134,4 +135,15 @@ class SakFakeRepo(
         kanSendeInnHelgForMeldekort: Boolean,
         sessionContext: SessionContext?,
     ) {}
+
+    override fun hentSakerTilDatadeling(limit: Int): List<SakDb> {
+        return emptyList()
+    }
+
+    override fun markerSendtTilDatadeling(
+        id: SakId,
+        tidspunkt: LocalDateTime,
+        sessionContext: SessionContext?,
+    ) {
+    }
 }
