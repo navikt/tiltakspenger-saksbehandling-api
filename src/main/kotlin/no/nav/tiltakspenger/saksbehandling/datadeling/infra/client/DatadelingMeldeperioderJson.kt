@@ -1,15 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 private data class DatadelingMeldeperioderJson(
-    val fnr: String,
     val sakId: String,
-    val saksnummer: String,
     val meldeperioder: List<DatadelingMeldeperiode>,
 ) {
     data class DatadelingMeldeperiode(
@@ -23,11 +21,9 @@ private data class DatadelingMeldeperioderJson(
     )
 }
 
-fun List<Meldeperiode>.toDatadelingJson(sak: Sak): String {
+fun List<Meldeperiode>.toDatadelingJson(sakId: SakId): String {
     return DatadelingMeldeperioderJson(
-        fnr = sak.fnr.verdi,
-        sakId = sak.id.toString(),
-        saksnummer = sak.saksnummer.verdi,
+        sakId = sakId.toString(),
         meldeperioder = this.map { it.toDatadelingMeldeperiode() },
     ).let { serialize(it) }
 }

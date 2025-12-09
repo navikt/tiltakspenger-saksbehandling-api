@@ -122,7 +122,7 @@ class SendTilDatadelingService(
                 Either.catch {
                     val meldeperioder = sak.meldeperiodeKjeder.sisteMeldeperiodePerKjede
                     if (meldeperioder.isNotEmpty()) {
-                        datadelingClient.send(sak, meldeperioder, correlationId).onRight {
+                        datadelingClient.send(meldeperioder, correlationId).onRight {
                             logger.info { "Meldeperioder sendt til datadeling. SakId: ${sak.id}" }
                             sakRepo.oppdaterSkalSendeMeldeperioderTilDatadeling(
                                 sak.id,

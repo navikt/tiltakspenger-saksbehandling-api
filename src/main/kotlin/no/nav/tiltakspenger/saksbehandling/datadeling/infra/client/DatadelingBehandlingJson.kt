@@ -20,8 +20,6 @@ data class DatadelingBehandlingJson(
     val saksbehandler: String?,
     val beslutter: String?,
     val iverksattTidspunkt: LocalDateTime?,
-    val fnr: String,
-    val saksnummer: String,
     val opprettetTidspunktSaksbehandlingApi: LocalDateTime,
     val behandlingstype: Behandlingstype,
     val sistEndret: LocalDateTime,
@@ -50,7 +48,6 @@ fun Rammebehandling.toBehandlingJson(): String {
     return DatadelingBehandlingJson(
         behandlingId = id.toString(),
         sakId = sakId.toString(),
-        saksnummer = saksnummer.verdi,
         fraOgMed = if (this is Søknadsbehandling) {
             this.getFraOgMed()
         } else {
@@ -65,7 +62,6 @@ fun Rammebehandling.toBehandlingJson(): String {
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         iverksattTidspunkt = iverksattTidspunkt,
-        fnr = fnr.verdi,
         opprettetTidspunktSaksbehandlingApi = opprettet,
         behandlingstype = if (this is Søknadsbehandling) {
             Behandlingstype.SOKNADSBEHANDLING
@@ -81,14 +77,12 @@ fun MeldekortBehandling.toBehandlingJson(): String {
     return DatadelingBehandlingJson(
         behandlingId = id.toString(),
         sakId = sakId.toString(),
-        saksnummer = saksnummer.verdi,
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         behandlingStatus = status.toDatadelingStatus(),
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         iverksattTidspunkt = iverksattTidspunkt,
-        fnr = fnr.verdi,
         opprettetTidspunktSaksbehandlingApi = opprettet,
         behandlingstype = Behandlingstype.MELDEKORTBEHANDLING,
         sistEndret = sistEndret,
