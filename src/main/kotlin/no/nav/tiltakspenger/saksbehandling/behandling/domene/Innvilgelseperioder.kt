@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -72,10 +73,9 @@ data class Innvilgelsesperioder(
             antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>>,
             tiltaksdeltakelser: List<Pair<Periode, String>>,
         ): Innvilgelsesperioder {
-            val unikePerioder = listOf(innvilgelsesperiode)
+            val unikePerioder = nonEmptyListOf(innvilgelsesperiode)
                 .plus(antallDagerPerMeldeperiode.map { it.first })
                 .plus(tiltaksdeltakelser.map { it.first })
-                .toNonEmptyListOrNull()!!
                 .tilPerioderUtenHullEllerOverlapp()
 
             val antallDagerPeriodisert = antallDagerPerMeldeperiode.map {
@@ -92,7 +92,7 @@ data class Innvilgelsesperioder(
                     valgtTiltaksdeltakelse = saksopplysninger.getTiltaksdeltakelse(
                         tiltakPeriodisert.hentVerdiForDag(it.fraOgMed)!!,
                     )!!,
-                    antallDagerPerMeldeperiode = antallDagerPeriodisert.hentVerdiForDag(it.tilOgMed)!!,
+                    antallDagerPerMeldeperiode = antallDagerPeriodisert.hentVerdiForDag(it.fraOgMed)!!,
                 ).tilPeriodeMedVerdi()
             }
 
