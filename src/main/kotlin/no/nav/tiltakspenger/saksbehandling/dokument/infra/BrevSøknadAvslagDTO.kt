@@ -94,7 +94,7 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
             etternavn = brukersNavn.mellomnavnOgEtternavn,
         ),
         saksnummer = saksnummer.verdi,
-        tilleggstekst = this.behandling.fritekstTilVedtaksbrev!!.verdi,
+        tilleggstekst = this.behandling.fritekstTilVedtaksbrev?.verdi,
         forhandsvisning = false,
         avslagsgrunner = this.behandling.resultat.avslagsgrunner.toAvslagsgrunnerBrevDto(),
         hjemlerTekst = if (this.behandling.resultat.avslagsgrunner.size > 1) {

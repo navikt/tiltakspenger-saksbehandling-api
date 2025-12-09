@@ -5,10 +5,12 @@ import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
+import java.time.Clock
 
 suspend fun Sak.oppdaterMeldekort(
     kommando: OppdaterMeldekortKommando,
     simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
+    clock: Clock,
 ): Either<KanIkkeOppdatereMeldekort, Triple<Sak, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
     return this.meldekortbehandlinger.oppdaterMeldekort(
         kommando = kommando,
@@ -19,5 +21,6 @@ suspend fun Sak.oppdaterMeldekort(
             )
         },
         simuler = simuler,
+        clock = clock,
     ).map { Triple(this.oppdaterMeldekortbehandlinger(it.first), it.second, it.third) }
 }

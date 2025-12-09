@@ -95,6 +95,7 @@ open class MeldekortContext(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
             simulerService = simulerService,
+            clock = clock,
         )
     }
     val opprettMeldekortBehandlingService by lazy {

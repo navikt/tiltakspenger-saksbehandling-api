@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
 import arrow.core.left
+import arrow.core.right
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -19,11 +20,13 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.oppdaterMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.saksbehandlerFyllerUtMeldeperiodeDager
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -177,6 +180,7 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
                 dager = dager,
             ),
             simuler = { KunneIkkeSimulere.Stengt.left() },
+            clock = clock,
         ).getOrFail()
 
         meldekortRepo.oppdater(meldekortBehandling, simuleringMedMetadata)
@@ -238,4 +242,39 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
     meldekortvedtakRepo.lagre(meldekortvedtak)
 
     return sakRepo.hentForSakId(sakMedMeldekortbehandlingTilBeslutning.id)!! to meldekortvedtak
+}
+
+internal fun TestDataHelper.persisterOppdatertMeldekortbehandling(
+    id: MeldekortId? = null,
+    behandling: MeldekortBehandling? = id?.let { meldekortRepo.hent(it) },
+    dager: OppdaterMeldekortKommando.Dager? = null,
+    begrunnelse: Begrunnelse? = null,
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
+): Pair<Sak, MeldekortBehandling> {
+    requireNotNull(behandling) {
+        "Meldekortbehandling eller gyldig meldekortbehandling id må spesifiseres"
+    }
+
+    val sakId = behandling.sakId
+    val sak = sakRepo.hentForSakId(sakId)!!
+
+    val (_, oppdatertBehandling) = runBlocking {
+        sak.oppdaterMeldekort(
+            OppdaterMeldekortKommando(
+                sakId = sakId,
+                meldekortId = behandling.id,
+                saksbehandler = saksbehandler(navIdent = behandling.saksbehandler!!),
+                dager = dager ?: saksbehandlerFyllerUtMeldeperiodeDager(behandling.meldeperiode),
+                begrunnelse = begrunnelse,
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                correlationId = CorrelationId.generate(),
+            ),
+            simuler = { ObjectMother.simuleringMedMetadata().right() },
+            clock = clock,
+        ).getOrFail()
+    }
+
+    meldekortRepo.oppdater(oppdatertBehandling)
+
+    return sakRepo.hentForSakId(sakId)!! to oppdatertBehandling
 }

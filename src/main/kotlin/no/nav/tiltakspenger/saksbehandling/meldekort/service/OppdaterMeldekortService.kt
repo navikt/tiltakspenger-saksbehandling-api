@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.oppdaterMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
+import java.time.Clock
 
 /**
  * Har ansvar for å ta imot et utfylt meldekort og lagre det.
@@ -18,6 +19,7 @@ class OppdaterMeldekortService(
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
     private val simulerService: SimulerService,
+    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -36,6 +38,7 @@ class OppdaterMeldekortService(
                     kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort,
                 )
             },
+            clock = clock,
         ).map { (sak, meldekort, simulering) ->
             meldekortBehandlingRepo.oppdater(meldekort, simulering)
             logger.info { "Meldekort under behandling med id ${meldekort.id} oppdatert. Saksbehandler: ${kommando.saksbehandler.navIdent}" }

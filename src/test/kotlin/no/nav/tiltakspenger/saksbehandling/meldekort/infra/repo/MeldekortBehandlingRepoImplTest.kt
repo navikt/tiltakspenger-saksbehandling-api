@@ -103,6 +103,7 @@ class MeldekortBehandlingRepoImplTest {
                     kommando = meldekortBehandling.tilOppdaterMeldekortKommando(
                         ObjectMother.saksbehandler(),
                     ),
+                    clock = fixedClock,
                 ).getOrFail()
 
                 meldekortRepo.oppdater(oppdatertMeldekortBehandling, simulering)

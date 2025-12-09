@@ -89,12 +89,14 @@ data class Meldekortbehandlinger(
         kommando: OppdaterMeldekortKommando,
         beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
         simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
+        clock: Clock,
     ): Either<KanIkkeOppdatereMeldekort, Triple<Meldekortbehandlinger, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
         val meldekort = hentMeldekortBehandling(kommando.meldekortId) as MeldekortUnderBehandling
         return meldekort.oppdater(
             kommando = kommando,
             beregn = beregn,
             simuler = simuler,
+            clock = clock,
         ).map { Triple(oppdaterMeldekortbehandling(it.first), it.first, it.second) }
     }
 

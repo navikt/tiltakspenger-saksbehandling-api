@@ -78,6 +78,7 @@ data class MeldekortUnderBehandling(
         kommando: OppdaterMeldekortKommando,
         beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
         simuler: suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
+        clock: Clock,
     ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortUnderBehandling, SimuleringMedMetadata?>> {
         validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft {
             return it.tilKanIkkeOppdatereMeldekort().left()
@@ -90,6 +91,7 @@ data class MeldekortUnderBehandling(
             begrunnelse = kommando.begrunnelse ?: this.begrunnelse,
             beregning = beregning,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+            sistEndret = nå(clock),
         )
         // TODO jah: I første omgang kjører vi simulering som best effort. Men dersom den feiler, er det viktig at vi nuller den ut. Også kan vi senere tvinge den på, evt. kunne ha et flagg som dropper kjøre simulering.
         val simuleringMedMetadata = simuler(oppdatertBehandling).getOrElse { null }
@@ -121,6 +123,7 @@ data class MeldekortUnderBehandling(
             ),
             beregn = beregn,
             simuler = simuler,
+            clock = clock,
         ).getOrElse { return KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere(it).left() }
 
         return (

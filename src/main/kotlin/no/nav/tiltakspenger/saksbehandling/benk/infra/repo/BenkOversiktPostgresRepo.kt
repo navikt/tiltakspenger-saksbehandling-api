@@ -116,7 +116,7 @@ class BenkOversiktPostgresRepo(
          */
               sisteMeldekortBehandlingForKjede AS (SELECT sak_id,
                                                           meldeperiode_kjede_id,
-                                                          MAX(mbh.opprettet) AS opprettet_tidspunkt
+                                                          MAX(mbh.sist_endret) AS sist_endret_tidspunkt
                                                    FROM meldekortbehandling mbh
                                                             join sak s on mbh.sak_id = s.id
                                                    group by sak_id, meldeperiode_kjede_id)
@@ -142,7 +142,7 @@ class BenkOversiktPostgresRepo(
                             ON smbh.sak_id = s.id AND smbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id
          WHERE behandles_automatisk = false
            AND mdk.sisteMeldekortNr = 1
-      AND (mbr.mottatt > smbh.opprettet_tidspunkt OR smbh.opprettet_tidspunkt IS NULL)
+      AND (mbr.mottatt > smbh.sist_endret_tidspunkt OR smbh.sist_endret_tidspunkt IS NULL)
       ),
      slåttSammen AS (select *
                      from åpneSøknaderUtenBehandling
