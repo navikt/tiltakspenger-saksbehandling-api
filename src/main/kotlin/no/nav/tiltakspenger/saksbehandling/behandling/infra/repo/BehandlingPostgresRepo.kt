@@ -380,6 +380,12 @@ class BehandlingPostgresRepo(
             val søknadId = stringOrNull("soknad_id")?.let { SøknadId.fromString(it) }
             val omgjørRammevedtak = stringOrNull("omgjør_rammevedtak").toOmgjørRammevedtak()
 
+            val valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
+                ?.tilValgteTiltaksdeltakelser()
+
+            val antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")
+                ?.tilAntallDagerForMeldeperiode()
+
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
                     val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
@@ -387,20 +393,14 @@ class BehandlingPostgresRepo(
                         stringOrNull("manuelt_behandles_grunner")?.toManueltBehandlesGrunner() ?: emptyList()
                     val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
 
-                    val valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
-                        ?.tilValgteTiltaksdeltakelser()
-
-                    val antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")
-                        ?.tilAntallDagerForMeldeperiode()
-
                     val resultat = when (resultatType) {
                         SøknadsbehandlingType.INNVILGELSE -> SøknadsbehandlingResultat.Innvilgelse(
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             innvilgelsesperioder = Innvilgelsesperioder.create(
-                                saksopplysninger,
-                                listOf(virkningsperiode!!),
-                                antallDagerPerMeldeperiode!!,
-                                valgteTiltaksdeltakelser!!,
+                                saksopplysninger = saksopplysninger,
+                                innvilgelsesperiode = virkningsperiode!!,
+                                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode!!,
+                                tiltaksdeltakelser = valgteTiltaksdeltakelser!!,
                             ),
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
@@ -459,12 +459,6 @@ class BehandlingPostgresRepo(
                 Behandlingstype.REVURDERING -> {
                     val resultatType = string("resultat").tilRevurderingResultatType()
 
-                    val valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
-                        ?.tilValgteTiltaksdeltakelser()
-
-                    val antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")
-                        ?.tilAntallDagerForMeldeperiode()
-
                     val resultat = when (resultatType) {
                         RevurderingType.STANS -> RevurderingResultat.Stans(
                             valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()
@@ -480,7 +474,7 @@ class BehandlingPostgresRepo(
                             innvilgelsesperioder = virkningsperiode?.let {
                                 Innvilgelsesperioder.create(
                                     saksopplysninger = saksopplysninger,
-                                    innvilgelsesperioder = listOf(it),
+                                    innvilgelsesperiode = it,
                                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode!!,
                                     tiltaksdeltakelser = valgteTiltaksdeltakelser!!,
                                 )
@@ -490,10 +484,9 @@ class BehandlingPostgresRepo(
 
                         RevurderingType.OMGJØRING -> RevurderingResultat.Omgjøring(
                             virkningsperiode = virkningsperiode!!,
-                            innvilgelsesperioder =
-                            Innvilgelsesperioder.create(
+                            innvilgelsesperioder = Innvilgelsesperioder.create(
                                 saksopplysninger = saksopplysninger,
-                                innvilgelsesperioder = listOf(deserialize<PeriodeDbJson>(string("innvilgelsesperiode")).toDomain()),
+                                innvilgelsesperiode = deserialize<PeriodeDbJson>(string("innvilgelsesperiode")).toDomain(),
                                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode!!,
                                 tiltaksdeltakelser = valgteTiltaksdeltakelser!!,
                             ),

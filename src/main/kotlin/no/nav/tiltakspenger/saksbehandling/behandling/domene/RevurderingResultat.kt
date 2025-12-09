@@ -135,7 +135,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 oppdatertInnvilgelsesperioder.krympTilTiltaksdeltakelsesperioder(saksopplysninger.tiltaksdeltakelser)
 
             requireNotNull(innvilgelsesperioderMedTiltaksdeltakelse) {
-                // Dersom vi denne kaster og vi savner mer sakskontekst, bør denne returnere Either, slik at callee kan håndtere feilen.
+                // Dersom denne kaster og vi savner mer sakskontekst, bør denne returnere Either, slik at callee kan håndtere feilen.
                 "Valgte innvilgelsesperioder har ingen overlapp med tiltaksdeltakelser fra saksopplysningene"
             }
 

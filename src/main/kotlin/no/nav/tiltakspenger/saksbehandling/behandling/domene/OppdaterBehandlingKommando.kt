@@ -25,7 +25,7 @@ sealed interface OppdaterBehandlingKommando {
         fun tilInnvilgelseperioder(behandling: Rammebehandling): Innvilgelsesperioder {
             return Innvilgelsesperioder.create(
                 saksopplysninger = behandling.saksopplysninger,
-                innvilgelsesperioder = listOf(innvilgelsesperiode),
+                innvilgelsesperiode = innvilgelsesperiode,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                 tiltaksdeltakelser = tiltaksdeltakelser,
             )

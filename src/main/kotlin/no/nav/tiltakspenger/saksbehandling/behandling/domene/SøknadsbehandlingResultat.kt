@@ -41,7 +41,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
     /**
      * Virkningsperioden/vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
      *
-     * Når saksbehandler velger at en søknadsbehandling skal innvilges, får de ikke lagret før de har valgt [innvilgelsesperioder] og [valgteTiltaksdeltakelser]
+     * Når saksbehandler velger at en søknadsbehandling skal innvilges, får de ikke lagret før de har valgt [innvilgelsesperioder]
      */
     data class Innvilgelse(
         override val innvilgelsesperioder: Innvilgelsesperioder,

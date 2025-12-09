@@ -133,7 +133,7 @@ class DelautomatiskBehandlingService(
             barnetillegg = barnetillegg,
             // Kommentar jah: Det føles litt vondt og gjenbruke denne kommandoen for det tilfellet her. For automatisk behandling krever vi at det er 1 søknad for 1 tiltak og saksopplysningene bare har funnet en tiltaksdeltakelse.
             tiltaksdeltakelser = tiltaksdeltakelser,
-            antallDagerPerMeldeperiode = listOf(utledAntallDagerPerMeldeperiode(behandling)),
+            antallDagerPerMeldeperiode = utledAntallDagerPerMeldeperiode(behandling),
             automatiskSaksbehandlet = true,
         )
 
@@ -374,7 +374,7 @@ class DelautomatiskBehandlingService(
 
     private fun utledAntallDagerPerMeldeperiode(
         behandling: Søknadsbehandling,
-    ): Pair<Periode, AntallDagerForMeldeperiode> {
+    ): List<Pair<Periode, AntallDagerForMeldeperiode>> {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad. BehandlingId: ${behandling.id}" }
 
         val soknadstiltakFraSaksopplysning = behandling.søknad.tiltak
@@ -392,7 +392,9 @@ class DelautomatiskBehandlingService(
                 DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
             }
 
-        return behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm() to AntallDagerForMeldeperiode(antallDager)
+        return listOf(
+            behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm() to AntallDagerForMeldeperiode(antallDager),
+        )
     }
 
     private fun Tiltaksdeltakelse.getDeltakelsesprosent(): Float? {

@@ -82,9 +82,8 @@ data class Rammevedtaksliste(
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
         tidslinje.filter {
             it.verdi.resultat is BehandlingResultat.Innvilgelse
-        }.perioderMedVerdi.mapNotNull { (vedtak, gjeldendePeriode) ->
-            // TODO: må støtte flere perioder
-            gjeldendePeriode.overlappendePeriode(vedtak.innvilgelsesperioder!!.totalPeriode)?.let { overlappendePeriode ->
+        }.perioderMedVerdi.flatMap { (vedtak, gjeldendePeriode) ->
+            gjeldendePeriode.overlappendePerioder(vedtak.innvilgelsesperioder!!.perioder).map { overlappendePeriode ->
                 PeriodeMedVerdi(
                     vedtak,
                     overlappendePeriode,

@@ -68,11 +68,11 @@ data class Innvilgelsesperioder(
          * **/
         fun create(
             saksopplysninger: Saksopplysninger,
-            innvilgelsesperioder: List<Periode>,
+            innvilgelsesperiode: Periode,
             antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>>,
             tiltaksdeltakelser: List<Pair<Periode, String>>,
         ): Innvilgelsesperioder {
-            val unikePerioder = innvilgelsesperioder
+            val unikePerioder = listOf(innvilgelsesperiode)
                 .plus(antallDagerPerMeldeperiode.map { it.first })
                 .plus(tiltaksdeltakelser.map { it.first })
                 .toNonEmptyListOrNull()!!

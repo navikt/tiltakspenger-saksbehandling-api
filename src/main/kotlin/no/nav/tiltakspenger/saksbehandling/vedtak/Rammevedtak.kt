@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
@@ -93,7 +94,7 @@ data class Rammevedtak(
 
     val valgteTiltaksdeltakelser: IkkeTomPeriodisering<Tiltaksdeltakelse>? = behandling.valgteTiltaksdeltakelser
 
-    val innvilgelsesperioder = behandling.innvilgelsesperioder
+    val innvilgelsesperioder: Innvilgelsesperioder? = behandling.innvilgelsesperioder
 
     val gjeldendeInnvilgelsesperioder: List<Periode> by lazy {
         if (erAvslag || erStans) return@lazy emptyList()

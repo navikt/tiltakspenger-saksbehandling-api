@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Omgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -131,7 +132,7 @@ data class Revurdering(
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
 
-        require(this.resultat is RevurderingResultat.Omgjøring)
+        require(this.resultat is Omgjøring)
 
         return this.copy(
             sistEndret = nå(clock),
@@ -249,7 +250,7 @@ data class Revurdering(
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
-                resultat = RevurderingResultat.Omgjøring.create(omgjørRammevedtak, saksopplysninger).getOrElse {
+                resultat = Omgjøring.create(omgjørRammevedtak, saksopplysninger).getOrElse {
                     return it.left()
                 },
             ).right()

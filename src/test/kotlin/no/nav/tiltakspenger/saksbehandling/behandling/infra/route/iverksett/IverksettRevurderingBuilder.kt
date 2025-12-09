@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
@@ -58,7 +59,7 @@ interface IverksettRevurderingBuilder {
         revurderingInnvilgelsesperiode: Periode = søknadsbehandlingInnvilgelsesperiode,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        antallDagerPerMeldeperiodeForRevurdering: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
+        antallDagerPerMeldeperiodeForRevurdering: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             revurderingInnvilgelsesperiode,
         ),
@@ -156,7 +157,7 @@ interface IverksettRevurderingBuilder {
         revurderingInnvilgelsesperiode: Periode = søknadsbehandlingInnvilgelsesperiode,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        antallDagerPerMeldeperiodeForRevurdering: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
+        antallDagerPerMeldeperiodeForRevurdering: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             revurderingInnvilgelsesperiode,
         ),
