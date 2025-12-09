@@ -90,6 +90,10 @@ sealed interface RevurderingResultat : BehandlingResultat {
             }.right()
         }
 
+        init {
+            super.init()
+        }
+
         companion object {
             val empty = Innvilgelse(
                 barnetillegg = null,
@@ -158,8 +162,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 innvilgelsesperioder.krympTilTiltaksdeltakelsesperioder(oppdaterteSaksopplysninger.tiltaksdeltakelser)
                     ?: return KunneIkkeOppdatereSaksopplysninger.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag.left()
 
-            // TODO abn: denne må oppdateres for hver enkelt innvilgelsesperiode, ikke bare totalperioden
-            val barnetillegg = barnetillegg.krympPeriode(innvilgelsesperioder.totalPeriode)
+            val barnetillegg = barnetillegg.krympPerioder(innvilgelsesperioder.perioder)
 
             return Omgjøring(
                 virkningsperiode = virkningsperiode,
@@ -203,8 +206,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                     omgjørRammevedtak.innvilgelsesperioder?.krympTilTiltaksdeltakelsesperioder(saksopplysninger.tiltaksdeltakelser)
                         ?: return KunneIkkeOppretteOmgjøring.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag.left()
 
-                // TODO abn: denne må oppdateres for hver enkelt innvilgelsesperiode, ikke bare totalperioden
-                val barnetillegg = omgjørRammevedtak.barnetillegg!!.krympPeriode(innvilgelsesperioder.totalPeriode)
+                val barnetillegg = omgjørRammevedtak.barnetillegg!!.krympPerioder(innvilgelsesperioder.perioder)
 
                 return Omgjøring(
                     // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.
@@ -228,6 +230,8 @@ sealed interface RevurderingResultat : BehandlingResultat {
         }
 
         init {
+            super.init()
+
             require(omgjørRammevedtak.perioder.all { virkningsperiode.inneholderHele(it) }) {
                 "Virkningsperioden ($virkningsperiode) må være lik eller større enn omgjort rammevedtak sin(e) periode(r): ${omgjørRammevedtak.perioder}"
             }

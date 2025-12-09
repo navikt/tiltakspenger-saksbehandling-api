@@ -2,24 +2,34 @@ package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.inneholderOverlapp
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import kotlin.collections.flatMap
 
 /**
  * Representerer en periodisering av barnetillegg.
  */
 data class Barnetillegg(
-    val periodisering: SammenhengendePeriodisering<AntallBarn>,
+    val periodisering: Periodisering<AntallBarn>,
     val begrunnelse: Begrunnelse?,
 ) {
     val harBarnetillegg: Boolean by lazy {
         periodisering.any { it.verdi != AntallBarn.ZERO }
     }
 
-    fun krympPeriode(periode: Periode): Barnetillegg {
-        val krympetPeriodisering = periodisering.krymp(periode) as SammenhengendePeriodisering<AntallBarn>
+    fun krympPerioder(perioder: List<Periode>): Barnetillegg {
+        val krympetPeriodisering = periodisering.perioderMedVerdi.toList().flatMap { bt ->
+            bt.periode.overlappendePerioder(perioder).map {
+                PeriodeMedVerdi(
+                    periode = it,
+                    verdi = bt.verdi,
+                )
+            }
+        }.tilPeriodisering()
+
         return this.copy(periodisering = krympetPeriodisering)
     }
 
@@ -52,7 +62,7 @@ private typealias BarnetilleggPerioder = List<Pair<Periode, AntallBarn>>
  * Periodiserer og fyller ut hull med 0.
  * @throws IllegalArgumentException Dersom periodene er utenfor virkningsperioden eller overlapper.
  */
-private fun BarnetilleggPerioder.periodiserOgFyllUtHullMed0(virkningsperiode: Periode): SammenhengendePeriodisering<AntallBarn> {
+private fun BarnetilleggPerioder.periodiserOgFyllUtHullMed0(virkningsperiode: Periode): Periodisering<AntallBarn> {
     if (this.map { it.first }.inneholderOverlapp()) {
         throw IllegalArgumentException("Periodene kan ikke overlappe")
     }

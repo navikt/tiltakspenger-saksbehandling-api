@@ -5,8 +5,8 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -37,7 +37,7 @@ data class ForhåndsvisVedtaksbrevKommando(
     val resultat: BehandlingResultatType,
     val valgteHjemler: List<ValgtHjemmelForStans>?,
     val virkningsperiode: Periode?,
-    val barnetillegg: IkkeTomPeriodisering<AntallBarn>?,
+    val barnetillegg: Periodisering<AntallBarn>?,
     val stansFraOgMed: LocalDate?,
     val stansTilOgMed: LocalDate?,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,

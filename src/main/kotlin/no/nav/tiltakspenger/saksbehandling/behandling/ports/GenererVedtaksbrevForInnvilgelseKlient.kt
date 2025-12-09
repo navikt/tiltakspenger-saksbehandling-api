@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
@@ -42,7 +42,7 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
-        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>?,
+        barnetilleggsPerioder: Periodisering<AntallBarn>?,
         antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
@@ -58,7 +58,7 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         forhåndsvisning: Boolean,
         innvilgelsesperiode: Periode,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        barnetillegg: SammenhengendePeriodisering<AntallBarn>?,
+        barnetillegg: Periodisering<AntallBarn>?,
         antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

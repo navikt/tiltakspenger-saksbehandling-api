@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.overlappendePerioder
+import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
@@ -40,12 +42,26 @@ sealed interface BehandlingResultat {
         override val innvilgelsesperioder: Innvilgelsesperioder?
 
         /**
-         * True dersom disse ikke er null: [innvilgelsesperioder], [valgteTiltaksdeltakelser], [barnetillegg] og [antallDagerPerMeldeperiode]
-         * Sjekker også at periodene til [valgteTiltaksdeltakelser], [barnetillegg] og [antallDagerPerMeldeperiode] er lik [innvilgelsesperioder].
+         * True dersom [innvilgelsesperioder] og [barnetillegg] ikke er null
+         * Sjekker også at periodene til [barnetillegg] er lik [innvilgelsesperioder].
          * TODO jah: Ikke direkte relatert til omgjøring, men vi bør utvide denne til og ta høyde for saksopplysninger.tiltaksdeltakelser
          */
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
             return innvilgelsesperioder != null && barnetillegg != null
+        }
+
+        fun init() {
+            barnetillegg?.also {
+                requireNotNull(innvilgelsesperioder) {
+                    "Kan ikke ha barnetillegg uten en valgt innvilgelsesperiode"
+                }
+
+                val ikkeOverlappendePerioder = it.periodisering.perioder.trekkFra(innvilgelsesperioder!!.perioder)
+
+                require(ikkeOverlappendePerioder.isEmpty()) {
+                    "Innvilgelsesperiodene må inneholde alle barnetilleggsperiodene - $ikkeOverlappendePerioder"
+                }
+            }
         }
     }
 
