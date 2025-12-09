@@ -66,7 +66,7 @@ sealed interface BehandlingResultat {
                 return false
             }
 
-            // Alle barnetillegsperiodene må overlappe fullstendig med innvilgelsesperiodene
+            // Alle barnetilleggsperiodene må overlappe fullstendig med innvilgelsesperiodene
             val ikkeOverlappendePerioder = barnetillegg!!.periodisering.perioder.trekkFra(innvilgelsesperioder!!.perioder)
 
             return ikkeOverlappendePerioder.isEmpty()
@@ -77,7 +77,7 @@ sealed interface BehandlingResultat {
                 return false
             }
 
-            // Alle innvilgelsesperiodene må overlappe fulstendig med tiltaksdeltakelsene
+            // Alle innvilgelsesperiodene må overlappe fullstendig med tiltaksdeltakelsesperiodene
             val ikkeOverlappendendeInnvilgelsesperioder = innvilgelsesperioder!!.perioder.trekkFra(tiltaksdeltakelser.perioder)
 
             return ikkeOverlappendendeInnvilgelsesperioder.isEmpty()

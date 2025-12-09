@@ -21,15 +21,11 @@ data class Innvilgelsesperioder(
     val perioder: List<Periode> = periodisering.perioder
 
     val valgteTiltaksdeltagelser: IkkeTomPeriodisering<Tiltaksdeltakelse> by lazy {
-        periodisering.verdier
-            .map { PeriodeMedVerdi(it.valgtTiltaksdeltakelse, it.periode) }
-            .tilIkkeTomPeriodisering()
+        periodisering.map { it.verdi.valgtTiltaksdeltakelse }
     }
 
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode> by lazy {
-        periodisering.verdier
-            .map { PeriodeMedVerdi(it.antallDagerPerMeldeperiode, it.periode) }
-            .tilIkkeTomPeriodisering()
+        periodisering.map { it.verdi.antallDagerPerMeldeperiode }
     }
 
     /**
