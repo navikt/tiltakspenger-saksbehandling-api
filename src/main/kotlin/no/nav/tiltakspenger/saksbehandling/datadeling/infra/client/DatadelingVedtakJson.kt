@@ -19,7 +19,6 @@ import java.time.LocalDate
 private data class DatadelingVedtakJson(
     val vedtakId: String,
     val sakId: String,
-    val saksnummer: String,
     val fom: LocalDate,
     val tom: LocalDate,
     val virkningsperiode: PeriodeDTO,
@@ -27,7 +26,6 @@ private data class DatadelingVedtakJson(
     val omgjørRammevedtakId: String?,
     val omgjortAvRammevedtakId: String?,
     val rettighet: String,
-    val fnr: String,
     val opprettet: String,
     val barnetillegg: Barnetillegg?,
     val valgteHjemlerHarIkkeRettighet: List<String>?,
@@ -63,7 +61,6 @@ fun Rammevedtak.toDatadelingJson(): String {
     return DatadelingVedtakJson(
         vedtakId = this.id.toString(),
         sakId = this.sakId.toString(),
-        saksnummer = this.saksnummer.verdi,
         // Kommentar jah: Deprekerer fom og tom (erstattes av virkningsperiode+innvilgelsesperiode).
         fom = periode.fraOgMed,
         tom = periode.tilOgMed,
@@ -87,7 +84,6 @@ fun Rammevedtak.toDatadelingJson(): String {
             is RevurderingResultat.Stans -> "STANS"
             is SøknadsbehandlingResultat.Avslag -> "AVSLAG"
         },
-        fnr = fnr.verdi,
         opprettet = opprettet.toString(),
         barnetillegg = barnetillegg?.toDatadelingBarnetillegg(),
         valgteHjemlerHarIkkeRettighet = this.toValgteHjemlerHarIkkeRettighetListe(),

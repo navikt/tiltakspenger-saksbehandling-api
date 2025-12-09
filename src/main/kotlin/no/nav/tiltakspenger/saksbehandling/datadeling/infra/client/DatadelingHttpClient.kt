@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.FeilVedSendingTilDatadeling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakDb
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.net.URI
@@ -100,29 +99,26 @@ class DatadelingHttpClient(
     }
 
     override suspend fun send(
-        sak: Sak,
         meldeperioder: List<Meldeperiode>,
         correlationId: CorrelationId,
     ): Either<FeilVedSendingTilDatadeling, Unit> {
-        require(meldeperioder.none { it.sakId != sak.id }) {
-            "Alle meldeperiodene må tilhøre innsendt sak, sakId ${sak.id}, correlationId $correlationId"
-        }
-        val jsonPayload = meldeperioder.toDatadelingJson(sak)
+        val sakId = meldeperioder.firstOrNull()?.sakId ?: throw IllegalStateException("Kan ikke dele tom liste med meldeperioder")
+        val jsonPayload = meldeperioder.toDatadelingJson(sakId)
         return Either.catch {
             val request = createRequest(jsonPayload, meldeperioderUri)
             val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
             val jsonResponse = httpResponse.body()
             val status = httpResponse.statusCode()
             if (status != 200) {
-                log.error { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for saksnummer ${sak.saksnummer}, sakId: ${sak.id}. Status: $status. uri: $meldeperioderUri. Se sikkerlogg for detaljer." }
-                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for saksnummer ${sak.saksnummer}, sakId: ${sak.id}. uri: $meldeperioderUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
+                log.error { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for sakId: $sakId. Status: $status. uri: $meldeperioderUri. Se sikkerlogg for detaljer." }
+                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for sakId: $sakId. uri: $meldeperioderUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
                 return FeilVedSendingTilDatadeling.left()
             }
             Unit
         }.mapLeft {
             // Either.catch slipper igjennom CancellationException som er ønskelig.
-            log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for saksnummer ${sak.saksnummer}, sakId: ${sak.id}. uri: $meldeperioderUri. Se sikkerlogg for detaljer." }
-            Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for saksnummer ${sak.saksnummer}, sakId: ${sak.id}, uri: $meldeperioderUri, jsonPayload: $jsonPayload" }
+            log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for sakId: $sakId. uri: $meldeperioderUri. Se sikkerlogg for detaljer." }
+            Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for sakId: $sakId, uri: $meldeperioderUri, jsonPayload: $jsonPayload" }
             FeilVedSendingTilDatadeling
         }
     }
