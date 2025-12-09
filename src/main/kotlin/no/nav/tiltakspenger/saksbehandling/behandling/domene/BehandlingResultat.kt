@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.overlappendePerioder
 import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
@@ -42,26 +42,45 @@ sealed interface BehandlingResultat {
         override val innvilgelsesperioder: Innvilgelsesperioder?
 
         /**
-         * True dersom [innvilgelsesperioder] og [barnetillegg] ikke er null
-         * Sjekker også at periodene til [barnetillegg] er lik [innvilgelsesperioder].
-         * TODO jah: Ikke direkte relatert til omgjøring, men vi bør utvide denne til og ta høyde for saksopplysninger.tiltaksdeltakelser
+         * True dersom [innvilgelsesperioder] og [barnetillegg] ikke er null og er utfylt med gyldige perioder
+         * TODO abn: Skriv om denne til å enten kaste exception eller returnere left for spesifikke feil, så det er litt enklere å feilsøke
          */
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
-            return innvilgelsesperioder != null && barnetillegg != null
+            if (innvilgelsesperioder == null) {
+                return false
+            }
+
+            if (!validerBarnetillegg()) {
+                return false
+            }
+
+            if (!validerTiltaksdeltakelse(saksopplysninger.tiltaksdeltakelser)) {
+                return false
+            }
+
+            return true
         }
 
-        fun init() {
-            barnetillegg?.also {
-                requireNotNull(innvilgelsesperioder) {
-                    "Kan ikke ha barnetillegg uten en valgt innvilgelsesperiode"
-                }
-
-                val ikkeOverlappendePerioder = it.periodisering.perioder.trekkFra(innvilgelsesperioder!!.perioder)
-
-                require(ikkeOverlappendePerioder.isEmpty()) {
-                    "Innvilgelsesperiodene må inneholde alle barnetilleggsperiodene - $ikkeOverlappendePerioder"
-                }
+        private fun validerBarnetillegg(): Boolean {
+            if (barnetillegg == null) {
+                return false
             }
+
+            // Alle barnetillegsperiodene må overlappe fullstendig med innvilgelsesperiodene
+            val ikkeOverlappendePerioder = barnetillegg!!.periodisering.perioder.trekkFra(innvilgelsesperioder!!.perioder)
+
+            return ikkeOverlappendePerioder.isEmpty()
+        }
+
+        private fun validerTiltaksdeltakelse(tiltaksdeltakelser: Tiltaksdeltakelser): Boolean {
+            if (tiltaksdeltakelser.isEmpty()) {
+                return false
+            }
+
+            // Alle innvilgelsesperiodene må overlappe fulstendig med tiltaksdeltakelsene
+            val ikkeOverlappendendeInnvilgelsesperioder = innvilgelsesperioder!!.perioder.trekkFra(tiltaksdeltakelser.perioder)
+
+            return ikkeOverlappendendeInnvilgelsesperioder.isEmpty()
         }
     }
 

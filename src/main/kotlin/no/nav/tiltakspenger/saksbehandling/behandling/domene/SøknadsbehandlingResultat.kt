@@ -64,9 +64,5 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
                 this
             }.right()
         }
-
-        init {
-            super.init()
-        }
     }
 }

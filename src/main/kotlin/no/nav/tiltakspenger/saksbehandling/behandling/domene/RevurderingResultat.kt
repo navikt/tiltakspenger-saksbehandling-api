@@ -90,10 +90,6 @@ sealed interface RevurderingResultat : BehandlingResultat {
             }.right()
         }
 
-        init {
-            super.init()
-        }
-
         companion object {
             val empty = Innvilgelse(
                 barnetillegg = null,
@@ -172,30 +168,6 @@ sealed interface RevurderingResultat : BehandlingResultat {
             ).right()
         }
 
-        override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
-            if (barnetillegg.periodisering.totalPeriode != innvilgelsesperioder.totalPeriode) return false
-            if (saksopplysninger.tiltaksdeltakelser.isEmpty()) return false
-
-            valgteTiltaksdeltakelser.forEach { (deltakelse, periode) ->
-                val saksopplysningsDeltakelse =
-                    saksopplysninger.tiltaksdeltakelser.getTiltaksdeltakelse(deltakelse.eksternDeltakelseId)
-                        ?: return false
-                return saksopplysningsDeltakelse.periode?.inneholderHele(periode) ?: false
-            }
-
-            if (innvilgelsesperioder.fraOgMed < saksopplysninger.tiltaksdeltakelser.totalPeriode!!.fraOgMed) {
-                // Innvilgelsesperioden kan ikke starte før tiltaksdeltakelsene
-                return false
-            }
-
-            if (innvilgelsesperioder.tilOgMed > saksopplysninger.tiltaksdeltakelser.totalPeriode!!.tilOgMed) {
-                // Innvilgelsesperioden kan ikke slutte etter tiltaksdeltakelsene
-                return false
-            }
-
-            return true
-        }
-
         companion object {
             fun create(
                 omgjørRammevedtak: Rammevedtak,
@@ -230,8 +202,6 @@ sealed interface RevurderingResultat : BehandlingResultat {
         }
 
         init {
-            super.init()
-
             require(omgjørRammevedtak.perioder.all { virkningsperiode.inneholderHele(it) }) {
                 "Virkningsperioden ($virkningsperiode) må være lik eller større enn omgjort rammevedtak sin(e) periode(r): ${omgjørRammevedtak.perioder}"
             }
@@ -249,30 +219,27 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 }
             }
 
-            // Husk å fjern denne etter migrering!!
-            if (omgjørRammevedtak.size > 0) {
-                require(omgjørRammevedtak.size >= 1) {
-                    "En omgjøring må omgjøre minst ett vedtak"
-                }
+            require(omgjørRammevedtak.size >= 1) {
+                "En omgjøring må omgjøre minst ett vedtak"
+            }
 
-                require(omgjørRammevedtak.any { it.omgjøringsgrad == Omgjøringsgrad.HELT }) {
-                    "Minst ett vedtak må være omgjort i sin helhet"
-                }
+            require(omgjørRammevedtak.any { it.omgjøringsgrad == Omgjøringsgrad.HELT }) {
+                "Minst ett vedtak må være omgjort i sin helhet"
+            }
 
-                val heltOmgjort = omgjørRammevedtak.single {
-                    it.omgjøringsgrad == Omgjøringsgrad.HELT
-                }
+            val heltOmgjort = omgjørRammevedtak.single {
+                it.omgjøringsgrad == Omgjøringsgrad.HELT
+            }
 
-                if (virkningsperiode.fraOgMed < heltOmgjort.periode.fraOgMed) {
-                    require(innvilgelsesperioder.fraOgMed == virkningsperiode.fraOgMed) {
-                        "Når virkningsperioden sin fraOgMed (${virkningsperiode.fraOgMed}) starter før det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed}), må innvilgelsesperioden sin fraOgMed (${innvilgelsesperioder.fraOgMed}) starte samtidig som det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed})"
-                    }
+            if (virkningsperiode.fraOgMed < heltOmgjort.periode.fraOgMed) {
+                require(innvilgelsesperioder.fraOgMed == virkningsperiode.fraOgMed) {
+                    "Når virkningsperioden sin fraOgMed (${virkningsperiode.fraOgMed}) starter før det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed}), må innvilgelsesperioden sin fraOgMed (${innvilgelsesperioder.fraOgMed}) starte samtidig som det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed})"
                 }
+            }
 
-                if (virkningsperiode.tilOgMed > heltOmgjort.periode.tilOgMed) {
-                    require(innvilgelsesperioder.tilOgMed == virkningsperiode.tilOgMed) {
-                        "Når virkningsperioden sin tilOgMed (${virkningsperiode.tilOgMed}) slutter etter det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed}), må innvilgelsesperioden sin tilOgMed (${innvilgelsesperioder.tilOgMed}) slutte samtidig som det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed})"
-                    }
+            if (virkningsperiode.tilOgMed > heltOmgjort.periode.tilOgMed) {
+                require(innvilgelsesperioder.tilOgMed == virkningsperiode.tilOgMed) {
+                    "Når virkningsperioden sin tilOgMed (${virkningsperiode.tilOgMed}) slutter etter det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed}), må innvilgelsesperioden sin tilOgMed (${innvilgelsesperioder.tilOgMed}) slutte samtidig som det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed})"
                 }
             }
         }
