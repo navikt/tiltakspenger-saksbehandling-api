@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.FeilVedSendingTilDatadeling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakDb
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -124,29 +125,29 @@ class DatadelingHttpClient(
     }
 
     override suspend fun send(
-        godkjentMeldekort: MeldekortBehandling.Behandlet,
-        clock: Clock,
+        meldekortvedtak: Meldekortvedtak,
+        totalDifferanse: Int?,
         correlationId: CorrelationId,
     ): Either<FeilVedSendingTilDatadeling, Unit> {
-        require(godkjentMeldekort.erGodkjent) {
-            "Meldekortet er ikke godkjent, meldekortId ${godkjentMeldekort.id}, correlationId $correlationId"
+        require(meldekortvedtak.journalpostId != null) {
+            "Kan ikke dele meldekortvedtak med id ${meldekortvedtak.id} som ikke er journalført ennå"
         }
-        val jsonPayload = godkjentMeldekort.toDatadelingJson(clock)
+        val jsonPayload = meldekortvedtak.toDatadelingJson(totalDifferanse)
         return Either.catch {
             val request = createRequest(jsonPayload, meldekortUri)
             val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
             val jsonResponse = httpResponse.body()
             val status = httpResponse.statusCode()
             if (status != 200) {
-                log.error { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${godkjentMeldekort.id} for saksnummer ${godkjentMeldekort.saksnummer}, sakId: ${godkjentMeldekort.sakId}. Status: $status. uri: $meldekortUri. Se sikkerlogg for detaljer." }
-                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${godkjentMeldekort.id} for saksnummer ${godkjentMeldekort.saksnummer}, sakId: ${godkjentMeldekort.sakId}. uri: $meldekortUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
+                log.error { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${meldekortvedtak.id} for saksnummer ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}. Status: $status. uri: $meldekortUri. Se sikkerlogg for detaljer." }
+                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${meldekortvedtak.id} for saksnummer ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}. uri: $meldekortUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
                 return FeilVedSendingTilDatadeling.left()
             }
             Unit
         }.mapLeft {
             // Either.catch slipper igjennom CancellationException som er ønskelig.
-            log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${godkjentMeldekort.id} for saksnummer ${godkjentMeldekort.saksnummer}, sakId: ${godkjentMeldekort.sakId}. uri: $meldekortUri. Se sikkerlogg for detaljer." }
-            Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${godkjentMeldekort.id} for saksnummer ${godkjentMeldekort.saksnummer}, sakId: ${godkjentMeldekort.sakId}, uri: $meldekortUri, jsonPayload: $jsonPayload" }
+            log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${meldekortvedtak.id} for saksnummer ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}. uri: $meldekortUri. Se sikkerlogg for detaljer." }
+            Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${meldekortvedtak.id} for saksnummer ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, uri: $meldekortUri, jsonPayload: $jsonPayload" }
             FeilVedSendingTilDatadeling
         }
     }

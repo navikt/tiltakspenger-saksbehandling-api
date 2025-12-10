@@ -1,17 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
-import java.time.Clock
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 private data class DatadelingGodkjentMeldekortJson(
+    val meldekortbehandlingId: String,
     val kjedeId: String,
     val sakId: String,
     val meldeperiodeId: String,
@@ -22,6 +19,9 @@ private data class DatadelingGodkjentMeldekortJson(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val meldekortdager: List<MeldekortDagDTO>,
+    val journalpostId: String,
+    val totaltBelop: Int,
+    val totalDifferanse: Int?,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime,
 ) {
@@ -50,20 +50,24 @@ private data class DatadelingGodkjentMeldekortJson(
     }
 }
 
-fun MeldekortBehandling.Behandlet.toDatadelingJson(clock: Clock): String {
+fun Meldekortvedtak.toDatadelingJson(totalDifferanse: Int?): String {
     return DatadelingGodkjentMeldekortJson(
-        kjedeId = kjedeId.toString(),
+        meldekortbehandlingId = meldekortBehandling.id.toString(),
+        kjedeId = meldekortBehandling.kjedeId.toString(),
         sakId = sakId.toString(),
         meldeperiodeId = meldeperiode.id.toString(),
-        mottattTidspunkt = brukersMeldekort?.mottatt,
-        vedtattTidspunkt = iverksattTidspunkt!!,
-        behandletAutomatisk = this is MeldekortBehandletAutomatisk,
-        korrigert = type == MeldekortBehandlingType.KORRIGERING,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-        meldekortdager = dager.verdi.map { it.toDatadelingMeldekortDagDTO() },
+        mottattTidspunkt = meldekortBehandling.brukersMeldekort?.mottatt,
+        vedtattTidspunkt = opprettet,
+        behandletAutomatisk = automatiskBehandlet,
+        korrigert = erKorrigering,
+        fraOgMed = meldekortBehandling.fraOgMed,
+        tilOgMed = meldekortBehandling.tilOgMed,
+        meldekortdager = meldekortBehandling.dager.verdi.map { it.toDatadelingMeldekortDagDTO() },
+        journalpostId = journalpostId!!.toString(),
+        totaltBelop = meldekortBehandling.beløpTotal,
+        totalDifferanse = totalDifferanse,
         opprettet = opprettet,
-        sistEndret = nå(clock),
+        sistEndret = meldekortBehandling.sistEndret,
     ).let { serialize(it) }
 }
 
