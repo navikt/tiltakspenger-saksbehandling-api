@@ -372,6 +372,7 @@ open class ApplicationContext(
             behandlingRepo = behandlingContext.behandlingRepo,
             sakRepo = sakContext.sakRepo,
             meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
+            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
             datadelingClient = datadelingKlient,
             clock = clock,
         )

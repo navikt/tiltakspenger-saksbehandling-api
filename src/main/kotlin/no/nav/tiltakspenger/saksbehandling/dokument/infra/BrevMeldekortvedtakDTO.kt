@@ -124,7 +124,7 @@ suspend fun Meldekortvedtak.toJsonRequest(
     ).let { serialize(it) }
 }
 
-private fun Meldekortvedtak.toBeregningSammenligningDTO(
+fun Meldekortvedtak.toBeregningSammenligningDTO(
     sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
 ): BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO {
     return this.utbetaling.beregning.beregninger

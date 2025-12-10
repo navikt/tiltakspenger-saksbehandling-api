@@ -1,13 +1,20 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
+import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.toBeregningSammenligningDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import java.time.Clock
 
 class SendTilDatadelingService(
@@ -15,18 +22,20 @@ class SendTilDatadelingService(
     private val behandlingRepo: BehandlingRepo,
     private val sakRepo: SakRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
+    private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val datadelingClient: DatadelingClient,
     private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
+    // vi venter med å dele godkjente meldekort til formatet er oppdatert i tiltakspenger-datadeling
     suspend fun send() {
         sendSak()
         sendBehandlinger()
         sendMeldekortbehandlinger()
         sendVedtak()
         sendMeldeperioder()
-        sendGodkjenteMeldekort()
+        // sendGodkjenteMeldekort()
     }
 
     private suspend fun sendSak() {
@@ -146,22 +155,50 @@ class SendTilDatadelingService(
 
     private suspend fun sendGodkjenteMeldekort() {
         Either.catch {
-            meldekortBehandlingRepo.hentGodkjenteMeldekortTilDatadeling().forEach { godkjentMeldekort ->
+            meldekortvedtakRepo.hentMeldekortvedtakTilDatadeling().forEach { meldekortvedtak ->
                 val correlationId = CorrelationId.generate()
+                val totalDifferanse = if (meldekortvedtak.erKorrigering) {
+                    getTotalDifferanseForKorrigering(meldekortvedtak)
+                } else {
+                    null
+                }
                 Either.catch {
-                    datadelingClient.send(godkjentMeldekort, clock, correlationId).onRight {
-                        logger.info { "Meldekort sendt til datadeling. MeldekortId: ${godkjentMeldekort.id}, sakId: ${godkjentMeldekort.sakId}" }
-                        meldekortBehandlingRepo.markerSendtTilDatadeling(godkjentMeldekort.id, nå(clock))
-                        logger.info { "Meldekort med id ${godkjentMeldekort.id} markert som sendt til datadeling. SakId: ${godkjentMeldekort.sakId}" }
+                    datadelingClient.send(meldekortvedtak, totalDifferanse, correlationId).onRight {
+                        logger.info { "Meldekort sendt til datadeling. MeldekortvedtakId: ${meldekortvedtak.id}, sakId: ${meldekortvedtak.sakId}" }
+                        meldekortvedtakRepo.markerSendtTilDatadeling(meldekortvedtak.id, nå(clock))
+                        logger.info { "Meldekort med vedtakid ${meldekortvedtak.id} markert som sendt til datadeling. SakId: ${meldekortvedtak.sakId}" }
                     }.onLeft {
                         // Disse logges av klienten, trenger ikke duplikat logglinje.
                     }
                 }.onLeft {
-                    logger.error(it) { "Ukjent feil skjedde under sending av meldekort med id ${godkjentMeldekort.id} til datadeling. Saksnummer: ${godkjentMeldekort.saksnummer}, sakId: ${godkjentMeldekort.sakId}" }
+                    logger.error(it) { "Ukjent feil skjedde under sending av meldekort med meldekortvedtakId ${meldekortvedtak.id} til datadeling. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}" }
                 }
             }
         }.onLeft {
             logger.error(it) { "Ukjent feil skjedde under henting av meldekort som skal sendes til datadeling." }
         }
+    }
+
+    private fun getTotalDifferanseForKorrigering(meldekortvedtak: Meldekortvedtak): Int {
+        val sak = sakRepo.hentForSakId(meldekortvedtak.sakId)
+            ?: throw IllegalStateException("Fant ikke sak med id ${meldekortvedtak.sakId} ved beregning av differanse")
+        val sammenligning = { beregningEtter: MeldeperiodeBeregning ->
+            val beregningFør = sak.meldeperiodeBeregninger.hentForrigeBeregning(
+                beregningEtter.id,
+                beregningEtter.kjedeId,
+            ).getOrElse {
+                when (it) {
+                    MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenTidligereBeregninger -> null
+                    MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenBeregningerForKjede,
+                    MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.BeregningFinnesIkke,
+                    -> {
+                        logger.error { "Fant ikke beregningen ${beregningEtter.id} på kjede ${beregningEtter.kjedeId} - Dette er sannsynligvis en feil!" }
+                        null
+                    }
+                }
+            }
+            sammenlign(beregningFør, beregningEtter)
+        }
+        return meldekortvedtak.toBeregningSammenligningDTO(sammenligning).totalDifferanse
     }
 }

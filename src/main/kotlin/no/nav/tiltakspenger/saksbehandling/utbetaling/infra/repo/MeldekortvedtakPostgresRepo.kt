@@ -98,6 +98,41 @@ class MeldekortvedtakPostgresRepo(
         }
     }
 
+    override fun hentMeldekortvedtakTilDatadeling(limit: Int): List<Meldekortvedtak> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select v.*, s.saksnummer, s.fnr 
+                    from meldekortvedtak v
+                    join sak s on s.id = v.sak_id
+                    where v.journalpost_id is not null and v.sendt_til_datadeling is null
+                    limit :limit
+                    """,
+                    "limit" to limit,
+                ).map { row ->
+                    row.toVedtak(session)
+                }.asList,
+            )
+        }
+    }
+
+    override fun markerSendtTilDatadeling(vedtakId: VedtakId, tidspunkt: LocalDateTime) {
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    update meldekortvedtak 
+                    set sendt_til_datadeling = :tidspunkt
+                    where id = :id
+                    """,
+                    "id" to vedtakId.toString(),
+                    "tidspunkt" to tidspunkt,
+                ).asUpdate,
+            )
+        }
+    }
+
     companion object {
         fun hentForSakId(sakId: SakId, session: Session): Meldekortvedtaksliste {
             return session.run(

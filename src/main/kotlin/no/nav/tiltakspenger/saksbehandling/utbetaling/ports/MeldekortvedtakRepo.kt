@@ -16,4 +16,11 @@ interface MeldekortvedtakRepo {
     )
 
     fun hentDeSomSkalJournalføres(limit: Int = 10): List<Meldekortvedtak>
+
+    fun hentMeldekortvedtakTilDatadeling(limit: Int = 20): List<Meldekortvedtak>
+
+    fun markerSendtTilDatadeling(
+        vedtakId: VedtakId,
+        tidspunkt: LocalDateTime,
+    )
 }

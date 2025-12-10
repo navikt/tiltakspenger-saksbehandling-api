@@ -38,4 +38,11 @@ class MeldekortvedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : Meldekor
     override fun hentDeSomSkalJournalføres(limit: Int): List<Meldekortvedtak> {
         return data.get().values.filter { it.journalpostId == null }.take(limit)
     }
+
+    override fun hentMeldekortvedtakTilDatadeling(limit: Int): List<Meldekortvedtak> {
+        return emptyList()
+    }
+
+    override fun markerSendtTilDatadeling(vedtakId: VedtakId, tidspunkt: LocalDateTime) {
+    }
 }
