@@ -19,12 +19,16 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
 import java.time.Clock
 
 private const val PATH = "sak/{sakId}/meldeperiode/{kjedeId}/opprettBehandling"
 
+/** Brukes både for å opprette en ny meldekortbehandling, og for å ta opp en meldekortbehandling som har blitt lagt tilbake
+ *
+ *  TODO abn: burde splitte denne og tilhørende service-funksjon for å separere de to bruksområdene bedre
+ * */
 fun Route.opprettMeldekortBehandlingRoute(
     opprettMeldekortBehandlingService: OpprettMeldekortBehandlingService,
     auditService: AuditService,
@@ -49,18 +53,18 @@ fun Route.opprettMeldekortBehandlingRoute(
                 ).fold(
                     {
                         when (it) {
-                            is KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet -> call.respond500InternalServerError(
+                            is KanIkkeOppretteMeldekortbehandling.HenteNavKontorFeilet -> call.respond500InternalServerError(
                                 melding = "Kunne ikke hente Nav-kontor for brukeren",
                                 kode = "kunne_ikke_hente_navkontor",
                             )
 
-                            is KanIkkeOppretteMeldekortBehandling.KanIkkeOpprettePåKjede -> call.respond400BadRequest(
-                                melding = "Meldeperiodekjeden er ikke i en tilstand som tillater å opprette en behandling",
-                                kode = "mel",
+                            is KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil -> call.respond400BadRequest(
+                                melding = "Meldeperiodekjeden er i en tilstand som ikke tillater å opprette en behandling: ${it.feil}",
+                                kode = it.feil.toString(),
                             )
                         }
                     },
-                    {
+                    { (sak) ->
                         auditService.logMedSakId(
                             sakId = sakId,
                             navIdent = saksbehandler.navIdent,
@@ -69,7 +73,7 @@ fun Route.opprettMeldekortBehandlingRoute(
                             correlationId = correlationId,
                         )
 
-                        call.respond(HttpStatusCode.OK, it.toMeldeperiodeKjedeDTO(kjedeId, clock))
+                        call.respond(HttpStatusCode.OK, sak.toMeldeperiodeKjedeDTO(kjedeId, clock))
                     },
                 )
             }

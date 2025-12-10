@@ -81,7 +81,7 @@ internal fun TestDataHelper.persisterBrukersMeldekort(
 
 internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling(
     sak: Sak? = null,
-    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    saksbehandler: Saksbehandler = saksbehandler(),
     kjedeId: MeldeperiodeKjedeId? = null,
     periode: Periode = Periode(
         2.januar(2023),
@@ -104,7 +104,7 @@ internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling
         navkontor = navkontor,
         saksbehandler = saksbehandler,
         clock = clock,
-    )
+    ).getOrFail()
 
     this.meldekortRepo.lagre(manuellMeldekortBehandling, null)
 
@@ -117,7 +117,7 @@ internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling
  */
 internal fun TestDataHelper.persisterAvsluttetMeldekortBehandling(
     sak: Sak? = null,
-    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    saksbehandler: Saksbehandler = saksbehandler(),
     periode: Periode = Periode(
         2.januar(2023),
         15.januar(2023),
@@ -150,7 +150,7 @@ internal fun TestDataHelper.persisterAvsluttetMeldekortBehandling(
 
 internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
     sak: Sak? = null,
-    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    saksbehandler: Saksbehandler = saksbehandler(),
     periode: Periode = Periode(
         2.januar(2023),
         15.januar(2023),

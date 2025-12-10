@@ -29,8 +29,5 @@ value class Begrunnelse private constructor(
 
         /** @return null dersom strengen er blank */
         fun String.toBegrunnelse(): Begrunnelse? = create(this)
-
-        @TestOnly
-        fun String.toFritekstTilVedtaksbrevOrThrow(): Begrunnelse = create(this)!!
     }
 }

@@ -11,13 +11,16 @@ import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SkalLagreEllerOppdatere
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ValiderOpprettMeldekortbehandlingFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
+// Brukes både for å opprette en ny meldekortbehandling, og for å ta opp en meldekortbehandling som har blitt lagt tilbake
 class OpprettMeldekortBehandlingService(
     val sakService: SakService,
     val meldekortBehandlingRepo: MeldekortBehandlingRepo,
@@ -31,7 +34,7 @@ class OpprettMeldekortBehandlingService(
         kjedeId: MeldeperiodeKjedeId,
         sakId: SakId,
         saksbehandler: Saksbehandler,
-    ): Either<KanIkkeOppretteMeldekortBehandling, Sak> {
+    ): Either<KanIkkeOppretteMeldekortbehandling, Pair<Sak, MeldekortBehandling>> {
         val sak = sakService.hentForSakId(sakId)
 
         val navkontor = Either.catch {
@@ -41,20 +44,16 @@ class OpprettMeldekortBehandlingService(
                 logger.error(it) { this }
                 Sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
             }
-            return KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet.left()
+            return KanIkkeOppretteMeldekortbehandling.HenteNavKontorFeilet.left()
         }
 
-        val (oppdatertSak, meldekortBehandling, skalLagreEllerOppdatere) = Either.catch {
-            sak.opprettManuellMeldekortBehandling(
-                kjedeId = kjedeId,
-                navkontor = navkontor,
-                saksbehandler = saksbehandler,
-                clock = clock,
-            )
-        }.getOrElse {
-            // TODO jah: Bør ikke styre flyt med throw - catch. Bytt til Either hvis det trengs.
-            logger.error(it) { "Kunne ikke opprette meldekort behandling på kjede $kjedeId for sak $sakId" }
-            return KanIkkeOppretteMeldekortBehandling.KanIkkeOpprettePåKjede.left()
+        val (oppdatertSak, meldekortBehandling, skalLagreEllerOppdatere) = sak.opprettManuellMeldekortBehandling(
+            kjedeId = kjedeId,
+            navkontor = navkontor,
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).getOrElse {
+            return it.left()
         }
 
         when (skalLagreEllerOppdatere) {
@@ -69,11 +68,14 @@ class OpprettMeldekortBehandlingService(
 
         logger.info { "Opprettet behandling ${meldekortBehandling.id} på meldeperiode kjede $kjedeId for sak $sakId" }
 
-        return oppdatertSak.right()
+        return (oppdatertSak to meldekortBehandling).right()
     }
 }
 
-sealed interface KanIkkeOppretteMeldekortBehandling {
-    data object HenteNavkontorFeilet : KanIkkeOppretteMeldekortBehandling
-    data object KanIkkeOpprettePåKjede : KanIkkeOppretteMeldekortBehandling
+sealed interface KanIkkeOppretteMeldekortbehandling {
+    data object HenteNavKontorFeilet : KanIkkeOppretteMeldekortbehandling
+
+    data class ValiderOpprettFeil(
+        val feil: ValiderOpprettMeldekortbehandlingFeil,
+    ) : KanIkkeOppretteMeldekortbehandling
 }

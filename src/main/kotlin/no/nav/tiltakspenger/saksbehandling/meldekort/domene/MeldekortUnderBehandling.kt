@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -371,54 +372,36 @@ sealed interface SkalLagreEllerOppdatere {
 }
 
 /**
+ *  Brukes både for å opprette en ny meldekortbehandling, og for å ta opp en meldekortbehandling som har blitt lagt tilbake
+ *
  *  SkalLagreEllerOppdatere er en workaround for å vite hvilket database kall vi skal bruke.
  *
- *  TODO abn: Kanskje vi burde ha feilhåndtering her tilsvarende som for automatisk behandling,
- *  for å gi bedre tilbakemelding til saksbehandler når det feiler
  * */
 fun Sak.opprettManuellMeldekortBehandling(
     kjedeId: MeldeperiodeKjedeId,
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
     clock: Clock,
-): Triple<Sak, MeldekortUnderBehandling, SkalLagreEllerOppdatere> {
-    validerOpprettMeldekortBehandling(kjedeId).getOrElse {
-        when (it) {
-            KanIkkeOppretteMeldekortbehandling.HAR_ÅPEN_BEHANDLING -> throw IllegalStateException(
-                "Kan ikke opprette ny meldekortbehandling dersom en behandling er åpen på saken - $kjedeId har åpen behandling på ${this.id}",
-            )
-
-            KanIkkeOppretteMeldekortbehandling.MÅ_BEHANDLE_FØRSTE_KJEDE -> throw IllegalStateException(
-                "Dette er første meldekortbehandling på saken og må da behandle den første meldeperiode kjeden. sakId: ${this.id}, meldeperiodekjedeId: $kjedeId",
-            )
-
-            KanIkkeOppretteMeldekortbehandling.MÅ_BEHANDLE_NESTE_KJEDE -> throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
-
-            KanIkkeOppretteMeldekortbehandling.INGEN_DAGER_GIR_RETT -> throw IllegalStateException("Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger")
-        }
+): Either<KanIkkeOppretteMeldekortbehandling, Triple<Sak, MeldekortUnderBehandling, SkalLagreEllerOppdatere>> {
+    validerOpprettMeldekortbehandling(kjedeId).onLeft {
+        return KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil(it).left()
     }
 
     val åpenMeldekortBehandling = this.meldekortbehandlinger.åpenMeldekortBehandling
 
+    /** [Sak.validerOpprettMeldekortbehandling] sjekker om en evt åpen behandling kan gjenopprettes */
     if (åpenMeldekortBehandling != null) {
-        if (kjedeId == åpenMeldekortBehandling.kjedeId) {
-            if (åpenMeldekortBehandling.status == KLAR_TIL_BEHANDLING) {
-                val oppdatertBehandling = (åpenMeldekortBehandling as MeldekortUnderBehandling).copy(
-                    saksbehandler = saksbehandler.navIdent,
-                    status = UNDER_BEHANDLING,
-                    sistEndret = nå(clock),
-                )
+        val oppdatertBehandling = (åpenMeldekortBehandling as MeldekortUnderBehandling).copy(
+            saksbehandler = saksbehandler.navIdent,
+            status = UNDER_BEHANDLING,
+            sistEndret = nå(clock),
+        )
 
-                return Triple(
-                    this.oppdaterMeldekortbehandling(oppdatertBehandling),
-                    oppdatertBehandling,
-                    SkalLagreEllerOppdatere.Oppdatere,
-                )
-            } else {
-                throw IllegalStateException("Det finnes allerede en åpen meldekortbehandling på kjede $kjedeId med status ${åpenMeldekortBehandling.status}. Skal ikke ha mulighet til å prøve å opprette en ny behandling")
-            }
-        }
-        throw IllegalStateException("Det finnes allerede en åpen meldekortbehandling på saken med id ${åpenMeldekortBehandling.id}. Kun en åpen meldekortbehandling er tillatt per sak.")
+        return Triple(
+            this.oppdaterMeldekortbehandling(oppdatertBehandling),
+            oppdatertBehandling,
+            SkalLagreEllerOppdatere.Oppdatere,
+        ).right()
     }
 
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
@@ -450,6 +433,10 @@ fun Sak.opprettManuellMeldekortBehandling(
         behandlingSendtTilDatadeling = null,
         fritekstTilVedtaksbrev = null,
     ).let {
-        Triple(this.leggTilMeldekortbehandling(it), it, SkalLagreEllerOppdatere.Lagre)
+        Triple(
+            this.leggTilMeldekortbehandling(it),
+            it,
+            SkalLagreEllerOppdatere.Lagre,
+        ).right()
     }
 }
