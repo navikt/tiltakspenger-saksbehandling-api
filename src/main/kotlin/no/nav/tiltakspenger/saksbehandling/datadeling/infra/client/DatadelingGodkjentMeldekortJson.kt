@@ -22,6 +22,7 @@ private data class DatadelingGodkjentMeldekortJson(
     val journalpostId: String,
     val totaltBelop: Int,
     val totalDifferanse: Int?,
+    val barnetillegg: Boolean,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime,
 ) {
@@ -66,6 +67,7 @@ fun Meldekortvedtak.toDatadelingJson(totalDifferanse: Int?): String {
         journalpostId = journalpostId!!.toString(),
         totaltBelop = meldekortBehandling.beløpTotal,
         totalDifferanse = totalDifferanse,
+        barnetillegg = meldekortBehandling.barnetilleggBeløp != 0,
         opprettet = opprettet,
         sistEndret = meldekortBehandling.sistEndret,
     ).let { serialize(it) }
