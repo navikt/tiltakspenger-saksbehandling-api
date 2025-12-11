@@ -46,7 +46,6 @@ data class AvbruttMeldekortBehandling(
 ) : MeldekortBehandling {
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null
-    override val sendtTilDatadeling = null
 
     override val status = if (ikkeRettTilTiltakspengerTidspunkt == null) AVBRUTT else IKKE_RETT_TIL_TILTAKSPENGER
 

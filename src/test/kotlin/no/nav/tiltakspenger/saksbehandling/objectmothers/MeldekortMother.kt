@@ -203,7 +203,6 @@ interface MeldekortMother : MotherOfAllMothers {
             begrunnelse = begrunnelse,
             attesteringer = attesteringer,
             dager = dager,
-            sendtTilDatadeling = null,
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
@@ -258,7 +257,6 @@ interface MeldekortMother : MotherOfAllMothers {
             type = type,
             status = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
             simulering = simulering,
-            sendtTilDatadeling = null,
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
 

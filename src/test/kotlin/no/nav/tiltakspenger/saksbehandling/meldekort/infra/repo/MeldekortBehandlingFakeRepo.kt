@@ -200,13 +200,6 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         }
     }
 
-    override fun hentGodkjenteMeldekortTilDatadeling(limit: Int): List<MeldekortBehandling.Behandlet> {
-        return emptyList()
-    }
-
-    override fun markerSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime) {
-    }
-
     override fun hentBehandlingerTilDatadeling(limit: Int): List<MeldekortBehandling> {
         return emptyList()
     }

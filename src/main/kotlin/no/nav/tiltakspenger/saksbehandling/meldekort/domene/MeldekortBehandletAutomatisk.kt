@@ -45,7 +45,6 @@ data class MeldekortBehandletAutomatisk(
     override val navkontor: Navkontor,
     override val type: MeldekortBehandlingType,
     override val status: MeldekortBehandlingStatus,
-    override val sendtTilDatadeling: LocalDateTime?,
     override val sistEndret: LocalDateTime,
     override val behandlingSendtTilDatadeling: LocalDateTime?,
 ) : MeldekortBehandling.Behandlet {
@@ -148,7 +147,6 @@ suspend fun Sak.opprettAutomatiskMeldekortBehandling(
         type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         status = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
         simulering = null,
-        sendtTilDatadeling = null,
         sistEndret = nå(clock),
         behandlingSendtTilDatadeling = null,
     )

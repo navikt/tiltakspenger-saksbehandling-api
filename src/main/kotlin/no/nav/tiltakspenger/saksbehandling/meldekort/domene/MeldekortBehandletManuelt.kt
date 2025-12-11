@@ -60,7 +60,6 @@ data class MeldekortBehandletManuelt(
     override val beregning: Beregning,
     override val simulering: Simulering?,
     override val dager: MeldekortDager,
-    override val sendtTilDatadeling: LocalDateTime?,
     override val sistEndret: LocalDateTime,
     override val behandlingSendtTilDatadeling: LocalDateTime?,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
