@@ -74,7 +74,6 @@ class MeldekortBehandlingPostgresRepo(
                         attesteringer,
                         brukers_meldekort_id,
                         avbrutt,
-                        sendt_til_datadeling,
                         sist_endret,
                         behandling_sendt_til_datadeling
                     ) values (
@@ -101,7 +100,6 @@ class MeldekortBehandlingPostgresRepo(
                         to_jsonb(:attesteringer::jsonb),
                         :brukers_meldekort_id,
                         to_jsonb(:avbrutt::jsonb),
-                        :sendt_til_datadeling,
                         :sist_endret,
                         :behandling_sendt_til_datadeling
                     )
@@ -130,7 +128,6 @@ class MeldekortBehandlingPostgresRepo(
                     "attesteringer" to meldekortBehandling.attesteringer.toDbJson(),
                     "brukers_meldekort_id" to meldekortBehandling.brukersMeldekort?.id?.toString(),
                     "avbrutt" to meldekortBehandling.avbrutt?.toDbJson(),
-                    "sendt_til_datadeling" to meldekortBehandling.sendtTilDatadeling,
                     "sist_endret" to meldekortBehandling.sistEndret,
                     "behandling_sendt_til_datadeling" to meldekortBehandling.behandlingSendtTilDatadeling,
                 ).asUpdate,
@@ -159,7 +156,6 @@ class MeldekortBehandlingPostgresRepo(
                         begrunnelse = :begrunnelse,
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
-                        sendt_til_datadeling = :sendt_til_datadeling,
                         sist_endret = :sist_endret,
                         behandling_sendt_til_datadeling = :behandling_sendt_til_datadeling
                     where id = :id
@@ -177,7 +173,6 @@ class MeldekortBehandlingPostgresRepo(
                     "begrunnelse" to meldekortBehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortBehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortBehandling.avbrutt?.toDbJson(),
-                    "sendt_til_datadeling" to meldekortBehandling.sendtTilDatadeling,
                     "sist_endret" to meldekortBehandling.sistEndret,
                     "behandling_sendt_til_datadeling" to meldekortBehandling.behandlingSendtTilDatadeling,
                 ).asUpdate,
@@ -210,7 +205,6 @@ class MeldekortBehandlingPostgresRepo(
                         begrunnelse = :begrunnelse,
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
-                        sendt_til_datadeling = :sendt_til_datadeling,
                         sist_endret = :sist_endret,
                         behandling_sendt_til_datadeling = :behandling_sendt_til_datadeling,
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev
@@ -232,7 +226,6 @@ class MeldekortBehandlingPostgresRepo(
                     "begrunnelse" to meldekortBehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortBehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortBehandling.avbrutt?.toDbJson(),
-                    "sendt_til_datadeling" to meldekortBehandling.sendtTilDatadeling,
                     "sist_endret" to meldekortBehandling.sistEndret,
                     "behandling_sendt_til_datadeling" to meldekortBehandling.behandlingSendtTilDatadeling,
                     "tekst_til_vedtaksbrev" to meldekortBehandling.fritekstTilVedtaksbrev?.verdi,
@@ -397,45 +390,6 @@ class MeldekortBehandlingPostgresRepo(
         }
     }
 
-    override fun hentGodkjenteMeldekortTilDatadeling(limit: Int): List<MeldekortBehandling.Behandlet> {
-        return sessionFactory.withSession { session ->
-            session.run(
-                queryOf(
-                    """
-                        select
-                          m.*,
-                          s.fnr,
-                          s.saksnummer
-                        from meldekortbehandling m
-                        join sak s on s.id = m.sak_id
-                        where m.sendt_til_datadeling is null
-                        and m.status in ('GODKJENT', 'AUTOMATISK_BEHANDLET')
-                        order by m.opprettet
-                        limit $limit
-                    """.trimIndent(),
-                ).map { fromRow(it, session) }.asList,
-            )
-        }.filter { it is MeldekortBehandling.Behandlet && it.erGodkjent } as List<MeldekortBehandling.Behandlet>
-    }
-
-    override fun markerSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime) {
-        sessionFactory.withSession { session ->
-            session.run(
-                queryOf(
-                    """
-                    update meldekortbehandling
-                    set sendt_til_datadeling = :tidspunkt
-                    where id = :id
-                    """.trimIndent(),
-                    mapOf(
-                        "id" to meldekortId.toString(),
-                        "tidspunkt" to tidspunkt,
-                    ),
-                ).asUpdate,
-            )
-        }
-    }
-
     override fun hentBehandlingerTilDatadeling(limit: Int): List<MeldekortBehandling> {
         return sessionFactory.withSession { session ->
             session.run(
@@ -556,7 +510,6 @@ class MeldekortBehandlingPostgresRepo(
             }
 
             val iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt")
-            val sendtTilDatadeling = row.localDateTimeOrNull("sendt_til_datadeling")
             val sistEndret = row.localDateTime("sist_endret")
             val behandlingSendtTilDatadeling = row.localDateTimeOrNull("behandling_sendt_til_datadeling")
 
@@ -588,7 +541,6 @@ class MeldekortBehandlingPostgresRepo(
                         dager = dager,
                         type = type,
                         status = status,
-                        sendtTilDatadeling = sendtTilDatadeling,
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                     )
@@ -616,7 +568,6 @@ class MeldekortBehandlingPostgresRepo(
                         beregning = beregning!!,
                         simulering = simulering,
                         dager = dager,
-                        sendtTilDatadeling = sendtTilDatadeling,
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,

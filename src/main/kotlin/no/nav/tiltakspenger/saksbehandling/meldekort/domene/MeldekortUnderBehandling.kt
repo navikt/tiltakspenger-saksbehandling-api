@@ -66,7 +66,6 @@ data class MeldekortUnderBehandling(
 ) : MeldekortBehandling {
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
-    override val sendtTilDatadeling = null
 
     override val beslutter = null
 
@@ -149,7 +148,6 @@ data class MeldekortUnderBehandling(
                 begrunnelse = oppdatertMeldekort.begrunnelse,
                 attesteringer = oppdatertMeldekort.attesteringer,
                 dager = oppdatertMeldekort.dager,
-                sendtTilDatadeling = null,
                 sistEndret = nå(clock),
                 behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                 fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
