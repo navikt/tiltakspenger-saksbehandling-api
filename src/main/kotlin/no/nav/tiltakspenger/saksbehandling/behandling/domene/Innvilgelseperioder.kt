@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
+import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -61,6 +63,11 @@ data class Innvilgelsesperioder(
         )
     }
 
+    /** Sjekker om alle innvilgelsesperiodene er innenfor tiltaksdeltakelsesperiodene */
+    fun erInnenforTiltaksperiodene(saksopplysninger: Saksopplysninger): Boolean {
+        return this.perioder.trekkFra(saksopplysninger.tiltaksdeltakelser.perioder).isEmpty()
+    }
+
     companion object {
 
         /**
@@ -73,18 +80,26 @@ data class Innvilgelsesperioder(
             antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>>,
             tiltaksdeltakelser: List<Pair<Periode, String>>,
         ): Innvilgelsesperioder {
-            val unikePerioder = nonEmptyListOf(innvilgelsesperiode)
-                .plus(antallDagerPerMeldeperiode.map { it.first })
-                .plus(tiltaksdeltakelser.map { it.first })
-                .tilPerioderUtenHullEllerOverlapp()
-
             val antallDagerPeriodisert = antallDagerPerMeldeperiode.map {
                 PeriodeMedVerdi(it.second, it.first)
-            }.tilIkkeTomPeriodisering()
+            }.tilSammenhengendePeriodisering()
 
             val tiltakPeriodisert = tiltaksdeltakelser.map {
                 PeriodeMedVerdi(it.second, it.first)
-            }.tilIkkeTomPeriodisering()
+            }.tilSammenhengendePeriodisering()
+
+            require(antallDagerPeriodisert.totalPeriode == innvilgelsesperiode) {
+                "Periodisering av antall dager må ha totalperiode lik innvilgelsesperioden"
+            }
+
+            require(tiltakPeriodisert.totalPeriode == innvilgelsesperiode) {
+                "Periodisering av tiltaksdeltakelse må ha totalperiode lik innvilgelsesperioden"
+            }
+
+            val unikePerioder = nonEmptyListOf(innvilgelsesperiode)
+                .plus(antallDagerPeriodisert.perioder)
+                .plus(tiltakPeriodisert.perioder)
+                .tilPerioderUtenHullEllerOverlapp()
 
             val innvilgelsesperioder: List<PeriodeMedVerdi<Innvilgelsesperiode>> = unikePerioder.map {
                 Innvilgelsesperiode(

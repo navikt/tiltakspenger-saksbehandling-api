@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
@@ -50,11 +49,11 @@ sealed interface BehandlingResultat {
                 return false
             }
 
-            if (!validerBarnetillegg()) {
+            if (!innvilgelsesperioder!!.erInnenforTiltaksperiodene(saksopplysninger)) {
                 return false
             }
 
-            if (!validerTiltaksdeltakelse(saksopplysninger.tiltaksdeltakelser)) {
+            if (!validerBarnetillegg()) {
                 return false
             }
 
@@ -70,17 +69,6 @@ sealed interface BehandlingResultat {
             val ikkeOverlappendePerioder = barnetillegg!!.periodisering.perioder.trekkFra(innvilgelsesperioder!!.perioder)
 
             return ikkeOverlappendePerioder.isEmpty()
-        }
-
-        private fun validerTiltaksdeltakelse(tiltaksdeltakelser: Tiltaksdeltakelser): Boolean {
-            if (tiltaksdeltakelser.isEmpty()) {
-                return false
-            }
-
-            // Alle innvilgelsesperiodene må overlappe fullstendig med tiltaksdeltakelsesperiodene
-            val ikkeOverlappendendeInnvilgelsesperioder = innvilgelsesperioder!!.perioder.trekkFra(tiltaksdeltakelser.perioder)
-
-            return ikkeOverlappendendeInnvilgelsesperioder.isEmpty()
         }
     }
 

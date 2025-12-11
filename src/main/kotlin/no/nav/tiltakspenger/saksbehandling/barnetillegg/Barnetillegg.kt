@@ -21,7 +21,7 @@ data class Barnetillegg(
     }
 
     fun krympPerioder(perioder: List<Periode>): Barnetillegg {
-        val krympetPeriodisering = periodisering.perioderMedVerdi.toList().flatMap { bt ->
+        val krympetPeriodisering = periodisering.perioderMedVerdi.flatMap { bt ->
             bt.periode.overlappendePerioder(perioder).map {
                 PeriodeMedVerdi(
                     periode = it,
