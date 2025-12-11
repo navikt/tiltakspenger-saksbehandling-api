@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ValiderOpprettMeldekortbehandlingFeil.INGEN_DAGER_GIR_RETT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_FØRSTE_KJEDE
@@ -14,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandlingI
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingOmgjøring
 import org.junit.jupiter.api.Test
@@ -24,14 +24,14 @@ class OpprettMeldekortBehandlingServiceTest {
     val andrePeriode = førstePeriode.plus14Dager()
     val tredjePeriode = andrePeriode.plus14Dager()
 
-    val allePeriodene = førstePeriode.fraOgMed til tredjePeriode.tilOgMed
+    val totalPeriode = førstePeriode.fraOgMed til tredjePeriode.tilOgMed
 
     @Test
     fun `Skal kunne opprette behandling på første kjede når den gir rett`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
-                tac,
-                vedtaksperiode = allePeriodene,
+                tac = tac,
+                vedtaksperiode = totalPeriode,
             )
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
@@ -48,8 +48,8 @@ class OpprettMeldekortBehandlingServiceTest {
     fun `Skal kunne opprette behandling på andre kjede når første kjede er ferdig behandlet`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
-                tac,
-                vedtaksperiode = allePeriodene,
+                tac = tac,
+                vedtaksperiode = totalPeriode,
             )
 
             tac.meldekortbehandlingIverksatt(
@@ -72,8 +72,8 @@ class OpprettMeldekortBehandlingServiceTest {
     fun `Skal kunne opprette korrigering`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
-                tac,
-                vedtaksperiode = allePeriodene,
+                tac = tac,
+                vedtaksperiode = totalPeriode,
             )
 
             tac.meldekortbehandlingIverksatt(
@@ -97,8 +97,8 @@ class OpprettMeldekortBehandlingServiceTest {
     fun `Skal ikke kunne opprette behandling på andre kjede dersom første kjede med rett ikke er behandlet`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
-                tac,
-                vedtaksperiode = allePeriodene,
+                tac = tac,
+                vedtaksperiode = totalPeriode,
             )
 
             tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
@@ -113,8 +113,8 @@ class OpprettMeldekortBehandlingServiceTest {
     fun `Skal ikke kunne opprette behandling på tredje kjede dersom bare første kjede er behandlet`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
-                tac,
-                vedtaksperiode = allePeriodene,
+                tac = tac,
+                vedtaksperiode = totalPeriode,
             )
 
             tac.meldekortbehandlingIverksatt(
@@ -135,7 +135,7 @@ class OpprettMeldekortBehandlingServiceTest {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = allePeriodene,
+                søknadsbehandlingInnvilgelsesperiode = totalPeriode,
                 revurderingInnvilgelsesperiode = andrePeriode,
             )!!
 
@@ -153,8 +153,8 @@ class OpprettMeldekortBehandlingServiceTest {
     fun `Skal ikke opprette behandling for meldeperiode uten rett`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
-                tac,
-                søknadsbehandlingInnvilgelsesperiode = allePeriodene,
+                tac = tac,
+                søknadsbehandlingInnvilgelsesperiode = totalPeriode,
                 revurderingInnvilgelsesperiode = andrePeriode,
             )!!
 
@@ -170,8 +170,8 @@ class OpprettMeldekortBehandlingServiceTest {
     fun `Skal ikke opprette behandling på noen kjede dersom det finnes en åpen behandling`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
-                tac,
-                vedtaksperiode = allePeriodene,
+                tac = tac,
+                vedtaksperiode = totalPeriode,
             )
 
             tac.nyOpprettetMeldekortbehandling(
@@ -179,17 +179,46 @@ class OpprettMeldekortBehandlingServiceTest {
                 sakId = sak.id,
             )
 
-            tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
+            sak.meldeperiodeKjeder.forEach {
+                tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
+                    kjedeId = it.kjedeId,
+                    sakId = sak.id,
+                    saksbehandler = saksbehandler(),
+                ) shouldBe ValiderOpprettFeil(HAR_ÅPEN_BEHANDLING).left()
+            }
+        }
+    }
+
+    @Test
+    fun `Skal gjenopprette behandling som er lagt tilbake`() {
+        withTestApplicationContext { tac ->
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                vedtaksperiode = totalPeriode,
+            )
+
+            val (_, nyBehandling) = tac.nyOpprettetMeldekortbehandling(
+                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                sakId = sak.id,
+            )
+
+            val (sakMedLagtTilbake, behandlingLagtTilbake) = tac.meldekortContext.leggTilbakeMeldekortBehandlingService.leggTilbakeMeldekortBehandling(
+                sakId = sak.id,
+                meldekortId = nyBehandling.id,
+                saksbehandler = saksbehandler(navIdent = nyBehandling.saksbehandler!!),
+            )
+
+            sakMedLagtTilbake.meldekortbehandlinger.single() shouldBe behandlingLagtTilbake
+            behandlingLagtTilbake.status shouldBe MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING
+
+            val (sakMedGjenopprettet, gjenopprettetBehandling) = tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
                 kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
                 sakId = sak.id,
                 saksbehandler = saksbehandler(),
-            ) shouldBe ValiderOpprettFeil(HAR_ÅPEN_BEHANDLING).left()
+            ).getOrFail()
 
-            tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
-                kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
-                sakId = sak.id,
-                saksbehandler = saksbehandler(),
-            ) shouldBe ValiderOpprettFeil(HAR_ÅPEN_BEHANDLING).left()
+            sakMedGjenopprettet.meldekortbehandlinger.single() shouldBe gjenopprettetBehandling
+            gjenopprettetBehandling.status shouldBe MeldekortBehandlingStatus.UNDER_BEHANDLING
         }
     }
 }
