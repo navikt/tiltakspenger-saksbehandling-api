@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeld
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingOmgjøring
 import org.junit.jupiter.api.Test
 
 class OpprettMeldekortBehandlingServiceTest {
@@ -132,11 +133,11 @@ class OpprettMeldekortBehandlingServiceTest {
     @Test
     fun `Skal kunne opprette behandling på andre kjede når første kjede ikke gir rett`() {
         withTestApplicationContext { tac ->
-            val (sak) = iverksettRevurderingOmgjøring(
-                tac,
+            val (sak) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
+                tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = allePeriodene,
                 revurderingInnvilgelsesperiode = andrePeriode,
-            )
+            )!!
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
                 kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
@@ -151,11 +152,11 @@ class OpprettMeldekortBehandlingServiceTest {
     @Test
     fun `Skal ikke opprette behandling for meldeperiode uten rett`() {
         withTestApplicationContext { tac ->
-            val (sak) = iverksettRevurderingOmgjøring(
+            val (sak) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
                 tac,
                 søknadsbehandlingInnvilgelsesperiode = allePeriodene,
                 revurderingInnvilgelsesperiode = andrePeriode,
-            )
+            )!!
 
             tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
                 kjedeId = sak.meldeperiodeKjeder.first().kjedeId,

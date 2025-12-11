@@ -23,14 +23,14 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetille
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelseDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingStansTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTO
@@ -42,7 +42,7 @@ internal class IverksettRevurderingTest {
     @Test
     fun `kan iverksette revurdering stans`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering) = startRevurderingStans(tac)
+            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
 
             oppdaterBehandling(
                 tac = tac,
@@ -75,7 +75,7 @@ internal class IverksettRevurderingTest {
             val søknadsbehandlingVirkningsperiode = 1.til(10.april(2025))
             val revurderingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L)
 
-            val (sak, _, _, revurdering) = startRevurderingInnvilgelse(
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac,
                 søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode,
                 revurderingVedtaksperiode = revurderingInnvilgelsesperiode,
@@ -119,7 +119,7 @@ internal class IverksettRevurderingTest {
             val søknadsbehandlingVirkningsperiode = 1.til(10.april(2025))
             val revurderingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode.minusFraOgMed(14L)
 
-            val (sak, _, _, revurdering) = startRevurderingInnvilgelse(
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac,
                 søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode,
                 revurderingVedtaksperiode = revurderingInnvilgelsesperiode,
@@ -170,7 +170,7 @@ internal class IverksettRevurderingTest {
     @Test
     fun `må være beslutter for å iverksette revurdering`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering) = startRevurderingStans(tac)
+            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
 
             oppdaterBehandling(
                 tac = tac,
@@ -206,7 +206,7 @@ internal class IverksettRevurderingTest {
     @Test
     fun `verifiser vedtak dto ved revurdering til innvilgelse`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering) = iverksettRevurderingInnvilgelse(
+            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 1.til(10.april(2025)),
                 revurderingInnvilgelsesperiode = 9.til(11.april(2025)),
@@ -254,7 +254,7 @@ internal class IverksettRevurderingTest {
     @Test
     fun `verifiser vedtak dto ved revurdering til stans`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering) = iverksettRevurderingStans(
+            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgRevurderingStans(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 1.til(10.april(2025)),
                 stansFraOgMed = 5.april(2025),
@@ -306,7 +306,7 @@ internal class IverksettRevurderingTest {
     @Test
     fun `verifiser vedtak dto ved revurdering til omgjøring`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering) = iverksettRevurderingOmgjøring(tac)
+            val (sak, _, søknadsbehandling, revurdering, _) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(tac)!!
             val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, sak.saksnummer)!!
             val søknadsbehandlingvedtakDTOJson: RammevedtakDTOJson =
                 sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(0)

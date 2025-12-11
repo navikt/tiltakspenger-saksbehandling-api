@@ -45,20 +45,20 @@ class UtbetalingerIT {
     fun `Skal etterbetale ved revurdering som legger til barn`() {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(
-                periode = virkningsperiode,
+                innvilgelsesperiode = virkningsperiode,
                 fnr = Fnr.fromString("12345678911"),
             )
 
-            val revurdering = startRevurderingForSakId(
+            val (_, revurdering, _) = startRevurderingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 type = RevurderingType.INNVILGELSE,
-            )
+            )!!
 
             oppdaterBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = revurdering!!.id,
+                behandlingId = revurdering.id,
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
                     fritekstTilVedtaksbrev = "lol",
                     begrunnelseVilkårsvurdering = "what",
@@ -109,7 +109,7 @@ class UtbetalingerIT {
             val førsteSøknadsperiode = Periode(1.september(2025), 14.september(2025))
             val andreSøknadsperiode = Periode(7.september(2025), 28.september(2025))
             val sak = tac.førsteMeldekortIverksatt(
-                periode = førsteSøknadsperiode,
+                innvilgelsesperiode = førsteSøknadsperiode,
                 fnr = Fnr.fromString("12345678911"),
             )
             val (oppdatertSak, _, _, _) = iverksettSøknadsbehandling(
@@ -152,20 +152,20 @@ class UtbetalingerIT {
     fun `Feilutbetaling ved stans over utbetalt periode`() {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(
-                periode = virkningsperiode,
+                innvilgelsesperiode = virkningsperiode,
                 fnr = Fnr.fromString("12345678911"),
             )
 
-            val revurdering = startRevurderingForSakId(
+            val (_, revurdering, _) = startRevurderingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 type = RevurderingType.STANS,
-            )
+            )!!
 
             oppdaterBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = revurdering!!.id,
+                behandlingId = revurdering.id,
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
                     fritekstTilVedtaksbrev = "lol",
                     begrunnelseVilkårsvurdering = "what",
@@ -213,20 +213,20 @@ class UtbetalingerIT {
     fun `Behandling med feilutbetaling ved stans over utbetalt periode skal ikke kunne sendes til beslutning`() {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(
-                periode = virkningsperiode,
+                innvilgelsesperiode = virkningsperiode,
                 fnr = Fnr.fromString("12345678911"),
             )
 
-            val revurdering = startRevurderingForSakId(
+            val (_, revurdering, _) = startRevurderingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 type = RevurderingType.STANS,
-            )
+            )!!
 
             oppdaterBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = revurdering!!.id,
+                behandlingId = revurdering.id,
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
                     fritekstTilVedtaksbrev = "lol",
                     begrunnelseVilkårsvurdering = "what",

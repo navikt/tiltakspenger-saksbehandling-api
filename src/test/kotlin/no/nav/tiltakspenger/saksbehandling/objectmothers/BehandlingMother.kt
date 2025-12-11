@@ -58,6 +58,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.Clock
 import java.time.LocalDate
@@ -76,6 +77,15 @@ interface BehandlingMother : MotherOfAllMothers {
                 periode = tiltaksdeltakelse.periode!!.toDTO(),
             ),
         )
+    }
+
+    fun ValgteTiltaksdeltakelser.tiltaksdeltakelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
+        return this.verdier.map { tiltaksdeltakelse ->
+            TiltaksdeltakelsePeriodeDTO(
+                eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
+                periode = tiltaksdeltakelse.periode!!.toDTO(),
+            )
+        }
     }
 
     fun Rammebehandling.antallDagerPerMeldeperiodeDTO(
@@ -830,15 +840,18 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
     return sak
 }
 
+/**
+ * Oppretter sak, søknad, iverksetter søknadsbehandling og oppretter meldekortbehandling
+ */
 suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
-    periode: Periode = ObjectMother.virkningsperiode(),
+    innvilgelsesperiode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
 ): Sak {
     val tac = this
     val (sak) = søknadssbehandlingIverksatt(
-        periode = periode,
+        periode = innvilgelsesperiode,
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
@@ -854,15 +867,18 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
     )
 }
 
+/**
+ * Oppretter sak, søknad, iverksetter søknadsbehandling, oppretter meldekortbehandling og sender den til beslutter
+ */
 suspend fun TestApplicationContext.meldekortTilBeslutter(
-    periode: Periode = ObjectMother.virkningsperiode(),
+    innvilgelsesperiode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
 ): Sak {
     val tac = this
     val sak = meldekortBehandlingOpprettet(
-        periode = periode,
+        innvilgelsesperiode = innvilgelsesperiode,
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
@@ -876,10 +892,12 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
 }
 
 /**
+ * Oppretter sak, søknad, iverksetter søknadsbehandling, oppretter og iverksetter første meldekortbehandling.
+ *
  * Genererer og sender også utbetaling for meldekortet
  */
 suspend fun TestApplicationContext.førsteMeldekortIverksatt(
-    periode: Periode = ObjectMother.virkningsperiode(),
+    innvilgelsesperiode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
@@ -887,19 +905,20 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
 ): Sak {
     val tac = this
     val sak = meldekortTilBeslutter(
-        periode = periode,
+        innvilgelsesperiode = innvilgelsesperiode,
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
     )
+    val meldekortId = sak.meldekortbehandlinger.first().id
     tac.meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
         sakId = sak.id,
-        meldekortId = sak.meldekortbehandlinger.first().id,
+        meldekortId = meldekortId,
         saksbehandler = beslutter,
     )
     tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
         IverksettMeldekortKommando(
-            meldekortId = sak.meldekortbehandlinger.first().id,
+            meldekortId = meldekortId,
             sakId = sak.id,
             beslutter = beslutter,
             correlationId = correlationId,
@@ -918,7 +937,7 @@ suspend fun TestApplicationContext.andreMeldekortOpprettet(
 ): Sak {
     val tac = this
     val sak = førsteMeldekortIverksatt(
-        periode = periode,
+        innvilgelsesperiode = periode,
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,

@@ -30,9 +30,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
@@ -45,7 +45,7 @@ class GenererMeldeperioderSakIT {
         søknadsbehandlingInnvilgelse: Periode = Periode(1.april(2025), 13.april(2025)),
         revurderingInnvilgelse: Periode = søknadsbehandlingInnvilgelse.plusTilOgMed(28L),
     ): Sak {
-        val (sak, _, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
+        val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
             tac,
             søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelse,
             revurderingVedtaksperiode = revurderingInnvilgelse,

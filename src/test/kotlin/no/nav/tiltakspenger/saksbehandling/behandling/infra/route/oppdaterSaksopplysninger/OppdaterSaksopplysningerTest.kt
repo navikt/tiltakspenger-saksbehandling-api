@@ -10,9 +10,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
@@ -58,7 +58,7 @@ internal class OppdaterSaksopplysningerTest {
     @Test
     fun `revurdering til omgjøring - kan oppdatere saksopplysninger`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = startRevurderingOmgjøring(tac)
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
             val forrigeTiltaksdeltakelse = revurdering!!.saksopplysninger.tiltaksdeltakelser.first()
             val avbruttTiltaksdeltakelse = forrigeTiltaksdeltakelse.copy(
                 deltakelseFraOgMed = forrigeTiltaksdeltakelse.deltakelseFraOgMed!!,
@@ -86,7 +86,7 @@ internal class OppdaterSaksopplysningerTest {
     @Test
     fun `revurdering til omgjøring - kan ikke oppdatere saksopplysninger dersom tiltaksdeltakelsen vi omgjør har blitt filtrert bort`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = startRevurderingOmgjøring(tac)
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
 
             tac.oppdaterTiltaksdeltakelse(fnr = sak.fnr, tiltaksdeltakelse = null)
             val (_, _) = oppdaterSaksopplysningerForBehandlingId(

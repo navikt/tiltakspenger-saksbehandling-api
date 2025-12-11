@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.forhåndsvisVedtaksbrevForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import org.junit.jupiter.api.Test
 
 internal class ForhåndsvisStansVedtaksbrevTest {
@@ -30,7 +30,7 @@ internal class ForhåndsvisStansVedtaksbrevTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val (sak, _, _, revurdering) = startRevurderingStans(
+                val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
                     tac = tac,
                     søknadsbehandlingInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025),
                 )

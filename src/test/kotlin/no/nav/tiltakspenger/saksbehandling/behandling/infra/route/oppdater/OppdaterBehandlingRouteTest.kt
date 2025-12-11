@@ -37,13 +37,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeper
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
@@ -151,7 +151,7 @@ class OppdaterBehandlingRouteTest {
     @Test
     fun `kan oppdatere revurdering innvilgelse`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = startRevurderingInnvilgelse(tac)
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(tac)
 
             val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
             val nyInnvilgelsesperiode = tiltaksdeltakelse.periode!!.minusTilOgMed(1)
@@ -200,7 +200,7 @@ class OppdaterBehandlingRouteTest {
     @Test
     fun `kan oppdatere revurdering stans`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = startRevurderingStans(tac)
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
 
             oppdaterBehandling(
                 tac = tac,
@@ -230,7 +230,7 @@ class OppdaterBehandlingRouteTest {
     @Test
     fun `kan oppdatere revurdering stans over utbetalte perioder`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = startRevurderingStans(tac)
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
 
             oppdaterBehandling(
                 tac = tac,
@@ -316,7 +316,7 @@ class OppdaterBehandlingRouteTest {
     @Test
     fun `oppdater revurdering stans feiler hvis stansFraOgMed er før innvilgelsesperioden`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = startRevurderingStans(tac)
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
 
             val stansFraOgMed = sak.førsteDagSomGirRett!!.minusDays(2)
 
@@ -341,7 +341,7 @@ class OppdaterBehandlingRouteTest {
     @Test
     fun `send revurdering stans til beslutning feiler hvis stansFraOgMed er etter innvilgelsesperioden`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = startRevurderingStans(tac)
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
             val stansFraOgMed = sak.sisteDagSomGirRett!!.plusDays(2)
 
             oppdaterBehandling(
@@ -366,7 +366,7 @@ class OppdaterBehandlingRouteTest {
     fun `revurdering til omgjøring - kan oppdatere behandlingen etter saksopplysninger har endret seg`() {
         withTestApplicationContext { tac ->
             // Omgjøringen starter med at tiltaksdeltakelsesperioden er endret siden søknadsvedtaket.
-            val (sak, _, søknadsbehandling, revurdering) = startRevurderingOmgjøring(tac)
+            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
             val tiltaksdeltakelseVedOpprettelseAvRevurdering = revurdering!!.saksopplysninger.tiltaksdeltakelser.first()
             val nyOmgjøringsperiodeEtterOppdatering = (3 til 9.april(2025))
             val avbruttTiltaksdeltakelse = tiltaksdeltakelseVedOpprettelseAvRevurdering.copy(

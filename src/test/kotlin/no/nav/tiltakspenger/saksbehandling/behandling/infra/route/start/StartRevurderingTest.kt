@@ -14,9 +14,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
@@ -25,7 +25,7 @@ internal class StartRevurderingTest {
     @Test
     fun `kan starte revurdering stans`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = startRevurderingStans(tac)
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
             revurdering.shouldBeInstanceOf<Revurdering>()
             revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
             revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -44,7 +44,7 @@ internal class StartRevurderingTest {
     @Test
     fun `kan starte revurdering innvilgelse`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = startRevurderingInnvilgelse(tac)
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(tac)
             revurdering.shouldBeInstanceOf<Revurdering>()
             revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
             revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -63,7 +63,7 @@ internal class StartRevurderingTest {
     @Test
     fun `kan starte revurdering omgjøring`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering) = startRevurderingOmgjøring(tac)
+            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
             val søknadsvedtak: Rammevedtak = sak.vedtaksliste.single() as Rammevedtak
             val søknadsvedtakResultat = søknadsvedtak.behandling.resultat as SøknadsbehandlingResultat.Innvilgelse
             revurdering.shouldBeInstanceOf<Revurdering>()
@@ -105,11 +105,11 @@ internal class StartRevurderingTest {
     @Test
     fun `revurdering til omgjøring - tiltaksdeltakelse har krympet før start`() {
         withTestApplicationContext { tac ->
-            val (_, _, søknadsbehandling, omgjøring) = startRevurderingOmgjøring(
+            val (_, _, søknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 1 til 10.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = 2 til 9.april(2025),
-            )
+            )!!
             søknadsbehandling.virkningsperiode shouldBe (1 til 10.april(2025))
             søknadsbehandling.innvilgelsesperiode shouldBe (1 til 10.april(2025))
             søknadsbehandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
@@ -143,11 +143,11 @@ internal class StartRevurderingTest {
     @Test
     fun `revurdering til omgjøring - tiltaksdeltakelse har økt før start`() {
         withTestApplicationContext { tac ->
-            val (_, _, søknadsbehandling, omgjøring) = startRevurderingOmgjøring(
+            val (_, _, søknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 2 til 9.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = 1 til 10.april(2025),
-            )
+            )!!
             søknadsbehandling.virkningsperiode shouldBe (2 til 9.april(2025))
             søknadsbehandling.innvilgelsesperiode shouldBe (2 til 9.april(2025))
             søknadsbehandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
@@ -181,13 +181,12 @@ internal class StartRevurderingTest {
     @Test
     fun `revurdering til omgjøring - tiltaksdeltakelse finnes ikke lenger`() {
         withTestApplicationContext { tac ->
-            val (_, _, _, omgjøring) = startRevurderingOmgjøring(
+            iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 2 til 9.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = null,
-                forventetStatus = HttpStatusCode.Forbidden,
-            )
-            omgjøring shouldBe null
+                forventetStatusForStartRevurdering = HttpStatusCode.Forbidden,
+            ) shouldBe null
         }
     }
 }

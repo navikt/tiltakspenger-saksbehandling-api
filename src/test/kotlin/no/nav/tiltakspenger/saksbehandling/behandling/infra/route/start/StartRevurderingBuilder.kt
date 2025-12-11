@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 
-import arrow.core.Tuple4
+import arrow.core.Tuple5
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -28,25 +29,27 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import org.json.JSONObject
-import java.time.LocalDate
 
 interface StartRevurderingBuilder {
 
     /** Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering. */
-    suspend fun ApplicationTestBuilder.startRevurderingStans(
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans(
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         søknadsbehandlingInnvilgelsesperiode: Periode = 1.til(10.april(2025)),
-    ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: String? = null,
+    ): Tuple5<Sak, Søknad, Søknadsbehandling, Revurdering, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac = tac,
             vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
@@ -55,18 +58,44 @@ interface StartRevurderingBuilder {
             saksbehandler = saksbehandler,
             beslutter = beslutter,
         )
-        val revurdering = startRevurderingForSakId(tac, sak.id, RevurderingType.STANS)
-        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
-        return Tuple4(
+        val (oppdatertSak, revurdering, jsonResponse) = startRevurderingForSakId(
+            tac = tac,
+            sakId = sak.id,
+            type = RevurderingType.STANS,
+            saksbehandler = saksbehandler,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        )!!
+        return Tuple5(
             oppdatertSak,
             søknad,
             søknadsbehandling,
-            revurdering!!,
+            revurdering,
+            jsonResponse,
         )
     }
 
     /** Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering. */
-    suspend fun ApplicationTestBuilder.startRevurderingInnvilgelse(
+    suspend fun ApplicationTestBuilder.startRevurderingStans(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: String? = null,
+    ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
+        return startRevurderingForSakId(
+            tac = tac,
+            sakId = sakId,
+            type = RevurderingType.STANS,
+            saksbehandler = saksbehandler,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        )
+    }
+
+    /** Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering. */
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -74,7 +103,7 @@ interface StartRevurderingBuilder {
         revurderingVedtaksperiode: Periode = søknadsbehandlingInnvilgelsesperiode.plusTilOgMed(14L),
         fnr: Fnr = Fnr.random(),
         sakId: SakId? = null,
-    ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
+    ): Tuple5<Sak, Søknad, Søknadsbehandling, Revurdering, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac,
             vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
@@ -97,14 +126,41 @@ interface StartRevurderingBuilder {
             oppdatertTiltaksdeltakelse,
         )
 
-        val revurdering = startRevurderingForSakId(tac, sak.id, RevurderingType.INNVILGELSE)
-        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+        val (oppdatertSak, revurdering, jsonResponse) = startRevurderingForSakId(
+            tac,
+            sak.id,
+            RevurderingType.INNVILGELSE,
+        )!!
 
-        return Tuple4(
+        return Tuple5(
             oppdatertSak,
             søknad,
             søknadsbehandling,
-            revurdering!!,
+            revurdering,
+            jsonResponse,
+        )
+    }
+
+    /**
+     * Starter en ny revurdering til innvilgelse på [sakId]
+     * Merk at denne ikke oppretter sak, søknad eller søknadsbehandling.
+     * */
+    suspend fun ApplicationTestBuilder.startRevurderingInnvilgelse(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        innvilgelsesperiode: Periode,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: String? = null,
+    ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
+        return startRevurderingForSakId(
+            tac = tac,
+            sakId = sakId,
+            type = RevurderingType.INNVILGELSE,
+            saksbehandler = saksbehandler,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
         )
     }
 
@@ -113,7 +169,7 @@ interface StartRevurderingBuilder {
      * Default: Tiltaksdeltakelsen har endret seg fra 1. til 3. april.
      * @param oppdaterTiltaksdeltakelsesperiode Dersom null, fjernes den for dette fødselsnummeret.
      * */
-    suspend fun ApplicationTestBuilder.startRevurderingOmgjøring(
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
@@ -121,8 +177,9 @@ interface StartRevurderingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         søknadsbehandlingInnvilgelsesperiode: Periode = 1 til 10.april(2025),
         oppdaterTiltaksdeltakelsesperiode: Periode? = 3 til 10.april(2025),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-    ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering?> {
+        forventetStatusForStartRevurdering: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBodyForStartRevurdering: String? = null,
+    ): Tuple5<Sak, Søknad, Søknadsbehandling, Revurdering, RammebehandlingDTOJson>? {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac = tac,
             vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
@@ -142,20 +199,41 @@ interface StartRevurderingBuilder {
         }
         tac.oppdaterTiltaksdeltakelse(sak.fnr, oppdatertTiltaksdeltakelse)
 
-        val revurdering = startRevurderingForSakId(
+        val (oppdatertSak, revurdering, jsonResponse) = startRevurderingForSakId(
             tac = tac,
             sakId = sak.id,
             type = RevurderingType.OMGJØRING,
             rammevedtakIdSomOmgjøres = sak.vedtaksliste.single().id,
-            forventetStatus = forventetStatus,
-        )
-        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+            forventetStatus = forventetStatusForStartRevurdering,
+            forventetJsonBody = forventetJsonBodyForStartRevurdering,
+        ) ?: return null
 
-        return Tuple4(
+        return Tuple5(
             oppdatertSak,
             søknad,
             søknadsbehandling,
             revurdering,
+            jsonResponse,
+        )
+    }
+
+    /**
+     * Starter en ny revurdering til omgjøring på [sakId]
+     * Merk at denne ikke oppretter sak, søknad eller søknadsbehandling.
+     * */
+    suspend fun ApplicationTestBuilder.startRevurderingOmgjøring(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        rammevedtakIdSomOmgjøres: VedtakId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+    ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
+        return startRevurderingForSakId(
+            tac = tac,
+            sakId = sakId,
+            type = RevurderingType.OMGJØRING,
+            rammevedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres,
+            forventetStatus = forventetStatus,
         )
     }
 
@@ -167,7 +245,8 @@ interface StartRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         rammevedtakIdSomOmgjøres: VedtakId? = null,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-    ): Revurdering? {
+        forventetJsonBody: String? = null,
+    ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.texasClient.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
@@ -194,9 +273,19 @@ interface StartRevurderingBuilder {
                 ) {
                     if (forventetStatus != null) status shouldBe forventetStatus
                 }
+
+                if (forventetJsonBody != null) {
+                    bodyAsText.shouldEqualJson(forventetJsonBody)
+                }
                 if (status != HttpStatusCode.OK) return null
-                val revurderingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
-                return tac.behandlingContext.behandlingRepo.hent(revurderingId) as Revurdering
+                val jsonObject: RammebehandlingDTOJson = JSONObject(bodyAsText)
+                val revurderingId = BehandlingId.fromString(jsonObject.getString("id"))
+                val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+                return Triple(
+                    oppdatertSak,
+                    tac.behandlingContext.behandlingRepo.hent(revurderingId) as Revurdering,
+                    jsonObject,
+                )
             }
     }
 }

@@ -31,9 +31,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemm
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -47,7 +47,7 @@ interface SendRevurderingTilBeslutningBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, søknadsbehandling, revurdering) = startRevurderingStans(tac)
+        val (sak, søknad, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
         val sakId = sak.id
         val revurderingId = revurdering.id
 
@@ -88,7 +88,7 @@ interface SendRevurderingTilBeslutningBuilder {
         revurderingVirkningsperiode: Periode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
-        val (sak, søknad, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
+        val (sak, søknad, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
             tac,
             søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode,
             revurderingVedtaksperiode = revurderingVirkningsperiode,
