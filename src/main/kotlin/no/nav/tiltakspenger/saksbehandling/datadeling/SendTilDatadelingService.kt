@@ -28,14 +28,13 @@ class SendTilDatadelingService(
 ) {
     val logger = KotlinLogging.logger { }
 
-    // vi venter med å dele godkjente meldekort til formatet er oppdatert i tiltakspenger-datadeling
     suspend fun send() {
         sendSak()
         sendBehandlinger()
         sendMeldekortbehandlinger()
         sendVedtak()
         sendMeldeperioder()
-        // sendGodkjenteMeldekort()
+        sendGodkjenteMeldekort()
     }
 
     private suspend fun sendSak() {
