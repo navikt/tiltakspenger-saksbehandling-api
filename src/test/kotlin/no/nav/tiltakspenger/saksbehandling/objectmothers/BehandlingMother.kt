@@ -58,7 +58,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.Clock
 import java.time.LocalDate
@@ -77,15 +76,6 @@ interface BehandlingMother : MotherOfAllMothers {
                 periode = tiltaksdeltakelse.periode!!.toDTO(),
             ),
         )
-    }
-
-    fun ValgteTiltaksdeltakelser.tiltaksdeltakelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
-        return this.verdier.map { tiltaksdeltakelse ->
-            TiltaksdeltakelsePeriodeDTO(
-                eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
-                periode = tiltaksdeltakelse.periode!!.toDTO(),
-            )
-        }
     }
 
     fun Rammebehandling.antallDagerPerMeldeperiodeDTO(
