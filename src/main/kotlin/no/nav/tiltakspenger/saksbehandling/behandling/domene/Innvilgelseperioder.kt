@@ -156,7 +156,7 @@ private fun NonEmptyList<Periode>.tilPerioderUtenHullEllerOverlapp(): NonEmptyLi
         return unikePerioder
     }
 
-    val sisteTilOgMed: LocalDate = unikePerioder.map { it.tilOgMed }.max()
+    val sisteTilOgMed: LocalDate = unikePerioder.maxOf { it.tilOgMed }
 
     val fraOgMedDatoer = unikePerioder.toList().flatMap { periode ->
         if (periode.tilOgMed == sisteTilOgMed) {
