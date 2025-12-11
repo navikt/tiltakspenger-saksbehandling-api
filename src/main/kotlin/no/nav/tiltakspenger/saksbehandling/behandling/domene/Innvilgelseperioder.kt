@@ -31,6 +31,12 @@ data class Innvilgelsesperioder(
         periodisering.map { it.verdi.antallDagerPerMeldeperiode }
     }
 
+    init {
+        require(periodisering.erSammenhengende) {
+            "Vi støtter ikke innvilgelsesperioder med hull riktig ennå!"
+        }
+    }
+
     /**
      * @return [Innvilgelsesperioder] med oppdaterte perioder som overlapper med [tiltaksdeltakelser]
      * eller null dersom ingen overlapper
