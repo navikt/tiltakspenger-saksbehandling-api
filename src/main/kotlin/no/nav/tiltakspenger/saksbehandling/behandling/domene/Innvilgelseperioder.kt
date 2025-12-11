@@ -148,7 +148,7 @@ private fun NonEmptyList<Periode>.tilPerioderUtenHullEllerOverlapp(): NonEmptyLi
     return fraOgMedDatoer.mapIndexed { index, fraOgMed ->
         val nesteFraOgMed = fraOgMedDatoer.getOrNull(index + 1)
 
-        val tilOgMed = if (nesteFraOgMed != null) nesteFraOgMed.minusDays(1) else sisteTilOgMed
+        val tilOgMed = nesteFraOgMed?.minusDays(1) ?: sisteTilOgMed
 
         Periode(
             fraOgMed = fraOgMed,
