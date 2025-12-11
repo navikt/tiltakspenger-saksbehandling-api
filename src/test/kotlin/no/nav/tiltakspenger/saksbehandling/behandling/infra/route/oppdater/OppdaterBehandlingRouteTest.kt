@@ -426,8 +426,8 @@ class OppdaterBehandlingRouteTest {
                     nyOmgjøringsperiodeEtterOppdatering,
                 ),
             ).tilIkkeTomPeriodisering()
-            oppdatertRevurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.virkningsperiode
-            resultat.virkningsperiode shouldBe rammevedtakSøknadsbehandling.virkningsperiode
+            oppdatertRevurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
+            resultat.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
             resultat.innvilgelsesperioder.totalPeriode shouldBe nyOmgjøringsperiodeEtterOppdatering
             oppdatertRevurdering.utbetaling shouldBe null
 
