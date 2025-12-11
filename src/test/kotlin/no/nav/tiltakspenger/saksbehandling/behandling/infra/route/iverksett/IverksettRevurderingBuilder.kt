@@ -41,6 +41,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
 interface IverksettRevurderingBuilder {
@@ -68,7 +69,7 @@ interface IverksettRevurderingBuilder {
         ),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
-    ): Tuple5<Sak, Søknad, Søknadsbehandling, Revurdering, RammebehandlingDTOJson> {
+    ): Tuple5<Sak, Søknad, Rammevedtak, Rammevedtak, RammebehandlingDTOJson> {
         return iverksettSøknadsbehandlingOgRevurdering(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -113,7 +114,7 @@ interface IverksettRevurderingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
-    ): Tuple5<Sak, Søknad, Søknadsbehandling, Revurdering, RammebehandlingDTOJson> {
+    ): Tuple5<Sak, Søknad, Rammevedtak, Rammevedtak, RammebehandlingDTOJson> {
         return iverksettSøknadsbehandlingOgRevurdering(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -166,7 +167,7 @@ interface IverksettRevurderingBuilder {
         ),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
-    ): Tuple5<Sak, Søknad, Søknadsbehandling, Revurdering, RammebehandlingDTOJson>? {
+    ): Tuple5<Sak, Søknad, Rammevedtak, Rammevedtak, RammebehandlingDTOJson>? {
         return iverksettSøknadsbehandlingOgRevurdering(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -208,13 +209,13 @@ interface IverksettRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = tac.sakContext.sakRepo.hentForSakId(sakId)!!.hentRammevedtakForId(
-            rammevedtakIdSomOmgjøres,
+            rammevedtakId = rammevedtakIdSomOmgjøres,
         ).antallDagerPerMeldeperiode!!.krympPeriode(innvilgelsesperiode)!! as SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
         barnetillegg: Barnetillegg = tac.sakContext.sakRepo.hentForSakId(sakId)!!.hentRammevedtakForId(rammevedtakIdSomOmgjøres).barnetillegg!!.krympPeriode(innvilgelsesperiode),
         valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser = tac.sakContext.sakRepo.hentForSakId(sakId)!!.hentRammevedtakForId(rammevedtakIdSomOmgjøres).valgteTiltaksdeltakelser!!.krympPeriode(innvilgelsesperiode),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
-    ): Triple<Sak, Revurdering, RammebehandlingDTOJson> {
+    ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
         return iverksettRevurdering(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -244,8 +245,8 @@ interface IverksettRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         oppdaterBehandlingDTO: (Revurdering) -> OppdaterBehandlingDTO,
-        startRevurdering: suspend () -> Tuple5<Sak, Søknad, Søknadsbehandling, Revurdering, RammebehandlingDTOJson>,
-    ): Tuple5<Sak, Søknad, Søknadsbehandling, Revurdering, RammebehandlingDTOJson> {
+        startRevurdering: suspend () -> Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson>,
+    ): Tuple5<Sak, Søknad, Rammevedtak, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling, revurdering) = startRevurdering()
         oppdaterBehandling(
             tac = tac,
@@ -260,7 +261,7 @@ interface IverksettRevurderingBuilder {
             behandlingId = revurdering.id,
         )
         taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
-        val (oppdatertSak, oppdatertRevurdering, jsonResponse) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtakRevurdering, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
@@ -270,7 +271,7 @@ interface IverksettRevurderingBuilder {
             oppdatertSak,
             søknad,
             søknadsbehandling,
-            oppdatertRevurdering as Revurdering,
+            rammevedtakRevurdering,
             jsonResponse,
         )
     }
@@ -281,7 +282,7 @@ interface IverksettRevurderingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         oppdaterBehandlingDTO: (Revurdering) -> OppdaterBehandlingDTO,
         startRevurdering: suspend () -> Triple<Sak, Revurdering, RammebehandlingDTOJson>,
-    ): Triple<Sak, Revurdering, RammebehandlingDTOJson> {
+    ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, revurdering, _) = startRevurdering()
         oppdaterBehandling(
             tac = tac,
@@ -296,7 +297,7 @@ interface IverksettRevurderingBuilder {
             behandlingId = revurdering.id,
         )
         taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
-        val (oppdatertSak, oppdatertRevurdering, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtak, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
@@ -304,7 +305,7 @@ interface IverksettRevurderingBuilder {
         )!!
         return Triple(
             oppdatertSak,
-            oppdatertRevurdering as Revurdering,
+            rammevedtak,
             jsonResponseForIverksettRevurdering,
         )
     }

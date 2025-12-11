@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingsstatusDTO
@@ -67,11 +68,12 @@ class SendRevurderingTilBeslutningTest {
             val søknadsbehandlingVirkningsperiode = 1 til 10.april(2025)
             val revurderingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L)
 
-            val (sak, _, søknadsbehandling, jsonResponse) = sendRevurderingInnvilgelseTilBeslutning(
+            val (sak, _, rammevedtakSøknadsbehandling, jsonResponse) = sendRevurderingInnvilgelseTilBeslutning(
                 tac,
                 søknadsbehandlingVirkningsperiode = søknadsbehandlingVirkningsperiode,
                 revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
             )
+            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
 
             JSONObject(jsonResponse).getString("status") shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING.name
             JSONObject(jsonResponse).getString("resultat") shouldBe RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE.name

@@ -38,6 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehan
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 interface SendRevurderingTilBeslutningBuilder {
 
@@ -47,10 +48,11 @@ interface SendRevurderingTilBeslutningBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
+        val (sak, søknad, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
         val sakId = sak.id
         val revurderingId = revurdering.id
 
+        val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
         taBehandling(tac, sak.id, revurderingId, saksbehandler)
 
         oppdaterBehandling(
@@ -87,8 +89,8 @@ interface SendRevurderingTilBeslutningBuilder {
         søknadsbehandlingVirkningsperiode: Periode = 1.til(10.april(2025)),
         revurderingVirkningsperiode: Periode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
-        val (sak, søknad, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
+    ): Tuple4<Sak, Søknad, Rammevedtak, String> {
+        val (sak, søknad, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
             tac,
             søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode,
             revurderingVedtaksperiode = revurderingVirkningsperiode,
@@ -123,7 +125,7 @@ interface SendRevurderingTilBeslutningBuilder {
         return Tuple4(
             sak,
             søknad,
-            søknadsbehandling,
+            rammevedtakSøknadsbehandling,
             sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
                 tac,
                 sak.id,

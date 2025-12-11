@@ -366,8 +366,8 @@ class OppdaterBehandlingRouteTest {
     fun `revurdering til omgjøring - kan oppdatere behandlingen etter saksopplysninger har endret seg`() {
         withTestApplicationContext { tac ->
             // Omgjøringen starter med at tiltaksdeltakelsesperioden er endret siden søknadsvedtaket.
-            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
-            val tiltaksdeltakelseVedOpprettelseAvRevurdering = revurdering!!.saksopplysninger.tiltaksdeltakelser.first()
+            val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
+            val tiltaksdeltakelseVedOpprettelseAvRevurdering = rammevedtakRevurdering.saksopplysninger.tiltaksdeltakelser.first()
             val nyOmgjøringsperiodeEtterOppdatering = (3 til 9.april(2025))
             val avbruttTiltaksdeltakelse = tiltaksdeltakelseVedOpprettelseAvRevurdering.copy(
                 deltakelseFraOgMed = tiltaksdeltakelseVedOpprettelseAvRevurdering.deltakelseFraOgMed!!,
@@ -379,7 +379,7 @@ class OppdaterBehandlingRouteTest {
             val (_, revurderingMedOppdatertSaksopplysninger: Rammebehandling) = oppdaterSaksopplysningerForBehandlingId(
                 tac,
                 sak.id,
-                revurdering.id,
+                rammevedtakRevurdering.id,
             )
             (revurderingMedOppdatertSaksopplysninger as Revurdering).erFerdigutfylt() shouldBe true
             val antallDagerPerMeldeperiodeForPerioder = listOf(
@@ -398,7 +398,7 @@ class OppdaterBehandlingRouteTest {
             val (_, oppdatertRevurdering) = oppdaterBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = revurdering.id,
+                behandlingId = rammevedtakRevurdering.id,
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Omgjøring(
                     fritekstTilVedtaksbrev = "asdf",
                     begrunnelseVilkårsvurdering = null,
@@ -427,13 +427,13 @@ class OppdaterBehandlingRouteTest {
                 },
                 behandling = oppdatertRevurdering,
             )
-            oppdatertRevurdering.virkningsperiode shouldBe søknadsbehandling.virkningsperiode
-            resultat.virkningsperiode shouldBe søknadsbehandling.virkningsperiode
+            oppdatertRevurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
+            resultat.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
             resultat.innvilgelsesperiode shouldBe nyOmgjøringsperiodeEtterOppdatering
             oppdatertRevurdering.utbetaling shouldBe null
 
             // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
-            tac.sakContext.sakService.hentForSakId(sakId = revurdering.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering
+            tac.sakContext.sakService.hentForSakId(sakId = rammevedtakRevurdering.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering
         }
     }
 }

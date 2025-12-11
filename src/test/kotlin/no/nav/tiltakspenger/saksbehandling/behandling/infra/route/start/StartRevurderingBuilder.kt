@@ -35,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
 
 interface StartRevurderingBuilder {
@@ -49,7 +50,7 @@ interface StartRevurderingBuilder {
         søknadsbehandlingInnvilgelsesperiode: Periode = 1.til(10.april(2025)),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Tuple5<Sak, Søknad, Søknadsbehandling, Revurdering, RammebehandlingDTOJson> {
+    ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac = tac,
             vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
@@ -103,8 +104,8 @@ interface StartRevurderingBuilder {
         revurderingVedtaksperiode: Periode = søknadsbehandlingInnvilgelsesperiode.plusTilOgMed(14L),
         fnr: Fnr = Fnr.random(),
         sakId: SakId? = null,
-    ): Tuple5<Sak, Søknad, Søknadsbehandling, Revurdering, RammebehandlingDTOJson> {
-        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
+    ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {
+        val (sak, søknad, rammevedtakSøknadsbehandling) = iverksettSøknadsbehandling(
             tac,
             vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
             fnr = fnr,
@@ -114,7 +115,7 @@ interface StartRevurderingBuilder {
         )
 
         val tiltaksdeltakelseFakeKlient = tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
-
+        val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
         val oppdatertTiltaksdeltakelse =
             søknadsbehandling.saksopplysninger.getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
                 deltakelseFraOgMed = revurderingVedtaksperiode.fraOgMed,
@@ -135,7 +136,7 @@ interface StartRevurderingBuilder {
         return Tuple5(
             oppdatertSak,
             søknad,
-            søknadsbehandling,
+            rammevedtakSøknadsbehandling,
             revurdering,
             jsonResponse,
         )
@@ -179,8 +180,8 @@ interface StartRevurderingBuilder {
         oppdaterTiltaksdeltakelsesperiode: Periode? = 3 til 10.april(2025),
         forventetStatusForStartRevurdering: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBodyForStartRevurdering: String? = null,
-    ): Tuple5<Sak, Søknad, Søknadsbehandling, Revurdering, RammebehandlingDTOJson>? {
-        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
+    ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson>? {
+        val (sak, søknad, rammevedtakSøknadsbehandling) = iverksettSøknadsbehandling(
             tac = tac,
             vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
             beslutter = beslutter,
@@ -188,6 +189,7 @@ interface StartRevurderingBuilder {
             sakId = sakId,
             fnr = fnr,
         )
+        val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
         val oppdatertTiltaksdeltakelse = if (oppdaterTiltaksdeltakelsesperiode != null) {
             søknadsbehandling.saksopplysninger
                 .getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
@@ -211,7 +213,7 @@ interface StartRevurderingBuilder {
         return Tuple5(
             oppdatertSak,
             søknad,
-            søknadsbehandling,
+            rammevedtakSøknadsbehandling,
             revurdering,
             jsonResponse,
         )

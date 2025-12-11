@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -75,6 +76,10 @@ data class Vedtaksliste(
         virkningsperiode: Periode,
     ): OmgjørRammevedtak {
         return rammevedtaksliste.finnVedtakSomOmgjøres(virkningsperiode)
+    }
+
+    fun hentRammevedtakForBehandlingId(behandlingId: BehandlingId): Rammevedtak {
+        return rammevedtaksliste.hentVedtakForBehandlingId(behandlingId)
     }
 
     init {

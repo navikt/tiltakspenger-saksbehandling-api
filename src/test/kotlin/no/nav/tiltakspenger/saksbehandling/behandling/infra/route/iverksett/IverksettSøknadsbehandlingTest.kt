@@ -6,6 +6,7 @@ import io.kotest.matchers.types.instanceOf
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -28,7 +29,8 @@ class IverksettSøknadsbehandlingTest {
     @Test
     fun `iverksett endrer status på behandlingen`() = runTest {
         withTestApplicationContext { tac ->
-            val (_, _, behandling) = this.iverksettSøknadsbehandling(tac)
+            val (_, _, rammevedtak) = this.iverksettSøknadsbehandling(tac)
+            val behandling = rammevedtak.behandling
             behandling.virkningsperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
         }
@@ -37,19 +39,21 @@ class IverksettSøknadsbehandlingTest {
     @Test
     fun `iverksett - kan iverksette en automatisk behandlet behandling`() = runTest {
         withTestApplicationContext { tac ->
-            val (_, _, behandling) = this.iverksettAutomatiskBehandletSøknadsbehandling(tac)
-            behandling.virkningsperiode.shouldNotBeNull()
-            behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
+            val (_, _, rammevedtakSøknadsbehandling) = this.iverksettAutomatiskBehandletSøknadsbehandling(tac)
+            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
+            søknadsbehandling.virkningsperiode.shouldNotBeNull()
+            søknadsbehandling.status shouldBe Rammebehandlingsstatus.VEDTATT
         }
     }
 
     @Test
     fun `iverksett - avslag på søknad`() = runTest {
         withTestApplicationContext { tac ->
-            val (_, _, behandling) = this.iverksettSøknadsbehandling(
+            val (_, _, rammevedtak) = this.iverksettSøknadsbehandling(
                 tac,
                 resultat = SøknadsbehandlingType.AVSLAG,
             )
+            val behandling = rammevedtak.behandling
             behandling.virkningsperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
             behandling.resultat shouldBe instanceOf<SøknadsbehandlingResultat.Avslag>()
@@ -59,15 +63,16 @@ class IverksettSøknadsbehandlingTest {
     @Test
     fun `iverksett - verifiser avslag vedtak dto`() = runTest {
         withTestApplicationContext { tac ->
-            val (sak, _, behandling) = this.iverksettSøknadsbehandling(
+            val (sak, _, rammevedtakSøknadsbehandling) = this.iverksettSøknadsbehandling(
                 tac,
                 resultat = SøknadsbehandlingType.AVSLAG,
             )
-            val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, behandling.saksnummer)!!
+            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling
+            val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, søknadsbehandling.saksnummer)!!
             val rammevedtakDTOJson: RammevedtakDTOJson = sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(0)
             rammevedtakDTOJson.shouldBeEqualToRammevedtakDTOavslag(
                 id = sak.rammevedtaksliste.single().id.toString(),
-                behandlingId = behandling.id.toString(),
+                behandlingId = søknadsbehandling.id.toString(),
             )
         }
     }
@@ -75,15 +80,16 @@ class IverksettSøknadsbehandlingTest {
     @Test
     fun `iverksett - verifiser innvilgelse vedtak dto`() = runTest {
         withTestApplicationContext { tac ->
-            val (sak, _, behandling) = this.iverksettSøknadsbehandling(
+            val (sak, _, rammevedtakSøknadsbehandling) = this.iverksettSøknadsbehandling(
                 tac,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
             )
-            val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, behandling.saksnummer)!!
+            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling
+            val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, søknadsbehandling.saksnummer)!!
             val rammevedtakDTOJson: RammevedtakDTOJson = sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(0)
             rammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
-                id = sak.rammevedtaksliste.single().id.toString(),
-                behandlingId = behandling.id.toString(),
+                id = rammevedtakSøknadsbehandling.id.toString(),
+                behandlingId = søknadsbehandling.id.toString(),
             )
         }
     }

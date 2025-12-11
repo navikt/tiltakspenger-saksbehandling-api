@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehan
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 interface IverksettSøknadsbehandlingBuilder {
     /**
@@ -49,7 +50,7 @@ interface IverksettSøknadsbehandlingBuilder {
             fom = vedtaksperiode.fraOgMed,
             tom = vedtaksperiode.tilOgMed,
         ),
-    ): Tuple4<Sak, Søknad, Søknadsbehandling, RammebehandlingDTOJson> {
+    ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(
             tac = tac,
             sakId = sakId,
@@ -62,7 +63,7 @@ interface IverksettSøknadsbehandlingBuilder {
             saksbehandler = saksbehandler,
         )
         taBehandling(tac, sak.id, behandlingId, beslutter)
-        val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtak, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = behandlingId,
@@ -71,7 +72,7 @@ interface IverksettSøknadsbehandlingBuilder {
         return Tuple4(
             oppdatertSak,
             søknad,
-            oppdatertBehandling as Søknadsbehandling,
+            rammevedtak,
             jsonResponse,
         )
     }
@@ -87,23 +88,23 @@ interface IverksettSøknadsbehandlingBuilder {
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
-    ): Tuple4<Sak, Søknad, Søknadsbehandling, RammebehandlingDTOJson> {
-        val (sak, søknad, behandling) = opprettAutomatiskBehandlingKlarTilBeslutning(
+    ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
+        val (sak, søknad, søknadsbehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(
             tac = tac,
             fnr = fnr,
             virkningsperiode = virkningsperiode,
         )
-        taBehandling(tac, sak.id, behandling.id, beslutter)
-        val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
+        taBehandling(tac, sak.id, søknadsbehandling.id, beslutter)
+        val (oppdatertSak, rammevedtakSøknadsbehandling, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
-            behandlingId = behandling.id,
+            behandlingId = søknadsbehandling.id,
             beslutter = beslutter,
         )!!
         return Tuple4(
             oppdatertSak,
             søknad,
-            oppdatertBehandling as Søknadsbehandling,
+            rammevedtakSøknadsbehandling,
             jsonResponse,
         )
     }

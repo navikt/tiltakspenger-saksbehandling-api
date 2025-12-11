@@ -10,6 +10,8 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
@@ -42,7 +44,9 @@ internal class IverksettRevurderingTest {
     @Test
     fun `kan iverksette revurdering stans`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
+            val (sak, _, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
+                tac,
+            )
 
             oppdaterBehandling(
                 tac = tac,
@@ -52,7 +56,7 @@ internal class IverksettRevurderingTest {
                     begrunnelseVilkårsvurdering = null,
                     fritekstTilVedtaksbrev = null,
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
+                    stansFraOgMed = rammevedtakSøknadsbehandling.behandling.virkningsperiode!!.fraOgMed,
                     stansTilOgMed = null,
                     harValgtStansFraFørsteDagSomGirRett = false,
                     harValgtStansTilSisteDagSomGirRett = true,
@@ -170,7 +174,9 @@ internal class IverksettRevurderingTest {
     @Test
     fun `må være beslutter for å iverksette revurdering`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
+            val (sak, _, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
+                tac,
+            )
 
             oppdaterBehandling(
                 tac = tac,
@@ -180,7 +186,7 @@ internal class IverksettRevurderingTest {
                     begrunnelseVilkårsvurdering = null,
                     fritekstTilVedtaksbrev = null,
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
+                    stansFraOgMed = rammevedtakSøknadsbehandling.behandling.virkningsperiode!!.fraOgMed,
                     stansTilOgMed = null,
                     harValgtStansFraFørsteDagSomGirRett = false,
                     harValgtStansTilSisteDagSomGirRett = true,
@@ -206,11 +212,13 @@ internal class IverksettRevurderingTest {
     @Test
     fun `verifiser vedtak dto ved revurdering til innvilgelse`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
+            val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering) = iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 1.til(10.april(2025)),
                 revurderingInnvilgelsesperiode = 9.til(11.april(2025)),
             )
+            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
+            val revurdering = rammevedtakRevurdering.behandling as Revurdering
             val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, sak.saksnummer)!!
             val søknadsbehandlingvedtakDTOJson: RammevedtakDTOJson =
                 sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(0)
@@ -254,11 +262,13 @@ internal class IverksettRevurderingTest {
     @Test
     fun `verifiser vedtak dto ved revurdering til stans`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgRevurderingStans(
+            val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering) = iverksettSøknadsbehandlingOgRevurderingStans(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 1.til(10.april(2025)),
                 stansFraOgMed = 5.april(2025),
             )
+            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
+            val revurdering = rammevedtakRevurdering.behandling as Revurdering
             val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, sak.saksnummer)!!
             val søknadsbehandlingvedtakDTOJson: RammevedtakDTOJson =
                 sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(0)
@@ -266,14 +276,14 @@ internal class IverksettRevurderingTest {
                 sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(1)
             sak.rammevedtaksliste.size.shouldBe(2)
             søknadsbehandlingvedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
-                id = sak.rammevedtaksliste[0].id.toString(),
+                id = rammevedtakSøknadsbehandling.id.toString(),
                 behandlingId = søknadsbehandling.id.toString(),
                 gjeldendeVedtaksperioder = listOf(1.til(4.april(2025))),
                 gjeldendeInnvilgetPerioder = listOf(1.til(4.april(2025))),
                 omgjortGrad = "DELVIS",
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTO(
-                id = sak.rammevedtaksliste[1].id.toString(),
+                id = rammevedtakRevurdering.id.toString(),
                 behandlingId = revurdering.id.toString(),
                 gjeldendeVedtaksperioder = listOf(5.til(10.april(2025))),
                 gjeldendeInnvilgetPerioder = emptyList(),
@@ -283,8 +293,8 @@ internal class IverksettRevurderingTest {
                 resultat = "STANS",
                 barnetillegg = null,
                 antallDagerPerMeldeperiode = 0,
-                saksbehandler = revurdering.saksbehandler!!,
-                beslutter = revurdering.beslutter!!,
+                saksbehandler = rammevedtakRevurdering.saksbehandler,
+                beslutter = rammevedtakRevurdering.beslutter,
                 erGjeldende = true,
                 vedtaksdato = null,
                 omgjortGrad = null,
@@ -306,7 +316,11 @@ internal class IverksettRevurderingTest {
     @Test
     fun `verifiser vedtak dto ved revurdering til omgjøring`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering, _) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(tac)!!
+            val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering, _) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
+                tac,
+            )!!
+            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
+            val revurdering = rammevedtakRevurdering.behandling as Revurdering
             val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, sak.saksnummer)!!
             val søknadsbehandlingvedtakDTOJson: RammevedtakDTOJson =
                 sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(0)

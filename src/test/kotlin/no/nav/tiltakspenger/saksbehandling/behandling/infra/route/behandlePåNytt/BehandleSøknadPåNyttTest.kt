@@ -36,10 +36,11 @@ internal class BehandleSøknadPåNyttTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val (sak, søknad, behandling) = this.iverksettSøknadsbehandling(
+                val (sak, søknad, rammevedtak) = this.iverksettSøknadsbehandling(
                     tac = tac,
                     resultat = SøknadsbehandlingType.AVSLAG,
                 )
+                val behandling = rammevedtak.behandling as Søknadsbehandling
                 behandling.virkningsperiode.shouldNotBeNull()
                 behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
                 behandling.resultat is SøknadsbehandlingResultat.Avslag
@@ -71,10 +72,11 @@ internal class BehandleSøknadPåNyttTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val (sak, søknad, behandling) = this.iverksettSøknadsbehandling(
+                val (sak, søknad, rammevedtak) = this.iverksettSøknadsbehandling(
                     tac = tac,
                     resultat = SøknadsbehandlingType.AVSLAG,
                 )
+                val behandling = rammevedtak.behandling as Søknadsbehandling
                 behandling.virkningsperiode.shouldNotBeNull()
                 behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
                 behandling.resultat is SøknadsbehandlingResultat.Avslag
@@ -102,10 +104,11 @@ internal class BehandleSøknadPåNyttTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val (sak, søknad, behandling) = this.iverksettSøknadsbehandling(
+                val (sak, søknad, rammevedtak) = this.iverksettSøknadsbehandling(
                     tac = tac,
                     resultat = SøknadsbehandlingType.AVSLAG,
                 )
+                val behandling = rammevedtak.behandling as Søknadsbehandling
                 behandling.virkningsperiode.shouldNotBeNull()
                 behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
                 behandling.resultat is SøknadsbehandlingResultat.Avslag

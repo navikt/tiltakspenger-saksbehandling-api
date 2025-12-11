@@ -253,4 +253,8 @@ data class Rammevedtaksliste(
             }
         }.sortedBy { it.periode.fraOgMed }.tilPeriodisering()
     }
+
+    fun hentVedtakForBehandlingId(behandlingId: BehandlingId): Rammevedtak {
+        return this.single { it.behandling.id == behandlingId }
+    }
 }

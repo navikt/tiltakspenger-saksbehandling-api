@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -45,11 +46,12 @@ class GenererMeldeperioderSakIT {
         søknadsbehandlingInnvilgelse: Periode = Periode(1.april(2025), 13.april(2025)),
         revurderingInnvilgelse: Periode = søknadsbehandlingInnvilgelse.plusTilOgMed(28L),
     ): Sak {
-        val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
+        val (sak, _, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
             tac,
             søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelse,
             revurderingVedtaksperiode = revurderingInnvilgelse,
         )
+        val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
 
         oppdaterBehandling(
             tac = tac,

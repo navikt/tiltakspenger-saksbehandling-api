@@ -12,13 +12,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
 
 internal class StartRevurderingTest {
@@ -63,9 +63,9 @@ internal class StartRevurderingTest {
     @Test
     fun `kan starte revurdering omgjøring`() {
         withTestApplicationContext { tac ->
-            val (sak, _, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
-            val søknadsvedtak: Rammevedtak = sak.vedtaksliste.single() as Rammevedtak
-            val søknadsvedtakResultat = søknadsvedtak.behandling.resultat as SøknadsbehandlingResultat.Innvilgelse
+            val (sak, _, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
+            val søknadsvedtakResultat = rammevedtakSøknadsbehandling.behandling.resultat as SøknadsbehandlingResultat.Innvilgelse
+            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
             revurdering.shouldBeInstanceOf<Revurdering>()
             revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
             revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -75,7 +75,7 @@ internal class StartRevurderingTest {
             revurdering.begrunnelseVilkårsvurdering shouldBe null
             revurdering.saksbehandler shouldBe "Z12345"
             revurdering.saksnummer shouldBe sak.saksnummer
-            revurdering.virkningsperiode shouldBe søknadsvedtak.periode
+            revurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.periode
             revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.virkningsperiode
             revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.innvilgelsesperiode
             revurdering.resultat.innvilgelsesperiode shouldBe (3 til 10.april(2025))
@@ -105,32 +105,32 @@ internal class StartRevurderingTest {
     @Test
     fun `revurdering til omgjøring - tiltaksdeltakelse har krympet før start`() {
         withTestApplicationContext { tac ->
-            val (_, _, søknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
+            val (_, _, rammevedtakSøknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 1 til 10.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = 2 til 9.april(2025),
             )!!
-            søknadsbehandling.virkningsperiode shouldBe (1 til 10.april(2025))
-            søknadsbehandling.innvilgelsesperiode shouldBe (1 til 10.april(2025))
-            søknadsbehandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
-            omgjøring!!.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
+            rammevedtakSøknadsbehandling.behandling.virkningsperiode shouldBe (1 til 10.april(2025))
+            rammevedtakSøknadsbehandling.behandling.innvilgelsesperiode shouldBe (1 til 10.april(2025))
+            rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
+            omgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
             omgjøring.virkningsperiode shouldBe (1 til 10.april(2025))
             omgjøring.innvilgelsesperiode shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
-                    søknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
+                    rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
                     (2 til 9.april(2025)),
                 ),
-                begrunnelse = søknadsbehandling.barnetillegg.begrunnelse,
+                begrunnelse = rammevedtakSøknadsbehandling.behandling.barnetillegg!!.begrunnelse,
             )
             omgjøring.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
                 periodisering = SammenhengendePeriodisering(
-                    søknadsbehandling.valgteTiltaksdeltakelser!!.periodisering.verdier.single(),
+                    rammevedtakSøknadsbehandling.valgteTiltaksdeltakelser!!.periodisering.verdier.single(),
                     (2 til 9.april(2025)),
                 ),
             )
             omgjøring.antallDagerPerMeldeperiode shouldBe SammenhengendePeriodisering(
-                søknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
+                rammevedtakSøknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
                 (2 til 9.april(2025)),
             )
             omgjøring.erFerdigutfylt() shouldBe true
@@ -143,32 +143,32 @@ internal class StartRevurderingTest {
     @Test
     fun `revurdering til omgjøring - tiltaksdeltakelse har økt før start`() {
         withTestApplicationContext { tac ->
-            val (_, _, søknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
+            val (_, _, rammevedtakSøknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 2 til 9.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = 1 til 10.april(2025),
             )!!
-            søknadsbehandling.virkningsperiode shouldBe (2 til 9.april(2025))
-            søknadsbehandling.innvilgelsesperiode shouldBe (2 til 9.april(2025))
-            søknadsbehandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
-            omgjøring!!.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
+            rammevedtakSøknadsbehandling.behandling.virkningsperiode shouldBe (2 til 9.april(2025))
+            rammevedtakSøknadsbehandling.behandling.innvilgelsesperiode shouldBe (2 til 9.april(2025))
+            rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
+            omgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
             omgjøring.virkningsperiode shouldBe (2 til 9.april(2025))
             omgjøring.innvilgelsesperiode shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
-                    søknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
+                    rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
                     (2 til 9.april(2025)),
                 ),
-                begrunnelse = søknadsbehandling.barnetillegg.begrunnelse,
+                begrunnelse = rammevedtakSøknadsbehandling.behandling.barnetillegg!!.begrunnelse,
             )
             omgjøring.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
                 periodisering = SammenhengendePeriodisering(
-                    søknadsbehandling.valgteTiltaksdeltakelser!!.periodisering.verdier.single(),
+                    rammevedtakSøknadsbehandling.valgteTiltaksdeltakelser!!.periodisering.verdier.single(),
                     (2 til 9.april(2025)),
                 ),
             )
             omgjøring.antallDagerPerMeldeperiode shouldBe SammenhengendePeriodisering(
-                søknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
+                rammevedtakSøknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
                 (2 til 9.april(2025)),
             )
             omgjøring.erFerdigutfylt() shouldBe true
