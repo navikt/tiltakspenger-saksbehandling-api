@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresTransactionC
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.tilAntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.tilInnvilgelsesperioderDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.tilValgteTiltaksdeltakelser
@@ -32,10 +33,22 @@ class V170__migrer_innvilgelsesperioder : BaseJavaMigration() {
                 val medInnvilgelse = hentInnvilgelsesperioder(session)
                 logger.info { "Fant ${medInnvilgelse.size} behandlinger med innvilgelse" }
 
-                medInnvilgelse.forEach { (id, innvilgelsesperioder) ->
+                val medFeil: List<BehandlingId> = medInnvilgelse.mapNotNull { (id, innvilgelsesperioder) ->
                     if (innvilgelsesperioder != null) {
                         lagreInnvilgelsesperioder(id, innvilgelsesperioder, session)
                     }
+
+                    try {
+                        BehandlingPostgresRepo.hentOrNull(id, session)!!
+                        return@mapNotNull null
+                    } catch (e: Exception) {
+                        logger.error(e) { "Kunne ikke hente behandling $id etter migrering" }
+                        return@mapNotNull id
+                    }
+                }
+
+                if (medFeil.isNotEmpty()) {
+                    throw IllegalStateException("${medFeil.size} behandlinger kunne ikke hentes opp etter migrering, avbryter")
                 }
             }
         }
