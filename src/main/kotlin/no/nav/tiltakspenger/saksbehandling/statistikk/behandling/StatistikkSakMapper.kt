@@ -89,7 +89,7 @@ fun genererSaksstatistikkForBehandling(
         utbetaltTidspunkt = null,
         tekniskTidspunkt = nå(clock),
         søknadsformat = when (behandling) {
-            is Søknadsbehandling -> StatistikkFormat.DIGITAL.name
+            is Søknadsbehandling -> behandling.søknad.søknadstype.name
             is Revurdering -> StatistikkFormat.DIGITAL.name
         },
         forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.virkningsperiode?.fraOgMed else null,
