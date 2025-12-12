@@ -25,7 +25,10 @@ data class StatistikkSakDTO(
     val endretTidspunkt: LocalDateTime,
     /** Tidspunkt for første utbetaling av ytelse. */
     val utbetaltTidspunkt: LocalDateTime?,
-    // papir, digital
+    /**
+     * Formatet er ikke strukturert på noe vis per nå, bruker derfor verdiene som ble diskutert frem på slack
+     * https://nav-it.slack.com/archives/C066TB6TFEH/p1765541455556029?thread_ts=1765190061.367509&cid=C066TB6TFEH
+     */
     val søknadsformat: String,
 
     /** Hvis systemet eller bruker har et forhold til når ytelsen normalt skal utbetales (planlagt uttak, ønsket oppstart etc.) */
@@ -67,6 +70,10 @@ data class StatistikkSakDTO(
 enum class StatistikkFormat {
     PAPIR,
     DIGITAL,
+    PAPIR_SKJEMA,
+    PAPIR_FRIHÅND,
+    MODIA,
+    ANNET,
 }
 
 enum class StatistikkResultat {

@@ -51,7 +51,7 @@ class SøknadTest {
                 antallVedlegg = 1,
                 manueltSattSøknadsperiode = null,
                 manueltSattTiltak = null,
-                søknadstype = Søknadstype.MANUELT_REGISTRERT_SØKNAD,
+                søknadstype = Søknadstype.PAPIR_SKJEMA,
             )
 
             opprettetSøknad.shouldBeInstanceOf<InnvilgbarSøknad>()
@@ -85,7 +85,7 @@ class SøknadTest {
                 antallVedlegg = 1,
                 manueltSattSøknadsperiode = null,
                 manueltSattTiltak = null,
-                søknadstype = Søknadstype.MANUELT_REGISTRERT_SØKNAD,
+                søknadstype = Søknadstype.PAPIR_SKJEMA,
             )
 
             opprettetSøknad.shouldBeInstanceOf<IkkeInnvilgbarSøknad>()

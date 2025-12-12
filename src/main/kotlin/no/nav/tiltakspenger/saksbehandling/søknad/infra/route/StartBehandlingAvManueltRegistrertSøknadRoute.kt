@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvManueltRegistrertSøknadService
 
 private val logger = KotlinLogging.logger {}
@@ -76,6 +77,7 @@ data class StartBehandlingAvManueltRegistrertSøknadCommand(
     val søknadstiltak: Søknadstiltak?,
     val barnetillegg: List<BarnetilleggFraSøknad>,
     val antallVedlegg: Int,
+    val søknadstype: Søknadstype,
     val harSøktPåTiltak: Søknad.JaNeiSpm,
     val harSøktOmBarnetillegg: Søknad.JaNeiSpm,
     val kvp: Søknad.PeriodeSpm,
