@@ -6,6 +6,7 @@ import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -17,20 +18,24 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSaksnummer
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvManueltRegistrertSøknadService
 
 private val logger = KotlinLogging.logger {}
 
-const val PAPIRSØKNAD_PATH = "sak/{saksnummer}/papirsoknad"
+const val MANUELT_REGISTRERT_SØKNAD_PATH = "sak/{saksnummer}/soknad"
 
-@Deprecated("Erstattet av startBehandlingAvManueltRegistrertSøknadRoute")
-fun Route.startBehandlingAvPapirsøknadRoute(
+fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
-    startBehandlingAvPapirsøknad: StartBehandlingAvManueltRegistrertSøknadService,
+    startBehandlingAvManueltRegistrertSøknadService: StartBehandlingAvManueltRegistrertSøknadService,
 ) {
-    post(PAPIRSØKNAD_PATH) {
-        logger.debug { "Mottatt papirsøknad på '$PAPIRSØKNAD_PATH'" }
+    post(MANUELT_REGISTRERT_SØKNAD_PATH) {
+        logger.debug { "Mottatt manuelt registrert søknad på '$MANUELT_REGISTRERT_SØKNAD_PATH'" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSaksnummer { saksnummer ->
@@ -38,7 +43,7 @@ fun Route.startBehandlingAvPapirsøknadRoute(
             tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, token)
 
             call.withBody<ManueltRegistrertSøknadBody> { body ->
-                val (sak, søknad) = startBehandlingAvPapirsøknad.startBehandlingAvManueltRegistrertSøknad(
+                val (sak, søknad) = startBehandlingAvManueltRegistrertSøknadService.startBehandlingAvManueltRegistrertSøknad(
                     saksnummer = saksnummer,
                     kommando = body.tilKommando(),
                     saksbehandler = saksbehandler,
@@ -49,7 +54,7 @@ fun Route.startBehandlingAvPapirsøknadRoute(
                     navIdent = saksbehandler.navIdent,
                     action = AuditLogEvent.Action.CREATE,
                     correlationId = call.correlationId(),
-                    contextMessage = "Startet behandling av papirsøknad med id ${søknad.id} for sak $saksnummer",
+                    contextMessage = "Startet behandling av manuelt registrert søknad med id ${søknad.id} for sak $saksnummer",
                 )
                 call.respond(
                     status = HttpStatusCode.OK,
@@ -63,3 +68,27 @@ fun Route.startBehandlingAvPapirsøknadRoute(
         }
     }
 }
+
+data class StartBehandlingAvManueltRegistrertSøknadCommand(
+    val personopplysninger: Søknad.Personopplysninger,
+    val journalpostId: JournalpostId,
+    val manueltSattSøknadsperiode: Periode?,
+    val manueltSattTiltak: String?,
+    val søknadstiltak: Søknadstiltak?,
+    val barnetillegg: List<BarnetilleggFraSøknad>,
+    val antallVedlegg: Int,
+    val søknadstype: Søknadstype,
+    val harSøktPåTiltak: Søknad.JaNeiSpm,
+    val harSøktOmBarnetillegg: Søknad.JaNeiSpm,
+    val kvp: Søknad.PeriodeSpm,
+    val intro: Søknad.PeriodeSpm,
+    val institusjon: Søknad.PeriodeSpm,
+    val etterlønn: Søknad.JaNeiSpm,
+    val gjenlevendepensjon: Søknad.PeriodeSpm,
+    val alderspensjon: Søknad.FraOgMedDatoSpm,
+    val sykepenger: Søknad.PeriodeSpm,
+    val supplerendeStønadAlder: Søknad.PeriodeSpm,
+    val supplerendeStønadFlyktning: Søknad.PeriodeSpm,
+    val jobbsjansen: Søknad.PeriodeSpm,
+    val trygdOgPensjon: Søknad.PeriodeSpm,
+)

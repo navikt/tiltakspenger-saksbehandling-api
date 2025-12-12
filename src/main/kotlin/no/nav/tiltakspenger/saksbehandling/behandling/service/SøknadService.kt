@@ -14,7 +14,9 @@ class SøknadService(
 ) {
     private val log = KotlinLogging.logger {}
 
-    /** Skal i førsteomgang kun brukes til digitale søknader. Dersom en saksbehandler skal registere en papirsøknad må vi ha en egen funksjon som sjekker tilgang.*/
+    /**
+     * Skal kun brukes til digitale søknader.
+     */
     fun nySøknad(søknad: Søknad) {
         sessionFactory.withTransactionContext { tx ->
             søknadRepo.lagre(søknad, tx)
