@@ -482,17 +482,25 @@ class BehandlingPostgresRepo(
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
-                        RevurderingType.OMGJØRING -> RevurderingResultat.Omgjøring(
-                            virkningsperiode = virkningsperiode!!,
-                            innvilgelsesperioder = Innvilgelsesperioder.create(
-                                saksopplysninger = saksopplysninger,
-                                innvilgelsesperiode = deserialize<PeriodeDbJson>(string("innvilgelsesperiode")).toDomain(),
-                                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode!!,
-                                tiltaksdeltakelser = valgteTiltaksdeltakelser!!,
-                            ),
-                            barnetillegg = string("barnetillegg").toBarnetillegg(),
-                            omgjørRammevedtak = omgjørRammevedtak,
-                        )
+                        RevurderingType.OMGJØRING -> {
+                            val innvilgelsesperiode = stringOrNull("innvilgelsesperiode")?.let {
+                                deserialize<PeriodeDbJson>(it).toDomain()
+                            }
+
+                            RevurderingResultat.Omgjøring(
+                                virkningsperiode = virkningsperiode!!,
+                                innvilgelsesperioder = innvilgelsesperiode?.let {
+                                    Innvilgelsesperioder.create(
+                                        saksopplysninger = saksopplysninger,
+                                        innvilgelsesperiode = it,
+                                        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode!!,
+                                        tiltaksdeltakelser = valgteTiltaksdeltakelser!!,
+                                    )
+                                },
+                                barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
+                                omgjørRammevedtak = omgjørRammevedtak,
+                            )
+                        }
                     }
 
                     return Revurdering(
@@ -800,10 +808,10 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
     )
 
     is RevurderingResultat.Omgjøring -> arrayOf(
-        "barnetillegg" to this.barnetillegg.toDbJson(),
-        "valgte_tiltaksdeltakelser" to this.innvilgelsesperioder.tilValgteTiltaksdeltakelserDbJson(),
-        "antall_dager_per_meldeperiode" to this.innvilgelsesperioder.tilAntallDagerForMeldeperiodeDbJson(),
-        "innvilgelsesperiode" to serialize(this.innvilgelsesperioder.totalPeriode.toDbJson()),
+        "barnetillegg" to this.barnetillegg?.toDbJson(),
+        "valgte_tiltaksdeltakelser" to this.innvilgelsesperioder?.tilValgteTiltaksdeltakelserDbJson(),
+        "antall_dager_per_meldeperiode" to this.innvilgelsesperioder?.tilAntallDagerForMeldeperiodeDbJson(),
+        "innvilgelsesperiode" to this.innvilgelsesperioder?.totalPeriode?.toDbJson()?.let { serialize(it) },
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 

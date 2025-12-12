@@ -428,7 +428,7 @@ class OppdaterBehandlingRouteTest {
             ).tilIkkeTomPeriodisering()
             oppdatertRevurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
             resultat.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
-            resultat.innvilgelsesperioder.totalPeriode shouldBe nyOmgjøringsperiodeEtterOppdatering
+            resultat.innvilgelsesperioder!!.totalPeriode shouldBe nyOmgjøringsperiodeEtterOppdatering
             oppdatertRevurdering.utbetaling shouldBe null
 
             // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.

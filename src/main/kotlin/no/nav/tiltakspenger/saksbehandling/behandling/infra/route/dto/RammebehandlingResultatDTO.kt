@@ -60,10 +60,10 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     }
 
     data class Omgjøring(
-        override val innvilgelsesperiode: PeriodeDTO,
+        override val innvilgelsesperiode: PeriodeDTO?,
         override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
-        override val barnetillegg: BarnetilleggDTO,
-        override val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>,
+        override val barnetillegg: BarnetilleggDTO?,
+        override val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
         val omgjørVedtak: String,
     ) : RevurderingResultatDTO,
         RammebehandlingInnvilgelseResultatDTO {
@@ -111,10 +111,10 @@ fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
         )
 
         is RevurderingResultat.Omgjøring -> RevurderingResultatDTO.Omgjøring(
-            innvilgelsesperiode = innvilgelsesperioder.totalPeriode.toDTO(),
-            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser.toTiltaksdeltakelsePeriodeDTO(),
-            barnetillegg = barnetillegg.toBarnetilleggDTO(),
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),
+            innvilgelsesperiode = innvilgelsesperioder?.totalPeriode?.toDTO(),
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser?.toTiltaksdeltakelsePeriodeDTO(),
+            barnetillegg = barnetillegg?.toBarnetilleggDTO(),
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode?.tilAntallDagerPerMeldeperiodeDTO(),
             // Per 27. nov 2025 krever vi at en omgjøringsbehandling omgjør ett enkelt vedtak, men vi har ikke noen begrensning på å utvide omgjøringen, slik at den omgjør flere vedtak.
             // Tanken med dette feltet er de tilfellene man har spesifikt valgt å omgjøre et spesifikt vedtak i sin helhet.
             // TODO jah: Anders, hva gjør vi? Legger tilbake omgjørVedtakId? Det føles forvirrende. Skal vi heller sperre for at den kan omgjøre flere vedtak?
