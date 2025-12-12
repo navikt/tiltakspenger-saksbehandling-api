@@ -90,10 +90,7 @@ fun genererSaksstatistikkForBehandling(
         tekniskTidspunkt = nå(clock),
         søknadsformat = when (behandling) {
             is Søknadsbehandling -> StatistikkFormat.DIGITAL.name
-            is RevurderingResultat -> StatistikkFormat.DIGITAL.name
-            else -> {
-                throw IllegalArgumentException("Behandlingen er ikke ${behandling::class.simpleName} for ${behandling.id}")
-            }
+            is Revurdering -> StatistikkFormat.DIGITAL.name
         },
         forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.virkningsperiode?.fraOgMed else null,
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
