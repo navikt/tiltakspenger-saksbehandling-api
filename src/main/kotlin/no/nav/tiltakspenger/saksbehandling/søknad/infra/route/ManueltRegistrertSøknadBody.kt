@@ -16,6 +16,7 @@ data class ManueltRegistrertSøknadBody(
     val manueltSattSøknadsperiode: PeriodeDTO?,
     val manueltSattTiltak: String?,
     val antallVedlegg: Int,
+    val søknadstype: SøknadstypeDTO,
     val svar: ManueltRegistrertSøknadSvarDTO,
 ) {
     fun tilKommando(): StartBehandlingAvManueltRegistrertSøknadCommand {
@@ -28,6 +29,7 @@ data class ManueltRegistrertSøknadBody(
             barnetillegg = this.svar.barnetilleggPdl.map { it.tilDomenePdl() } +
                 this.svar.barnetilleggManuelle.map { it.tilDomeneManuell() },
             antallVedlegg = antallVedlegg,
+            søknadstype = søknadstype.tilDomene(),
             harSøktPåTiltak = this.svar.harSøktPåTiltak.tilDomene(),
             harSøktOmBarnetillegg = this.svar.harSøktOmBarnetillegg.tilDomene(),
             kvp = this.svar.kvp.tilDomene(),

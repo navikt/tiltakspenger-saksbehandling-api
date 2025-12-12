@@ -146,7 +146,12 @@ sealed interface Søknad {
      * Man kan bare søke om tiltakspenger for en tiltaksdeltakelse per søknad (aug 2025).
      */
     fun tiltaksdeltakelseperiodeDetErSøktOm(): Periode?
-    fun erManueltRegistrertSøknad() = søknadstype == Søknadstype.PAPIR || søknadstype == Søknadstype.MANUELT_REGISTRERT_SØKNAD
+    fun erManueltRegistrertSøknad() =
+        søknadstype == Søknadstype.PAPIR ||
+            søknadstype == Søknadstype.PAPIR_SKJEMA ||
+            søknadstype == Søknadstype.PAPIR_FRIHÅND ||
+            søknadstype == Søknadstype.MODIA ||
+            søknadstype == Søknadstype.ANNET
     fun erDigitalSøknad() = søknadstype == Søknadstype.DIGITAL
     fun kanInnvilges() =
         (erDigitalSøknad() && tiltak != null) || (erManueltRegistrertSøknad() && tiltak != null && manueltSattSøknadsperiode != null)

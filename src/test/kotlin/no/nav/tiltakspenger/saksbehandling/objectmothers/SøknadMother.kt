@@ -167,7 +167,7 @@ interface SøknadMother {
         avbrutt: Avbrutt? = null,
         søknadsperiode: Periode? = ObjectMother.virkningsperiode(),
         manueltSattTiltak: String? = null,
-        søknadstype: Søknadstype = Søknadstype.MANUELT_REGISTRERT_SØKNAD,
+        søknadstype: Søknadstype = Søknadstype.PAPIR_SKJEMA,
     ): IkkeInnvilgbarSøknad =
         IkkeInnvilgbarSøknad(
             versjon = versjon,
