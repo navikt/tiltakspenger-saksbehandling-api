@@ -158,7 +158,7 @@ interface MeldekortMother : MotherOfAllMothers {
             opprettet = opprettet,
             antallDagerForPeriode = antallDagerForPeriode,
         ),
-        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
+        barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
         meldekortperiodeBeregning: Beregning =
             meldekortBeregning(
                 meldekortId = id,
@@ -365,7 +365,7 @@ interface MeldekortMother : MotherOfAllMothers {
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
+        barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
         beregningDager: NonEmptyList<MeldeperiodeBeregningDag> = maksAntallDeltattTiltaksdagerIMeldekortperiode(
             startDato,
             meldekortId,
@@ -390,7 +390,7 @@ interface MeldekortMother : MotherOfAllMothers {
         startDato: LocalDate,
         meldekortId: MeldekortId,
         tiltakstype: TiltakstypeSomGirRett,
-        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
+        barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
     ): NonEmptyList<MeldeperiodeBeregningDag> {
         return (
             tiltaksdager(
@@ -415,7 +415,7 @@ interface MeldekortMother : MotherOfAllMothers {
         meldekortId: MeldekortId,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
-        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
+        barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
     ): NonEmptyList<DeltattUtenLønnITiltaket> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"

@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import java.time.LocalDate
@@ -113,7 +112,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val innvilgelsesperiode: Periode,
         override val tiltaksdeltakelser: List<Pair<Periode, String>>,
         override val barnetillegg: Barnetillegg,
-        override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
+        override val antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>>,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse
 
@@ -127,16 +126,16 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val innvilgelsesperiode: Periode,
         override val tiltaksdeltakelser: List<Pair<Periode, String>>,
         override val barnetillegg: Barnetillegg,
-        override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
+        override val antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>>,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse {
 
         fun utledNyVirkningsperiode(
             eksisterendeVirkningsperiode: Periode,
-            nyInnvilgelsesperiode: Periode,
+            nyeInnvilgelsesperioder: Innvilgelsesperioder,
         ) = RevurderingResultat.Omgjøring.utledNyVirkningsperiode(
             eksisterendeVirkningsperiode = eksisterendeVirkningsperiode,
-            nyInnvilgelsesperiode = nyInnvilgelsesperiode,
+            nyeInnvilgelsesperioder = nyeInnvilgelsesperioder,
         )
     }
 }

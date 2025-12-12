@@ -4,11 +4,9 @@ import arrow.core.Either
 import arrow.core.NonEmptySet
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 
 sealed interface SøknadsbehandlingResultat : BehandlingResultat {
 
@@ -24,7 +22,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         val avslagsperiode: Periode?,
     ) : SøknadsbehandlingResultat {
         override val virkningsperiode = avslagsperiode
-        override val innvilgelsesperiode = null
+        override val innvilgelsesperioder = null
         override val barnetillegg = null
         override val valgteTiltaksdeltakelser = null
         override val antallDagerPerMeldeperiode = null
@@ -43,21 +41,21 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
     /**
      * Virkningsperioden/vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
      *
-     * Når saksbehandler velger at en søknadsbehandling skal innvilges, får de ikke lagret før de har valgt [innvilgelsesperiode] og [valgteTiltaksdeltakelser]
+     * Når saksbehandler velger at en søknadsbehandling skal innvilges, får de ikke lagret før de har valgt [innvilgelsesperioder]
      */
     data class Innvilgelse(
-        override val innvilgelsesperiode: Periode,
-        override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
+        override val innvilgelsesperioder: Innvilgelsesperioder,
         override val barnetillegg: Barnetillegg?,
-        override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
         override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : BehandlingResultat.Innvilgelse,
         SøknadsbehandlingResultat {
-        override val virkningsperiode = innvilgelsesperiode
+        override val virkningsperiode = innvilgelsesperioder.totalPeriode
+        override val valgteTiltaksdeltakelser = innvilgelsesperioder.valgteTiltaksdeltagelser
+        override val antallDagerPerMeldeperiode = innvilgelsesperioder.antallDagerPerMeldeperiode
 
         override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Innvilgelse?> {
             return if (skalNullstilleResultatVedNyeSaksopplysninger(
-                    valgteTiltaksdeltakelser,
+                    valgteTiltaksdeltakelser.verdier,
                     oppdaterteSaksopplysninger,
                 )
             ) {

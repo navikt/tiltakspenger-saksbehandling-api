@@ -2,11 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 
@@ -15,8 +13,8 @@ data class AntallDagerDbJson(
     val periode: PeriodeDbJson,
 )
 
-fun Periodisering<AntallDagerForMeldeperiode>.toDbJson(): String {
-    return this.perioderMedVerdi.toList().map {
+fun Innvilgelsesperioder.tilAntallDagerForMeldeperiodeDbJson(): String {
+    return this.antallDagerPerMeldeperiode.perioderMedVerdi.map {
         AntallDagerDbJson(
             antallDagerPerMeldeperiode = it.verdi.value,
             periode = it.periode.toDbJson(),
@@ -24,8 +22,8 @@ fun Periodisering<AntallDagerForMeldeperiode>.toDbJson(): String {
     }.serialize()
 }
 
-fun String.toAntallDagerForMeldeperiode(): SammenhengendePeriodisering<AntallDagerForMeldeperiode> {
+fun String.tilAntallDagerForMeldeperiode(): List<Pair<Periode, AntallDagerForMeldeperiode>> {
     return deserialize<List<AntallDagerDbJson>>(this).map {
-        PeriodeMedVerdi(AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode), it.periode.toDomain())
-    }.tilSammenhengendePeriodisering()
+        it.periode.toDomain() to AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode)
+    }
 }

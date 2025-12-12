@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -379,6 +380,12 @@ class BehandlingPostgresRepo(
             val søknadId = stringOrNull("soknad_id")?.let { SøknadId.fromString(it) }
             val omgjørRammevedtak = stringOrNull("omgjør_rammevedtak").toOmgjørRammevedtak()
 
+            val valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
+                ?.tilValgteTiltaksdeltakelser()
+
+            val antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")
+                ?.tilAntallDagerForMeldeperiode()
+
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
                     val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
@@ -388,11 +395,13 @@ class BehandlingPostgresRepo(
 
                     val resultat = when (resultatType) {
                         SøknadsbehandlingType.INNVILGELSE -> SøknadsbehandlingResultat.Innvilgelse(
-                            valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
-                                .toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
-                            antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
-                            innvilgelsesperiode = virkningsperiode!!,
+                            innvilgelsesperioder = Innvilgelsesperioder.create(
+                                saksopplysninger = saksopplysninger,
+                                innvilgelsesperiode = virkningsperiode!!,
+                                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode!!,
+                                tiltaksdeltakelser = valgteTiltaksdeltakelser!!,
+                            ),
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
@@ -461,23 +470,37 @@ class BehandlingPostgresRepo(
                         )
 
                         RevurderingType.INNVILGELSE -> RevurderingResultat.Innvilgelse(
-                            valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
-                                ?.toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
-                            antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
-                            innvilgelsesperiode = virkningsperiode,
+                            innvilgelsesperioder = virkningsperiode?.let {
+                                Innvilgelsesperioder.create(
+                                    saksopplysninger = saksopplysninger,
+                                    innvilgelsesperiode = it,
+                                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiode!!,
+                                    tiltaksdeltakelser = valgteTiltaksdeltakelser!!,
+                                )
+                            },
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
-                        RevurderingType.OMGJØRING -> RevurderingResultat.Omgjøring(
-                            virkningsperiode = virkningsperiode!!,
-                            innvilgelsesperiode = deserialize<PeriodeDbJson>(string("innvilgelsesperiode")).toDomain(),
-                            valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
-                                ?.toValgteTiltaksdeltakelser(saksopplysninger),
-                            barnetillegg = string("barnetillegg").toBarnetillegg(),
-                            antallDagerPerMeldeperiode = string("antall_dager_per_meldeperiode").toAntallDagerForMeldeperiode(),
-                            omgjørRammevedtak = omgjørRammevedtak,
-                        )
+                        RevurderingType.OMGJØRING -> {
+                            val innvilgelsesperiode = stringOrNull("innvilgelsesperiode")?.let {
+                                deserialize<PeriodeDbJson>(it).toDomain()
+                            }
+
+                            RevurderingResultat.Omgjøring(
+                                virkningsperiode = virkningsperiode!!,
+                                innvilgelsesperioder = innvilgelsesperiode?.let {
+                                    Innvilgelsesperioder.create(
+                                        saksopplysninger = saksopplysninger,
+                                        innvilgelsesperiode = it,
+                                        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode!!,
+                                        tiltaksdeltakelser = valgteTiltaksdeltakelser!!,
+                                    )
+                                },
+                                barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
+                                omgjørRammevedtak = omgjørRammevedtak,
+                            )
+                        }
                     }
 
                     return Revurdering(
@@ -785,17 +808,17 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
     )
 
     is RevurderingResultat.Omgjøring -> arrayOf(
-        "barnetillegg" to this.barnetillegg.toDbJson(),
-        "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
-        "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode.toDbJson(),
-        "innvilgelsesperiode" to serialize(this.innvilgelsesperiode.toDbJson()),
+        "barnetillegg" to this.barnetillegg?.toDbJson(),
+        "valgte_tiltaksdeltakelser" to this.innvilgelsesperioder?.tilValgteTiltaksdeltakelserDbJson(),
+        "antall_dager_per_meldeperiode" to this.innvilgelsesperioder?.tilAntallDagerForMeldeperiodeDbJson(),
+        "innvilgelsesperiode" to this.innvilgelsesperioder?.totalPeriode?.toDbJson()?.let { serialize(it) },
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 
     is BehandlingResultat.Innvilgelse -> arrayOf(
         "barnetillegg" to this.barnetillegg?.toDbJson(),
-        "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
-        "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode?.toDbJson(),
+        "valgte_tiltaksdeltakelser" to this.innvilgelsesperioder?.tilValgteTiltaksdeltakelserDbJson(),
+        "antall_dager_per_meldeperiode" to this.innvilgelsesperioder?.tilAntallDagerForMeldeperiodeDbJson(),
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 

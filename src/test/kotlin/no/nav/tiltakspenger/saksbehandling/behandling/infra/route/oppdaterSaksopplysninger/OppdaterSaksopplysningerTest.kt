@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger
 
 import arrow.core.right
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -84,17 +84,18 @@ internal class OppdaterSaksopplysningerTest {
     }
 
     @Test
-    fun `revurdering til omgjøring - kan ikke oppdatere saksopplysninger dersom tiltaksdeltakelsen vi omgjør har blitt filtrert bort`() {
+    fun `revurdering til omgjøring - skal nulle ut innvilgelsen dersom tiltaksdeltakelsen vi omgjør har blitt filtrert bort`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
 
             tac.oppdaterTiltaksdeltakelse(fnr = sak.fnr, tiltaksdeltakelse = null)
-            val (_, _) = oppdaterSaksopplysningerForBehandlingId(
+            val (_, oppdatertBehandling) = oppdaterSaksopplysningerForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = revurdering!!.id,
-                forventetStatus = HttpStatusCode.Forbidden,
+                behandlingId = revurdering.id,
             )
+
+            oppdatertBehandling.innvilgelsesperioder.shouldBeNull()
         }
     }
 }

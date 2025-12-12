@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
-import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -45,7 +45,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import org.junit.jupiter.api.Test
 
@@ -414,22 +413,22 @@ class OppdaterBehandlingRouteTest {
             oppdatertRevurdering.saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltakelse
             val resultat = oppdatertRevurdering.resultat as RevurderingResultat.Omgjøring
             // Kommentar jah: Beklager for alt todomain-greiene. Her bør det expectes på eksplisitte verdier uten å bruke domenekode for mapping.
-            resultat.barnetillegg shouldBe barnetillegg.tilBarnetillegg(oppdatertRevurdering.innvilgelsesperiode!!)
+            resultat.barnetillegg shouldBe barnetillegg.tilBarnetillegg(oppdatertRevurdering.innvilgelsesperioder!!.totalPeriode)
             resultat.antallDagerPerMeldeperiode shouldBe antallDagerPerMeldeperiodeForPerioder.map {
                 PeriodeMedVerdi(
                     AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
                     it.periode.toDomain(),
                 )
-            }.tilSammenhengendePeriodisering()
-            resultat.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser.periodiser(
-                tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
-                    Pair(it.periode.toDomain(), it.eksternDeltagelseId)
-                },
-                behandling = oppdatertRevurdering,
-            )
+            }.tilIkkeTomPeriodisering()
+            resultat.valgteTiltaksdeltakelser shouldBe listOf(
+                PeriodeMedVerdi(
+                    avbruttTiltaksdeltakelse,
+                    nyOmgjøringsperiodeEtterOppdatering,
+                ),
+            ).tilIkkeTomPeriodisering()
             oppdatertRevurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
             resultat.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
-            resultat.innvilgelsesperiode shouldBe nyOmgjøringsperiodeEtterOppdatering
+            resultat.innvilgelsesperioder!!.totalPeriode shouldBe nyOmgjøringsperiodeEtterOppdatering
             oppdatertRevurdering.utbetaling shouldBe null
 
             // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.

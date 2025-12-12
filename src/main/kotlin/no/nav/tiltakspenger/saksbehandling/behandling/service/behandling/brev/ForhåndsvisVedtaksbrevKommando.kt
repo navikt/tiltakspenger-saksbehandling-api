@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -41,7 +40,7 @@ data class ForhåndsvisVedtaksbrevKommando(
     val stansFraOgMed: LocalDate?,
     val stansTilOgMed: LocalDate?,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
-    val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
+    val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>?,
 ) {
     fun hentStansperiode(førsteDagSomGirRett: LocalDate, sisteDagSomGirRett: LocalDate): Periode {
         if (stansFraOgMed != null) {
@@ -67,6 +66,7 @@ data class ForhåndsvisVedtaksbrevKommando(
     private fun hentStansTilOgMed(sisteDagSomGirRett: LocalDate): LocalDate {
         return stansTilOgMed ?: sisteDagSomGirRett
     }
+
     init {
         when (resultat) {
             RevurderingType.STANS -> {
@@ -75,6 +75,7 @@ data class ForhåndsvisVedtaksbrevKommando(
                 require(avslagsgrunner == null) { "Kan ikke sende inn avslagsgrunner ved stans" }
                 require(barnetillegg == null) { "Kan ikke sende inn barnetillegg ved stans" }
             }
+
             RevurderingType.INNVILGELSE, SøknadsbehandlingType.INNVILGELSE, RevurderingType.OMGJØRING -> {
                 requireNotNull(virkningsperiode)
                 require(avslagsgrunner == null) { "Kan ikke sende inn avslagsgrunner ved innvilgelse" }
@@ -82,6 +83,7 @@ data class ForhåndsvisVedtaksbrevKommando(
                 require(valgteHjemler == null) { "Kan ikke sende inn valgteHjemler ved innvilgelse" }
                 // Barnetillegg er null hvis det ikke innvilges barn (uavhengig om de har søkt)
             }
+
             SøknadsbehandlingType.AVSLAG -> {
                 requireNotNull(avslagsgrunner)
                 // Kan enable denne når frontend er oppdatert til ikke å sende den

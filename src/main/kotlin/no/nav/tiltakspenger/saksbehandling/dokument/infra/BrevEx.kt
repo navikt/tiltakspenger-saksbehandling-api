@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 
@@ -29,7 +29,7 @@ fun Int.toTekst(): String = when (this) {
 fun AntallBarn.toTekst(): String = this.value.toTekst()
 
 fun toAntallDagerTekst(
-    antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
+    antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>?,
 ): String? {
     if (antallDagerPerMeldeperiode?.size != 1) {
         return null

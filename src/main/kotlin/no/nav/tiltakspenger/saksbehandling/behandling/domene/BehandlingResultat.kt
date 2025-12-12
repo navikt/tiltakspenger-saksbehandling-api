@@ -1,12 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
 sealed interface BehandlingResultat {
 
@@ -14,16 +15,16 @@ sealed interface BehandlingResultat {
     val virkningsperiode: Periode?
 
     /** Vil kun være satt for søknadsbehandling, forlengelse, revurdering (inkl. omgjøring) til innvilgelse. */
-    val innvilgelsesperiode: Periode?
+    val innvilgelsesperioder: Innvilgelsesperioder?
+
+    /** Vil være null ved stans og når behandlingen er uferdig */
+    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<Tiltaksdeltakelse>?
+
+    /** Vil være null ved stans og når behandlingen er uferdig */
+    val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>?
 
     /** Vil være null ved stans og når behandlingen er uferdig */
     val barnetillegg: Barnetillegg?
-
-    /** Vil være null ved stans og når behandlingen er uferdig */
-    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
-
-    /** Vil være null ved stans og når behandlingen er uferdig */
-    val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
 
     val omgjørRammevedtak: OmgjørRammevedtak
 
@@ -37,21 +38,37 @@ sealed interface BehandlingResultat {
     /** Denne benyttes både i søknadsbehandlinger og revurderinger */
     sealed interface Innvilgelse : BehandlingResultat {
         /** Kan være null fram til resultatet er ferdigutfylt. */
-        override val innvilgelsesperiode: Periode?
+        override val innvilgelsesperioder: Innvilgelsesperioder?
 
         /**
-         * True dersom disse ikke er null: [innvilgelsesperiode], [valgteTiltaksdeltakelser], [barnetillegg] og [antallDagerPerMeldeperiode]
-         * Sjekker også at periodene til [valgteTiltaksdeltakelser], [barnetillegg] og [antallDagerPerMeldeperiode] er lik [innvilgelsesperiode].
-         * TODO jah: Ikke direkte relatert til omgjøring, men vi bør utvide denne til og ta høyde for saksopplysninger.tiltaksdeltakelser
+         * True dersom [innvilgelsesperioder] og [barnetillegg] ikke er null og er utfylt med gyldige perioder
+         * TODO abn: Skriv om denne til å enten kaste exception eller returnere left for spesifikke feil, så det er litt enklere å feilsøke
          */
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
-            return innvilgelsesperiode != null &&
-                valgteTiltaksdeltakelser != null &&
-                barnetillegg != null &&
-                antallDagerPerMeldeperiode != null &&
-                antallDagerPerMeldeperiode!!.totalPeriode == innvilgelsesperiode &&
-                valgteTiltaksdeltakelser!!.periodisering.totalPeriode == innvilgelsesperiode &&
-                barnetillegg!!.periodisering.totalPeriode == innvilgelsesperiode
+            if (innvilgelsesperioder == null) {
+                return false
+            }
+
+            if (!innvilgelsesperioder!!.erInnenforTiltaksperiodene(saksopplysninger)) {
+                return false
+            }
+
+            if (!validerBarnetillegg()) {
+                return false
+            }
+
+            return true
+        }
+
+        private fun validerBarnetillegg(): Boolean {
+            if (barnetillegg == null) {
+                return false
+            }
+
+            // Alle barnetilleggsperiodene må overlappe fullstendig med innvilgelsesperiodene
+            val ikkeOverlappendePerioder = barnetillegg!!.periodisering.perioder.trekkFra(innvilgelsesperioder!!.perioder)
+
+            return ikkeOverlappendePerioder.isEmpty()
         }
     }
 
@@ -77,14 +94,14 @@ enum class RevurderingType : BehandlingResultatType {
  */
 @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
 fun skalNullstilleResultatVedNyeSaksopplysninger(
-    valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
+    valgteTiltaksdeltakelser: List<Tiltaksdeltakelse>,
     nyeSaksopplysninger: Saksopplysninger,
 ): Boolean {
-    return if (valgteTiltaksdeltakelser.verdier.size != nyeSaksopplysninger.tiltaksdeltakelser.size) {
+    return if (valgteTiltaksdeltakelser.size != nyeSaksopplysninger.tiltaksdeltakelser.size) {
         true
     } else {
         (
-            valgteTiltaksdeltakelser.verdier.sortedBy { it.eksternDeltakelseId }
+            valgteTiltaksdeltakelser.sortedBy { it.eksternDeltakelseId }
                 .zip(nyeSaksopplysninger.tiltaksdeltakelser.sortedBy { it.eksternDeltakelseId }) { forrige, nye ->
                     // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltakelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
                     forrige.eksternDeltakelseId != nye.eksternDeltakelseId ||

@@ -4,17 +4,28 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.plus
+import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juni
+import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
@@ -33,6 +44,9 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandlerOgBeslutter
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -282,6 +296,118 @@ internal class BehandlingPostgresRepoTest {
             behandling.beslutter shouldNotBe nyBeslutter.navIdent
             behandlingRepo.overtaBeslutter(behandling.id, nyBeslutter, behandling.beslutter!!, LocalDateTime.now())
             behandlingRepo.hent(behandling.id).beslutter shouldBe nyBeslutter.navIdent
+        }
+    }
+
+    @Test
+    fun `lagre og hente en behandling med mange innvilgelsesperioder`() {
+        withMigratedDb { testDataHelper ->
+            val sakRepo = testDataHelper.sakRepo
+            val behandlingRepo = testDataHelper.behandlingRepo
+
+            val innvilgelsesperiode = 1.januar(2025) til 30.juni(2025)
+
+            val saksopplysninger = saksopplysninger(
+                fom = innvilgelsesperiode.fraOgMed,
+                tom = innvilgelsesperiode.tilOgMed,
+                tiltaksdeltakelse = listOf(
+                    tiltaksdeltakelse(
+                        eksternTiltaksdeltakelseId = "asdf",
+                        fom = innvilgelsesperiode.fraOgMed,
+                        tom = 31.mai(2025),
+                    ),
+                    tiltaksdeltakelse(
+                        eksternTiltaksdeltakelseId = "qwer",
+                        fom = 1.mars(2025),
+                        tom = innvilgelsesperiode.tilOgMed,
+                    ),
+                ),
+            )
+
+            val førsteTiltaksperiode = innvilgelsesperiode.fraOgMed til 30.april(2025) to "asdf"
+            val andreTiltaksPeriode = 1.mai(2025) til innvilgelsesperiode.tilOgMed to "qwer"
+
+            val førsteAntallDagerPeriode =
+                innvilgelsesperiode.fraOgMed til 10.januar(2025) to AntallDagerForMeldeperiode(6)
+            val andreAntallDagerPeriode = 11.januar(2025) til 20.januar(2025) to AntallDagerForMeldeperiode(10)
+            val tredjeAntallDagerPeriode = 21.januar(2025) til 31.mai(2025) to AntallDagerForMeldeperiode(4)
+            val fjerdeAntallDagerPeriode =
+                1.juni(2025) til innvilgelsesperiode.tilOgMed to AntallDagerForMeldeperiode(2)
+
+            val (sak, behandling) = testDataHelper.persisterOpprettetRevurdering(
+                revurderingType = RevurderingType.INNVILGELSE,
+                hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
+            )
+
+            val oppdatertBehandling = behandling.oppdaterInnvilgelse(
+                kommando = OppdaterRevurderingKommando.Innvilgelse(
+                    sakId = sak.id,
+                    behandlingId = behandling.id,
+                    saksbehandler = saksbehandler(behandling.saksbehandler!!),
+                    correlationId = CorrelationId.generate(),
+                    begrunnelseVilkårsvurdering = null,
+                    fritekstTilVedtaksbrev = null,
+                    innvilgelsesperiode = innvilgelsesperiode,
+                    tiltaksdeltakelser = listOf(førsteTiltaksperiode, andreTiltaksPeriode),
+                    antallDagerPerMeldeperiode = listOf(
+                        førsteAntallDagerPeriode,
+                        andreAntallDagerPeriode,
+                        tredjeAntallDagerPeriode,
+                        fjerdeAntallDagerPeriode,
+                    ),
+                    barnetillegg = Barnetillegg(
+                        periodisering = SammenhengendePeriodisering(
+                            AntallBarn(1),
+                            innvilgelsesperiode,
+                        ),
+                        begrunnelse = null,
+                    ),
+                ),
+                clock = clock,
+                utbetaling = null,
+                omgjørRammevedtak = OmgjørRammevedtak.empty,
+            ).getOrFail()
+
+            behandlingRepo.lagre(oppdatertBehandling)
+
+            val sakFraDb = sakRepo.hentForSakId(sak.id)!!
+            val behandlingFraDb = behandlingRepo.hent(behandling.id)
+
+            sakFraDb.rammebehandlinger.last() shouldBe behandlingFraDb
+
+            behandlingFraDb.innvilgelsesperioder!! shouldBe Innvilgelsesperioder(
+                listOf(
+                    Innvilgelsesperiode(
+                        periode = innvilgelsesperiode.fraOgMed til 10.januar(2025),
+                        valgtTiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser[0],
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(6),
+                    ).tilPeriodeMedVerdi(),
+
+                    Innvilgelsesperiode(
+                        periode = 11.januar(2025) til 20.januar(2025),
+                        valgtTiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser[0],
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
+                    ).tilPeriodeMedVerdi(),
+
+                    Innvilgelsesperiode(
+                        periode = 21.januar(2025) til 30.april(2025),
+                        valgtTiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser[0],
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(4),
+                    ).tilPeriodeMedVerdi(),
+
+                    Innvilgelsesperiode(
+                        periode = 1.mai(2025) til 31.mai(2025),
+                        valgtTiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser[1],
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(4),
+                    ).tilPeriodeMedVerdi(),
+
+                    Innvilgelsesperiode(
+                        periode = 1.juni(2025) til innvilgelsesperiode.tilOgMed,
+                        valgtTiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser[1],
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(2),
+                    ).tilPeriodeMedVerdi(),
+                ).tilIkkeTomPeriodisering(),
+            )
         }
     }
 }

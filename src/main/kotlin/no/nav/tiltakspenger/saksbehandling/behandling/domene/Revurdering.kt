@@ -27,7 +27,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
@@ -59,7 +58,7 @@ data class Revurdering(
 ) : Rammebehandling {
 
     override val virkningsperiode: Periode? = resultat.virkningsperiode
-    override val innvilgelsesperiode: Periode? = resultat.innvilgelsesperiode
+    override val innvilgelsesperioder: Innvilgelsesperioder? = resultat.innvilgelsesperioder
 
     override val barnetillegg = resultat.barnetillegg
 
@@ -115,13 +114,8 @@ data class Revurdering(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             resultat = Innvilgelse(
-                valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
-                    tiltaksdeltakelser = kommando.tiltaksdeltakelser,
-                    behandling = this,
-                ),
+                innvilgelsesperioder = kommando.tilInnvilgelseperioder(this),
                 barnetillegg = kommando.barnetillegg,
-                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                innvilgelsesperiode = kommando.innvilgelsesperiode,
                 omgjørRammevedtak = omgjørRammevedtak,
             ),
             utbetaling = utbetaling,
@@ -145,13 +139,8 @@ data class Revurdering(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             resultat = resultat.oppdater(
-                innvilgelsesperiode = kommando.innvilgelsesperiode,
-                valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
-                    tiltaksdeltakelser = kommando.tiltaksdeltakelser,
-                    behandling = this,
-                ),
-                barnetillegg = kommando.barnetillegg,
-                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                oppdatertInnvilgelsesperioder = kommando.tilInnvilgelseperioder(this),
+                oppdatertBarnetillegg = kommando.barnetillegg,
                 saksopplysninger = saksopplysninger,
             ),
             utbetaling = utbetaling,

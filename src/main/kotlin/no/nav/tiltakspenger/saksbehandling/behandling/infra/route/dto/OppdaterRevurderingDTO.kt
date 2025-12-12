@@ -8,10 +8,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
@@ -20,8 +16,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilDomene
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilDomene
 import java.time.LocalDate
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
@@ -32,25 +30,13 @@ import java.time.LocalDate
 )
 sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
 
-    override fun tilDomene(
-        sakId: SakId,
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): OppdaterRevurderingKommando
-
     data class Innvilgelse(
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
         val innvilgelsesperiode: PeriodeDTO,
         val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
         val barnetillegg: BarnetilleggDTO,
-        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO> = listOf(
-            AntallDagerPerMeldeperiodeDTO(
-                periode = innvilgelsesperiode,
-                antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-            ),
-        ),
+        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
 
@@ -70,16 +56,9 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 innvilgelsesperiode = innvilgelsesperiode,
-                tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
-                    Pair(it.periode.toDomain(), it.eksternDeltagelseId)
-                },
+                tiltaksdeltakelser = valgteTiltaksdeltakelser.tilDomene(),
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode),
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.map {
-                    PeriodeMedVerdi(
-                        AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
-                        it.periode.toDomain(),
-                    )
-                }.tilSammenhengendePeriodisering(),
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.tilDomene(),
             )
         }
     }
@@ -90,12 +69,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val innvilgelsesperiode: PeriodeDTO,
         val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
         val barnetillegg: BarnetilleggDTO,
-        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO> = listOf(
-            AntallDagerPerMeldeperiodeDTO(
-                periode = innvilgelsesperiode,
-                antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-            ),
-        ),
+        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
 
@@ -115,16 +89,9 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 innvilgelsesperiode = innvilgelsesperiode,
-                tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
-                    Pair(it.periode.toDomain(), it.eksternDeltagelseId)
-                },
+                tiltaksdeltakelser = valgteTiltaksdeltakelser.tilDomene(),
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode),
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.map {
-                    PeriodeMedVerdi(
-                        AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
-                        it.periode.toDomain(),
-                    )
-                }.tilSammenhengendePeriodisering(),
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.tilDomene(),
             )
         }
     }

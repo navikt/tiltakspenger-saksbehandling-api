@@ -82,8 +82,8 @@ data class Rammevedtaksliste(
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
         tidslinje.filter {
             it.verdi.resultat is BehandlingResultat.Innvilgelse
-        }.perioderMedVerdi.mapNotNull { (vedtak, gjeldendePeriode) ->
-            gjeldendePeriode.overlappendePeriode(vedtak.innvilgelsesperiode!!)?.let { overlappendePeriode ->
+        }.perioderMedVerdi.flatMap { (vedtak, gjeldendePeriode) ->
+            gjeldendePeriode.overlappendePerioder(vedtak.innvilgelsesperioder!!.perioder).map { overlappendePeriode ->
                 PeriodeMedVerdi(
                     vedtak,
                     overlappendePeriode,
@@ -117,7 +117,7 @@ data class Rammevedtaksliste(
     }
 
     val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltakelse> by lazy {
-        innvilgetTidslinje.flatMapPeriodisering { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering }
+        innvilgetTidslinje.flatMapPeriodisering { it.verdi.behandling.valgteTiltaksdeltakelser!! }
     }
 
     fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltakelse> {

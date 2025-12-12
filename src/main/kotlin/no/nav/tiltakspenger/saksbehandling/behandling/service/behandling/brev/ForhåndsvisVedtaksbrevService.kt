@@ -82,7 +82,7 @@ class ForhåndsvisVedtaksbrevService(
                     RevurderingType.INNVILGELSE -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.virkningsperiode!! else behandling.innvilgelsesperiode!!,
+                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.virkningsperiode!! else behandling.innvilgelsesperioder!!.totalPeriode,
                         kommando = kommando,
                     )
 
@@ -90,7 +90,7 @@ class ForhåndsvisVedtaksbrevService(
                     RevurderingType.OMGJØRING -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.virkningsperiode!! else behandling.innvilgelsesperiode!!,
+                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.virkningsperiode!! else behandling.innvilgelsesperioder!!.totalPeriode,
                         kommando = kommando,
                     )
 

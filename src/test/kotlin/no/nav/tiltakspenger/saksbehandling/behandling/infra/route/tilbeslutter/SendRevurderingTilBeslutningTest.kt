@@ -6,10 +6,12 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.dato.april
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -85,7 +87,6 @@ class SendRevurderingTilBeslutningTest {
             val søknadsbehandlingsvedtak = sak.rammevedtaksliste.single()
 
             revurdering.resultat shouldBe RevurderingResultat.Innvilgelse(
-                valgteTiltaksdeltakelser = revurdering.valgteTiltaksdeltakelser!!,
                 barnetillegg = Barnetillegg(
                     periodisering = søknadsbehandling.barnetillegg!!.periodisering.nyPeriode(
                         revurderingInnvilgelsesperiode,
@@ -93,11 +94,15 @@ class SendRevurderingTilBeslutningTest {
                     ),
                     begrunnelse = søknadsbehandling.barnetillegg.begrunnelse,
                 ),
-                antallDagerPerMeldeperiode = SammenhengendePeriodisering(
-                    AntallDagerForMeldeperiode.default,
-                    revurderingInnvilgelsesperiode,
+                innvilgelsesperioder = Innvilgelsesperioder(
+                    periodisering = listOf(
+                        Innvilgelsesperiode(
+                            periode = revurderingInnvilgelsesperiode,
+                            valgtTiltaksdeltakelse = revurdering.valgteTiltaksdeltakelser!!.single().verdi,
+                            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode.default,
+                        ).tilPeriodeMedVerdi(),
+                    ).tilIkkeTomPeriodisering(),
                 ),
-                innvilgelsesperiode = revurderingInnvilgelsesperiode,
                 omgjørRammevedtak = OmgjørRammevedtak(
                     Omgjøringsperiode(
                         rammevedtakId = søknadsbehandlingsvedtak.id,

@@ -7,15 +7,14 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilDomene
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilDomene
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
 @JsonSubTypes(
@@ -58,15 +57,8 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 innvilgelsesperiode = innvilgelsesperiode,
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode),
-                tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
-                    Pair(it.periode.toDomain(), it.eksternDeltagelseId)
-                },
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.map {
-                    PeriodeMedVerdi(
-                        AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
-                        it.periode.toDomain(),
-                    )
-                }.tilSammenhengendePeriodisering(),
+                tiltaksdeltakelser = valgteTiltaksdeltakelser.tilDomene(),
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.tilDomene(),
                 automatiskSaksbehandlet = false,
             )
         }

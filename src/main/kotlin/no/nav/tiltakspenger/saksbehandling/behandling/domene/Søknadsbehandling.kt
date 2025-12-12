@@ -66,13 +66,13 @@ data class Søknadsbehandling(
     override val omgjørRammevedtak: OmgjørRammevedtak = resultat?.omgjørRammevedtak ?: OmgjørRammevedtak.empty
 
     /** Vil være null ved avslag og ved innvilgelse frem til saksbehandler har valgt innvilgelsesperioden */
-    override val innvilgelsesperiode = (resultat as? Innvilgelse)?.innvilgelsesperiode
+    override val innvilgelsesperioder = (resultat as? Innvilgelse)?.innvilgelsesperioder
 
-    override val antallDagerPerMeldeperiode = resultat?.antallDagerPerMeldeperiode
+    override val antallDagerPerMeldeperiode by lazy { resultat?.antallDagerPerMeldeperiode }
+
+    override val valgteTiltaksdeltakelser by lazy { resultat?.valgteTiltaksdeltakelser }
 
     override val barnetillegg = resultat?.barnetillegg
-
-    override val valgteTiltaksdeltakelser = resultat?.valgteTiltaksdeltakelser
 
     val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
 
@@ -128,10 +128,8 @@ data class Søknadsbehandling(
 
             is OppdaterSøknadsbehandlingKommando.Innvilgelse -> {
                 Innvilgelse(
-                    valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
                     barnetillegg = kommando.barnetillegg,
-                    antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                    innvilgelsesperiode = kommando.innvilgelsesperiode,
+                    innvilgelsesperioder = kommando.tilInnvilgelseperioder(this),
                     omgjørRammevedtak = omgjørRammevedtak,
                 )
             }

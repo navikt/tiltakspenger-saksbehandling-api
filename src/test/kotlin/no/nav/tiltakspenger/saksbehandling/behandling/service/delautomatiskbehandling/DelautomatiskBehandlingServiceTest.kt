@@ -11,8 +11,9 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
@@ -31,7 +32,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ValgteTiltaksdeltakelser
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -55,10 +55,14 @@ class DelautomatiskBehandlingServiceTest {
                 }
 
                 soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
-                val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.find { it.eksternDeltakelseId == soknad.tiltak.id }!!
+                val tiltaksdeltakelse =
+                    behandling.saksopplysninger.tiltaksdeltakelser.find { it.eksternDeltakelseId == soknad.tiltak.id }!!
                 val virkningsperiode = soknad.tiltaksdeltakelseperiodeDetErSøktOm()
 
-                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                    behandling,
+                    CorrelationId.generate(),
+                )
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -66,16 +70,19 @@ class DelautomatiskBehandlingServiceTest {
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe true
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
 
-                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.tiltaksdeltakelseperiodeDetErSøktOm())
+                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(
+                    AntallDagerForMeldeperiode(10),
+                    soknad.tiltaksdeltakelseperiodeDetErSøktOm(),
+                )
                 oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
                 oppdatertBehandling.virkningsperiode shouldBe virkningsperiode
                 oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(virkningsperiode)
-                oppdatertBehandling.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
-                    SammenhengendePeriodisering(
+                oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(
+                    PeriodeMedVerdi(
                         tiltaksdeltakelse,
                         virkningsperiode,
                     ),
-                )
+                ).tilIkkeTomPeriodisering()
             }
         }
     }
@@ -91,7 +98,8 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode = Periode(fraOgMed = LocalDate.now().plusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
+                val virkningsperiode =
+                    Periode(fraOgMed = LocalDate.now().plusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
@@ -109,7 +117,10 @@ class DelautomatiskBehandlingServiceTest {
 
                 soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
 
-                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                    behandling,
+                    CorrelationId.generate(),
+                )
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
@@ -133,7 +144,8 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode = Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
+                val virkningsperiode =
+                    Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
@@ -158,7 +170,10 @@ class DelautomatiskBehandlingServiceTest {
 
                 soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
 
-                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandlingPaVent, CorrelationId.generate())
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                    behandlingPaVent,
+                    CorrelationId.generate(),
+                )
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -182,7 +197,8 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode = Periode(fraOgMed = LocalDate.now().plusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
+                val virkningsperiode =
+                    Periode(fraOgMed = LocalDate.now().plusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
@@ -207,7 +223,10 @@ class DelautomatiskBehandlingServiceTest {
 
                 soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
 
-                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandlingPaVent, CorrelationId.generate())
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                    behandlingPaVent,
+                    CorrelationId.generate(),
+                )
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
@@ -232,7 +251,8 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode = Periode(fraOgMed = LocalDate.now().minusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
+                val virkningsperiode =
+                    Periode(fraOgMed = LocalDate.now().minusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
@@ -249,7 +269,10 @@ class DelautomatiskBehandlingServiceTest {
 
                 soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
 
-                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                    behandling,
+                    CorrelationId.generate(),
+                )
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
@@ -273,7 +296,8 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode = Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
+                val virkningsperiode =
+                    Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
                     virkningsperiode = virkningsperiode,
@@ -293,7 +317,10 @@ class DelautomatiskBehandlingServiceTest {
 
                 soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
 
-                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                    behandling,
+                    CorrelationId.generate(),
+                )
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
@@ -317,7 +344,8 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode = Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
+                val virkningsperiode =
+                    Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
                 val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                     fom = virkningsperiode.fraOgMed,
                     tom = virkningsperiode.tilOgMed,
@@ -338,7 +366,10 @@ class DelautomatiskBehandlingServiceTest {
 
                 soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
 
-                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                    behandling,
+                    CorrelationId.generate(),
+                )
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -346,16 +377,19 @@ class DelautomatiskBehandlingServiceTest {
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe true
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
 
-                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.tiltaksdeltakelseperiodeDetErSøktOm())
+                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(
+                    AntallDagerForMeldeperiode(10),
+                    soknad.tiltaksdeltakelseperiodeDetErSøktOm(),
+                )
                 oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
                 oppdatertBehandling.virkningsperiode shouldBe virkningsperiode
                 oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(virkningsperiode)
-                oppdatertBehandling.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
-                    SammenhengendePeriodisering(
+                oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(
+                    PeriodeMedVerdi(
                         tiltaksdeltakelse,
                         virkningsperiode,
                     ),
-                )
+                ).tilIkkeTomPeriodisering()
             }
         }
     }
@@ -400,7 +434,10 @@ class DelautomatiskBehandlingServiceTest {
                     (it as Søknadsbehandling).søknad.sykepenger.erJa() shouldBe true
                 }
 
-                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                    behandling,
+                    CorrelationId.generate(),
+                )
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
@@ -431,7 +468,10 @@ class DelautomatiskBehandlingServiceTest {
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 }
 
-                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                    behandling,
+                    CorrelationId.generate(),
+                )
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
@@ -485,7 +525,10 @@ class DelautomatiskBehandlingServiceTest {
                 }
                 opprettSøknadsbehandlingKlarTilBehandling(tac, fnr = sak.fnr)
 
-                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+                tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                    behandling,
+                    CorrelationId.generate(),
+                )
 
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
