@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.infra.route
 
+import com.fasterxml.jackson.databind.JsonNode
 import org.json.JSONObject
 
 /**
@@ -16,3 +17,8 @@ typealias RammebehandlingDTOJson = JSONObject
  * Se også [no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.RammevedtakDTO]
  */
 typealias RammevedtakDTOJson = JSONObject
+
+/**
+ * Se også [no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagebehandlingDTO]
+ */
+typealias KlagebehandlingDTOJson = JsonNode

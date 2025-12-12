@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkOversiktPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
@@ -50,6 +51,7 @@ internal class TestDataHelper(
     val identhendelseRepository = IdenthendelseRepository(sessionFactory)
     val benkOversiktRepo = BenkOversiktPostgresRepo(sessionFactory)
     val utbetalingRepo = UtbetalingPostgresRepo(sessionFactory)
+    val klagebehandlingRepo = KlagebehandlingPostgresRepo(sessionFactory)
 }
 
 private val dbManager = TestDatabaseManager()

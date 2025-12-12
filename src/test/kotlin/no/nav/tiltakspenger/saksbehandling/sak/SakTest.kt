@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.fixedClock
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
@@ -244,6 +245,7 @@ class SakTest {
             behandlinger = Behandlinger(
                 Rammebehandlinger(emptyList()),
                 Meldekortbehandlinger(emptyList()),
+                klagebehandlinger = Klagebehandlinger.empty(),
             ),
             vedtaksliste = Vedtaksliste(
                 Rammevedtaksliste(listOf(v1, v2)),

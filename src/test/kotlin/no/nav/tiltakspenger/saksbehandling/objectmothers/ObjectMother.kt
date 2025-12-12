@@ -21,6 +21,7 @@ object ObjectMother :
     SøknadMother,
     BehandlingMother,
     BehandlingRevurderingMother,
+    KlagebehandlingMother,
     SakMother,
     PersonMother,
     MeldekortMother,

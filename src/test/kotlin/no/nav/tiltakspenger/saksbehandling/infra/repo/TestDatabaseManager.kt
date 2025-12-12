@@ -97,6 +97,7 @@ internal class TestDatabaseManager {
                   meldeperiode,
                   rammevedtak,
                   behandling,
+                  klagebehandling,
                   sak,
                   søknadstiltak,
                   søknad_barnetillegg,

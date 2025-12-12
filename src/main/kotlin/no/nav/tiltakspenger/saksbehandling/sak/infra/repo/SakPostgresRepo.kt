@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
@@ -381,6 +382,7 @@ class SakPostgresRepo(
                 val rammebehandlinger = BehandlingPostgresRepo.hentForSakId(id, session)
                 val meldekortbehandlinger = MeldekortBehandlingPostgresRepo.hentForSakId(id, session)
                     ?: Meldekortbehandlinger.empty()
+                val klagebehandlinger = KlagebehandlingPostgresRepo.hentForSakId(id, session)
                 val meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(id, session)
                 val soknader = SøknadDAO.hentForSakId(id, session)
                 val kanSendeInnHelgForMeldekort = boolean("kan_sende_inn_helg_for_meldekort")
@@ -392,6 +394,7 @@ class SakPostgresRepo(
                     behandlinger = Behandlinger(
                         rammebehandlinger = rammebehandlinger,
                         meldekortbehandlinger = meldekortbehandlinger,
+                        klagebehandlinger = klagebehandlinger,
                     ),
                     vedtaksliste = Vedtaksliste(
                         rammevedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session),

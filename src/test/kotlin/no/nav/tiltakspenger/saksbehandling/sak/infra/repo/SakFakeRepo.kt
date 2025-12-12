@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
@@ -31,6 +33,7 @@ class SakFakeRepo(
     private val meldeperiodeRepo: MeldeperiodeFakeRepo,
     private val meldekortvedtakRepo: MeldekortvedtakFakeRepo,
     private val søknadFakeRepo: SøknadFakeRepo,
+    private val klagebehandlingFakeRepo: KlagebehandlingFakeRepo,
 ) : SakRepo {
     val data = Atomic(mutableMapOf<SakId, Sak>())
 
@@ -56,11 +59,13 @@ class SakFakeRepo(
         val meldekortbehandlinger =
             meldekortBehandlingRepo.hentForSakId(sakId) ?: Meldekortbehandlinger.empty()
         val soknader = søknadFakeRepo.hentForSakId(sakId)
+        val klagebehandlinger = klagebehandlingFakeRepo.hentForSakId(sakId)
 
         return data.get()[sakId]?.copy(
             behandlinger = Behandlinger(
                 rammebehandlinger = rammebehandlinger,
                 meldekortbehandlinger = meldekortbehandlinger,
+                klagebehandlinger = klagebehandlinger,
             ),
             vedtaksliste = Vedtaksliste(
                 rammevedtaksliste = rammevedtakRepo.hentForSakId(sakId),

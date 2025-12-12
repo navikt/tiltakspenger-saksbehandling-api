@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.S
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendSøknadsbehandlingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.UnderkjennBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.util.SøknadsbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.start.OpprettKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.TaMeldekortBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.HentSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.OpprettSakRouteBuilder
@@ -24,6 +25,7 @@ object RouteBehandlingBuilder :
     HentSakRouteBuilder,
     MottaSøknadRouteBuilder,
     SøknadsbehandlingBuilder,
+    OpprettKlagebehandlingBuilder,
     TaBehandlingBuilder,
     SendSøknadsbehandlingTilBeslutningBuilder,
     SendRevurderingTilBeslutningBuilder,

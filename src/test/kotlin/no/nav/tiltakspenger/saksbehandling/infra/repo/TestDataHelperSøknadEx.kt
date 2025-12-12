@@ -37,7 +37,7 @@ internal fun TestDataHelper.persisterSakOgSøknad(
             saksnummer = sak.saksnummer,
         ),
 ): Søknad {
-    this.persisterSak(fnr, sak)
+    this.persisterSak(fnr, sak = sak)
     this.søknadRepo.lagre(søknad)
     return søknadRepo.hentForSøknadId(søknad.id)!!.also {
         it shouldBe søknad

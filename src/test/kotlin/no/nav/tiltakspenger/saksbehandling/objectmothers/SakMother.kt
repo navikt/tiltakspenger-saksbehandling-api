@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgbarSøknad
@@ -60,6 +61,7 @@ interface SakMother {
         behandlinger = Behandlinger(
             rammebehandlinger = behandlinger,
             meldekortbehandlinger = Meldekortbehandlinger.empty(),
+            klagebehandlinger = Klagebehandlinger.empty(),
         ),
         vedtaksliste = Vedtaksliste.empty(),
         meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
@@ -175,6 +177,7 @@ interface SakMother {
             behandlinger = Behandlinger(
                 rammebehandlinger = Rammebehandlinger(søknadsbehandling),
                 meldekortbehandlinger = Meldekortbehandlinger.empty(),
+                klagebehandlinger = Klagebehandlinger.empty(),
             ),
             vedtaksliste = Vedtaksliste.empty(),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
@@ -245,6 +248,7 @@ interface SakMother {
             behandlinger = Behandlinger(
                 rammebehandlinger = Rammebehandlinger(søknadsbehandling),
                 meldekortbehandlinger = Meldekortbehandlinger.empty(),
+                klagebehandlinger = Klagebehandlinger.empty(),
             ),
             vedtaksliste = Vedtaksliste.empty(),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),

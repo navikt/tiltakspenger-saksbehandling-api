@@ -155,7 +155,7 @@ class LocalApplicationContext(
     }
 
     override val safJournalpostClient: SafJournalpostClient by lazy {
-        SafJournalpostFakeClient()
+        SafJournalpostFakeClient(clock)
     }
 
     override val sokosUtbetaldataClient by lazy {
