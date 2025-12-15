@@ -387,7 +387,7 @@ class BehandlingPostgresRepo(
 
                     val resultat = when (resultatType) {
                         SøknadsbehandlingType.INNVILGELSE -> SøknadsbehandlingResultat.Innvilgelse(
-                            barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
+                            barnetillegg = string("barnetillegg").toBarnetillegg(),
                             innvilgelsesperioder = innvilgelsesperioder!!,
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
@@ -772,7 +772,7 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
 
     is SøknadsbehandlingResultat.Innvilgelse -> arrayOf(
         "innvilgelsesperioder" to this.innvilgelsesperioder.tilInnvilgelsesperioderDbJson(),
-        "barnetillegg" to this.barnetillegg?.toDbJson(),
+        "barnetillegg" to this.barnetillegg.toDbJson(),
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 

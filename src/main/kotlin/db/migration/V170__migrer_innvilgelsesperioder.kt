@@ -76,14 +76,14 @@ class V170__migrer_innvilgelsesperioder : BaseJavaMigration() {
                 """,
             ).map {
                 val id = it.string("id").let { BehandlingId.fromString(it) }
-                val resultat = it.tilInnvilgelseResultat()
+                val resultat = it.tilInnvilgelsesperioder()
 
                 Pair(id, resultat)
             }.asList,
         )
     }
 
-    fun Row.tilInnvilgelseResultat(): Innvilgelsesperioder? {
+    fun Row.tilInnvilgelsesperioder(): Innvilgelsesperioder? {
         val virkningsperiodeFraOgMed = localDateOrNull("virkningsperiode_fra_og_med")
         val virkningsperiodeTilOgMed = localDateOrNull("virkningsperiode_til_og_med")
 
