@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvManueltRegistrertSøknadCommand
 import java.time.Clock
 
@@ -75,7 +74,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
             antallVedlegg = kommando.antallVedlegg,
             manueltSattSøknadsperiode = kommando.manueltSattSøknadsperiode,
             manueltSattTiltak = kommando.manueltSattTiltak,
-            søknadstype = Søknadstype.PAPIR,
+            søknadstype = kommando.søknadstype,
         )
 
         // Legg søknaden inn i sak før vi oppretter behandlingen eventuelt tiltak inkluderes i saksopplysningene
