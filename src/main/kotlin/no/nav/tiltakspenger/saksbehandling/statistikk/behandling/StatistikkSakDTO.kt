@@ -71,7 +71,7 @@ enum class StatistikkFormat {
     PAPIR,
     DIGITAL,
     PAPIR_SKJEMA,
-    PAPIR_FRIHÅND,
+    PAPIR_FRIHAND,
     MODIA,
     ANNET,
 }

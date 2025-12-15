@@ -149,7 +149,7 @@ private fun Søknadstype.toSøknadsformat(): StatistikkFormat =
         Søknadstype.DIGITAL -> StatistikkFormat.DIGITAL
         Søknadstype.PAPIR -> StatistikkFormat.PAPIR
         Søknadstype.PAPIR_SKJEMA -> StatistikkFormat.PAPIR_SKJEMA
-        Søknadstype.PAPIR_FRIHÅND -> StatistikkFormat.PAPIR_FRIHÅND
+        Søknadstype.PAPIR_FRIHAND -> StatistikkFormat.PAPIR_FRIHAND
         Søknadstype.MODIA -> StatistikkFormat.MODIA
         Søknadstype.ANNET -> StatistikkFormat.ANNET
     }

@@ -149,7 +149,7 @@ sealed interface Søknad {
     fun erManueltRegistrertSøknad() =
         søknadstype == Søknadstype.PAPIR ||
             søknadstype == Søknadstype.PAPIR_SKJEMA ||
-            søknadstype == Søknadstype.PAPIR_FRIHÅND ||
+            søknadstype == Søknadstype.PAPIR_FRIHAND ||
             søknadstype == Søknadstype.MODIA ||
             søknadstype == Søknadstype.ANNET
     fun erDigitalSøknad() = søknadstype == Søknadstype.DIGITAL
