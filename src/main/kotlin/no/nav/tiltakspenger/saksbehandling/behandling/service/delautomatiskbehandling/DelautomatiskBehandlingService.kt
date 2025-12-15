@@ -211,7 +211,7 @@ class DelautomatiskBehandlingService(
         require(
             behandling.søknad is InnvilgbarSøknad &&
                 behandling.søknad.erDigitalSøknad(),
-        ) { "Kan ikke automatisk behandle papirsøknad ${behandling.søknad.id}" }
+        ) { "Kan bare automatisk behandle digitale søknader fra bruker ${behandling.søknad.id}" }
 
         if (behandling.søknad.harLivsoppholdYtelser()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_HAR_ANDRE_YTELSER)
@@ -316,7 +316,7 @@ class DelautomatiskBehandlingService(
         require(
             behandling.søknad is InnvilgbarSøknad &&
                 behandling.søknad.erDigitalSøknad(),
-        ) { "Kan ikke automatisk behandle papirsøknad ${behandling.søknad.id}" }
+        ) { "Kan bare automatisk behandle digitale søknader fra bruker ${behandling.søknad.id}" }
         return behandling.saksopplysninger.getTiltaksdeltakelse(behandling.søknad.tiltak.id)
     }
 

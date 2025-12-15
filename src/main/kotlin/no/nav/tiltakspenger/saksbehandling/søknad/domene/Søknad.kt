@@ -46,9 +46,9 @@ sealed interface Søknad {
     val manueltSattSøknadsperiode: Periode?
 
     /**
-     * Fritekstfelt for at saksbehandler kan skrive inn hvilket tiltak søknaden gjelder for ved papirsøknader, hvor man ikke
-     * har kunne velge et relevant tiltak. Enten fordi man ikke fikk treff på tiltaket når papirsøknaden ble registrert eller
-     * fordi tiltaket ikke gir rett til tiltakspenger.
+     * Fritekstfelt for at saksbehandler kan skrive inn hvilket tiltak søknaden gjelder for ved manuelt registrerte søknader,
+     * hvor man ikke har kunne velge et relevant tiltak. Enten fordi man ikke fikk treff på tiltaket når søknaden
+     * ble registrert eller fordi tiltaket ikke gir rett til tiltakspenger.
      */
     val manueltSattTiltak: String?
 
@@ -146,10 +146,15 @@ sealed interface Søknad {
      * Man kan bare søke om tiltakspenger for en tiltaksdeltakelse per søknad (aug 2025).
      */
     fun tiltaksdeltakelseperiodeDetErSøktOm(): Periode?
-    fun erPapirsøknad() = søknadstype == Søknadstype.PAPIR
+    fun erManueltRegistrertSøknad() =
+        søknadstype == Søknadstype.PAPIR ||
+            søknadstype == Søknadstype.PAPIR_SKJEMA ||
+            søknadstype == Søknadstype.PAPIR_FRIHAND ||
+            søknadstype == Søknadstype.MODIA ||
+            søknadstype == Søknadstype.ANNET
     fun erDigitalSøknad() = søknadstype == Søknadstype.DIGITAL
     fun kanInnvilges() =
-        (erDigitalSøknad() && tiltak != null) || (erPapirsøknad() && tiltak != null && manueltSattSøknadsperiode != null)
+        (erDigitalSøknad() && tiltak != null) || (erManueltRegistrertSøknad() && tiltak != null && manueltSattSøknadsperiode != null)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknad {
         if (this.avbrutt != null) {

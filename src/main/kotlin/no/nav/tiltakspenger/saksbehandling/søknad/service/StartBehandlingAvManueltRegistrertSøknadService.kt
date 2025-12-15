@@ -17,11 +17,10 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvPapirsøknadCommand
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvManueltRegistrertSøknadCommand
 import java.time.Clock
 
-class StartBehandlingAvPapirsøknadService(
+class StartBehandlingAvManueltRegistrertSøknadService(
     private val clock: Clock,
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
@@ -34,8 +33,8 @@ class StartBehandlingAvPapirsøknadService(
 ) {
     val logger = KotlinLogging.logger { }
 
-    suspend fun startBehandlingAvPapirsøknad(
-        kommando: StartBehandlingAvPapirsøknadCommand,
+    suspend fun startBehandlingAvManueltRegistrertSøknad(
+        kommando: StartBehandlingAvManueltRegistrertSøknadCommand,
         saksnummer: Saksnummer,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
@@ -51,7 +50,7 @@ class StartBehandlingAvPapirsøknadService(
             throw IllegalArgumentException("Journalpost ${kommando.journalpostId} mangler datoOpprettet")
         }
 
-        val papirsøknad = Søknad.opprett(
+        val manueltRegistrertSøknad = Søknad.opprett(
             sak = sak,
             journalpostId = kommando.journalpostId.toString(),
             opprettet = journalpostValidering.datoOpprettet,
@@ -75,15 +74,15 @@ class StartBehandlingAvPapirsøknadService(
             antallVedlegg = kommando.antallVedlegg,
             manueltSattSøknadsperiode = kommando.manueltSattSøknadsperiode,
             manueltSattTiltak = kommando.manueltSattTiltak,
-            søknadstype = Søknadstype.PAPIR,
+            søknadstype = kommando.søknadstype,
         )
 
         // Legg søknaden inn i sak før vi oppretter behandlingen eventuelt tiltak inkluderes i saksopplysningene
-        val sakMedSøknad = sak.copy(søknader = sak.søknader + papirsøknad)
+        val sakMedSøknad = sak.copy(søknader = sak.søknader + manueltRegistrertSøknad)
 
         val søknadsbehandling = Søknadsbehandling.opprett(
             sak = sakMedSøknad,
-            søknad = papirsøknad,
+            søknad = manueltRegistrertSøknad,
             saksbehandler = saksbehandler,
             hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
             correlationId = correlationId,
@@ -96,7 +95,7 @@ class StartBehandlingAvPapirsøknadService(
 
         sessionFactory.withTransactionContext { tx ->
             // TODO Statistikk for søknad?
-            søknadRepo.lagre(papirsøknad, tx)
+            søknadRepo.lagre(manueltRegistrertSøknad, tx)
             behandlingRepo.lagre(søknadsbehandling, tx)
             statistikkSakRepo.lagre(opprettetBehandlingStatistikk, tx)
             sakService.oppdaterSkalSendesTilMeldekortApi(
@@ -107,7 +106,7 @@ class StartBehandlingAvPapirsøknadService(
         }
         val oppdatertSak = sakMedSøknad.leggTilSøknadsbehandling(søknadsbehandling)
         MetricRegister.STARTET_BEHANDLING.inc()
-        MetricRegister.STARTET_BEHANDLING_PAPIRSØKNAD.inc()
+        MetricRegister.MOTTATT_MANUELT_REGISTRERT_SOKNAD.inc()
         return (oppdatertSak to søknadsbehandling)
     }
 }

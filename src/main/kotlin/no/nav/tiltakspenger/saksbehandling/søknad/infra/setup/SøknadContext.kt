@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvPapirsøknadService
+import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvManueltRegistrertSøknadService
 import java.time.Clock
 
 open class SøknadContext(
@@ -33,8 +33,8 @@ open class SøknadContext(
             sakService,
         )
     }
-    val registrerPapirsøknadService: StartBehandlingAvPapirsøknadService by lazy {
-        StartBehandlingAvPapirsøknadService(
+    val startBehandlingAvManueltRegistrertSøknadService: StartBehandlingAvManueltRegistrertSøknadService by lazy {
+        StartBehandlingAvManueltRegistrertSøknadService(
             sessionFactory = sessionFactory,
             behandlingRepo = behandlingRepo,
             hentSaksopplysingerService = hentSaksopplysingerService,

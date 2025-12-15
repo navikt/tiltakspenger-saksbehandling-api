@@ -54,9 +54,9 @@ object MetricRegister {
         .withoutExemplars()
         .register()
 
-    val STARTET_BEHANDLING_PAPIRSØKNAD: Counter = Counter.builder()
-        .name("${METRICS_NS}_startet_behandling_papirsoknad_count")
-        .help("Antall startede behandlinger av papirsøknader")
+    val MOTTATT_MANUELT_REGISTRERT_SOKNAD: Counter = Counter.builder()
+        .name("${METRICS_NS}_mottatt_manuelt_registrert_soknad_count")
+        .help("Antall manuelt registrerte søknader mottatt")
         .withoutExemplars()
         .register()
 

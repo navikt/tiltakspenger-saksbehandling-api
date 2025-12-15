@@ -34,10 +34,12 @@ class ValiderJournalpostService(
         }
     }
 
-    // OBS: Hvis innsending av papirsøknad er gjort av verge så vil avsenderMottaker.id være vergens fnr. Ideelt sett
-    // burde vi ha sjekket mot bruker på journalposten, men siden det er brukers aktørid som står som brukerid får
-    // vi ikke sammenlignet uten oppslag i PDL. Derfor bør eventuelle avvik i bruker på journalposten kun vises som
-    // en advarsel og ikke hindre videre behandling slik implementasjonen er nå.
+    /**
+     * OBS: Hvis innsending av manuelt registrert søknad er gjort av verge så vil avsenderMottaker.id være vergens fnr.
+     * Ideelt sett burde vi ha sjekket mot bruker på journalposten, men siden det er brukers aktørid som står som brukerid
+     * får vi ikke sammenlignet uten oppslag i PDL. Derfor bør eventuelle avvik i bruker på journalposten kun vises som
+     * en advarsel og ikke hindre videre behandling slik implementasjonen er nå.
+     */
     private fun Journalpost.gjelderFnr(fnr: Fnr, journalpostId: JournalpostId): Boolean? =
         if (avsenderMottaker?.id != null && avsenderMottaker.type == "FNR") {
             if (fnr.verdi != avsenderMottaker.id) {

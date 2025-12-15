@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 
@@ -87,7 +88,10 @@ fun genererSaksstatistikkForBehandling(
         endretTidspunkt = behandling.sistEndret,
         utbetaltTidspunkt = null,
         tekniskTidspunkt = nå(clock),
-        søknadsformat = StatistikkFormat.DIGITAL.name,
+        søknadsformat = when (behandling) {
+            is Søknadsbehandling -> behandling.søknad.søknadstype.name
+            is Revurdering -> StatistikkFormat.DIGITAL.name
+        },
         forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.virkningsperiode?.fraOgMed else null,
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         behandlingStatus = if (behandling.erAvbrutt) {
@@ -138,4 +142,14 @@ private fun ValgtHjemmelForStans.toBehandlingAarsak() =
         ValgtHjemmelForStans.Introduksjonsprogrammet -> StatistikkBehandlingAarsak.INTRODUKSJONSPROGRAMMET
         ValgtHjemmelForStans.LønnFraTiltaksarrangør -> StatistikkBehandlingAarsak.LONN_FRA_TILTAKSARRANGOR
         ValgtHjemmelForStans.LønnFraAndre -> StatistikkBehandlingAarsak.LONN_FRA_ANDRE
+    }
+
+private fun Søknadstype.toSøknadsformat(): StatistikkFormat =
+    when (this) {
+        Søknadstype.DIGITAL -> StatistikkFormat.DIGITAL
+        Søknadstype.PAPIR -> StatistikkFormat.PAPIR
+        Søknadstype.PAPIR_SKJEMA -> StatistikkFormat.PAPIR_SKJEMA
+        Søknadstype.PAPIR_FRIHAND -> StatistikkFormat.PAPIR_FRIHAND
+        Søknadstype.MODIA -> StatistikkFormat.MODIA
+        Søknadstype.ANNET -> StatistikkFormat.ANNET
     }
