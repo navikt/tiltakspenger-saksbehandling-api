@@ -140,6 +140,7 @@ class DelautomatiskBehandlingService(
         val (utbetaling, simuleringMedMetadata) = this.beregnInnvilgelse(
             behandlingId = behandling.id,
             virkningsperiode = innvilgelsesperiode,
+            innvilgelsesperioder = oppdaterKommando.tilInnvilgelseperioder(behandling),
             barnetilleggsperioder = barnetillegg.periodisering,
         )?.let {
             val navkontor = navkontorService.hentOppfolgingsenhet(this.fnr)

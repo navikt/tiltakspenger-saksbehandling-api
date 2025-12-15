@@ -128,14 +128,5 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val barnetillegg: Barnetillegg,
         override val antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>>,
     ) : OppdaterRevurderingKommando,
-        OppdaterBehandlingKommando.Innvilgelse {
-
-        fun utledNyVirkningsperiode(
-            eksisterendeVirkningsperiode: Periode,
-            nyeInnvilgelsesperioder: Innvilgelsesperioder,
-        ) = RevurderingResultat.Omgjøring.utledNyVirkningsperiode(
-            eksisterendeVirkningsperiode = eksisterendeVirkningsperiode,
-            nyeInnvilgelsesperioder = nyeInnvilgelsesperioder,
-        )
-    }
+        OppdaterBehandlingKommando.Innvilgelse
 }

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
@@ -290,40 +291,22 @@ fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode
 }
 
 /**
- *  Beregner en behandling der hele virkningsperioden er innvilget
+ *  Beregner en behandling der virkningsperioden er helt eller delvis innvilget
  *
  *  @param behandlingId Søknadsbehandling eller revurdering.
- *  @param virkningsperiode innvilgelseperioden for søknadsbehandling/endrings-revurdering
+ *  @param virkningsperiode Hele vedtaksperioden for behandlingen.
+ *  Dersom deler av virkningsperioden ikke overlapper med [innvilgelsesperioder], gir disse periodene ikke tiltakspenger (delvis avslag)
  */
 fun Sak.beregnInnvilgelse(
     behandlingId: BehandlingId,
     virkningsperiode: Periode,
+    innvilgelsesperioder: Innvilgelsesperioder,
     barnetilleggsperioder: Periodisering<AntallBarn>,
 ): Beregning? {
     return beregnRammebehandling(
         behandlingId = behandlingId,
         virkningsperiode = virkningsperiode,
-        innvilgelsesperioder = listOf(virkningsperiode),
-        nyeBarnetilleggsperioder = barnetilleggsperioder,
-    )
-}
-
-/**
- *  Beregner en behandling der kun deler av virkningsperioden er innvilget.
- *
- *  @param behandlingId Søknadsbehandling eller revurdering.
- *  @param virkningsperiode innvilgelseperioden for søknadsbehandling/endrings-revurdering
- */
-fun Sak.beregnOmgjøring(
-    behandlingId: BehandlingId,
-    virkningsperiode: Periode,
-    innvilgelsesperiode: Periode,
-    barnetilleggsperioder: Periodisering<AntallBarn>,
-): Beregning? {
-    return beregnRammebehandling(
-        behandlingId = behandlingId,
-        virkningsperiode = virkningsperiode,
-        innvilgelsesperioder = listOf(innvilgelsesperiode),
+        innvilgelsesperioder = innvilgelsesperioder.perioder,
         nyeBarnetilleggsperioder = barnetilleggsperioder,
     )
 }
@@ -344,7 +327,7 @@ private fun Sak.beregnRammebehandling(
         "Virkningsperioden $virkningsperiode må inneholde alle innvilgelsesperiodene $innvilgelsesperioder"
     }
 
-    val eksisterendeBeregninger = meldeperiodeBeregninger
+    val meldeperioderSomBeregnesPåNytt = meldeperiodeBeregninger
         .sisteBeregningerForPeriode(virkningsperiode)
         .map { beregning ->
             beregning.tilSkalBeregnes(
@@ -356,13 +339,13 @@ private fun Sak.beregnRammebehandling(
             )
         }.toNonEmptyListOrNull()
 
-    if (eksisterendeBeregninger == null) {
+    if (meldeperioderSomBeregnesPåNytt == null) {
         return null
     }
 
     return BeregnMeldeperioder(
         beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId),
-        meldeperioderSomBeregnes = eksisterendeBeregninger,
+        meldeperioderSomBeregnes = meldeperioderSomBeregnesPåNytt,
         hentAntallBarn = {
             nyeBarnetilleggsperioder?.hentVerdiForDag(it)
                 ?: this.barnetilleggsperioder.hentVerdiForDag(it)

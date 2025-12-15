@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.beregning.beregnOmgjøring
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -72,19 +71,24 @@ class OppdaterBehandlingService(
             -> this.beregnInnvilgelse(
                 behandlingId = kommando.behandlingId,
                 virkningsperiode = kommando.innvilgelsesperiode,
+                innvilgelsesperioder = kommando.tilInnvilgelseperioder(behandling),
                 barnetilleggsperioder = kommando.barnetillegg.periodisering,
             )
 
             is OppdaterRevurderingKommando.Omgjøring,
-            -> this.beregnOmgjøring(
-                behandlingId = kommando.behandlingId,
-                virkningsperiode = kommando.utledNyVirkningsperiode(
-                    (behandling.resultat as RevurderingResultat.Omgjøring).virkningsperiode,
-                    kommando.tilInnvilgelseperioder(behandling),
-                ),
-                innvilgelsesperiode = kommando.innvilgelsesperiode,
-                barnetilleggsperioder = kommando.barnetillegg.periodisering,
-            )
+            -> {
+                val innvilgelsesperioder = kommando.tilInnvilgelseperioder(behandling)
+
+                this.beregnInnvilgelse(
+                    behandlingId = kommando.behandlingId,
+                    virkningsperiode = RevurderingResultat.Omgjøring.utledNyVirkningsperiode(
+                        (behandling.resultat as RevurderingResultat.Omgjøring).virkningsperiode,
+                        innvilgelsesperioder,
+                    ),
+                    innvilgelsesperioder = innvilgelsesperioder,
+                    barnetilleggsperioder = kommando.barnetillegg.periodisering,
+                )
+            }
 
             is OppdaterRevurderingKommando.Stans -> this.beregnRevurderingStans(
                 behandlingId = kommando.behandlingId,

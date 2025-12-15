@@ -269,6 +269,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
     val utbetaling = sakMedRevurdering.beregnInnvilgelse(
         behandlingId = revurdering.id,
         virkningsperiode = periode,
+        innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
         barnetilleggsperioder = barnetillegg.periodisering,
     )
 
