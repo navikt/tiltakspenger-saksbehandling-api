@@ -195,6 +195,7 @@ class RammebehandlingDTOTest {
                   "fraOgMed": "2025-01-01",
                   "tilOgMed": "2025-03-31"
                 },
+                "søknadstype": "DIGITAL",
                 "barnetillegg": [],
                 "opprettet": "2022-01-01T12:00:00",
                 "tidsstempelHosOss": "2022-01-01T12:00:00",
@@ -381,6 +382,7 @@ class RammebehandlingDTOTest {
                   "tilOgMed": "2025-03-31"
                 },
                 "barnetillegg": [],
+                "søknadstype": "DIGITAL",
                 "opprettet": "2022-01-01T12:00:00",
                 "tidsstempelHosOss": "2022-01-01T12:00:00",
                 "antallVedlegg": 0,
@@ -552,6 +554,7 @@ class RammebehandlingDTOTest {
                   "tilOgMed": "2025-03-31"
                 },
                 "barnetillegg": [],
+                "søknadstype": "DIGITAL",
                 "opprettet": "2022-01-01T12:00:00",
                 "tidsstempelHosOss": "2022-01-01T12:00:00",
                 "antallVedlegg": 0,

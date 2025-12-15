@@ -29,7 +29,7 @@ fun String.toSøknadstype(): Søknadstype {
         SøknadstypeDb.DIGITAL -> Søknadstype.DIGITAL
         SøknadstypeDb.PAPIR -> Søknadstype.PAPIR
         SøknadstypeDb.PAPIR_SKJEMA -> Søknadstype.PAPIR_SKJEMA
-        SøknadstypeDb.PAPIR_FRIHÅND -> Søknadstype.PAPIR_SKJEMA
+        SøknadstypeDb.PAPIR_FRIHÅND -> Søknadstype.PAPIR_FRIHÅND
         SøknadstypeDb.MODIA -> Søknadstype.MODIA
         SøknadstypeDb.ANNET -> Søknadstype.ANNET
     }
