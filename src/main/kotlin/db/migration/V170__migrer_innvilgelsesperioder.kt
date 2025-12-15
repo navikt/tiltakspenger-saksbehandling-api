@@ -103,12 +103,12 @@ class V170__migrer_innvilgelsesperioder : BaseJavaMigration() {
         val valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
             ?.tilValgteTiltaksdeltakelser()
 
-        if (valgteTiltaksdeltakelser == null) {
+        val antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")
+            ?.tilAntallDagerForMeldeperiode()
+
+        if (valgteTiltaksdeltakelser == null || antallDagerPerMeldeperiode == null) {
             return null
         }
-
-        val antallDagerPerMeldeperiode = string("antall_dager_per_meldeperiode")
-            .tilAntallDagerForMeldeperiode()
 
         val resultatType = stringOrNull("resultat")
 
