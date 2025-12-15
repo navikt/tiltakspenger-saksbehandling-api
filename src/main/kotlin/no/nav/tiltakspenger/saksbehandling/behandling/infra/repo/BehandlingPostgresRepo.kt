@@ -376,7 +376,7 @@ class BehandlingPostgresRepo(
             val søknadId = stringOrNull("soknad_id")?.let { SøknadId.fromString(it) }
             val omgjørRammevedtak = stringOrNull("omgjør_rammevedtak").toOmgjørRammevedtak()
 
-            val innvilgelsesperioder = stringOrNull("innvilgelsesperioder")?.tilInnvilgelsesperioder(saksopplysninger)
+            val innvilgelsesperioder = stringOrNull("innvilgelsesperioder")?.tilInnvilgelsesperioder()
 
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {

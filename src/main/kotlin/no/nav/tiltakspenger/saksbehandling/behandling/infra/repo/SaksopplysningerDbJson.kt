@@ -4,72 +4,19 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.SaksopplysningerDbJson.TiltaksdeltakelseDbJson
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toDb
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toTiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toTiltakskilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toTiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakelseDb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toDbJson
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 private data class SaksopplysningerDbJson(
     val fødselsdato: String,
     // TODO jah: Rename til tiltaksdeltakelse
-    val tiltaksdeltagelse: List<TiltaksdeltakelseDbJson>,
+    val tiltaksdeltagelse: List<TiltaksdeltakelseDb>,
     val ytelser: YtelserDbJson,
     val tiltakspengevedtakFraArena: TiltakspengevedtakFraArenaDbJson,
     val oppslagstidspunkt: LocalDateTime,
-) {
-    data class TiltaksdeltakelseDbJson(
-        val eksternDeltagelseId: String,
-        val gjennomføringId: String?,
-        val typeNavn: String,
-        val typeKode: String,
-        val deltagelseFraOgMed: LocalDate?,
-        val deltagelseTilOgMed: LocalDate?,
-        val deltakelseStatus: String,
-        val deltakelseProsent: Float?,
-        val antallDagerPerUke: Float?,
-        val kilde: String,
-        val rettPåTiltakspenger: Boolean,
-        val deltidsprosentGjennomforing: Double? = null,
-    ) {
-        fun toDomain(): Tiltaksdeltakelse {
-            return Tiltaksdeltakelse(
-                eksternDeltakelseId = eksternDeltagelseId,
-                gjennomføringId = gjennomføringId,
-                typeNavn = typeNavn,
-                typeKode = typeKode.toTiltakstypeSomGirRett(),
-                deltakelseFraOgMed = deltagelseFraOgMed,
-                deltakelseTilOgMed = deltagelseTilOgMed,
-                deltakelseStatus = deltakelseStatus.toTiltakDeltakerstatus(),
-                deltakelseProsent = deltakelseProsent,
-                antallDagerPerUke = antallDagerPerUke,
-                kilde = kilde.toTiltakskilde(),
-                rettPåTiltakspenger = rettPåTiltakspenger,
-                deltidsprosentGjennomforing = deltidsprosentGjennomforing,
-            )
-        }
-    }
-}
-
-private fun Tiltaksdeltakelse.toDbJson(): TiltaksdeltakelseDbJson {
-    return TiltaksdeltakelseDbJson(
-        eksternDeltagelseId = this.eksternDeltakelseId,
-        gjennomføringId = this.gjennomføringId,
-        typeNavn = this.typeNavn,
-        typeKode = this.typeKode.toDb(),
-        deltagelseFraOgMed = this.deltakelseFraOgMed,
-        deltagelseTilOgMed = this.deltakelseTilOgMed,
-        deltakelseStatus = this.deltakelseStatus.toDb(),
-        deltakelseProsent = this.deltakelseProsent,
-        antallDagerPerUke = this.antallDagerPerUke,
-        kilde = this.kilde.toDb(),
-        rettPåTiltakspenger = this.rettPåTiltakspenger,
-        deltidsprosentGjennomforing = this.deltidsprosentGjennomforing,
-    )
-}
+)
 
 fun Saksopplysninger.toDbJson(): String {
     return SaksopplysningerDbJson(

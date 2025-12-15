@@ -100,15 +100,15 @@ class V170__migrer_innvilgelsesperioder : BaseJavaMigration() {
 
         val saksopplysninger = string("saksopplysninger").toSaksopplysninger()
 
-        val antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")
-            ?.tilAntallDagerForMeldeperiode()
-
         val valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
             ?.tilValgteTiltaksdeltakelser()
 
-        if (antallDagerPerMeldeperiode == null || valgteTiltaksdeltakelser == null) {
+        if (valgteTiltaksdeltakelser == null) {
             return null
         }
+
+        val antallDagerPerMeldeperiode = string("antall_dager_per_meldeperiode")
+            .tilAntallDagerForMeldeperiode()
 
         val resultatType = stringOrNull("resultat")
 

@@ -6,10 +6,11 @@ import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.InnvilgelsesperioderDbJson.InnvilgelsesperiodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakelseDb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toDbJson
 
 private data class InnvilgelsesperioderDbJson(
     val value: List<InnvilgelsesperiodeDbJson>,
@@ -17,23 +18,16 @@ private data class InnvilgelsesperioderDbJson(
 
     data class InnvilgelsesperiodeDbJson(
         val periode: PeriodeDbJson,
-        // eksternDeltagelseId fra tiltaksdeltakelsen. Skal byttes ut med en intern id på sikt.
-        val tiltaksdeltakelseId: String,
+        val valgtTiltaksdeltakelse: TiltaksdeltakelseDb,
         val antallDagerPerMeldeperiode: Int,
     )
 
-    fun tilDomene(saksopplysninger: Saksopplysninger): Innvilgelsesperioder {
+    fun tilDomene(): Innvilgelsesperioder {
         return Innvilgelsesperioder(
             value.map {
-                val tiltaksdeltakelse = saksopplysninger.getTiltaksdeltakelse(it.tiltaksdeltakelseId)
-
-                requireNotNull(tiltaksdeltakelse) {
-                    "Fant ikke tiltaksdeltakelse med id ${it.tiltaksdeltakelseId} i saksopplysningene"
-                }
-
                 Innvilgelsesperiode(
                     periode = it.periode.toDomain(),
-                    valgtTiltaksdeltakelse = tiltaksdeltakelse,
+                    valgtTiltaksdeltakelse = it.valgtTiltaksdeltakelse.toDomain(),
                     antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
                 ).tilPeriodeMedVerdi()
             }.tilIkkeTomPeriodisering(),
@@ -41,8 +35,8 @@ private data class InnvilgelsesperioderDbJson(
     }
 }
 
-fun String.tilInnvilgelsesperioder(saksopplysninger: Saksopplysninger): Innvilgelsesperioder {
-    return deserialize<InnvilgelsesperioderDbJson>(this).tilDomene(saksopplysninger)
+fun String.tilInnvilgelsesperioder(): Innvilgelsesperioder {
+    return deserialize<InnvilgelsesperioderDbJson>(this).tilDomene()
 }
 
 fun Innvilgelsesperioder.tilInnvilgelsesperioderDbJson(): String {
@@ -50,7 +44,7 @@ fun Innvilgelsesperioder.tilInnvilgelsesperioderDbJson(): String {
         this.periodisering.perioderMedVerdi.map {
             InnvilgelsesperiodeDbJson(
                 periode = it.periode.toDbJson(),
-                tiltaksdeltakelseId = it.verdi.valgtTiltaksdeltakelse.eksternDeltakelseId,
+                valgtTiltaksdeltakelse = it.verdi.valgtTiltaksdeltakelse.toDbJson(),
                 antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode.value,
             )
         },
