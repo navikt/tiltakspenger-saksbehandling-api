@@ -45,7 +45,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
      */
     data class Innvilgelse(
         override val innvilgelsesperioder: Innvilgelsesperioder,
-        override val barnetillegg: Barnetillegg?,
+        override val barnetillegg: Barnetillegg,
         override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : BehandlingResultat.Innvilgelse,
         SøknadsbehandlingResultat {

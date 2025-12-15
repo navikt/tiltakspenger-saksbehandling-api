@@ -35,6 +35,11 @@ data class Innvilgelsesperioder(
         require(periodisering.erSammenhengende) {
             "Vi støtter ikke innvilgelsesperioder med hull riktig ennå!"
         }
+
+        // abn: det føles litt rart å duplisere periodene egentlig :think:
+        require(periodisering.perioderMedVerdi.all { it.periode == it.verdi.periode }) {
+            "Innvilgelsesperiodene må ha samme perioder som i periodiseringen"
+        }
     }
 
     /**
