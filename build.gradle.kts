@@ -190,19 +190,32 @@ tasks {
 
     register("checkFlywayMigrationNames") {
         doLast {
-            val files = project.file("src/main/resources/db/migration").walk()
+            val sqlFiles = project.file("src/main/resources/db/migration").walk()
                 .filter { it.isFile && it.extension == "sql" }
                 .toList()
 
-            val invalidFiles = files
+            val invalidSqlFiles = sqlFiles
                 .filterNot { it.name.matches(Regex("V[0-9]+__[a-zA-Z0-9][\\w]+\\.sql")) }
                 .map { it.name }
 
-            if (invalidFiles.isNotEmpty()) {
-                throw GradleException("Invalid migration filenames:\n${invalidFiles.joinToString("\n")}")
+            if (invalidSqlFiles.isNotEmpty()) {
+                throw GradleException("Invalid SQL migration filenames:\n${invalidSqlFiles.joinToString("\n")}")
+            }
+            val kotlinFiles = project.file("src/main/kotlin/db/migration").walk()
+                .filter { it.isFile && (it.extension == "kt" || it.extension == "java") }
+                .toList()
+
+            val invalidKotlinFiles = kotlinFiles
+                .filterNot { it.name.matches(Regex("V[0-9]+__[a-zA-Z0-9][\\w]+\\.(kt|java)")) }
+                .map { it.name }
+
+            if (invalidKotlinFiles.isNotEmpty()) {
+                throw GradleException("Invalid Kotlin/Java migration filenames:\n${invalidKotlinFiles.joinToString("\n")}")
             }
 
-            val duplicateVersions = files
+            // Check for duplicate versions across ALL migration types
+            val allFiles = sqlFiles + kotlinFiles
+            val duplicateVersions = allFiles
                 .mapNotNull { it.name.split("__").firstOrNull()?.removePrefix("V")?.toIntOrNull() }
                 .groupBy { it }
                 .filter { it.value.size > 1 }
@@ -214,7 +227,6 @@ tasks {
 
             println("All migration filenames are valid and version numbers are unique.")
         }
-
     }
     check {
         dependsOn("checkFlywayMigrationNames")
