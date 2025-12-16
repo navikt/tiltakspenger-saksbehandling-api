@@ -15,12 +15,12 @@ class ÅpningstiderTest {
 
         for (dagOffset in DayOfWeek.MONDAY.ordinal..DayOfWeek.FRIDAY.ordinal) {
             val dag = mandag.plusDays(dagOffset.toLong())
-            assertÅpningstid(forventetÅpent = false, dato = dag, time = 5, minutt = 59)
-            assertÅpningstid(forventetÅpent = true, dato = dag, time = 6, minutt = 0)
-            assertÅpningstid(forventetÅpent = true, dato = dag, time = 6, minutt = 1)
-            assertÅpningstid(forventetÅpent = true, dato = dag, time = 20, minutt = 59)
-            assertÅpningstid(forventetÅpent = false, dato = dag, time = 21, minutt = 0)
-            assertÅpningstid(forventetÅpent = false, dato = dag, time = 21, minutt = 1)
+            assertÅpningstid(forventetÅpent = false, dato = dag, time = 6, minutt = 0)
+            assertÅpningstid(forventetÅpent = true, dato = dag, time = 6, minutt = 10)
+            assertÅpningstid(forventetÅpent = true, dato = dag, time = 6, minutt = 11)
+            assertÅpningstid(forventetÅpent = true, dato = dag, time = 20, minutt = 49)
+            assertÅpningstid(forventetÅpent = false, dato = dag, time = 20, minutt = 50)
+            assertÅpningstid(forventetÅpent = false, dato = dag, time = 20, minutt = 51)
         }
     }
 
@@ -31,13 +31,20 @@ class ÅpningstiderTest {
 
         for (offset in DayOfWeek.SATURDAY.ordinal..DayOfWeek.SUNDAY.ordinal) {
             val dag = mandag.plusDays(offset.toLong())
-            assertÅpningstid(forventetÅpent = false, dato = dag, time = 5, minutt = 59)
             assertÅpningstid(forventetÅpent = false, dato = dag, time = 6, minutt = 0)
-            assertÅpningstid(forventetÅpent = false, dato = dag, time = 6, minutt = 1)
-            assertÅpningstid(forventetÅpent = false, dato = dag, time = 20, minutt = 59)
-            assertÅpningstid(forventetÅpent = false, dato = dag, time = 21, minutt = 0)
-            assertÅpningstid(forventetÅpent = false, dato = dag, time = 21, minutt = 1)
+            assertÅpningstid(forventetÅpent = false, dato = dag, time = 6, minutt = 10)
+            assertÅpningstid(forventetÅpent = false, dato = dag, time = 6, minutt = 11)
+            assertÅpningstid(forventetÅpent = false, dato = dag, time = 20, minutt = 49)
+            assertÅpningstid(forventetÅpent = false, dato = dag, time = 20, minutt = 50)
+            assertÅpningstid(forventetÅpent = false, dato = dag, time = 20, minutt = 51)
         }
+    }
+
+    @Test
+    fun `stengt på første juledag`() {
+        val julaften = LocalDate.of(2025, 12, 25)
+
+        assertÅpningstid(forventetÅpent = false, dato = julaften, time = 10, minutt = 0)
     }
 
     private fun assertÅpningstid(forventetÅpent: Boolean, dato: LocalDate, time: Int, minutt: Int) {
