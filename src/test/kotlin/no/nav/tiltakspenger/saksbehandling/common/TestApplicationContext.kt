@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostFakeClient
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BenkOversiktFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
@@ -88,6 +89,7 @@ class TestApplicationContext(
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
     private val behandlingFakeRepo = BehandlingFakeRepo()
+    private val klagebehandlingFakeRepo = KlagebehandlingFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
     private val tiltaksdeltakelseFakeKlient = TiltaksdeltakelseFakeKlient { søknadFakeRepo }
     private val sokosUtbetaldataFakeClient = SokosUtbetaldataFakeClient()
@@ -134,6 +136,7 @@ class TestApplicationContext(
             meldeperiodeRepo = meldeperiodeFakeRepo,
             meldekortvedtakRepo = meldekortvedtakFakeRepo,
             søknadFakeRepo = søknadFakeRepo,
+            klagebehandlingFakeRepo = klagebehandlingFakeRepo,
         )
 
     private val personFakeRepo =
@@ -144,7 +147,7 @@ class TestApplicationContext(
 
     override val oppgaveKlient: OppgaveKlient = OppgaveFakeKlient()
 
-    val safJournalpostFakeClient = SafJournalpostFakeClient()
+    val safJournalpostFakeClient = SafJournalpostFakeClient(clock)
 
     override val personContext =
         object : PersonContext(sessionFactory, texasClient) {
@@ -264,6 +267,17 @@ class TestApplicationContext(
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo
+        }
+    }
+
+    override val klagebehandlingContext by lazy {
+        object : no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext(
+            sessionFactory = sessionFactory,
+            sakService = sakContext.sakService,
+            clock = clock,
+            validerJournalpostService = søknadContext.validerJournalpostService,
+        ) {
+            override val klageRepo = klagebehandlingFakeRepo
         }
     }
 

@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.lang.String.join
@@ -261,7 +262,7 @@ class AuditService(
         action: AuditLogEvent.Action,
         correlationId: CorrelationId,
         contextMessage: String,
-        behandlingId: BehandlingId? = null,
+        behandlingId: Ulid? = null,
     ) {
         Either.catch {
             val berørtBrukerId = personService.hentFnrForSakId(sakId)

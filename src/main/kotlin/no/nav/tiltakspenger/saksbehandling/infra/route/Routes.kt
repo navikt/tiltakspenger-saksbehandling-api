@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlingRout
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.hentBenkRoute
 import no.nav.tiltakspenger.saksbehandling.infra.repo.healthRoutes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.klagebehandlingRoutes
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.meldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonRoute
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonopplysningerBarnRoute
@@ -42,6 +43,11 @@ fun Route.routes(
             oppdaterSimuleringService = applicationContext.behandlingContext.oppdaterSimuleringService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             clock = applicationContext.clock,
+        )
+        klagebehandlingRoutes(
+            opprettKlagebehandlingService = applicationContext.klagebehandlingContext.opprettKlagebehandlingService,
+            auditService = applicationContext.personContext.auditService,
+            tilgangskontrollService = applicationContext.tilgangskontrollService,
         )
         hentBenkRoute(
             benkOversiktService = applicationContext.benkOversiktContext.benkOversiktService,

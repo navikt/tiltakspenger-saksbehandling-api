@@ -1,0 +1,121 @@
+package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
+
+import kotliquery.Row
+import kotliquery.Session
+import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
+import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+
+class KlagebehandlingPostgresRepo(
+    private val sessionFactory: PostgresSessionFactory,
+) : KlagebehandlingFakeRepo {
+    /**
+     * Oppretter eller oppdaterer en klagebehandling i databasen.
+     */
+    override fun lagreKlagebehandling(
+        klagebehandling: Klagebehandling,
+        transactionContext: TransactionContext?,
+    ) {
+        sessionFactory.withTransaction(transactionContext) { tx ->
+            tx.run(
+                queryOf(
+                    //language=SQL
+                    """
+                    insert into klagebehandling (
+                        id,
+                        sak_id,
+                        opprettet,
+                        sist_endret,
+                        status,
+                        formkrav,
+                        saksbehandler,
+                        journalpost_id,
+                        journalpost_opprettet,
+                        resultat
+                    ) values (
+                        :id,
+                        :sak_id,
+                        :opprettet,
+                        :sist_endret,
+                        :status,
+                        to_jsonb(:formkrav::jsonb),
+                        :saksbehandler,
+                        :journalpost_id,
+                        :journalpost_opprettet,
+                        to_jsonb(:resultat::jsonb)
+                    ) on conflict (id) do update set
+                        sak_id = :sak_id,
+                        opprettet = :opprettet,
+                        sist_endret = :sist_endret,
+                        status = :status,
+                        formkrav = to_jsonb(:formkrav::jsonb),
+                        saksbehandler = :saksbehandler,
+                        journalpost_id = :journalpost_id,
+                        journalpost_opprettet = :journalpost_opprettet,
+                        resultat = to_jsonb(:resultat::jsonb)
+                    """.trimIndent(),
+                    mapOf(
+                        "id" to klagebehandling.id.toString(),
+                        "sak_id" to klagebehandling.sakId.toString(),
+                        "opprettet" to klagebehandling.opprettet,
+                        "sist_endret" to klagebehandling.sistEndret,
+                        "status" to klagebehandling.status.toDbEnum().name,
+                        "formkrav" to klagebehandling.formkrav.toDbJson(),
+                        "saksbehandler" to klagebehandling.saksbehandler,
+                        "journalpost_id" to klagebehandling.journalpostId.toString(),
+                        "journalpost_opprettet" to klagebehandling.journalpostOpprettet,
+                        "resultat" to klagebehandling.resultat?.toDbJson(),
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    companion object {
+        fun hentForSakId(sakId: SakId, session: Session): Klagebehandlinger {
+            return session.run(
+                sqlQuery(
+                    """
+                    select
+                      k.*,
+                      s.fnr,
+                      s.saksnummer
+                    from klagebehandling k
+                    join sak s on s.id = k.sak_id
+                    where s.id = :sakId
+                    order by k.opprettet
+                    """,
+                    "sakId" to sakId.toString(),
+                ).map { fromRow(it) }.asList,
+            ).let { Klagebehandlinger(it) }
+        }
+
+        private fun fromRow(
+            row: Row,
+        ): Klagebehandling {
+            return Klagebehandling(
+                id = KlagebehandlingId.fromString(row.string("id")),
+                sakId = SakId.fromString(row.string("sak_id")),
+                saksnummer = Saksnummer(row.string("saksnummer")),
+                fnr = Fnr.fromString(row.string("fnr")),
+                opprettet = row.localDateTime("opprettet"),
+                sistEndret = row.localDateTime("sist_endret"),
+                status = row.string("status").toKlagebehandlingsstatus(),
+                formkrav = row.string("formkrav").toKlageFormkrav(),
+                saksbehandler = row.stringOrNull("saksbehandler"),
+                journalpostId = JournalpostId(row.string("journalpost_id")),
+                journalpostOpprettet = row.localDateTime("journalpost_opprettet"),
+                resultat = row.stringOrNull("resultat")?.toKlagebehandlingResultat(),
+            )
+        }
+    }
+}
