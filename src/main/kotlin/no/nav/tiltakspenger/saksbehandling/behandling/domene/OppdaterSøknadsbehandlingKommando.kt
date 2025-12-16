@@ -39,9 +39,10 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
-        override val automatiskSaksbehandlet: Boolean,
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
-    ) : OppdaterSøknadsbehandlingKommando
+    ) : OppdaterSøknadsbehandlingKommando {
+        override val automatiskSaksbehandlet: Boolean = false
+    }
 
     /**
      * Brukes av saksbehndler til å lagre fritekst og begrunnelse før de har valgt et resultat (innvilgelse/avslag).

@@ -83,7 +83,6 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 avslagsgrunner = avslagsgrunner.toAvslagsgrunnlag(),
-                automatiskSaksbehandlet = false,
             )
         }
     }

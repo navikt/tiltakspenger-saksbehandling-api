@@ -43,6 +43,7 @@ sealed interface OppdaterBehandlingDTO {
         correlationId: CorrelationId,
     ): OppdaterBehandlingKommando
 
+    // Midlertidig løsning for å mappe eksisterende frontend-requester til ny modell for innvilgelsesperioder
     fun tilInnvilgelsesperioderKommando(
         innvilgelsesperiode: PeriodeDTO,
         antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>,
@@ -53,7 +54,7 @@ sealed interface OppdaterBehandlingDTO {
         val antallDagerPeriodisert = antallDagerPerMeldeperiode.map {
             PeriodeMedVerdi(
                 periode = it.periode.toDomain(),
-                verdi = AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
+                verdi = it.antallDagerPerMeldeperiode,
             )
         }.tilSammenhengendePeriodisering()
 

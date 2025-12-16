@@ -17,7 +17,7 @@ class RammevedtakDTOKtTest {
     @Test
     fun `mapper et rammevedtak  til et TidslinjeElementDTO`() {
         val innvilgelsesperiode = ObjectMother.virkningsperiode()
-        val rammevedtak = ObjectMother.nyRammevedtakInnvilgelse(innvilgelsesperiode = innvilgelsesperiode)
+        val rammevedtak = ObjectMother.nyRammevedtakInnvilgelse(virkningsperiode = innvilgelsesperiode)
 
         val tidslinjeElementDTO = rammevedtak.toTidslinjeElementDto(innvilgelsesperiode)
 
@@ -121,7 +121,7 @@ class RammevedtakDTOKtTest {
     fun `avslag kaster exception`() {
         assertThrows<IllegalStateException> {
             val innvilgelsesperiode = ObjectMother.virkningsperiode()
-            val rammevedtak = ObjectMother.nyRammevedtakAvslag(innvilgelsesperiode = innvilgelsesperiode)
+            val rammevedtak = ObjectMother.nyRammevedtakAvslag(virkningsperiode = innvilgelsesperiode)
             rammevedtak.toTidslinjeElementDto(innvilgelsesperiode)
         }
     }

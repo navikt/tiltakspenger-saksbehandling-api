@@ -905,7 +905,7 @@ class RammebehandlingDTOTest {
             vedtattInnvilgetSøknadsbehandling = nyRammevedtakInnvilgelse(
                 id = vedtakId,
                 sakId = sakId,
-                innvilgelsesperiode = behandling.virkningsperiode!!,
+                virkningsperiode = behandling.virkningsperiode!!,
                 fnr = fnr,
                 behandling = behandling,
             ),

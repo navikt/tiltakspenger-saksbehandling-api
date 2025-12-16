@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
@@ -382,7 +381,7 @@ class DelautomatiskBehandlingService(
 
     private fun utledAntallDagerPerMeldeperiode(
         behandling: Søknadsbehandling,
-    ): AntallDagerForMeldeperiode {
+    ): Int {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad. BehandlingId: ${behandling.id}" }
 
         val soknadstiltakFraSaksopplysning = behandling.søknad.tiltak
@@ -393,14 +392,11 @@ class DelautomatiskBehandlingService(
             "Tiltaksdeltakelser som mangler dagerPerUke og ikke har deltakelsesprosent 100% kan ikke behandles automatisk. BehandlingId: ${behandling.id}"
         }
 
-        val antallDager =
-            if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
-                getDagerPerMeldeperiode(soknadstiltakFraSaksopplysning.antallDagerPerUke)
-            } else {
-                DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-            }
-
-        return AntallDagerForMeldeperiode(antallDager)
+        return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
+            getDagerPerMeldeperiode(soknadstiltakFraSaksopplysning.antallDagerPerUke)
+        } else {
+            DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+        }
     }
 
     private fun Tiltaksdeltakelse.getDeltakelsesprosent(): Float? {

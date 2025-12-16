@@ -27,7 +27,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.navkontor
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterRevurderingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -228,7 +230,8 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
-    begrunnelse: Begrunnelse = Begrunnelse.createOrThrow("TestDataHelper.persisterRevurderingTilBeslutning"),
+    begrunnelse: String = "TestDataHelper.persisterRevurderingTilBeslutning",
+    fritekstTilVedtaksbrev: String = "TestDataHelper.persisterRevurderingTilBeslutning",
     innvilgelsesperiode: Periode? = null,
     barnetillegg: Barnetillegg? = null,
     clock: Clock = this.clock,
@@ -248,21 +251,18 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
 
     val barnetillegg = barnetillegg ?: Barnetillegg.utenBarnetillegg(periode)
 
-    val kommando = OppdaterRevurderingKommando.Innvilgelse(
+    val kommando = oppdaterRevurderingInnvilgelseKommando(
         sakId = sakMedRevurdering.id,
         behandlingId = revurdering.id,
         saksbehandler = saksbehandler,
-        correlationId = CorrelationId.generate(),
         begrunnelseVilkårsvurdering = begrunnelse,
-        fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("TestDataHelper.persisterRevurderingTilBeslutning"),
-        innvilgelsesperiode = periode,
-        tiltaksdeltakelser = listOf(
-            Pair(
-                periode,
-                revurdering.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+        innvilgelsesperioder = listOf(
+            innvilgelsesperiodeKommando(
+                periode = periode,
+                tiltaksdeltakelseId = revurdering.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
             ),
         ),
-        antallDagerPerMeldeperiode = listOf(periode to AntallDagerForMeldeperiode.default),
         barnetillegg = barnetillegg,
     )
 

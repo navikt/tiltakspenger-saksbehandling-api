@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -29,9 +30,11 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.godkjentAttestering
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.navkontor
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyRammevedtakInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyVedtattSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterRevurderingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
@@ -213,8 +216,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("nyRevurderingKlarTilBeslutning()"),
-        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("nyRevurderingKlarTilBeslutning()"),
+        fritekstTilVedtaksbrev: String = "nyRevurderingKlarTilBeslutning()",
+        begrunnelseVilkårsvurdering: String = "nyRevurderingKlarTilBeslutning()",
         virkningsperiode: Periode = revurderingVirkningsperiode(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
@@ -222,24 +225,23 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             clock = clock,
         ),
         navkontor: Navkontor = navkontor(),
-        antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>> = listOf(virkningsperiode to AntallDagerForMeldeperiode.default),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
-            Pair(virkningsperiode, it.eksternDeltakelseId)
-        },
+        innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
+            innvilgelsesperiodeKommando(
+                periode = virkningsperiode,
+                tiltaksdeltakelseId = saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+            ),
+        ),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         beregning: Beregning? = null,
         simulering: Simulering? = null,
     ): Revurdering {
-        val kommando = OppdaterRevurderingKommando.Innvilgelse(
+        val kommando = oppdaterRevurderingInnvilgelseKommando(
             sakId = sakId,
             behandlingId = id,
             saksbehandler = saksbehandler,
-            correlationId = CorrelationId.generate(),
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-            innvilgelsesperiode = virkningsperiode,
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-            tiltaksdeltakelser = valgteTiltaksdeltakelser,
+            innvilgelsesperioder = innvilgelsesperioder,
             barnetillegg = barnetillegg,
         )
 
@@ -277,8 +279,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         sendtTilBeslutning: LocalDateTime? = null,
-        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("nyRevurderingKlarTilBeslutning()"),
-        begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("nyRevurderingKlarTilBeslutning()"),
+        fritekstTilVedtaksbrev: String = "nyRevurderingKlarTilBeslutning()",
+        begrunnelseVilkårsvurdering: String = "nyRevurderingKlarTilBeslutning()",
         virkningsperiode: Periode = revurderingVirkningsperiode(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
@@ -287,10 +289,12 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         ),
         attestering: Attestering = godkjentAttestering(beslutter, clock),
         navkontor: Navkontor = navkontor(),
-        antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>> = listOf(virkningsperiode to AntallDagerForMeldeperiode.default),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltakelser.map {
-            Pair(virkningsperiode, it.eksternDeltakelseId)
-        },
+        innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
+            innvilgelsesperiodeKommando(
+                periode = virkningsperiode,
+                tiltaksdeltakelseId = saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+            ),
+        ),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         beregning: Beregning? = null,
     ): Revurdering {
@@ -305,8 +309,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             virkningsperiode = virkningsperiode,
             saksopplysninger = saksopplysninger,
             navkontor = navkontor,
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
+            innvilgelsesperioder = innvilgelsesperioder,
             barnetillegg = barnetillegg,
             beregning = beregning,
             clock = clock,
@@ -342,7 +345,11 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         ),
         vedtattInnvilgetSøknadsbehandling: Rammevedtak = nyRammevedtakInnvilgelse(
             sakId = sakId,
-            innvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
+//            innvilgelsesperioder = listOf(
+//                innvilgelsesperiodeKommando(
+//                    periode = søknadsbehandlingInnvilgelsesperiode,
+//                )
+//            ),
             fnr = fnr,
             behandling = innvilgetSøknadsbehandling,
         ),
@@ -373,7 +380,6 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         ),
         omgjørRammevedtak: Rammevedtak = nyRammevedtakInnvilgelse(
             sakId = sakId,
-            innvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
             fnr = fnr,
             behandling = omgjørBehandling,
         ),
@@ -423,7 +429,6 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         ),
         omgjørRammevedtak: Rammevedtak = nyRammevedtakInnvilgelse(
             sakId = sakId,
-            innvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
             fnr = fnr,
             behandling = omgjørBehandling,
         ),

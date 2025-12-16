@@ -27,7 +27,7 @@ sealed interface OppdaterBehandlingKommando {
                     Innvilgelsesperiode(
                         periode = it.periode,
                         valgtTiltaksdeltakelse = behandling.getTiltaksdeltakelse(it.verdi.tiltaksdeltakelseId)!!,
-                        antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode,
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(it.verdi.antallDagerPerMeldeperiode),
                     )
                 },
             )
@@ -35,7 +35,7 @@ sealed interface OppdaterBehandlingKommando {
 
         data class InnvilgelsesperiodeKommando(
             val periode: Periode,
-            val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
+            val antallDagerPerMeldeperiode: Int,
             val tiltaksdeltakelseId: String,
         )
     }

@@ -91,7 +91,6 @@ class AutomatiskMeldekortBehandlingServiceTest {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
                 clock = clock,
-                antallDagerPerMeldeperiode = listOf(virkningsperiode to AntallDagerForMeldeperiode.default),
             )
         }
 

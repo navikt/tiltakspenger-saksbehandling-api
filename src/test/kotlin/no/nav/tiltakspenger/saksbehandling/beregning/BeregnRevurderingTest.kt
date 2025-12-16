@@ -18,13 +18,16 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.leggTilMeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyOpprettetRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterRevurderingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
@@ -82,26 +85,19 @@ class BeregnRevurderingTest {
     private fun oppdaterBehandlingKommando(
         revurdering: Revurdering,
         innvilgelsesperiode: Periode = virkningsperiodeRevurdering,
-        antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>> = listOf(
-            Pair(
-                innvilgelsesperiode,
-                AntallDagerForMeldeperiode.default,
-            ),
-        ),
+        antallDagerPerMeldeperiode: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperiode),
     ): OppdaterRevurderingKommando.Innvilgelse {
-        return OppdaterRevurderingKommando.Innvilgelse(
+        return oppdaterRevurderingInnvilgelseKommando(
             sakId = revurdering.sakId,
             behandlingId = revurdering.id,
-            saksbehandler = saksbehandler(),
-            correlationId = CorrelationId.generate(),
-            begrunnelseVilkårsvurdering = Begrunnelse.create("lol"),
-            fritekstTilVedtaksbrev = null,
-            innvilgelsesperiode = innvilgelsesperiode,
-            tiltaksdeltakelser = revurdering.saksopplysninger.tiltaksdeltakelser.map {
-                Pair(innvilgelsesperiode, it.eksternDeltakelseId)
-            },
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            begrunnelseVilkårsvurdering = "lol",
+            innvilgelsesperioder = listOf(
+                innvilgelsesperiodeKommando(
+                    periode = innvilgelsesperiode,
+                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                ),
+            ),
             barnetillegg = barnetillegg,
         )
     }
@@ -127,7 +123,7 @@ class BeregnRevurderingTest {
 
         val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
-            virkningsperiode = kommando.innvilgelsesperiode,
+            virkningsperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
         )
@@ -165,7 +161,7 @@ class BeregnRevurderingTest {
 
         val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
-            virkningsperiode = kommando.innvilgelsesperiode,
+            virkningsperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
         )
@@ -190,7 +186,7 @@ class BeregnRevurderingTest {
 
         sak.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
-            virkningsperiode = kommando.innvilgelsesperiode,
+            virkningsperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
         ).shouldBeNull()
@@ -210,7 +206,7 @@ class BeregnRevurderingTest {
 
         sakMedMeldekortBehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
-            virkningsperiode = kommando.innvilgelsesperiode,
+            virkningsperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
         )!!.size shouldBe 1
@@ -247,7 +243,7 @@ class BeregnRevurderingTest {
 
         val beregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
-            virkningsperiode = kommando.innvilgelsesperiode,
+            virkningsperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
         )
@@ -299,7 +295,7 @@ class BeregnRevurderingTest {
 
         val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
-            virkningsperiode = kommando.innvilgelsesperiode,
+            virkningsperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
         )
