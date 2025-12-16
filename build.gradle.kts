@@ -180,8 +180,8 @@ configurations.all {
 }
 tasks {
     register<Copy>("gitHooks") {
-        from(file(".scripts/pre-commit"))
-        into(file(".git/hooks"))
+        from(".gitHooks")
+        into(".git/hooks")
     }
 
     build {
