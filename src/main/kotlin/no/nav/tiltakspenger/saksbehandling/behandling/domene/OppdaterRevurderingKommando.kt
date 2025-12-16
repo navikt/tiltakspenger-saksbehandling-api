@@ -5,8 +5,10 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import java.time.LocalDate
 
@@ -109,10 +111,8 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val correlationId: CorrelationId,
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-        override val innvilgelsesperiode: Periode,
-        override val tiltaksdeltakelser: List<Pair<Periode, String>>,
+        override val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
         override val barnetillegg: Barnetillegg,
-        override val antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>>,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse
 
@@ -123,10 +123,8 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val correlationId: CorrelationId,
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-        override val innvilgelsesperiode: Periode,
-        override val tiltaksdeltakelser: List<Pair<Periode, String>>,
+        override val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
         override val barnetillegg: Barnetillegg,
-        override val antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>>,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse
 }

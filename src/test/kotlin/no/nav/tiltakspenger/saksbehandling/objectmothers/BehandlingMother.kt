@@ -67,6 +67,8 @@ interface BehandlingMother : MotherOfAllMothers {
     /** Felles default vurderingsperiode for testdatatypene */
     fun virkningsperiode() = 1.januar(2023) til 31.mars(2023)
 
+//    fun oppdaterBehandling
+
     fun Rammebehandling.tiltaksdeltakelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
         val tiltaksdeltakelse = this.saksopplysninger.tiltaksdeltakelser.single()
 

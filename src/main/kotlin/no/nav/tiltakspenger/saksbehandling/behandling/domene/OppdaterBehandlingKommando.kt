@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
@@ -17,18 +18,25 @@ sealed interface OppdaterBehandlingKommando {
     val begrunnelseVilkårsvurdering: Begrunnelse?
 
     sealed interface Innvilgelse {
-        val innvilgelsesperiode: Periode
-        val antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>>
-        val tiltaksdeltakelser: List<Pair<Periode, String>>
+        val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>
         val barnetillegg: Barnetillegg
 
         fun tilInnvilgelseperioder(behandling: Rammebehandling): Innvilgelsesperioder {
-            return Innvilgelsesperioder.create(
-                saksopplysninger = behandling.saksopplysninger,
-                innvilgelsesperiode = innvilgelsesperiode,
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-                tiltaksdeltakelser = tiltaksdeltakelser,
+            return Innvilgelsesperioder(
+                innvilgelsesperioder.map {
+                    Innvilgelsesperiode(
+                        periode = it.periode,
+                        valgtTiltaksdeltakelse = behandling.getTiltaksdeltakelse(it.verdi.tiltaksdeltakelseId)!!,
+                        antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode,
+                    )
+                },
             )
         }
+
+        data class InnvilgelsesperiodeKommando(
+            val periode: Periode,
+            val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
+            val tiltaksdeltakelseId: String,
+        )
     }
 }

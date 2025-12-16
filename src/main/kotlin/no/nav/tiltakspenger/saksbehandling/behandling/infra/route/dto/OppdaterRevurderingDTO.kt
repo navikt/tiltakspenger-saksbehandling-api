@@ -16,10 +16,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.tilDomene
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilDomene
 import java.time.LocalDate
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
@@ -46,8 +44,6 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): OppdaterRevurderingKommando.Innvilgelse {
-            val innvilgelsesperiode = innvilgelsesperiode.toDomain()
-
             return OppdaterRevurderingKommando.Innvilgelse(
                 sakId = sakId,
                 behandlingId = behandlingId,
@@ -55,10 +51,12 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 correlationId = correlationId,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
-                innvilgelsesperiode = innvilgelsesperiode,
-                tiltaksdeltakelser = valgteTiltaksdeltakelser.tilDomene(),
-                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode),
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.tilDomene(),
+                innvilgelsesperioder = tilInnvilgelsesperioderKommando(
+                    innvilgelsesperiode = innvilgelsesperiode,
+                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder,
+                    tiltaksdeltakelser = valgteTiltaksdeltakelser,
+                ),
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode.toDomain()),
             )
         }
     }
@@ -79,8 +77,6 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): OppdaterRevurderingKommando.Omgjøring {
-            val innvilgelsesperiode = innvilgelsesperiode.toDomain()
-
             return OppdaterRevurderingKommando.Omgjøring(
                 sakId = sakId,
                 behandlingId = behandlingId,
@@ -88,10 +84,12 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 correlationId = correlationId,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
-                innvilgelsesperiode = innvilgelsesperiode,
-                tiltaksdeltakelser = valgteTiltaksdeltakelser.tilDomene(),
-                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode),
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.tilDomene(),
+                innvilgelsesperioder = tilInnvilgelsesperioderKommando(
+                    innvilgelsesperiode = innvilgelsesperiode,
+                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder,
+                    tiltaksdeltakelser = valgteTiltaksdeltakelser,
+                ),
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode.toDomain()),
             )
         }
     }
