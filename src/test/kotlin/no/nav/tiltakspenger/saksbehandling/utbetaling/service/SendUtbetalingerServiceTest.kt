@@ -42,7 +42,7 @@ internal class SendUtbetalingerServiceTest {
         justRun { utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, any(), sendtUtbetaling) }
         justRun { statistikkStønadRepo.lagre(statistikk) }
 
-        sendUtbetalingerService.send()
+        sendUtbetalingerService.sendUtbetalingerTilHelved()
 
         verify(exactly = 1) {
             utbetalingRepo.markerSendtTilUtbetaling(
@@ -71,7 +71,7 @@ internal class SendUtbetalingerServiceTest {
             )
         }
 
-        sendUtbetalingerService.send()
+        sendUtbetalingerService.sendUtbetalingerTilHelved()
 
         verify(exactly = 1) {
             utbetalingRepo.lagreFeilResponsFraUtbetaling(

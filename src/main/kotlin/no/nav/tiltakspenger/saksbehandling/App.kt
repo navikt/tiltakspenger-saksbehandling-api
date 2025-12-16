@@ -86,7 +86,7 @@ internal fun start(
         tasks = listOf<suspend () -> Any>(
             { applicationContext.delautomatiskSoknadsbehandlingJobb.opprettBehandlingForNyeSoknader() },
             { applicationContext.delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk() },
-            { applicationContext.utbetalingContext.sendUtbetalingerService.send() },
+            { applicationContext.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved() },
             { applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus() },
             { applicationContext.utbetalingContext.journalførMeldekortvedtakService.journalfør() },
             { applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør() },

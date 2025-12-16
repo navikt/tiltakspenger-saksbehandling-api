@@ -108,13 +108,17 @@ class BrukersMeldekortPostgresRepo(
                     select distinct on (mk.sak_id)
                         mk.*
                     from meldekort_bruker mk
-                    join meldeperiode mp on mp.id = mk.meldeperiode_id
-                    where behandles_automatisk is true
-                    and behandlet_automatisk_status is distinct from :erBehandletStatus
-                    order by mk.sak_id, mp.fra_og_med
-                    limit 100
+                    where mk.behandles_automatisk is true
+                    and behandlet_automatisk_status is distinct from 'BEHANDLET'
+                    and not exists (
+                        select 1 
+                        from utbetaling u 
+                        where u.sak_id = mk.sak_id 
+                        and u.status not in ('OK', 'OK_UTEN_UTBETALING')
+                    )
+                    order by mk.sak_id, mk.meldeperiode_kjede_id, mk.meldeperiode_versjon
+                    limit 100;
                     """,
-                    "erBehandletStatus" to MeldekortBehandletAutomatiskStatus.BEHANDLET.tilDb(),
                 ).map { row -> fromRow(row, session) }.asList,
             )
         }

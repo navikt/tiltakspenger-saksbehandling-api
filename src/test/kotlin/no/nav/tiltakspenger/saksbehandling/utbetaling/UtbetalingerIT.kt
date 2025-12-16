@@ -92,7 +92,7 @@ class UtbetalingerIT {
             utbetalingerSomVenter.size shouldBe 1
             utbetalingerSomVenter.first().beregning.totalBeløp shouldBe satser2025.sats * 10 + satser2025.satsBarnetillegg * 10 * 2
 
-            tac.utbetalingContext.sendUtbetalingerService.send()
+            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
 
             tac.utbetalingContext.utbetalingRepo.hentForUtsjekk().size shouldBe 0
             tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(revurderingUtbetalingId)!!.let { json ->
@@ -136,7 +136,7 @@ class UtbetalingerIT {
             utbetalinger[0].beregning.totalBeløp shouldBe satser2025.sats * 10
             utbetalinger[1].beregning.totalBeløp shouldBe satser2025.sats * 10 + satser2025.satsBarnetillegg * 5
 
-            tac.utbetalingContext.sendUtbetalingerService.send()
+            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
 
             tac.utbetalingContext.utbetalingRepo.hentForUtsjekk().size shouldBe 0
             tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(revurderingUtbetalingId)!!.let { json ->
@@ -197,7 +197,7 @@ class UtbetalingerIT {
             utbetalingerSomVenter.size shouldBe 1
             utbetalingerSomVenter.first().beregning.totalBeløp shouldBe 0
 
-            tac.utbetalingContext.sendUtbetalingerService.send()
+            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
 
             tac.utbetalingContext.utbetalingRepo.hentForUtsjekk().size shouldBe 0
             tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(revurderingUtbetalingId)!!.let { json ->

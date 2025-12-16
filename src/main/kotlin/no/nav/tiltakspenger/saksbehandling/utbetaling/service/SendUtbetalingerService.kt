@@ -20,7 +20,7 @@ class SendUtbetalingerService(
     private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
-    suspend fun send() {
+    suspend fun sendUtbetalingerTilHelved() {
         Either.catch {
             utbetalingRepo.hentForUtsjekk().forEach { utbetaling ->
                 val correlationId = CorrelationId.generate()
