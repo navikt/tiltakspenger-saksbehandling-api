@@ -344,11 +344,6 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         ),
         vedtattInnvilgetSøknadsbehandling: Rammevedtak = nyRammevedtakInnvilgelse(
             sakId = sakId,
-//            innvilgelsesperioder = listOf(
-//                innvilgelsesperiodeKommando(
-//                    periode = søknadsbehandlingInnvilgelsesperiode,
-//                )
-//            ),
             fnr = fnr,
             behandling = innvilgetSøknadsbehandling,
         ),

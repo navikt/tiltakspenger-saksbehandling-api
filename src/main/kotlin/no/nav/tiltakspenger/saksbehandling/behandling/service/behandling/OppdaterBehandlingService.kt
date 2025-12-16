@@ -68,14 +68,12 @@ class OppdaterBehandlingService(
         val beregning = when (kommando) {
             is OppdaterSøknadsbehandlingKommando.Innvilgelse,
             is OppdaterRevurderingKommando.Innvilgelse,
-            -> {
-                this.beregnInnvilgelse(
-                    behandlingId = kommando.behandlingId,
-                    virkningsperiode = kommando.innvilgelsesperioder.totalPeriode,
-                    innvilgelsesperioder = kommando.tilInnvilgelseperioder(behandling),
-                    barnetilleggsperioder = kommando.barnetillegg.periodisering,
-                )
-            }
+            -> this.beregnInnvilgelse(
+                behandlingId = kommando.behandlingId,
+                virkningsperiode = kommando.innvilgelsesperioder.totalPeriode,
+                innvilgelsesperioder = kommando.tilInnvilgelseperioder(behandling),
+                barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            )
 
             is OppdaterRevurderingKommando.Omgjøring,
             -> {
