@@ -270,7 +270,7 @@ internal class BehandlingPostgresRepoTest {
     fun `en saksbehandler kan overta behandlingen`() {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo
-            val nySaksbehandler = ObjectMother.saksbehandler("nySaksbehandler")
+            val nySaksbehandler = saksbehandler("nySaksbehandler")
             val (_, behandling) = testDataHelper.persisterOpprettetSøknadsbehandling()
 
             behandling.saksbehandler shouldNotBe null
