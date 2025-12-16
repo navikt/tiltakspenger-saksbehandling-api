@@ -42,9 +42,9 @@ class ÅpningstiderTest {
 
     @Test
     fun `stengt på første juledag`() {
-        val julaften = LocalDate.of(2025, 12, 25)
+        val forsteJuledag = LocalDate.of(2025, 12, 25)
 
-        assertÅpningstid(forventetÅpent = false, dato = julaften, time = 10, minutt = 0)
+        assertÅpningstid(forventetÅpent = false, dato = forsteJuledag, time = 10, minutt = 0)
     }
 
     private fun assertÅpningstid(forventetÅpent: Boolean, dato: LocalDate, time: Int, minutt: Int) {
