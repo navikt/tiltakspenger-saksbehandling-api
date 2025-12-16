@@ -21,26 +21,31 @@ object ExceptionHandler {
         cause: Throwable,
     ) {
         val uri = call.request.uri
-        logger.error(cause) { "Feil mot frontend: ${cause.message}. Uri: $uri." }
+        val loggmelding = "Feil mot frontend: ${cause.message}. Uri: $uri"
         when (cause) {
             is IllegalStateException -> {
+                logger.error(cause) { loggmelding }
                 call.respond500InternalServerError(serverfeil())
             }
 
             is ContentTransformationException -> {
+                logger.error(cause) { loggmelding }
                 call.run { respond400BadRequest(errorJson = ugyldigRequest()) }
             }
 
             is TilgangException -> {
+                logger.warn(cause) { loggmelding }
                 call.respond403Forbidden(cause.toErrorJson())
             }
 
             is IkkeFunnetException -> {
+                logger.error(cause) { loggmelding }
                 call.respond404NotFound(ikkeFunnet())
             }
 
             // Catch all
             else -> {
+                logger.error(cause) { loggmelding }
                 call.respond500InternalServerError(serverfeil())
             }
         }
