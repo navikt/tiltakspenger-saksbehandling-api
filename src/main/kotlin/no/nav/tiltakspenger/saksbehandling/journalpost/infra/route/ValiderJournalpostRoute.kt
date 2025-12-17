@@ -43,8 +43,8 @@ fun Route.validerJournalpostRoute(
 }
 
 private fun validerJournalpostIdInput(journalpostId: String) {
-    if (journalpostId.length < 3) {
-        throw JournalpostIdInputValidationException("JournalpostId må bestå av minst tre tall")
+    if (journalpostId.length < 5) {
+        throw JournalpostIdInputValidationException("JournalpostId må bestå av minst fem tall")
     }
     if (journalpostId.any { !it.isDigit() }) {
         throw JournalpostIdInputValidationException("JournalpostId kan kun inneholde tall")
