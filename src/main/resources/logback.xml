@@ -3,12 +3,13 @@
 
     <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <jsonGeneratorDecorator class="net.logstash.logback.mask.MaskingJsonGeneratorDecorator">
-                <!--<value>(\b\d{11}\b)</value>-->
-                <value>(?&lt;!\d)\d{11}(?!\d)</value>
-                <path>message/*</path>
-                <defaultMask>***********</defaultMask>
-            </jsonGeneratorDecorator>
+            <provider class="net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider" />
+            <decorator class="net.logstash.logback.mask.MaskingJsonGeneratorDecorator">
+                <valueMask>
+                    <value>(?&lt;!\d)\d{11}(?!\d)</value>
+                    <mask>***********</mask>
+                </valueMask>
+            </decorator>
         </encoder>
     </appender>
 
