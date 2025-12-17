@@ -26,7 +26,7 @@ class OppdaterUtbetalingsstatusService(
     suspend fun oppdaterUtbetalingsstatus() {
         Either.catch {
             utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor().forEach {
-                it.forsøkshistorikk?.let { forsøkshistorikk ->
+                it.forsøkshistorikk.let { forsøkshistorikk ->
                     val (forrigeForsøk, _, antallForsøk) = forsøkshistorikk
                     forrigeForsøk?.let { forrigeForsøk ->
                         val kanPrøvePåNyttNå = forrigeForsøk.shouldRetry(antallForsøk, clock).first

@@ -139,16 +139,17 @@ class UtbetalingRepoImplTest {
             )
             utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøk2)
 
+            val forsøkFeiletMotOppdrag = Forsøkshistorikk.opprett(
+                forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(3, ChronoUnit.MICROS),
+                antallForsøk = 3,
+                clock = fixedClock,
+            )
             utbetalingRepo.oppdaterUtbetalingsstatus(
                 utbetalingId = utbetaling.id,
                 status = Utbetalingsstatus.FeiletMotOppdrag,
-                metadata = Forsøkshistorikk.opprett(
-                    forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(3, ChronoUnit.MICROS),
-                    antallForsøk = 3,
-                    clock = fixedClock,
-                ),
+                metadata = forsøkFeiletMotOppdrag,
             )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe emptyList()
+            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøkFeiletMotOppdrag)
 
             utbetalingRepo.oppdaterUtbetalingsstatus(
                 utbetalingId = utbetaling.id,

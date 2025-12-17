@@ -144,7 +144,7 @@ class UtbetalingPostgresRepo(
                 sqlQuery(
                     """
                     select * from utbetaling_full
-                    where (status is null or status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')) and sendt_til_utbetaling_tidspunkt is not null
+                    where (status is null or status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG', 'FEILET_MOT_OPPDRAG')) and sendt_til_utbetaling_tidspunkt is not null
                         and (status_metadata->>'nesteForsøk')::timestamptz <= now()
                     order by (status_metadata->>'antall_forsøk')::int, opprettet
                     limit :limit
