@@ -33,9 +33,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemm
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
@@ -45,7 +45,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import org.junit.jupiter.api.Test
 
 class OppdaterBehandlingRouteTest {
@@ -99,15 +98,10 @@ class OppdaterBehandlingRouteTest {
                 oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Innvilgelse(
                     fritekstTilVedtaksbrev = "ny brevtekst",
                     begrunnelseVilkårsvurdering = "ny begrunnelse",
-                    valgteTiltaksdeltakelser = listOf(
-                        TiltaksdeltakelsePeriodeDTO(
-                            eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
-                            periode = nyInnvilgelsesperiode.toDTO(),
-                        ),
+                    innvilgelsesperioder = behandling.innvilgelsesperioderDTO(
+                        nyInnvilgelsesperiode,
                     ),
-                    innvilgelsesperiode = nyInnvilgelsesperiode.toDTO(),
                     barnetillegg = barnetillegg.toBarnetilleggDTO(),
-                    antallDagerPerMeldeperiodeForPerioder = antallDager.tilAntallDagerPerMeldeperiodeDTO(),
                 ),
             )
 
@@ -173,15 +167,10 @@ class OppdaterBehandlingRouteTest {
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
                     fritekstTilVedtaksbrev = "ny brevtekst",
                     begrunnelseVilkårsvurdering = "ny begrunnelse",
-                    valgteTiltaksdeltakelser = listOf(
-                        TiltaksdeltakelsePeriodeDTO(
-                            eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
-                            periode = nyInnvilgelsesperiode.toDTO(),
-                        ),
+                    innvilgelsesperioder = revurdering.innvilgelsesperioderDTO(
+                        nyInnvilgelsesperiode,
                     ),
-                    innvilgelsesperiode = nyInnvilgelsesperiode.toDTO(),
                     barnetillegg = barnetillegg.toBarnetilleggDTO(),
-                    antallDagerPerMeldeperiodeForPerioder = antallDager.tilAntallDagerPerMeldeperiodeDTO(),
                 ),
             )
 
@@ -284,21 +273,11 @@ class OppdaterBehandlingRouteTest {
                 oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Innvilgelse(
                     fritekstTilVedtaksbrev = "asdf",
                     begrunnelseVilkårsvurdering = null,
-                    valgteTiltaksdeltakelser = listOf(
-                        TiltaksdeltakelsePeriodeDTO(
-                            eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
-                            periode = tiltaksdeltakelsePeriode.toDTO(),
-                        ),
+                    innvilgelsesperioder = behandling.innvilgelsesperioderDTO(
+                        oppdatertTiltaksdeltakelsesPeriode,
                     ),
-                    innvilgelsesperiode = oppdatertTiltaksdeltakelsesPeriode.toDTO(),
                     barnetillegg = Barnetillegg.utenBarnetillegg(oppdatertTiltaksdeltakelsesPeriode)
                         .toBarnetilleggDTO(),
-                    antallDagerPerMeldeperiodeForPerioder = listOf(
-                        AntallDagerPerMeldeperiodeDTO(
-                            periode = tiltaksdeltakelsePeriode.toDTO(),
-                            antallDagerPerMeldeperiode = 10,
-                        ),
-                    ),
                 ),
                 forventetStatus = HttpStatusCode.InternalServerError,
             )
@@ -365,8 +344,11 @@ class OppdaterBehandlingRouteTest {
     fun `revurdering til omgjøring - kan oppdatere behandlingen etter saksopplysninger har endret seg`() {
         withTestApplicationContext { tac ->
             // Omgjøringen starter med at tiltaksdeltakelsesperioden er endret siden søknadsvedtaket.
-            val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
-            val tiltaksdeltakelseVedOpprettelseAvRevurdering = rammevedtakRevurdering.saksopplysninger.tiltaksdeltakelser.first()
+            val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
+                tac,
+            )!!
+            val tiltaksdeltakelseVedOpprettelseAvRevurdering =
+                rammevedtakRevurdering.saksopplysninger.tiltaksdeltakelser.first()
             val nyOmgjøringsperiodeEtterOppdatering = (3 til 9.april(2025))
             val avbruttTiltaksdeltakelse = tiltaksdeltakelseVedOpprettelseAvRevurdering.copy(
                 deltakelseFraOgMed = tiltaksdeltakelseVedOpprettelseAvRevurdering.deltakelseFraOgMed!!,
@@ -388,12 +370,6 @@ class OppdaterBehandlingRouteTest {
                 ),
             )
             val barnetillegg = Barnetillegg.utenBarnetillegg((3 til 9.april(2025))).toBarnetilleggDTO()
-            val valgteTiltaksdeltakelser = listOf(
-                TiltaksdeltakelsePeriodeDTO(
-                    eksternDeltagelseId = avbruttTiltaksdeltakelse.eksternDeltakelseId,
-                    periode = nyOmgjøringsperiodeEtterOppdatering.toDTO(),
-                ),
-            )
             val (_, oppdatertRevurdering) = oppdaterBehandling(
                 tac = tac,
                 sakId = sak.id,
@@ -401,10 +377,10 @@ class OppdaterBehandlingRouteTest {
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Omgjøring(
                     fritekstTilVedtaksbrev = "asdf",
                     begrunnelseVilkårsvurdering = null,
-                    valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
-                    innvilgelsesperiode = nyOmgjøringsperiodeEtterOppdatering.toDTO(),
+                    innvilgelsesperioder = rammevedtakRevurdering.innvilgelsesperioderDTO(
+                        nyOmgjøringsperiodeEtterOppdatering,
+                    ),
                     barnetillegg = barnetillegg,
-                    antallDagerPerMeldeperiodeForPerioder = antallDagerPerMeldeperiodeForPerioder,
                 ),
                 forventetStatus = HttpStatusCode.OK,
             )

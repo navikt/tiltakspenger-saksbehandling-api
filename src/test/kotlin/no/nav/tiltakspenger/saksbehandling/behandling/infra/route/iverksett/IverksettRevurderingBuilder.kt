@@ -53,10 +53,14 @@ interface IverksettRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperiode),
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+            fom = søknadsbehandlingInnvilgelsesperiode.fraOgMed,
+            tom = søknadsbehandlingInnvilgelsesperiode.tilOgMed,
+        ),
         innvilgelsesperioder: List<InnvilgelsesperiodeDTO> = listOf(
             InnvilgelsesperiodeDTO(
                 periode = revurderingInnvilgelsesperiode.toDTO(),
-                tiltaksdeltakelseId = DEFAULT_TILTAK_DELTAKELSE_ID,
+                tiltaksdeltakelseId = tiltaksdeltakelse.eksternDeltakelseId,
                 antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
             ),
         ),
@@ -84,6 +88,7 @@ interface IverksettRevurderingBuilder {
                     beslutter = beslutter,
                     fnr = fnr,
                     sakId = sakId,
+                    tiltaksdeltakelse = tiltaksdeltakelse,
                 )
             },
         )
@@ -147,10 +152,14 @@ interface IverksettRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperiode),
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+            fom = søknadsbehandlingInnvilgelsesperiode.fraOgMed,
+            tom = søknadsbehandlingInnvilgelsesperiode.tilOgMed,
+        ),
         innvilgelsesperioder: List<InnvilgelsesperiodeDTO> = listOf(
             InnvilgelsesperiodeDTO(
                 periode = revurderingInnvilgelsesperiode.toDTO(),
-                tiltaksdeltakelseId = DEFAULT_TILTAK_DELTAKELSE_ID,
+                tiltaksdeltakelseId = tiltaksdeltakelse.eksternDeltakelseId,
                 antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
             ),
         ),
@@ -178,6 +187,7 @@ interface IverksettRevurderingBuilder {
                     beslutter = beslutter,
                     fnr = fnr,
                     sakId = sakId,
+                    tiltaksdeltakelse = tiltaksdeltakelse,
                 )!!
             },
         )

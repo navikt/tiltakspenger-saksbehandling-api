@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.libs.satser.Satser.Companion.sats
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -21,9 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRe
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.antallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelseDTO
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -62,13 +60,11 @@ class UtbetalingerIT {
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
                     fritekstTilVedtaksbrev = "lol",
                     begrunnelseVilkårsvurdering = "what",
-                    innvilgelsesperiode = vedtaksperiode.toDTO(),
-                    valgteTiltaksdeltakelser = revurdering.tiltaksdeltakelseDTO(),
+                    innvilgelsesperioder = revurdering.innvilgelsesperioderDTO(vedtaksperiode),
                     barnetillegg = barnetillegg(
                         periode = vedtaksperiode,
                         antallBarn = AntallBarn(2),
                     ).toBarnetilleggDTO(),
-                    antallDagerPerMeldeperiodeForPerioder = revurdering.antallDagerPerMeldeperiodeDTO(vedtaksperiode),
                 ),
             )
 
