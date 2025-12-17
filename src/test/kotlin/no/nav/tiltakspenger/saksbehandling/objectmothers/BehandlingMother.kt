@@ -92,6 +92,10 @@ interface BehandlingMother : MotherOfAllMothers {
         ).tilAntallDagerPerMeldeperiodeDTO()
     }
 
+    fun Rammebehandling.innvilgelsesperioderDTO(
+        periode: Periode,
+    )
+
     fun godkjentAttestering(beslutter: Saksbehandler = beslutter(), clock: Clock = this.clock): Attestering =
         Attestering(
             id = AttesteringId.random(),

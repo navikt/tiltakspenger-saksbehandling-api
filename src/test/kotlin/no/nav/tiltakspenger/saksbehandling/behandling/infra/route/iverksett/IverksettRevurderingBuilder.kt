@@ -9,24 +9,21 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
-import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterBehandlingDTO.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.objectmothers.DEFAULT_TILTAK_DELTAKELSE_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.antallDagerPerMeldeperiodeDTO
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelseDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
@@ -55,14 +52,13 @@ interface IverksettRevurderingBuilder {
         revurderingInnvilgelsesperiode: Periode = søknadsbehandlingInnvilgelsesperiode,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        antallDagerPerMeldeperiodeForRevurdering: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            revurderingInnvilgelsesperiode,
-        ),
         barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperiode),
-        tiltaksdeltakelseRevurdering: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = revurderingInnvilgelsesperiode.fraOgMed,
-            tom = revurderingInnvilgelsesperiode.tilOgMed,
+        innvilgelsesperioder: List<InnvilgelsesperiodeDTO> = listOf(
+            InnvilgelsesperiodeDTO(
+                periode = revurderingInnvilgelsesperiode.toDTO(),
+                tiltaksdeltakelseId = DEFAULT_TILTAK_DELTAKELSE_ID,
+                antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+            ),
         ),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
@@ -75,25 +71,22 @@ interface IverksettRevurderingBuilder {
                 OppdaterRevurderingDTO.Innvilgelse(
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                    innvilgelsesperiode = revurderingInnvilgelsesperiode.toDTO(),
-                    valgteTiltaksdeltakelser = revurdering.tiltaksdeltakelseDTO(),
+                    innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = barnetilleggRevurdering.toBarnetilleggDTO(),
-                    antallDagerPerMeldeperiodeForPerioder = revurdering.antallDagerPerMeldeperiodeDTO(
-                        revurderingInnvilgelsesperiode,
-                    ),
                 )
             },
-        ) {
-            iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
-                tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
-                revurderingVedtaksperiode = revurderingInnvilgelsesperiode,
-                saksbehandler = saksbehandler,
-                beslutter = beslutter,
-                fnr = fnr,
-                sakId = sakId,
-            )
-        }
+            startRevurdering = {
+                iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
+                    tac = tac,
+                    søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
+                    revurderingVedtaksperiode = revurderingInnvilgelsesperiode,
+                    saksbehandler = saksbehandler,
+                    beslutter = beslutter,
+                    fnr = fnr,
+                    sakId = sakId,
+                )
+            },
+        )
     }
 
     /**
@@ -153,14 +146,13 @@ interface IverksettRevurderingBuilder {
         revurderingInnvilgelsesperiode: Periode = søknadsbehandlingInnvilgelsesperiode,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        antallDagerPerMeldeperiodeForRevurdering: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            revurderingInnvilgelsesperiode,
-        ),
         barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperiode),
-        tiltaksdeltakelseRevurdering: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = revurderingInnvilgelsesperiode.fraOgMed,
-            tom = revurderingInnvilgelsesperiode.tilOgMed,
+        innvilgelsesperioder: List<InnvilgelsesperiodeDTO> = listOf(
+            InnvilgelsesperiodeDTO(
+                periode = revurderingInnvilgelsesperiode.toDTO(),
+                tiltaksdeltakelseId = DEFAULT_TILTAK_DELTAKELSE_ID,
+                antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+            ),
         ),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
@@ -173,25 +165,22 @@ interface IverksettRevurderingBuilder {
                 OppdaterRevurderingDTO.Omgjøring(
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                    valgteTiltaksdeltakelser = revurdering.tiltaksdeltakelseDTO(),
-                    innvilgelsesperiode = revurderingInnvilgelsesperiode.toDTO(),
+                    innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = barnetilleggRevurdering.toBarnetilleggDTO(),
-                    antallDagerPerMeldeperiodeForPerioder = revurdering.antallDagerPerMeldeperiodeDTO(
-                        revurderingInnvilgelsesperiode,
-                    ),
                 )
             },
-        ) {
-            iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
-                tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
-                oppdaterTiltaksdeltakelsesperiode = revurderingInnvilgelsesperiode,
-                saksbehandler = saksbehandler,
-                beslutter = beslutter,
-                fnr = fnr,
-                sakId = sakId,
-            )!!
-        }
+            startRevurdering = {
+                iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
+                    tac = tac,
+                    søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
+                    oppdaterTiltaksdeltakelsesperiode = revurderingInnvilgelsesperiode,
+                    saksbehandler = saksbehandler,
+                    beslutter = beslutter,
+                    fnr = fnr,
+                    sakId = sakId,
+                )!!
+            },
+        )
     }
 
     /**
@@ -205,15 +194,14 @@ interface IverksettRevurderingBuilder {
         innvilgelsesperiode: Periode,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        antallDagerPerMeldeperiodeForRevurdering: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            innvilgelsesperiode,
+        innvilgelsesperioder: List<InnvilgelsesperiodeDTO> = listOf(
+            InnvilgelsesperiodeDTO(
+                periode = innvilgelsesperiode.toDTO(),
+                tiltaksdeltakelseId = DEFAULT_TILTAK_DELTAKELSE_ID,
+                antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+            ),
         ),
         barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperiode),
-        tiltaksdeltakelseRevurdering: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = innvilgelsesperiode.fraOgMed,
-            tom = innvilgelsesperiode.tilOgMed,
-        ),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
     ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
@@ -225,22 +213,19 @@ interface IverksettRevurderingBuilder {
                 OppdaterRevurderingDTO.Omgjøring(
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                    valgteTiltaksdeltakelser = revurdering.tiltaksdeltakelseDTO(),
-                    innvilgelsesperiode = innvilgelsesperiode.toDTO(),
+                    innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = barnetilleggRevurdering.toBarnetilleggDTO(),
-                    antallDagerPerMeldeperiodeForPerioder = revurdering.antallDagerPerMeldeperiodeDTO(
-                        innvilgelsesperiode,
-                    ),
                 )
             },
-        ) {
-            startRevurderingOmgjøring(
-                tac = tac,
-                sakId = sakId,
-                rammevedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres,
-                saksbehandler = saksbehandler,
-            )!!
-        }
+            startRevurdering = {
+                startRevurderingOmgjøring(
+                    tac = tac,
+                    sakId = sakId,
+                    rammevedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres,
+                    saksbehandler = saksbehandler,
+                )!!
+            },
+        )
     }
 
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgRevurdering(
