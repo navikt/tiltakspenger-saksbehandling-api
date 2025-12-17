@@ -20,4 +20,9 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
         "Innvilgelsesperioden overlapper med en eller flere utbetalingsperioder",
         "innvilgelsesperioden_overlapper_med_utbetalingsperiode",
     )
+
+    KanIkkeOppdatereBehandling.ErPaVent -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen er satt på vent",
+        "behandlingen_er_pa_vent",
+    )
 }

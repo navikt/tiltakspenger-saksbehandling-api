@@ -111,6 +111,7 @@ sealed interface Rammebehandling : Behandling {
         clock: Clock,
         venterTil: LocalDateTime? = null,
     ): Rammebehandling {
+        require(!ventestatus.erSattPåVent) { "Behandling med id ${this.id} er allerede satt på vent" }
         when (status) {
             UNDER_AUTOMATISK_BEHANDLING,
             UNDER_BEHANDLING,
@@ -645,6 +646,9 @@ sealed interface Rammebehandling : Behandling {
         }
         if (status != UNDER_BEHANDLING && status != UNDER_AUTOMATISK_BEHANDLING) {
             return KanIkkeSendeTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk.left()
+        }
+        if (ventestatus.erSattPåVent) {
+            return KanIkkeSendeTilBeslutter.ErPaVent.left()
         }
 
         return Unit.right()
