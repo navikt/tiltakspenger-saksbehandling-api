@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
@@ -15,9 +14,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterBehandlingDTO.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.LocalDate
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
@@ -31,10 +29,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
     data class Innvilgelse(
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
-        val innvilgelsesperiode: PeriodeDTO,
-        val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+        val innvilgelsesperioder: List<InnvilgelsesperiodeDTO>,
         val barnetillegg: BarnetilleggDTO,
-        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
 
@@ -44,6 +40,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): OppdaterRevurderingKommando.Innvilgelse {
+            val innvilgelsesperioder = innvilgelsesperioder.tilKommando()
+
             return OppdaterRevurderingKommando.Innvilgelse(
                 sakId = sakId,
                 behandlingId = behandlingId,
@@ -51,12 +49,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 correlationId = correlationId,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
-                innvilgelsesperioder = tilInnvilgelsesperioderKommando(
-                    innvilgelsesperiode = innvilgelsesperiode,
-                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder,
-                    tiltaksdeltakelser = valgteTiltaksdeltakelser,
-                ),
-                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode.toDomain()),
+                innvilgelsesperioder = innvilgelsesperioder,
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.totalPeriode),
             )
         }
     }
@@ -64,10 +58,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
     data class Omgjøring(
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
-        val innvilgelsesperiode: PeriodeDTO,
-        val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+        val innvilgelsesperioder: List<InnvilgelsesperiodeDTO>,
         val barnetillegg: BarnetilleggDTO,
-        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
 
@@ -77,6 +69,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): OppdaterRevurderingKommando.Omgjøring {
+            val innvilgelsesperioder = innvilgelsesperioder.tilKommando()
+
             return OppdaterRevurderingKommando.Omgjøring(
                 sakId = sakId,
                 behandlingId = behandlingId,
@@ -84,12 +78,8 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 correlationId = correlationId,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
-                innvilgelsesperioder = tilInnvilgelsesperioderKommando(
-                    innvilgelsesperiode = innvilgelsesperiode,
-                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder,
-                    tiltaksdeltakelser = valgteTiltaksdeltakelser,
-                ),
-                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode.toDomain()),
+                innvilgelsesperioder = innvilgelsesperioder,
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.totalPeriode),
             )
         }
     }

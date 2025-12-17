@@ -6,13 +6,11 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterBehandlingDTO.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
 @JsonSubTypes(
@@ -31,10 +29,8 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
     data class Innvilgelse(
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
-        val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
-        val innvilgelsesperiode: PeriodeDTO,
+        val innvilgelsesperioder: List<InnvilgelsesperiodeDTO>,
         val barnetillegg: BarnetilleggDTO,
-        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.INNVILGELSE
 
@@ -44,6 +40,8 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): OppdaterSøknadsbehandlingKommando.Innvilgelse {
+            val innvilgelsesperioder = innvilgelsesperioder.tilKommando()
+
             return OppdaterSøknadsbehandlingKommando.Innvilgelse(
                 sakId = sakId,
                 behandlingId = behandlingId,
@@ -51,12 +49,8 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 correlationId = correlationId,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
-                innvilgelsesperioder = tilInnvilgelsesperioderKommando(
-                    innvilgelsesperiode = innvilgelsesperiode,
-                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder,
-                    tiltaksdeltakelser = valgteTiltaksdeltakelser,
-                ),
-                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode.toDomain()),
+                innvilgelsesperioder = innvilgelsesperioder,
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.totalPeriode),
                 automatiskSaksbehandlet = false,
             )
         }
