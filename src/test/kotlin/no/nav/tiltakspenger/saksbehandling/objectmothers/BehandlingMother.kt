@@ -901,7 +901,7 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
         ),
     )
     // Emulerer at jobben kjører
-    tac.utbetalingContext.sendUtbetalingerService.send()
+    tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
     return this.sakContext.sakService.hentForSakId(sak.id)
 }
 
