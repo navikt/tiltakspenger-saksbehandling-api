@@ -59,6 +59,11 @@ object Standardfeil {
         "ugyldig_request",
     )
 
+    fun ugyldigJournalpostIdInput(melding: String): ErrorJson = ErrorJson(
+        melding,
+        "ugyldig_jp_input",
+    )
+
     fun ikkeTilgang(
         melding: String = "Bruker har ikke tilgang",
     ): ErrorJson = ErrorJson(

@@ -29,6 +29,7 @@ fun Route.validerJournalpostRoute(
         call.withBody<ValiderJournalpostBody> { body ->
             krevSaksbehandlerRolle(saksbehandler)
             val fnr = Fnr.fromString(body.fnr)
+            validerJournalpostIdInput(body.journalpostId)
             val journalpostId = JournalpostId(body.journalpostId)
             tilgangskontrollService.harTilgangTilPerson(fnr, token, saksbehandler)
             val response = validerJournalpostService.hentOgValiderJournalpost(fnr, journalpostId)
@@ -38,6 +39,15 @@ fun Route.validerJournalpostRoute(
                 response,
             )
         }
+    }
+}
+
+private fun validerJournalpostIdInput(journalpostId: String) {
+    if (journalpostId.length < 3) {
+        throw JournalpostIdInputValidationException("JournalpostId må bestå av minst tre tall")
+    }
+    if (journalpostId.any { !it.isDigit() }) {
+        throw JournalpostIdInputValidationException("JournalpostId kan kun inneholde tall")
     }
 }
 
@@ -51,3 +61,5 @@ data class ValiderJournalpostResponse(
     val gjelderInnsendtFnr: Boolean?,
     val datoOpprettet: LocalDateTime?,
 )
+
+class JournalpostIdInputValidationException(message: String) : RuntimeException(message)

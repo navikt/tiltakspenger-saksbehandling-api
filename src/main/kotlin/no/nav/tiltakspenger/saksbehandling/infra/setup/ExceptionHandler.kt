@@ -12,7 +12,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ikkeFunnet
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.serverfeil
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ugyldigJournalpostIdInput
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ugyldigRequest
+import no.nav.tiltakspenger.saksbehandling.journalpost.infra.route.JournalpostIdInputValidationException
 
 object ExceptionHandler {
     private val logger = KotlinLogging.logger {}
@@ -31,6 +33,17 @@ object ExceptionHandler {
             is ContentTransformationException -> {
                 logger.error(cause) { loggmelding }
                 call.run { respond400BadRequest(errorJson = ugyldigRequest()) }
+            }
+
+            is JournalpostIdInputValidationException -> {
+                logger.warn(cause) { loggmelding }
+                call.run {
+                    respond400BadRequest(
+                        errorJson = ugyldigJournalpostIdInput(
+                            melding = cause.message ?: "Ugyldig journalpostId",
+                        ),
+                    )
+                }
             }
 
             is TilgangException -> {
