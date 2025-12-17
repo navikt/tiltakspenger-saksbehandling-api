@@ -83,4 +83,9 @@ private fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJs
     )
 
     is KanIkkeSendeTilBeslutter.UtbetalingStøttesIkke -> this.feil.tilUtbetalingErrorJson()
+
+    KanIkkeSendeTilBeslutter.ErPaVent -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen er satt på vent",
+        "behandlingen_er_pa_vent",
+    )
 }

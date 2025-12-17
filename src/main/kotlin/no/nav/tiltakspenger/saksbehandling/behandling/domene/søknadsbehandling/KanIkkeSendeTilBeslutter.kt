@@ -6,4 +6,5 @@ sealed interface KanIkkeSendeTilBeslutter {
     data class BehandlingenEiesAvAnnenSaksbehandler(val eiesAvSaksbehandler: String?) : KanIkkeSendeTilBeslutter
     data object MåVæreUnderBehandlingEllerAutomatisk : KanIkkeSendeTilBeslutter
     data class UtbetalingStøttesIkke(val feil: KanIkkeIverksetteUtbetaling) : KanIkkeSendeTilBeslutter
+    data object ErPaVent : KanIkkeSendeTilBeslutter
 }

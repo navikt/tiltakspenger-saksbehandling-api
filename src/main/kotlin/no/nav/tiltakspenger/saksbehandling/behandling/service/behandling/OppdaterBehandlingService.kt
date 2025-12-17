@@ -41,6 +41,9 @@ class OppdaterBehandlingService(
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
             return BehandlingenEiesAvAnnenSaksbehandler(behandling.saksbehandler).left()
         }
+        if (behandling.ventestatus.erSattPåVent) {
+            return KanIkkeOppdatereBehandling.ErPaVent.left()
+        }
         val (utbetaling, simuleringMedMetadata) = sak.beregnOgSimulerHvisAktuelt(kommando, behandling)
 
         return when (kommando) {

@@ -5,4 +5,5 @@ sealed interface KanIkkeOppdatereBehandling {
     data object InnvilgelsesperiodenOverlapperMedUtbetaltPeriode : KanIkkeOppdatereBehandling
     data class BehandlingenEiesAvAnnenSaksbehandler(val eiesAvSaksbehandler: String?) : KanIkkeOppdatereBehandling
     data object MåVæreUnderBehandling : KanIkkeOppdatereBehandling
+    data object ErPaVent : KanIkkeOppdatereBehandling
 }
