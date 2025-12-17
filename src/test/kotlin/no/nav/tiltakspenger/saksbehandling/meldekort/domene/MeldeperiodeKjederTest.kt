@@ -16,8 +16,8 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
@@ -114,7 +114,7 @@ class MeldeperiodeKjederTest {
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val kjeder = MeldeperiodeKjeder(emptyList())
-        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(sakId = sakId, innvilgelsesperiode = periode)
+        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(sakId = sakId, virkningsperiode = periode)
         val actual = kjeder.genererMeldeperioder(
             Rammevedtaksliste(
                 innvilgelseVedtak,
@@ -145,7 +145,7 @@ class MeldeperiodeKjederTest {
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val innvilgelseVedtak =
-            ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, innvilgelsesperiode = periode)
+            ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, virkningsperiode = periode)
         val stansVedtak = ObjectMother.nyRammevedtakStans(
             fnr = fnr,
             sakId = sakId,
@@ -190,7 +190,7 @@ class MeldeperiodeKjederTest {
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val innvilgelseVedtak =
-            ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, innvilgelsesperiode = periode)
+            ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, virkningsperiode = periode)
         val v1 = Rammevedtaksliste(listOf(innvilgelseVedtak))
         val kjederV1 = MeldeperiodeKjeder(emptyList())
 
@@ -320,8 +320,13 @@ class MeldeperiodeKjederTest {
         val kjeder = MeldeperiodeKjeder(emptyList())
         val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(
             sakId = sakId,
-            innvilgelsesperiode = periode,
-            antallDagerPerMeldeperiode = listOf(periode to AntallDagerForMeldeperiode(5)),
+            virkningsperiode = periode,
+            innvilgelsesperioder = listOf(
+                innvilgelsesperiodeKommando(
+                    periode = periode,
+                    antallDagerPerMeldeperiode = 5,
+                ),
+            ),
         )
         val actual = kjeder.genererMeldeperioder(
             Rammevedtaksliste(

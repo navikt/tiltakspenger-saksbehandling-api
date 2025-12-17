@@ -13,11 +13,9 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -29,7 +27,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Yt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterSøknadsbehandlingAvslagKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterSøknadsbehandlingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.virkningsperiode
@@ -105,16 +106,15 @@ interface SakMother {
             oppslagstidspunkt = iDag.atStartOfDay(),
         ),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = listOf(
-            Pair(
-                virkningsperiode,
-                registrerteTiltak.first().eksternDeltakelseId,
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+        innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
+            innvilgelsesperiodeKommando(
+                periode = virkningsperiode,
+                tiltaksdeltakelseId = registrerteTiltak.first().eksternDeltakelseId,
             ),
         ),
-        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
-        antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>> = listOf(virkningsperiode to AntallDagerForMeldeperiode.default),
         kanSendeInnHelgForMeldekort: Boolean = false,
         sak: Sak = ObjectMother.nySak(
             sakId = sakId,
@@ -139,7 +139,7 @@ interface SakMother {
 
                 behandling.oppdater(
                     when (resultat) {
-                        SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
+                        SøknadsbehandlingType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
                             sakId = sakId,
                             behandlingId = behandling.id,
                             correlationId = CorrelationId.generate(),
@@ -147,13 +147,11 @@ interface SakMother {
                             barnetillegg = barnetillegg,
                             fritekstTilVedtaksbrev = null,
                             begrunnelseVilkårsvurdering = null,
-                            innvilgelsesperiode = virkningsperiode,
-                            tiltaksdeltakelser = valgteTiltaksdeltakelser,
-                            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                            innvilgelsesperioder = innvilgelsesperioder,
                             automatiskSaksbehandlet = automatiskSaksbehandlet,
                         )
 
-                        SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
+                        SøknadsbehandlingType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
                             sakId = sakId,
                             behandlingId = behandling.id,
                             correlationId = CorrelationId.generate(),
@@ -161,7 +159,6 @@ interface SakMother {
                             fritekstTilVedtaksbrev = null,
                             begrunnelseVilkårsvurdering = null,
                             avslagsgrunner = avslagsgrunner!!,
-                            automatiskSaksbehandlet = automatiskSaksbehandlet,
                         )
                     },
                     clock = clock,
@@ -279,19 +276,17 @@ interface SakMother {
         )
 
         val iverksattBehandling: Rammebehandling = søknadsbehandling.oppdater(
-            OppdaterSøknadsbehandlingKommando.Innvilgelse(
+            oppdaterSøknadsbehandlingInnvilgelseKommando(
                 sakId = sakId,
                 behandlingId = søknadsbehandling.id,
-                correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
                 barnetillegg = barnetillegg,
-                fritekstTilVedtaksbrev = null,
-                begrunnelseVilkårsvurdering = null,
-                innvilgelsesperiode = virkningsperiode,
-                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltakelser.map {
-                    Pair(virkningsperiode, it.eksternDeltakelseId)
-                }.toList(),
-                antallDagerPerMeldeperiode = listOf(virkningsperiode to AntallDagerForMeldeperiode.default),
+                innvilgelsesperioder = listOf(
+                    innvilgelsesperiodeKommando(
+                        periode = virkningsperiode,
+                        tiltaksdeltakelseId = søknadsbehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                    ),
+                ),
                 automatiskSaksbehandlet = søknadsbehandling.automatiskSaksbehandlet,
             ),
             clock = clock,
@@ -333,15 +328,12 @@ interface SakMother {
         )
 
         val iverksattBehandling = søknadsbehandling.oppdater(
-            OppdaterSøknadsbehandlingKommando.Avslag(
+            oppdaterSøknadsbehandlingAvslagKommando(
                 sakId = sakId,
                 behandlingId = søknadsbehandling.id,
-                correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
-                fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("nySakMedAvslagsvedtak"),
-                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = "nySakMedAvslagsvedtak",
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
-                automatiskSaksbehandlet = søknadsbehandling.automatiskSaksbehandlet,
             ),
             clock = clock,
             utbetaling = null,

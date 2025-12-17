@@ -11,10 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.tilDomene
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.tilDomene
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
 @JsonSubTypes(
@@ -46,8 +44,6 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): OppdaterSøknadsbehandlingKommando.Innvilgelse {
-            val innvilgelsesperiode = innvilgelsesperiode.toDomain()
-
             return OppdaterSøknadsbehandlingKommando.Innvilgelse(
                 sakId = sakId,
                 behandlingId = behandlingId,
@@ -55,10 +51,12 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 correlationId = correlationId,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
-                innvilgelsesperiode = innvilgelsesperiode,
-                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode),
-                tiltaksdeltakelser = valgteTiltaksdeltakelser.tilDomene(),
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.tilDomene(),
+                innvilgelsesperioder = tilInnvilgelsesperioderKommando(
+                    innvilgelsesperiode = innvilgelsesperiode,
+                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder,
+                    tiltaksdeltakelser = valgteTiltaksdeltakelser,
+                ),
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode.toDomain()),
                 automatiskSaksbehandlet = false,
             )
         }
@@ -85,7 +83,6 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 avslagsgrunner = avslagsgrunner.toAvslagsgrunnlag(),
-                automatiskSaksbehandlet = false,
             )
         }
     }

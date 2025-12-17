@@ -31,7 +31,8 @@ object ObjectMother :
     SaksopplysningerMother,
     BarnetilleggMother,
     SimuleringMother,
-    UtbetalingMother {
+    UtbetalingMother,
+    OppdaterBehandlingKommandoMother {
     fun gyldigFnr() = Fnr.fromString("12345678911")
     fun navn() = Navn("Fornavn", "Mellomnavn", "Etternavn")
     fun navkontor() = Navkontor(kontornummer = "0220", kontornavn = "Nav Asker")

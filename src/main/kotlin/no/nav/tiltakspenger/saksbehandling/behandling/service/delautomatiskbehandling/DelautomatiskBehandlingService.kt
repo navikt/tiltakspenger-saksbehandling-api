@@ -4,14 +4,16 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
@@ -129,11 +131,18 @@ class DelautomatiskBehandlingService(
             correlationId = correlationId,
             fritekstTilVedtaksbrev = null,
             begrunnelseVilkårsvurdering = null,
-            innvilgelsesperiode = innvilgelsesperiode,
-            barnetillegg = barnetillegg,
             // Kommentar jah: Det føles litt vondt og gjenbruke denne kommandoen for det tilfellet her. For automatisk behandling krever vi at det er 1 søknad for 1 tiltak og saksopplysningene bare har funnet en tiltaksdeltakelse.
-            tiltaksdeltakelser = tiltaksdeltakelser,
-            antallDagerPerMeldeperiode = utledAntallDagerPerMeldeperiode(behandling),
+            innvilgelsesperioder = listOf(
+                PeriodeMedVerdi(
+                    verdi = InnvilgelsesperiodeKommando(
+                        periode = innvilgelsesperiode,
+                        antallDagerPerMeldeperiode = utledAntallDagerPerMeldeperiode(behandling),
+                        tiltaksdeltakelseId = tiltaksdeltakelser,
+                    ),
+                    periode = innvilgelsesperiode,
+                ),
+            ).tilIkkeTomPeriodisering(),
+            barnetillegg = barnetillegg,
             automatiskSaksbehandlet = true,
         )
 
@@ -363,19 +372,16 @@ class DelautomatiskBehandlingService(
 
     private fun utledTiltaksdeltakelser(
         behandling: Søknadsbehandling,
-    ): List<Pair<Periode, String>> {
-        require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
-        return listOf(
-            Pair(
-                behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm(),
-                behandling.søknad.tiltak.id,
-            ),
-        )
+    ): String {
+        require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) {
+            "Forventet at søknaden var en innvilgbar digital søknad"
+        }
+        return behandling.søknad.tiltak.id
     }
 
     private fun utledAntallDagerPerMeldeperiode(
         behandling: Søknadsbehandling,
-    ): List<Pair<Periode, AntallDagerForMeldeperiode>> {
+    ): Int {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad. BehandlingId: ${behandling.id}" }
 
         val soknadstiltakFraSaksopplysning = behandling.søknad.tiltak
@@ -386,16 +392,11 @@ class DelautomatiskBehandlingService(
             "Tiltaksdeltakelser som mangler dagerPerUke og ikke har deltakelsesprosent 100% kan ikke behandles automatisk. BehandlingId: ${behandling.id}"
         }
 
-        val antallDager =
-            if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
-                getDagerPerMeldeperiode(soknadstiltakFraSaksopplysning.antallDagerPerUke)
-            } else {
-                DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-            }
-
-        return listOf(
-            behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm() to AntallDagerForMeldeperiode(antallDager),
-        )
+        return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
+            getDagerPerMeldeperiode(soknadstiltakFraSaksopplysning.antallDagerPerUke)
+        } else {
+            DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+        }
     }
 
     private fun Tiltaksdeltakelse.getDeltakelsesprosent(): Float? {

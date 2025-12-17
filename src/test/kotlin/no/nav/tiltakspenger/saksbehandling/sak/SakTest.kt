@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinge
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -179,8 +180,11 @@ class SakTest {
                 sakId = sakId,
                 fnr = fnr,
                 virkningsperiode = vedtaksperiode,
-                valgteTiltaksdeltakelser = listOf(
-                    Pair(vedtaksperiode, deltakelsesId),
+                innvilgelsesperioder = listOf(
+                    innvilgelsesperiodeKommando(
+                        periode = vedtaksperiode,
+                        tiltaksdeltakelseId = deltakelsesId,
+                    ),
                 ),
                 saksopplysninger = ObjectMother.saksopplysninger(
                     fom = vedtaksperiode.fraOgMed,
@@ -215,8 +219,11 @@ class SakTest {
                 sakId = sakId,
                 fnr = fnr,
                 virkningsperiode = andreVedtaksPeriode,
-                valgteTiltaksdeltakelser = listOf(
-                    Pair(andreVedtaksPeriode, deltakelsesId),
+                innvilgelsesperioder = listOf(
+                    innvilgelsesperiodeKommando(
+                        periode = andreVedtaksPeriode,
+                        tiltaksdeltakelseId = deltakelsesId,
+                    ),
                 ),
                 saksopplysninger = ObjectMother.saksopplysninger(
                     fom = andreVedtaksPeriode.fraOgMed,

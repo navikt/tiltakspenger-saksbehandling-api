@@ -8,13 +8,14 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -33,11 +34,17 @@ interface RammevedtakMother : MotherOfAllMothers {
         periode: Periode = ObjectMother.virkningsperiode(),
         fnr: Fnr = Fnr.random(),
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
+        innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
+            innvilgelsesperiodeKommando(
+                periode = periode,
+            ),
+        ),
         behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             virkningsperiode = periode,
+            innvilgelsesperioder = innvilgelsesperioder,
+            saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
             fnr = fnr,
-            omgjørRammevedtak = omgjørRammevedtak,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
         journalpostId: JournalpostId? = null,
@@ -75,14 +82,18 @@ interface RammevedtakMother : MotherOfAllMothers {
         opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
-        innvilgelsesperiode: Periode = ObjectMother.virkningsperiode(),
-        antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>> = listOf(innvilgelsesperiode to AntallDagerForMeldeperiode.default),
+        virkningsperiode: Periode = ObjectMother.virkningsperiode(),
+        innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
+            innvilgelsesperiodeKommando(
+                periode = virkningsperiode,
+            ),
+        ),
         behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
-            virkningsperiode = innvilgelsesperiode,
+            virkningsperiode = virkningsperiode,
+            innvilgelsesperioder = innvilgelsesperioder,
             saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
             fnr = fnr,
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
         journalpostId: JournalpostId? = null,
@@ -111,14 +122,12 @@ interface RammevedtakMother : MotherOfAllMothers {
         opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
-        innvilgelsesperiode: Periode = ObjectMother.virkningsperiode(),
-        antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>> = listOf(innvilgelsesperiode to AntallDagerForMeldeperiode.default),
+        virkningsperiode: Periode = ObjectMother.virkningsperiode(),
         behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
-            virkningsperiode = innvilgelsesperiode,
+            virkningsperiode = virkningsperiode,
             saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
             fnr = fnr,
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             resultat = SøknadsbehandlingType.AVSLAG,
             avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
         ),

@@ -15,20 +15,21 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterSøknadsbehandlingAvslagKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterSøknadsbehandlingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -207,7 +208,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
     )
 
     val klarTilBeslutning = behandling.oppdater(
-        kommando = OppdaterSøknadsbehandlingKommando.Innvilgelse(
+        kommando = oppdaterSøknadsbehandlingInnvilgelseKommando(
             sakId = sakId,
             behandlingId = behandling.id,
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
@@ -215,20 +216,14 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
             fritekstTilVedtaksbrev = null,
             begrunnelseVilkårsvurdering = null,
             automatiskSaksbehandlet = true,
-            tiltaksdeltakelser = listOf(
-                Pair(
-                    behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!,
-                    behandling.søknad.tiltak!!.id,
+            innvilgelsesperioder = listOf(
+                innvilgelsesperiodeKommando(
+                    periode = tiltaksOgVurderingsperiode,
+                    antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+                    tiltaksdeltakelseId = behandling.søknad.tiltak!!.id,
                 ),
             ),
-            innvilgelsesperiode = tiltaksOgVurderingsperiode,
             barnetillegg = Barnetillegg.utenBarnetillegg(tiltaksOgVurderingsperiode),
-            antallDagerPerMeldeperiode = listOf(
-                Pair(
-                    behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!,
-                    AntallDagerForMeldeperiode.default,
-                ),
-            ),
         ),
         clock = clock,
         utbetaling = null,
@@ -275,19 +270,19 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sak.id,
         saksnummer = sak.saksnummer,
     ),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("persisterKlarTilBeslutningSøknadsbehandling()"),
-    begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("persisterKlarTilBeslutningSøknadsbehandling()"),
+    fritekstTilVedtaksbrev: String = "persisterKlarTilBeslutningSøknadsbehandling()",
+    begrunnelseVilkårsvurdering: String = "persisterKlarTilBeslutningSøknadsbehandling()",
     correlationId: CorrelationId = CorrelationId.generate(),
+    innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
+        innvilgelsesperiodeKommando(
+            periode = tiltaksOgVurderingsperiode,
+            tiltaksdeltakelseId = søknad.tiltak.id,
+        ),
+    ),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     /** Brukt for å styre meldeperiode generering */
     clock: Clock = this.clock,
-    antallDagerPerMeldeperiode: List<Pair<Periode, AntallDagerForMeldeperiode>> = listOf(
-        Pair(
-            Periode(deltakelseFom, deltakelseTom),
-            AntallDagerForMeldeperiode.default,
-        ),
-    ),
     automatiskSaksbehandlet: Boolean = false,
 ): Pair<Sak, Rammebehandling> {
     val (sak, søknadsbehandling) = persisterOpprettetSøknadsbehandling(
@@ -304,32 +299,23 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         clock = clock,
     )
 
-    val tiltaksdeltakelser = listOf(
-        Pair(
-            tiltaksOgVurderingsperiode,
-            søknadsbehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
-        ),
-    )
-
     val oppdatertSøknadsbehandling =
         søknadsbehandling
             .oppdater(
                 when (resultat) {
-                    SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
+                    SøknadsbehandlingType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
                         sakId = sak.id,
                         saksbehandler = saksbehandler,
                         behandlingId = søknadsbehandling.id,
                         correlationId = correlationId,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                        innvilgelsesperiode = tiltaksOgVurderingsperiode,
+                        innvilgelsesperioder = innvilgelsesperioder,
                         barnetillegg = Barnetillegg.utenBarnetillegg(tiltaksOgVurderingsperiode),
-                        tiltaksdeltakelser = tiltaksdeltakelser,
-                        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                         automatiskSaksbehandlet = automatiskSaksbehandlet,
                     )
 
-                    SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
+                    SøknadsbehandlingType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
                         sakId = sak.id,
                         saksbehandler = saksbehandler,
                         behandlingId = søknadsbehandling.id,
@@ -337,7 +323,6 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avslagsgrunner = avslagsgrunner!!,
-                        automatiskSaksbehandlet = automatiskSaksbehandlet,
                     )
                 },
                 clock = clock,
@@ -386,8 +371,8 @@ internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
         sakId = sak.id,
         saksnummer = sak.saksnummer,
     ),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("persisterKlarTilBeslutningSøknadsbehandling()"),
-    begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("persisterKlarTilBeslutningSøknadsbehandling()"),
+    fritekstTilVedtaksbrev: String = "persisterKlarTilBeslutningSøknadsbehandling()",
+    begrunnelseVilkårsvurdering: String = "persisterKlarTilBeslutningSøknadsbehandling()",
     correlationId: CorrelationId = CorrelationId.generate(),
     /**
      * Brukt for å styre meldeperiode generering
@@ -532,8 +517,8 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
             saksnummer = sak.saksnummer,
         ),
     correlationId: CorrelationId = CorrelationId.generate(),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("persisterIverksattSøknadsbehandling()"),
-    begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("persisterIverksattSøknadsbehandling()"),
+    fritekstTilVedtaksbrev: String = "persisterIverksattSøknadsbehandling()",
+    begrunnelseVilkårsvurdering: String = "persisterIverksattSøknadsbehandling()",
     /**
      * Brukt for å styre meldeperiode generering
      */
@@ -599,8 +584,8 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
         saksnummer = sak.saksnummer,
     ),
     correlationId: CorrelationId = CorrelationId.generate(),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("persisterIverksattSøknadsbehandlingAvslag()"),
-    begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("persisterIverksattSøknadsbehandlingAvslag()"),
+    fritekstTilVedtaksbrev: String = "persisterIverksattSøknadsbehandlingAvslag()",
+    begrunnelseVilkårsvurdering: String = "persisterIverksattSøknadsbehandlingAvslag()",
     /**
      * Brukt for å styre meldeperiode generering
      */
