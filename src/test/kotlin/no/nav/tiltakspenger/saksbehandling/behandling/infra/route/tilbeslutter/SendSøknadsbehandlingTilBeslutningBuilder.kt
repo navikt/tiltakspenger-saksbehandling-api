@@ -44,7 +44,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         vedtaksperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = vedtaksperiode.fraOgMed,
             tom = vedtaksperiode.tilOgMed,
