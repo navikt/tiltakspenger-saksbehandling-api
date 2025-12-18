@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
-import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -32,7 +31,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterS�
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
@@ -363,13 +361,11 @@ class OppdaterBehandlingRouteTest {
                 rammevedtakRevurdering.id,
             )
             (revurderingMedOppdatertSaksopplysninger as Revurdering).erFerdigutfylt() shouldBe true
-            val antallDagerPerMeldeperiodeForPerioder = listOf(
-                AntallDagerPerMeldeperiodeDTO(
-                    periode = nyOmgjøringsperiodeEtterOppdatering.toDTO(),
-                    antallDagerPerMeldeperiode = 10,
-                ),
-            )
             val barnetillegg = Barnetillegg.utenBarnetillegg((3 til 9.april(2025))).toBarnetilleggDTO()
+            val innvilgelsesperioder = rammevedtakRevurdering.innvilgelsesperioderDTO(
+                nyOmgjøringsperiodeEtterOppdatering,
+            )
+
             val (_, oppdatertRevurdering) = oppdaterBehandling(
                 tac = tac,
                 sakId = sak.id,
@@ -377,9 +373,7 @@ class OppdaterBehandlingRouteTest {
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Omgjøring(
                     fritekstTilVedtaksbrev = "asdf",
                     begrunnelseVilkårsvurdering = null,
-                    innvilgelsesperioder = rammevedtakRevurdering.innvilgelsesperioderDTO(
-                        nyOmgjøringsperiodeEtterOppdatering,
-                    ),
+                    innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = barnetillegg,
                 ),
                 forventetStatus = HttpStatusCode.OK,
@@ -390,7 +384,7 @@ class OppdaterBehandlingRouteTest {
             val resultat = oppdatertRevurdering.resultat as RevurderingResultat.Omgjøring
             // Kommentar jah: Beklager for alt todomain-greiene. Her bør det expectes på eksplisitte verdier uten å bruke domenekode for mapping.
             resultat.barnetillegg shouldBe barnetillegg.tilBarnetillegg(oppdatertRevurdering.innvilgelsesperioder!!.totalPeriode)
-            resultat.antallDagerPerMeldeperiode shouldBe antallDagerPerMeldeperiodeForPerioder.map {
+            resultat.antallDagerPerMeldeperiode shouldBe innvilgelsesperioder.map {
                 PeriodeMedVerdi(
                     AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
                     it.periode.toDomain(),

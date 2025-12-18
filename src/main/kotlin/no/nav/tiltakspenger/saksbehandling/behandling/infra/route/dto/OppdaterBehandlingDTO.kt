@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando
@@ -33,12 +32,6 @@ sealed interface OppdaterBehandlingDTO {
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): OppdaterBehandlingKommando
-
-    data class InnvilgelsesperiodeDTO(
-        val periode: PeriodeDTO,
-        val antallDagerPerMeldeperiode: Int,
-        val tiltaksdeltakelseId: String,
-    )
 
     fun List<InnvilgelsesperiodeDTO>.tilKommando(): IkkeTomPeriodisering<InnvilgelsesperiodeKommando> {
         return this.map {
