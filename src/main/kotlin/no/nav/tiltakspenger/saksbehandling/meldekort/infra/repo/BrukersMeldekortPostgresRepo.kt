@@ -114,7 +114,7 @@ class BrukersMeldekortPostgresRepo(
                         select 1 
                         from utbetaling u 
                         where u.sak_id = mk.sak_id 
-                        and u.status not in ('OK', 'OK_UTEN_UTBETALING')
+                        and (u.status is null or u.status not in ('OK', 'OK_UTEN_UTBETALING'))
                     )
                     order by mk.sak_id, mk.meldeperiode_kjede_id, mk.meldeperiode_versjon
                     limit 100;
