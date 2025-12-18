@@ -57,7 +57,7 @@ data class Revurdering(
     override val utbetaling: BehandlingUtbetaling?,
 ) : Rammebehandling {
 
-    override val virkningsperiode: Periode? = resultat.virkningsperiode
+    override val vedtaksperiode: Periode? = resultat.vedtaksperiode
     override val innvilgelsesperioder: Innvilgelsesperioder? = resultat.innvilgelsesperioder
 
     override val barnetillegg = resultat.barnetillegg

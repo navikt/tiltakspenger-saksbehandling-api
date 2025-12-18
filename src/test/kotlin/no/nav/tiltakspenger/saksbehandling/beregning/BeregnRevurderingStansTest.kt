@@ -23,14 +23,14 @@ class BeregnRevurderingStansTest {
     private val sats2025 = Satser.sats(1.januar(2025))
 
     // Starter på en tirsdag
-    private val virkningsperiode = Periode(31.desember(2024), 30.juni(2025))
+    private val vedtaksperiode = Periode(31.desember(2024), 30.juni(2025))
 
     private fun sakMedToMeldekortOgStans(): Pair<Sak, Revurdering> {
         val (sak) = nySakMedVedtak(
-            virkningsperiode = virkningsperiode,
+            vedtaksperiode = vedtaksperiode,
             barnetillegg =
             barnetillegg(
-                periode = virkningsperiode,
+                periode = vedtaksperiode,
                 antallBarn = AntallBarn(1),
             ),
         ).first.genererMeldeperioder(fixedClock)
@@ -45,7 +45,7 @@ class BeregnRevurderingStansTest {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            saksopplysningsperiode = virkningsperiode,
+            saksopplysningsperiode = vedtaksperiode,
         )
 
         return (sakMedMeldekortBehandlinger.leggTilRevurdering(revurdering)) to revurdering
@@ -77,10 +77,10 @@ class BeregnRevurderingStansTest {
     }
 
     @Test
-    fun `Skal beregne 0-utbetaling for hele virkningperioden når hele perioden stanses`() {
+    fun `Skal beregne 0-utbetaling for hele vedtaksperiode når hele perioden stanses`() {
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(virkningsperiode.fraOgMed, sak.sisteDagSomGirRett!!))
+        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(vedtaksperiode.fraOgMed, sak.sisteDagSomGirRett!!))
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 2

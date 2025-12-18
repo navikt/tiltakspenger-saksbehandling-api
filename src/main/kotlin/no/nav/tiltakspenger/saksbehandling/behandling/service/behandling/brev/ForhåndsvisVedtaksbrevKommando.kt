@@ -24,8 +24,8 @@ import java.time.LocalDate
  * @param valgteHjemler Brukes kun ved revurdering til stans
  * @param stansFraOgMed Brukes kun ved revurdering til stans
  * @param stansTilOgMed Brukes kun ved revurdering til stans
- * @param virkningsperiode Brukes ved avslag og innvilgelse (søknadsbehandling+revurdering). Brukes kun hvis den ikke er satt på behandlingen.
- * @param barnetillegg Brukes ved innvilgelse (søknadsbehandling+revurdering). Kan inneholde hull, men kan ikke være tom. Må valideres basert på innsendt virkningsperiode eller virkningsperioden på behandlingen.
+ * @param vedtaksperiode Brukes ved avslag og innvilgelse (søknadsbehandling+revurdering). Brukes kun hvis den ikke er satt på behandlingen.
+ * @param barnetillegg Brukes ved innvilgelse (søknadsbehandling+revurdering). Kan inneholde hull, men kan ikke være tom. Må valideres basert på innsendt [vedtaksperiode] eller vedtaksperiodeen på behandlingen.
  */
 data class ForhåndsvisVedtaksbrevKommando(
     val sakId: SakId,
@@ -35,7 +35,7 @@ data class ForhåndsvisVedtaksbrevKommando(
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val resultat: BehandlingResultatType,
     val valgteHjemler: List<ValgtHjemmelForStans>?,
-    val virkningsperiode: Periode?,
+    val vedtaksperiode: Periode?,
     val barnetillegg: IkkeTomPeriodisering<AntallBarn>?,
     val stansFraOgMed: LocalDate?,
     val stansTilOgMed: LocalDate?,
@@ -71,13 +71,13 @@ data class ForhåndsvisVedtaksbrevKommando(
         when (resultat) {
             RevurderingType.STANS -> {
                 requireNotNull(valgteHjemler)
-                require(virkningsperiode == null) { "Kan ikke sende inn virkningsperiode ved stans" }
+                require(vedtaksperiode == null) { "Kan ikke sende inn vedtaksperiode ved stans" }
                 require(avslagsgrunner == null) { "Kan ikke sende inn avslagsgrunner ved stans" }
                 require(barnetillegg == null) { "Kan ikke sende inn barnetillegg ved stans" }
             }
 
             RevurderingType.INNVILGELSE, SøknadsbehandlingType.INNVILGELSE, RevurderingType.OMGJØRING -> {
-                requireNotNull(virkningsperiode)
+                requireNotNull(vedtaksperiode)
                 require(avslagsgrunner == null) { "Kan ikke sende inn avslagsgrunner ved innvilgelse" }
                 require(stansFraOgMed == null && stansTilOgMed == null) { "Kan ikke sende inn stansFraOgMed/stansTilOgMed ved innvilgelse" }
                 require(valgteHjemler == null) { "Kan ikke sende inn valgteHjemler ved innvilgelse" }
@@ -87,7 +87,7 @@ data class ForhåndsvisVedtaksbrevKommando(
             SøknadsbehandlingType.AVSLAG -> {
                 requireNotNull(avslagsgrunner)
                 // Kan enable denne når frontend er oppdatert til ikke å sende den
-//                require(virkningsperiode == null) { "Kan ikke sende inn virkningsperiode ved avslag" }
+//                require(vedtaksperiode == null) { "Kan ikke sende inn vedtaksperiode ved avslag" }
                 require(valgteHjemler == null) { "Kan ikke sende inn valgteHjemler ved avslag" }
                 require(barnetillegg == null) { "Kan ikke sende inn barnetillegg ved avslag" }
                 require(stansFraOgMed == null && stansTilOgMed == null) { "Kan ikke sende inn stansFraOgMed/stansTilOgMed ved avslag" }

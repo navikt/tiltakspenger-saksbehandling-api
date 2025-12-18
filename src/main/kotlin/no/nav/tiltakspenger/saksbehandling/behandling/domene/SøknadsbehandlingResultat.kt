@@ -13,7 +13,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
     override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, SøknadsbehandlingResultat?>
 
     /**
-     * Virkningsperioden/vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
+     * Vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
      * Den vil ikke påvirke vedtakstidslinjen, beregninger eller utbetalinger.
      * @param avslagsperiode Kan være null ved manuelt registrert søknad, dersom det ikke er søkt for et spesifikt tiltak eller periode.
      */
@@ -21,7 +21,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
         val avslagsperiode: Periode?,
     ) : SøknadsbehandlingResultat {
-        override val virkningsperiode = avslagsperiode
+        override val vedtaksperiode = avslagsperiode
         override val innvilgelsesperioder = null
         override val barnetillegg = null
         override val valgteTiltaksdeltakelser = null
@@ -39,7 +39,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
     }
 
     /**
-     * Virkningsperioden/vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
+     * Vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
      *
      * Når saksbehandler velger at en søknadsbehandling skal innvilges, får de ikke lagret før de har valgt [innvilgelsesperioder]
      */
@@ -49,7 +49,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : BehandlingResultat.Innvilgelse,
         SøknadsbehandlingResultat {
-        override val virkningsperiode = innvilgelsesperioder.totalPeriode
+        override val vedtaksperiode = innvilgelsesperioder.totalPeriode
         override val valgteTiltaksdeltakelser = innvilgelsesperioder.valgteTiltaksdeltagelser
         override val antallDagerPerMeldeperiode = innvilgelsesperioder.antallDagerPerMeldeperiode
 

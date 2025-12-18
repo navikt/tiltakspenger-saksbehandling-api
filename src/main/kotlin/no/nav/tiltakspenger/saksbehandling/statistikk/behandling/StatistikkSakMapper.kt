@@ -38,7 +38,7 @@ fun genererSaksstatistikkForRammevedtak(
         tekniskTidspunkt = nå(clock),
         søknadsformat = StatistikkFormat.DIGITAL.name,
         // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende søknadsbehandling sin første innvilget fraOgMed eller null?
-        forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.virkningsperiode?.fraOgMed else null,
+        forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.vedtaksperiode?.fraOgMed else null,
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         // TODO jah: I følge confluence-dokken så finner jeg ikke dette feltet. Burde det heller vært AVSLUTTET?
         behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,
@@ -92,7 +92,7 @@ fun genererSaksstatistikkForBehandling(
             is Søknadsbehandling -> behandling.søknad.søknadstype.name
             is Revurdering -> StatistikkFormat.DIGITAL.name
         },
-        forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.virkningsperiode?.fraOgMed else null,
+        forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.vedtaksperiode?.fraOgMed else null,
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         behandlingStatus = if (behandling.erAvbrutt) {
             StatistikkBehandlingStatus.AVSLUTTET

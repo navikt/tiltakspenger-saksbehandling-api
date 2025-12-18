@@ -42,17 +42,17 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = 1.til(10.april(2025)),
+        vedtaksperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            virkningsperiode,
+            vedtaksperiode,
         ),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = virkningsperiode.fraOgMed,
-            tom = virkningsperiode.tilOgMed,
+            fom = vedtaksperiode.fraOgMed,
+            tom = vedtaksperiode.tilOgMed,
         ),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandling) = when (resultat) {
@@ -60,7 +60,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 tac = tac,
                 sakId = sakId,
                 fnr = fnr,
-                virkningsperiode = virkningsperiode,
+                innvilgelsesperiode = vedtaksperiode,
                 saksbehandler = saksbehandler,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                 barnetillegg = barnetillegg,
@@ -70,7 +70,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             SøknadsbehandlingType.AVSLAG -> opprettSøknadsbehandlingUnderBehandlingMedAvslag(
                 tac,
                 fnr,
-                virkningsperiode,
+                vedtaksperiode,
                 saksbehandler,
             )
         }

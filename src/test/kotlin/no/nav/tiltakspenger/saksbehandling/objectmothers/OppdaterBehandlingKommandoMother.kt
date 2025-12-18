@@ -25,12 +25,12 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdel
 interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
 
     fun innvilgelsesperiodeKommando(
-        periode: Periode,
+        innvilgelsesperiode: Periode,
         antallDagerPerMeldeperiode: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         tiltaksdeltakelseId: String = tiltaksdeltakelse().eksternDeltakelseId,
     ): InnvilgelsesperiodeKommando {
         return InnvilgelsesperiodeKommando(
-            periode = periode,
+            periode = innvilgelsesperiode,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             tiltaksdeltakelseId = tiltaksdeltakelseId,
         )

@@ -41,7 +41,7 @@ internal class ForhåndsvisStansVedtaksbrevTest {
                     sakId = sak.id,
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                    virkningsperiode = null,
+                    vedtaksperiode = null,
                     stansFraOgMed = 1.februar(2025),
                     stansTilOgMed = null,
                     valgteHjemler = listOf(ValgtHjemmelForStansDTO.LønnFraAndre),

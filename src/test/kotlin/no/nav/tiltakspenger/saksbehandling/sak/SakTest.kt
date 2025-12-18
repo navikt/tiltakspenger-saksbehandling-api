@@ -95,8 +95,8 @@ class SakTest {
 
         @Test
         fun `for en sak med et vedtak`() {
-            val virkningsperiode = Periode(9.april(2024), 16.april(2024))
-            val (sak) = ObjectMother.nySakMedVedtak(virkningsperiode = virkningsperiode)
+            val vedtaksperiode = Periode(9.april(2024), 16.april(2024))
+            val (sak) = ObjectMother.nySakMedVedtak(vedtaksperiode = vedtaksperiode)
             val (sakMedMeldeperioder, meldeperioder) = sak.genererMeldeperioder(fixedClock)
 
             sakMedMeldeperioder.let {
@@ -179,10 +179,10 @@ class SakTest {
             behandling = ObjectMother.nyVedtattSøknadsbehandling(
                 sakId = sakId,
                 fnr = fnr,
-                virkningsperiode = vedtaksperiode,
+                saksopplysningsperiode = vedtaksperiode,
                 innvilgelsesperioder = listOf(
                     innvilgelsesperiodeKommando(
-                        periode = vedtaksperiode,
+                        innvilgelsesperiode = vedtaksperiode,
                         tiltaksdeltakelseId = deltakelsesId,
                     ),
                 ),
@@ -218,10 +218,10 @@ class SakTest {
             behandling = ObjectMother.nyVedtattRevurderingInnvilgelse(
                 sakId = sakId,
                 fnr = fnr,
-                virkningsperiode = andreVedtaksPeriode,
+                saksopplysningsperiode = andreVedtaksPeriode,
                 innvilgelsesperioder = listOf(
                     innvilgelsesperiodeKommando(
-                        periode = andreVedtaksPeriode,
+                        innvilgelsesperiode = andreVedtaksPeriode,
                         tiltaksdeltakelseId = deltakelsesId,
                     ),
                 ),

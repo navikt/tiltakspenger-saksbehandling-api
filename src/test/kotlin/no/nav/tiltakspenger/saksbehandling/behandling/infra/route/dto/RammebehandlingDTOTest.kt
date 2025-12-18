@@ -14,7 +14,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyOpprettetRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyOpprettetSøknadsbehandling
@@ -41,7 +43,7 @@ class RammebehandlingDTOTest {
     private val eksternTiltaksgjennomføringsId = "68f04dee-11a9-4d69-84fd-1096a4264492"
     private val fnr = gyldigFnr()
 
-    private val virkningsperiode = Periode(
+    private val vedtaksperiode = Periode(
         fraOgMed = 1.januar(2025),
         tilOgMed = 31.mars(2025),
     )
@@ -59,22 +61,22 @@ class RammebehandlingDTOTest {
             saksnummer = saksnummer,
             fnr = fnr,
             resultat = SøknadsbehandlingType.INNVILGELSE,
-            virkningsperiode = virkningsperiode,
+            saksopplysningsperiode = vedtaksperiode,
             søknad = nyInnvilgbarSøknad(
                 id = søknadId,
                 søknadstiltak = søknadstiltak(
-                    deltakelseFom = virkningsperiode.fraOgMed,
-                    deltakelseTom = virkningsperiode.tilOgMed,
+                    deltakelseFom = vedtaksperiode.fraOgMed,
+                    deltakelseTom = vedtaksperiode.tilOgMed,
                     id = eksternTiltaksdeltakelseId,
                 ),
             ),
             saksopplysninger = saksopplysninger(
-                fom = virkningsperiode.fraOgMed,
-                tom = virkningsperiode.tilOgMed,
+                fom = vedtaksperiode.fraOgMed,
+                tom = vedtaksperiode.tilOgMed,
                 tiltaksdeltakelse = listOf(
                     tiltaksdeltakelse(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
+                        fom = vedtaksperiode.fraOgMed,
+                        tom = vedtaksperiode.tilOgMed,
                         eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
@@ -276,22 +278,22 @@ class RammebehandlingDTOTest {
             fnr = fnr,
             resultat = SøknadsbehandlingType.AVSLAG,
             avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
-            virkningsperiode = virkningsperiode,
+            saksopplysningsperiode = vedtaksperiode,
             søknad = nyInnvilgbarSøknad(
                 id = søknadId,
                 søknadstiltak = søknadstiltak(
-                    deltakelseFom = virkningsperiode.fraOgMed,
-                    deltakelseTom = virkningsperiode.tilOgMed,
+                    deltakelseFom = vedtaksperiode.fraOgMed,
+                    deltakelseTom = vedtaksperiode.tilOgMed,
                     id = søknadTiltakId,
                 ),
             ),
             saksopplysninger = saksopplysninger(
-                fom = virkningsperiode.fraOgMed,
-                tom = virkningsperiode.tilOgMed,
+                fom = vedtaksperiode.fraOgMed,
+                tom = vedtaksperiode.tilOgMed,
                 tiltaksdeltakelse = listOf(
                     tiltaksdeltakelse(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
+                        fom = vedtaksperiode.fraOgMed,
+                        tom = vedtaksperiode.tilOgMed,
                         eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
@@ -463,19 +465,19 @@ class RammebehandlingDTOTest {
             søknad = nyInnvilgbarSøknad(
                 id = søknadId,
                 søknadstiltak = søknadstiltak(
-                    deltakelseFom = virkningsperiode.fraOgMed,
-                    deltakelseTom = virkningsperiode.tilOgMed,
+                    deltakelseFom = vedtaksperiode.fraOgMed,
+                    deltakelseTom = vedtaksperiode.tilOgMed,
                     id = eksternTiltaksdeltakelseId,
                 ),
             ),
             hentSaksopplysninger = { _, _, _, _, _ ->
                 saksopplysninger(
-                    fom = virkningsperiode.fraOgMed,
-                    tom = virkningsperiode.tilOgMed,
+                    fom = vedtaksperiode.fraOgMed,
+                    tom = vedtaksperiode.tilOgMed,
                     tiltaksdeltakelse = listOf(
                         tiltaksdeltakelse(
-                            fom = virkningsperiode.fraOgMed,
-                            tom = virkningsperiode.tilOgMed,
+                            fom = vedtaksperiode.fraOgMed,
+                            tom = vedtaksperiode.tilOgMed,
                             eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                             eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                         ),
@@ -632,14 +634,14 @@ class RammebehandlingDTOTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            virkningsperiode = virkningsperiode,
+            saksopplysningsperiode = vedtaksperiode,
             saksopplysninger = saksopplysninger(
-                fom = virkningsperiode.fraOgMed,
-                tom = virkningsperiode.tilOgMed,
+                fom = vedtaksperiode.fraOgMed,
+                tom = vedtaksperiode.tilOgMed,
                 tiltaksdeltakelse = listOf(
                     tiltaksdeltakelse(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
+                        fom = vedtaksperiode.fraOgMed,
+                        tom = vedtaksperiode.tilOgMed,
                         eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
@@ -762,18 +764,18 @@ class RammebehandlingDTOTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            virkningsperiode = virkningsperiode,
-            stansFraOgMed = virkningsperiode.fraOgMed.plusDays(7),
-            stansTilOgMed = virkningsperiode.tilOgMed,
-            førsteDagSomGirRett = virkningsperiode.fraOgMed,
-            sisteDagSomGirRett = virkningsperiode.tilOgMed,
+            vedtaksperiode = vedtaksperiode,
+            stansFraOgMed = vedtaksperiode.fraOgMed.plusDays(7),
+            stansTilOgMed = vedtaksperiode.tilOgMed,
+            førsteDagSomGirRett = vedtaksperiode.fraOgMed,
+            sisteDagSomGirRett = vedtaksperiode.tilOgMed,
             saksopplysninger = saksopplysninger(
-                fom = virkningsperiode.fraOgMed,
-                tom = virkningsperiode.tilOgMed,
+                fom = vedtaksperiode.fraOgMed,
+                tom = vedtaksperiode.tilOgMed,
                 tiltaksdeltakelse = listOf(
                     tiltaksdeltakelse(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
+                        fom = vedtaksperiode.fraOgMed,
+                        tom = vedtaksperiode.tilOgMed,
                         eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
@@ -868,22 +870,22 @@ class RammebehandlingDTOTest {
             saksnummer = saksnummer,
             fnr = fnr,
             resultat = SøknadsbehandlingType.INNVILGELSE,
-            virkningsperiode = virkningsperiode,
+            saksopplysningsperiode = vedtaksperiode,
             søknad = nyInnvilgbarSøknad(
                 id = søknadId,
                 søknadstiltak = søknadstiltak(
-                    deltakelseFom = virkningsperiode.fraOgMed,
-                    deltakelseTom = virkningsperiode.tilOgMed,
+                    deltakelseFom = vedtaksperiode.fraOgMed,
+                    deltakelseTom = vedtaksperiode.tilOgMed,
                     id = søknadTiltakId,
                 ),
             ),
             saksopplysninger = saksopplysninger(
-                fom = virkningsperiode.fraOgMed,
-                tom = virkningsperiode.tilOgMed,
+                fom = vedtaksperiode.fraOgMed,
+                tom = vedtaksperiode.tilOgMed,
                 tiltaksdeltakelse = listOf(
                     tiltaksdeltakelse(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
+                        fom = vedtaksperiode.fraOgMed,
+                        tom = vedtaksperiode.tilOgMed,
                         eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                     ),
@@ -901,22 +903,24 @@ class RammebehandlingDTOTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            søknadsbehandlingInnvilgelsesperiode = virkningsperiode.plusFraOgMed(1),
+            søknadsbehandlingInnvilgelsesperiode = vedtaksperiode.plusFraOgMed(1),
             vedtattInnvilgetSøknadsbehandling = nyRammevedtakInnvilgelse(
                 id = vedtakId,
                 sakId = sakId,
-                virkningsperiode = behandling.virkningsperiode!!,
+                innvilgelsesperioder = listOf(
+                    innvilgelsesperiodeKommando(innvilgelsesperiode = ObjectMother.vedtaksperiode()),
+                ),
                 fnr = fnr,
                 behandling = behandling,
             ),
             hentSaksopplysninger = {
                 saksopplysninger(
-                    fom = virkningsperiode.fraOgMed,
-                    tom = virkningsperiode.tilOgMed,
+                    fom = vedtaksperiode.fraOgMed,
+                    tom = vedtaksperiode.tilOgMed,
                     tiltaksdeltakelse = listOf(
                         tiltaksdeltakelse(
-                            fom = virkningsperiode.fraOgMed,
-                            tom = virkningsperiode.tilOgMed,
+                            fom = vedtaksperiode.fraOgMed,
+                            tom = vedtaksperiode.tilOgMed,
                             eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                             eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
                         ),

@@ -38,7 +38,7 @@ import java.time.LocalDateTime
 
 /**
  * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
- * @param periode Stansperiode eller innvilgelsesperiode (ikke nødvendigvis det samme som vurderingsperiode.)
+ * @param periode Stansperiode eller innvilgelsesperiode (ikke nødvendigvis det samme som vedtaksperiode).
  * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
  * @param omgjortAvRammevedtak Dersom dette vedtaket er erstattet helt eller delvis av ett eller flere senere vedtak.
  * @param omgjørRammevedtak Dersom dette vedtaket helt eller delvis omgjør ett eller flere tidligere vedtak.
@@ -208,7 +208,7 @@ data class Rammevedtak(
     init {
         require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
         require(sakId == behandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${behandling.id}" }
-        require(this@Rammevedtak.periode == behandling.virkningsperiode) { "Periode i vedtak (${this@Rammevedtak.periode}) og behandlingens virkningsperiode (${behandling.virkningsperiode}) må være lik. SakId: $sakId, Saksnummer: ${behandling.saksnummer} BehandlingId: ${behandling.id}" }
+        require(this@Rammevedtak.periode == behandling.vedtaksperiode) { "Periode i vedtak (${this@Rammevedtak.periode}) og behandlingens vedtaksperiode (${behandling.vedtaksperiode}) må være lik. SakId: $sakId, Saksnummer: ${behandling.saksnummer} BehandlingId: ${behandling.id}" }
         require(id !in omgjørRammevedtak.rammevedtakIDer)
         require(id !in omgjortAvRammevedtak.rammevedtakIDer)
 
@@ -267,7 +267,7 @@ fun Sak.opprettVedtak(
         opprettet = opprettet,
         sakId = this.id,
         behandling = behandling,
-        periode = behandling.virkningsperiode!!,
+        periode = behandling.vedtaksperiode!!,
         omgjortAvRammevedtak = OmgjortAvRammevedtak.empty,
         utbetaling = utbetaling,
         vedtaksdato = null,

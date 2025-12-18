@@ -73,7 +73,7 @@ interface SøknadMother {
     fun personopplysningFødselsdato() = 1.januar(2000)
 
     fun nyInnvilgbarSøknad(
-        periode: Periode = ObjectMother.virkningsperiode(),
+        periode: Periode = ObjectMother.vedtaksperiode(),
         versjon: String = "1",
         id: SøknadId = Søknad.randomId(),
         journalpostId: String = "journalpostId",
@@ -136,7 +136,7 @@ interface SøknadMother {
         )
 
     fun nyIkkeInnvilgbarSøknad(
-        periode: Periode = ObjectMother.virkningsperiode(),
+        periode: Periode = ObjectMother.vedtaksperiode(),
         versjon: String = "1",
         id: SøknadId = Søknad.randomId(),
         journalpostId: String = "journalpostId",
@@ -165,7 +165,7 @@ interface SøknadMother {
         vedlegg: Int = 0,
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         avbrutt: Avbrutt? = null,
-        søknadsperiode: Periode? = ObjectMother.virkningsperiode(),
+        søknadsperiode: Periode? = ObjectMother.vedtaksperiode(),
         manueltSattTiltak: String? = null,
         søknadstype: Søknadstype = Søknadstype.PAPIR_SKJEMA,
     ): IkkeInnvilgbarSøknad =

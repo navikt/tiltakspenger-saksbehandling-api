@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
@@ -33,6 +32,8 @@ interface IverksettSøknadsbehandlingBuilder {
      * Oppretter kun ny sak hvis sakId er null. Oppretter alltid ny søknad med søknadsbehandling.
      *
      * @param fnr ignoreres hvis sakId er satt
+     * @param resultat Innvilgelse eller avslag.
+     * @param vedtaksperiode Avhengig av [resultat]. Vil være avslagsperiode dersom [SøknadsbehandlingType.AVSLAG], eller innvilgelsesperiode ved [SøknadsbehandlingType.INNVILGELSE]
      * */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandling(
         tac: TestApplicationContext,
@@ -56,7 +57,7 @@ interface IverksettSøknadsbehandlingBuilder {
             tac = tac,
             sakId = sakId,
             fnr = fnr,
-            virkningsperiode = vedtaksperiode,
+            vedtaksperiode = vedtaksperiode,
             resultat = resultat,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             barnetillegg = barnetillegg,
@@ -82,18 +83,18 @@ interface IverksettSøknadsbehandlingBuilder {
     suspend fun ApplicationTestBuilder.iverksettAutomatiskBehandletSøknadsbehandling(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = 1.til(10.april(2025)),
+        vedtaksperiode: Periode = 1.til(10.april(2025)),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            virkningsperiode,
+            vedtaksperiode,
         ),
     ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(
             tac = tac,
             fnr = fnr,
-            virkningsperiode = virkningsperiode,
+            vedtaksperiode = vedtaksperiode,
         )
         taBehandling(tac, sak.id, søknadsbehandling.id, beslutter)
         val (oppdatertSak, rammevedtakSøknadsbehandling, jsonResponse) = iverksettForBehandlingId(

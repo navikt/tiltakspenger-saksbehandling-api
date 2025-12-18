@@ -73,7 +73,7 @@ class OppdaterBehandlingService(
             is OppdaterRevurderingKommando.Innvilgelse,
             -> this.beregnInnvilgelse(
                 behandlingId = kommando.behandlingId,
-                virkningsperiode = kommando.innvilgelsesperioder.totalPeriode,
+                vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
                 innvilgelsesperioder = kommando.tilInnvilgelseperioder(behandling),
                 barnetilleggsperioder = kommando.barnetillegg.periodisering,
             )
@@ -84,8 +84,8 @@ class OppdaterBehandlingService(
 
                 this.beregnInnvilgelse(
                     behandlingId = kommando.behandlingId,
-                    virkningsperiode = RevurderingResultat.Omgjøring.utledNyVirkningsperiode(
-                        (behandling.resultat as RevurderingResultat.Omgjøring).virkningsperiode,
+                    vedtaksperiode = RevurderingResultat.Omgjøring.utledNyVedtaksperiode(
+                        (behandling.resultat as RevurderingResultat.Omgjøring).vedtaksperiode,
                         innvilgelsesperioder,
                     ),
                     innvilgelsesperioder = innvilgelsesperioder,
@@ -133,7 +133,7 @@ class OppdaterBehandlingService(
         val omgjørRammevedtak = when (kommando) {
             is OppdaterSøknadsbehandlingKommando.Avslag, is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat -> OmgjørRammevedtak.empty
             is OppdaterSøknadsbehandlingKommando.Innvilgelse -> this.vedtaksliste.finnRammevedtakSomOmgjøres(
-                virkningsperiode = kommando.innvilgelsesperioder.totalPeriode,
+                vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             )
         }
 

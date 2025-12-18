@@ -102,7 +102,7 @@ internal suspend fun genererRevurderingInnvilgetBrev(
     ).let { serialize(it) }
 }
 
-private fun Periodisering<AntallBarn>.tilIntroTekst(vurderingsperiode: Periode, antallDagerTekst: String?): String? {
+private fun Periodisering<AntallBarn>.tilIntroTekst(vedtaksperiode: Periode, antallDagerTekst: String?): String? {
     val antallDagerPerUkeTekst = antallDagerTekst?.let { " for $it" } ?: ""
     val perioderMedBarnetillegg = perioderMedVerdi
         .filter { it.verdi.value > 0 }
@@ -111,7 +111,7 @@ private fun Periodisering<AntallBarn>.tilIntroTekst(vurderingsperiode: Periode, 
         return null
     }
 
-    val harBarnetilleggOverHeleInnvilgelsesperiode = perioder.all { periode -> vurderingsperiode == periode }
+    val harBarnetilleggOverHeleInnvilgelsesperiode = perioder.all { periode -> vedtaksperiode == periode }
 
     val perioderMedBarnetilleggString = perioderMedBarnetillegg
         .map { periodeMedVerdi ->
@@ -132,8 +132,8 @@ private fun Periodisering<AntallBarn>.tilIntroTekst(vurderingsperiode: Periode, 
         "Du får tiltakspenger og barnetillegg $perioderMedBarnetilleggString$antallDagerPerUkeTekst."
     } else {
         """
-            Du får tiltakspenger fra og med ${vurderingsperiode.fraOgMed.format(norskDatoFormatter)} til og med ${
-            vurderingsperiode.tilOgMed.format(norskDatoFormatter)
+            Du får tiltakspenger fra og med ${vedtaksperiode.fraOgMed.format(norskDatoFormatter)} til og med ${
+            vedtaksperiode.tilOgMed.format(norskDatoFormatter)
         }$antallDagerPerUkeTekst.
         
             Du får barnetillegg $perioderMedBarnetilleggString.

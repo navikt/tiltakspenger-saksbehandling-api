@@ -63,7 +63,7 @@ interface SendRevurderingTilBeslutningBuilder {
                 begrunnelseVilkårsvurdering = null,
                 fritekstTilVedtaksbrev = null,
                 valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
+                stansFraOgMed = søknadsbehandling.vedtaksperiode!!.fraOgMed,
                 stansTilOgMed = null,
                 harValgtStansFraFørsteDagSomGirRett = false,
                 harValgtStansTilSisteDagSomGirRett = true,
@@ -86,21 +86,21 @@ interface SendRevurderingTilBeslutningBuilder {
     /** Oppretter ny sak, søknad og behandling. */
     suspend fun ApplicationTestBuilder.sendRevurderingInnvilgelseTilBeslutning(
         tac: TestApplicationContext,
-        søknadsbehandlingVirkningsperiode: Periode = 1.til(10.april(2025)),
-        revurderingVirkningsperiode: Periode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L),
+        søknadsbehandlingInnvilgelsesperiode: Periode = 1.til(10.april(2025)),
+        revurderingInnvilgelsesperiode: Periode = søknadsbehandlingInnvilgelsesperiode.plusTilOgMed(14L),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Rammevedtak, String> {
         val (sak, søknad, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
             tac,
-            søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode,
-            revurderingVedtaksperiode = revurderingVirkningsperiode,
+            søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
+            revurderingVedtaksperiode = revurderingInnvilgelsesperiode,
         )
 
         val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.single()
 
         val antallDager = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            revurderingVirkningsperiode,
+            revurderingInnvilgelsesperiode,
         )
 
         oppdaterBehandling(
@@ -110,7 +110,7 @@ interface SendRevurderingTilBeslutningBuilder {
             oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
                 begrunnelseVilkårsvurdering = null,
                 fritekstTilVedtaksbrev = null,
-                innvilgelsesperiode = revurderingVirkningsperiode.toDTO(),
+                innvilgelsesperiode = revurderingInnvilgelsesperiode.toDTO(),
                 valgteTiltaksdeltakelser = listOf(
                     TiltaksdeltakelsePeriodeDTO(
                         eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
@@ -118,7 +118,7 @@ interface SendRevurderingTilBeslutningBuilder {
                     ),
                 ),
                 antallDagerPerMeldeperiodeForPerioder = antallDager.tilAntallDagerPerMeldeperiodeDTO(),
-                barnetillegg = Barnetillegg.utenBarnetillegg(revurderingVirkningsperiode).toBarnetilleggDTO(),
+                barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperiode).toBarnetilleggDTO(),
             ),
         )
 

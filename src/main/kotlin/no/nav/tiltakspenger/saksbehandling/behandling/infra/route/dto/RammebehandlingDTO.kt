@@ -31,6 +31,8 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val beslutter: String?
     val saksopplysninger: SaksopplysningerDTO
     val attesteringer: List<AttesteringDTO>
+
+    // TODO: Rename til vedtaksperiode i frontend+backend
     val virkningsperiode: PeriodeDTO?
     val fritekstTilVedtaksbrev: String?
     val begrunnelseVilkårsvurdering: String?
@@ -51,6 +53,7 @@ data class SøknadsbehandlingDTO(
     override val beslutter: String?,
     override val saksopplysninger: SaksopplysningerDTO,
     override val attesteringer: List<AttesteringDTO>,
+    // TODO: Rename til vedtaksperiode i frontend+backend
     override val virkningsperiode: PeriodeDTO?,
     override val fritekstTilVedtaksbrev: String?,
     override val begrunnelseVilkårsvurdering: String?,
@@ -79,6 +82,7 @@ data class RevurderingDTO(
     override val beslutter: String?,
     override val saksopplysninger: SaksopplysningerDTO,
     override val attesteringer: List<AttesteringDTO>,
+    // TODO: Rename til vedtaksperiode i frontend+backend
     override val virkningsperiode: PeriodeDTO?,
     override val fritekstTilVedtaksbrev: String?,
     override val begrunnelseVilkårsvurdering: String?,
@@ -142,7 +146,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         iverksattTidspunkt = this.iverksattTidspunkt,
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
-        virkningsperiode = this.virkningsperiode?.toDTO(),
+        virkningsperiode = this.vedtaksperiode?.toDTO(),
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
@@ -167,7 +171,7 @@ fun Revurdering.tilRevurderingDTO(
         beslutter = this.beslutter,
         attesteringer = this.attesteringer.toAttesteringDTO(),
         saksopplysninger = this.saksopplysninger.toSaksopplysningerDTO(),
-        virkningsperiode = this.virkningsperiode?.toDTO(),
+        virkningsperiode = this.vedtaksperiode?.toDTO(),
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
         avbrutt = this.avbrutt?.toAvbruttDTO(),

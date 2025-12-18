@@ -57,7 +57,7 @@ class DelautomatiskBehandlingServiceTest {
                 soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
                 val tiltaksdeltakelse =
                     behandling.saksopplysninger.tiltaksdeltakelser.find { it.eksternDeltakelseId == soknad.tiltak.id }!!
-                val virkningsperiode = soknad.tiltaksdeltakelseperiodeDetErSøktOm()
+                val expectedVedtaksperiode = soknad.tiltaksdeltakelseperiodeDetErSøktOm()
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
                     behandling,
@@ -75,12 +75,12 @@ class DelautomatiskBehandlingServiceTest {
                     soknad.tiltaksdeltakelseperiodeDetErSøktOm(),
                 )
                 oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
-                oppdatertBehandling.virkningsperiode shouldBe virkningsperiode
-                oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(virkningsperiode)
+                oppdatertBehandling.vedtaksperiode shouldBe expectedVedtaksperiode
+                oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(expectedVedtaksperiode)
                 oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(
                     PeriodeMedVerdi(
                         tiltaksdeltakelse,
-                        virkningsperiode,
+                        expectedVedtaksperiode,
                     ),
                 ).tilIkkeTomPeriodisering()
             }
@@ -98,14 +98,14 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode =
+                val innvilgelsesperiode =
                     Periode(fraOgMed = LocalDate.now().plusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
-                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltakelsesperiode = innvilgelsesperiode,
                     tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
+                        fom = innvilgelsesperiode.fraOgMed,
+                        tom = innvilgelsesperiode.tilOgMed,
                         status = TiltakDeltakerstatus.VenterPåOppstart,
                     ),
                 )
@@ -125,7 +125,7 @@ class DelautomatiskBehandlingServiceTest {
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
-                oppdatertBehandling.venterTil?.toLocalDate() shouldBe virkningsperiode.fraOgMed
+                oppdatertBehandling.venterTil?.toLocalDate() shouldBe innvilgelsesperiode.fraOgMed
                 oppdatertBehandling.ventestatus.erSattPåVent shouldBe true
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe false
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
@@ -144,14 +144,14 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode =
+                val innvilgelsesperiode =
                     Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
-                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltakelsesperiode = innvilgelsesperiode,
                     tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
+                        fom = innvilgelsesperiode.fraOgMed,
+                        tom = innvilgelsesperiode.tilOgMed,
                         status = TiltakDeltakerstatus.Deltar,
                     ),
                 )
@@ -159,7 +159,7 @@ class DelautomatiskBehandlingServiceTest {
                     endretAv = AUTOMATISK_SAKSBEHANDLER,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                     clock = clock,
-                    venterTil = virkningsperiode.fraOgMed.atStartOfDay(),
+                    venterTil = innvilgelsesperiode.fraOgMed.atStartOfDay(),
                 ) as Søknadsbehandling
                 tac.behandlingContext.behandlingRepo.lagre(behandlingPaVent)
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
@@ -197,14 +197,14 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode =
+                val innvilgelsesperiode =
                     Periode(fraOgMed = LocalDate.now().plusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
-                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltakelsesperiode = innvilgelsesperiode,
                     tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
+                        fom = innvilgelsesperiode.fraOgMed,
+                        tom = innvilgelsesperiode.tilOgMed,
                         status = TiltakDeltakerstatus.VenterPåOppstart,
                     ),
                 )
@@ -231,7 +231,7 @@ class DelautomatiskBehandlingServiceTest {
                 val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
-                oppdatertBehandling.venterTil?.toLocalDate() shouldBe virkningsperiode.fraOgMed
+                oppdatertBehandling.venterTil?.toLocalDate() shouldBe innvilgelsesperiode.fraOgMed
                 oppdatertBehandling.ventestatus.erSattPåVent shouldBe true
                 oppdatertBehandling.ventestatus.ventestatusHendelser.size shouldBe 1
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe false
@@ -251,14 +251,14 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode =
+                val innvilgelsesperiode =
                     Periode(fraOgMed = LocalDate.now().minusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
-                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltakelsesperiode = innvilgelsesperiode,
                     tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
+                        fom = innvilgelsesperiode.fraOgMed,
+                        tom = innvilgelsesperiode.tilOgMed,
                         status = TiltakDeltakerstatus.Venteliste,
                     ),
                 )
@@ -296,14 +296,14 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode =
+                val tiltaksdeltakelsesperiode =
                     Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
-                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltakelsesperiode = tiltaksdeltakelsesperiode,
                     tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-                        fom = virkningsperiode.fraOgMed,
-                        tom = virkningsperiode.tilOgMed,
+                        fom = tiltaksdeltakelsesperiode.fraOgMed,
+                        tom = tiltaksdeltakelsesperiode.tilOgMed,
                         status = TiltakDeltakerstatus.Deltar,
                         dagerPrUke = null,
                         prosent = 60.0F,
@@ -344,11 +344,11 @@ class DelautomatiskBehandlingServiceTest {
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
-                val virkningsperiode =
+                val tiltaksdeltakelsesperiode =
                     Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
                 val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-                    fom = virkningsperiode.fraOgMed,
-                    tom = virkningsperiode.tilOgMed,
+                    fom = tiltaksdeltakelsesperiode.fraOgMed,
+                    tom = tiltaksdeltakelsesperiode.tilOgMed,
                     status = TiltakDeltakerstatus.Deltar,
                     dagerPrUke = null,
                     prosent = null,
@@ -356,7 +356,7 @@ class DelautomatiskBehandlingServiceTest {
                 )
                 val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                     tac = tac,
-                    virkningsperiode = virkningsperiode,
+                    tiltaksdeltakelsesperiode = tiltaksdeltakelsesperiode,
                     tiltaksdeltakelse = tiltaksdeltakelse,
                 )
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
@@ -382,12 +382,12 @@ class DelautomatiskBehandlingServiceTest {
                     soknad.tiltaksdeltakelseperiodeDetErSøktOm(),
                 )
                 oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
-                oppdatertBehandling.virkningsperiode shouldBe virkningsperiode
-                oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(virkningsperiode)
+                oppdatertBehandling.vedtaksperiode shouldBe tiltaksdeltakelsesperiode
+                oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(tiltaksdeltakelsesperiode)
                 oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(
                     PeriodeMedVerdi(
                         tiltaksdeltakelse,
-                        virkningsperiode,
+                        tiltaksdeltakelsesperiode,
                     ),
                 ).tilIkkeTomPeriodisering()
             }

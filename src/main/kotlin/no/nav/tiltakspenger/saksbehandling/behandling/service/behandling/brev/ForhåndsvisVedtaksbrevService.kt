@@ -33,13 +33,13 @@ class ForhåndsvisVedtaksbrevService(
     ): PdfA {
         val sak = sakService.hentForSakId(kommando.sakId)
         val behandling = sak.hentRammebehandling(kommando.behandlingId)!!
-        val virkningsperiode = when (behandling.status) {
+        val vedtaksperiode = when (behandling.status) {
             Rammebehandlingsstatus.UNDER_BEHANDLING -> when (kommando.resultat) {
                 RevurderingType.STANS,
                 RevurderingType.INNVILGELSE,
                 RevurderingType.OMGJØRING,
                 SøknadsbehandlingType.INNVILGELSE,
-                -> kommando.virkningsperiode
+                -> kommando.vedtaksperiode
 
                 SøknadsbehandlingType.AVSLAG -> (behandling as Søknadsbehandling).søknad.tiltaksdeltakelseperiodeDetErSøktOm()
             }
@@ -50,7 +50,7 @@ class ForhåndsvisVedtaksbrevService(
             Rammebehandlingsstatus.UNDER_BESLUTNING,
             Rammebehandlingsstatus.VEDTATT,
             Rammebehandlingsstatus.AVBRUTT,
-            -> behandling.virkningsperiode!!
+            -> behandling.vedtaksperiode!!
         }
         val resultat = kommando.resultat
 
@@ -61,14 +61,14 @@ class ForhåndsvisVedtaksbrevService(
                         kommando = kommando,
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = virkningsperiode!!,
+                        innvilgelsesperiode = vedtaksperiode!!,
                     )
 
                     SøknadsbehandlingType.AVSLAG -> genererSøknadsbehandlingAvslagsbrev(
                         kommando = kommando,
                         sak = sak,
                         behandling = behandling,
-                        virkningsperiode = virkningsperiode,
+                        avslagsperiode = vedtaksperiode!!,
                     )
 
                     is RevurderingType -> throw IllegalArgumentException("$resultat er ikke gyldig resultat for søknadsbehandling")
@@ -82,7 +82,7 @@ class ForhåndsvisVedtaksbrevService(
                     RevurderingType.INNVILGELSE -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.virkningsperiode!! else behandling.innvilgelsesperioder!!.totalPeriode,
+                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.vedtaksperiode!! else behandling.innvilgelsesperioder!!.totalPeriode,
                         kommando = kommando,
                     )
 
@@ -90,7 +90,7 @@ class ForhåndsvisVedtaksbrevService(
                     RevurderingType.OMGJØRING -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.virkningsperiode!! else behandling.innvilgelsesperioder!!.totalPeriode,
+                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.vedtaksperiode!! else behandling.innvilgelsesperioder!!.totalPeriode,
                         kommando = kommando,
                     )
 
@@ -133,6 +133,7 @@ class ForhåndsvisVedtaksbrevService(
     ): PdfA {
         val stansperiode = kommando.hentStansperiode(sak.førsteDagSomGirRett!!, sak.sisteDagSomGirRett!!)
 
+        @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
         return genererStansbrevClient.genererStansvedtak(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -140,7 +141,7 @@ class ForhåndsvisVedtaksbrevService(
             fnr = sak.fnr,
             saksbehandlerNavIdent = behandling.saksbehandler!!,
             beslutterNavIdent = behandling.beslutter,
-            virkningsperiode = stansperiode,
+            stansperiode = stansperiode,
             saksnummer = sak.saksnummer,
             sakId = sak.id,
             forhåndsvisning = true,
@@ -159,7 +160,7 @@ class ForhåndsvisVedtaksbrevService(
         kommando: ForhåndsvisVedtaksbrevKommando,
         sak: Sak,
         behandling: Søknadsbehandling,
-        virkningsperiode: Periode?,
+        avslagsperiode: Periode,
     ): PdfA = genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
         hentBrukersNavn = personService::hentNavn,
         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -167,7 +168,7 @@ class ForhåndsvisVedtaksbrevService(
         fnr = sak.fnr,
         saksbehandlerNavIdent = behandling.saksbehandler!!,
         beslutterNavIdent = behandling.beslutter,
-        avslagsperiode = virkningsperiode!!,
+        avslagsperiode = avslagsperiode,
         saksnummer = sak.saksnummer,
         sakId = sak.id,
         tilleggstekst = kommando.fritekstTilVedtaksbrev,

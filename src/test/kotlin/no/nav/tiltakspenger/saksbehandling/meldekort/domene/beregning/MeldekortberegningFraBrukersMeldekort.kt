@@ -47,12 +47,12 @@ class MeldekortberegningFraBrukersMeldekort {
     private fun sammenlign(
         kommandoStatuser: List<KommandoStatus>,
         brukersStatuser: List<InnmeldtStatus>,
-        virkningsperiode: Periode,
+        vedtaksperiode: Periode,
     ) {
         val clock = fixedClockAt(1.april(2025))
 
         val (sak) = ObjectMother.nySakMedVedtak(
-            virkningsperiode = virkningsperiode,
+            vedtaksperiode = vedtaksperiode,
             clock = clock,
         ).first.genererMeldeperioder(clock)
 

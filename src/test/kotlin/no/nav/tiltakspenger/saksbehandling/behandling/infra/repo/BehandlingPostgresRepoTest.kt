@@ -328,27 +328,27 @@ internal class BehandlingPostgresRepoTest {
 
             val innvilgelsesperioder = listOf(
                 innvilgelsesperiodeKommando(
-                    periode = 1.januar(2025) til 10.januar(2025),
+                    innvilgelsesperiode = 1.januar(2025) til 10.januar(2025),
                     antallDagerPerMeldeperiode = 6,
                     tiltaksdeltakelseId = "asdf",
                 ),
                 innvilgelsesperiodeKommando(
-                    periode = 11.januar(2025) til 20.januar(2025),
+                    innvilgelsesperiode = 11.januar(2025) til 20.januar(2025),
                     antallDagerPerMeldeperiode = 10,
                     tiltaksdeltakelseId = "asdf",
                 ),
                 innvilgelsesperiodeKommando(
-                    periode = 21.januar(2025) til 30.april(2025),
+                    innvilgelsesperiode = 21.januar(2025) til 30.april(2025),
                     antallDagerPerMeldeperiode = 4,
                     tiltaksdeltakelseId = "asdf",
                 ),
                 innvilgelsesperiodeKommando(
-                    periode = 1.mai(2025) til 31.mai(2025),
+                    innvilgelsesperiode = 1.mai(2025) til 31.mai(2025),
                     antallDagerPerMeldeperiode = 4,
                     tiltaksdeltakelseId = "qwer",
                 ),
                 innvilgelsesperiodeKommando(
-                    periode = 1.juni(2025) til 30.juni(2025),
+                    innvilgelsesperiode = 1.juni(2025) til 30.juni(2025),
                     antallDagerPerMeldeperiode = 2,
                     tiltaksdeltakelseId = "qwer",
                 ),

@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
@@ -27,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.godkjentAttestering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
@@ -46,7 +48,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface BehandlingRevurderingMother : MotherOfAllMothers {
-    fun revurderingVirkningsperiode() = 2.januar(2023) til 31.mars(2023)
+    fun revurderingVedtaksperiode() = 2.januar(2023) til 31.mars(2023)
 
     fun nyOpprettetRevurderingStans(
         clock: Clock = this.clock,
@@ -55,7 +57,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        saksopplysningsperiode: Periode = revurderingVirkningsperiode(),
+        saksopplysningsperiode: Periode = revurderingVedtaksperiode(),
         hentSaksopplysninger: (Periode) -> Saksopplysninger = {
             saksopplysninger(
                 fom = it.fraOgMed,
@@ -86,10 +88,10 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         sendtTilBeslutning: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("nyRevurderingKlarTilBeslutning()"),
         begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("nyRevurderingKlarTilBeslutning()"),
-        virkningsperiode: Periode = revurderingVirkningsperiode(),
+        vedtaksperiode: Periode = revurderingVedtaksperiode(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
-            fom = virkningsperiode.fraOgMed,
-            tom = virkningsperiode.tilOgMed,
+            fom = vedtaksperiode.fraOgMed,
+            tom = vedtaksperiode.tilOgMed,
             clock = clock,
         ),
         valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
@@ -117,7 +119,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksnummer = saksnummer,
             fnr = fnr,
             saksbehandler = saksbehandler,
-            saksopplysningsperiode = virkningsperiode,
+            saksopplysningsperiode = vedtaksperiode,
             hentSaksopplysninger = { saksopplysninger },
             clock = clock,
         ).oppdaterStans(
@@ -141,10 +143,10 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         sendtTilBeslutning: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev.createOrThrow("nyRevurderingKlarTilBeslutning()"),
         begrunnelseVilkårsvurdering: Begrunnelse = Begrunnelse.createOrThrow("nyRevurderingKlarTilBeslutning()"),
-        virkningsperiode: Periode = revurderingVirkningsperiode(),
+        vedtaksperiode: Periode = revurderingVedtaksperiode(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
-            fom = virkningsperiode.fraOgMed,
-            tom = virkningsperiode.tilOgMed,
+            fom = vedtaksperiode.fraOgMed,
+            tom = vedtaksperiode.tilOgMed,
             clock = clock,
         ),
         valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
@@ -164,7 +166,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             sendtTilBeslutning = sendtTilBeslutning,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-            virkningsperiode = virkningsperiode,
+            vedtaksperiode = vedtaksperiode,
             saksopplysninger = saksopplysninger,
             valgteHjemler = valgteHjemler,
             stansFraOgMed = stansFraOgMed,
@@ -180,6 +182,9 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         ) as Revurdering
     }
 
+    /**
+     * Revurdering starter med tomt resultat - dvs. uten vedtaksperiode/innvilgelsesperiode
+     */
     fun nyOpprettetRevurderingInnvilgelse(
         clock: Clock = this.clock,
         id: BehandlingId = BehandlingId.random(),
@@ -187,11 +192,11 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        virkningsperiode: Periode = revurderingVirkningsperiode(),
-        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+        saksopplysningsperiode: Periode = revurderingVedtaksperiode(),
+        hentSaksopplysninger: (Periode) -> Saksopplysninger = { saksopplysningsperiode ->
             saksopplysninger(
-                fom = it.fraOgMed,
-                tom = it.tilOgMed,
+                fom = saksopplysningsperiode.fraOgMed,
+                tom = saksopplysningsperiode.tilOgMed,
                 clock = clock,
             )
         },
@@ -202,12 +207,15 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 saksbehandler = saksbehandler,
-                saksopplysninger = hentSaksopplysninger(virkningsperiode),
+                saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
                 clock = clock,
             ).copy(id = id)
         }
     }
 
+    /**
+     * @param innvilgelsesperioder vil default utledes fra [saksopplysningsperiode]. Hvis du overstyrer denne, bør du også overstyre [saksopplysningsperiode].
+     */
     fun nyRevurderingInnvilgelseKlarTilBeslutning(
         clock: Clock = this.clock,
         id: BehandlingId = BehandlingId.random(),
@@ -217,20 +225,26 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksbehandler: Saksbehandler = saksbehandler(),
         fritekstTilVedtaksbrev: String = "nyRevurderingKlarTilBeslutning()",
         begrunnelseVilkårsvurdering: String = "nyRevurderingKlarTilBeslutning()",
-        virkningsperiode: Periode = revurderingVirkningsperiode(),
+        saksopplysningsperiode: Periode = revurderingVedtaksperiode(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
-            fom = virkningsperiode.fraOgMed,
-            tom = virkningsperiode.tilOgMed,
+            fom = saksopplysningsperiode.fraOgMed,
+            tom = saksopplysningsperiode.tilOgMed,
             clock = clock,
         ),
         navkontor: Navkontor = navkontor(),
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
-                periode = virkningsperiode,
+                innvilgelsesperiode = saksopplysningsperiode,
                 tiltaksdeltakelseId = saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
             ),
         ),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
+        barnetillegg: Barnetillegg = barnetillegg(
+            antallBarn = AntallBarn.ZERO,
+            periode = Periode(
+                innvilgelsesperioder.first().periode.fraOgMed,
+                innvilgelsesperioder.last().periode.tilOgMed,
+            ),
+        ),
         beregning: Beregning? = null,
         simulering: Simulering? = null,
     ): Revurdering {
@@ -250,7 +264,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksnummer = saksnummer,
             fnr = fnr,
             saksbehandler = saksbehandler,
-            virkningsperiode = virkningsperiode,
+            saksopplysningsperiode = saksopplysningsperiode,
             hentSaksopplysninger = { saksopplysninger },
             clock = clock,
         ).oppdaterInnvilgelse(
@@ -269,6 +283,9 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         ).getOrFail().tilBeslutning(saksbehandler = saksbehandler, clock = clock) as Revurdering
     }
 
+    /**
+     * @param innvilgelsesperioder vil default utledes fra [saksopplysningsperiode]. Hvis du overstyrer denne, bør du også overstyre [saksopplysningsperiode].
+     */
     fun nyVedtattRevurderingInnvilgelse(
         clock: Clock = this.clock,
         id: BehandlingId = BehandlingId.random(),
@@ -280,21 +297,27 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         sendtTilBeslutning: LocalDateTime? = null,
         fritekstTilVedtaksbrev: String = "nyRevurderingKlarTilBeslutning()",
         begrunnelseVilkårsvurdering: String = "nyRevurderingKlarTilBeslutning()",
-        virkningsperiode: Periode = revurderingVirkningsperiode(),
+        saksopplysningsperiode: Periode = revurderingVedtaksperiode(),
         saksopplysninger: Saksopplysninger = saksopplysninger(
-            fom = virkningsperiode.fraOgMed,
-            tom = virkningsperiode.tilOgMed,
+            fom = saksopplysningsperiode.fraOgMed,
+            tom = saksopplysningsperiode.tilOgMed,
             clock = clock,
         ),
         attestering: Attestering = godkjentAttestering(beslutter, clock),
         navkontor: Navkontor = navkontor(),
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
-                periode = virkningsperiode,
+                innvilgelsesperiode = saksopplysningsperiode,
                 tiltaksdeltakelseId = saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
             ),
         ),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
+        barnetillegg: Barnetillegg = barnetillegg(
+            antallBarn = AntallBarn.ZERO,
+            periode = Periode(
+                innvilgelsesperioder.first().periode.fraOgMed,
+                innvilgelsesperioder.last().periode.tilOgMed,
+            ),
+        ),
         beregning: Beregning? = null,
     ): Revurdering {
         return nyRevurderingInnvilgelseKlarTilBeslutning(
@@ -305,7 +328,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-            virkningsperiode = virkningsperiode,
+            saksopplysningsperiode = saksopplysningsperiode,
             saksopplysninger = saksopplysninger,
             navkontor = navkontor,
             innvilgelsesperioder = innvilgelsesperioder,
@@ -326,8 +349,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
-        omgjøringInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
+        søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
+        omgjøringInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
         hentSaksopplysninger: (Periode) -> Saksopplysninger = {
             saksopplysninger(
                 fom = it.fraOgMed,
@@ -339,7 +362,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            virkningsperiode = søknadsbehandlingInnvilgelsesperiode,
+            saksopplysningsperiode = søknadsbehandlingInnvilgelsesperiode,
             saksopplysninger = hentSaksopplysninger(omgjøringInnvilgelsesperiode),
         ),
         vedtattInnvilgetSøknadsbehandling: Rammevedtak = nyRammevedtakInnvilgelse(
@@ -364,13 +387,13 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
-        søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
-        omgjøringInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
+        søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
+        omgjøringInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
         omgjørBehandling: Rammebehandling = nyVedtattSøknadsbehandling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            virkningsperiode = søknadsbehandlingInnvilgelsesperiode,
+            saksopplysningsperiode = søknadsbehandlingInnvilgelsesperiode,
         ),
         omgjørRammevedtak: Rammevedtak = nyRammevedtakInnvilgelse(
             sakId = sakId,
@@ -413,13 +436,13 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         beslutter: Saksbehandler = beslutter(),
-        søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
-        omgjøringInnvilgelsesperiode: Periode = revurderingVirkningsperiode(),
+        søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
+        omgjøringInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
         omgjørBehandling: Rammebehandling = nyVedtattSøknadsbehandling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            virkningsperiode = søknadsbehandlingInnvilgelsesperiode,
+            saksopplysningsperiode = søknadsbehandlingInnvilgelsesperiode,
         ),
         omgjørRammevedtak: Rammevedtak = nyRammevedtakInnvilgelse(
             sakId = sakId,

@@ -68,7 +68,7 @@ sealed interface Rammebehandling : Behandling {
     val ventestatus: Ventestatus
     val venterTil: LocalDateTime?
     val resultat: BehandlingResultat?
-    val virkningsperiode: Periode?
+    val vedtaksperiode: Periode?
     val innvilgelsesperioder: Innvilgelsesperioder?
     val begrunnelseVilkårsvurdering: Begrunnelse?
 
@@ -502,7 +502,7 @@ sealed interface Rammebehandling : Behandling {
         attestering: Attestering,
         clock: Clock,
     ): Rammebehandling {
-        require(virkningsperiode != null) { "virkningsperiode må være satt ved iverksetting" }
+        require(vedtaksperiode != null) { "vedtaksperiode må være satt ved iverksetting" }
 
         return when (status) {
             UNDER_BESLUTNING -> {
@@ -700,7 +700,7 @@ sealed interface Rammebehandling : Behandling {
                     "Behandlingen kan ikke være tilknyttet en beslutter når status er KLAR_TIL_BESLUTNING"
                 }
                 require(iverksattTidspunkt == null)
-                require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen KLAR_TIL_BESLUTNING" }
+                require(vedtaksperiode != null) { "Vedtaksperiode må være satt for statusen KLAR_TIL_BESLUTNING" }
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen KLAR_TIL_BESLUTNING" }
                 require(erFerdigutfylt())
             }
@@ -710,7 +710,7 @@ sealed interface Rammebehandling : Behandling {
                 requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er UNDER_BESLUTNING" }
                 requireNotNull(beslutter) { "Behandlingen må tilknyttet en beslutter når status er UNDER_BESLUTNING" }
                 require(iverksattTidspunkt == null)
-                require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen UNDER_BESLUTNING" }
+                require(vedtaksperiode != null) { "Vedtaksperiode må være satt for statusen UNDER_BESLUTNING" }
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen UNDER_BESLUTNING" }
                 require(erFerdigutfylt())
             }
@@ -721,7 +721,7 @@ sealed interface Rammebehandling : Behandling {
                 requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er VEDTATT" }
                 requireNotNull(iverksattTidspunkt)
                 requireNotNull(sendtTilBeslutning)
-                require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen VEDTATT" }
+                require(vedtaksperiode != null) { "Vedtaksperiode må være satt for statusen VEDTATT" }
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen VEDTATT" }
                 require(erFerdigutfylt())
             }

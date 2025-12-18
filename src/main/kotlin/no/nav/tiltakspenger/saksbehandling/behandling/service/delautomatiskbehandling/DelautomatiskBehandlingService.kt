@@ -148,7 +148,7 @@ class DelautomatiskBehandlingService(
 
         val (utbetaling, simuleringMedMetadata) = this.beregnInnvilgelse(
             behandlingId = behandling.id,
-            virkningsperiode = innvilgelsesperiode,
+            vedtaksperiode = innvilgelsesperiode,
             innvilgelsesperioder = oppdaterKommando.tilInnvilgelseperioder(behandling),
             barnetilleggsperioder = barnetillegg.periodisering,
         )?.let {
@@ -349,7 +349,7 @@ class DelautomatiskBehandlingService(
     ): Boolean {
         val vedtatteBehandlinger = behandlinger.filter { it.erVedtatt }
         // TODO jah: Denne kan smelle dersom tiltaksdeltakelsen det er søkt på mangler fom eller tom. I så fall legg det til som en [ManueltBehandlesGrunn]
-        return vedtatteBehandlinger.any { it.virkningsperiode!!.overlapperMed(behandling.saksopplysningsperiode!!) }
+        return vedtatteBehandlinger.any { it.vedtaksperiode!!.overlapperMed(behandling.saksopplysningsperiode!!) }
     }
 
     private fun utledBarnetillegg(behandling: Søknadsbehandling): Barnetillegg {

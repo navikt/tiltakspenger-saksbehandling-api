@@ -78,7 +78,7 @@ internal class Meldekortberegning5DagerIUkaEksempel2Test {
                 meldekort1,
                 meldekort2,
                 meldekort3,
-            ).assertForventning(vurderingsperiode = Periode(1.februar(2024), 26.februar(2024)))
+            ).assertForventning(vedtaksperiode = Periode(1.februar(2024), 26.februar(2024)))
         }
     }
 }

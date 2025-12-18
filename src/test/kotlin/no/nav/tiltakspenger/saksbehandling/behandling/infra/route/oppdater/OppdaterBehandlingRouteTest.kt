@@ -67,7 +67,7 @@ class OppdaterBehandlingRouteTest {
             val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id)
 
             oppdatertBehandling.resultat.shouldBeNull()
-            oppdatertBehandling.virkningsperiode.shouldBeNull()
+            oppdatertBehandling.vedtaksperiode.shouldBeNull()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
         }
@@ -116,7 +116,7 @@ class OppdaterBehandlingRouteTest {
             oppdatertBehandling.resultat.shouldBeInstanceOf<SøknadsbehandlingResultat.Innvilgelse>()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
-            oppdatertBehandling.virkningsperiode shouldBe nyInnvilgelsesperiode
+            oppdatertBehandling.vedtaksperiode shouldBe nyInnvilgelsesperiode
             oppdatertBehandling.barnetillegg shouldBe barnetillegg
             oppdatertBehandling.antallDagerPerMeldeperiode shouldBe antallDager
         }
@@ -190,7 +190,7 @@ class OppdaterBehandlingRouteTest {
             oppdatertBehandling.resultat.shouldBeInstanceOf<RevurderingResultat.Innvilgelse>()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
-            oppdatertBehandling.virkningsperiode shouldBe nyInnvilgelsesperiode
+            oppdatertBehandling.vedtaksperiode shouldBe nyInnvilgelsesperiode
             oppdatertBehandling.barnetillegg shouldBe barnetillegg
             oppdatertBehandling.antallDagerPerMeldeperiode shouldBe antallDager
         }
@@ -221,7 +221,7 @@ class OppdaterBehandlingRouteTest {
             oppdatertBehandling.resultat.shouldBeInstanceOf<Stans>()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
-            oppdatertBehandling.virkningsperiode!!.fraOgMed shouldBe 9.april(2025)
+            oppdatertBehandling.vedtaksperiode!!.fraOgMed shouldBe 9.april(2025)
             (oppdatertBehandling.resultat as Stans).valgtHjemmel shouldBe listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak)
         }
     }
@@ -251,7 +251,7 @@ class OppdaterBehandlingRouteTest {
             oppdatertBehandling.resultat.shouldBeInstanceOf<Stans>()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
-            oppdatertBehandling.virkningsperiode!!.fraOgMed shouldBe 9.april(2025)
+            oppdatertBehandling.vedtaksperiode!!.fraOgMed shouldBe 9.april(2025)
             (oppdatertBehandling.resultat as Stans).valgtHjemmel shouldBe listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak)
         }
     }
@@ -426,8 +426,8 @@ class OppdaterBehandlingRouteTest {
                     nyOmgjøringsperiodeEtterOppdatering,
                 ),
             ).tilIkkeTomPeriodisering()
-            oppdatertRevurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
-            resultat.virkningsperiode shouldBe rammevedtakSøknadsbehandling.behandling.virkningsperiode
+            oppdatertRevurdering.vedtaksperiode shouldBe rammevedtakSøknadsbehandling.behandling.vedtaksperiode
+            resultat.vedtaksperiode shouldBe rammevedtakSøknadsbehandling.behandling.vedtaksperiode
             resultat.innvilgelsesperioder!!.totalPeriode shouldBe nyOmgjøringsperiodeEtterOppdatering
             oppdatertRevurdering.utbetaling shouldBe null
 

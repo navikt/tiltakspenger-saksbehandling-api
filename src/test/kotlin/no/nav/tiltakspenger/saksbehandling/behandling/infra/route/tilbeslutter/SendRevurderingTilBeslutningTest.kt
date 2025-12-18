@@ -67,13 +67,13 @@ class SendRevurderingTilBeslutningTest {
     @Test
     fun `kan sende revurdering med forlenget innvilgelse til beslutning`() {
         withTestApplicationContext { tac ->
-            val søknadsbehandlingVirkningsperiode = 1 til 10.april(2025)
-            val revurderingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L)
+            val søknadsbehandlingInnvilgelsesperiode = 1 til 10.april(2025)
+            val revurderingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode.plusTilOgMed(14L)
 
             val (sak, _, rammevedtakSøknadsbehandling, jsonResponse) = sendRevurderingInnvilgelseTilBeslutning(
                 tac,
-                søknadsbehandlingVirkningsperiode = søknadsbehandlingVirkningsperiode,
-                revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
+                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
+                revurderingInnvilgelsesperiode = revurderingInnvilgelsesperiode,
             )
             val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
 
@@ -112,7 +112,7 @@ class SendRevurderingTilBeslutningTest {
                 ),
             )
 
-            revurdering.virkningsperiode shouldBe revurderingInnvilgelsesperiode
+            revurdering.vedtaksperiode shouldBe revurderingInnvilgelsesperiode
         }
     }
 }

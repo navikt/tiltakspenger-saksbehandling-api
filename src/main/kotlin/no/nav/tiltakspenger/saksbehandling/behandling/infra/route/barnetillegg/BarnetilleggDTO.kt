@@ -13,15 +13,15 @@ data class BarnetilleggDTO(
     val perioder: List<BarnetilleggPeriodeDTO>,
     val begrunnelse: String?,
 ) {
-    fun tilBarnetillegg(virkningsperiode: Periode): Barnetillegg =
+    fun tilBarnetillegg(innvilgelsesperiode: Periode): Barnetillegg =
         if (this.perioder.isNotEmpty()) {
             Barnetillegg.periodiserOgFyllUtHullMed0(
                 begrunnelse = begrunnelse?.let { (Begrunnelse.create(it)) },
                 perioder = perioder.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) },
-                virkningsperiode = virkningsperiode,
+                innvilgelsesperiode = innvilgelsesperiode,
             )
         } else {
-            Barnetillegg.utenBarnetillegg(virkningsperiode)
+            Barnetillegg.utenBarnetillegg(innvilgelsesperiode)
         }
 }
 
@@ -41,6 +41,6 @@ fun Barnetillegg.toBarnetilleggDTO(): BarnetilleggDTO = BarnetilleggDTO(
 )
 
 fun List<BarnetilleggPeriodeDTO>.tilPeriodisering(): Periodisering<AntallBarn> {
-    // Vi ønsker ikke fylle hull med 0 på dette tidspunktet. Det gjøres av domenet siden man skal bruke virkningsperioden på behandlingen dersom den er satt.
+    // Vi ønsker ikke fylle hull med 0 på dette tidspunktet. Det gjøres av domenet siden man skal bruke innvilgelsesperiode på behandlingen dersom den er satt.
     return this.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) }.tilPeriodisering()
 }

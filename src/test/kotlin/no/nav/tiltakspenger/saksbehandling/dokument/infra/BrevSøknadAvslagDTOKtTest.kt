@@ -33,7 +33,7 @@ class BrevSøknadAvslagDTOKtTest {
                 saksnummer = Saksnummer.genererSaknummer(LocalDate.now(fixedClock), "2000"),
                 forhåndsvisning = true,
                 harSøktBarnetillegg = true,
-                avslagsperiode = ObjectMother.virkningsperiode(),
+                avslagsperiode = ObjectMother.vedtaksperiode(),
                 datoForUtsending = LocalDate.now(fixedClock),
             )
 

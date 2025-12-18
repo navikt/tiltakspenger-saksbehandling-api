@@ -51,12 +51,12 @@ fun Rammebehandling.toBehandlingJson(): String {
         fraOgMed = if (this is Søknadsbehandling) {
             this.getFraOgMed()
         } else {
-            virkningsperiode?.fraOgMed
+            vedtaksperiode?.fraOgMed
         },
         tilOgMed = if (this is Søknadsbehandling) {
             this.getTilOgMed()
         } else {
-            virkningsperiode?.tilOgMed
+            vedtaksperiode?.tilOgMed
         },
         behandlingStatus = status.toDatadelingStatus(),
         saksbehandler = saksbehandler,
@@ -90,12 +90,12 @@ fun MeldekortBehandling.toBehandlingJson(): String {
     ).let { serialize(it) }
 }
 
-private fun Søknadsbehandling.getFraOgMed() = virkningsperiode?.fraOgMed
+private fun Søknadsbehandling.getFraOgMed() = vedtaksperiode?.fraOgMed
     ?: saksopplysninger.tiltaksdeltakelser.tidligsteFraOgMed
     ?: søknad.tiltak?.deltakelseFom
     ?: søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!.fraOgMed
 
-private fun Søknadsbehandling.getTilOgMed() = virkningsperiode?.tilOgMed
+private fun Søknadsbehandling.getTilOgMed() = vedtaksperiode?.tilOgMed
     ?: saksopplysninger.tiltaksdeltakelser.senesteTilOgMed
     ?: søknad.tiltak?.deltakelseTom
     ?: søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!.tilOgMed

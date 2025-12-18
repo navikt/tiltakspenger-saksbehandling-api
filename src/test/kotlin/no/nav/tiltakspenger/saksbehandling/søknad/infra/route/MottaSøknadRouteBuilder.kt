@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import java.time.LocalDateTime
 
 /**
  * Gir mulighet til å motta en søknad via endepunktene våre.
@@ -73,6 +74,7 @@ interface MottaSøknadRouteBuilder {
         fnr: Fnr,
         saksnummer: Saksnummer,
         søknadId: SøknadId = SøknadId.random(),
+        // TODO: Ta kun inn tiltaksdeltakelse og hent periode derfra
         deltakelsesperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = deltakelsesperiode.fraOgMed,
@@ -126,7 +128,9 @@ interface MottaSøknadRouteBuilder {
         journalpostId: String = "123456789",
         fnr: String = Fnr.random().toString(),
         deltakelsesperiode: Periode = 1.til(10.april(2025)),
+        // TODO: Ta kun inn tiltaksdeltakelse og hent periode derfra
         tiltaksdeltakelse: Søknadstiltak,
+        opprettet: LocalDateTime = deltakelsesperiode.fraOgMed.atTime(0, 0, 0, 0),
     ): String {
         return """
         {
@@ -201,7 +205,7 @@ interface MottaSøknadRouteBuilder {
               "fom": null,
               "tom": null
             },
-            "opprettet": "${deltakelsesperiode.fraOgMed.atTime(0, 0, 0, 0)}",
+            "opprettet": "$opprettet",
             "saksnummer": "$saksnummer"
         }
         """.trimIndent()

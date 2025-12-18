@@ -38,7 +38,7 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: String = "some_tekst",
-        virkningsperiode: Periode? = null,
+        vedtaksperiode: Periode? = null,
         stansFraOgMed: LocalDate? = null,
         stansTilOgMed: LocalDate? = null,
         valgteHjemler: List<ValgtHjemmelForStansDTO>? = null,
@@ -61,7 +61,7 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
             val jsonBody = """
                   {
                     "fritekst": "$fritekstTilVedtaksbrev",
-                    "virkningsperiode": ${if (virkningsperiode != null) """{"fraOgMed":"${virkningsperiode.fraOgMed}","tilOgMed":"${virkningsperiode.tilOgMed}"}""" else null},
+                    "virkningsperiode": ${if (vedtaksperiode != null) """{"fraOgMed":"${vedtaksperiode.fraOgMed}","tilOgMed":"${vedtaksperiode.tilOgMed}"}""" else null},
                     "stansFraOgMed": ${if (stansFraOgMed != null) """"$stansFraOgMed"""" else null},
                     "stansTilOgMed": ${if (stansTilOgMed != null) """"$stansTilOgMed"""" else null},
                     "harValgtStansFraFørsteDagSomGirRett": ${stansFraOgMed == null},

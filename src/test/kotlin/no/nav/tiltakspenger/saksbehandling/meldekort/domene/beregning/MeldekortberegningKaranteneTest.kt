@@ -129,7 +129,7 @@ internal class MeldekortberegningKaranteneTest {
                 meldekort3,
                 meldekort4,
                 meldekort5,
-            ).assertForventning(vurderingsperiode = Periode(29.januar(2024), 7.april(2024)))
+            ).assertForventning(vedtaksperiode = Periode(29.januar(2024), 7.april(2024)))
         }
     }
 
@@ -195,7 +195,7 @@ internal class MeldekortberegningKaranteneTest {
                 meldekortFørHull1,
                 meldekortFørHull2,
                 meldekortEtterHull,
-            ).assertForventning(vurderingsperiode = Periode(29.januar(2024), 24.mars(2024)))
+            ).assertForventning(vedtaksperiode = Periode(29.januar(2024), 24.mars(2024)))
         }
     }
 }

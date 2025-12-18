@@ -114,7 +114,12 @@ class MeldeperiodeKjederTest {
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val kjeder = MeldeperiodeKjeder(emptyList())
-        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(sakId = sakId, virkningsperiode = periode)
+        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(
+            sakId = sakId,
+            innvilgelsesperioder = listOf(
+                innvilgelsesperiodeKommando(innvilgelsesperiode = periode),
+            ),
+        )
         val actual = kjeder.genererMeldeperioder(
             Rammevedtaksliste(
                 innvilgelseVedtak,
@@ -145,7 +150,13 @@ class MeldeperiodeKjederTest {
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val innvilgelseVedtak =
-            ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, virkningsperiode = periode)
+            ObjectMother.nyRammevedtakInnvilgelse(
+                fnr = fnr,
+                sakId = sakId,
+                innvilgelsesperioder = listOf(
+                    innvilgelsesperiodeKommando(innvilgelsesperiode = periode),
+                ),
+            )
         val stansVedtak = ObjectMother.nyRammevedtakStans(
             fnr = fnr,
             sakId = sakId,
@@ -190,7 +201,15 @@ class MeldeperiodeKjederTest {
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val innvilgelseVedtak =
-            ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, virkningsperiode = periode)
+            ObjectMother.nyRammevedtakInnvilgelse(
+                fnr = fnr,
+                sakId = sakId,
+                innvilgelsesperioder = listOf(
+                    innvilgelsesperiodeKommando(
+                        innvilgelsesperiode = periode,
+                    ),
+                ),
+            )
         val v1 = Rammevedtaksliste(listOf(innvilgelseVedtak))
         val kjederV1 = MeldeperiodeKjeder(emptyList())
 
@@ -320,10 +339,9 @@ class MeldeperiodeKjederTest {
         val kjeder = MeldeperiodeKjeder(emptyList())
         val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(
             sakId = sakId,
-            virkningsperiode = periode,
             innvilgelsesperioder = listOf(
                 innvilgelsesperiodeKommando(
-                    periode = periode,
+                    innvilgelsesperiode = periode,
                     antallDagerPerMeldeperiode = 5,
                 ),
             ),

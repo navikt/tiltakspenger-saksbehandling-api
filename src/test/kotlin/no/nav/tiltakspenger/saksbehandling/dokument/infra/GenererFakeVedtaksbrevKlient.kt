@@ -98,7 +98,7 @@ class GenererFakeVedtaksbrevKlient :
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        virkningsperiode: Periode,
+        stansperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,

@@ -48,24 +48,24 @@ interface SøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = 1.til(10.april(2025)),
+        tiltaksdeltakelsesperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = virkningsperiode.fraOgMed,
-            tom = virkningsperiode.tilOgMed,
+            fom = tiltaksdeltakelsesperiode.fraOgMed,
+            tom = tiltaksdeltakelsesperiode.tilOgMed,
         ),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad) = if (sakId == null) {
             opprettSakOgSøknad(
                 tac = tac,
                 fnr = fnr,
-                deltakelsesperiode = virkningsperiode,
+                deltakelsesperiode = tiltaksdeltakelsesperiode,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
         } else {
             opprettSøknadPåSakId(
                 tac = tac,
                 sakId = sakId,
-                deltakelsesperiode = virkningsperiode,
+                deltakelsesperiode = tiltaksdeltakelsesperiode,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
         }
@@ -81,9 +81,9 @@ interface SøknadsbehandlingBuilder {
     suspend fun ApplicationTestBuilder.opprettAutomatiskBehandlingKlarTilBeslutning(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = 1.til(10.april(2025)),
+        vedtaksperiode: Periode = 1.til(10.april(2025)),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
-        val (sak, søknad) = opprettSakOgSøknad(tac, fnr, deltakelsesperiode = virkningsperiode)
+        val (sak, søknad) = opprettSakOgSøknad(tac, fnr, deltakelsesperiode = vedtaksperiode)
         søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
         val behandling = tac.behandlingContext.startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
             søknad,
@@ -98,10 +98,10 @@ interface SøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = 1.til(10.april(2025)),
+        tiltaksdeltakelsesperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = virkningsperiode.fraOgMed,
-            tom = virkningsperiode.tilOgMed,
+            fom = tiltaksdeltakelsesperiode.fraOgMed,
+            tom = tiltaksdeltakelsesperiode.tilOgMed,
         ),
         manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = emptyList(),
         clock: Clock = fixedClock,
@@ -110,7 +110,7 @@ interface SøknadsbehandlingBuilder {
             tac = tac,
             sakId = sakId,
             fnr = fnr,
-            virkningsperiode = virkningsperiode,
+            tiltaksdeltakelsesperiode = tiltaksdeltakelse.periode!!,
             tiltaksdeltakelse = tiltaksdeltakelse,
         )
 
@@ -136,11 +136,11 @@ interface SøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = 1.til(10.april(2025)),
+        tiltaksdeltakelsesperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = virkningsperiode.fraOgMed,
-            tom = virkningsperiode.tilOgMed,
+            fom = tiltaksdeltakelsesperiode.fraOgMed,
+            tom = tiltaksdeltakelsesperiode.tilOgMed,
         ),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
@@ -148,7 +148,7 @@ interface SøknadsbehandlingBuilder {
             tac = tac,
             sakId = sakId,
             fnr = fnr,
-            virkningsperiode = virkningsperiode,
+            tiltaksdeltakelsesperiode = tiltaksdeltakelsesperiode,
             tiltaksdeltakelse = tiltaksdeltakelse,
             clock = clock,
         )
@@ -168,18 +168,18 @@ interface SøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = 1.til(10.april(2025)),
+        innvilgelsesperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: Begrunnelse? = null,
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperiode),
         antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(10),
-            virkningsperiode,
+            innvilgelsesperiode,
         ),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = virkningsperiode.fraOgMed,
-            tom = virkningsperiode.tilOgMed,
+            fom = innvilgelsesperiode.fraOgMed,
+            tom = innvilgelsesperiode.tilOgMed,
         ),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
@@ -187,7 +187,7 @@ interface SøknadsbehandlingBuilder {
             tac = tac,
             sakId = sakId,
             fnr = fnr,
-            virkningsperiode = virkningsperiode,
+            tiltaksdeltakelsesperiode = innvilgelsesperiode,
             saksbehandler = saksbehandler,
             tiltaksdeltakelse = tiltaksdeltakelse,
             clock = clock,
@@ -203,10 +203,10 @@ interface SøknadsbehandlingBuilder {
                 valgteTiltaksdeltakelser = nonEmptyListOf(
                     TiltaksdeltakelsePeriodeDTO(
                         eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
-                        periode = virkningsperiode.toDTO(),
+                        periode = innvilgelsesperiode.toDTO(),
                     ),
                 ),
-                innvilgelsesperiode = virkningsperiode.toDTO(),
+                innvilgelsesperiode = innvilgelsesperiode.toDTO(),
                 barnetillegg = barnetillegg.toBarnetilleggDTO(),
                 antallDagerPerMeldeperiodeForPerioder = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),
             ),
@@ -219,7 +219,7 @@ interface SøknadsbehandlingBuilder {
     suspend fun ApplicationTestBuilder.opprettSøknadsbehandlingUnderBehandlingMedAvslag(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = 1.til(10.april(2025)),
+        tiltaksdeltakelsesperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: Begrunnelse? = null,
@@ -229,7 +229,7 @@ interface SøknadsbehandlingBuilder {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandling(
             tac = tac,
             fnr = fnr,
-            virkningsperiode = virkningsperiode,
+            tiltaksdeltakelsesperiode = tiltaksdeltakelsesperiode,
             saksbehandler = saksbehandler,
             clock = clock,
         )

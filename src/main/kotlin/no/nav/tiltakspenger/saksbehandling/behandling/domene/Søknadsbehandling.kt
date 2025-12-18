@@ -62,7 +62,7 @@ data class Søknadsbehandling(
     override val utbetaling: BehandlingUtbetaling?,
 ) : Rammebehandling {
 
-    override val virkningsperiode = resultat?.virkningsperiode
+    override val vedtaksperiode = resultat?.vedtaksperiode
     override val omgjørRammevedtak: OmgjørRammevedtak = resultat?.omgjørRammevedtak ?: OmgjørRammevedtak.empty
 
     /** Vil være null ved avslag og ved innvilgelse frem til saksbehandler har valgt innvilgelsesperioden */

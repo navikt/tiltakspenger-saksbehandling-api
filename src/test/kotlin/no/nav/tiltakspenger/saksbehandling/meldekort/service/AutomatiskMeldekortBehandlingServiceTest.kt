@@ -24,7 +24,7 @@ import java.time.temporal.ChronoUnit
 
 class AutomatiskMeldekortBehandlingServiceTest {
     val clock = fixedClockAt(1.april(2025).atTime(12, 0))
-    val virkningsperiode = Periode(6.januar(2025), 31.mars(2025))
+    val vedtaksperiode = Periode(6.januar(2025), 31.mars(2025))
     val tac = TestApplicationContext()
     val meldekortBehandlingRepo = tac.meldekortContext.meldekortBehandlingRepo
     val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
@@ -34,7 +34,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
     fun `skal behandle brukers meldekort automatisk ved behandlesAutomatisk=true`() {
         val sak = runBlocking {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
-                periode = virkningsperiode,
+                periode = vedtaksperiode,
                 clock = clock,
             )
         }
@@ -62,7 +62,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
     fun `skal ikke behandle automatisk ved behandlesAutomatisk=false`() {
         val sak = runBlocking {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
-                periode = virkningsperiode,
+                periode = vedtaksperiode,
                 clock = clock,
             )
         }
@@ -88,7 +88,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
     fun `skal ikke behandle automatisk med for mange dager registrert`() {
         val sak = runBlocking {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
-                periode = virkningsperiode,
+                periode = vedtaksperiode,
                 clock = clock,
             )
         }
@@ -123,7 +123,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
     fun `skal kun behandle det neste meldekortet på en sak for hvert kall`() {
         val sak = runBlocking {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
-                periode = virkningsperiode,
+                periode = vedtaksperiode,
                 clock = clock,
             )
         }
@@ -168,7 +168,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
     fun `skal feile dersom det allerede finnes en behandling på meldeperiodekjeden`() {
         val sak = runBlocking {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
-                periode = virkningsperiode,
+                periode = vedtaksperiode,
                 clock = clock,
             )
         }
@@ -215,7 +215,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         val sak =
             runBlocking {
                 tac.søknadsbehandlingIverksattMedMeldeperioder(
-                    periode = virkningsperiode,
+                    periode = vedtaksperiode,
                     clock = clock,
                 )
             }

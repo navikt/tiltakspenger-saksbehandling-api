@@ -39,7 +39,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     sakId = sak.id,
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                    virkningsperiode = 1.januar(2025) til 31.mars(2025),
+                    vedtaksperiode = 1.januar(2025) til 31.mars(2025),
                     stansFraOgMed = null,
                     stansTilOgMed = null,
                     valgteHjemler = null,
@@ -66,17 +66,17 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                 val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
                 val behandlingId = behandling.id
                 val fritekstTilVedtaksbrev = "some_tekst"
-                val virkningsperiode = 1.januar(2025) til 31.mars(2025)
+                val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
                 val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
                     tac = tac,
                     sakId = sak.id,
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                    virkningsperiode = virkningsperiode,
+                    vedtaksperiode = innvilgelsesperiode,
                     stansFraOgMed = null,
                     stansTilOgMed = null,
                     valgteHjemler = null,
-                    barnetillegg = listOf(BarnetilleggPeriodeDTO(antallBarn = 1, periode = virkningsperiode.toDTO())),
+                    barnetillegg = listOf(BarnetilleggPeriodeDTO(antallBarn = 1, periode = innvilgelsesperiode.toDTO())),
                     resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                     avslagsgrunner = null,
                 )
@@ -104,7 +104,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     sakId = sak.id,
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                    virkningsperiode = 1.januar(2025) til 31.mars(2025),
+                    vedtaksperiode = 1.januar(2025) til 31.mars(2025),
                     stansFraOgMed = null,
                     stansTilOgMed = null,
                     valgteHjemler = null,

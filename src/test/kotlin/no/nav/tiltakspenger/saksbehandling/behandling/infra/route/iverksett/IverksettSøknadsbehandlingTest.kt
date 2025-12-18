@@ -31,7 +31,7 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext { tac ->
             val (_, _, rammevedtak) = this.iverksettSøknadsbehandling(tac)
             val behandling = rammevedtak.behandling
-            behandling.virkningsperiode.shouldNotBeNull()
+            behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
         }
     }
@@ -41,7 +41,7 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext { tac ->
             val (_, _, rammevedtakSøknadsbehandling) = this.iverksettAutomatiskBehandletSøknadsbehandling(tac)
             val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
-            søknadsbehandling.virkningsperiode.shouldNotBeNull()
+            søknadsbehandling.vedtaksperiode.shouldNotBeNull()
             søknadsbehandling.status shouldBe Rammebehandlingsstatus.VEDTATT
         }
     }
@@ -54,7 +54,7 @@ class IverksettSøknadsbehandlingTest {
                 resultat = SøknadsbehandlingType.AVSLAG,
             )
             val behandling = rammevedtak.behandling
-            behandling.virkningsperiode.shouldNotBeNull()
+            behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
             behandling.resultat shouldBe instanceOf<SøknadsbehandlingResultat.Avslag>()
         }

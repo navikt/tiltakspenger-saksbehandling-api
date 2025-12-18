@@ -486,7 +486,7 @@ interface MeldekortMother : MotherOfAllMothers {
 
     suspend fun beregnMeldekortperioder(
         clock: Clock = TikkendeKlokke(),
-        vurderingsperiode: Periode,
+        vedtaksperiode: Periode,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         sakId: SakId = SakId.random(),
@@ -514,7 +514,7 @@ interface MeldekortMother : MotherOfAllMothers {
         return kommandoer.drop(1).foldIndexed(
             førsteBeregnetMeldekort(
                 clock = clock,
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 meldekortId = kommandoer.first().meldekortId,
                 sakId = sakId,
                 fnr = fnr,
@@ -528,7 +528,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 clock = clock,
                 kommando = kommando,
                 fnr = fnr,
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 barnetilleggsPerioder = barnetilleggsPerioder,
                 beslutter = beslutter,
                 opprettet = opprettet.plusMinutes(1 + index.toLong()),
@@ -538,10 +538,10 @@ interface MeldekortMother : MotherOfAllMothers {
 
     suspend fun førsteBeregnetMeldekort(
         kommando: OppdaterMeldekortKommando,
-        vurderingsperiode: Periode,
+        vedtaksperiode: Periode,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett> = SammenhengendePeriodisering(
             TiltakstypeSomGirRett.GRUPPE_AMO,
-            vurderingsperiode,
+            vedtaksperiode,
         ),
         meldekortId: MeldekortId,
         sakId: SakId,
@@ -633,7 +633,7 @@ interface MeldekortMother : MotherOfAllMothers {
 
     suspend fun Meldekortbehandlinger.beregnNesteMeldekort(
         kommando: OppdaterMeldekortKommando,
-        vurderingsperiode: Periode,
+        vedtaksperiode: Periode,
         fnr: Fnr,
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
@@ -644,7 +644,7 @@ interface MeldekortMother : MotherOfAllMothers {
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.UNDER_BEHANDLING,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett> = SammenhengendePeriodisering(
             TiltakstypeSomGirRett.GRUPPE_AMO,
-            vurderingsperiode,
+            vedtaksperiode,
         ),
         girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },

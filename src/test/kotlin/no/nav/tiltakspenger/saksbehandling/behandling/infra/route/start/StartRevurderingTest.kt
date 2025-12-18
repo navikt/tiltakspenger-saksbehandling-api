@@ -20,7 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
 
 internal class StartRevurderingTest {
@@ -37,7 +36,7 @@ internal class StartRevurderingTest {
             revurdering.begrunnelseVilkårsvurdering shouldBe null
             revurdering.saksbehandler shouldBe "Z12345"
             revurdering.saksnummer shouldBe sak.saksnummer
-            revurdering.virkningsperiode shouldBe null
+            revurdering.vedtaksperiode shouldBe null
             revurdering.attesteringer shouldBe emptyList()
             revurdering.saksopplysninger.shouldNotBeNull()
         }
@@ -56,7 +55,7 @@ internal class StartRevurderingTest {
             revurdering.begrunnelseVilkårsvurdering shouldBe null
             revurdering.saksbehandler shouldBe "Z12345"
             revurdering.saksnummer shouldBe sak.saksnummer
-            revurdering.virkningsperiode shouldBe null
+            revurdering.vedtaksperiode shouldBe null
             revurdering.attesteringer shouldBe emptyList()
             revurdering.saksopplysninger.shouldNotBeNull()
         }
@@ -77,9 +76,9 @@ internal class StartRevurderingTest {
             revurdering.begrunnelseVilkårsvurdering shouldBe null
             revurdering.saksbehandler shouldBe "Z12345"
             revurdering.saksnummer shouldBe sak.saksnummer
-            revurdering.virkningsperiode shouldBe rammevedtakSøknadsbehandling.periode
-            revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.virkningsperiode
-            revurdering.resultat.virkningsperiode shouldBe søknadsvedtakResultat.innvilgelsesperioder.totalPeriode
+            revurdering.vedtaksperiode shouldBe rammevedtakSøknadsbehandling.periode
+            revurdering.resultat.vedtaksperiode shouldBe søknadsvedtakResultat.vedtaksperiode
+            revurdering.resultat.vedtaksperiode shouldBe søknadsvedtakResultat.innvilgelsesperioder.totalPeriode
             revurdering.resultat.innvilgelsesperioder!!.totalPeriode shouldBe (3 til 10.april(2025))
             revurdering.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
@@ -114,11 +113,11 @@ internal class StartRevurderingTest {
                 søknadsbehandlingInnvilgelsesperiode = 1 til 10.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = 2 til 9.april(2025),
             )!!
-            rammevedtakSøknadsbehandling.behandling.virkningsperiode shouldBe (1 til 10.april(2025))
+            rammevedtakSøknadsbehandling.behandling.vedtaksperiode shouldBe (1 til 10.april(2025))
             rammevedtakSøknadsbehandling.behandling.innvilgelsesperioder!!.totalPeriode shouldBe (1 til 10.april(2025))
             rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
             omgjøring!!.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
-            omgjøring.virkningsperiode shouldBe (1 til 10.april(2025))
+            omgjøring.vedtaksperiode shouldBe (1 til 10.april(2025))
             omgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
@@ -152,11 +151,11 @@ internal class StartRevurderingTest {
                 søknadsbehandlingInnvilgelsesperiode = 2 til 9.april(2025),
                 oppdaterTiltaksdeltakelsesperiode = 1 til 10.april(2025),
             )!!
-            rammevedtakSøknadsbehandling.behandling.virkningsperiode shouldBe (2 til 9.april(2025))
+            rammevedtakSøknadsbehandling.behandling.vedtaksperiode shouldBe (2 til 9.april(2025))
             rammevedtakSøknadsbehandling.behandling.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
             rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
             omgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
-            omgjøring.virkningsperiode shouldBe (2 til 9.april(2025))
+            omgjøring.vedtaksperiode shouldBe (2 til 9.april(2025))
             omgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(

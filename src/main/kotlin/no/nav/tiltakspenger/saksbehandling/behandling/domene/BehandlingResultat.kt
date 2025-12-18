@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 sealed interface BehandlingResultat {
 
     /** Kan være null ved sære tilfeller av avslag, og når behandlingen er uferdig */
-    val virkningsperiode: Periode?
+    val vedtaksperiode: Periode?
 
     /** Vil kun være satt for søknadsbehandling, forlengelse, revurdering (inkl. omgjøring) til innvilgelse. */
     val innvilgelsesperioder: Innvilgelsesperioder?
@@ -103,7 +103,7 @@ fun skalNullstilleResultatVedNyeSaksopplysninger(
         (
             valgteTiltaksdeltakelser.sortedBy { it.eksternDeltakelseId }
                 .zip(nyeSaksopplysninger.tiltaksdeltakelser.sortedBy { it.eksternDeltakelseId }) { forrige, nye ->
-                    // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltakelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
+                    // Vi nullstiller resultatet og vedtaksperioden dersom det har kommet nye tiltaksdeltakelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
                     forrige.eksternDeltakelseId != nye.eksternDeltakelseId ||
                         forrige.deltakelseFraOgMed != nye.deltakelseFraOgMed ||
                         forrige.deltakelseTilOgMed != nye.deltakelseTilOgMed

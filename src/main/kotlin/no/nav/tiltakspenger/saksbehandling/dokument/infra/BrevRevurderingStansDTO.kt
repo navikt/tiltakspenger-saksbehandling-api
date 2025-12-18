@@ -25,6 +25,7 @@ private data class BrevRevurderingStansDTO(
     val rammevedtakFraDato: String,
     @Deprecated("rammevedtakTilDato er renamet til virkningsperiodeTilDato, beholdes til pdfgen har fjernet bruken")
     val rammevedtakTilDato: String,
+    // TODO: Rename fra virkningsperiode til vedtaksperiode her og i pdfgen
     val virkningsperiodeFraDato: String,
     val virkningsperiodeTilDato: String,
     val stansFraFørsteDagSomGirRett: Boolean,

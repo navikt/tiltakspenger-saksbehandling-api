@@ -38,14 +38,14 @@ import org.junit.jupiter.api.Test
 
 class UtbetalingerIT {
     // 7. juli 2025 er en lørdag.
-    private val virkningsperiode = Periode(7.juli(2025), 30.november(2025))
+    private val vedtaksperiode = Periode(7.juli(2025), 30.november(2025))
     private val satser2025 = sats(1.januar(2025))
 
     @Test
     fun `Skal etterbetale ved revurdering som legger til barn`() {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(
-                innvilgelsesperiode = virkningsperiode,
+                innvilgelsesperiode = vedtaksperiode,
                 fnr = Fnr.fromString("12345678911"),
             )
 
@@ -62,13 +62,13 @@ class UtbetalingerIT {
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
                     fritekstTilVedtaksbrev = "lol",
                     begrunnelseVilkårsvurdering = "what",
-                    innvilgelsesperiode = virkningsperiode.toDTO(),
+                    innvilgelsesperiode = vedtaksperiode.toDTO(),
                     valgteTiltaksdeltakelser = revurdering.tiltaksdeltakelseDTO(),
                     barnetillegg = barnetillegg(
-                        periode = virkningsperiode,
+                        periode = vedtaksperiode,
                         antallBarn = AntallBarn(2),
                     ).toBarnetilleggDTO(),
-                    antallDagerPerMeldeperiodeForPerioder = revurdering.antallDagerPerMeldeperiodeDTO(virkningsperiode),
+                    antallDagerPerMeldeperiodeForPerioder = revurdering.antallDagerPerMeldeperiodeDTO(vedtaksperiode),
                 ),
             )
 
@@ -152,7 +152,7 @@ class UtbetalingerIT {
     fun `Feilutbetaling ved stans over utbetalt periode`() {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(
-                innvilgelsesperiode = virkningsperiode,
+                innvilgelsesperiode = vedtaksperiode,
                 fnr = Fnr.fromString("12345678911"),
             )
 
@@ -170,7 +170,7 @@ class UtbetalingerIT {
                     fritekstTilVedtaksbrev = "lol",
                     begrunnelseVilkårsvurdering = "what",
                     valgteHjemler = listOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = virkningsperiode.fraOgMed,
+                    stansFraOgMed = vedtaksperiode.fraOgMed,
                     stansTilOgMed = null,
                     harValgtStansFraFørsteDagSomGirRett = false,
                     harValgtStansTilSisteDagSomGirRett = true,
@@ -213,7 +213,7 @@ class UtbetalingerIT {
     fun `Behandling med feilutbetaling ved stans over utbetalt periode skal ikke kunne sendes til beslutning`() {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(
-                innvilgelsesperiode = virkningsperiode,
+                innvilgelsesperiode = vedtaksperiode,
                 fnr = Fnr.fromString("12345678911"),
             )
 
@@ -231,7 +231,7 @@ class UtbetalingerIT {
                     fritekstTilVedtaksbrev = "lol",
                     begrunnelseVilkårsvurdering = "what",
                     valgteHjemler = listOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = virkningsperiode.fraOgMed,
+                    stansFraOgMed = vedtaksperiode.fraOgMed,
                     stansTilOgMed = null,
                     harValgtStansFraFørsteDagSomGirRett = false,
                     harValgtStansTilSisteDagSomGirRett = true,

@@ -32,12 +32,12 @@ class ToBehandlingerIT {
                         routing { routes(tac) }
                     }
                     val fnr = Fnr.random()
-                    val førsteVirkningsperiode = Periode(1.mars(2024), 15.mars(2024))
-                    val andreVirkningsperiode = Periode(16.april(2024), 21.april(2024))
+                    val førsteInnvilgelsesperiode = Periode(1.mars(2024), 15.mars(2024))
+                    val andreInnvilgelsesperiode = Periode(16.april(2024), 21.april(2024))
                     val (sak) = this.iverksettSøknadsbehandling(
                         tac,
                         fnr = fnr,
-                        vedtaksperiode = førsteVirkningsperiode,
+                        vedtaksperiode = førsteInnvilgelsesperiode,
                     )
 
                     sak.let {
@@ -49,7 +49,7 @@ class ToBehandlingerIT {
                     val (sakEtterAndreSøknadsbehandling) = this.iverksettSøknadsbehandling(
                         tac,
                         fnr = fnr,
-                        vedtaksperiode = andreVirkningsperiode,
+                        vedtaksperiode = andreInnvilgelsesperiode,
                     )
 
                     sakEtterAndreSøknadsbehandling.let {

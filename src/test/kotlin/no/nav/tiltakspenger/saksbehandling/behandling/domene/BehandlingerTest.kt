@@ -22,7 +22,7 @@ class BehandlingerTest {
         val vedtattBehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             fnr = fnr,
-            virkningsperiode = Periode(1.januar(2025), 10.januar(2025)),
+            saksopplysningsperiode = Periode(1.januar(2025), 10.januar(2025)),
             clock = clock,
         )
         val avbruttBehandling = ObjectMother.nyAvbruttSøknadsbehandling(

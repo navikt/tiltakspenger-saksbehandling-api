@@ -146,7 +146,7 @@ private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenRammebehandlingDTO> {
 
     return this.rammebehandlinger.åpneBehandlinger.map {
         val id = it.id.toString()
-        val periode = it.virkningsperiode?.toDTO()
+        val periode = it.vedtaksperiode?.toDTO()
         val status = it.status.toBehandlingsstatusDTO()
         val underkjent = it.attesteringer.any { attestering -> attestering.isUnderkjent() }
 

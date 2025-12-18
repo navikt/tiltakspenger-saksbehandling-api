@@ -37,7 +37,7 @@ internal class ForhåndsvisAvslagVedtaksbrevTest {
                     sakId = sak.id,
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                    virkningsperiode = 1.januar(2025) til 31.mars(2025),
+                    vedtaksperiode = 1.januar(2025) til 31.mars(2025),
                     stansFraOgMed = null,
                     stansTilOgMed = null,
                     valgteHjemler = null,

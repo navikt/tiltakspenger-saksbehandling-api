@@ -364,15 +364,15 @@ class BehandlingPostgresRepo(
 
             val saksopplysninger = string("saksopplysninger").toSaksopplysninger()
 
-            val virkningsperiodeFraOgMed = localDateOrNull("virkningsperiode_fra_og_med")
-            val virkningsperiodeTilOgMed = localDateOrNull("virkningsperiode_til_og_med")
+            // TODO: Rename virkningsperiode_fra_og_med -> vedtaksperiode_fra_og_med og virkningsperiode_til_og_med -> vedtaksperiode_til_og_med
+            val vedtaksperiodeFraOgMed = localDateOrNull("virkningsperiode_fra_og_med")
+            val vedtaksperiodeTilOgMed = localDateOrNull("virkningsperiode_til_og_med")
 
-            if ((virkningsperiodeFraOgMed == null).xor(virkningsperiodeTilOgMed == null)) {
-                throw IllegalStateException("Både fra og med og til og med for virkningsperiode må være satt, eller ingen av dem")
+            if ((vedtaksperiodeFraOgMed == null).xor(vedtaksperiodeTilOgMed == null)) {
+                throw IllegalStateException("Både fra og med og til og med for vedtaksperiode må være satt, eller ingen av dem")
             }
-
-            val virkningsperiode =
-                virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
+            val vedtaksperiode =
+                vedtaksperiodeFraOgMed?.let { Periode(vedtaksperiodeFraOgMed, vedtaksperiodeTilOgMed!!) }
             val søknadId = stringOrNull("soknad_id")?.let { SøknadId.fromString(it) }
             val omgjørRammevedtak = stringOrNull("omgjør_rammevedtak").toOmgjørRammevedtak()
 
@@ -394,7 +394,7 @@ class BehandlingPostgresRepo(
 
                         SøknadsbehandlingType.AVSLAG -> SøknadsbehandlingResultat.Avslag(
                             avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag(),
-                            avslagsperiode = virkningsperiode,
+                            avslagsperiode = vedtaksperiode,
                         )
 
                         null -> null
@@ -452,7 +452,7 @@ class BehandlingPostgresRepo(
                                 ?: emptyList(),
                             harValgtStansFraFørsteDagSomGirRett = booleanOrNull("har_valgt_stans_fra_første_dag_som_gir_rett"),
                             harValgtStansTilSisteDagSomGirRett = booleanOrNull("har_valgt_stans_til_siste_dag_som_gir_rett"),
-                            stansperiode = virkningsperiode,
+                            stansperiode = vedtaksperiode,
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
@@ -464,7 +464,7 @@ class BehandlingPostgresRepo(
 
                         RevurderingType.OMGJØRING -> {
                             RevurderingResultat.Omgjøring(
-                                virkningsperiode = virkningsperiode!!,
+                                vedtaksperiode = vedtaksperiode!!,
                                 innvilgelsesperioder = innvilgelsesperioder,
                                 barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                                 omgjørRammevedtak = omgjørRammevedtak,
@@ -736,8 +736,8 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "iverksatt_tidspunkt" to this.iverksattTidspunkt,
         "sendt_til_datadeling" to this.sendtTilDatadeling,
         "oppgave_id" to null,
-        "virkningsperiode_fra_og_med" to this.virkningsperiode?.fraOgMed,
-        "virkningsperiode_til_og_med" to this.virkningsperiode?.tilOgMed,
+        "virkningsperiode_fra_og_med" to this.vedtaksperiode?.fraOgMed,
+        "virkningsperiode_til_og_med" to this.vedtaksperiode?.tilOgMed,
         "saksbehandler" to this.saksbehandler,
         "beslutter" to this.beslutter,
         "attesteringer" to this.attesteringer.toDbJson(),

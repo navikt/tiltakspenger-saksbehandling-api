@@ -44,11 +44,12 @@ import java.time.LocalDate
  * @param valgteHjemler Brukes kun ved revurdering til stans
  * @param stansFraOgMed Brukes kun ved revurdering til stans
  * @param stansTilOgMed Brukes kun ved revurdering til stans
- * @param barnetillegg Brukes ved innvilgelse (søknadsbehandling+revurdering). Kan inneholde hull. Må valideres basert på innsendt virkningsperiode eller virkningsperioden på behandlingen.
+ * @param barnetillegg Brukes ved innvilgelse (søknadsbehandling+revurdering). Kan inneholde hull. Må valideres basert på innsendt [virkningsperiode] mot behandlingen.
  * @param virkningsperiode Brukes ved avslag og innvilgelse (søknadsbehandling+revurdering). Brukes kun hvis den ikke er satt på behandlingen.
  */
 private data class Body(
     val fritekst: String?,
+    // TODO: Rename til vedtaksperiode i frontend+backend samtidig.
     val virkningsperiode: PeriodeDTO?,
     val harValgtStansFraFørsteDagSomGirRett: Boolean?,
     val harValgtStansTilSisteDagSomGirRett: Boolean?,
@@ -73,7 +74,7 @@ private data class Body(
         correlationId: CorrelationId,
         saksbehandler: Saksbehandler,
     ): ForhåndsvisVedtaksbrevKommando {
-        val virkningsperiode = virkningsperiode?.toDomain()
+        val vedtaksperiode = virkningsperiode?.toDomain()
         val resultat = resultat.toDomain()
 
         requireNotNull(resultat) {
@@ -86,7 +87,7 @@ private data class Body(
             behandlingId = behandlingId,
             correlationId = correlationId,
             saksbehandler = saksbehandler,
-            virkningsperiode = virkningsperiode,
+            vedtaksperiode = vedtaksperiode,
             valgteHjemler = valgteHjemler?.toDomain(),
             stansFraOgMed = stansFraOgMed,
             stansTilOgMed = stansTilOgMed,

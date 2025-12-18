@@ -175,14 +175,14 @@ data class Rammevedtaksliste(
     /**
      * Tenkt kalt under behandlingen for å avgjøre hvilke rammevedtak som vil bli omgjort.
      * Obs: Merk at en annen behandling kan ha omgjort det samme/de samme vedtakene etter at denne metoden er kalt, men før denne behandlingen iverksettes.
-     * @param virkningsperiode vurderingsperioden/vedtaksperioden. Kan være en ren innvilgelse, et rent opphør eller en blanding.
+     * @param vedtaksperiode Kan være en ren innvilgelse, et rent opphør eller en blanding.
      */
     fun finnVedtakSomOmgjøres(
-        virkningsperiode: Periode,
+        vedtaksperiode: Periode,
     ): OmgjørRammevedtak {
         return OmgjørRammevedtak(
             this.flatMap {
-                it.finnPerioderSomOmgjøres(virkningsperiode)
+                it.finnPerioderSomOmgjøres(vedtaksperiode)
             }.sortedBy { it.periode.fraOgMed },
         )
     }

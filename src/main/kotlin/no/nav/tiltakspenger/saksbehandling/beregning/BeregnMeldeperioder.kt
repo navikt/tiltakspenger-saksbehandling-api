@@ -285,27 +285,27 @@ fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode
 
     return beregnRammebehandling(
         behandlingId = behandlingId,
-        virkningsperiode = stansperiode,
+        vedtaksperiode = stansperiode,
         innvilgelsesperioder = emptyList(),
     )
 }
 
 /**
- *  Beregner en behandling der virkningsperioden er helt eller delvis innvilget
+ * Beregner en behandling der vedtaksperiode er helt eller delvis innvilget.
  *
- *  @param behandlingId Søknadsbehandling eller revurdering.
- *  @param virkningsperiode Hele vedtaksperioden for behandlingen.
- *  Dersom deler av virkningsperioden ikke overlapper med [innvilgelsesperioder], gir disse periodene ikke tiltakspenger (delvis avslag)
+ * @param behandlingId Søknadsbehandling eller revurdering.
+ * @param vedtaksperiode Hele vedtaksperioden for behandlingen. Kan være en kombinasjon av innvilgelse/avslag og/eller innvilgelse/opphør.
+ * Dersom deler av vedtaksperioden ikke overlapper med [innvilgelsesperioder], gir disse periodene ikke tiltakspenger (delvis avslag)
  */
 fun Sak.beregnInnvilgelse(
     behandlingId: BehandlingId,
-    virkningsperiode: Periode,
+    vedtaksperiode: Periode,
     innvilgelsesperioder: Innvilgelsesperioder,
     barnetilleggsperioder: Periodisering<AntallBarn>,
 ): Beregning? {
     return beregnRammebehandling(
         behandlingId = behandlingId,
-        virkningsperiode = virkningsperiode,
+        vedtaksperiode = vedtaksperiode,
         innvilgelsesperioder = innvilgelsesperioder.perioder,
         nyeBarnetilleggsperioder = barnetilleggsperioder,
     )
@@ -314,25 +314,25 @@ fun Sak.beregnInnvilgelse(
 /**
  *  Beregner perioden for en rammebehandling på nytt
  *
- *  @param virkningsperiode Hele perioden som omfattes av behandlingen.
- *  @param innvilgelsesperioder Perioder med rett til tiltakspenger innenfor virkningsperioden
+ *  @param vedtaksperiode Hele perioden som omfattes av behandlingen (inkluderer innvilgelses og avslags/opphørs-periode).
+ *  @param innvilgelsesperioder Perioder med rett til tiltakspenger innenfor [vedtaksperiode]
  * */
 private fun Sak.beregnRammebehandling(
     behandlingId: BehandlingId,
-    virkningsperiode: Periode,
+    vedtaksperiode: Periode,
     innvilgelsesperioder: List<Periode>,
     nyeBarnetilleggsperioder: Periodisering<AntallBarn>? = null,
 ): Beregning? {
-    require(innvilgelsesperioder.all { virkningsperiode.inneholderHele(it) }) {
-        "Virkningsperioden $virkningsperiode må inneholde alle innvilgelsesperiodene $innvilgelsesperioder"
+    require(innvilgelsesperioder.all { vedtaksperiode.inneholderHele(it) }) {
+        "Vedtaksperioden $vedtaksperiode må inneholde alle innvilgelsesperiodene $innvilgelsesperioder"
     }
 
     val meldeperioderSomBeregnesPåNytt = meldeperiodeBeregninger
-        .sisteBeregningerForPeriode(virkningsperiode)
+        .sisteBeregningerForPeriode(vedtaksperiode)
         .map { beregning ->
             beregning.tilSkalBeregnes(
                 harMistetRett = { dato ->
-                    virkningsperiode.contains(dato) && innvilgelsesperioder.none {
+                    vedtaksperiode.contains(dato) && innvilgelsesperioder.none {
                         it.contains(dato)
                     }
                 },

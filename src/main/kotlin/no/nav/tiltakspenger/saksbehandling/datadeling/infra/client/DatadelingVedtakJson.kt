@@ -21,6 +21,7 @@ private data class DatadelingVedtakJson(
     val sakId: String,
     val fom: LocalDate,
     val tom: LocalDate,
+    // TODO: Rename til vedtaksperiode her og i datadeling
     val virkningsperiode: PeriodeDTO,
     val innvilgelsesperiode: PeriodeDTO?,
     val omgjørRammevedtakId: String?,
@@ -61,14 +62,14 @@ fun Rammevedtak.toDatadelingJson(): String {
     return DatadelingVedtakJson(
         vedtakId = this.id.toString(),
         sakId = this.sakId.toString(),
-        // Kommentar jah: Deprekerer fom og tom (erstattes av virkningsperiode+innvilgelsesperiode).
+        // Kommentar jah: Deprekerer fom og tom (erstattes av vedtaksperiode+innvilgelsesperiode).
         fom = periode.fraOgMed,
         tom = periode.tilOgMed,
         virkningsperiode = periode.toDTO(),
         innvilgelsesperiode = innvilgelsesperioder?.totalPeriode?.toDTO(),
         // TODO jah: omgjørRammevedtakId og omgjortAvRammevedtakId bør gjøres om etter vi har lagt på eksplisitt omgjøring på vedtakene.
         // Kommentar jah: Disse ble lagt til utelukkende for revurdering til omgjøring for å tydeliggjøre at vedtaket omgjør et annet vedtak i sin helhet.
-        // Det vil være en ny avgjørelse dersom vi skal dele informasjon fra andre vedtak her. Det vil være redundant med virkningsperioden/vurderingsperioden.
+        // Det vil være en ny avgjørelse dersom vi skal dele informasjon fra andre vedtak her.
         omgjørRammevedtakId = if (this.erOmgjøringsbehandling) this.omgjørRammevedtak.single().rammevedtakId.toString() else null,
         // Kommentar jah: Hvis vi skulle beholdt dagens logikk her, måtte vi sjekket om rammevedtaket som omgjorde dette vedtaket var en omgjøringsbehandling. Istedenfor å gjøre det, deler vi det vedtaket som har omgjort dette vedtaket helt.
         omgjortAvRammevedtakId = if (this.omgjortAvRammevedtak.size == 1 && this.omgjortAvRammevedtak.first().omgjøringsgrad == Omgjøringsgrad.HELT) this.omgjortAvRammevedtak.first().rammevedtakId.toString() else null,

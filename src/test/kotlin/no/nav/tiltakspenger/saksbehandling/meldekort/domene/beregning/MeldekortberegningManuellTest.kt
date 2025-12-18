@@ -108,7 +108,7 @@ internal class MeldekortberegningManuellTest {
     fun `manuell test av meldekortberegning`() {
         runTest {
             val meldekortBeregning = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = Periode(29.januar(2024), 7.april(2024)),
+                vedtaksperiode = Periode(29.januar(2024), 7.april(2024)),
                 meldeperioder = nonEmptyListOf(meldekort1, meldekort2, meldekort3, meldekort4, meldekort5),
             )
             for (dag in meldekortBeregning) {

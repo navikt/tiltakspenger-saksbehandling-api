@@ -33,7 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterS�
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterSøknadsbehandlingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.virkningsperiode
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -80,7 +80,7 @@ interface SakMother {
             iDag,
             løpenummer,
         ),
-        virkningsperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
+        vedtaksperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
         saksbehandler: Saksbehandler = saksbehandler(),
         søknad: InnvilgbarSøknad =
@@ -89,8 +89,8 @@ interface SakMother {
                 saksnummer = saksnummer,
                 søknadstiltak =
                 søknadstiltak(
-                    deltakelseFom = virkningsperiode.fraOgMed,
-                    deltakelseTom = virkningsperiode.tilOgMed,
+                    deltakelseFom = vedtaksperiode.fraOgMed,
+                    deltakelseTom = vedtaksperiode.tilOgMed,
                 ),
             ),
         registrerteTiltak: Tiltaksdeltakelser = Tiltaksdeltakelser(listOf(søknad.tiltak.toTiltak())),
@@ -105,11 +105,11 @@ interface SakMother {
             ),
             oppslagstidspunkt = iDag.atStartOfDay(),
         ),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
-                periode = virkningsperiode,
+                innvilgelsesperiode = vedtaksperiode,
                 tiltaksdeltakelseId = registrerteTiltak.first().eksternDeltakelseId,
             ),
         ),
@@ -193,7 +193,7 @@ interface SakMother {
             iDag,
             løpenummer,
         ),
-        virkningsperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
+        vedtaksperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
         søknad: InnvilgbarSøknad =
             nyInnvilgbarSøknad(
@@ -201,8 +201,8 @@ interface SakMother {
                 saksnummer = saksnummer,
                 søknadstiltak =
                 søknadstiltak(
-                    deltakelseFom = virkningsperiode.fraOgMed,
-                    deltakelseTom = virkningsperiode.tilOgMed,
+                    deltakelseFom = vedtaksperiode.fraOgMed,
+                    deltakelseTom = vedtaksperiode.tilOgMed,
                 ),
             ),
         registrerteTiltak: Tiltaksdeltakelser = Tiltaksdeltakelser(listOf(søknad.tiltak.toTiltak())),
@@ -260,9 +260,9 @@ interface SakMother {
         fnr: Fnr = Fnr.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         saksbehandler: Saksbehandler = saksbehandler(),
-        virkningsperiode: Periode = virkningsperiode(),
+        vedtaksperiode: Periode = vedtaksperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
         kanSendeInnHelgForMeldekort: Boolean = false,
         clock: Clock = fixedClock,
     ): Triple<Sak, Vedtak, Rammebehandling> {
@@ -270,7 +270,7 @@ interface SakMother {
             sakId = sakId,
             fnr = fnr,
             saksnummer = saksnummer,
-            virkningsperiode = virkningsperiode,
+            vedtaksperiode = vedtaksperiode,
             saksbehandler = saksbehandler,
             kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         )
@@ -283,7 +283,7 @@ interface SakMother {
                 barnetillegg = barnetillegg,
                 innvilgelsesperioder = listOf(
                     innvilgelsesperiodeKommando(
-                        periode = virkningsperiode,
+                        innvilgelsesperiode = vedtaksperiode,
                         tiltaksdeltakelseId = søknadsbehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
                     ),
                 ),
@@ -313,7 +313,7 @@ interface SakMother {
         fnr: Fnr = Fnr.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         saksbehandler: Saksbehandler = saksbehandler(),
-        virkningsperiode: Periode = virkningsperiode(),
+        avslagsperiode: Periode = vedtaksperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         kanSendeInnHelgForMeldekort: Boolean = false,
         clock: Clock = fixedClock,
@@ -322,7 +322,7 @@ interface SakMother {
             sakId = sakId,
             fnr = fnr,
             saksnummer = saksnummer,
-            virkningsperiode = virkningsperiode,
+            vedtaksperiode = avslagsperiode,
             saksbehandler = saksbehandler,
             kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         )

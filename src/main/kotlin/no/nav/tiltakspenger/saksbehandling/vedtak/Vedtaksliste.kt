@@ -70,12 +70,12 @@ data class Vedtaksliste(
     /**
      * Tenkt kalt under behandlingen for å avgjøre hvilke rammevedtak som vil bli omgjort.
      * Husk og dobbeltsjekk denne ved iverksettelse.
-     * @param virkningsperiode vurderingsperioden/vedtaksperioden. Kan være en ren innvilgelse, et rent opphør eller en blanding.
+     * @param vedtaksperiode Kan være en ren innvilgelse, et rent opphør eller en blanding.
      */
     fun finnRammevedtakSomOmgjøres(
-        virkningsperiode: Periode,
+        vedtaksperiode: Periode,
     ): OmgjørRammevedtak {
-        return rammevedtaksliste.finnVedtakSomOmgjøres(virkningsperiode)
+        return rammevedtaksliste.finnVedtakSomOmgjøres(vedtaksperiode)
     }
 
     fun hentRammevedtakForBehandlingId(behandlingId: BehandlingId): Rammevedtak {

@@ -21,7 +21,7 @@ private typealias Status = OppdaterMeldekortKommando.Status
 
 internal class MeldekortberegningKorrigeringTest {
     private val førsteDag = LocalDate.of(2024, 1, 1)
-    private val vurderingsperiode = Periode(fraOgMed = førsteDag, tilOgMed = førsteDag.plusDays(364))
+    private val vedtaksperiode = Periode(fraOgMed = førsteDag, tilOgMed = førsteDag.plusDays(364))
 
     private fun periodeMedStatuser(fraDato: LocalDate, vararg statuser: List<Status>) =
         statuser.toList().flatten()
@@ -44,7 +44,7 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Skal korrigere en behandling`() {
         runTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 meldeperioder = nonEmptyListOf(
                     periodeMedFullDeltakelse(førsteDag),
                     periodeMedStatuser(
@@ -67,7 +67,7 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Skal korrigere en tidligere behandling`() {
         runTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 meldeperioder = nonEmptyListOf(
                     periodeMedFullDeltakelse(førsteDag),
                     periodeMedFullDeltakelse(førsteDag.plusWeeks(2)),
@@ -92,7 +92,7 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Skal beregne sykedager frem i tid ved korrigering`() {
         runTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 meldeperioder = nonEmptyListOf(
                     periodeMedFullDeltakelse(førsteDag),
 
@@ -126,7 +126,7 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Skal beregne sykedager to perioder frem i tid ved korrigering til 0-beløp`() {
         runTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 meldeperioder = nonEmptyListOf(
                     periodeMedStatuser(
                         førsteDag,
@@ -180,10 +180,10 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Skal beregne sykedager frem i tid ved korrigering med barnetillegg`() {
         runTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 barnetilleggsPerioder = SammenhengendePeriodisering(
                     AntallBarn(2),
-                    vurderingsperiode,
+                    vedtaksperiode,
                 ),
                 meldeperioder = nonEmptyListOf(
                     periodeMedFullDeltakelse(førsteDag),
@@ -219,7 +219,7 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Arbeidsgiverperiode skal ikke resettes ved sykedager med 15 dager mellom`() {
         runTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 meldeperioder = nonEmptyListOf(
                     periodeMedStatuser(
                         førsteDag,
@@ -261,7 +261,7 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Arbeidsgiverperiode skal resettes med 16 dager mellom sykedager`() {
         runTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 meldeperioder = nonEmptyListOf(
                     periodeMedStatuser(
                         førsteDag,
@@ -303,7 +303,7 @@ internal class MeldekortberegningKorrigeringTest {
             val førsteDag = LocalDate.of(2024, 12, 23)
 
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = Periode(førsteDag, førsteDag.plusDays(100)),
+                vedtaksperiode = Periode(førsteDag, førsteDag.plusDays(100)),
                 meldeperioder = nonEmptyListOf(
                     periodeMedFullDeltakelse(førsteDag),
 
@@ -341,7 +341,7 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Skal korrigere en korrigering`() {
         runTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 meldeperioder = nonEmptyListOf(
                     periodeMedFullDeltakelse(førsteDag),
 
@@ -384,7 +384,7 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Skal korrigere en korrigering, med tidligere korrigering i en påfølgende periode`() {
         runTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 meldeperioder = nonEmptyListOf(
                     periodeMedFullDeltakelse(førsteDag),
                     periodeMedFullDeltakelse(førsteDag.plusWeeks(2)),
@@ -427,7 +427,7 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Skal korrigere en korrigering, som fører til opprinnelig beregning av neste periode`() {
         runTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-                vurderingsperiode = vurderingsperiode,
+                vedtaksperiode = vedtaksperiode,
                 meldeperioder = nonEmptyListOf(
                     periodeMedFullDeltakelse(førsteDag),
 

@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresTransactionC
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo.Companion.toBehandling
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
@@ -83,8 +82,8 @@ class V159__migrer_omgjort_rammevedtak : BaseJavaMigration() {
                 logger.info { "Migrerte rammevedtak (igjen)" }
                 hentAlleÅpneBehandlinger(session).forEach {
                     val sak = SakPostgresRepo.hentForSakId(it.sakId, tx)!!
-                    if (it.virkningsperiode == null) return@forEach
-                    val omgjørRammevedtak = sak.vedtaksliste.finnRammevedtakSomOmgjøres(it.virkningsperiode!!)
+                    if (it.vedtaksperiode == null) return@forEach
+                    val omgjørRammevedtak = sak.vedtaksliste.finnRammevedtakSomOmgjøres(it.vedtaksperiode!!)
                     persisterOmgjørRammevedtak(it.id, omgjørRammevedtak, session)
                 }
                 logger.info { "Migrerte behandlinger" }

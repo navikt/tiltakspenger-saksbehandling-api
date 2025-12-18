@@ -38,16 +38,16 @@ data class Barnetillegg(
         fun periodiserOgFyllUtHullMed0(
             perioder: BarnetilleggPerioder,
             begrunnelse: Begrunnelse?,
-            virkningsperiode: Periode,
+            innvilgelsesperiode: Periode,
         ) = Barnetillegg(
-            periodisering = perioder.periodiserOgFyllUtHullMed0(virkningsperiode),
+            periodisering = perioder.periodiserOgFyllUtHullMed0(innvilgelsesperiode),
             begrunnelse = begrunnelse,
         )
 
-        fun utenBarnetillegg(virkningsperiode: Periode) = Barnetillegg(
+        fun utenBarnetillegg(periode: Periode) = Barnetillegg(
             periodisering = SammenhengendePeriodisering(
                 PeriodeMedVerdi(
-                    periode = virkningsperiode,
+                    periode = periode,
                     verdi = AntallBarn.ZERO,
                 ),
             ),
@@ -60,11 +60,11 @@ private typealias BarnetilleggPerioder = List<Pair<Periode, AntallBarn>>
 
 /**
  * Periodiserer og fyller ut hull med 0.
- * @throws IllegalArgumentException Dersom periodene er utenfor virkningsperioden eller overlapper.
+ * @throws IllegalArgumentException Dersom periodene er utenfor [innvilgelsesperiode] eller overlapper.
  */
-private fun BarnetilleggPerioder.periodiserOgFyllUtHullMed0(virkningsperiode: Periode): Periodisering<AntallBarn> {
+private fun BarnetilleggPerioder.periodiserOgFyllUtHullMed0(innvilgelsesperiode: Periode): Periodisering<AntallBarn> {
     if (this.map { it.first }.inneholderOverlapp()) {
         throw IllegalArgumentException("Periodene kan ikke overlappe")
     }
-    return this.tilPeriodisering().utvid(AntallBarn.ZERO, virkningsperiode) as SammenhengendePeriodisering
+    return this.tilPeriodisering().utvid(AntallBarn.ZERO, innvilgelsesperiode) as SammenhengendePeriodisering
 }

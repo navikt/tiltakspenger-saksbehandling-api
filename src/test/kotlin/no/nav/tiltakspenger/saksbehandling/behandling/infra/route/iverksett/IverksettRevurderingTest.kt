@@ -56,7 +56,7 @@ internal class IverksettRevurderingTest {
                     begrunnelseVilkårsvurdering = null,
                     fritekstTilVedtaksbrev = null,
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = rammevedtakSøknadsbehandling.behandling.virkningsperiode!!.fraOgMed,
+                    stansFraOgMed = rammevedtakSøknadsbehandling.behandling.vedtaksperiode!!.fraOgMed,
                     stansTilOgMed = null,
                     harValgtStansFraFørsteDagSomGirRett = false,
                     harValgtStansTilSisteDagSomGirRett = true,
@@ -76,12 +76,12 @@ internal class IverksettRevurderingTest {
     @Test
     fun `kan iverksette revurdering innvilgelsesperiode fremover`() {
         withTestApplicationContext { tac ->
-            val søknadsbehandlingVirkningsperiode = 1.til(10.april(2025))
-            val revurderingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L)
+            val søknadsbehandlingVedtaksperiode = 1.til(10.april(2025))
+            val revurderingInnvilgelsesperiode = søknadsbehandlingVedtaksperiode.plusTilOgMed(14L)
 
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac,
-                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode,
+                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVedtaksperiode,
                 revurderingVedtaksperiode = revurderingInnvilgelsesperiode,
             )
 
@@ -120,12 +120,12 @@ internal class IverksettRevurderingTest {
     @Test
     fun `kan iverksette revurdering innvilgelsesperiode bakover`() {
         withTestApplicationContext { tac ->
-            val søknadsbehandlingVirkningsperiode = 1.til(10.april(2025))
-            val revurderingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode.minusFraOgMed(14L)
+            val søknadsbehandlingVedtaksperiode = 1.til(10.april(2025))
+            val revurderingInnvilgelsesperiode = søknadsbehandlingVedtaksperiode.minusFraOgMed(14L)
 
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac,
-                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode,
+                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVedtaksperiode,
                 revurderingVedtaksperiode = revurderingInnvilgelsesperiode,
             )
 
@@ -186,7 +186,7 @@ internal class IverksettRevurderingTest {
                     begrunnelseVilkårsvurdering = null,
                     fritekstTilVedtaksbrev = null,
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = rammevedtakSøknadsbehandling.behandling.virkningsperiode!!.fraOgMed,
+                    stansFraOgMed = rammevedtakSøknadsbehandling.behandling.vedtaksperiode!!.fraOgMed,
                     stansTilOgMed = null,
                     harValgtStansFraFørsteDagSomGirRett = false,
                     harValgtStansTilSisteDagSomGirRett = true,
