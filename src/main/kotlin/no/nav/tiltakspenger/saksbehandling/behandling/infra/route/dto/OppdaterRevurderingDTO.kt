@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
 import java.time.LocalDate
@@ -28,7 +29,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
     data class Innvilgelse(
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
-        val innvilgelsesperioder: List<InnvilgelsesperiodeDTO>,
+        val innvilgelsesperioder: InnvilgelsesperioderDTO,
         val barnetillegg: BarnetilleggDTO,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
@@ -57,7 +58,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
     data class Omgjøring(
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
-        val innvilgelsesperioder: List<InnvilgelsesperiodeDTO>,
+        val innvilgelsesperioder: InnvilgelsesperioderDTO,
         val barnetillegg: BarnetilleggDTO,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE

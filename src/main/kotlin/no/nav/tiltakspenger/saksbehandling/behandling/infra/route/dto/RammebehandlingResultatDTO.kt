@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
@@ -14,7 +13,7 @@ sealed interface RammebehandlingResultatDTO {
 sealed interface SøknadsbehandlingResultatDTO : RammebehandlingResultatDTO {
 
     data class Innvilgelse(
-        override val innvilgelsesperioder: NonEmptyList<InnvilgelsesperiodeDTO>,
+        override val innvilgelsesperioder: InnvilgelsesperioderDTO,
         override val barnetillegg: BarnetilleggDTO?,
     ) : SøknadsbehandlingResultatDTO,
         RammebehandlingInnvilgelseResultatDTO {
@@ -35,7 +34,7 @@ sealed interface SøknadsbehandlingResultatDTO : RammebehandlingResultatDTO {
 sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
 
     data class Innvilgelse(
-        override val innvilgelsesperioder: NonEmptyList<InnvilgelsesperiodeDTO>?,
+        override val innvilgelsesperioder: InnvilgelsesperioderDTO?,
         override val barnetillegg: BarnetilleggDTO?,
     ) : RevurderingResultatDTO,
         RammebehandlingInnvilgelseResultatDTO {
@@ -51,7 +50,7 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     }
 
     data class Omgjøring(
-        override val innvilgelsesperioder: NonEmptyList<InnvilgelsesperiodeDTO>?,
+        override val innvilgelsesperioder: InnvilgelsesperioderDTO?,
         override val barnetillegg: BarnetilleggDTO?,
         val omgjørVedtak: String,
     ) : RevurderingResultatDTO,
@@ -61,7 +60,7 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
 }
 
 sealed interface RammebehandlingInnvilgelseResultatDTO {
-    val innvilgelsesperioder: NonEmptyList<InnvilgelsesperiodeDTO>?
+    val innvilgelsesperioder: InnvilgelsesperioderDTO?
     val barnetillegg: BarnetilleggDTO?
 }
 

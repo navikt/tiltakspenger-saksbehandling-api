@@ -6,11 +6,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
 @JsonSubTypes(
@@ -32,19 +28,4 @@ sealed interface OppdaterBehandlingDTO {
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): OppdaterBehandlingKommando
-
-    fun List<InnvilgelsesperiodeDTO>.tilKommando(): IkkeTomPeriodisering<InnvilgelsesperiodeKommando> {
-        return this.map {
-            val periode = it.periode.toDomain()
-
-            PeriodeMedVerdi(
-                periode = periode,
-                verdi = InnvilgelsesperiodeKommando(
-                    periode = periode,
-                    antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode,
-                    tiltaksdeltakelseId = it.tiltaksdeltakelseId,
-                ),
-            )
-        }.tilIkkeTomPeriodisering()
-    }
 }

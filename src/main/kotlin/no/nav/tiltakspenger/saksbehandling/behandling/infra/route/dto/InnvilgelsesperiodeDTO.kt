@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -11,7 +10,7 @@ data class InnvilgelsesperiodeDTO(
     val tiltaksdeltakelseId: String,
 )
 
-typealias InnvilgelsesperioderDTO = NonEmptyList<InnvilgelsesperiodeDTO>
+typealias InnvilgelsesperioderDTO = List<InnvilgelsesperiodeDTO>
 
 fun Innvilgelsesperioder.tilDTO(): InnvilgelsesperioderDTO {
     return this.periodisering.perioderMedVerdi.map {
