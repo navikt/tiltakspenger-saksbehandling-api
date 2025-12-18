@@ -16,7 +16,7 @@ class SafJournalpostFakeClient(
     ): Journalpost? {
         // Bare for å kunne trigge de forskjellige tilstandene ved lokal kjøring
         // fnr her er det som brukes for den ene søknaden som finnes lokalt
-        if (journalpostId.toString() == "123") {
+        if (journalpostId.toString() == "12345") {
             return Journalpost(
                 avsenderMottaker = AvsenderMottaker(
                     id = "12345678911",
@@ -27,7 +27,7 @@ class SafJournalpostFakeClient(
         }
 
         // Journalpost finnes, men på et annet fnr
-        if (journalpostId.toString() == "1234") {
+        if (journalpostId.toString() == "123456") {
             return Journalpost(
                 avsenderMottaker = AvsenderMottaker(
                     id = Fnr.random().verdi,

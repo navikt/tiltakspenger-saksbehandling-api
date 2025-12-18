@@ -73,7 +73,19 @@ class SafJournalpostClientImpl(
         }
 
         if (hentJournalpostResponse.errors != null) {
-            hentJournalpostResponse.errors.forEach { log.error { "Saf returnerte feilmelding: $it" } }
+            /**
+             * Fra dokumentasjonen:
+             * Siden GraphQL av design returnerer 200 OK på alle svar så er det et behov for å kunne skille tekniske og funksjonelle feil fra kall som går OK.
+             * Noen saf queries støtter feilkoder i graphql svaret: forbidden, not_found,  bad_request, server_error
+             * @link https://confluence.adeo.no/spaces/BOA/pages/309563246/saf+-+Utviklerveiledning#safUtviklerveiledning-Feilh%C3%A5ndtering
+             */
+            hentJournalpostResponse.errors.forEach {
+                if (it.extensions?.code == "not_found" || it.extensions?.code == "bad_request") {
+                    log.warn { "Saf returnerte feilmelding: $it" }
+                } else {
+                    log.error { "Saf returnerte feilmelding: $it" }
+                }
+            }
             return null
         }
 

@@ -60,7 +60,7 @@ interface OpprettKlagebehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        journalpostId: JournalpostId = JournalpostId("123"),
+        journalpostId: JournalpostId = JournalpostId("12345"),
         vedtakDetKlagesPå: VedtakId? = null,
         erKlagerPartISaken: Boolean = true,
         klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
