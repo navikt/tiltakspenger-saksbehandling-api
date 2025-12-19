@@ -18,7 +18,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
      * Når man oppretter en revurdering til stans, lagres det før saksbehandler tar stilling til disse feltene.
      * Alle bør være satt når behandlingen er til beslutning.
      *
-     * Vedtaksperioden og innvilgelsesperioden vil være 1-1 ved denne revurderingstypen.
+     * [vedtaksperiode] og [stansperiode] vil være 1-1 ved denne revurderingstypen. [innvilgelsesperioder] vil alltid være null.
      *
      * @param harValgtStansFraFørsteDagSomGirRett Dersom saksbehandler har valgt at det skal stanses fra første dag som gir rett. Vil være null når man oppretter stansen.
      * @param harValgtStansTilSisteDagSomGirRett Dersom saksbehandler har valgt at det skal stanses til siste dag som gir rett. Vil være null når man oppretter stansen.

@@ -26,7 +26,6 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     val antallBarn: List<AntallBarnPerPeriodeDTO>,
     val barnetilleggTekst: String?,
     val antallBarnHvis1PeriodeIHeleInnvilgelsesperiode: Int?,
-    val kontor: String,
     val satser: List<Any>,
     val satsBarn: Int,
     val antallDagerTekst: String?,
@@ -115,7 +114,6 @@ internal suspend fun genererInnvilgetSøknadsbrev(
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        kontor = "Nav Tiltakspenger",
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         satser = Satser.satser.filter { it.periode.overlapperMed(innvilgelsesperiode) }.map {

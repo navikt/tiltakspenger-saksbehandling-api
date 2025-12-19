@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import org.junit.jupiter.api.Test
 
-class BrevRevurderingInnvilgetDTOKtTest {
+class BrevRevurderingInnvilgetDTOTest {
 
     @Test
     fun `brev uten barnetillegg innenfor 1 års-periode`() {

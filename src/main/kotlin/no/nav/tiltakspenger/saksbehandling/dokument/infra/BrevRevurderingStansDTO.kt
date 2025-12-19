@@ -21,16 +21,11 @@ private data class BrevRevurderingStansDTO(
     override val datoForUtsending: String,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-    @Deprecated("rammevedtakFraDato er renamet til virkningsperiodeFraDato, beholdes til pdfgen har fjernet bruken")
-    val rammevedtakFraDato: String,
-    @Deprecated("rammevedtakTilDato er renamet til virkningsperiodeTilDato, beholdes til pdfgen har fjernet bruken")
-    val rammevedtakTilDato: String,
-    // TODO: Rename fra virkningsperiode til vedtaksperiode her og i pdfgen
+    // TODO jah: Slett virkningsperiodeFraDato+virkningsperiodeTilDato etter stansFraOgMedDato og stansTilOgMedDato brukes i pdfgen.
     val virkningsperiodeFraDato: String,
     val virkningsperiodeTilDato: String,
-    val stansFraFørsteDagSomGirRett: Boolean,
-    val stansTilSisteDagSomGirRett: Boolean,
-    val kontor: String,
+    val stansFraOgMedDato: String,
+    val stansTilOgMedDato: String,
     val valgtHjemmelTekst: List<String>?,
 ) : BrevRammevedtakBaseDTO
 
@@ -38,8 +33,6 @@ suspend fun Rammevedtak.toRevurderingStans(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
-    stansFraFørsteDagSomGirRett: Boolean,
-    stansTilSisteDagSomGirRett: Boolean,
 ): String {
     require(behandling is Revurdering && behandling.resultat is RevurderingResultat.Stans)
 
@@ -55,8 +48,6 @@ suspend fun Rammevedtak.toRevurderingStans(
         forhåndsvisning = false,
         valgteHjemler = behandling.resultat.valgtHjemmel,
         tilleggstekst = behandling.fritekstTilVedtaksbrev,
-        stansFraFørsteDagSomGirRett = stansFraFørsteDagSomGirRett,
-        stansTilSisteDagSomGirRett = stansTilSisteDagSomGirRett,
     )
 }
 
@@ -68,8 +59,6 @@ suspend fun genererStansbrev(
     saksbehandlerNavIdent: String,
     beslutterNavIdent: String?,
     stansperiode: Periode,
-    stansFraFørsteDagSomGirRett: Boolean,
-    stansTilSisteDagSomGirRett: Boolean,
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
     valgteHjemler: List<ValgtHjemmelForStans>,
@@ -85,17 +74,13 @@ suspend fun genererStansbrev(
             fornavn = brukersNavn.fornavn,
             etternavn = brukersNavn.mellomnavnOgEtternavn,
         ),
-        rammevedtakFraDato = stansperiode.fraOgMed.format(norskDatoFormatter),
-        rammevedtakTilDato = stansperiode.tilOgMed.format(norskDatoFormatter),
         virkningsperiodeFraDato = stansperiode.fraOgMed.format(norskDatoFormatter),
+        stansFraOgMedDato = stansperiode.fraOgMed.format(norskDatoFormatter),
         virkningsperiodeTilDato = stansperiode.tilOgMed.format(norskDatoFormatter),
-        stansFraFørsteDagSomGirRett = stansFraFørsteDagSomGirRett,
-        stansTilSisteDagSomGirRett = stansTilSisteDagSomGirRett,
+        stansTilOgMedDato = stansperiode.tilOgMed.format(norskDatoFormatter),
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        // TODO post-mvp: legg inn NORG integrasjon for å hente saksbehandlers kontor.
-        kontor = "Nav Tiltakspenger",
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         forhandsvisning = forhåndsvisning,

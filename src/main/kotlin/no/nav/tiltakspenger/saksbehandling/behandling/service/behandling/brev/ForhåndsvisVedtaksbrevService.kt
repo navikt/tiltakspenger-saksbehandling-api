@@ -147,8 +147,6 @@ class ForhåndsvisVedtaksbrevService(
             forhåndsvisning = true,
             valgteHjemler = kommando.valgteHjemler as List<ValgtHjemmelForStans>,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
-            stansFraFørsteDagSomGirRett = sak.førsteDagSomGirRett == stansperiode.fraOgMed,
-            stansTilSisteDagSomGirRett = sak.sisteDagSomGirRett == stansperiode.tilOgMed,
 
         ).fold(
             ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },

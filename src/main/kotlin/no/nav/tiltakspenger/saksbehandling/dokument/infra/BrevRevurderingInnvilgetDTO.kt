@@ -21,7 +21,6 @@ private data class BrevRevurderingInnvilgetDTO(
     override val datoForUtsending: String,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-    val kontor: String,
     val fraDato: String,
     val tilDato: String,
     val harBarnetillegg: Boolean,
@@ -82,7 +81,6 @@ internal suspend fun genererRevurderingInnvilgetBrev(
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        kontor = "Nav Tiltakspenger",
         fraDato = innvilgelsesperiode.fraOgMed.format(norskDatoFormatter),
         tilDato = innvilgelsesperiode.tilOgMed.format(norskDatoFormatter),
         satser = Satser.satser.filter { it.periode.overlapperMed(innvilgelsesperiode) }.map {

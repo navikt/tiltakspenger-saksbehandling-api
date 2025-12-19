@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class BrevSøknadAvslagDTOKtTest {
+class `BrevSøknadAvslagDTOTest` {
 
     @Test
     fun `genererer og serialiserer brevdata for pdf`() {
@@ -56,7 +56,8 @@ class BrevSøknadAvslagDTOKtTest {
                   "forhandsvisning":true,
                   "avslagFraOgMed":"1. januar 2023",
                   "avslagTilOgMed":"31. mars 2023",
-                  "datoForUtsending": "1. januar 2025"
+                  "datoForUtsending": "1. januar 2025",
+                  "kontor": "Nav Tiltakspenger"
                 }
             """.trimIndent()
 
@@ -92,7 +93,8 @@ class BrevSøknadAvslagDTOKtTest {
                   "forhandsvisning":false,
                   "avslagFraOgMed":"1. januar 2023",
                   "avslagTilOgMed":"31. mars 2023",
-                  "datoForUtsending": "1. januar 2025"
+                  "datoForUtsending": "1. januar 2025",
+                  "kontor": "Nav Tiltakspenger"
                 }
                 """.trimIndent(),
             )

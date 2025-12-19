@@ -57,8 +57,6 @@ class JournalførRammevedtakService(
                             vedtak = vedtak,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-                            stansFraFørsteDagSomGirRett = sak.førsteDagSomGirRett == vedtak.periode.fraOgMed,
-                            stansTilSisteDagSomGirRett = sak.sisteDagSomGirRett == vedtak.periode.tilOgMed,
                         )
 
                         is SøknadsbehandlingResultat.Avslag -> genererVedtaksbrevForAvslagKlient.genererAvslagsvVedtaksbrev(

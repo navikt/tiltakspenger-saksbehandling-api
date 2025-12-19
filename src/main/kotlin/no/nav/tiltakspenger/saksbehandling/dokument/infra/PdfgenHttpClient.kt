@@ -261,8 +261,6 @@ internal class PdfgenHttpClient(
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-        stansFraFørsteDagSomGirRett: Boolean,
-        stansTilSisteDagSomGirRett: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -270,8 +268,6 @@ internal class PdfgenHttpClient(
                     hentBrukersNavn = hentBrukersNavn,
                     hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                     vedtaksdato = vedtaksdato,
-                    stansFraFørsteDagSomGirRett = stansFraFørsteDagSomGirRett,
-                    stansTilSisteDagSomGirRett = stansTilSisteDagSomGirRett,
                 )
             },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
@@ -292,8 +288,6 @@ internal class PdfgenHttpClient(
         forhåndsvisning: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: List<ValgtHjemmelForStans>,
-        stansFraFørsteDagSomGirRett: Boolean,
-        stansTilSisteDagSomGirRett: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -309,8 +303,6 @@ internal class PdfgenHttpClient(
                     forhåndsvisning = forhåndsvisning,
                     valgteHjemler = valgteHjemler,
                     tilleggstekst = tilleggstekst,
-                    stansFraFørsteDagSomGirRett = stansFraFørsteDagSomGirRett,
-                    stansTilSisteDagSomGirRett = stansTilSisteDagSomGirRett,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",

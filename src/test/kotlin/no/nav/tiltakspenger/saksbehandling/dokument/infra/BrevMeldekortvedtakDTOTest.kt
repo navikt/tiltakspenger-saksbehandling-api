@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import org.junit.jupiter.api.Test
 
-class BrevMeldekortvedtakDTOKtTest {
+class BrevMeldekortvedtakDTOTest {
 
     @Test
     fun `DagSammenligning DTO mapper`() {
