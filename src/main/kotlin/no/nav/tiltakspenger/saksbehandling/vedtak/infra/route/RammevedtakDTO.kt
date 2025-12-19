@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.vedtak.infra.route
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
@@ -76,8 +77,10 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.maksAntallDager(),
         barnetillegg = barnetillegg?.toBarnetilleggDTO(),
         opprinneligVedtaksperiode = periodeDTO,
-        opprinneligInnvilgetPerioder = this.innvilgelsesperioder?.perioder?.map { it.toDTO() } ?: emptyList(),
-        gjeldendeInnvilgetPerioder = this.gjeldendeInnvilgelsesperioder.map { it.toDTO() },
+        opprinneligInnvilgetPerioder = this.innvilgelsesperioder?.let { ip ->
+            ip.perioder.leggSammen().map { it.toDTO() }
+        } ?: emptyList(),
+        gjeldendeInnvilgetPerioder = this.gjeldendeInnvilgelsesperioder.leggSammen().map { it.toDTO() },
         erGjeldende = this.erGjeldende,
         gyldigeKommandoer = this.gyldigeKommandoer.toDTO(),
         omgjortGrad = this.omgjortAvRammevedtak.omgjøringsgrad?.tilDTO(),
@@ -107,14 +110,16 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
     return when (this.resultat) {
         is RevurderingResultat.Omgjøring -> {
             // TODO: må støtte flere perioder
-            val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperioder!!.totalPeriode) ?: return listOf(
-                // Dette omgjøringsvedtaket har ingen gjeldende innvilgelser. Hele perioden er et opphør.
-                TidslinjeElementDTO(
-                    rammevedtak = this.tilRammevedtakDTO().copy(barnetillegg = null),
-                    periode = tidslinjeperiode.toDTO(),
-                    tidslinjeResultat = TidslinjeResultat.OMGJØRING_OPPHØR,
-                ),
-            )
+            val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperioder!!.totalPeriode)
+                ?: return listOf(
+                    // Dette omgjøringsvedtaket har ingen gjeldende innvilgelser. Hele perioden er et opphør.
+                    TidslinjeElementDTO(
+                        rammevedtak = this.tilRammevedtakDTO().copy(barnetillegg = null),
+                        periode = tidslinjeperiode.toDTO(),
+                        tidslinjeResultat = TidslinjeResultat.OMGJØRING_OPPHØR,
+                    ),
+                )
+
             val opphørtePeriode = tidslinjeperiode.trekkFra(innvilgelseperiode)
 
             val innvilgelsesTidslinjeElement = TidslinjeElementDTO(
