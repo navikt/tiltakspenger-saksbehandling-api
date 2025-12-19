@@ -10,6 +10,7 @@ private enum class SøknadstypeDb {
     PAPIR_SKJEMA,
     PAPIR_FRIHAND,
     MODIA,
+    OVERFORT_FRA_ARENA,
     ANNET,
 }
 
@@ -20,6 +21,7 @@ fun Søknadstype.toDbValue(): String {
         Søknadstype.PAPIR_SKJEMA -> SøknadstypeDb.PAPIR_SKJEMA
         Søknadstype.PAPIR_FRIHAND -> SøknadstypeDb.PAPIR_FRIHAND
         Søknadstype.MODIA -> SøknadstypeDb.MODIA
+        Søknadstype.OVERFORT_FRA_ARENA -> SøknadstypeDb.OVERFORT_FRA_ARENA
         Søknadstype.ANNET -> SøknadstypeDb.ANNET
     }.toString()
 }
@@ -31,6 +33,7 @@ fun String.toSøknadstype(): Søknadstype {
         SøknadstypeDb.PAPIR_SKJEMA -> Søknadstype.PAPIR_SKJEMA
         SøknadstypeDb.PAPIR_FRIHAND -> Søknadstype.PAPIR_FRIHAND
         SøknadstypeDb.MODIA -> Søknadstype.MODIA
+        SøknadstypeDb.OVERFORT_FRA_ARENA -> Søknadstype.OVERFORT_FRA_ARENA
         SøknadstypeDb.ANNET -> Søknadstype.ANNET
     }
 }

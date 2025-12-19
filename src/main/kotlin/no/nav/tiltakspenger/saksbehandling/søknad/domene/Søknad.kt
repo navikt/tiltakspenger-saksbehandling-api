@@ -151,6 +151,7 @@ sealed interface Søknad {
             søknadstype == Søknadstype.PAPIR_SKJEMA ||
             søknadstype == Søknadstype.PAPIR_FRIHAND ||
             søknadstype == Søknadstype.MODIA ||
+            søknadstype == Søknadstype.OVERFORT_FRA_ARENA ||
             søknadstype == Søknadstype.ANNET
     fun erDigitalSøknad() = søknadstype == Søknadstype.DIGITAL
     fun kanInnvilges() =

@@ -8,6 +8,7 @@ enum class Søknadstype {
     PAPIR_SKJEMA,
     PAPIR_FRIHAND,
     MODIA,
+    OVERFORT_FRA_ARENA,
 
     // Dekker cases hvor ingen av de andre typene passer.
     ANNET,

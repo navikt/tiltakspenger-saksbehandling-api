@@ -73,6 +73,7 @@ enum class StatistikkFormat {
     PAPIR_SKJEMA,
     PAPIR_FRIHAND,
     MODIA,
+    OVERFORT_FRA_ARENA,
     ANNET,
 }
 

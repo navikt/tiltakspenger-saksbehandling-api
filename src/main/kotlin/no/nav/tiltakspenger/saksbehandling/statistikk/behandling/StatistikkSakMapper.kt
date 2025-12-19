@@ -151,5 +151,6 @@ private fun Søknadstype.toSøknadsformat(): StatistikkFormat =
         Søknadstype.PAPIR_SKJEMA -> StatistikkFormat.PAPIR_SKJEMA
         Søknadstype.PAPIR_FRIHAND -> StatistikkFormat.PAPIR_FRIHAND
         Søknadstype.MODIA -> StatistikkFormat.MODIA
+        Søknadstype.OVERFORT_FRA_ARENA -> StatistikkFormat.OVERFORT_FRA_ARENA
         Søknadstype.ANNET -> StatistikkFormat.ANNET
     }

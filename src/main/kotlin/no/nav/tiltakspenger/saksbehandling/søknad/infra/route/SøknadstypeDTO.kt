@@ -10,6 +10,7 @@ enum class SøknadstypeDTO {
     PAPIR_SKJEMA,
     PAPIR_FRIHAND,
     MODIA,
+    OVERFORT_FRA_ARENA,
     ANNET,
 }
 
@@ -20,6 +21,7 @@ fun Søknadstype.toDTO(): SøknadstypeDTO {
         Søknadstype.PAPIR_SKJEMA -> SøknadstypeDTO.PAPIR_SKJEMA
         Søknadstype.PAPIR_FRIHAND -> SøknadstypeDTO.PAPIR_FRIHAND
         Søknadstype.MODIA -> SøknadstypeDTO.MODIA
+        Søknadstype.OVERFORT_FRA_ARENA -> SøknadstypeDTO.OVERFORT_FRA_ARENA
         Søknadstype.ANNET -> SøknadstypeDTO.ANNET
     }
 }
@@ -31,6 +33,7 @@ fun SøknadstypeDTO.tilDomene(): Søknadstype {
         SøknadstypeDTO.PAPIR_SKJEMA -> Søknadstype.PAPIR_SKJEMA
         SøknadstypeDTO.PAPIR_FRIHAND -> Søknadstype.PAPIR_FRIHAND
         SøknadstypeDTO.MODIA -> Søknadstype.MODIA
+        SøknadstypeDTO.OVERFORT_FRA_ARENA -> Søknadstype.OVERFORT_FRA_ARENA
         SøknadstypeDTO.ANNET -> Søknadstype.ANNET
     }
 }
