@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
+import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -96,13 +97,17 @@ data class Rammevedtak(
 
     val innvilgelsesperioder: Innvilgelsesperioder? = behandling.innvilgelsesperioder
 
-    val gjeldendeInnvilgelsesperioder: List<Periode> by lazy {
+    val opprinneligInnvilgetPerioder: List<Periode> by lazy {
+        innvilgelsesperioder?.perioder?.leggSammen() ?: emptyList()
+    }
+
+    val gjeldendeInnvilgetPerioder: List<Periode> by lazy {
         if (erAvslag || erStans) return@lazy emptyList()
         if (omgjortAvRammevedtak.isEmpty()) {
             innvilgelsesperioder?.perioder ?: emptyList()
         } else {
             innvilgelsesperioder?.perioder?.trekkFra(omgjortAvRammevedtak.perioder) ?: emptyList()
-        }
+        }.leggSammen()
     }
 
     /**
@@ -139,7 +144,7 @@ data class Rammevedtak(
      * Saksbehandler kan kun velge fra og med-dato, og stanses alltid ut hele den gjeldende innvilgede vedtaksperioden.
      */
     val gyldigStanskommando: Rammevedtakskommando.Stans? by lazy {
-        gjeldendeInnvilgelsesperioder.lastOrNull()?.let {
+        gjeldendeInnvilgetPerioder.lastOrNull()?.let {
             Rammevedtakskommando.Stans(
                 tidligsteFraOgMedDato = it.fraOgMed,
                 tvungenStansTilOgMedDato = it.tilOgMed,
@@ -163,8 +168,8 @@ data class Rammevedtak(
      * Merk at man bare skal kunne opphøre en sammenhengende periode.
      */
     val gyldigOpphørskommando: Rammevedtakskommando.Opphør? by lazy {
-        if (gjeldendeInnvilgelsesperioder.isEmpty()) return@lazy null
-        Rammevedtakskommando.Opphør(gjeldendeInnvilgelsesperioder.toNonEmptyListOrNull()!!)
+        if (gjeldendeInnvilgetPerioder.isEmpty()) return@lazy null
+        Rammevedtakskommando.Opphør(gjeldendeInnvilgetPerioder.toNonEmptyListOrNull()!!)
     }
 
     /**

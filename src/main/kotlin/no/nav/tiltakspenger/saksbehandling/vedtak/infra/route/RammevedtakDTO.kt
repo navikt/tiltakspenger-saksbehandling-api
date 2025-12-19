@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.vedtak.infra.route
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
@@ -77,10 +76,8 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.maksAntallDager(),
         barnetillegg = barnetillegg?.toBarnetilleggDTO(),
         opprinneligVedtaksperiode = periodeDTO,
-        opprinneligInnvilgetPerioder = this.innvilgelsesperioder?.let { ip ->
-            ip.perioder.leggSammen().map { it.toDTO() }
-        } ?: emptyList(),
-        gjeldendeInnvilgetPerioder = this.gjeldendeInnvilgelsesperioder.leggSammen().map { it.toDTO() },
+        opprinneligInnvilgetPerioder = this.opprinneligInnvilgetPerioder.map { it.toDTO() },
+        gjeldendeInnvilgetPerioder = this.gjeldendeInnvilgetPerioder.map { it.toDTO() },
         erGjeldende = this.erGjeldende,
         gyldigeKommandoer = this.gyldigeKommandoer.toDTO(),
         omgjortGrad = this.omgjortAvRammevedtak.omgjøringsgrad?.tilDTO(),
@@ -172,7 +169,6 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
                     periode = tidslinjeperiode.toDTO(),
                     tidslinjeResultat = when (this.resultat) {
                         is RevurderingResultat.Omgjøring -> throw IllegalStateException("Omgjøring skal bli håndtert spesielt")
-
                         is SøknadsbehandlingResultat.Avslag -> throw IllegalStateException("Avslag kan ikke forekomme i tidslinje")
 
                         is RevurderingResultat.Innvilgelse -> TidslinjeResultat.REVURDERING_INNVILGELSE
