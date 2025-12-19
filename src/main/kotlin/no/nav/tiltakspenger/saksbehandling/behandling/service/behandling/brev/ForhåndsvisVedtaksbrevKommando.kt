@@ -81,13 +81,13 @@ data class ForhåndsvisVedtaksbrevKommando(
                 require(avslagsgrunner == null) { "Kan ikke sende inn avslagsgrunner ved innvilgelse" }
                 require(stansFraOgMed == null && stansTilOgMed == null) { "Kan ikke sende inn stansFraOgMed/stansTilOgMed ved innvilgelse" }
                 require(valgteHjemler == null) { "Kan ikke sende inn valgteHjemler ved innvilgelse" }
+                requireNotNull(antallDagerPerMeldeperiode)
                 // Barnetillegg er null hvis det ikke innvilges barn (uavhengig om de har søkt)
             }
 
             SøknadsbehandlingType.AVSLAG -> {
                 requireNotNull(avslagsgrunner)
-                // Kan enable denne når frontend er oppdatert til ikke å sende den
-//                require(vedtaksperiode == null) { "Kan ikke sende inn vedtaksperiode ved avslag" }
+                require(vedtaksperiode == null) { "Kan ikke sende inn vedtaksperiode ved avslag" }
                 require(valgteHjemler == null) { "Kan ikke sende inn valgteHjemler ved avslag" }
                 require(barnetillegg == null) { "Kan ikke sende inn barnetillegg ved avslag" }
                 require(stansFraOgMed == null && stansTilOgMed == null) { "Kan ikke sende inn stansFraOgMed/stansTilOgMed ved avslag" }
