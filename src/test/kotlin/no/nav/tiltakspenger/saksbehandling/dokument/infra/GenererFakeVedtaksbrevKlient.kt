@@ -101,7 +101,7 @@ class GenererFakeVedtaksbrevKlient :
         sakId: SakId,
         forhåndsvisning: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        valgteHjemler: List<ValgtHjemmelForStans>,
+        valgteHjemler: NonEmptySet<ValgtHjemmelForStans>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }

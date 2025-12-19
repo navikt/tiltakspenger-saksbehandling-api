@@ -13,7 +13,6 @@ value class AntallDagerForMeldeperiode(val value: Int) : Comparable<AntallDagerF
     }
 
     init {
-        // TODO: Dersom du ønsker å bruke denne for stans eller tidslinje, så kan du endre den til >= 0
         require(value in 1..14)
     }
 

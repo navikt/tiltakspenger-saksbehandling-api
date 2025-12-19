@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -21,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
@@ -326,7 +329,7 @@ internal class BehandlingPostgresRepoTest {
                 hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
             )
 
-            val innvilgelsesperioder = listOf(
+            val innvilgelsesperioder: NonEmptyList<InnvilgelsesperiodeKommando> = nonEmptyListOf(
                 innvilgelsesperiodeKommando(
                     innvilgelsesperiode = 1.januar(2025) til 10.januar(2025),
                     antallDagerPerMeldeperiode = 6,

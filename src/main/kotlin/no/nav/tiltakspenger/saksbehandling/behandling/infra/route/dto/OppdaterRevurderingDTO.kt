@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import arrow.core.toNonEmptyListOrThrow
+import arrow.core.toNonEmptySetOrThrow
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -13,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
 import java.time.LocalDate
@@ -117,7 +117,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 stansFraOgMed = ValgtStansFraOgMed.create(stansFraOgMed),
                 stansTilOgMed = ValgtStansTilOgMed.create(stansTilOgMed),
-                valgteHjemler = valgteHjemler.toDomain().toNonEmptyListOrThrow(),
+                valgteHjemler = valgteHjemler.toDomain().toNonEmptySetOrThrow(),
             )
         }
     }

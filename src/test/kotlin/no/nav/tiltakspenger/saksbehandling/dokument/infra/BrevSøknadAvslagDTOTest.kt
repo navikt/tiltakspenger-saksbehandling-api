@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class `BrevSøknadAvslagDTOTest` {
+class BrevSøknadAvslagDTOTest {
 
     @Test
     fun `genererer og serialiserer brevdata for pdf`() {

@@ -8,7 +8,11 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
@@ -39,13 +43,14 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     sakId = sak.id,
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                    vedtaksperiode = 1.januar(2025) til 31.mars(2025),
-                    stansFraOgMed = null,
-                    stansTilOgMed = null,
-                    valgteHjemler = null,
-                    barnetillegg = null,
+                    innvilgelsesperioder = listOf(
+                        InnvilgelsesperiodeDTO(
+                            periode = (1.januar(2025) til 31.mars(2025)).toDTO(),
+                            antallDagerPerMeldeperiode = 10,
+                            tiltaksdeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                        ),
+                    ),
                     resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
-                    avslagsgrunner = null,
                 )
                 responseJson shouldBe "pdf"
             }
@@ -72,11 +77,19 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     sakId = sak.id,
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                    vedtaksperiode = innvilgelsesperiode,
-                    stansFraOgMed = null,
-                    stansTilOgMed = null,
-                    valgteHjemler = null,
-                    barnetillegg = listOf(BarnetilleggPeriodeDTO(antallBarn = 1, periode = innvilgelsesperiode.toDTO())),
+                    innvilgelsesperioder = listOf(
+                        InnvilgelsesperiodeDTO(
+                            periode = innvilgelsesperiode.toDTO(),
+                            antallDagerPerMeldeperiode = 10,
+                            tiltaksdeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                        ),
+                    ),
+                    barnetillegg = listOf(
+                        BarnetilleggPeriodeDTO(
+                            antallBarn = 1,
+                            periode = innvilgelsesperiode.toDTO(),
+                        ),
+                    ),
                     resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                     avslagsgrunner = null,
                 )
@@ -104,10 +117,13 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     sakId = sak.id,
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                    vedtaksperiode = 1.januar(2025) til 31.mars(2025),
-                    stansFraOgMed = null,
-                    stansTilOgMed = null,
-                    valgteHjemler = null,
+                    innvilgelsesperioder = listOf(
+                        InnvilgelsesperiodeDTO(
+                            periode = (1.januar(2025) til 31.mars(2025)).toDTO(),
+                            antallDagerPerMeldeperiode = 10,
+                            tiltaksdeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                        ),
+                    ),
                     barnetillegg = listOf(
                         BarnetilleggPeriodeDTO(
                             antallBarn = 1,
@@ -116,7 +132,6 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                         BarnetilleggPeriodeDTO(antallBarn = 1, periode = (1.februar(2025) til 31.mars(2025)).toDTO()),
                     ),
                     resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
-                    avslagsgrunner = null,
                 )
                 responseJson shouldBe "pdf"
             }

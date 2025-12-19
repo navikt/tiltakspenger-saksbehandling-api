@@ -31,7 +31,7 @@ class BrevRevurderingStansDTOTest {
                 forhåndsvisning = true,
                 vedtaksdato = 1.april(2025),
                 stansperiode = ObjectMother.vedtaksperiode(),
-                valgteHjemler = listOf(ValgtHjemmelForStans.Introduksjonsprogrammet),
+                valgteHjemler = nonEmptySetOf(ValgtHjemmelForStans.Introduksjonsprogrammet),
             )
 
             //language=json

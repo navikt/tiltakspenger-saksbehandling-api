@@ -1,0 +1,3 @@
+package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
+
+sealed interface ForhåndsvisVedtaksbrevForSøknadsbehandlingKommando : ForhåndsvisVedtaksbrevKommando
