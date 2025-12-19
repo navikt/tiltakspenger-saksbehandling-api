@@ -6,11 +6,12 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.maksAntallDager
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -38,7 +39,7 @@ data class RammevedtakDTO(
     val gjeldendeInnvilgetPerioder: List<PeriodeDTO>,
     val saksbehandler: String,
     val beslutter: String,
-    val antallDagerPerMeldeperiode: Int,
+    val innvilgelsesperioder: InnvilgelsesperioderDTO?,
     val barnetillegg: BarnetilleggDTO?,
     val erGjeldende: Boolean,
     val gyldigeKommandoer: Map<RammevedtakKommandoDTO.KommandoType, RammevedtakKommandoDTO>,
@@ -72,8 +73,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         gjeldendeVedtaksperioder = this.gjeldendePerioder.map { it.toDTO() },
         saksbehandler = saksbehandler,
         beslutter = beslutter,
-        // TODO: sett en periodisering istedenfor bare maks
-        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.maksAntallDager(),
+        innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
         barnetillegg = barnetillegg?.toBarnetilleggDTO(),
         opprinneligVedtaksperiode = periodeDTO,
         opprinneligInnvilgetPerioder = this.opprinneligInnvilgetPerioder.map { it.toDTO() },

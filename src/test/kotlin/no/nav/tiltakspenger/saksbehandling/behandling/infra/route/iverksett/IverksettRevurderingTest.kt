@@ -218,6 +218,18 @@ internal class IverksettRevurderingTest {
                 opprinneligInnvilgetPerioder = listOf(9.til(11.april(2025))),
                 opprettet = "2025-01-01T01:02:33.456789",
                 resultat = "REVURDERING_INNVILGELSE",
+                innvilgelsesperioder = """
+                    [
+                        {
+                            "tiltaksdeltakelseId": "TA12345",
+                            "periode": {
+                                "fraOgMed": "2025-04-09",
+                                "tilOgMed": "2025-04-11"
+                            },
+                            "antallDagerPerMeldeperiode": 10
+                        }
+                    ]
+                """.trimIndent(),
                 barnetillegg = """
                     {
                         "begrunnelse": null,
@@ -230,7 +242,7 @@ internal class IverksettRevurderingTest {
                             }
                           }
                         ]
-                      }
+                    }
                 """.trimIndent(),
             )
         }
@@ -269,7 +281,7 @@ internal class IverksettRevurderingTest {
                 opprettet = "2025-01-01T01:02:33.456789",
                 resultat = "STANS",
                 barnetillegg = null,
-                antallDagerPerMeldeperiode = 0,
+                innvilgelsesperioder = null,
                 saksbehandler = rammevedtakRevurdering.saksbehandler,
                 beslutter = rammevedtakRevurdering.beslutter,
                 erGjeldende = true,
@@ -313,11 +325,20 @@ internal class IverksettRevurderingTest {
                 opprinneligInnvilgetPerioder = listOf(1.til(10.april(2025))),
                 opprettet = "2025-01-01T01:02:33.456789",
                 resultat = "OMGJØRING",
-                antallDagerPerMeldeperiode = 10,
                 saksbehandler = revurdering.saksbehandler!!,
                 beslutter = revurdering.beslutter!!,
                 erGjeldende = true,
                 vedtaksdato = null,
+                innvilgelsesperioder = """[
+                    {
+                        "tiltaksdeltakelseId": "TA12345",
+                        "periode": {
+                            "fraOgMed": "2025-04-01",
+                            "tilOgMed": "2025-04-10"
+                        },
+                        "antallDagerPerMeldeperiode": 10
+                    }
+                ]""",
                 barnetillegg = """
                     {
                         "begrunnelse": null,

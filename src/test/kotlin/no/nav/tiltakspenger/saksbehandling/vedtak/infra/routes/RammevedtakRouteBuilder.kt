@@ -22,9 +22,19 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
     gjeldendeVedtaksperioder: List<Periode> = listOf(opprinneligVedtaksperiode),
     opprinneligInnvilgetPerioder: List<Periode> = listOf(opprinneligVedtaksperiode),
     gjeldendeInnvilgetPerioder: List<Periode> = gjeldendeVedtaksperioder,
-
     erGjeldende: Boolean = true,
-    antallDagerPerMeldeperiode: Int = 10,
+    innvilgelsesperioder: String = """
+        [
+            {
+                "tiltaksdeltakelseId": "TA12345",
+                "periode": {
+                    "fraOgMed": "2025-04-01",
+                    "tilOgMed": "2025-04-10"
+                },
+                "antallDagerPerMeldeperiode": 10
+            }
+        ]
+    """.trimIndent(),
     resultat: String = "INNVILGELSE",
     barnetillegg: String? = """
         {
@@ -67,14 +77,16 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
     } else {
         """"OPPHØR": {
              "innvilgelsesperioder": [
-                ${gjeldendeInnvilgetPerioder.joinToString {
-            """
+                ${
+            gjeldendeInnvilgetPerioder.joinToString {
+                """
                     {
                       "fraOgMed": "${it.fraOgMed}",
                       "tilOgMed": "${it.tilOgMed}"
                     }
-            """.trimIndent()
-        } }
+                """.trimIndent()
+            }
+        }
               ],
               "type": "OPPHØR"
             }"""
@@ -94,7 +106,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
         id = id,
         vedtaksdato = vedtaksdato,
         opprinneligInnvilgetPerioder = opprinneligInnvilgetPerioder,
-        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+        innvilgelsesperioder = innvilgelsesperioder,
         omgjortGrad = omgjortGrad,
         omgjøringskommando = omgjøringskommando,
         stanskommando = stanskommando,
@@ -128,7 +140,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOavslag(
         id = id,
         vedtaksdato = vedtaksdato,
         opprinneligInnvilgetPerioder = emptyList(),
-        antallDagerPerMeldeperiode = 0,
+        innvilgelsesperioder = null,
         omgjortGrad = null,
         omgjøringskommando = null,
         stanskommando = null,
@@ -153,7 +165,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
     resultat: String,
     vedtaksdato: String?,
     barnetillegg: String?,
-    antallDagerPerMeldeperiode: Int,
+    innvilgelsesperioder: String?,
     omgjortGrad: String?,
     omgjøringskommando: String? = null,
     stanskommando: String? = null,
@@ -203,7 +215,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
                 }"""
             }
         },
-              "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode,
+              "innvilgelsesperioder": $innvilgelsesperioder,
               "omgjortGrad": ${omgjortGrad?.let { "\"$omgjortGrad\"" }},
               "gyldigeKommandoer": {
                 ${listOfNotNull(omgjøringskommando, opphørskommando, stanskommando).joinToString(",\n")}
