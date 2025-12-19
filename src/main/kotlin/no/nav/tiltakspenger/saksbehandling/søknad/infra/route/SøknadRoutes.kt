@@ -18,11 +18,6 @@ fun Route.søknadRoutes(
     validerJournalpostService: ValiderJournalpostService,
 ) {
     mottaSøknadRoute(søknadService, sakService)
-    startBehandlingAvPapirsøknadRoute(
-        auditService,
-        tilgangskontrollService,
-        startBehandlingAvManueltRegistrertSøknadService,
-    )
     startBehandlingAvManueltRegistrertSøknadRoute(
         auditService,
         tilgangskontrollService,
