@@ -133,12 +133,7 @@ internal class DokarkivHttpClient(
                     log.error(throwable) { "Fikk feilkode fra dokarkiv: $status." }
                 }
             }
-            if (throwable is IllegalStateException) {
-                throw throwable
-            } else {
-                log.error(throwable) { "Ukjent feil fra dokarkiv." }
-                throw RuntimeException("Ukjent feil fra dokarkiv.")
-            }
+            throw throwable
         }
     }
 
