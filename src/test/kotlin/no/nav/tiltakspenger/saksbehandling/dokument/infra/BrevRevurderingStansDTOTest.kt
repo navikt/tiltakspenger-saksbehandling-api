@@ -48,10 +48,7 @@ class BrevRevurderingStansDTOTest {
                   "datoForUtsending": "1. april 2025",
                   "tilleggstekst": "genererer og serialiserer brevdata for pdf test",
                   "forhandsvisning": true,
-                  "virkningsperiodeFraDato": "1. januar 2023",
-                  "virkningsperiodeTilDato": "31. mars 2023",
                   "stansFraOgMedDato": "1. januar 2023",
-                  "stansTilOgMedDato": "31. mars 2023",
                   "valgtHjemmelTekst": [
                     "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
                   ],

@@ -21,11 +21,7 @@ private data class BrevRevurderingStansDTO(
     override val datoForUtsending: String,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-    // TODO jah: Slett virkningsperiodeFraDato+virkningsperiodeTilDato etter stansFraOgMedDato og stansTilOgMedDato brukes i pdfgen.
-    val virkningsperiodeFraDato: String,
-    val virkningsperiodeTilDato: String,
     val stansFraOgMedDato: String,
-    val stansTilOgMedDato: String,
     val valgtHjemmelTekst: List<String>?,
 ) : BrevRammevedtakBaseDTO
 
@@ -74,10 +70,7 @@ suspend fun genererStansbrev(
             fornavn = brukersNavn.fornavn,
             etternavn = brukersNavn.mellomnavnOgEtternavn,
         ),
-        virkningsperiodeFraDato = stansperiode.fraOgMed.format(norskDatoFormatter),
         stansFraOgMedDato = stansperiode.fraOgMed.format(norskDatoFormatter),
-        virkningsperiodeTilDato = stansperiode.tilOgMed.format(norskDatoFormatter),
-        stansTilOgMedDato = stansperiode.tilOgMed.format(norskDatoFormatter),
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
