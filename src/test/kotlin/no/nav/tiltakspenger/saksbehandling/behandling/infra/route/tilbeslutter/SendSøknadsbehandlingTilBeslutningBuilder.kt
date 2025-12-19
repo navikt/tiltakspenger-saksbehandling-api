@@ -19,13 +19,12 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -45,14 +44,17 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         vedtaksperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
-        antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            vedtaksperiode,
-        ),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = vedtaksperiode.fraOgMed,
             tom = vedtaksperiode.tilOgMed,
+        ),
+        innvilgelsesperioder: List<Innvilgelsesperiode> = listOf(
+            Innvilgelsesperiode(
+                periode = vedtaksperiode,
+                valgtTiltaksdeltakelse = tiltaksdeltakelse,
+                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            ),
         ),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandling) = when (resultat) {
@@ -62,7 +64,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 fnr = fnr,
                 innvilgelsesperiode = vedtaksperiode,
                 saksbehandler = saksbehandler,
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )

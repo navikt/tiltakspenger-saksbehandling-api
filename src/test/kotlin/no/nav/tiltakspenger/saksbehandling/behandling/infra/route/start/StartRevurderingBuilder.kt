@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
@@ -102,6 +103,10 @@ interface StartRevurderingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         søknadsbehandlingInnvilgelsesperiode: Periode = 1.til(10.april(2025)),
         revurderingVedtaksperiode: Periode = søknadsbehandlingInnvilgelsesperiode.plusTilOgMed(14L),
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+            fom = søknadsbehandlingInnvilgelsesperiode.fraOgMed,
+            tom = søknadsbehandlingInnvilgelsesperiode.tilOgMed,
+        ),
         fnr: Fnr = Fnr.random(),
         sakId: SakId? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {
@@ -112,6 +117,7 @@ interface StartRevurderingBuilder {
             beslutter = beslutter,
             resultat = SøknadsbehandlingType.INNVILGELSE,
             sakId = sakId,
+            tiltaksdeltakelse = tiltaksdeltakelse,
         )
 
         val tiltaksdeltakelseFakeKlient = tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
@@ -178,6 +184,10 @@ interface StartRevurderingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         søknadsbehandlingInnvilgelsesperiode: Periode = 1 til 10.april(2025),
         oppdaterTiltaksdeltakelsesperiode: Periode? = 3 til 10.april(2025),
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+            fom = søknadsbehandlingInnvilgelsesperiode.fraOgMed,
+            tom = søknadsbehandlingInnvilgelsesperiode.tilOgMed,
+        ),
         forventetStatusForStartRevurdering: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBodyForStartRevurdering: String? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson>? {
@@ -188,6 +198,7 @@ interface StartRevurderingBuilder {
             saksbehandler = saksbehandler,
             sakId = sakId,
             fnr = fnr,
+            tiltaksdeltakelse = tiltaksdeltakelse,
         )
         val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
         val oppdatertTiltaksdeltakelse = if (oppdaterTiltaksdeltakelsesperiode != null) {

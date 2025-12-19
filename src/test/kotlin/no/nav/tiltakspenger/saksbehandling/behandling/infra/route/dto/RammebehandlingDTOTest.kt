@@ -95,172 +95,160 @@ class RammebehandlingDTOTest {
 
         @Language("JSON")
         val expectedJson = """
+        {
+          "id": "beh_01K8R3V8S9X8KGR8HDXXDXN9P3",
+          "status": "VEDTATT",
+          "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
+          "saksnummer": "202510291001",
+          "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
+          "saksbehandler": "Z12345",
+          "beslutter": "B12345",
+          "saksopplysninger": {
+            "fødselsdato": "2001-01-01",
+            "tiltaksdeltagelse": [
+              {
+                "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
+                "gjennomføringId": "68f04dee-11a9-4d69-84fd-1096a4264492",
+                "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
+                "typeKode": "GRUPPE_AMO",
+                "deltagelseFraOgMed": "2025-01-01",
+                "deltagelseTilOgMed": "2025-03-31",
+                "deltakelseStatus": "Deltar",
+                "deltakelseProsent": 100.0,
+                "antallDagerPerUke": 5.0,
+                "kilde": "Komet",
+                "gjennomforingsprosent": null
+              }
+            ],
+            "periode": {
+              "fraOgMed": "2025-01-01",
+              "tilOgMed": "2025-03-31"
+            },
+            "ytelser": [],
+            "tiltakspengevedtakFraArena": [],
+            "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
+          },
+          "attesteringer": [
             {
-              "id": "beh_01K8R3V8S9X8KGR8HDXXDXN9P3",
-              "status": "VEDTATT",
-              "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
-              "saksnummer": "202510291001",
-              "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
-              "saksbehandler": "Z12345",
-              "beslutter": "B12345",
-              "saksopplysninger": {
-                "fødselsdato": "2001-01-01",
-                "tiltaksdeltagelse": [
-                  {
-                    "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
-                    "gjennomføringId": "68f04dee-11a9-4d69-84fd-1096a4264492",
-                    "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                    "typeKode": "GRUPPE_AMO",
-                    "deltagelseFraOgMed": "2025-01-01",
-                    "deltagelseTilOgMed": "2025-03-31",
-                    "deltakelseStatus": "Deltar",
-                    "deltakelseProsent": 100.0,
-                    "antallDagerPerUke": 5.0,
-                    "kilde": "Komet",
-                    "gjennomforingsprosent": null
-                  }
-                ],
+              "endretAv": "B12345",
+              "status": "GODKJENT",
+              "begrunnelse": null,
+              "endretTidspunkt": "2025-01-01T01:02:09.456789"
+            }
+          ],
+          "vedtaksperiode": {
+            "fraOgMed": "2025-01-01",
+            "tilOgMed": "2025-03-31"
+          },
+          "fritekstTilVedtaksbrev": "nyBehandlingUnderBeslutning()",
+          "begrunnelseVilkårsvurdering": "nyBehandlingUnderBeslutning()",
+          "avbrutt": null,
+          "sistEndret": "2025-01-01T01:02:10.456789",
+          "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
+          "ventestatus": null,
+          "utbetaling": null,
+          "innvilgelsesperioder": [
+            {
+              "periode": {
+                "fraOgMed": "2025-01-01",
+                "tilOgMed": "2025-03-31"
+              },
+              "antallDagerPerMeldeperiode": 10,
+              "tiltaksdeltakelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd"
+            }
+          ],
+          "barnetillegg": {
+            "perioder": [
+              {
+                "antallBarn": 0,
                 "periode": {
                   "fraOgMed": "2025-01-01",
                   "tilOgMed": "2025-03-31"
-                },
-                "ytelser": [],
-                "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
-              },
-              "attesteringer": [
-                {
-                  "endretAv": "B12345",
-                  "status": "GODKJENT",
-                  "begrunnelse": null,
-                  "endretTidspunkt": "2025-01-01T01:02:09.456789"
                 }
-              ],
-              "virkningsperiode": {
-                "fraOgMed": "2025-01-01",
-                "tilOgMed": "2025-03-31"
+              }
+            ],
+            "begrunnelse": null
+          },
+          "resultat": "INNVILGELSE",
+          "søknad": {
+            "id": "soknad_01K8QWMR32C2X5Y5T4N945BF9V",
+            "journalpostId": "journalpostId",
+            "tiltak": {
+              "id": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
+              "fraOgMed": "2025-01-01",
+              "tilOgMed": "2025-03-31",
+              "typeKode": "GRUPPEAMO",
+              "typeNavn": "Gruppe AMO"
+            },
+            "tiltaksdeltakelseperiodeDetErSøktOm": {
+              "fraOgMed": "2025-01-01",
+              "tilOgMed": "2025-03-31"
+            },
+            "manueltSattTiltak": null,
+            "søknadstype": "DIGITAL",
+            "barnetillegg": [],
+            "opprettet": "2022-01-01T12:00:00",
+            "tidsstempelHosOss": "2022-01-01T12:00:00",
+            "antallVedlegg": 0,
+            "avbrutt": null,
+            "kanInnvilges": true,
+            "svar": {
+              "harSøktPåTiltak": {
+                "svar": "JA"
               },
-              "fritekstTilVedtaksbrev": "nyBehandlingUnderBeslutning()",
-              "begrunnelseVilkårsvurdering": "nyBehandlingUnderBeslutning()",
-              "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:10.456789",
-              "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
-              "ventestatus": null,
-              "utbetaling": null,
-              "innvilgelsesperiode": {
-                "fraOgMed": "2025-01-01",
-                "tilOgMed": "2025-03-31"
+              "harSøktOmBarnetillegg": {
+                "svar": "NEI"
               },
-              "valgteTiltaksdeltakelser": [
-                {
-                  "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
-                  "periode": {
-                    "fraOgMed": "2025-01-01",
-                    "tilOgMed": "2025-03-31"
-                  }
-                }
-              ],
-              "barnetillegg": {
-                "perioder": [
-                  {
-                    "antallBarn": 0,
-                    "periode": {
-                      "fraOgMed": "2025-01-01",
-                      "tilOgMed": "2025-03-31"
-                    }
-                  }
-                ],
-                "begrunnelse": null
+              "kvp": {
+                "svar": "NEI",
+                "periode": null
               },
-              "antallDagerPerMeldeperiode": [
-                {
-                  "periode": {
-                    "fraOgMed": "2025-01-01",
-                    "tilOgMed": "2025-03-31"
-                  },
-                  "antallDagerPerMeldeperiode": 10
-                }
-              ],
-              "resultat": "INNVILGELSE",
-              "søknad": {
-                "id": "soknad_01K8QWMR32C2X5Y5T4N945BF9V",
-                "journalpostId": "journalpostId",
-                "tiltak": {
-                  "id": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
-                  "fraOgMed": "2025-01-01",
-                  "tilOgMed": "2025-03-31",
-                  "typeKode": "GRUPPEAMO",
-                  "typeNavn": "Gruppe AMO"
-                },
-                "manueltSattTiltak": null,
-                "tiltaksdeltakelseperiodeDetErSøktOm": {
-                  "fraOgMed": "2025-01-01",
-                  "tilOgMed": "2025-03-31"
-                },
-                "søknadstype": "DIGITAL",
-                "barnetillegg": [],
-                "opprettet": "2022-01-01T12:00:00",
-                "tidsstempelHosOss": "2022-01-01T12:00:00",
-                "antallVedlegg": 0,
-                "avbrutt": null,
-                "kanInnvilges": true,
-                "svar": {
-                  "harSøktPåTiltak": {
-                    "svar": "JA"
-                  },
-                  "harSøktOmBarnetillegg": {
-                    "svar": "NEI"
-                  },
-                  "kvp": {
-                    "svar": "NEI",
-                    "periode": null
-                  },
-                  "intro": {
-                    "svar": "NEI",
-                    "periode": null
-                  },
-                  "institusjon": {
-                    "svar": "NEI",
-                    "periode": null
-                  },
-                  "etterlønn": {
-                    "svar": "NEI"
-                  },
-                  "gjenlevendepensjon": {
-                    "svar": "NEI",
-                    "periode": null
-                  },
-                  "alderspensjon": {
-                    "svar": "NEI",
-                    "fraOgMed": null
-                  },
-                  "sykepenger": {
-                    "svar": "NEI",
-                    "periode": null
-                  },
-                  "supplerendeStønadAlder": {
-                    "svar": "NEI",
-                    "periode": null
-                  },
-                  "supplerendeStønadFlyktning": {
-                    "svar": "NEI",
-                    "periode": null
-                  },
-                  "jobbsjansen": {
-                    "svar": "NEI",
-                    "periode": null
-                  },
-                  "trygdOgPensjon": {
-                    "svar": "NEI",
-                    "periode": null
-                  }
-                }
+              "intro": {
+                "svar": "NEI",
+                "periode": null
               },
-              "automatiskSaksbehandlet": false,
-              "manueltBehandlesGrunner": [],
-              "type": "SØKNADSBEHANDLING",
-              "kanInnvilges": true
+              "institusjon": {
+                "svar": "NEI",
+                "periode": null
+              },
+              "etterlønn": {
+                "svar": "NEI"
+              },
+              "gjenlevendepensjon": {
+                "svar": "NEI",
+                "periode": null
+              },
+              "alderspensjon": {
+                "svar": "NEI",
+                "fraOgMed": null
+              },
+              "sykepenger": {
+                "svar": "NEI",
+                "periode": null
+              },
+              "supplerendeStønadAlder": {
+                "svar": "NEI",
+                "periode": null
+              },
+              "supplerendeStønadFlyktning": {
+                "svar": "NEI",
+                "periode": null
+              },
+              "jobbsjansen": {
+                "svar": "NEI",
+                "periode": null
+              },
+              "trygdOgPensjon": {
+                "svar": "NEI",
+                "periode": null
+              }
             }
+          },
+          "automatiskSaksbehandlet": false,
+          "manueltBehandlesGrunner": [],
+          "kanInnvilges": true,
+          "type": "SØKNADSBEHANDLING"
+        }
         """.trimIndent()
 
         behandlingJson.shouldEqualJson(expectedJson)
@@ -353,7 +341,7 @@ class RammebehandlingDTOTest {
                   "endretTidspunkt": "2025-01-01T01:02:09.456789"
                 }
               ],
-              "virkningsperiode": {
+              "vedtaksperiode": {
                 "fraOgMed": "2025-01-01",
                 "tilOgMed": "2025-03-31"
               },
@@ -531,7 +519,7 @@ class RammebehandlingDTOTest {
                 "oppslagstidspunkt": "2025-01-01T01:02:05.456789"
               },
               "attesteringer": [],
-              "virkningsperiode": null,
+              "vedtaksperiode": null,
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
@@ -660,95 +648,83 @@ class RammebehandlingDTOTest {
 
         @Language("JSON")
         val expectedJson = """
+        {
+          "id": "beh_01K8R3V8S9X8KGR8HDXXDXN9P3",
+          "status": "VEDTATT",
+          "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
+          "saksnummer": "202510291001",
+          "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
+          "saksbehandler": "Z12345",
+          "beslutter": "B12345",
+          "saksopplysninger": {
+            "fødselsdato": "2001-01-01",
+            "tiltaksdeltagelse": [
+              {
+                "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
+                "gjennomføringId": "68f04dee-11a9-4d69-84fd-1096a4264492",
+                "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
+                "typeKode": "GRUPPE_AMO",
+                "deltagelseFraOgMed": "2025-01-01",
+                "deltagelseTilOgMed": "2025-03-31",
+                "deltakelseStatus": "Deltar",
+                "deltakelseProsent": 100.0,
+                "antallDagerPerUke": 5.0,
+                "kilde": "Komet",
+                "gjennomforingsprosent": null
+              }
+            ],
+            "periode": {
+              "fraOgMed": "2025-01-01",
+              "tilOgMed": "2025-03-31"
+            },
+            "ytelser": [],
+            "tiltakspengevedtakFraArena": [],
+            "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
+          },
+          "attesteringer": [
             {
-              "id": "beh_01K8R3V8S9X8KGR8HDXXDXN9P3",
-              "status": "VEDTATT",
-              "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
-              "saksnummer": "202510291001",
-              "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
-              "saksbehandler": "Z12345",
-              "beslutter": "B12345",
-              "saksopplysninger": {
-                "fødselsdato": "2001-01-01",
-                "tiltaksdeltagelse": [
-                  {
-                    "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
-                    "gjennomføringId": "68f04dee-11a9-4d69-84fd-1096a4264492",
-                    "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                    "typeKode": "GRUPPE_AMO",
-                    "deltagelseFraOgMed": "2025-01-01",
-                    "deltagelseTilOgMed": "2025-03-31",
-                    "deltakelseStatus": "Deltar",
-                    "deltakelseProsent": 100.0,
-                    "antallDagerPerUke": 5.0,
-                    "kilde": "Komet",
-                    "gjennomforingsprosent": null
-                  }
-                ],
+              "endretAv": "B12345",
+              "status": "GODKJENT",
+              "begrunnelse": null,
+              "endretTidspunkt": "2025-01-01T01:02:05.456789"
+            }
+          ],
+          "vedtaksperiode": {
+            "fraOgMed": "2025-01-01",
+            "tilOgMed": "2025-03-31"
+          },
+          "fritekstTilVedtaksbrev": "nyRevurderingKlarTilBeslutning()",
+          "begrunnelseVilkårsvurdering": "nyRevurderingKlarTilBeslutning()",
+          "avbrutt": null,
+          "sistEndret": "2025-01-01T01:02:10.456789",
+          "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
+          "ventestatus": null,
+          "utbetaling": null,
+          "innvilgelsesperioder": [
+            {
+              "periode": {
+                "fraOgMed": "2025-01-01",
+                "tilOgMed": "2025-03-31"
+              },
+              "antallDagerPerMeldeperiode": 10,
+              "tiltaksdeltakelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd"
+            }
+          ],
+          "barnetillegg": {
+            "perioder": [
+              {
+                "antallBarn": 0,
                 "periode": {
                   "fraOgMed": "2025-01-01",
                   "tilOgMed": "2025-03-31"
-                },
-                "ytelser": [],
-                "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
-              },
-              "attesteringer": [
-                {
-                  "endretAv": "B12345",
-                  "status": "GODKJENT",
-                  "begrunnelse": null,
-                  "endretTidspunkt": "2025-01-01T01:02:05.456789"
                 }
-              ],
-              "virkningsperiode": {
-                "fraOgMed": "2025-01-01",
-                "tilOgMed": "2025-03-31"
-              },
-              "fritekstTilVedtaksbrev": "nyRevurderingKlarTilBeslutning()",
-              "begrunnelseVilkårsvurdering": "nyRevurderingKlarTilBeslutning()",
-              "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:10.456789",
-              "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
-              "ventestatus": null,
-              "utbetaling": null,
-              "innvilgelsesperiode": {
-                "fraOgMed": "2025-01-01",
-                "tilOgMed": "2025-03-31"
-              },
-              "valgteTiltaksdeltakelser": [
-                {
-                  "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
-                  "periode": {
-                    "fraOgMed": "2025-01-01",
-                    "tilOgMed": "2025-03-31"
-                  }
-                }
-              ],
-              "barnetillegg": {
-                "perioder": [
-                  {
-                    "antallBarn": 0,
-                    "periode": {
-                      "fraOgMed": "2025-01-01",
-                      "tilOgMed": "2025-03-31"
-                    }
-                  }
-                ],
-                "begrunnelse": null
-              },
-              "antallDagerPerMeldeperiode": [
-                {
-                  "periode": {
-                    "fraOgMed": "2025-01-01",
-                    "tilOgMed": "2025-03-31"
-                  },
-                  "antallDagerPerMeldeperiode": 10
-                }
-              ],
-              "resultat": "REVURDERING_INNVILGELSE",
-              "type": "REVURDERING"
-            }
+              }
+            ],
+            "begrunnelse": null
+          },
+          "resultat": "REVURDERING_INNVILGELSE",
+          "type": "REVURDERING"
+        }
         """.trimIndent()
 
         behandlingJson.shouldEqualJson(expectedJson)
@@ -835,7 +811,7 @@ class RammebehandlingDTOTest {
                   "endretTidspunkt": "2025-01-01T01:02:05.456789"
                 }
               ],
-              "virkningsperiode": {
+              "vedtaksperiode": {
                 "fraOgMed": "2025-01-08",
                 "tilOgMed": "2025-03-31"
               },
@@ -940,89 +916,77 @@ class RammebehandlingDTOTest {
 
         @Language("JSON")
         val expectedJson = """
+        {
+          "id": "beh_01K8R3V8S9X8KGR8HDXXDXN9P4",
+          "status": "UNDER_BEHANDLING",
+          "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
+          "saksnummer": "202510291001",
+          "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S7",
+          "saksbehandler": "Z12345",
+          "beslutter": null,
+          "saksopplysninger": {
+            "fødselsdato": "2001-01-01",
+            "tiltaksdeltagelse": [
+              {
+                "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
+                "gjennomføringId": "68f04dee-11a9-4d69-84fd-1096a4264492",
+                "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
+                "typeKode": "GRUPPE_AMO",
+                "deltagelseFraOgMed": "2025-01-01",
+                "deltagelseTilOgMed": "2025-03-31",
+                "deltakelseStatus": "Deltar",
+                "deltakelseProsent": 100.0,
+                "antallDagerPerUke": 5.0,
+                "kilde": "Komet",
+                "gjennomforingsprosent": null
+              }
+            ],
+            "periode": {
+              "fraOgMed": "2025-01-01",
+              "tilOgMed": "2025-03-31"
+            },
+            "ytelser": [],
+            "tiltakspengevedtakFraArena": [],
+            "oppslagstidspunkt": "2025-01-01T01:02:12.456789"
+          },
+          "attesteringer": [],
+          "vedtaksperiode": {
+            "fraOgMed": "2025-01-01",
+            "tilOgMed": "2025-03-31"
+          },
+          "fritekstTilVedtaksbrev": null,
+          "begrunnelseVilkårsvurdering": null,
+          "avbrutt": null,
+          "sistEndret": "2025-01-01T01:02:13.456789",
+          "iverksattTidspunkt": null,
+          "ventestatus": null,
+          "utbetaling": null,
+          "innvilgelsesperioder": [
             {
-              "id": "beh_01K8R3V8S9X8KGR8HDXXDXN9P4",
-              "status": "UNDER_BEHANDLING",
-              "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
-              "saksnummer": "202510291001",
-              "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S7",
-              "saksbehandler": "Z12345",
-              "beslutter": null,
-              "saksopplysninger": {
-                "fødselsdato": "2001-01-01",
-                "tiltaksdeltagelse": [
-                  {
-                    "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
-                    "gjennomføringId": "68f04dee-11a9-4d69-84fd-1096a4264492",
-                    "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                    "typeKode": "GRUPPE_AMO",
-                    "deltagelseFraOgMed": "2025-01-01",
-                    "deltagelseTilOgMed": "2025-03-31",
-                    "deltakelseStatus": "Deltar",
-                    "deltakelseProsent": 100.0,
-                    "antallDagerPerUke": 5.0,
-                    "kilde": "Komet",
-                    "gjennomforingsprosent": null
-                  }
-                ],
+              "periode": {
+                "fraOgMed": "2025-01-01",
+                "tilOgMed": "2025-03-31"
+              },
+              "antallDagerPerMeldeperiode": 10,
+              "tiltaksdeltakelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd"
+            }
+          ],
+          "barnetillegg": {
+            "perioder": [
+              {
+                "antallBarn": 0,
                 "periode": {
                   "fraOgMed": "2025-01-01",
                   "tilOgMed": "2025-03-31"
-                },
-                "ytelser": [],
-                "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-01-01T01:02:12.456789"
-              },
-              "attesteringer": [],
-              "virkningsperiode": {
-                "fraOgMed": "2025-01-01",
-                "tilOgMed": "2025-03-31"
-              },
-              "fritekstTilVedtaksbrev": null,
-              "begrunnelseVilkårsvurdering": null,
-              "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:13.456789",
-              "iverksattTidspunkt": null,
-              "ventestatus": null,
-              "utbetaling": null,
-              "innvilgelsesperiode": {
-                "fraOgMed": "2025-01-01",
-                "tilOgMed": "2025-03-31"
-              },
-              "valgteTiltaksdeltakelser": [
-                {
-                  "eksternDeltagelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
-                  "periode": {
-                    "fraOgMed": "2025-01-01",
-                    "tilOgMed": "2025-03-31"
-                  }
                 }
-              ],
-              "barnetillegg": {
-                "perioder": [
-                  {
-                    "antallBarn": 0,
-                    "periode": {
-                      "fraOgMed": "2025-01-01",
-                      "tilOgMed": "2025-03-31"
-                    }
-                  }
-                ],
-                "begrunnelse": null
-              },
-              "antallDagerPerMeldeperiode": [
-                {
-                  "periode": {
-                    "fraOgMed": "2025-01-01",
-                    "tilOgMed": "2025-03-31"
-                  },
-                  "antallDagerPerMeldeperiode": 10
-                }
-              ],
-              "omgjørVedtak": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
-              "resultat": "OMGJØRING",
-              "type": "REVURDERING"
-            }
+              }
+            ],
+            "begrunnelse": null
+          },
+          "omgjørVedtak": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
+          "resultat": "OMGJØRING",
+          "type": "REVURDERING"
+        }
         """.trimIndent()
 
         behandlingJson.shouldEqualJson(expectedJson)

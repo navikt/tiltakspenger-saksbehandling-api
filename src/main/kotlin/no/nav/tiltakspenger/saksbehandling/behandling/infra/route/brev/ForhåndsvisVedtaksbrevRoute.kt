@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
@@ -36,7 +37,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
 import java.time.LocalDate
 
 /**
@@ -44,13 +44,12 @@ import java.time.LocalDate
  * @param valgteHjemler Brukes kun ved revurdering til stans
  * @param stansFraOgMed Brukes kun ved revurdering til stans
  * @param stansTilOgMed Brukes kun ved revurdering til stans
- * @param barnetillegg Brukes ved innvilgelse (søknadsbehandling+revurdering). Kan inneholde hull. Må valideres basert på innsendt [virkningsperiode] mot behandlingen.
- * @param virkningsperiode Brukes ved avslag og innvilgelse (søknadsbehandling+revurdering). Brukes kun hvis den ikke er satt på behandlingen.
+ * @param barnetillegg Brukes ved innvilgelse (søknadsbehandling+revurdering). Kan inneholde hull. Må valideres basert på innsendt [vedtaksperiode] mot behandlingen.
+ * @param vedtaksperiode Brukes ved avslag og innvilgelse (søknadsbehandling+revurdering). Brukes kun hvis den ikke er satt på behandlingen.
  */
 private data class Body(
     val fritekst: String?,
-    // TODO: Rename til vedtaksperiode i frontend+backend samtidig.
-    val virkningsperiode: PeriodeDTO?,
+    val vedtaksperiode: PeriodeDTO?,
     val harValgtStansFraFørsteDagSomGirRett: Boolean?,
     val harValgtStansTilSisteDagSomGirRett: Boolean?,
     val stansFraOgMed: LocalDate?,
@@ -59,7 +58,7 @@ private data class Body(
     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
     val resultat: RammebehandlingResultatTypeDTO,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
-    val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>?,
+    val innvilgelsesperioder: InnvilgelsesperioderDTO?,
 ) {
     init {
         if (harValgtStansFraFørsteDagSomGirRett == true) require(stansFraOgMed == null) { "stansFraOgMed må være null når harValgtStansFraFørsteDagSomGirRett er true" }
@@ -74,7 +73,7 @@ private data class Body(
         correlationId: CorrelationId,
         saksbehandler: Saksbehandler,
     ): ForhåndsvisVedtaksbrevKommando {
-        val vedtaksperiode = virkningsperiode?.toDomain()
+        val vedtaksperiode = vedtaksperiode?.toDomain()
         val resultat = resultat.toDomain()
 
         requireNotNull(resultat) {
@@ -94,7 +93,7 @@ private data class Body(
             barnetillegg = if (barnetillegg == null || barnetillegg.isEmpty()) null else (barnetillegg.tilPeriodisering() as IkkeTomPeriodisering),
             resultat = resultat,
             avslagsgrunner = this.avslagsgrunner?.toAvslagsgrunnlag(),
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder?.map {
+            antallDagerPerMeldeperiode = innvilgelsesperioder?.map {
                 PeriodeMedVerdi(
                     AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
                     it.periode.toDomain(),

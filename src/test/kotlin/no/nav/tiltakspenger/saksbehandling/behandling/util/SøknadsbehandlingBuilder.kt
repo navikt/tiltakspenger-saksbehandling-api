@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.util
 
 import arrow.core.NonEmptySet
-import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -12,24 +11,23 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
-import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
-import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tilDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadPåSakId
@@ -38,7 +36,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.Clock
 
 interface SøknadsbehandlingBuilder {
@@ -173,13 +170,16 @@ interface SøknadsbehandlingBuilder {
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: Begrunnelse? = null,
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperiode),
-        antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(10),
-            innvilgelsesperiode,
-        ),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = innvilgelsesperiode.fraOgMed,
             tom = innvilgelsesperiode.tilOgMed,
+        ),
+        innvilgelsesperioder: List<Innvilgelsesperiode> = listOf(
+            Innvilgelsesperiode(
+                periode = innvilgelsesperiode,
+                valgtTiltaksdeltakelse = tiltaksdeltakelse,
+                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            ),
         ),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
@@ -200,15 +200,8 @@ interface SøknadsbehandlingBuilder {
             oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Innvilgelse(
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
-                valgteTiltaksdeltakelser = nonEmptyListOf(
-                    TiltaksdeltakelsePeriodeDTO(
-                        eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
-                        periode = innvilgelsesperiode.toDTO(),
-                    ),
-                ),
-                innvilgelsesperiode = innvilgelsesperiode.toDTO(),
+                innvilgelsesperioder = innvilgelsesperioder.tilDTO(),
                 barnetillegg = barnetillegg.toBarnetilleggDTO(),
-                antallDagerPerMeldeperiodeForPerioder = antallDagerPerMeldeperiode.tilAntallDagerPerMeldeperiodeDTO(),
             ),
         )
 

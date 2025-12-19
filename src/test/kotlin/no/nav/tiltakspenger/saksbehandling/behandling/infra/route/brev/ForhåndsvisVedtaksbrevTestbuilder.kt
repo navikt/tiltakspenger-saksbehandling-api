@@ -61,7 +61,7 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
             val jsonBody = """
                   {
                     "fritekst": "$fritekstTilVedtaksbrev",
-                    "virkningsperiode": ${if (vedtaksperiode != null) """{"fraOgMed":"${vedtaksperiode.fraOgMed}","tilOgMed":"${vedtaksperiode.tilOgMed}"}""" else null},
+                    "vedtaksperiode": ${if (vedtaksperiode != null) """{"fraOgMed":"${vedtaksperiode.fraOgMed}","tilOgMed":"${vedtaksperiode.tilOgMed}"}""" else null},
                     "stansFraOgMed": ${if (stansFraOgMed != null) """"$stansFraOgMed"""" else null},
                     "stansTilOgMed": ${if (stansTilOgMed != null) """"$stansTilOgMed"""" else null},
                     "harValgtStansFraFørsteDagSomGirRett": ${stansFraOgMed == null},

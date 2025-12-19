@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
@@ -77,8 +78,6 @@ data class Rammevedtaksliste(
     val vedtaksperioder: List<Periode> by lazy { tidslinje.perioder }
 
     /** Nåtilstand. De periodene som gir rett til tiltakspenger. Kan ha hull. */
-    val innvilgelsesperioder: List<Periode> by lazy { innvilgetTidslinje.perioder }
-
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
         tidslinje.filter {
             it.verdi.resultat is BehandlingResultat.Innvilgelse
@@ -93,14 +92,18 @@ data class Rammevedtaksliste(
     }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den første innvilget dagen. */
-    val førsteDagSomGirRett: LocalDate? by lazy { innvilgelsesperioder.minOfOrNull { it.fraOgMed } }
+    val førsteDagSomGirRett: LocalDate? by lazy { innvilgelsesperioder.perioder.minOfOrNull { it.fraOgMed } }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
-    val sisteDagSomGirRett: LocalDate? by lazy { innvilgelsesperioder.maxOfOrNull { it.tilOgMed } }
+    val sisteDagSomGirRett: LocalDate? by lazy { innvilgelsesperioder.perioder.maxOfOrNull { it.tilOgMed } }
 
     /**
      * Tar utgangspunkt i [innvilgetTidslinje]
      */
+    val innvilgelsesperioder: Periodisering<Innvilgelsesperiode> by lazy {
+        innvilgetTidslinje.flatMapPeriodisering { it.verdi.behandling.innvilgelsesperioder!!.periodisering }
+    }
+
     val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> by lazy {
         innvilgetTidslinje.flatMapPeriodisering { it.verdi.behandling.antallDagerPerMeldeperiode!! }
     }
@@ -125,11 +128,11 @@ data class Rammevedtaksliste(
     }
 
     fun harInnvilgetTiltakspengerPåDato(dato: LocalDate): Boolean {
-        return innvilgelsesperioder.any { it.inneholder(dato) }
+        return innvilgelsesperioder.any { it.periode.inneholder(dato) }
     }
 
     fun harInnvilgetTiltakspengerEtterDato(dato: LocalDate): Boolean {
-        return innvilgelsesperioder.any { it.starterEtter(dato) }
+        return innvilgelsesperioder.any { it.periode.starterEtter(dato) }
     }
 
     /**

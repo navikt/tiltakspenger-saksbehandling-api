@@ -17,14 +17,13 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -34,14 +33,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.infra.route.AntallDagerPerMeldeperiodeDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
@@ -61,7 +59,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -71,25 +68,27 @@ interface BehandlingMother : MotherOfAllMothers {
     /** Felles default vedtaksperiode for testdatatypene */
     fun vedtaksperiode() = 1.januar(2023) til 31.mars(2023)
 
-    fun Rammebehandling.tiltaksdeltakelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
-        val tiltaksdeltakelse = this.saksopplysninger.tiltaksdeltakelser.single()
-
+    fun Rammebehandling.innvilgelsesperioderDTO(
+        periode: Periode,
+        antallDager: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    ): List<InnvilgelsesperiodeDTO> {
         return listOf(
-            TiltaksdeltakelsePeriodeDTO(
-                eksternDeltagelseId = tiltaksdeltakelse.eksternDeltakelseId,
-                periode = tiltaksdeltakelse.periode!!.toDTO(),
+            InnvilgelsesperiodeDTO(
+                periode = periode.toDTO(),
+                antallDagerPerMeldeperiode = antallDager,
+                tiltaksdeltakelseId = this.saksopplysninger.tiltaksdeltakelser.single().eksternDeltakelseId,
             ),
         )
     }
 
-    fun Rammebehandling.antallDagerPerMeldeperiodeDTO(
-        periode: Periode,
-        antallDager: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-    ): List<AntallDagerPerMeldeperiodeDTO> {
-        return SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode(antallDager),
-            periode,
-        ).tilAntallDagerPerMeldeperiodeDTO()
+    fun List<Innvilgelsesperiode>.tilDTO(): List<InnvilgelsesperiodeDTO> {
+        return this.map {
+            InnvilgelsesperiodeDTO(
+                periode = it.periode.toDTO(),
+                antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode.value,
+                tiltaksdeltakelseId = it.valgtTiltaksdeltakelse.eksternDeltakelseId,
+            )
+        }
     }
 
     fun godkjentAttestering(beslutter: Saksbehandler = beslutter(), clock: Clock = this.clock): Attestering =

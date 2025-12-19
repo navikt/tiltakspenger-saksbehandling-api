@@ -13,22 +13,18 @@ import no.nav.tiltakspenger.libs.dato.juli
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
-import no.nav.tiltakspenger.saksbehandling.infra.route.tilAntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
@@ -36,7 +32,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import org.junit.jupiter.api.Test
 
 class GenererMeldeperioderSakIT {
@@ -58,17 +53,9 @@ class GenererMeldeperioderSakIT {
             sakId = sak.id,
             behandlingId = revurdering.id,
             oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
-                innvilgelsesperiode = revurderingInnvilgelse.toDTO(),
-                valgteTiltaksdeltakelser = listOf(
-                    TiltaksdeltakelsePeriodeDTO(
-                        eksternDeltagelseId = søknadsbehandling.søknad.tiltak!!.id,
-                        periode = revurderingInnvilgelse.toDTO(),
-                    ),
-                ),
-                antallDagerPerMeldeperiodeForPerioder = SammenhengendePeriodisering(
-                    AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+                innvilgelsesperioder = søknadsbehandling.innvilgelsesperioderDTO(
                     revurderingInnvilgelse,
-                ).tilAntallDagerPerMeldeperiodeDTO(),
+                ),
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelse).toBarnetilleggDTO(),
