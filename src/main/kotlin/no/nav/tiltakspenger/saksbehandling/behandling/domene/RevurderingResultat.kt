@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
+import arrow.core.NonEmptySet
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -24,7 +25,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
      * @param harValgtStansTilSisteDagSomGirRett Dersom saksbehandler har valgt at det skal stanses til siste dag som gir rett. Vil være null når man oppretter stansen.
      */
     data class Stans(
-        val valgtHjemmel: List<ValgtHjemmelForStans>,
+        val valgtHjemmel: NonEmptySet<ValgtHjemmelForStans>?,
         val harValgtStansFraFørsteDagSomGirRett: Boolean?,
         val harValgtStansTilSisteDagSomGirRett: Boolean?,
         val stansperiode: Periode?,
@@ -42,7 +43,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
          * Bruker ikke saksopplysninger her, da vi må kunne stanse selv om det ikke er noen tiltaksdeltakelser.
          */
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
-            return valgtHjemmel.isNotEmpty() && stansperiode != null
+            return !valgtHjemmel.isNullOrEmpty() && stansperiode != null
         }
 
         /** En stans er ikke avhengig av saksopplysningene */
@@ -51,7 +52,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
 
         companion object {
             val empty: Stans = Stans(
-                valgtHjemmel = emptyList(),
+                valgtHjemmel = null,
                 harValgtStansFraFørsteDagSomGirRett = null,
                 harValgtStansTilSisteDagSomGirRett = null,
                 stansperiode = null,

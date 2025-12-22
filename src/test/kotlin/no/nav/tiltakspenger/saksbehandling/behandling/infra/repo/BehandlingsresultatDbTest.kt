@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
@@ -29,7 +30,7 @@ class BehandlingsresultatDbTest {
             avslagsperiode = 1 til 10.januar(2025),
         )
         val revurderingStans = RevurderingResultat.Stans(
-            valgtHjemmel = emptyList(),
+            valgtHjemmel = null,
             harValgtStansFraFørsteDagSomGirRett = false,
             harValgtStansTilSisteDagSomGirRett = true,
             stansperiode = 1 til 10.januar(2025),

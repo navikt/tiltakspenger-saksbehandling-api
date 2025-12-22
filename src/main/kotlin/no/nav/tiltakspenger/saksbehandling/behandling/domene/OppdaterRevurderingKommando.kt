@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.NonEmptyList
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -8,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import java.time.LocalDate
 
@@ -27,7 +27,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val correlationId: CorrelationId,
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-        val valgteHjemler: NonEmptyList<ValgtHjemmelForStans>,
+        val valgteHjemler: NonEmptySet<ValgtHjemmelForStans>,
         val stansFraOgMed: ValgtStansFraOgMed,
         val stansTilOgMed: ValgtStansTilOgMed,
     ) : OppdaterRevurderingKommando {

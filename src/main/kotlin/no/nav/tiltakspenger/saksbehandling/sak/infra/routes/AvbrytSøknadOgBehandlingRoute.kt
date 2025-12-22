@@ -43,7 +43,7 @@ fun Route.avbrytSøknadOgBehandling(
                 krevSaksbehandlerRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, token)
                 avbrytSøknadOgBehandlingService.avbrytSøknadOgBehandling(
-                    body.toCommand(
+                    body.tilKommando(
                         saksnummer = saksnummer,
                         avsluttetAv = saksbehandler,
                         correlationId = call.correlationId(),
@@ -78,7 +78,7 @@ data class AvsluttSøknadOgBehandlingBody(
     val behandlingId: String?,
     val begrunnelse: String,
 ) {
-    fun toCommand(
+    fun tilKommando(
         saksnummer: Saksnummer,
         avsluttetAv: Saksbehandler,
         correlationId: CorrelationId,

@@ -16,8 +16,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
@@ -45,7 +47,16 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
         barnetillegg: List<BarnetilleggPeriodeDTO>? = null,
         resultat: RammebehandlingResultatTypeDTO,
         avslagsgrunner: List<ValgtHjemmelForAvslagDTO>? = null,
+        innvilgelsesperioder: InnvilgelsesperioderDTO? = null,
     ): Triple<Sak, Rammebehandling, String> {
+        if (resultat in listOf(
+                RammebehandlingResultatTypeDTO.INNVILGELSE,
+                RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE,
+                RammebehandlingResultatTypeDTO.OMGJØRING,
+            ) && innvilgelsesperioder == null
+        ) {
+            throw IllegalArgumentException("Innvilgelsesperioder er påkrevd")
+        }
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
@@ -74,8 +85,24 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
                 ) { """{"antallBarn":${it.antallBarn},"periode":{"fraOgMed":"${it.periode.fraOgMed}","tilOgMed":"${it.periode.tilOgMed}"}}""" }
             },
                     "resultat": "$resultat",
-                    "avslagsgrunner": ${avslagsgrunner?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }}
-                  }
+                    "avslagsgrunner": ${avslagsgrunner?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
+                    "innvilgelsesperioder": ${
+                innvilgelsesperioder?.let {
+                    innvilgelsesperioder.joinToString(prefix = "[", postfix = "]") { periode ->
+                        """
+                        {
+                            "periode": {
+                                "fraOgMed": "${periode.periode.fraOgMed}",
+                                "tilOgMed": "${periode.periode.tilOgMed}"
+                            },
+                            "antallDagerPerMeldeperiode": ${periode.antallDagerPerMeldeperiode},
+                            "tiltaksdeltakelseId": "${periode.tiltaksdeltakelseId}"
+                        }
+                    """
+                    }
+                }
+            }
+            }
             """.trimIndent()
             setBody(jsonBody)
         }.apply {

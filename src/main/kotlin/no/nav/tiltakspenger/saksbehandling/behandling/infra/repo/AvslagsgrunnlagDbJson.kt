@@ -18,7 +18,7 @@ private enum class ValgtHjemmelForAvslagDb {
     AVSLAG_FREMMET_FOR_SENT,
 }
 
-fun Set<Avslagsgrunnlag>.toDb(): String = serialize(this.map { it.toDb() })
+fun Set<Avslagsgrunnlag>.toDb(): String = serialize(this.map { it.toDb() }.sorted())
 
 fun String.toAvslagsgrunnlag(): NonEmptySet<Avslagsgrunnlag> {
     return deserializeList<ValgtHjemmelForAvslagDb>(this).map {

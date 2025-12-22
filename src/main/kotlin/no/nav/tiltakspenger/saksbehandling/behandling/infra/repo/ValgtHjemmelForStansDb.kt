@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
@@ -15,7 +16,8 @@ private enum class ValgtHjemmelForStansDb {
     STANS_INSTITUSJONSOPPHOLD,
 }
 
-fun List<ValgtHjemmelForStans>.toDbJson(): String {
+fun NonEmptySet<ValgtHjemmelForStans>?.toDbJson(): String {
+    if (this == null) return "[]"
     return serialize(
         this.map {
             when (it) {
@@ -28,7 +30,7 @@ fun List<ValgtHjemmelForStans>.toDbJson(): String {
                 ValgtHjemmelForStans.LønnFraAndre -> ValgtHjemmelForStansDb.STANS_LØNN_FRA_ANDRE
                 ValgtHjemmelForStans.LønnFraTiltaksarrangør -> ValgtHjemmelForStansDb.STANS_LØNN_FRA_TILTAKSARRANGØR
             }
-        },
+        }.sortedBy { it.name },
     )
 }
 

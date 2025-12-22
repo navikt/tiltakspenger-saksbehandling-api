@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.ports
 
 import arrow.core.Either
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -33,6 +34,6 @@ interface GenererVedtaksbrevForStansKlient {
         sakId: SakId,
         forhåndsvisning: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        valgteHjemler: List<ValgtHjemmelForStans>,
+        valgteHjemler: NonEmptySet<ValgtHjemmelForStans>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

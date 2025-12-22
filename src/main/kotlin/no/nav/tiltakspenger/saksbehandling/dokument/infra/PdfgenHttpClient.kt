@@ -287,7 +287,7 @@ internal class PdfgenHttpClient(
         sakId: SakId,
         forhåndsvisning: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        valgteHjemler: List<ValgtHjemmelForStans>,
+        valgteHjemler: NonEmptySet<ValgtHjemmelForStans>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {

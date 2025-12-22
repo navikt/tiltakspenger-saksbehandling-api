@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -88,7 +89,7 @@ class BeregnRevurderingTest {
             sakId = revurdering.sakId,
             behandlingId = revurdering.id,
             begrunnelseVilkårsvurdering = "lol",
-            innvilgelsesperioder = listOf(
+            innvilgelsesperioder = nonEmptyListOf(
                 innvilgelsesperiodeKommando(
                     innvilgelsesperiode = innvilgelsesperiode,
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,

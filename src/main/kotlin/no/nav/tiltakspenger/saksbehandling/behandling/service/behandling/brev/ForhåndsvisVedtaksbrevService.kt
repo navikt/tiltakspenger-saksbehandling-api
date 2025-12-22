@@ -3,12 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
@@ -31,70 +29,47 @@ class ForhåndsvisVedtaksbrevService(
     suspend fun forhåndsvisVedtaksbrev(
         kommando: ForhåndsvisVedtaksbrevKommando,
     ): PdfA {
-        val sak = sakService.hentForSakId(kommando.sakId)
-        val behandling = sak.hentRammebehandling(kommando.behandlingId)!!
-        val vedtaksperiode = when (behandling.status) {
-            Rammebehandlingsstatus.UNDER_BEHANDLING -> when (kommando.resultat) {
-                RevurderingType.STANS,
-                RevurderingType.INNVILGELSE,
-                RevurderingType.OMGJØRING,
-                SøknadsbehandlingType.INNVILGELSE,
-                -> kommando.vedtaksperiode
-
-                SøknadsbehandlingType.AVSLAG -> (behandling as Søknadsbehandling).søknad.tiltaksdeltakelseperiodeDetErSøktOm()
-            }
-
-            Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
-            Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
-            Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
-            Rammebehandlingsstatus.UNDER_BESLUTNING,
-            Rammebehandlingsstatus.VEDTATT,
-            Rammebehandlingsstatus.AVBRUTT,
-            -> behandling.vedtaksperiode!!
-        }
-        val resultat = kommando.resultat
-
-        return when (behandling) {
+        val sak: Sak = sakService.hentForSakId(kommando.sakId)
+        return when (val behandling: Rammebehandling = sak.hentRammebehandling(kommando.behandlingId)!!) {
             is Søknadsbehandling -> {
-                when (resultat) {
-                    SøknadsbehandlingType.INNVILGELSE -> genrererSøknadsbehandlingInnvilgelsesbrev(
-                        kommando = kommando,
+                when (val k = kommando as ForhåndsvisVedtaksbrevForSøknadsbehandlingKommando) {
+                    is ForhåndsvisVedtaksbrevForSøknadsbehandlingInnvilgelseKommando -> genrererSøknadsbehandlingInnvilgelsesbrev(
+                        kommando = k,
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = vedtaksperiode!!,
+                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) k.innvilgelsesperioder.totalPeriode else behandling.innvilgelsesperioder!!.totalPeriode,
                     )
 
-                    SøknadsbehandlingType.AVSLAG -> genererSøknadsbehandlingAvslagsbrev(
-                        kommando = kommando,
+                    is ForhåndsvisVedtaksbrevForSøknadsbehandlingAvslagKommando -> genererSøknadsbehandlingAvslagsbrev(
+                        kommando = k,
                         sak = sak,
                         behandling = behandling,
-                        avslagsperiode = vedtaksperiode!!,
+                        avslagsperiode = behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!,
                     )
-
-                    is RevurderingType -> throw IllegalArgumentException("$resultat er ikke gyldig resultat for søknadsbehandling")
                 }
             }
 
             is Revurdering -> {
-                when (resultat) {
-                    RevurderingType.STANS -> genererRevurderingStansbrev(sak, kommando, behandling)
-                    // Kommentar jah: Første iterasjon av omgjøring vil kun endre innvilgelsesperioden, så vi kan gjenbruke innvilgelsesbrevet.
-                    RevurderingType.INNVILGELSE -> genererRevurderingInnvilgelsesbrev(
+                when (val k = kommando as ForhåndsvisVedtaksbrevForRevurderingKommando) {
+                    is ForhåndsvisVedtaksbrevForRevurderingStansKommando -> genererRevurderingStansbrev(
                         sak = sak,
+                        kommando = k,
                         behandling = behandling,
-                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.vedtaksperiode!! else behandling.innvilgelsesperioder!!.totalPeriode,
-                        kommando = kommando,
                     )
 
-                    // TODO Man treffer ikke denne branchen ved omgjøring per 11.11.2025 da frontend sender feil type ved omgjøring
-                    RevurderingType.OMGJØRING -> genererRevurderingInnvilgelsesbrev(
+                    is ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
-                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) kommando.vedtaksperiode!! else behandling.innvilgelsesperioder!!.totalPeriode,
-                        kommando = kommando,
+                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) k.innvilgelsesperioder.totalPeriode else behandling.innvilgelsesperioder!!.totalPeriode,
+                        kommando = k,
                     )
 
-                    is SøknadsbehandlingType -> throw IllegalArgumentException("$resultat er ikke gyldig resultat for revurdering")
+                    is ForhåndsvisVedtaksbrevForRevurderingOmgjøringKommando -> genererRevurderingOmgjøringsbrev(
+                        sak = sak,
+                        behandling = behandling,
+                        innvilgelsesperiode = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) k.innvilgelsesperioder.totalPeriode else behandling.innvilgelsesperioder!!.totalPeriode,
+                        kommando = k,
+                    )
                 }
             }
         }
@@ -104,7 +79,7 @@ class ForhåndsvisVedtaksbrevService(
         sak: Sak,
         behandling: Revurdering,
         innvilgelsesperiode: Periode,
-        kommando: ForhåndsvisVedtaksbrevKommando,
+        kommando: ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando,
     ): PdfA = genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrev(
         hentBrukersNavn = personService::hentNavn,
         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -128,10 +103,10 @@ class ForhåndsvisVedtaksbrevService(
 
     private suspend fun genererRevurderingStansbrev(
         sak: Sak,
-        kommando: ForhåndsvisVedtaksbrevKommando,
+        kommando: ForhåndsvisVedtaksbrevForRevurderingStansKommando,
         behandling: Revurdering,
     ): PdfA {
-        val stansperiode = kommando.hentStansperiode(sak.førsteDagSomGirRett!!, sak.sisteDagSomGirRett!!)
+        val stansperiode = kommando.utledStansperiode(sak.førsteDagSomGirRett!!, sak.sisteDagSomGirRett!!)
 
         @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
         return genererStansbrevClient.genererStansvedtak(
@@ -145,7 +120,7 @@ class ForhåndsvisVedtaksbrevService(
             saksnummer = sak.saksnummer,
             sakId = sak.id,
             forhåndsvisning = true,
-            valgteHjemler = kommando.valgteHjemler as List<ValgtHjemmelForStans>,
+            valgteHjemler = kommando.valgteHjemler,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
 
         ).fold(
@@ -154,15 +129,41 @@ class ForhåndsvisVedtaksbrevService(
         )
     }
 
+    private suspend fun genererRevurderingOmgjøringsbrev(
+        sak: Sak,
+        behandling: Revurdering,
+        innvilgelsesperiode: Periode,
+        kommando: ForhåndsvisVedtaksbrevForRevurderingOmgjøringKommando,
+    ): PdfA = genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrev(
+        hentBrukersNavn = personService::hentNavn,
+        hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+        vedtaksdato = LocalDate.now(),
+        fnr = sak.fnr,
+        saksbehandlerNavIdent = behandling.saksbehandler!!,
+        beslutterNavIdent = behandling.beslutter,
+        saksnummer = sak.saksnummer,
+        sakId = sak.id,
+        forhåndsvisning = true,
+        innvilgelsesperiode = innvilgelsesperiode,
+        tilleggstekst = kommando.fritekstTilVedtaksbrev,
+        barnetillegg = kommando.barnetillegg?.let {
+            it.utvid(AntallBarn(0), innvilgelsesperiode) as SammenhengendePeriodisering
+        },
+        antallDagerTekst = toAntallDagerTekst(kommando.antallDagerPerMeldeperiode),
+    ).fold(
+        ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
+        ifRight = { it.pdf },
+    )
+
     private suspend fun genererSøknadsbehandlingAvslagsbrev(
-        kommando: ForhåndsvisVedtaksbrevKommando,
+        kommando: ForhåndsvisVedtaksbrevForSøknadsbehandlingAvslagKommando,
         sak: Sak,
         behandling: Søknadsbehandling,
         avslagsperiode: Periode,
     ): PdfA = genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
         hentBrukersNavn = personService::hentNavn,
         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-        avslagsgrunner = kommando.avslagsgrunner!!,
+        avslagsgrunner = kommando.avslagsgrunner,
         fnr = sak.fnr,
         saksbehandlerNavIdent = behandling.saksbehandler!!,
         beslutterNavIdent = behandling.beslutter,
@@ -179,7 +180,7 @@ class ForhåndsvisVedtaksbrevService(
     )
 
     private suspend fun genrererSøknadsbehandlingInnvilgelsesbrev(
-        kommando: ForhåndsvisVedtaksbrevKommando,
+        kommando: ForhåndsvisVedtaksbrevForSøknadsbehandlingInnvilgelseKommando,
         sak: Sak,
         behandling: Søknadsbehandling,
         innvilgelsesperiode: Periode,

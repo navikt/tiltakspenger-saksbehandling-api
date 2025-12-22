@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
+import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -883,7 +884,7 @@ class RammebehandlingDTOTest {
             vedtattInnvilgetSøknadsbehandling = nyRammevedtakInnvilgelse(
                 id = vedtakId,
                 sakId = sakId,
-                innvilgelsesperioder = listOf(
+                innvilgelsesperioder = nonEmptyListOf(
                     innvilgelsesperiodeKommando(innvilgelsesperiode = ObjectMother.vedtaksperiode()),
                 ),
                 fnr = fnr,

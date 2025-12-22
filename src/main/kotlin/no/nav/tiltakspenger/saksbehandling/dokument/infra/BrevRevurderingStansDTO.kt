@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -42,7 +43,7 @@ suspend fun Rammevedtak.toRevurderingStans(
         stansperiode = this.periode,
         saksnummer = saksnummer,
         forhåndsvisning = false,
-        valgteHjemler = behandling.resultat.valgtHjemmel,
+        valgteHjemler = behandling.resultat.valgtHjemmel!!,
         tilleggstekst = behandling.fritekstTilVedtaksbrev,
     )
 }
@@ -57,7 +58,7 @@ suspend fun genererStansbrev(
     stansperiode: Periode,
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
-    valgteHjemler: List<ValgtHjemmelForStans>,
+    valgteHjemler: NonEmptySet<ValgtHjemmelForStans>,
     tilleggstekst: FritekstTilVedtaksbrev? = null,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)

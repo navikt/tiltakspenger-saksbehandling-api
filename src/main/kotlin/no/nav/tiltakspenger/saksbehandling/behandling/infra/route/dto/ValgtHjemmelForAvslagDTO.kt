@@ -32,8 +32,8 @@ enum class ValgtHjemmelForAvslagDTO {
 fun List<ValgtHjemmelForAvslagDTO>.toAvslagsgrunnlag(): NonEmptySet<Avslagsgrunnlag> =
     this.map { it.toDomain() }.toNonEmptySetOrNull()!!
 
-fun Set<Avslagsgrunnlag>.toValgtHjemmelForAvslagDTO(): List<ValgtHjemmelForAvslagDTO> =
-    this.map { avslagsgrunnlag ->
+fun Set<Avslagsgrunnlag>.toValgtHjemmelForAvslagDTO(): List<ValgtHjemmelForAvslagDTO> {
+    return this.map { avslagsgrunnlag ->
         when (avslagsgrunnlag) {
             Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelForAvslagDTO.DeltarIkkePåArbeidsmarkedstiltak
             Avslagsgrunnlag.Alder -> ValgtHjemmelForAvslagDTO.Alder
@@ -45,4 +45,5 @@ fun Set<Avslagsgrunnlag>.toValgtHjemmelForAvslagDTO(): List<ValgtHjemmelForAvsla
             Avslagsgrunnlag.Institusjonsopphold -> ValgtHjemmelForAvslagDTO.Institusjonsopphold
             Avslagsgrunnlag.FremmetForSent -> ValgtHjemmelForAvslagDTO.FremmetForSent
         }
-    }
+    }.sortedBy { it.name }
+}

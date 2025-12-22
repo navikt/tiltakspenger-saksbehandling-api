@@ -21,15 +21,15 @@ class AvslagsgrunnlagDbJsonKtTest {
         ).toDb().shouldEqualJson(
             """
             [
-                "AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK",
                 "AVSLAG_ALDER",
-                "AVSLAG_LIVSOPPHOLDSYTELSER",
-                "AVSLAG_KVALIFISERINGSPROGRAMMET",
-                "AVSLAG_INTRODUKSJONSPROGRAMMET",
-                "AVSLAG_LØNN_FRA_TILTAKSARRANGØR",
-                "AVSLAG_LØNN_FRA_ANDRE",
+                "AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK",
+                "AVSLAG_FREMMET_FOR_SENT",
                 "AVSLAG_INSTITUSJONSOPPHOLD",
-                "AVSLAG_FREMMET_FOR_SENT"
+                "AVSLAG_INTRODUKSJONSPROGRAMMET",
+                "AVSLAG_KVALIFISERINGSPROGRAMMET",
+                "AVSLAG_LIVSOPPHOLDSYTELSER",
+                "AVSLAG_LØNN_FRA_ANDRE",
+                "AVSLAG_LØNN_FRA_TILTAKSARRANGØR"
             ]
             """.trimIndent(),
         )

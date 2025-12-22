@@ -11,10 +11,11 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
@@ -31,7 +32,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
     ): InnvilgelsesperiodeKommando {
         return InnvilgelsesperiodeKommando(
             periode = innvilgelsesperiode,
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(antallDagerPerMeldeperiode),
             tiltaksdeltakelseId = tiltaksdeltakelseId,
         )
     }

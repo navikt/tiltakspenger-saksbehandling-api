@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
+import arrow.core.toNonEmptySetOrNull
+import arrow.core.toNonEmptySetOrThrow
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Row
 import kotliquery.Session
@@ -448,8 +450,7 @@ class BehandlingPostgresRepo(
 
                     val resultat = when (resultatType) {
                         RevurderingType.STANS -> RevurderingResultat.Stans(
-                            valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()
-                                ?: emptyList(),
+                            valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()?.toNonEmptySetOrNull(),
                             harValgtStansFraFørsteDagSomGirRett = booleanOrNull("har_valgt_stans_fra_første_dag_som_gir_rett"),
                             harValgtStansTilSisteDagSomGirRett = booleanOrNull("har_valgt_stans_til_siste_dag_som_gir_rett"),
                             stansperiode = vedtaksperiode,

@@ -87,7 +87,7 @@ fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
         )
 
         is RevurderingResultat.Stans -> RevurderingResultatDTO.Stans(
-            valgtHjemmelHarIkkeRettighet = valgtHjemmel.tilValgtHjemmelForStansDTO(),
+            valgtHjemmelHarIkkeRettighet = valgtHjemmel?.tilValgtHjemmelForStansDTO() ?: emptyList(),
             harValgtStansFraFørsteDagSomGirRett = harValgtStansFraFørsteDagSomGirRett,
             harValgtStansTilSisteDagSomGirRett = harValgtStansTilSisteDagSomGirRett,
         )

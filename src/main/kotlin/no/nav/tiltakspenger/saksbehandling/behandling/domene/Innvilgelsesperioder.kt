@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
@@ -13,6 +14,11 @@ import java.time.LocalDate
 data class Innvilgelsesperioder(
     val periodisering: IkkeTomPeriodisering<Innvilgelsesperiode>,
 ) {
+    constructor(perioder: List<Innvilgelsesperiode>) : this(
+        perioder.map { it.tilPeriodeMedVerdi() }.tilIkkeTomPeriodisering(),
+    )
+    constructor(vararg perioder: Innvilgelsesperiode) : this(perioder.toList())
+
     val totalPeriode: Periode = periodisering.totalPeriode
     val fraOgMed: LocalDate = totalPeriode.fraOgMed
     val tilOgMed: LocalDate = totalPeriode.tilOgMed
@@ -36,6 +42,10 @@ data class Innvilgelsesperioder(
         require(periodisering.perioderMedVerdi.all { it.periode == it.verdi.periode }) {
             "Innvilgelsesperiodene må ha samme perioder som i periodiseringen"
         }
+    }
+
+    fun overlapperMed(periode: Periode): Boolean {
+        return periodisering.overlapper(periode)
     }
 
     /**

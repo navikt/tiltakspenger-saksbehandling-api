@@ -1,8 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
-import arrow.core.Nel
-import arrow.core.NonEmptyList
-import arrow.core.nonEmptyListOf
+import arrow.core.NonEmptySet
+import arrow.core.nonEmptySetOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -19,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -94,7 +93,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             tom = vedtaksperiode.tilOgMed,
             clock = clock,
         ),
-        valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: NonEmptySet<ValgtHjemmelForStans> = nonEmptySetOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         stansFraOgMed: LocalDate?,
         stansTilOgMed: LocalDate?,
         førsteDagSomGirRett: LocalDate,
@@ -149,7 +148,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             tom = vedtaksperiode.tilOgMed,
             clock = clock,
         ),
-        valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: NonEmptySet<ValgtHjemmelForStans> = nonEmptySetOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         attestering: Attestering = godkjentAttestering(beslutter, clock),
         stansFraOgMed: LocalDate?,
         stansTilOgMed: LocalDate?,

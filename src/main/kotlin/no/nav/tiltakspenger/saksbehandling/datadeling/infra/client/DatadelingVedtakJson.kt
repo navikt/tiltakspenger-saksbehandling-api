@@ -116,7 +116,7 @@ private fun Rammevedtak.toValgteHjemlerHarIkkeRettighetListe(): List<String>? {
 }
 
 private fun Revurdering.toValgteHjemlerHarIkkeRettighetListe() =
-    (this.resultat as RevurderingResultat.Stans).valgtHjemmel.map { it.toValgtHjemmelHarIkkeRettighetString() }
+    (this.resultat as RevurderingResultat.Stans).valgtHjemmel?.map { it.toValgtHjemmelHarIkkeRettighetString() } ?: emptyList()
 
 private fun Søknadsbehandling.toValgteHjemlerHarIkkeRettighetListe() =
     (this.resultat as SøknadsbehandlingResultat.Avslag).avslagsgrunner.map { it.toValgtHjemmelHarIkkeRettighetString() }

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 
 enum class ValgtHjemmelForStansDTO {
@@ -27,7 +28,7 @@ enum class ValgtHjemmelForStansDTO {
 
 fun List<ValgtHjemmelForStansDTO>.toDomain(): List<ValgtHjemmelForStans> = this.map { it.toDomain() }
 
-fun List<ValgtHjemmelForStans>.tilValgtHjemmelForStansDTO(): List<ValgtHjemmelForStansDTO> {
+fun NonEmptySet<ValgtHjemmelForStans>.tilValgtHjemmelForStansDTO(): List<ValgtHjemmelForStansDTO> {
     return this.map {
         when (it) {
             ValgtHjemmelForStans.Alder -> ValgtHjemmelForStansDTO.Alder
@@ -39,5 +40,5 @@ fun List<ValgtHjemmelForStans>.tilValgtHjemmelForStansDTO(): List<ValgtHjemmelFo
             ValgtHjemmelForStans.LønnFraAndre -> ValgtHjemmelForStansDTO.LønnFraAndre
             ValgtHjemmelForStans.LønnFraTiltaksarrangør -> ValgtHjemmelForStansDTO.LønnFraTiltaksarrangør
         }
-    }
+    }.sortedBy { it.name }
 }

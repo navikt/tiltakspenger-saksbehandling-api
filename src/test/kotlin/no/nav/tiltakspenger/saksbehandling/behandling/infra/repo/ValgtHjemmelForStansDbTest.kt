@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
+import arrow.core.nonEmptySetOf
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -41,12 +42,12 @@ class ValgtHjemmelForStansDbTest {
 
     @Test
     fun `serialiserer tom liste`() {
-        emptyList<ValgtHjemmelForStans>().toDbJson() shouldBe "[]"
+        null.toDbJson() shouldBe "[]"
     }
 
     @Test
     fun `serialiserer liste med ValgtHjemmelForStans`() {
-        listOf(DeltarIkkePåArbeidsmarkedstiltak).toDbJson() shouldBe """["STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK"]"""
+        nonEmptySetOf(DeltarIkkePåArbeidsmarkedstiltak).toDbJson() shouldBe """["STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK"]"""
     }
 
     @Test
@@ -57,8 +58,8 @@ class ValgtHjemmelForStansDbTest {
     @Test
     fun `serialiserer liste med flere elementer`() {
         setOf(
-            Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak,
             Avslagsgrunnlag.Alder,
-        ).toDb() shouldBe """["AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK","AVSLAG_ALDER"]"""
+            Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak,
+        ).toDb() shouldBe """["AVSLAG_ALDER","AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK"]"""
     }
 }

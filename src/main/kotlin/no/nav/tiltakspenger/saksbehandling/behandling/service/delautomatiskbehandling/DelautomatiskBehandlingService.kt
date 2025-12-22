@@ -10,10 +10,11 @@ import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando.Innvilgelse.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
@@ -136,7 +137,11 @@ class DelautomatiskBehandlingService(
                 PeriodeMedVerdi(
                     verdi = InnvilgelsesperiodeKommando(
                         periode = innvilgelsesperiode,
-                        antallDagerPerMeldeperiode = utledAntallDagerPerMeldeperiode(behandling),
+                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(
+                            utledAntallDagerPerMeldeperiode(
+                                behandling,
+                            ),
+                        ),
                         tiltaksdeltakelseId = tiltaksdeltakelser,
                     ),
                     periode = innvilgelsesperiode,
