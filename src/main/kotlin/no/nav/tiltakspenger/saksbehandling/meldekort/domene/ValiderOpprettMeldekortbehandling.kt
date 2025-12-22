@@ -8,14 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
-fun Sak.validerOpprettMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
-    val meldeperiodekjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)!!
-    val meldeperiode = meldeperiodekjede.hentSisteMeldeperiode()
-
-    if (meldeperiode.ingenDagerGirRett) {
-        return ValiderOpprettMeldekortbehandlingFeil.INGEN_DAGER_GIR_RETT.left()
-    }
-
+fun Sak.validerOpprettManuellMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
     val åpenBehandling = this.meldekortbehandlinger.åpenMeldekortBehandling
 
     if (åpenBehandling != null) {
@@ -30,6 +23,53 @@ fun Sak.validerOpprettMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Either<
         }
     }
 
+    val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
+
+    if (meldeperiode.ingenDagerGirRett) {
+        val harMottattMeldekortEtterSisteBehandling = this.kjedeHarUbehandletBrukersMeldekort(kjedeId)
+
+        /** Dersom det finnes et ubehandlet meldekort fra bruker må vi tillate å behandle/avbryte dette meldekortet
+         *  Kan skje dersom vi mottok meldekortet før en stans eller omgjøring fjernet retten til tiltakspenger for en meldeperiode
+         * */
+        if (harMottattMeldekortEtterSisteBehandling) {
+            val forrigeKjede = this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
+
+            // Må være første kjede med et ubehandlet meldekort
+            if (forrigeKjede == null ||
+                (
+                    !kjedeHarUbehandletBrukersMeldekort(forrigeKjede.kjedeId) &&
+                        kjedeHarGodkjentMeldekortbehandling(forrigeKjede.kjedeId)
+                    )
+            ) {
+                return Unit.right()
+            }
+        }
+
+        return ValiderOpprettMeldekortbehandlingFeil.INGEN_DAGER_GIR_RETT.left()
+    }
+
+    return validerOpprettBehandlingPåKjede(kjedeId)
+}
+
+fun Sak.validerOpprettAutomatiskMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
+    val åpenBehandling = this.meldekortbehandlinger.åpenMeldekortBehandling
+
+    if (åpenBehandling != null) {
+        return ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING.left()
+    }
+
+    val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
+
+    if (meldeperiode.ingenDagerGirRett) {
+        return ValiderOpprettMeldekortbehandlingFeil.INGEN_DAGER_GIR_RETT.left()
+    }
+
+    return validerOpprettBehandlingPåKjede(kjedeId)
+}
+
+private fun Sak.validerOpprettBehandlingPåKjede(kjedeId: MeldeperiodeKjedeId): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
+    val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
+
     val erFørsteBehandlingPåSaken = this.meldekortbehandlinger.isEmpty()
     val erFørsteMeldeperiodeMedRettPåSaken = meldeperiode == this.meldeperiodeKjeder
         .meldeperiodeKjederMedRett.first()
@@ -40,15 +80,27 @@ fun Sak.validerOpprettMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Either<
     }
 
     this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjedeMedRett(kjedeId)?.also { foregåendeMeldeperiodekjede ->
-        this.meldekortbehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId)
-            .also { behandlinger ->
-                if (behandlinger.none { it.status == GODKJENT || it.status == AUTOMATISK_BEHANDLET }) {
-                    return ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_NESTE_KJEDE.left()
-                }
-            }
+        if (!kjedeHarGodkjentMeldekortbehandling(foregåendeMeldeperiodekjede.kjedeId)) {
+            return ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_NESTE_KJEDE.left()
+        }
     }
 
     return Unit.right()
+}
+
+/** @return true dersom det ikke er opprettet eller endret på en meldekortbehandling på kjeden etter siste mottatte meldekort fra bruker */
+private fun Sak.kjedeHarUbehandletBrukersMeldekort(kjedeId: MeldeperiodeKjedeId): Boolean {
+    val sisteBrukersMeldekort = this.brukersMeldekort.filter { it.kjedeId == kjedeId }.maxByOrNull { it.mottatt }
+    val sisteBehandling = this.meldekortbehandlinger.hentSisteMeldekortBehandlingForKjede(kjedeId)
+
+    return sisteBrukersMeldekort != null && (sisteBehandling == null || sisteBehandling.sistEndret < sisteBrukersMeldekort.mottatt)
+}
+
+private fun Sak.kjedeHarGodkjentMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Boolean {
+    return this.meldekortbehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
+        .let { behandling ->
+            behandling.any { it.status == GODKJENT || it.status == AUTOMATISK_BEHANDLET }
+        }
 }
 
 enum class ValiderOpprettMeldekortbehandlingFeil {

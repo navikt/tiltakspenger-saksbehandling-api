@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -34,6 +35,7 @@ class SakFakeRepo(
     private val meldekortvedtakRepo: MeldekortvedtakFakeRepo,
     private val søknadFakeRepo: SøknadFakeRepo,
     private val klagebehandlingFakeRepo: KlagebehandlingFakeRepo,
+    private val brukersMeldekortFakeRepo: BrukersMeldekortFakeRepo,
 ) : SakRepo {
     val data = Atomic(mutableMapOf<SakId, Sak>())
 
@@ -72,6 +74,7 @@ class SakFakeRepo(
                 meldekortvedtaksliste = meldekortvedtakRepo.hentForSakId(sakId),
             ),
             meldeperiodeKjeder = meldeperiodeRepo.hentForSakId(sakId),
+            brukersMeldekort = brukersMeldekortFakeRepo.hentForSakId(sakId),
             søknader = soknader,
         )
     }

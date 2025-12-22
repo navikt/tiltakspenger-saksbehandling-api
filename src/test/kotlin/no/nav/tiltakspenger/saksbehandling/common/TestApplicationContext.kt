@@ -137,6 +137,7 @@ class TestApplicationContext(
             meldekortvedtakRepo = meldekortvedtakFakeRepo,
             søknadFakeRepo = søknadFakeRepo,
             klagebehandlingFakeRepo = klagebehandlingFakeRepo,
+            brukersMeldekortFakeRepo = brukersMeldekortFakeRepo,
         )
 
     private val personFakeRepo =

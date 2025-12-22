@@ -129,7 +129,7 @@ data class Meldekortbehandlinger(
     }
 
     fun hentSisteMeldekortBehandlingForKjede(kjedeId: MeldeperiodeKjedeId): MeldekortBehandling? {
-        return hentMeldekortBehandlingerForKjede(kjedeId).maxByOrNull { it.opprettet }
+        return verdi.filter { it.kjedeId == kjedeId }.maxByOrNull { it.opprettet }
     }
 
     /**

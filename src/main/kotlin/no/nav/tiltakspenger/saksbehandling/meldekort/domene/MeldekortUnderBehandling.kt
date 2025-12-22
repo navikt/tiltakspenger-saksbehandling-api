@@ -174,6 +174,11 @@ data class MeldekortUnderBehandling(
 
     private fun validerSaksbehandlerOgTilstand(saksbehandler: Saksbehandler): Either<TilgangEllerTilstandsfeil, Unit> {
         require(saksbehandler.navIdent == this.saksbehandler)
+
+        require(!this.meldeperiode.ingenDagerGirRett) {
+            "Meldeperioden må ha minst en dag med rett for å kunne behandles - meldeperiode: ${this.meldeperiode.id}"
+        }
+
         if (this.status != UNDER_BEHANDLING) {
             throw IllegalStateException("Status må være UNDER_BEHANDLING. Kan ikke oppdatere meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler.")
         }
@@ -381,7 +386,7 @@ fun Sak.opprettManuellMeldekortBehandling(
     saksbehandler: Saksbehandler,
     clock: Clock,
 ): Either<KanIkkeOppretteMeldekortbehandling, Triple<Sak, MeldekortUnderBehandling, SkalLagreEllerOppdatere>> {
-    validerOpprettMeldekortbehandling(kjedeId).onLeft {
+    validerOpprettManuellMeldekortbehandling(kjedeId).onLeft {
         return KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil(it).left()
     }
 

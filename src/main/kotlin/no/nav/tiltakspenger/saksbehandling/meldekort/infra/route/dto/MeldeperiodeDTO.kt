@@ -14,6 +14,7 @@ data class MeldeperiodeDTO(
     val opprettet: LocalDateTime,
     val antallDager: Int,
     val girRett: Map<LocalDate, Boolean>,
+    val ingenDagerGirRett: Boolean,
 )
 
 fun Meldeperiode.toMeldeperiodeDTO(): MeldeperiodeDTO = MeldeperiodeDTO(
@@ -24,4 +25,5 @@ fun Meldeperiode.toMeldeperiodeDTO(): MeldeperiodeDTO = MeldeperiodeDTO(
     opprettet = opprettet,
     antallDager = maksAntallDagerForMeldeperiode,
     girRett = girRett,
+    ingenDagerGirRett = ingenDagerGirRett,
 )

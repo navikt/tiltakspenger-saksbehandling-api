@@ -97,7 +97,7 @@ suspend fun Sak.opprettAutomatiskMeldekortBehandling(
     val meldekortId = brukersMeldekort.id
     val kjedeId = brukersMeldekort.kjedeId
 
-    validerOpprettMeldekortbehandling(kjedeId).onLeft {
+    validerOpprettAutomatiskMeldekortbehandling(kjedeId).onLeft {
         return when (it) {
             ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING -> MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING
             ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_FØRSTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE

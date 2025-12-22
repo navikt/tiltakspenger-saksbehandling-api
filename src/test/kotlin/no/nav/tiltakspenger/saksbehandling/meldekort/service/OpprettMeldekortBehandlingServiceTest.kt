@@ -1,10 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING
@@ -14,7 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ValiderOpprettMeldek
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandlingIverksatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingOmgjøring
 import org.junit.jupiter.api.Test
@@ -163,6 +168,46 @@ class OpprettMeldekortBehandlingServiceTest {
                 sakId = sak.id,
                 saksbehandler = saksbehandler(),
             ) shouldBe ValiderOpprettFeil(INGEN_DAGER_GIR_RETT).left()
+        }
+    }
+
+    @Test
+    fun `Kan opprette behandling for meldeperiode uten rett dersom det finnes et ubehandlet brukers-meldekort`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, vedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                vedtaksperiode = totalPeriode,
+            )
+
+            val brukersMeldekortMedRett = ObjectMother.brukersMeldekort(
+                sakId = sak.id,
+                meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+            )
+
+            tac.meldekortContext.brukersMeldekortRepo.lagre(brukersMeldekortMedRett)
+
+            iverksettRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = vedtak.id,
+                innvilgelsesperiode = andrePeriode,
+                innvilgelsesperioder = listOf(
+                    InnvilgelsesperiodeDTO(
+                        periode = andrePeriode.toDTO(),
+                        antallDagerPerMeldeperiode = 10,
+                        tiltaksdeltakelseId = vedtak.behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                    ),
+                ),
+            )
+
+            val (_, meldekortbehandling) = tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
+                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                sakId = sak.id,
+                saksbehandler = saksbehandler(),
+            ).getOrFail()
+
+            meldekortbehandling.kjedeId shouldBe sak.meldeperiodeKjeder.first().kjedeId
+            meldekortbehandling.meldeperiode.ingenDagerGirRett shouldBe true
         }
     }
 
