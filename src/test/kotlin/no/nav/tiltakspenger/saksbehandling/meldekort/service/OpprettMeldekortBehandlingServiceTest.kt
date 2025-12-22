@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.left
-import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar

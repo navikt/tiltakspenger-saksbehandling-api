@@ -37,6 +37,8 @@ internal const val DOKARKIV_PATH = "rest/journalpostapi/v1/journalpost"
 /**
  * https://confluence.adeo.no/display/BOA/opprettJournalpost
  * swagger: https://dokarkiv-q2.dev.intern.nav.no/swagger-ui/index.html#/
+ *
+ * Det er caller sitt ansvar å logge errors ved exception
  */
 internal class DokarkivHttpClient(
     private val baseUrl: String,
@@ -92,7 +94,7 @@ internal class DokarkivHttpClient(
                     log.info { response.toString() }
 
                     val journalpostId = if (response.journalpostId.isNullOrEmpty()) {
-                        log.error { "Kallet til dokarkiv gikk ok, men vi fikk ingen journalpostId fra dokarkiv" }
+                        log.warn { "Kallet til dokarkiv gikk ok, men vi fikk ingen journalpostId fra dokarkiv" }
                         throw IllegalStateException("Kallet til dokarkiv gikk ok, men vi fikk ingen journalpostId fra dokarkiv")
                     } else {
                         response.journalpostId
@@ -107,7 +109,7 @@ internal class DokarkivHttpClient(
                 }
 
                 else -> {
-                    log.error { "Kallet til dokarkiv feilet ${res.status} ${res.status.description}" }
+                    log.warn { "Kallet til dokarkiv feilet ${res.status} ${res.status.description}" }
                     throw RuntimeException("Feil i kallet til dokarkiv")
                 }
             }
@@ -117,7 +119,7 @@ internal class DokarkivHttpClient(
                 if (throwable is ClientRequestException) {
                     when (status) {
                         Unauthorized, Forbidden -> {
-                            log.error(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot dokarkiv. status: $status." }
+                            log.warn(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot dokarkiv. status: $status." }
                             token.invaliderCache()
                         }
                         Conflict -> {
@@ -126,11 +128,11 @@ internal class DokarkivHttpClient(
                             return JournalpostId(response.journalpostId.orEmpty())
                         }
                         else -> {
-                            log.error(throwable) { "Fikk klientside-feilkode fra dokarkiv: $status." }
+                            log.warn(throwable) { "Fikk klientside-feilkode fra dokarkiv: $status." }
                         }
                     }
                 } else {
-                    log.error(throwable) { "Fikk feilkode fra dokarkiv: $status." }
+                    log.warn(throwable) { "Fikk feilkode fra dokarkiv: $status." }
                 }
             }
             throw throwable

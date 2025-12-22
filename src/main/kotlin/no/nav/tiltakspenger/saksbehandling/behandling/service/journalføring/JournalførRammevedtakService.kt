@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedt
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.time.Clock
@@ -33,6 +34,7 @@ class JournalførRammevedtakService(
     private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
+    private val errorEveryNLogger = ErrorEveryNLogger(log, 3)
 
     /** Ment å kalles fra en jobb - journalfører alle rammevedtak som skal sende brev. */
     suspend fun journalfør() {
@@ -77,12 +79,13 @@ class JournalførRammevedtakService(
                     log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
                     rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
                     log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }
+                    errorEveryNLogger.reset()
                 }.onLeft {
-                    log.error(it) { "Feil ved journalføring av vedtaksbrev for vedtak ${vedtak.id}" }
+                    errorEveryNLogger.log(it) { "Feil ved journalføring av vedtaksbrev for vedtak ${vedtak.id}" }
                 }
             }
         }.onLeft {
-            log.error(it) { "Ukjent feil skjedde under journalføring av førstegangsvedtak." }
+            errorEveryNLogger.log(it) { "Ukjent feil skjedde under journalføring av førstegangsvedtak." }
         }
     }
 }

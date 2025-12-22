@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
+import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
@@ -28,6 +29,7 @@ class JournalførMeldekortvedtakService(
     private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger { }
+    private val errorEveryNLogger = ErrorEveryNLogger(log, 3)
 
     suspend fun journalfør() {
         Either.catch {
@@ -87,12 +89,13 @@ class JournalførMeldekortvedtakService(
                     log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
                     meldekortvedtakRepo.markerJournalført(meldekortvedtak.id, journalpostId, nå(clock))
                     log.info { "Meldekortvedtak markert som journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
+                    errorEveryNLogger.reset()
                 }.onLeft {
-                    log.error(it) { "Ukjent feil skjedde under generering av brev og journalføring av meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
+                    errorEveryNLogger.log(it) { "Ukjent feil skjedde under generering av brev og journalføring av meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
                 }
             }
         }.onLeft {
-            log.error(it) { "Ukjent feil skjedde under journalføring av meldekortvedtak." }
+            errorEveryNLogger.log(it) { "Ukjent feil skjedde under journalføring av meldekortvedtak." }
         }
     }
 }
