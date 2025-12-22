@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
 import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
@@ -8,11 +9,10 @@ import java.time.LocalDate
 import kotlin.test.assertEquals
 
 class ÅpningstiderTest {
+    val mandag = 1.desember(2025)
+
     @Test
     fun `er åpent i hverdager 06-21`() {
-        val nå = LocalDate.now()
-        val mandag = nå.with(DayOfWeek.MONDAY)
-
         for (dagOffset in DayOfWeek.MONDAY.ordinal..DayOfWeek.FRIDAY.ordinal) {
             val dag = mandag.plusDays(dagOffset.toLong())
             assertÅpningstid(forventetÅpent = false, dato = dag, time = 6, minutt = 0)
@@ -26,9 +26,6 @@ class ÅpningstiderTest {
 
     @Test
     fun `stengt i helgen`() {
-        val nå = LocalDate.now()
-        val mandag = nå.with(DayOfWeek.MONDAY)
-
         for (offset in DayOfWeek.SATURDAY.ordinal..DayOfWeek.SUNDAY.ordinal) {
             val dag = mandag.plusDays(offset.toLong())
             assertÅpningstid(forventetÅpent = false, dato = dag, time = 6, minutt = 0)
