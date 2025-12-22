@@ -64,7 +64,6 @@ class ForhåndsvisVedtaksbrevService(
                         kommando = k,
                     )
 
-                    // TODO Man treffer ikke denne branchen ved omgjøring per 19.12.2025 da frontend sender feil type ved omgjøring
                     is ForhåndsvisVedtaksbrevForRevurderingOmgjøringKommando -> genererRevurderingOmgjøringsbrev(
                         sak = sak,
                         behandling = behandling,
