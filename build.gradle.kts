@@ -114,11 +114,11 @@ dependencies {
     // need quarkus-junit-4-mock because of https://github.com/testcontainers/testcontainers-java/issues/970
     testImplementation("io.quarkus:quarkus-junit4-mock:3.30.5")
     testImplementation("io.github.serpro69:kotlin-faker:1.16.0")
-    testApi("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
-    testApi("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")
-    testApi("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
-    testApi("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
-    testApi("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
+    testImplementation("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
+    testImplementation("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")
+    testImplementation("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
+    testImplementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
+    testImplementation("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
 }
 plugins {
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
