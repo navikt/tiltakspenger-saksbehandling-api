@@ -149,6 +149,7 @@ class LocalApplicationContext(
             texasClient = texasClient,
             sakService = sakContext.sakService,
             personService = personContext.personService,
+            sessionFactory = sessionFactory,
         ) {
             override val tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient
         }
@@ -266,7 +267,10 @@ class LocalApplicationContext(
             søknadstiltak = søknadstiltak,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
-        ).also { søknadContext.søknadRepo.lagre(it) }
+        ).also {
+            tiltakContext.tiltaksdeltakerRepo.hentEllerLagre(søknadstiltak.id)
+            søknadContext.søknadRepo.lagre(it)
+        }
         require(søknadstiltak == søknad.tiltak) {
             "Diff mellom søknadstiltak i lokal database og statiske tiltaksdata i LocalApplicationContext. Mulig løsning: Tøm lokal db."
         }

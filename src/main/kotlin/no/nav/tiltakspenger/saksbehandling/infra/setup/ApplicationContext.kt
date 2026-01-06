@@ -270,6 +270,7 @@ open class ApplicationContext(
             texasClient = texasClient,
             personService = personContext.personService,
             sakService = sakContext.sakService,
+            sessionFactory = sessionFactory,
         )
     }
     open val profile by lazy { Configuration.applicationProfile() }
@@ -359,6 +360,7 @@ open class ApplicationContext(
             statistikkSakService = statistikkContext.statistikkSakService,
             clock = clock,
             safJournalpostClient = safJournalpostClient,
+            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
         )
     }
 

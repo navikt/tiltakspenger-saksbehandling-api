@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -132,6 +133,7 @@ class OlderMottaSøknadTest {
                 )
 
             tac.søknadContext.søknadRepo.hentSakIdForSoknad(søknadId) shouldBe sak.id
+            tac.tiltakContext.tiltaksdeltakerRepo.hentInternId("123") shouldNotBe null
         }
     }
 
