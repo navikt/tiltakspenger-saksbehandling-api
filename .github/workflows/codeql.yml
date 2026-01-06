@@ -2,10 +2,16 @@ name: "CodeQL"
 on:
   schedule:
     - cron: '0 15 * * *'
-    
+
 jobs:
   analyze:
     name: Analyze
+
+    # Skipper kjøring av CodeQL frem til Kotlin 2.3.0 støttes. Forhåpentligvis støttes det tidlig i februar i følge PR-en.
+    # Issue: https://github.com/github/codeql/issues/20661
+    # Pull request: https://github.com/github/codeql/pull/20965
+    if: ${{ github.run_started_at >= '2026-02-08T00:00:00Z' }}
+
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -16,27 +22,27 @@ jobs:
       matrix:
         include:
         - language: java-kotlin
-          
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
           queries: security-and-quality
-          
+
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: 21
-          
+
       - name: Build
         run: ./gradlew clean build -x test testClasses
-        
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
