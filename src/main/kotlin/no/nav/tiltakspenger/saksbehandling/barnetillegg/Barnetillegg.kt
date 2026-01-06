@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.inneholderOverlapp
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
-import kotlin.collections.flatMap
 
 /**
  * Representerer en periodisering av barnetillegg.
@@ -62,9 +61,9 @@ private typealias BarnetilleggPerioder = List<Pair<Periode, AntallBarn>>
  * Periodiserer og fyller ut hull med 0.
  * @throws IllegalArgumentException Dersom periodene er utenfor [innvilgelsesperiode] eller overlapper.
  */
-private fun BarnetilleggPerioder.periodiserOgFyllUtHullMed0(innvilgelsesperiode: Periode): Periodisering<AntallBarn> {
+private fun BarnetilleggPerioder.periodiserOgFyllUtHullMed0(innvilgelsesperiode: Periode): SammenhengendePeriodisering<AntallBarn> {
     if (this.map { it.first }.inneholderOverlapp()) {
         throw IllegalArgumentException("Periodene kan ikke overlappe")
     }
-    return this.tilPeriodisering().utvid(AntallBarn.ZERO, innvilgelsesperiode) as SammenhengendePeriodisering
+    return this.tilPeriodisering().utvidOgFyllInnAlleTommePerioder(AntallBarn.ZERO, innvilgelsesperiode)
 }

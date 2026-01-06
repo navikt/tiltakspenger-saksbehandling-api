@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling
@@ -33,6 +34,7 @@ class OppdaterBehandlingService(
     private val simulerService: SimulerService,
     private val sessionFactory: SessionFactory,
 ) {
+    private val log = KotlinLogging.logger {}
 
     suspend fun oppdater(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Pair<Sak, Rammebehandling>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
@@ -44,7 +46,12 @@ class OppdaterBehandlingService(
         if (behandling.ventestatus.erSattPåVent) {
             return KanIkkeOppdatereBehandling.ErPaVent.left()
         }
-        val (utbetaling, simuleringMedMetadata) = sak.beregnOgSimulerHvisAktuelt(kommando, behandling)
+        val (utbetaling, simuleringMedMetadata) = try {
+            sak.beregnOgSimulerHvisAktuelt(kommando, behandling)
+        } catch (e: Exception) {
+            log.error(e) { "Noe gikk galt ved beregning/simulering ved oppdatering: ${e.message}" }
+            throw e
+        }
 
         return when (kommando) {
             is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando, utbetaling)
