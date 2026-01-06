@@ -47,6 +47,7 @@ open class SøknadContext(
             søknadRepo = søknadRepo,
             journalpostService = validerJournalpostService,
             clock = clock,
+            tiltaksdeltakerRepo = tiltaksdeltakerRepo,
         )
     }
 

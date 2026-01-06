@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvManueltRegistrertSøknadCommand
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import java.time.Clock
 
 class StartBehandlingAvManueltRegistrertSøknadService(
@@ -30,6 +31,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
     private val statistikkSakRepo: StatistikkSakRepo,
     private val journalpostService: ValiderJournalpostService,
     private val sessionFactory: SessionFactory,
+    private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -76,6 +78,10 @@ class StartBehandlingAvManueltRegistrertSøknadService(
             manueltSattTiltak = kommando.manueltSattTiltak,
             søknadstype = kommando.søknadstype,
         )
+
+        val internTiltaksdeltakelsesId = kommando.søknadstiltak?.id?.let {
+            tiltaksdeltakerRepo.hentEllerLagre(it)
+        }
 
         // Legg søknaden inn i sak før vi oppretter behandlingen eventuelt tiltak inkluderes i saksopplysningene
         val sakMedSøknad = sak.copy(søknader = sak.søknader + manueltRegistrertSøknad)
