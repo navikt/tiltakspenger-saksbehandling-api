@@ -49,6 +49,7 @@ fun Route.oppdaterBehandlingRoute(
                     oppdaterBehandlingService.oppdater(kommando).fold(
                         ifLeft = {
                             val (status, message) = it.tilStatusOgErrorJson()
+                            logger.warn { "Kunne ikke oppdatere behandling: ${message.melding}, statuskode ${status.value}" }
                             call.respond(status, message)
                         },
                         ifRight = { (sak) ->
