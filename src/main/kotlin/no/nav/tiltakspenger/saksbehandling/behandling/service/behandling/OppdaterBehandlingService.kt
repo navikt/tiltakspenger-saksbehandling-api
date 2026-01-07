@@ -46,12 +46,7 @@ class OppdaterBehandlingService(
         if (behandling.ventestatus.erSattPåVent) {
             return KanIkkeOppdatereBehandling.ErPaVent.left()
         }
-        val (utbetaling, simuleringMedMetadata) = try {
-            sak.beregnOgSimulerHvisAktuelt(kommando, behandling)
-        } catch (e: Exception) {
-            log.error(e) { "Noe gikk galt ved beregning/simulering ved oppdatering: ${e.message}" }
-            throw e
-        }
+        val (utbetaling, simuleringMedMetadata) = sak.beregnOgSimulerHvisAktuelt(kommando, behandling)
 
         return when (kommando) {
             is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando, utbetaling)
@@ -59,6 +54,7 @@ class OppdaterBehandlingService(
         }.map { oppdatertBehandling: Rammebehandling ->
             val oppdatertSak = sak.oppdaterRammebehandling(oppdatertBehandling)
 
+            log.debug { "Lagrer oppdatert behandling ${behandling.id} for sak ${behandling.sakId}" }
             sessionFactory.withTransactionContext { tx ->
                 behandlingRepo.lagre(oppdatertBehandling, tx)
                 behandlingRepo.oppdaterSimuleringMetadata(
@@ -75,6 +71,7 @@ class OppdaterBehandlingService(
         kommando: OppdaterBehandlingKommando,
         behandling: Rammebehandling,
     ): Pair<BehandlingUtbetaling?, SimuleringMedMetadata?> {
+        log.debug { "Beregner hvis aktuelt ifm oppdatering av behandling ${behandling.id} for sak ${behandling.sakId}" }
         val beregning = when (kommando) {
             is OppdaterSøknadsbehandlingKommando.Innvilgelse,
             is OppdaterRevurderingKommando.Innvilgelse,

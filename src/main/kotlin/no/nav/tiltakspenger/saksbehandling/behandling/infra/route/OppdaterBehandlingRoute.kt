@@ -46,6 +46,7 @@ fun Route.oppdaterBehandlingRoute(
                     )
                     krevSaksbehandlerRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
+                    logger.debug { "Oppdaterer behandling $behandlingId for sak $sakId" }
                     oppdaterBehandlingService.oppdater(kommando).fold(
                         ifLeft = {
                             val (status, message) = it.tilStatusOgErrorJson()
