@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøk
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import java.time.Clock
 
 open class AvbrytSøknadOgBehandlingContext(
     sakService: SakService,
@@ -13,6 +14,7 @@ open class AvbrytSøknadOgBehandlingContext(
     behandlingService: BehandlingService,
     statistikkSakService: StatistikkSakService,
     sessionFactory: SessionFactory,
+    clock: Clock,
 ) {
     val avsluttSøknadOgBehandlingService =
         AvbrytSøknadOgBehandlingService(
@@ -21,5 +23,6 @@ open class AvbrytSøknadOgBehandlingContext(
             behandlingService = behandlingService,
             statistikkSakService = statistikkSakService,
             sessionFactory = sessionFactory,
+            clock = clock,
         )
 }

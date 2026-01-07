@@ -64,7 +64,7 @@ class MeldeperiodePostgresRepo(
                     "til_og_med" to meldeperiode.periode.tilOgMed,
                     "antall_dager_for_periode" to meldeperiode.maksAntallDagerForMeldeperiode,
                     "gir_rett" to meldeperiode.girRett.toDbJson(),
-                    "rammevedtak" to meldeperiode.rammevedtak?.toDbJson(),
+                    "rammevedtak" to meldeperiode.rammevedtak.toDbJson(),
                 ).asUpdate,
             )
         }
