@@ -64,7 +64,7 @@ class OppdaterBehandlingService(
                 )
             }
             oppdatertSak to oppdatertBehandling
-        }.onLeft { log.error { "Fikk left ved oppdatering: $it" } }
+        }
     }
 
     suspend fun Sak.beregnOgSimulerHvisAktuelt(
@@ -107,11 +107,9 @@ class OppdaterBehandlingService(
             is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat,
             -> null
         }
-        log.debug { "Ferdig med beregning for behandling ${behandling.id} for sak ${behandling.sakId}" }
 
         return beregning?.let {
             val navkontor = navkontorService.hentOppfolgingsenhet(this.fnr)
-            log.debug { "Hentet nav-kontor for behandling ${behandling.id} for sak ${behandling.sakId}" }
             val simuleringMedMetadata = simulerService.simulerSøknadsbehandlingEllerRevurdering(
                 // Merk at behandlingen vi sender inn her er som den kom fra basen. Kanskje vi heller bare skal sende inn od, sakId, fnr og saksnummer?
                 behandling = behandling,
@@ -122,7 +120,6 @@ class OppdaterBehandlingService(
                 kanSendeInnHelgForMeldekort = this.kanSendeInnHelgForMeldekort,
             ) { navkontor }.getOrElse { null }
 
-            log.debug { "Ferdig med simulering for behandling ${behandling.id} for sak ${behandling.sakId}" }
             BehandlingUtbetaling(
                 beregning = it,
                 navkontor = navkontor,
@@ -160,7 +157,6 @@ class OppdaterBehandlingService(
 
         return when (kommando) {
             is OppdaterRevurderingKommando.Omgjøring -> {
-                log.debug { "Oppdaterer omgjøring for behandling ${kommando.behandlingId}, sak ${kommando.sakId}" }
                 revurdering.oppdaterOmgjøring(
                     kommando = kommando,
                     utbetaling = utbetaling,
