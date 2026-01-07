@@ -405,6 +405,7 @@ open class ApplicationContext(
             behandlingService = behandlingContext.behandlingService,
             statistikkSakService = statistikkContext.statistikkSakService,
             sessionFactory = sessionFactory,
+            clock = clock,
         )
     }
 }

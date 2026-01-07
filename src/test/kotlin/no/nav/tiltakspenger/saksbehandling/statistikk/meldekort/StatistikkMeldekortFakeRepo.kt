@@ -10,7 +10,7 @@ class StatistikkMeldekortFakeRepo : StatistikkMeldekortRepo {
         dto: StatistikkMeldekortDTO,
         context: TransactionContext?,
     ) {
-        val id = dto.sakId.toString() + dto.meldeperiodeKjedeId.toString()
+        val id = dto.sakId + dto.meldeperiodeKjedeId
         data.get()[id] = dto
     }
 
@@ -21,7 +21,7 @@ class StatistikkMeldekortFakeRepo : StatistikkMeldekortRepo {
     ) {
         val statistikkMeldekort = data.get().values.find { it.brukerId == gammeltFnr.verdi }
         statistikkMeldekort?.let {
-            val id = it.sakId.toString() + it.meldeperiodeKjedeId.toString()
+            val id = it.sakId + it.meldeperiodeKjedeId
             data.get()[id] = it.copy(
                 brukerId = nyttFnr.verdi,
             )

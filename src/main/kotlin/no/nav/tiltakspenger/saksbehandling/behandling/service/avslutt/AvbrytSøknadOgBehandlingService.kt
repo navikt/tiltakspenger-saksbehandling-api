@@ -1,7 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt
 
-import arrow.core.Either
-import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -15,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import java.time.Clock
 import java.time.LocalDateTime
 
 class AvbrytSøknadOgBehandlingService(
@@ -23,15 +22,14 @@ class AvbrytSøknadOgBehandlingService(
     private val behandlingService: BehandlingService,
     private val statistikkSakService: StatistikkSakService,
     private val sessionFactory: SessionFactory,
+    private val clock: Clock,
 ) {
 
-    suspend fun avbrytSøknadOgBehandling(command: AvbrytSøknadOgBehandlingCommand): Either<KunneIkkeAvbryteSøknadOgBehandling, Sak> {
-        val sak = sakService.hentForSaksnummer(
-            saksnummer = command.saksnummer,
-        )
+    suspend fun avbrytSøknadOgBehandling(command: AvbrytSøknadOgBehandlingCommand): Sak {
+        val sak = sakService.hentForSaksnummer(command.saksnummer)
         val (oppdatertSak, avbruttSøknad, avbruttBehandling) = sak.avbrytSøknadOgBehandling(
             command = command,
-            avbruttTidspunkt = LocalDateTime.now(),
+            avbruttTidspunkt = LocalDateTime.now(clock),
         )
 
         val behandlingOgStatistikk: Pair<Rammebehandling, StatistikkSakDTO>? = avbruttBehandling?.let {
@@ -50,9 +48,8 @@ class AvbrytSøknadOgBehandlingService(
                 skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
-        }.also {
-            return oppdatertSak.right()
         }
+        return oppdatertSak
     }
 }
 

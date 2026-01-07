@@ -116,7 +116,7 @@ internal class StartRevurderingTest {
             rammevedtakSøknadsbehandling.behandling.vedtaksperiode shouldBe (1 til 10.april(2025))
             rammevedtakSøknadsbehandling.behandling.innvilgelsesperioder!!.totalPeriode shouldBe (1 til 10.april(2025))
             rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
-            omgjøring!!.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
+            omgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
             omgjøring.vedtaksperiode shouldBe (1 til 10.april(2025))
             omgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
             omgjøring.barnetillegg shouldBe Barnetillegg(

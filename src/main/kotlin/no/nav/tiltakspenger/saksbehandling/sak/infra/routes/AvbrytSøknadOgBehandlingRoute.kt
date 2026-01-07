@@ -48,29 +48,19 @@ fun Route.avbrytSøknadOgBehandling(
                         avsluttetAv = saksbehandler,
                         correlationId = call.correlationId(),
                     ),
-                ).fold(
-                    {
-                        val (status, message) = it.toStatusAndMessage()
-                        call.respond(status, message)
-                    },
-                    {
-                        auditService.logMedSaksnummer(
-                            saksnummer = saksnummer,
-                            navIdent = saksbehandler.navIdent,
-                            action = AuditLogEvent.Action.UPDATE,
-                            correlationId = call.correlationId(),
-                            contextMessage = "Avsluttet søknad og behandling",
-                        )
-                        call.respond(status = HttpStatusCode.OK, it.toSakDTO(clock))
-                    },
-                )
+                ).let {
+                    auditService.logMedSaksnummer(
+                        saksnummer = saksnummer,
+                        navIdent = saksbehandler.navIdent,
+                        action = AuditLogEvent.Action.UPDATE,
+                        correlationId = call.correlationId(),
+                        contextMessage = "Avsluttet søknad og behandling",
+                    )
+                    call.respond(status = HttpStatusCode.OK, it.toSakDTO(clock))
+                }
             }
         }
     }
-}
-
-fun KunneIkkeAvbryteSøknadOgBehandling.toStatusAndMessage(): Pair<HttpStatusCode, String> = when (this) {
-    KunneIkkeAvbryteSøknadOgBehandling.Feil -> HttpStatusCode.InternalServerError to "Ukjent feil ved avbrytelse av søknad (og behandling)"
 }
 
 data class AvsluttSøknadOgBehandlingBody(

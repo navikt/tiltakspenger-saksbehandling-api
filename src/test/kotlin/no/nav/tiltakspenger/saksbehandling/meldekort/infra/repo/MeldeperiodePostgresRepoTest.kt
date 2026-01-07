@@ -29,11 +29,11 @@ class MeldeperiodePostgresRepoTest {
             forsteRelaterteVedtak.lastOrNull()?.verdi shouldBe rammevedtak.id
 
             val andreRelaterteVedtak = meldeperiodekjeder.sisteMeldeperiodePerKjede[1].rammevedtak
-            andreRelaterteVedtak?.size shouldBe 1
-            andreRelaterteVedtak?.firstOrNull()?.verdi shouldBe rammevedtak.id
-            andreRelaterteVedtak?.firstOrNull()?.periode shouldBe meldeperiodekjeder.sisteMeldeperiodePerKjede[1].periode
+            andreRelaterteVedtak.size shouldBe 1
+            andreRelaterteVedtak.firstOrNull()?.verdi shouldBe rammevedtak.id
+            andreRelaterteVedtak.firstOrNull()?.periode shouldBe meldeperiodekjeder.sisteMeldeperiodePerKjede[1].periode
 
-            val sisteRelaterteVedtak = meldeperiodekjeder.sisteMeldeperiodePerKjede.last().rammevedtak!!
+            val sisteRelaterteVedtak = meldeperiodekjeder.sisteMeldeperiodePerKjede.last().rammevedtak
             sisteRelaterteVedtak.size shouldBe 1
             sisteRelaterteVedtak.firstOrNull()?.verdi shouldBe rammevedtak.id
             sisteRelaterteVedtak.firstOrNull()?.periode shouldBe Periode(meldeperiodekjeder.sisteMeldeperiodePerKjede.last().periode.fraOgMed, rammevedtak.tilOgMed)
