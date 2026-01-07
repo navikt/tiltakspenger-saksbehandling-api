@@ -26,7 +26,6 @@ object ExceptionHandler {
         val loggmelding = "Feil mot frontend: ${cause.message}. Uri: $uri"
         when (cause) {
             is IllegalStateException -> {
-                logger.debug { "IllegalStateException fra exceptionhandler" }
                 logger.error(cause) { loggmelding }
                 call.respond500InternalServerError(serverfeil())
             }
@@ -59,7 +58,6 @@ object ExceptionHandler {
 
             // Catch all
             else -> {
-                logger.debug { "Annen feil fra exceptionhandler" }
                 logger.error(cause) { loggmelding }
                 call.respond500InternalServerError(serverfeil())
             }
