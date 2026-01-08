@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import kotliquery.Session
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import java.util.UUID
 
 class TiltaksdeltakerPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -22,7 +22,7 @@ class TiltaksdeltakerPostgresRepo(
                 if (id != null) {
                     return@withSession id
                 } else {
-                    val id = UUID.randomUUID().toString()
+                    val id = random(ULID_PREFIX_TILTAKSDELTAKER).toString()
                     session.run(
                         sqlQuery(
                             """

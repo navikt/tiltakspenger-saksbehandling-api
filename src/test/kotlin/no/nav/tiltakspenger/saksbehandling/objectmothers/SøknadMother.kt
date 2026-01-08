@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.ULID_PREFIX_TILTAKSDELTAKER
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -28,7 +30,7 @@ interface SøknadMother {
         deltakelseTom: LocalDate = 31.januar(2022),
         typeKode: TiltakResponsDTO.TiltakType = TiltakResponsDTO.TiltakType.GRUPPEAMO,
         typeNavn: String = "Gruppe AMO",
-        tiltaksdeltakerId: String = UUID.randomUUID().toString(),
+        tiltaksdeltakerId: String = UlidBase.random(ULID_PREFIX_TILTAKSDELTAKER).toString(),
     ): Søknadstiltak =
         Søknadstiltak(
             id = id,

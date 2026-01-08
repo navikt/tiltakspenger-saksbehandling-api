@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling
 
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.libs.soknad.FraOgMedDatoSpmDTO
@@ -14,15 +15,15 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.ULID_PREFIX_TILTAKSDELTAKER
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
-import java.util.UUID
 import kotlin.test.assertEquals
 
 internal class SøknadDTOMapperTest {
-    val internTiltaksdeltakerId = UUID.randomUUID().toString()
+    val internTiltaksdeltakerId = UlidBase.random(ULID_PREFIX_TILTAKSDELTAKER).toString()
 
     @Test
     fun mapBasisFelter() {

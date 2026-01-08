@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 
+const val ULID_PREFIX_TILTAKSDELTAKER = "tiltaksdeltaker"
+
 interface TiltaksdeltakerRepo {
     fun hentEllerLagre(
         eksternId: String,

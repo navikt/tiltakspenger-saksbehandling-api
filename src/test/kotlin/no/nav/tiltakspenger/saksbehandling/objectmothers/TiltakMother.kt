@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.getOrElse
+import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -15,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde.Komet
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.ULID_PREFIX_TILTAKSDELTAKER
 import java.time.LocalDate
 import java.util.UUID
 
@@ -100,7 +102,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
-        tiltaksdeltakerId: String = UUID.randomUUID().toString(),
+        tiltaksdeltakerId: String = random(ULID_PREFIX_TILTAKSDELTAKER).toString(),
     ): Pair<Tiltaksdeltakelse, Søknadstiltak> {
         val tiltaksdeltakelse = Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -174,7 +176,7 @@ fun Søknadstiltak.toTiltak(
     )
 }
 
-fun Tiltaksdeltakelse.toSøknadstiltak(tiltaksdeltakerId: String = UUID.randomUUID().toString()): Søknadstiltak {
+fun Tiltaksdeltakelse.toSøknadstiltak(tiltaksdeltakerId: String = random(ULID_PREFIX_TILTAKSDELTAKER).toString()): Søknadstiltak {
     return søknadstiltak(
         id = this.eksternDeltakelseId,
         deltakelseFom = this.deltakelseFraOgMed!!,

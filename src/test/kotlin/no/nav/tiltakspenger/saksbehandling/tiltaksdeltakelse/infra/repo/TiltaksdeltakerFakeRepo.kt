@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
+import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import java.util.UUID
 
 class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
     private val data = arrow.atomic.Atomic(mutableMapOf<String, String>())
@@ -9,7 +9,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
     override fun hentEllerLagre(eksternId: String, sessionContext: SessionContext?): String {
         data.get()[eksternId]?.let { return it }
 
-        val id = UUID.randomUUID().toString()
+        val id = random(ULID_PREFIX_TILTAKSDELTAKER).toString()
         lagre(
             id = id,
             eksternId = eksternId,
