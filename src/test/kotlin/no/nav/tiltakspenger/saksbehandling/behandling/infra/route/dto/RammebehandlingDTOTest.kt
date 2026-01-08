@@ -42,6 +42,7 @@ class RammebehandlingDTOTest {
     private val søknadTiltakId = "06872f2f-5ca4-453a-8d41-8e91e1f777a3"
     private val eksternTiltaksdeltakelseId = "f02e50df-d2ee-47f6-9afa-db66bd842bfd"
     private val eksternTiltaksgjennomføringsId = "68f04dee-11a9-4d69-84fd-1096a4264492"
+    private val internTiltaksdeltakelseId = "tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG"
     private val fnr = gyldigFnr()
 
     private val vedtaksperiode = Periode(
@@ -69,6 +70,7 @@ class RammebehandlingDTOTest {
                     deltakelseFom = vedtaksperiode.fraOgMed,
                     deltakelseTom = vedtaksperiode.tilOgMed,
                     id = eksternTiltaksdeltakelseId,
+                    tiltaksdeltakerId = internTiltaksdeltakelseId,
                 ),
             ),
             saksopplysninger = saksopplysninger(
@@ -80,6 +82,7 @@ class RammebehandlingDTOTest {
                         tom = vedtaksperiode.tilOgMed,
                         eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                        internDeltakelseId = internTiltaksdeltakelseId,
                     ),
                 ),
                 clock = clock,
@@ -118,7 +121,8 @@ class RammebehandlingDTOTest {
                 "deltakelseProsent": 100.0,
                 "antallDagerPerUke": 5.0,
                 "kilde": "Komet",
-                "gjennomforingsprosent": null
+                "gjennomforingsprosent": null,
+                "internDeltakelseId": "tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG"
               }
             ],
             "periode": {
@@ -274,6 +278,7 @@ class RammebehandlingDTOTest {
                     deltakelseFom = vedtaksperiode.fraOgMed,
                     deltakelseTom = vedtaksperiode.tilOgMed,
                     id = søknadTiltakId,
+                    tiltaksdeltakerId = internTiltaksdeltakelseId,
                 ),
             ),
             saksopplysninger = saksopplysninger(
@@ -285,6 +290,7 @@ class RammebehandlingDTOTest {
                         tom = vedtaksperiode.tilOgMed,
                         eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                        internDeltakelseId = internTiltaksdeltakelseId,
                     ),
                 ),
                 clock = clock,
@@ -323,7 +329,8 @@ class RammebehandlingDTOTest {
                     "deltakelseProsent": 100.0,
                     "antallDagerPerUke": 5.0,
                     "kilde": "Komet",
-                    "gjennomforingsprosent": null
+                    "gjennomforingsprosent": null,
+                    "internDeltakelseId": "tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG"
                   }
                 ],
                 "periode": {
@@ -457,6 +464,7 @@ class RammebehandlingDTOTest {
                     deltakelseFom = vedtaksperiode.fraOgMed,
                     deltakelseTom = vedtaksperiode.tilOgMed,
                     id = eksternTiltaksdeltakelseId,
+                    tiltaksdeltakerId = internTiltaksdeltakelseId,
                 ),
             ),
             hentSaksopplysninger = { _, _, _, _, _ ->
@@ -469,6 +477,7 @@ class RammebehandlingDTOTest {
                             tom = vedtaksperiode.tilOgMed,
                             eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                             eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                            internDeltakelseId = internTiltaksdeltakelseId,
                         ),
                     ),
                     clock = clock,
@@ -508,7 +517,8 @@ class RammebehandlingDTOTest {
                     "deltakelseProsent": 100.0,
                     "antallDagerPerUke": 5.0,
                     "kilde": "Komet",
-                    "gjennomforingsprosent": null
+                    "gjennomforingsprosent": null,
+                    "internDeltakelseId": "tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG"
                   }
                 ],
                 "periode": {
@@ -633,6 +643,7 @@ class RammebehandlingDTOTest {
                         tom = vedtaksperiode.tilOgMed,
                         eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                        internDeltakelseId = internTiltaksdeltakelseId,
                     ),
                 ),
                 clock = clock,
@@ -671,7 +682,8 @@ class RammebehandlingDTOTest {
                 "deltakelseProsent": 100.0,
                 "antallDagerPerUke": 5.0,
                 "kilde": "Komet",
-                "gjennomforingsprosent": null
+                "gjennomforingsprosent": null,
+                "internDeltakelseId": "tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG"
               }
             ],
             "periode": {
@@ -755,6 +767,7 @@ class RammebehandlingDTOTest {
                         tom = vedtaksperiode.tilOgMed,
                         eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                        internDeltakelseId = internTiltaksdeltakelseId,
                     ),
                 ),
                 clock = clock,
@@ -793,7 +806,8 @@ class RammebehandlingDTOTest {
                     "deltakelseProsent": 100.0,
                     "antallDagerPerUke": 5.0,
                     "kilde": "Komet",
-                    "gjennomforingsprosent": null
+                    "gjennomforingsprosent": null,
+                    "internDeltakelseId": "tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG"
                   }
                 ],
                 "periode": {
@@ -854,6 +868,7 @@ class RammebehandlingDTOTest {
                     deltakelseFom = vedtaksperiode.fraOgMed,
                     deltakelseTom = vedtaksperiode.tilOgMed,
                     id = søknadTiltakId,
+                    tiltaksdeltakerId = internTiltaksdeltakelseId,
                 ),
             ),
             saksopplysninger = saksopplysninger(
@@ -865,6 +880,7 @@ class RammebehandlingDTOTest {
                         tom = vedtaksperiode.tilOgMed,
                         eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                        internDeltakelseId = internTiltaksdeltakelseId,
                     ),
                 ),
                 clock = nyClock,
@@ -900,6 +916,7 @@ class RammebehandlingDTOTest {
                             tom = vedtaksperiode.tilOgMed,
                             eksternTiltaksdeltakelseId = eksternTiltaksdeltakelseId,
                             eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
+                            internDeltakelseId = internTiltaksdeltakelseId,
                         ),
                     ),
                     clock = nyClock,
@@ -939,7 +956,8 @@ class RammebehandlingDTOTest {
                 "deltakelseProsent": 100.0,
                 "antallDagerPerUke": 5.0,
                 "kilde": "Komet",
-                "gjennomforingsprosent": null
+                "gjennomforingsprosent": null,
+                "internDeltakelseId": "tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG"
               }
             ],
             "periode": {
