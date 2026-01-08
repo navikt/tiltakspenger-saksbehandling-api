@@ -87,8 +87,7 @@ data class MeldekortUnderBehandling(
 
         val oppdatertBehandling = this.copy(
             dager = kommando.dager.tilMeldekortDager(meldeperiode),
-            // Dersom saksbehandler vil tømme begrunnelsen kan hen sende en tom streng.
-            begrunnelse = kommando.begrunnelse ?: this.begrunnelse,
+            begrunnelse = kommando.begrunnelse,
             beregning = beregning,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             sistEndret = nå(clock),

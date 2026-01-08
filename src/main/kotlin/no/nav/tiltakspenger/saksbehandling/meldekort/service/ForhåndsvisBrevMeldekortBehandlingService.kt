@@ -27,9 +27,6 @@ class ForhåndsvisBrevMeldekortBehandlingService(
 
         val sak = sakService.hentForSakId(meldekortBehandling.sakId)
 
-        if (meldekortBehandling.beregning == null) {
-            return KunneIkkeForhåndsviseBrevMeldekortBehandling.BehandlingMåHaBeregningForÅForhåndsviseBrev.left()
-        }
         // TODO - verifiser at vi kommer alltid til å ha tiltaksdeltakelser her.
         val tiltaksdeltakelser = meldekortBehandling.rammevedtak?.let {
             sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(it)
@@ -40,7 +37,7 @@ class ForhåndsvisBrevMeldekortBehandlingService(
         }
 
         val nåværendeBeregningMedTidligereBeregning =
-            meldekortBehandling.beregning!!.beregninger.map { meldeperiodeBeregning ->
+            meldekortBehandling.beregning?.beregninger?.map { meldeperiodeBeregning ->
                 val tidligereBeregning = sak.meldeperiodeBeregninger.hentForrigeBeregningEllerSiste(
                     meldeperiodeBeregning.id,
                     meldeperiodeBeregning.kjedeId,
@@ -64,12 +61,12 @@ class ForhåndsvisBrevMeldekortBehandlingService(
                 saksbehandler = meldekortBehandling.saksbehandler,
                 beslutter = meldekortBehandling.beslutter,
                 meldekortbehandlingId = meldekortBehandling.id,
-                beregningsperiode = meldekortBehandling.beregning!!.periode,
+                beregningsperiode = meldekortBehandling.beregning?.periode,
                 tiltaksdeltakelser = tiltaksdeltakelser,
                 iverksattTidspunkt = null,
                 erKorrigering = meldekortBehandling.erKorrigering,
                 beregninger = nåværendeBeregningMedTidligereBeregning,
-                totaltBeløp = meldekortBehandling.beregning!!.totalBeløp,
+                totaltBeløp = meldekortBehandling.beregning?.totalBeløp,
                 tekstTilVedtaksbrev = command.tekstTilVedtaksbrev,
                 forhåndsvisning = true,
             ),
@@ -85,7 +82,6 @@ class ForhåndsvisBrevMeldekortBehandlingService(
 sealed interface KunneIkkeForhåndsviseBrevMeldekortBehandling {
     object FantIkkeMeldekortbehandling : KunneIkkeForhåndsviseBrevMeldekortBehandling
     data class FeilVedGenereringAvPdf(val feil: KunneIkkeGenererePdf) : KunneIkkeForhåndsviseBrevMeldekortBehandling
-    object BehandlingMåHaBeregningForÅForhåndsviseBrev : KunneIkkeForhåndsviseBrevMeldekortBehandling
 }
 
 data class ForhåndsvisBrevMeldekortbehandlingCommand(

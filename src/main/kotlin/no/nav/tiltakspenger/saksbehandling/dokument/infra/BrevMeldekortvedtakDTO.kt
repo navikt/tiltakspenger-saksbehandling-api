@@ -17,15 +17,15 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 data class BrevMeldekortvedtakDTO(
     val meldekortId: String,
     val saksnummer: String,
-    val meldekortPeriode: PeriodeDTO,
+    val meldekortPeriode: PeriodeDTO?,
     val saksbehandler: SaksbehandlerDTO?,
     val beslutter: SaksbehandlerDTO?,
     val tiltak: List<TiltakDTO>,
     val iverksattTidspunkt: String?,
     val fødselsnummer: String,
-    val sammenligningAvBeregninger: SammenligningAvBeregningerDTO,
+    val sammenligningAvBeregninger: SammenligningAvBeregningerDTO?,
     val korrigering: Boolean,
-    val totaltBelop: Int,
+    val totaltBelop: Int?,
     val brevTekst: String?,
     val forhandsvisning: Boolean,
 ) {
