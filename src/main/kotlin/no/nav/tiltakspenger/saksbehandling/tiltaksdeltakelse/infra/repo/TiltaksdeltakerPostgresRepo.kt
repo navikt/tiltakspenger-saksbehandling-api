@@ -62,7 +62,6 @@ class TiltaksdeltakerPostgresRepo(
                         "ekstern_id" to eksternId,
                     ).asUpdate,
                 )
-                return@withSession id
             }
         }
     }
