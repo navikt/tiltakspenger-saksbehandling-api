@@ -82,14 +82,6 @@ fun Route.forhåndsvisBrevMeldekortbehandling(
 internal fun KunneIkkeForhåndsviseBrevMeldekortBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> =
     when (this) {
         is KunneIkkeForhåndsviseBrevMeldekortBehandling.FeilVedGenereringAvPdf -> this.feil.tilStatusOgErrorJson()
-        KunneIkkeForhåndsviseBrevMeldekortBehandling.BehandlingMåHaBeregningForÅForhåndsviseBrev -> Pair(
-            HttpStatusCode.BadRequest,
-            ErrorJson(
-                "Behandlingen må beregnes før du kan forhåndsvise brev.",
-                "behandling_må_ha_beregning_for_å_forhåndsvise_brev",
-            ),
-        )
-
         KunneIkkeForhåndsviseBrevMeldekortBehandling.FantIkkeMeldekortbehandling -> Pair(
             HttpStatusCode.NotFound,
             ErrorJson(

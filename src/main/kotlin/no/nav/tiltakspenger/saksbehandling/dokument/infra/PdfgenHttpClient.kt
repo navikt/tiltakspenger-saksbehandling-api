@@ -229,16 +229,18 @@ internal class PdfgenHttpClient(
                     beslutter = command.beslutter?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
                     meldekortId = command.meldekortbehandlingId.toString(),
                     saksnummer = command.saksnummer.verdi,
-                    meldekortPeriode = BrevMeldekortvedtakDTO.PeriodeDTO(
-                        fom = command.beregningsperiode.fraOgMed.format(norskDatoFormatter),
-                        tom = command.beregningsperiode.tilOgMed.format(norskDatoFormatter),
-                    ),
+                    meldekortPeriode = command.beregningsperiode?.let {
+                        BrevMeldekortvedtakDTO.PeriodeDTO(
+                            fom = it.fraOgMed.format(norskDatoFormatter),
+                            tom = it.tilOgMed.format(norskDatoFormatter),
+                        )
+                    },
                     tiltak = command.tiltaksdeltakelser.map { it.toTiltakDTO() },
                     iverksattTidspunkt = command.iverksattTidspunkt?.format(norskTidspunktFormatter),
                     korrigering = command.erKorrigering,
-                    sammenligningAvBeregninger = command.beregninger.map {
+                    sammenligningAvBeregninger = command.beregninger?.map {
                         sammenlign(it.first, it.second).toDTO()
-                    }.let {
+                    }?.let {
                         BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO(
                             meldeperioder = it,
                             totalDifferanse = it.sumOf { periode -> periode.differanseFraForrige },

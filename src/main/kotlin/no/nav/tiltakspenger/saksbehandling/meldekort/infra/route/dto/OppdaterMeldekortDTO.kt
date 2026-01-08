@@ -12,7 +12,7 @@ import java.time.LocalDate
 
 data class OppdaterMeldekortDTO(
     val dager: List<Dag>,
-    val begrunnelse: String? = null,
+    val begrunnelse: String?,
     val tekstTilVedtaksbrev: String?,
 ) {
     data class Dag(
