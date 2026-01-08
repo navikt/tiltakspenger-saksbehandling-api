@@ -38,6 +38,12 @@ internal fun TestDataHelper.persisterSakOgSøknad(
         ),
 ): Søknad {
     this.persisterSak(fnr, sak = sak)
+    if (søknad.tiltak?.id != null && søknad.tiltak?.tiltaksdeltakerId != null) {
+        this.tiltaksdeltakerRepo.lagre(
+            id = søknad.tiltak!!.tiltaksdeltakerId!!,
+            eksternId = søknad.tiltak!!.id,
+        )
+    }
     this.søknadRepo.lagre(søknad)
     return søknadRepo.hentForSøknadId(søknad.id)!!.also {
         it shouldBe søknad

@@ -71,6 +71,9 @@ class OlderMottaSøknadTest {
                 }
             }
 
+            val internTiltaksdeltakerId = tac.tiltakContext.tiltaksdeltakerRepo.hentInternId("123")
+            internTiltaksdeltakerId shouldNotBe null
+
             val actualSøknad = tac.søknadContext.søknadRepo.hentForSøknadId(søknadId)
             actualSøknad shouldBe
                 InnvilgbarSøknad(
@@ -90,6 +93,7 @@ class OlderMottaSøknadTest {
                         deltakelseTom = 10.april(2025),
                         typeKode = TiltakResponsDTO.TiltakType.ANNUTDANN,
                         typeNavn = "Annen utdanning",
+                        tiltaksdeltakerId = internTiltaksdeltakerId,
                     ),
                     barnetillegg =
                     listOf(
@@ -133,7 +137,6 @@ class OlderMottaSøknadTest {
                 )
 
             tac.søknadContext.søknadRepo.hentSakIdForSoknad(søknadId) shouldBe sak.id
-            tac.tiltakContext.tiltaksdeltakerRepo.hentInternId("123") shouldNotBe null
         }
     }
 

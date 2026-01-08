@@ -268,7 +268,10 @@ class LocalApplicationContext(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
         ).also {
-            tiltakContext.tiltaksdeltakerRepo.hentEllerLagre(søknadstiltak.id)
+            tiltakContext.tiltaksdeltakerRepo.lagre(
+                id = it.tiltak.tiltaksdeltakerId!!,
+                eksternId = søknadstiltak.id,
+            )
             søknadContext.søknadRepo.lagre(it)
         }
         require(søknadstiltak == søknad.tiltak) {

@@ -92,6 +92,7 @@ fun Route.routes(
             søknadService = applicationContext.søknadContext.søknadService,
             sakService = applicationContext.sakContext.sakService,
             validerJournalpostService = applicationContext.søknadContext.validerJournalpostService,
+            tiltaksdeltakerRepo = applicationContext.tiltakContext.tiltaksdeltakerRepo,
         )
 
         hentTiltakdeltakelserRoute(

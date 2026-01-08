@@ -185,7 +185,6 @@ class TestApplicationContext(
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             clock = fixedClock,
             safJournalpostClient = safJournalpostFakeClient,
-            tiltaksdeltakerRepo = tiltaksdeltakerFakeRepo,
         ) {
             override val søknadRepo = søknadFakeRepo
         }

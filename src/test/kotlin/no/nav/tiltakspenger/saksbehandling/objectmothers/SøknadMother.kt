@@ -28,6 +28,7 @@ interface SøknadMother {
         deltakelseTom: LocalDate = 31.januar(2022),
         typeKode: TiltakResponsDTO.TiltakType = TiltakResponsDTO.TiltakType.GRUPPEAMO,
         typeNavn: String = "Gruppe AMO",
+        tiltaksdeltakerId: String = UUID.randomUUID().toString(),
     ): Søknadstiltak =
         Søknadstiltak(
             id = id,
@@ -35,6 +36,7 @@ interface SøknadMother {
             deltakelseTom = deltakelseTom,
             typeKode = typeKode,
             typeNavn = typeNavn,
+            tiltaksdeltakerId = tiltaksdeltakerId,
         )
 
     fun barnetilleggMedIdent(

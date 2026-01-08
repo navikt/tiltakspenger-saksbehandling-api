@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClien
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvManueltRegistrertSøknadService
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import java.time.Clock
 
 open class SøknadContext(
@@ -25,7 +24,6 @@ open class SøknadContext(
     statistikkSakService: StatistikkSakService,
     clock: Clock,
     safJournalpostClient: SafJournalpostClient,
-    tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
     open val søknadRepo: SøknadRepo by lazy { SøknadPostgresRepo(sessionFactory = sessionFactory as PostgresSessionFactory) }
     val søknadService: SøknadService by lazy {
@@ -33,7 +31,6 @@ open class SøknadContext(
             søknadRepo,
             sessionFactory,
             sakService,
-            tiltaksdeltakerRepo,
         )
     }
     val startBehandlingAvManueltRegistrertSøknadService: StartBehandlingAvManueltRegistrertSøknadService by lazy {
@@ -47,7 +44,6 @@ open class SøknadContext(
             søknadRepo = søknadRepo,
             journalpostService = validerJournalpostService,
             clock = clock,
-            tiltaksdeltakerRepo = tiltaksdeltakerRepo,
         )
     }
 

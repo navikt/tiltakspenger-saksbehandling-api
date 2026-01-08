@@ -10,7 +10,10 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
         data.get()[eksternId]?.let { return it }
 
         val id = UUID.randomUUID().toString()
-        lagre(eksternId, id)
+        lagre(
+            id = id,
+            eksternId = eksternId,
+        )
         return id
     }
 
@@ -18,10 +21,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
         return data.get()[eksternId]
     }
 
-    fun lagre(
-        eksternId: String,
-        id: String,
-    ) {
+    override fun lagre(id: String, eksternId: String, sessionContext: SessionContext?) {
         data.get()[eksternId] = id
     }
 }

@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
 import no.nav.tiltakspenger.saksbehandling.felles.krevLagreSoknadRollen
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 
 private val logger = KotlinLogging.logger {}
 
@@ -24,6 +25,7 @@ const val SØKNAD_PATH = "/soknad"
 fun Route.mottaSøknadRoute(
     søknadService: SøknadService,
     sakService: SakService,
+    tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
     post(SØKNAD_PATH) {
         logger.debug { "Mottatt ny søknad på '$SØKNAD_PATH' -  Prøver deserialisere og lagre." }
@@ -37,12 +39,15 @@ fun Route.mottaSøknadRoute(
                 søknadDTO.saksnummer,
             ),
         )
+        val internTiltaksdeltakelsesId = tiltaksdeltakerRepo.hentEllerLagre(søknadDTO.tiltak.id)
+
         // Oppretter søknad og lagrer den med kobling til angitt sak
         søknadService.nySøknad(
             søknad = SøknadDTOMapper.mapDigitalsøknad(
                 dto = søknadDTO,
                 innhentet = søknadDTO.opprettet,
                 sak = sak,
+                internTiltaksdeltakelsesId = internTiltaksdeltakelsesId,
             ),
         )
         MetricRegister.MOTTATT_SOKNAD.inc()

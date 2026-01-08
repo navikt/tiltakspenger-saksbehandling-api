@@ -100,6 +100,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
+        tiltaksdeltakerId: String = UUID.randomUUID().toString(),
     ): Pair<Tiltaksdeltakelse, Søknadstiltak> {
         val tiltaksdeltakelse = Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -121,6 +122,7 @@ interface TiltakMother {
             deltakelseTom = søknadTilOgMed,
             typeKode = typeKode.tilTiltakstype(),
             typeNavn = typeNavn,
+            tiltaksdeltakerId = tiltaksdeltakerId,
         )
     }
 
@@ -172,13 +174,14 @@ fun Søknadstiltak.toTiltak(
     )
 }
 
-fun Tiltaksdeltakelse.toSøknadstiltak(): Søknadstiltak {
+fun Tiltaksdeltakelse.toSøknadstiltak(tiltaksdeltakerId: String = UUID.randomUUID().toString()): Søknadstiltak {
     return søknadstiltak(
         id = this.eksternDeltakelseId,
         deltakelseFom = this.deltakelseFraOgMed!!,
         deltakelseTom = this.deltakelseTilOgMed!!,
         typeKode = this.typeKode.tilTiltakstype(),
         typeNavn = this.typeNavn,
+        tiltaksdeltakerId = tiltaksdeltakerId,
     )
 }
 

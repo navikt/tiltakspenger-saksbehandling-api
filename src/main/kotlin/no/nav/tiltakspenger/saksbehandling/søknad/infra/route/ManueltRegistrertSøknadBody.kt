@@ -19,13 +19,13 @@ data class ManueltRegistrertSøknadBody(
     val søknadstype: SøknadstypeDTO,
     val svar: ManueltRegistrertSøknadSvarDTO,
 ) {
-    fun tilKommando(): StartBehandlingAvManueltRegistrertSøknadCommand {
+    fun tilKommando(internTiltaksdeltakelsesId: String?): StartBehandlingAvManueltRegistrertSøknadCommand {
         return StartBehandlingAvManueltRegistrertSøknadCommand(
             personopplysninger = personopplysninger.tilDomene(),
             journalpostId = JournalpostId(journalpostId),
             manueltSattSøknadsperiode = manueltSattSøknadsperiode?.toDomain(),
             manueltSattTiltak = manueltSattTiltak,
-            søknadstiltak = this.svar.tiltak?.tilDomene(),
+            søknadstiltak = this.svar.tiltak?.tilDomene(internTiltaksdeltakelsesId),
             barnetillegg = this.svar.barnetilleggPdl.map { it.tilDomenePdl() } +
                 this.svar.barnetilleggManuelle.map { it.tilDomeneManuell() },
             antallVedlegg = antallVedlegg,
@@ -125,13 +125,14 @@ data class ManueltRegistrertSøknadBody(
         }
     }
 
-    fun SøknadsTiltakDTO.tilDomene(): Søknadstiltak =
+    fun SøknadsTiltakDTO.tilDomene(internTiltaksdeltakelsesId: String?): Søknadstiltak =
         Søknadstiltak(
             id = this.eksternDeltakelseId,
             deltakelseFom = this.deltakelseFraOgMed,
             deltakelseTom = this.deltakelseTilOgMed,
             typeKode = this.typeKode.tilTiltakstype(),
             typeNavn = this.typeNavn,
+            tiltaksdeltakerId = internTiltaksdeltakelsesId,
         )
 
     fun BarnetilleggDTO.tilDomeneManuell(): BarnetilleggFraSøknad.Manuell {

@@ -360,7 +360,6 @@ open class ApplicationContext(
             statistikkSakService = statistikkContext.statistikkSakService,
             clock = clock,
             safJournalpostClient = safJournalpostClient,
-            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
         )
     }
 

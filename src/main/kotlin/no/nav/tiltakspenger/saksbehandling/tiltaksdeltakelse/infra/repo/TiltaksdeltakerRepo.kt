@@ -8,5 +8,11 @@ interface TiltaksdeltakerRepo {
         sessionContext: SessionContext? = null,
     ): String
 
+    fun lagre(
+        id: String,
+        eksternId: String,
+        sessionContext: SessionContext? = null,
+    )
+
     fun hentInternId(eksternId: String): String?
 }

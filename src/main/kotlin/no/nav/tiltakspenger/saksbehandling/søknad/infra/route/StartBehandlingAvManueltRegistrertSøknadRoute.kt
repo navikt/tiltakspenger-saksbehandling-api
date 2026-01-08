@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvManueltRegistrertSøknadService
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 
 private val logger = KotlinLogging.logger {}
 
@@ -33,6 +34,7 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
     startBehandlingAvManueltRegistrertSøknadService: StartBehandlingAvManueltRegistrertSøknadService,
+    tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
     post(MANUELT_REGISTRERT_SØKNAD_PATH) {
         logger.debug { "Mottatt manuelt registrert søknad på '$MANUELT_REGISTRERT_SØKNAD_PATH'" }
@@ -43,9 +45,12 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
             tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, token)
 
             call.withBody<ManueltRegistrertSøknadBody> { body ->
+                val internTiltaksdeltakelsesId = body.svar.tiltak?.eksternDeltakelseId?.let {
+                    tiltaksdeltakerRepo.hentEllerLagre(it)
+                }
                 val (sak, søknad) = startBehandlingAvManueltRegistrertSøknadService.startBehandlingAvManueltRegistrertSøknad(
                     saksnummer = saksnummer,
-                    kommando = body.tilKommando(),
+                    kommando = body.tilKommando(internTiltaksdeltakelsesId),
                     saksbehandler = saksbehandler,
                     correlationId = call.correlationId(),
                 )

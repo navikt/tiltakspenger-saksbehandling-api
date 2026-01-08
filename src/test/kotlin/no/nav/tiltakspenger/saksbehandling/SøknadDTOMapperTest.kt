@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.libs.soknad.FraOgMedDatoSpmDTO
 import no.nav.tiltakspenger.libs.soknad.JaNeiSpmDTO
@@ -19,9 +18,12 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
+import java.util.UUID
 import kotlin.test.assertEquals
 
 internal class SøknadDTOMapperTest {
+    val internTiltaksdeltakerId = UUID.randomUUID().toString()
+
     @Test
     fun mapBasisFelter() {
         val sak = ObjectMother.nySak()
@@ -31,6 +33,7 @@ internal class SøknadDTOMapperTest {
                 dto = søknadDTO,
                 innhentet = LocalDateTime.MIN,
                 sak = sak,
+                internTiltaksdeltakelsesId = internTiltaksdeltakerId,
             )
 
         assertEquals(søknadDTO.søknadId, søknad.id.toString())
@@ -80,6 +83,7 @@ internal class SøknadDTOMapperTest {
             dto = søknadDTO,
             innhentet = LocalDateTime.MIN,
             sak = sak,
+            internTiltaksdeltakelsesId = internTiltaksdeltakerId,
         )
 
         assertEquals(søknad.kvp, Søknad.PeriodeSpm.Ja(fraOgMed = fra, tilOgMed = til))

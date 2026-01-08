@@ -44,6 +44,29 @@ class TiltaksdeltakerPostgresRepo(
         }
     }
 
+    override fun lagre(id: String, eksternId: String, sessionContext: SessionContext?) {
+        sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        """
+                            insert into tiltaksdeltaker (
+                                id,
+                                ekstern_id
+                            ) values (
+                                :id,
+                                :ekstern_id
+                            )
+                        """.trimIndent(),
+                        "id" to id,
+                        "ekstern_id" to eksternId,
+                    ).asUpdate,
+                )
+                return@withSession id
+            }
+        }
+    }
+
     override fun hentInternId(eksternId: String): String? {
         return sessionFactory.withSession { session ->
             hentForEksternId(eksternId, session)
