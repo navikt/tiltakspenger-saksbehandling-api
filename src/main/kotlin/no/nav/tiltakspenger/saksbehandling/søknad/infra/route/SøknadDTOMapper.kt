@@ -23,6 +23,7 @@ object SøknadDTOMapper {
         dto: SøknadDTO,
         innhentet: LocalDateTime,
         sak: Sak,
+        internTiltaksdeltakelsesId: String,
     ): InnvilgbarSøknad =
         InnvilgbarSøknad(
             id = SøknadId.fromString(dto.søknadId),
@@ -34,7 +35,7 @@ object SøknadDTOMapper {
                 etternavn = dto.personopplysninger.etternavn,
                 fnr = Fnr.fromString(dto.personopplysninger.ident),
             ),
-            tiltak = dto.tiltak.tilDomene(),
+            tiltak = dto.tiltak.tilDomene(internTiltaksdeltakelsesId),
             barnetillegg =
             dto.barnetilleggPdl.map { it.tilDomenePdl() } +
                 dto.barnetilleggManuelle.map { it.tilDomeneManuell() },
@@ -82,13 +83,14 @@ object SøknadDTOMapper {
         }
     }
 
-    fun SøknadsTiltakDTO.tilDomene(): Søknadstiltak =
+    fun SøknadsTiltakDTO.tilDomene(internTiltaksdeltakelsesId: String): Søknadstiltak =
         Søknadstiltak(
             id = this.id,
             deltakelseFom = this.deltakelseFom,
             deltakelseTom = this.deltakelseTom,
             typeKode = TiltakResponsDTO.TiltakType.valueOf(this.typeKode),
             typeNavn = this.typeNavn,
+            tiltaksdeltakerId = internTiltaksdeltakelsesId,
         )
 
     fun BarnetilleggDTO.tilDomeneManuell(): BarnetilleggFraSøknad.Manuell {

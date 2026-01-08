@@ -1,0 +1,1 @@
+create unique index idx_tiltaksdeltaker_ekstern_id_unique on tiltaksdeltaker (ekstern_id);

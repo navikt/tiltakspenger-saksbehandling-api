@@ -47,6 +47,7 @@ internal object SøknadTiltakDAO {
                     "typenavn" to søknadstiltak.typeNavn,
                     "deltakelse_fra_og_med" to søknadstiltak.deltakelseFom,
                     "deltakelse_til_og_med" to søknadstiltak.deltakelseTom,
+                    "tiltaksdeltaker_id" to søknadstiltak.tiltaksdeltakerId,
                 ),
             ).asUpdate,
         )
@@ -65,12 +66,14 @@ internal object SøknadTiltakDAO {
         val typenavn = string("typenavn")
         val deltakelseFom = localDate("deltakelse_fra_og_med")
         val deltakelseTom = localDate("deltakelse_til_og_med")
+        val tiltaksdeltakerId = stringOrNull("tiltaksdeltaker_id")
         return Søknadstiltak(
             id = eksternId,
             deltakelseFom = deltakelseFom,
             deltakelseTom = deltakelseTom,
             typeKode = TiltakResponsDTO.TiltakType.valueOf(typekode),
             typeNavn = typenavn,
+            tiltaksdeltakerId = tiltaksdeltakerId,
         )
     }
 
@@ -90,7 +93,8 @@ internal object SøknadTiltakDAO {
             typekode,
             typenavn,
             deltakelse_fra_og_med,
-            deltakelse_til_og_med
+            deltakelse_til_og_med,
+            tiltaksdeltaker_id
         ) values (
             :id,
             :soknad_id,
@@ -98,7 +102,8 @@ internal object SøknadTiltakDAO {
             :typekode,
             :typenavn,
             :deltakelse_fra_og_med,
-            :deltakelse_til_og_med
+            :deltakelse_til_og_med,
+            :tiltaksdeltaker_id
         )
         """.trimIndent()
 }

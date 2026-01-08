@@ -239,6 +239,7 @@ data class Søknadstiltak(
     val deltakelseTom: LocalDate,
     val typeKode: TiltakResponsDTO.TiltakType,
     val typeNavn: String,
+    val tiltaksdeltakerId: String?,
 )
 
 sealed class BarnetilleggFraSøknad {

@@ -270,6 +270,7 @@ open class ApplicationContext(
             texasClient = texasClient,
             personService = personContext.personService,
             sakService = sakContext.sakService,
+            sessionFactory = sessionFactory,
         )
     }
     open val profile by lazy { Configuration.applicationProfile() }

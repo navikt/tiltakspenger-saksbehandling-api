@@ -49,6 +49,8 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerFakeRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
@@ -103,6 +105,7 @@ class TestApplicationContext(
     private val meldekortApiFakeKlient = MeldekortApiFakeKlient()
     private val benkOversiktFakeRepo =
         BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortBehandlingFakeRepo)
+    private val tiltaksdeltakerFakeRepo = TiltaksdeltakerFakeRepo()
 
     val jwtGenerator = JwtGenerator()
 
@@ -192,8 +195,10 @@ class TestApplicationContext(
             texasClient = texasClient,
             sakService = sakContext.sakService,
             personService = personContext.personService,
+            sessionFactory = sessionFactory,
         ) {
             override val tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient
+            override val tiltaksdeltakerRepo = tiltaksdeltakerFakeRepo
         }
     }
     override val sakContext by lazy {
