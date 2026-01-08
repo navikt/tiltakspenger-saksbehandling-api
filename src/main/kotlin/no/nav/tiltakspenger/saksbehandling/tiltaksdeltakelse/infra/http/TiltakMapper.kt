@@ -58,6 +58,8 @@ internal fun mapTiltak(
                 deltakelseProsent = tiltakDto.deltakelseProsent,
                 kilde = tiltakDto.kilde.toTiltakskilde(tiltakDto.id),
                 deltidsprosentGjennomforing = tiltakDto.gjennomforing.deltidsprosent,
+                // internDeltakelsesId må settes når vi vet at den skal inngå i saksopplysningene
+                internDeltakelseId = null,
 
             )
         }.let { Tiltaksdeltakelser(it) }
