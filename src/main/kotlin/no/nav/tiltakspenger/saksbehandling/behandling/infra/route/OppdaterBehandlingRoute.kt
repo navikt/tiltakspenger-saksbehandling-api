@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Oppdate
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
@@ -50,7 +51,7 @@ fun Route.oppdaterBehandlingRoute(
                         ifLeft = {
                             val (status, message) = it.tilStatusOgErrorJson()
                             logger.warn { "Kunne ikke oppdatere behandling: ${message.melding}, statuskode ${status.value}" }
-                            call.respond(status, message)
+                            call.respondJson(status = status, value = message)
                         },
                         ifRight = { (sak) ->
                             auditService.logMedBehandlingId(
@@ -60,7 +61,7 @@ fun Route.oppdaterBehandlingRoute(
                                 contextMessage = "Saksbehandler har oppdatert en behandling under behandling",
                                 correlationId = correlationId,
                             )
-                            call.respond(status = HttpStatusCode.OK, message = sak.tilBehandlingDTO(behandlingId))
+                            call.respondJson(value = sak.tilBehandlingDTO(behandlingId))
                         },
                     )
                 }

@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
@@ -14,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJsonString
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
@@ -44,7 +45,7 @@ fun Route.opprettKlagebehandlingRoute(
                     ),
                 ).fold(
                     ifLeft = {
-                        call.respond(status = HttpStatusCode.InternalServerError, """{"todo":"todo"}""")
+                        call.respondJsonString(status = HttpStatusCode.InternalServerError, json = """{"todo":"todo"}""")
                     },
                     ifRight = { (_, behandling) ->
                         val behandlingId = behandling.id
@@ -56,7 +57,7 @@ fun Route.opprettKlagebehandlingRoute(
                             correlationId = correlationId,
                             behandlingId = behandlingId,
                         )
-                        call.respond(HttpStatusCode.OK, behandling.toDto())
+                        call.respondJson(value = behandling.toDto())
                     },
                 )
             }

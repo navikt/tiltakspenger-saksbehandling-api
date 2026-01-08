@@ -10,19 +10,14 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.path
-import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.routes
-import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
-import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
-import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -32,69 +27,65 @@ import org.junit.jupiter.api.Test
 class OvertaMeldekortBehandlingRouteTest {
     @Test
     fun `saksbehandler kan overta meldekortbehandling`() {
-        with(TestApplicationContext()) {
-            val tac = this
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    configureExceptions()
-                    setupAuthentication(texasClient)
-                    routing { routes(tac) }
-                }
-                val (sak, _, _) = this.iverksettSøknadsbehandling(tac)
-                val saksbehandlerIdent = "Z12345"
-                val meldekortBehandling = ObjectMother.meldekortUnderBehandling(
-                    sakId = sak.id,
-                    saksnummer = sak.saksnummer,
-                    fnr = sak.fnr,
-                    saksbehandler = saksbehandlerIdent,
-                    status = MeldekortBehandlingStatus.UNDER_BEHANDLING,
-                )
+        withTestApplicationContext { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(tac)
+            val saksbehandlerIdent = "Z12345"
+            val meldekortBehandling = ObjectMother.meldekortUnderBehandling(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                saksbehandler = saksbehandlerIdent,
+                status = MeldekortBehandlingStatus.UNDER_BEHANDLING,
+            )
 
-                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)
+            tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)
 
-                overtaMeldekortBehandling(tac, meldekortBehandling.sakId, meldekortBehandling.id, saksbehandlerIdent, ObjectMother.saksbehandler123()).also {
-                    JSONObject(it).getString("saksbehandler") shouldBe "123"
-                    val oppdatertMeldekortbehandling = tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
-                    oppdatertMeldekortbehandling shouldNotBe null
-                    oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.UNDER_BEHANDLING
-                    oppdatertMeldekortbehandling?.saksbehandler shouldBe "123"
-                }
+            overtaMeldekortBehandling(
+                tac,
+                meldekortBehandling.sakId,
+                meldekortBehandling.id,
+                saksbehandlerIdent,
+                ObjectMother.saksbehandler123(),
+            ).also {
+                JSONObject(it).getString("saksbehandler") shouldBe "123"
+                val oppdatertMeldekortbehandling =
+                    tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
+                oppdatertMeldekortbehandling shouldNotBe null
+                oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.UNDER_BEHANDLING
+                oppdatertMeldekortbehandling?.saksbehandler shouldBe "123"
             }
         }
     }
 
     @Test
     fun `beslutter kan overta meldekortbehandling`() {
-        with(TestApplicationContext()) {
-            val tac = this
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    configureExceptions()
-                    setupAuthentication(texasClient)
-                    routing { routes(tac) }
-                }
-                val (sak, _, _) = this.iverksettSøknadsbehandling(tac)
-                val beslutterIdent = "Z12345"
-                val meldekortBehandling = ObjectMother.meldekortBehandletManuelt(
-                    sakId = sak.id,
-                    saksnummer = sak.saksnummer,
-                    fnr = sak.fnr,
-                    beslutter = beslutterIdent,
-                    status = MeldekortBehandlingStatus.UNDER_BESLUTNING,
-                    iverksattTidspunkt = null,
-                )
+        withTestApplicationContext { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(tac)
+            val beslutterIdent = "Z12345"
+            val meldekortBehandling = ObjectMother.meldekortBehandletManuelt(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                beslutter = beslutterIdent,
+                status = MeldekortBehandlingStatus.UNDER_BESLUTNING,
+                iverksattTidspunkt = null,
+            )
 
-                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)
+            tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)
 
-                overtaMeldekortBehandling(tac, meldekortBehandling.sakId, meldekortBehandling.id, beslutterIdent, ObjectMother.beslutter123()).also {
-                    JSONObject(it).getString("beslutter") shouldBe "123"
-                    val oppdatertMeldekortbehandling = tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
-                    oppdatertMeldekortbehandling shouldNotBe null
-                    oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.UNDER_BESLUTNING
-                    oppdatertMeldekortbehandling?.beslutter shouldBe "123"
-                }
+            overtaMeldekortBehandling(
+                tac,
+                meldekortBehandling.sakId,
+                meldekortBehandling.id,
+                beslutterIdent,
+                ObjectMother.beslutter123(),
+            ).also {
+                JSONObject(it).getString("beslutter") shouldBe "123"
+                val oppdatertMeldekortbehandling =
+                    tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
+                oppdatertMeldekortbehandling shouldNotBe null
+                oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.UNDER_BESLUTNING
+                oppdatertMeldekortbehandling?.beslutter shouldBe "123"
             }
         }
     }
@@ -109,7 +100,7 @@ class OvertaMeldekortBehandlingRouteTest {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
-        tac.texasClient.leggTilBruker(jwt, saksbehandler)
+        tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Patch,
             url {

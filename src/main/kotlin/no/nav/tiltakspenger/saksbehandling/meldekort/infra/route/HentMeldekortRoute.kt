@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
@@ -15,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
@@ -50,9 +49,8 @@ fun Route.hentMeldekortRoute(
                     contextMessage = "Henter meldekort",
                     correlationId = correlationId,
                 )
-                call.respond(
-                    status = HttpStatusCode.OK,
-                    message = meldeperiodeKjedeDTO,
+                call.respondJson(
+                    value = meldeperiodeKjedeDTO,
                 )
             }
         }

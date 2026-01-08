@@ -8,10 +8,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.path
-import io.ktor.server.auth.authenticate
-import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
 import io.ktor.server.util.url
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -19,13 +16,9 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
-import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
-import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.frameldekortapi.mottaMeldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
 import org.junit.jupiter.api.Test
@@ -51,7 +44,7 @@ internal class MottaMeldekortRouteTest {
         val jwt = tac.jwtGenerator.createJwtForSystembruker(
             roles = listOf("lagre_meldekort"),
         )
-        tac.texasClient.leggTilBruker(jwt, ObjectMother.systembrukerLagreMeldekort())
+        tac.leggTilBruker(jwt, ObjectMother.systembrukerLagreMeldekort())
         return defaultRequest(
             HttpMethod.Post,
             url {
@@ -66,37 +59,19 @@ internal class MottaMeldekortRouteTest {
 
     @Test
     fun `Kan lagre meldekort fra bruker`() {
-        val tac = TestApplicationContext()
-        val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
-        val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-
-        val sakRepo = tac.sakContext.sakRepo
-        val (sak) = nySakMedVedtak()
-        sakRepo.opprettSak(sak)
-
-        val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
-        meldeperiodeRepo.lagre(meldeperiode)
-
-        val dto = utfyltMeldekortDTO(meldeperiode)
-
         runTest {
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    configureExceptions()
-                    setupAuthentication(tac.texasClient)
-                    routing {
-                        authenticate(IdentityProvider.AZUREAD.value) {
-                            mottaMeldekortRoutes(
-                                mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
-                            )
-                        }
-                    }
-                }
+            withTestApplicationContext { tac ->
+                val (sak) = nySakMedVedtak()
+                tac.sakContext.sakRepo.opprettSak(sak)
 
+                val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
+                tac.meldekortContext.meldeperiodeRepo.lagre(meldeperiode)
+
+                val dto = utfyltMeldekortDTO(meldeperiode)
                 mottaMeldekortRequest(dto, tac).apply {
                     status shouldBe HttpStatusCode.OK
-                    brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id)).shouldNotBeNull()
+                    tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id))
+                        .shouldNotBeNull()
                 }
             }
         }
@@ -104,33 +79,19 @@ internal class MottaMeldekortRouteTest {
 
     @Test
     fun `Skal lagre meldekort fra bruker og ignorere påfølgende requests med samme data, med ok-response`() {
-        val tac = TestApplicationContext()
-        val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
-        val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-
-        val sakRepo = tac.sakContext.sakRepo
-        val (sak) = nySakMedVedtak()
-        sakRepo.opprettSak(sak)
-
-        val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
-        meldeperiodeRepo.lagre(meldeperiode)
-
-        val dto = utfyltMeldekortDTO(meldeperiode)
-
         runTest {
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    configureExceptions()
-                    setupAuthentication(tac.texasClient)
-                    routing {
-                        authenticate(IdentityProvider.AZUREAD.value) {
-                            mottaMeldekortRoutes(
-                                mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
-                            )
-                        }
-                    }
-                }
+            withTestApplicationContext { tac ->
+                val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+
+                val sakRepo = tac.sakContext.sakRepo
+                val (sak) = nySakMedVedtak()
+                sakRepo.opprettSak(sak)
+
+                val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
+                meldeperiodeRepo.lagre(meldeperiode)
+
+                val dto = utfyltMeldekortDTO(meldeperiode)
 
                 mottaMeldekortRequest(dto, tac).apply {
                     status shouldBe HttpStatusCode.OK
@@ -152,34 +113,20 @@ internal class MottaMeldekortRouteTest {
 
     @Test
     fun `Skal gi 409 ved forsøk på lagring av eksisterende meldekort med nye data, og ikke overskrive første lagring`() {
-        val tac = TestApplicationContext()
-        val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
-        val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-
-        val sakRepo = tac.sakContext.sakRepo
-        val (sak) = nySakMedVedtak()
-        sakRepo.opprettSak(sak)
-
-        val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
-        meldeperiodeRepo.lagre(meldeperiode)
-
-        val dto = utfyltMeldekortDTO(meldeperiode)
-        val dtoMedDiff = dto.copy(mottatt = dto.mottatt.minusDays(1))
-
         runTest {
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    configureExceptions()
-                    setupAuthentication(tac.texasClient)
-                    routing {
-                        authenticate(IdentityProvider.AZUREAD.value) {
-                            mottaMeldekortRoutes(
-                                mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
-                            )
-                        }
-                    }
-                }
+            withTestApplicationContext { tac ->
+                val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+
+                val sakRepo = tac.sakContext.sakRepo
+                val (sak) = nySakMedVedtak()
+                sakRepo.opprettSak(sak)
+
+                val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
+                meldeperiodeRepo.lagre(meldeperiode)
+
+                val dto = utfyltMeldekortDTO(meldeperiode)
+                val dtoMedDiff = dto.copy(mottatt = dto.mottatt.minusDays(1))
 
                 mottaMeldekortRequest(dto, tac).apply {
                     status shouldBe HttpStatusCode.OK

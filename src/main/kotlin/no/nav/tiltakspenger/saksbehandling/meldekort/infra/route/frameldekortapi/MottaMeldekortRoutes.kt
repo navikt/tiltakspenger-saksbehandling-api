@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.frameldekortap
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.texas.systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.krevLagreMeldekortRollen
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondOk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
@@ -35,22 +36,22 @@ internal fun Route.mottaMeldekortRoutes(
             logger.info { "Mottatt meldekort fra bruker: ${meldekort.id} - meldeperiode: ${meldekort.meldeperiodeId}" }
             krevLagreMeldekortRollen(systembruker)
             mottaBrukerutfyltMeldekortService.mottaBrukerutfyltMeldekort(meldekort.toDomain()).onRight {
-                call.respond(HttpStatusCode.OK)
+                call.respondOk()
             }.onLeft {
                 when (it) {
-                    is KanIkkeLagreBrukersMeldekort.AlleredeLagretUtenDiff -> call.respond(
+                    is KanIkkeLagreBrukersMeldekort.AlleredeLagretUtenDiff -> call.respondText(
                         status = HttpStatusCode.OK,
-                        message = "Meldekort med id ${meldekort.id} var allerede lagret med samme data",
+                        text = "Meldekort med id ${meldekort.id} var allerede lagret med samme data",
                     )
 
-                    is KanIkkeLagreBrukersMeldekort.AlleredeLagretMedDiff -> call.respond(
+                    is KanIkkeLagreBrukersMeldekort.AlleredeLagretMedDiff -> call.respondText(
                         status = HttpStatusCode.Conflict,
-                        message = "Meldekort med id ${meldekort.id} var allerede lagret med andre data!",
+                        text = "Meldekort med id ${meldekort.id} var allerede lagret med andre data!",
                     )
 
-                    is KanIkkeLagreBrukersMeldekort.UkjentFeil -> call.respond(
+                    is KanIkkeLagreBrukersMeldekort.UkjentFeil -> call.respondText(
                         status = HttpStatusCode.InternalServerError,
-                        message = "Kunne ikke lagre brukers meldekort - Ukjent feil",
+                        text = "Kunne ikke lagre brukers meldekort - Ukjent feil",
                     )
                 }
             }

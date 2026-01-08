@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.common
 
 import no.nav.tiltakspenger.libs.auth.test.core.JwtGenerator
+import no.nav.tiltakspenger.libs.common.Bruker
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
@@ -66,8 +69,10 @@ import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFa
  */
 @Suppress("UNCHECKED_CAST")
 class TestApplicationContext(
-    override val sessionFactory: TestSessionFactory = TestSessionFactory(),
+    override val sessionFactory: SessionFactory = TestSessionFactory(),
     override val clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
+    override val texasClient: TexasClient = TexasClientFake(),
+    val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
 ) : ApplicationContext(
     gitHash = "fake-git-hash",
     clock = clock,
@@ -78,8 +83,6 @@ class TestApplicationContext(
 
     @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()
-
-    val tilgangsmaskinFakeClient = TilgangsmaskinFakeTestClient()
 
     private val utbetalingFakeRepo = UtbetalingFakeRepo()
     private val rammevedtakFakeRepo = RammevedtakFakeRepo(utbetalingFakeRepo)
@@ -109,8 +112,6 @@ class TestApplicationContext(
 
     val jwtGenerator = JwtGenerator()
 
-    override val texasClient = TexasClientFake()
-
     fun leggTilPerson(
         fnr: Fnr,
         person: EnkelPerson,
@@ -119,6 +120,10 @@ class TestApplicationContext(
         personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = person)
         tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
         tilgangsmaskinFakeClient.leggTil(fnr, Tilgangsvurdering.Godkjent)
+    }
+
+    fun leggTilBruker(token: String, bruker: Bruker<*, *>) {
+        (texasClient as TexasClientFake).leggTilBruker(token, bruker)
     }
 
     fun oppdaterTiltaksdeltakelse(fnr: Fnr, tiltaksdeltakelse: Tiltaksdeltakelse?) {

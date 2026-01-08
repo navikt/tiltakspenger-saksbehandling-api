@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Oppdate
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
@@ -45,8 +46,7 @@ fun Route.oppdaterSaksopplysningerRoute(
                     correlationId,
                 ).fold(
                     ifLeft = {
-                        val (status, errorJson) = it.tilStatusOgErrorJson()
-                        call.respond(status = status, errorJson)
+                        call.respondJson(valueAndStatus = it.tilStatusOgErrorJson())
                     },
                     ifRight = { (sak) ->
                         auditService.logMedBehandlingId(
@@ -57,7 +57,7 @@ fun Route.oppdaterSaksopplysningerRoute(
                             correlationId = correlationId,
                         )
 
-                        call.respond(status = HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
+                        call.respondJson(value = sak.tilBehandlingDTO(behandlingId))
                     },
                 )
             }

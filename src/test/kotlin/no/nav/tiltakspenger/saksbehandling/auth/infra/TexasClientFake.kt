@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerrolle
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import java.time.Instant
 
-class TexasClientFake : TexasClient {
+open class TexasClientFake : TexasClient {
     private val data = arrow.atomic.Atomic(mutableMapOf<String, Bruker<*, *>>())
 
     override suspend fun introspectToken(

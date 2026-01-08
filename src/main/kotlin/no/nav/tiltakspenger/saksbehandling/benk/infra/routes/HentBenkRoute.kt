@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.routes
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -22,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.service.TilgangsfiltrertBenkOver
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 
 private const val PATH = "/behandlinger"
@@ -43,7 +42,7 @@ fun Route.hentBenkRoute(
         fun toCommand(saksbehandler: Saksbehandler, correlationId: CorrelationId): HentÅpneBehandlingerCommand =
             HentÅpneBehandlingerCommand(
                 åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
-                    benktype = benktype?.let { it.map { BehandlingssammendragBenktype.valueOf(it) } },
+                    benktype = benktype?.let { benktyper -> benktyper.map { BehandlingssammendragBenktype.valueOf(it) } },
                     behandlingstype = behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
                     status = status?.map { BehandlingssammendragStatus.valueOf(it) },
                     identer = identer,
@@ -59,13 +58,13 @@ fun Route.hentBenkRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-        call.withBody<HentBenkOversiktBody> {
+        call.withBody<HentBenkOversiktBody> { body ->
             benkOversiktService.hentBenkOversikt(
-                command = it.toCommand(saksbehandler, call.correlationId()),
+                command = body.toCommand(saksbehandler, call.correlationId()),
                 saksbehandlerToken = token,
                 saksbehandler = saksbehandler,
             ).also {
-                call.respond(status = HttpStatusCode.OK, it.toDTO())
+                call.respondJson(value = it.toDTO())
             }
         }
     }
