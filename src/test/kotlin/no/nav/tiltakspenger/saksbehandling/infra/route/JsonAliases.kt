@@ -22,3 +22,8 @@ typealias RammevedtakDTOJson = JSONObject
  * Se også [no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagebehandlingDTO]
  */
 typealias KlagebehandlingDTOJson = JsonNode
+
+/**
+ * Se også [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO]
+ */
+typealias MeldeperiodeKjedeDTOJson = JSONObject

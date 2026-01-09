@@ -216,7 +216,7 @@ class ApplicationCallExTest {
     }
 
     @Test
-    fun `withMeldeperiodeKjedeId calls onRight with valid kjedeId`() = testApplication {
+    fun `withMeldeperiodeKjedeId in get`() = testApplication {
         routing {
             get("/test/{kjedeId}") {
                 call.withMeldeperiodeKjedeId { kjedeId ->
@@ -230,6 +230,42 @@ class ApplicationCallExTest {
         response.status shouldBe HttpStatusCode.OK
         response.headers["Content-Type"] shouldBe "application/json; charset=UTF-8"
         response.bodyAsText() shouldEqualJson """{"kjedeId":"2025-01-06/2025-01-19"}"""
+    }
+
+    @Test
+    fun `withMeldeperiodeKjedeId in post`() = testApplication {
+        routing {
+            post("/test/{kjedeId}") {
+                call.withMeldeperiodeKjedeId { kjedeId ->
+                    call.respondJsonString(json = """{"kjedeId":"$kjedeId"}""")
+                }
+            }
+        }
+
+        val response = client.post("/test/2025-01-06%2F2025-01-19")
+
+        response.status shouldBe HttpStatusCode.OK
+        response.headers["Content-Type"] shouldBe "application/json; charset=UTF-8"
+        response.bodyAsText() shouldEqualJson """{"kjedeId":"2025-01-06/2025-01-19"}"""
+    }
+
+    @Test
+    fun `sakId and withMeldeperiodeKjedeId in post`() = testApplication {
+        routing {
+            post("/sak/{sakId}/meldeperiode/{kjedeId}/opprettBehandling") {
+                call.withSakId { sakId ->
+                    call.withMeldeperiodeKjedeId { kjedeId ->
+                        call.respondJsonString(json = """{"sakId":"$sakId","kjedeId":"$kjedeId"}""")
+                    }
+                }
+            }
+        }
+
+        val response = client.post("/sak/sak_01KEH0G55CS9GT0HN3BTR1RYKM/meldeperiode/2025-01-06%2F2025-01-19/opprettBehandling")
+
+        response.status shouldBe HttpStatusCode.OK
+        response.headers["Content-Type"] shouldBe "application/json; charset=UTF-8"
+        response.bodyAsText() shouldEqualJson """{"sakId":"sak_01KEH0G55CS9GT0HN3BTR1RYKM","kjedeId":"2025-01-06/2025-01-19"}"""
     }
 
     @Test
