@@ -3,7 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -12,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.t
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -188,7 +192,8 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `verifiser vedtak dto ved revurdering til innvilgelse`() {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering) = iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 1.til(10.april(2025)),
@@ -251,7 +256,8 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `verifiser vedtak dto ved revurdering til stans`() {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering) = iverksettSøknadsbehandlingOgRevurderingStans(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperiode = 1.til(10.april(2025)),
@@ -298,7 +304,8 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `verifiser vedtak dto ved revurdering til omgjøring`() {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering, _) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
                 tac,
             )!!

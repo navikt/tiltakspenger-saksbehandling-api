@@ -39,7 +39,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * Gjelder tilstandene UNDER_BEHANDLING og KLAR_TIL_BESLUTNING.
+ * Brukes for tilstandene KLAR_TIL_BEHANDLING og UNDER_BEHANDLING
  */
 data class MeldekortUnderBehandling(
     override val id: MeldekortId,

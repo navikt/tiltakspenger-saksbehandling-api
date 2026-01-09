@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.kotest.matchers.shouldBe
-import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
@@ -10,65 +9,17 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.juli
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
-import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
 import org.junit.jupiter.api.Test
 
 class GenererMeldeperioderSakIT {
-
-    private suspend fun ApplicationTestBuilder.vedtaRevurdering(
-        tac: TestApplicationContext,
-        søknadsbehandlingInnvilgelse: Periode = Periode(1.april(2025), 13.april(2025)),
-        revurderingInnvilgelse: Periode = søknadsbehandlingInnvilgelse.plusTilOgMed(28L),
-    ): Sak {
-        val (sak, _, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
-            tac,
-            søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelse,
-            revurderingVedtaksperiode = revurderingInnvilgelse,
-        )
-        val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
-
-        oppdaterBehandling(
-            tac = tac,
-            sakId = sak.id,
-            behandlingId = revurdering.id,
-            oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
-                innvilgelsesperioder = søknadsbehandling.innvilgelsesperioderDTO(
-                    revurderingInnvilgelse,
-                ),
-                fritekstTilVedtaksbrev = null,
-                begrunnelseVilkårsvurdering = null,
-                barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelse).toBarnetilleggDTO(),
-            ),
-        )
-
-        sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
-            tac,
-            sak.id,
-            revurdering.id,
-        )
-
-        taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
-
-        val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)!!
-
-        return oppdatertSak
-    }
 
     @Test
     fun `skal generere meldeperioder for sak som har vedtak fram i tid når vi er ferdig med meldeperiodesyklusen`() {
@@ -100,8 +51,11 @@ class GenererMeldeperioderSakIT {
             val søknadsbehandlingInnvilgelse = Periode(1.april(2025), 13.april(2025))
             val revurderingInnvilgelse = søknadsbehandlingInnvilgelse.plusTilOgMed(28L)
 
-            val sak = vedtaRevurdering(tac, søknadsbehandlingInnvilgelse, revurderingInnvilgelse)
-
+            val (sak) = this.iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
+                tac = tac,
+                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelse,
+                revurderingInnvilgelsesperiode = revurderingInnvilgelse,
+            )
             sak.meldeperiodeKjeder.let {
                 it.size shouldBe 3
                 it.all { kjede -> kjede.last().versjon == HendelseVersjon(1) } shouldBe true
@@ -113,14 +67,20 @@ class GenererMeldeperioderSakIT {
     fun `skal generere flere meldeperioder når innvilgelsesperioden forlenges bakover`() {
         val clock = TikkendeKlokke(fixedClockAt(22.april(2025)))
         withTestApplicationContext(clock = clock) { tac ->
-            val søknadsbehandlingInnvilgelse = Periode(1.april(2025), 13.april(2025))
-            val revurderingInnvilgelse = søknadsbehandlingInnvilgelse.minusFraOgMed(14L)
+            // 1. april 2025 var en tirsdag, 13. april en søndag.
+            val søknadsbehandlingInnvilgelse = 1.april(2025).til(13.april(2025))
+            // 18. mars 2025 var en tirsdag, 13. april en søndag.
+            val revurderingInnvilgelse = 18.mars(2025).til(13.april(2025))
 
-            val sak = vedtaRevurdering(tac, søknadsbehandlingInnvilgelse, revurderingInnvilgelse)
-
+            val (sak) = this.iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
+                tac = tac,
+                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelse,
+                revurderingInnvilgelsesperiode = revurderingInnvilgelse,
+            )
             sak.meldeperiodeKjeder.let {
                 it.size shouldBe 2
                 it.first().last().versjon shouldBe HendelseVersjon(1)
+                // Mandag 31. inkluderes i meldeperioden til søknadsbehandlingen, revurderingen gjør at den går fra gir ikke rett til rett og bumper versjonen.
                 it.last().last().versjon shouldBe HendelseVersjon(2)
             }
         }
@@ -136,7 +96,11 @@ class GenererMeldeperioderSakIT {
             // Torsdag til søndag
             val revurderingInnvilgelse = Periode(17.april(2025), 20.april(2025))
 
-            val sak = vedtaRevurdering(tac, søknadsbehandlingInnvilgelse, revurderingInnvilgelse)
+            val (sak) = this.iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
+                tac = tac,
+                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelse,
+                revurderingInnvilgelsesperiode = revurderingInnvilgelse,
+            )
 
             sak.meldeperiodeKjeder.let {
                 it.size shouldBe 2

@@ -2,14 +2,18 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.start
 
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import org.junit.jupiter.api.Test
 
 class OpprettKlagebehandlingRouteTest {
     @Test
     fun `kan opprette klagebehandling`() {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val fnr = Fnr.fromString("12345678912")
             val (sak, klagebehandling, json) = opprettSakOgKlagebehandlingTilAvvisning(
                 tac = tac,

@@ -15,8 +15,16 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.S
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendSøknadsbehandlingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.UnderkjennBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.start.OpprettKlagebehandlingBuilder
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.TaMeldekortBehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.avbryt.AvbrytMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.brev.ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.iverksett.IverksettMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.leggTilbake.LeggTilbakeMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdater.OppdaterMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett.OpprettMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.overta.OvertaMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.sendTilBeslutning.SendMeldekortbehandlingTilBeslutningBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.ta.TaMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.underkjenn.UnderkjennMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.HentSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.OpprettSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.MottaSøknadRouteBuilder
@@ -37,8 +45,16 @@ object RouteBehandlingBuilder :
     StartRevurderingBuilder,
     OppdaterSaksopplysningerBuilder,
     OvertaBehandlingBuilder,
-    TaMeldekortBehandlingBuilder,
+    TaMeldekortbehandlingBuilder,
     BehandleSøknadPåNyttBuilder,
     ForhåndsvisVedtaksbrevTestbuilder,
     OppdaterBehandlingBuilder,
-    OpprettMeldekortbehandlingBuilder
+    OpprettMeldekortbehandlingBuilder,
+    AvbrytMeldekortbehandlingBuilder,
+    LeggTilbakeMeldekortbehandlingBuilder,
+    SendMeldekortbehandlingTilBeslutningBuilder,
+    OppdaterMeldekortbehandlingBuilder,
+    OvertaMeldekortbehandlingBuilder,
+    IverksettMeldekortbehandlingBuilder,
+    UnderkjennMeldekortbehandlingBuilder,
+    ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder

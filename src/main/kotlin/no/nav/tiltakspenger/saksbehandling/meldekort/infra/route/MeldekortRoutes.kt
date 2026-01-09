@@ -35,7 +35,6 @@ fun Route.meldekortRoutes(
     tilgangskontrollService: TilgangskontrollService,
     forhåndsvisBrevMeldekortBehandlingService: ForhåndsvisBrevMeldekortBehandlingService,
 ) {
-    hentMeldekortRoute(sakService, auditService, clock, tilgangskontrollService)
     iverksettMeldekortRoute(iverksettMeldekortService, auditService, clock, tilgangskontrollService)
     sendMeldekortTilBeslutterRoute(sendMeldekortTilBeslutterService, auditService, clock, tilgangskontrollService)
     oppdaterMeldekortBehandlingRoute(oppdaterMeldekortService, auditService, clock, tilgangskontrollService)
