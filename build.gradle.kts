@@ -39,7 +39,7 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:texas:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:satser:$felleslibVersion")
 
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.14")
     implementation("ch.qos.logback:logback-classic:1.5.23")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
