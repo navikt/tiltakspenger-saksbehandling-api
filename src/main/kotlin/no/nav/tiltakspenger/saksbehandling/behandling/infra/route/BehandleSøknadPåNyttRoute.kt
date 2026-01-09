@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Behandl
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSøknadId
 
@@ -47,9 +48,8 @@ fun Route.behandleSøknadPåNyttRoute(
                     contextMessage = "Oppretter behandling fra søknad på nytt og starter behandlingen",
                     correlationId = correlationId,
                 )
-                call.respond(
-                    HttpStatusCode.OK,
-                    søknadsbehandling.tilSøknadsbehandlingDTO(
+                call.respondJson(
+                    value = søknadsbehandling.tilSøknadsbehandlingDTO(
                         utbetalingsstatus = null,
                         beregninger = sak.meldeperiodeBeregninger,
                         rammevedtakId = null,

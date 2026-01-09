@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
@@ -19,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
@@ -61,7 +60,7 @@ fun Route.iverksettBehandlingRoute(
                             sakId = sakId,
                         )
                         MetricRegister.IVERKSATT_BEHANDLING.inc()
-                        call.respond(message = sak.tilBehandlingDTO(behandlingId), status = HttpStatusCode.OK)
+                        call.respondJson(value = sak.tilBehandlingDTO(behandlingId))
                     },
                 )
             }

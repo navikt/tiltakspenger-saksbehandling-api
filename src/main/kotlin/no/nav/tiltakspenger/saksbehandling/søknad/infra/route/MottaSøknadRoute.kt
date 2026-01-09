@@ -2,8 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
@@ -15,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
 import no.nav.tiltakspenger.saksbehandling.felles.krevLagreSoknadRollen
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
+import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 
@@ -30,27 +30,28 @@ fun Route.mottaSøknadRoute(
     post(SØKNAD_PATH) {
         logger.debug { "Mottatt ny søknad på '$SØKNAD_PATH' -  Prøver deserialisere og lagre." }
         val systembruker = call.systembruker(getSystemBrukerMapper()) as? Systembruker ?: return@post
-        val søknadDTO = call.receive<SøknadDTO>()
-        logger.debug { "Deserialisert søknad OK med id ${søknadDTO.søknadId}" }
-        krevHentEllerOpprettSakRollen(systembruker)
-        krevLagreSoknadRollen(systembruker)
-        val sak = sakService.hentForSaksnummer(
-            Saksnummer(
-                søknadDTO.saksnummer,
-            ),
-        )
-        val internTiltaksdeltakelsesId = tiltaksdeltakerRepo.hentEllerLagre(søknadDTO.tiltak.id)
+        call.withBody<SøknadDTO> { søknadDTO ->
+            logger.debug { "Deserialisert søknad OK med id ${søknadDTO.søknadId}" }
+            krevHentEllerOpprettSakRollen(systembruker)
+            krevLagreSoknadRollen(systembruker)
+            val sak = sakService.hentForSaksnummer(
+                Saksnummer(
+                    søknadDTO.saksnummer,
+                ),
+            )
+            val internTiltaksdeltakelsesId = tiltaksdeltakerRepo.hentEllerLagre(søknadDTO.tiltak.id)
 
-        // Oppretter søknad og lagrer den med kobling til angitt sak
-        søknadService.nySøknad(
-            søknad = SøknadDTOMapper.mapDigitalsøknad(
-                dto = søknadDTO,
-                innhentet = søknadDTO.opprettet,
-                sak = sak,
-                internTiltaksdeltakelsesId = internTiltaksdeltakelsesId,
-            ),
-        )
-        MetricRegister.MOTTATT_SOKNAD.inc()
-        call.respond(message = "OK", status = HttpStatusCode.OK)
+            // Oppretter søknad og lagrer den med kobling til angitt sak
+            søknadService.nySøknad(
+                søknad = SøknadDTOMapper.mapDigitalsøknad(
+                    dto = søknadDTO,
+                    innhentet = søknadDTO.opprettet,
+                    sak = sak,
+                    internTiltaksdeltakelsesId = internTiltaksdeltakelsesId,
+                ),
+            )
+            MetricRegister.MOTTATT_SOKNAD.inc()
+            call.respondText(text = "OK", status = HttpStatusCode.OK)
+        }
     }
 }

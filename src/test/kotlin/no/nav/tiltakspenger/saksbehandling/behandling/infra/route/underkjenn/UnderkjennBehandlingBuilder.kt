@@ -74,7 +74,7 @@ interface UnderkjennBehandlingBuilder {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = beslutter,
         )
-        tac.texasClient.leggTilBruker(jwt, beslutter)
+        tac.leggTilBruker(jwt, beslutter)
         defaultRequest(
             HttpMethod.Post,
             url {

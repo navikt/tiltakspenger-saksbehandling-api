@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.UlidBase
@@ -18,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimulering
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
@@ -51,25 +51,25 @@ fun Route.oppdaterSimuleringRoute(
             ).fold(
                 ifLeft = {
                     when (it) {
-                        KunneIkkeSimulere.Stengt -> call.respond(
-                            HttpStatusCode.ServiceUnavailable,
-                            ErrorJson(
+                        KunneIkkeSimulere.Stengt -> call.respondJson(
+                            status = HttpStatusCode.ServiceUnavailable,
+                            value = ErrorJson(
                                 "Økonomisystemet er stengt. Typisk åpningstider er mellom 6 og 21 på hverdager og visse lørdager.",
                                 "økonomisystemet_er_stengt",
                             ),
                         )
 
-                        KunneIkkeSimulere.UkjentFeil -> call.respond(
-                            HttpStatusCode.InternalServerError,
-                            ErrorJson(
+                        KunneIkkeSimulere.UkjentFeil -> call.respondJson(
+                            status = HttpStatusCode.InternalServerError,
+                            value = ErrorJson(
                                 "Ukjent feil ved simulering",
                                 "ukjent_feil_ved_simulering",
                             ),
                         )
 
-                        KunneIkkeSimulere.Timeout -> call.respond(
-                            HttpStatusCode.RequestTimeout,
-                            ErrorJson(
+                        KunneIkkeSimulere.Timeout -> call.respondJson(
+                            status = HttpStatusCode.RequestTimeout,
+                            value = ErrorJson(
                                 "Tjenesten for simulering svarte ikke (time-out). Du kan prøve igjen.",
                                 "timeout_ved_simulering",
                             ),
@@ -86,7 +86,7 @@ fun Route.oppdaterSimuleringRoute(
                                 contextMessage = "Saksbehandler har oppdatert simuleringen på en rammebehandling under behandling",
                                 correlationId = correlationId,
                             )
-                            call.respond(status = HttpStatusCode.OK, message = sak.tilBehandlingDTO(it.id))
+                            call.respondJson(value = sak.tilBehandlingDTO(it.id))
                         },
                         ifRight = {
                             auditService.logMedMeldekortId(
@@ -96,10 +96,7 @@ fun Route.oppdaterSimuleringRoute(
                                 contextMessage = "Saksbehandler har oppdatert simuleringen på en meldekortbehandling under behandling",
                                 correlationId = correlationId,
                             )
-                            call.respond(
-                                status = HttpStatusCode.OK,
-                                message = sak.toMeldeperiodeKjedeDTO(it.kjedeId, clock),
-                            )
+                            call.respondJson(value = sak.toMeldeperiodeKjedeDTO(it.kjedeId, clock))
                         },
                     )
                 },

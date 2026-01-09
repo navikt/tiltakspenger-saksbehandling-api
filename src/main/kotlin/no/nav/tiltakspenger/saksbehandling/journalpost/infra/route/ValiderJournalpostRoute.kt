@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.journalpost.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -12,6 +10,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
@@ -34,10 +33,7 @@ fun Route.validerJournalpostRoute(
             tilgangskontrollService.harTilgangTilPerson(fnr, token, saksbehandler)
             val response = validerJournalpostService.hentOgValiderJournalpost(fnr, journalpostId)
 
-            call.respond(
-                HttpStatusCode.OK,
-                response,
-            )
+            call.respondJson(value = response)
         }
     }
 }

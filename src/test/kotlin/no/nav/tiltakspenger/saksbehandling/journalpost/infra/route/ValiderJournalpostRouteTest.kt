@@ -10,9 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.path
-import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -22,10 +20,7 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.routes
-import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
-import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
-import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
@@ -33,68 +28,41 @@ import org.junit.jupiter.api.Test
 class ValiderJournalpostRouteTest {
     @Test
     fun `valider - journalpost finnes og gjelder innsendt bruker`() {
-        with(TestApplicationContext()) {
-            val tac = this
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    configureExceptions()
-                    setupAuthentication(texasClient)
-                    routing { routes(tac) }
-                }
-                val fnr = Fnr.random()
-                val journalpostId = JournalpostId("1234567")
-                tac.safJournalpostFakeClient.addJournalpost(journalpostId, fnr)
-                validerJournalpost(tac, fnr, journalpostId).also {
-                    val response = objectMapper.readValue<ValiderJournalpostResponse>(it)
-                    response.journalpostFinnes shouldBe true
-                    response.gjelderInnsendtFnr shouldBe true
-                }
+        withTestApplicationContext { tac ->
+            val fnr = Fnr.random()
+            val journalpostId = JournalpostId("1234567")
+            tac.safJournalpostFakeClient.addJournalpost(journalpostId, fnr)
+            validerJournalpost(tac, fnr, journalpostId).also {
+                val response = objectMapper.readValue<ValiderJournalpostResponse>(it)
+                response.journalpostFinnes shouldBe true
+                response.gjelderInnsendtFnr shouldBe true
             }
         }
     }
 
     @Test
     fun `valider - journalpost finnes og gjelder annen bruker`() {
-        with(TestApplicationContext()) {
-            val tac = this
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    configureExceptions()
-                    setupAuthentication(texasClient)
-                    routing { routes(tac) }
-                }
-                val fnr = Fnr.random()
-                val journalpostId = JournalpostId("12345678")
-                tac.safJournalpostFakeClient.addJournalpost(journalpostId, Fnr.random())
-                validerJournalpost(tac, fnr, journalpostId).also {
-                    val response = objectMapper.readValue<ValiderJournalpostResponse>(it)
-                    response.journalpostFinnes shouldBe true
-                    response.gjelderInnsendtFnr shouldBe false
-                }
+        withTestApplicationContext { tac ->
+            val fnr = Fnr.random()
+            val journalpostId = JournalpostId("12345678")
+            tac.safJournalpostFakeClient.addJournalpost(journalpostId, Fnr.random())
+            validerJournalpost(tac, fnr, journalpostId).also {
+                val response = objectMapper.readValue<ValiderJournalpostResponse>(it)
+                response.journalpostFinnes shouldBe true
+                response.gjelderInnsendtFnr shouldBe false
             }
         }
     }
 
     @Test
     fun `valider - journalpost finnes ikke`() {
-        with(TestApplicationContext()) {
-            val tac = this
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    configureExceptions()
-                    setupAuthentication(texasClient)
-                    routing { routes(tac) }
-                }
-                val fnr = Fnr.random()
-                val journalpostId = JournalpostId("12345679")
-                validerJournalpost(tac, fnr, journalpostId).also {
-                    val response = objectMapper.readValue<ValiderJournalpostResponse>(it)
-                    response.journalpostFinnes shouldBe false
-                    response.gjelderInnsendtFnr shouldBe null
-                }
+        withTestApplicationContext { tac ->
+            val fnr = Fnr.random()
+            val journalpostId = JournalpostId("12345679")
+            validerJournalpost(tac, fnr, journalpostId).also {
+                val response = objectMapper.readValue<ValiderJournalpostResponse>(it)
+                response.journalpostFinnes shouldBe false
+                response.gjelderInnsendtFnr shouldBe null
             }
         }
     }
@@ -109,7 +77,7 @@ class ValiderJournalpostRouteTest {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
-        tac.texasClient.leggTilBruker(jwt, saksbehandler)
+        tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Post,
             url {

@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -16,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknad
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSaksnummer
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -61,9 +60,8 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
                     correlationId = call.correlationId(),
                     contextMessage = "Startet behandling av manuelt registrert søknad med id ${søknad.id} for sak $saksnummer",
                 )
-                call.respond(
-                    status = HttpStatusCode.OK,
-                    message = søknad.tilSøknadsbehandlingDTO(
+                call.respondJson(
+                    value = søknad.tilSøknadsbehandlingDTO(
                         utbetalingsstatus = null,
                         beregninger = sak.meldeperiodeBeregninger,
                         rammevedtakId = null,

@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilga
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak
 
-class TilgangsmaskinFakeTestClient : TilgangsmaskinClient {
+open class TilgangsmaskinFakeTestClient : TilgangsmaskinClient {
     private val data = arrow.atomic.Atomic(mutableMapOf<Fnr, Tilgangsvurdering>())
 
     override suspend fun harTilgangTilPerson(

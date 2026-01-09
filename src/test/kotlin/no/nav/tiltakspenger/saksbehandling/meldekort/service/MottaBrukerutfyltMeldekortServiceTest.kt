@@ -5,7 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
@@ -21,12 +21,12 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
     @Test
     fun `Kan lagre brukers meldekort med gyldig kommando`() {
-        with(TestApplicationContext()) {
-            val service = this.mottaBrukerutfyltMeldekortService
-            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
-            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+        withTestApplicationContext { tac ->
+            val service = tac.mottaBrukerutfyltMeldekortService
+            val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = tac.meldekortContext.brukersMeldekortRepo
 
-            val sakRepo = this.sakContext.sakRepo
+            val sakRepo = tac.sakContext.sakRepo
             val (sak) = nySakMedVedtak()
             sakRepo.opprettSak(sak)
 
@@ -59,12 +59,12 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
     @Test
     fun `Skal ikke lagre samme meldekort på nytt`() {
-        with(TestApplicationContext()) {
-            val service = this.mottaBrukerutfyltMeldekortService
-            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
-            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+        withTestApplicationContext { tac ->
+            val service = tac.mottaBrukerutfyltMeldekortService
+            val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = tac.meldekortContext.brukersMeldekortRepo
 
-            val sakRepo = this.sakContext.sakRepo
+            val sakRepo = tac.sakContext.sakRepo
             val (sak) = nySakMedVedtak()
             sakRepo.opprettSak(sak)
 
@@ -116,13 +116,13 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
     @Test
     fun `Skal ikke flagge korrigerte meldekort for automatisk behandling`() {
-        with(TestApplicationContext()) {
-            val mottaService = this.mottaBrukerutfyltMeldekortService
+        withTestApplicationContext { tac ->
+            val mottaService = tac.mottaBrukerutfyltMeldekortService
 
-            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
-            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+            val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = tac.meldekortContext.brukersMeldekortRepo
 
-            val sakRepo = this.sakContext.sakRepo
+            val sakRepo = tac.sakContext.sakRepo
             val (sak) = nySakMedVedtak()
             sakRepo.opprettSak(sak)
 
@@ -175,12 +175,12 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
     @Test
     fun `Skal flagge meldekort for automatisk behandling ved melding på helgedager dersom saken tillater det`() {
-        with(TestApplicationContext()) {
-            val service = this.mottaBrukerutfyltMeldekortService
-            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
-            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+        withTestApplicationContext { tac ->
+            val service = tac.mottaBrukerutfyltMeldekortService
+            val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = tac.meldekortContext.brukersMeldekortRepo
 
-            val sakRepo = this.sakContext.sakRepo
+            val sakRepo = tac.sakContext.sakRepo
             val (sak) = nySakMedVedtak(kanSendeInnHelgForMeldekort = true)
             sakRepo.opprettSak(sak)
 
@@ -215,12 +215,12 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
     @Test
     fun `Skal ikke flagge meldekort for automatisk behandling ved melding på helgedager uten flagg på saken`() {
-        with(TestApplicationContext()) {
-            val service = this.mottaBrukerutfyltMeldekortService
-            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
-            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+        withTestApplicationContext { tac ->
+            val service = tac.mottaBrukerutfyltMeldekortService
+            val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = tac.meldekortContext.brukersMeldekortRepo
 
-            val sakRepo = this.sakContext.sakRepo
+            val sakRepo = tac.sakContext.sakRepo
             val (sak) = nySakMedVedtak(kanSendeInnHelgForMeldekort = false)
             sakRepo.opprettSak(sak)
 
@@ -255,12 +255,12 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
     @Test
     fun `Skal ikke flagge meldekort for automatisk behandling ved for mange sammenhengende dager godkjent fravær`() {
-        with(TestApplicationContext()) {
-            val service = this.mottaBrukerutfyltMeldekortService
-            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
-            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+        withTestApplicationContext { tac ->
+            val service = tac.mottaBrukerutfyltMeldekortService
+            val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = tac.meldekortContext.brukersMeldekortRepo
 
-            val sakRepo = this.sakContext.sakRepo
+            val sakRepo = tac.sakContext.sakRepo
             val (sak) = nySakMedVedtak(kanSendeInnHelgForMeldekort = true)
             sakRepo.opprettSak(sak)
 
@@ -276,14 +276,14 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 mottatt = LocalDateTime.now(),
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.chunked(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER + 1)
-                    .mapIndexed { index, dager ->
+                    .flatMapIndexed { index, dager ->
                         dager.map {
                             BrukersMeldekort.BrukersMeldekortDag(
                                 status = if (index % 2 == 0) InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV else InnmeldtStatus.IKKE_BESVART,
                                 dato = it.key,
                             )
                         }
-                    }.flatten(),
+                    },
             )
 
             service.mottaBrukerutfyltMeldekort(lagreKommando)
@@ -298,12 +298,12 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
 
     @Test
     fun `Skal flagge meldekort for automatisk behandling ved akseptabelt antall sammenhengende dager godkjent fravær`() {
-        with(TestApplicationContext()) {
-            val service = this.mottaBrukerutfyltMeldekortService
-            val meldeperiodeRepo = this.meldekortContext.meldeperiodeRepo
-            val meldekortRepo = this.meldekortContext.brukersMeldekortRepo
+        withTestApplicationContext { tac ->
+            val service = tac.mottaBrukerutfyltMeldekortService
+            val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+            val meldekortRepo = tac.meldekortContext.brukersMeldekortRepo
 
-            val sakRepo = this.sakContext.sakRepo
+            val sakRepo = tac.sakContext.sakRepo
             val (sak) = nySakMedVedtak(kanSendeInnHelgForMeldekort = true)
             sakRepo.opprettSak(sak)
 
@@ -319,14 +319,14 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 mottatt = LocalDateTime.now(),
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.chunked(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER)
-                    .mapIndexed { index, dager ->
+                    .flatMapIndexed { index, dager ->
                         dager.map {
                             BrukersMeldekort.BrukersMeldekortDag(
                                 status = if (index % 2 == 0) InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV else InnmeldtStatus.IKKE_BESVART,
                                 dato = it.key,
                             )
                         }
-                    }.flatten(),
+                    },
             )
 
             service.mottaBrukerutfyltMeldekort(lagreKommando)

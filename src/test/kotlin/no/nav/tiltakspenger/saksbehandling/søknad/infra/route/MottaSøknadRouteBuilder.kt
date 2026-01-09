@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSak
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -47,7 +47,7 @@ interface MottaSøknadRouteBuilder {
         ),
     ): Pair<Sak, Søknad> {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-        val saksnummer = hentEllerOpprettSak(tac, sak.fnr)
+        val saksnummer = hentEllerOpprettSakForSystembruker(tac, sak.fnr)
         tiltaksdeltakelse.internDeltakelseId?.let { tac.tiltakContext.tiltaksdeltakerRepo.lagre(it, tiltaksdeltakelse.eksternDeltakelseId) }
         mottaSøknad(tac, sak.fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltakelse)
         val oppdatertSak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
@@ -64,7 +64,7 @@ interface MottaSøknadRouteBuilder {
             tom = deltakelsesperiode.tilOgMed,
         ),
     ): Pair<Sak, Søknad> {
-        val saksnummer = hentEllerOpprettSak(tac, fnr)
+        val saksnummer = hentEllerOpprettSakForSystembruker(tac, fnr)
         tiltaksdeltakelse.internDeltakelseId?.let { tac.tiltakContext.tiltaksdeltakerRepo.lagre(it, tiltaksdeltakelse.eksternDeltakelseId) }
         mottaSøknad(tac, fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltakelse)
         val sak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
@@ -86,7 +86,7 @@ interface MottaSøknadRouteBuilder {
         val jwt = tac.jwtGenerator.createJwtForSystembruker(
             roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
         )
-        tac.texasClient.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSakOgLagreSoknad())
+        tac.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSakOgLagreSoknad())
         defaultRequest(
             HttpMethod.Post,
             url {
