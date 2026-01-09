@@ -23,7 +23,7 @@ class MeldeperiodePostgresRepoTest {
             meldeperiodekjeder shouldBe sak.meldeperiodeKjeder
             meldeperiodekjeder.size shouldBe 7
 
-            val forsteRelaterteVedtak = meldeperiodekjeder.sisteMeldeperiodePerKjede.first().rammevedtak!!
+            val forsteRelaterteVedtak = meldeperiodekjeder.sisteMeldeperiodePerKjede.first().rammevedtak
             forsteRelaterteVedtak.size shouldBe 1
             forsteRelaterteVedtak.lastOrNull()?.periode shouldBe Periode(2.januar(2024), meldeperiodekjeder.first().periode.tilOgMed)
             forsteRelaterteVedtak.lastOrNull()?.verdi shouldBe rammevedtak.id

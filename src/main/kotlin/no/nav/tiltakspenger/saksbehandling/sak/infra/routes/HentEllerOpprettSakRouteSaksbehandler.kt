@@ -1,10 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -19,6 +16,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.fantIkkeFnr
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.FnrDTO
 
@@ -36,35 +35,36 @@ fun Route.hentEllerOpprettSakRoute(
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@put
         krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
         val correlationId = call.correlationId()
-        val fnr = Fnr.fromString(call.receive<FnrDTO>().fnr)
-        tilgangskontrollService.harTilgangTilPerson(
-            fnr = fnr,
-            saksbehandlerToken = token,
-            saksbehandler = saksbehandler,
-        )
-        personService.hentEnkelPersonFnr(fnr).fold(
-            ifLeft = {
-                call.respond404NotFound(fantIkkeFnr())
-            },
-            ifRight = {
-                val (sak, opprettet) = sakService.hentEllerOpprettSak(
-                    fnr = fnr,
-                    correlationId = correlationId,
-                )
-                auditService.logMedSakId(
-                    sakId = sak.id,
-                    navIdent = saksbehandler.navIdent,
-                    action = if (opprettet) AuditLogEvent.Action.CREATE else AuditLogEvent.Action.ACCESS,
-                    contextMessage = "Hentet eller opprettet sak.",
-                    correlationId = correlationId,
-                )
+        call.withBody<FnrDTO> { body ->
+            val fnr: Fnr = body.toDomain()
+            tilgangskontrollService.harTilgangTilPerson(
+                fnr = fnr,
+                saksbehandlerToken = token,
+                saksbehandler = saksbehandler,
+            )
+            personService.hentEnkelPersonFnr(fnr).fold(
+                ifLeft = {
+                    call.respond404NotFound(fantIkkeFnr())
+                },
+                ifRight = {
+                    val (sak, opprettet) = sakService.hentEllerOpprettSak(
+                        fnr = fnr,
+                        correlationId = correlationId,
+                    )
+                    auditService.logMedSakId(
+                        sakId = sak.id,
+                        navIdent = saksbehandler.navIdent,
+                        action = if (opprettet) AuditLogEvent.Action.CREATE else AuditLogEvent.Action.ACCESS,
+                        contextMessage = "Hentet eller opprettet sak.",
+                        correlationId = correlationId,
+                    )
 
-                call.respond(
-                    message = HentEllerOpprettSakResponse(saksnummer = sak.saksnummer.verdi, opprettet = opprettet),
-                    status = HttpStatusCode.OK,
-                )
-            },
-        )
+                    call.respondJson(
+                        value = HentEllerOpprettSakResponse(saksnummer = sak.saksnummer.verdi, opprettet = opprettet),
+                    )
+                },
+            )
+        }
     }
 }
 

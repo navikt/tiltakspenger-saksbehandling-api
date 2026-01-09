@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
@@ -15,9 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withSaksnummer
 import java.time.Clock
 
 private const val TOGGLE_HELG_MELDEKORT_PATH = "$SAK_PATH/{sakId}/toggle-helg-meldekort"
@@ -53,7 +51,7 @@ fun Route.toggleKanSendeHelgForMeldekortSakRoute(
                     kanSendeHelg = body.kanSendeHelg,
                 )
                     .also { sak ->
-                        call.respond(message = sak.toSakDTO(clock), status = HttpStatusCode.OK)
+                        call.respondJson(value = sak.toSakDTO(clock))
                     }
             }
         }

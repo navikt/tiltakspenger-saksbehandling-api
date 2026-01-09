@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
@@ -21,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBeh
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
@@ -52,8 +52,7 @@ fun Route.sendBehandlingTilBeslutningRoute(
                         correlationId = correlationId,
                     ),
                 ).onLeft {
-                    val error = it.toErrorJson()
-                    call.respond(error.first, error.second)
+                    call.respondJson(valueAndStatus = it.toErrorJson())
                 }.onRight { (sak, behandling) ->
                     auditService.logMedBehandlingId(
                         behandlingId = behandlingId,
@@ -65,7 +64,7 @@ fun Route.sendBehandlingTilBeslutningRoute(
                         },
                         correlationId = correlationId,
                     )
-                    call.respond(HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
+                    call.respondJson(value = sak.tilBehandlingDTO(behandlingId))
                 }
             }
         }

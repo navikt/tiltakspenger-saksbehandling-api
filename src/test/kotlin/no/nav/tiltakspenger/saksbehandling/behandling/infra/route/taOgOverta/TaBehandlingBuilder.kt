@@ -31,7 +31,7 @@ interface TaBehandlingBuilder {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
-        tac.texasClient.leggTilBruker(jwt, saksbehandler)
+        tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Post,
             url {

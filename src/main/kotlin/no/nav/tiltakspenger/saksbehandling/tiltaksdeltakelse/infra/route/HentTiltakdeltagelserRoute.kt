@@ -1,8 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
@@ -13,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.service.KunneIkkeHenteTiltaksdeltakelser
@@ -50,6 +49,7 @@ fun Route.hentTiltakdeltakelserRoute(
                                 melding = "Feil ved kall mot PDL",
                                 kode = "feil_ved_kall_mot_pdl",
                             )
+
                             KunneIkkeHenteTiltaksdeltakelser.OppslagsperiodeMangler -> call.respond400BadRequest(
                                 melding = "Oppslagsperiode mangler",
                                 kode = "oppslagsperiode_mangler",
@@ -69,7 +69,7 @@ fun Route.hentTiltakdeltakelserRoute(
                             contextMessage = "Henter tiltaksdeltakelser for en sak",
                             correlationId = correlationId,
                         )
-                        call.respond(status = HttpStatusCode.OK, tiltaksdeltakelser)
+                        call.respondJson(value = tiltaksdeltakelser)
                     },
                 )
         }

@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
@@ -16,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettBeh
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
@@ -57,7 +56,7 @@ fun Route.settBehandlingPåVentRoute(
                             correlationId = correlationId,
                         )
 
-                        call.respond(status = HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
+                        call.respondJson(value = sak.tilBehandlingDTO(behandlingId))
                     }
                 }
             }

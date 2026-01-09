@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
@@ -19,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
@@ -55,8 +55,7 @@ fun Route.overtaBehandlingRoute(
                         ),
                     ).fold(
                         {
-                            val (status, error) = it.tilStatusOgErrorJson()
-                            call.respond(status, error)
+                            call.respondJson(valueAndStatus = it.tilStatusOgErrorJson())
                         },
                         { (sak) ->
                             auditService.logMedBehandlingId(
@@ -67,7 +66,7 @@ fun Route.overtaBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
+                            call.respondJson(value = sak.tilBehandlingDTO(behandlingId))
                         },
                     )
                 }

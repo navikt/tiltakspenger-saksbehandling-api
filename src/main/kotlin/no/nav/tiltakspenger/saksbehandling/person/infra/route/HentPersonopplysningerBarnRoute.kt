@@ -1,8 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
@@ -14,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
 
@@ -37,6 +36,7 @@ fun Route.hentPersonopplysningerBarnRoute(
                             melding = "Feil ved kall mot PDL",
                             kode = "feil_ved_kall_mot_pdl",
                         )
+
                         KunneIkkeHenteEnkelPerson.FeilVedKallMotSkjerming -> call.respond500InternalServerError(
                             melding = "Feil ved kall mot skjermingstjenesten",
                             kode = "feil_ved_kall_mot_skjerming",
@@ -51,7 +51,7 @@ fun Route.hentPersonopplysningerBarnRoute(
                         contextMessage = "Henter barn for en sak",
                         correlationId = correlationId,
                     )
-                    call.respond(status = HttpStatusCode.OK, barn)
+                    call.respondJson(value = barn)
                 },
             )
         }

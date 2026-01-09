@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KunneIk
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
@@ -45,8 +46,7 @@ fun Route.gjenopptaBehandling(
                     correlationId = correlationId,
                 ).fold(
                     ifLeft = {
-                        val (status, error) = it.tilStatusOgErrorJson()
-                        call.respond(status, error)
+                        call.respondJson(valueAndStatus = it.tilStatusOgErrorJson())
                     },
                     ifRight = { (sak) ->
                         auditService.logMedBehandlingId(
@@ -57,7 +57,7 @@ fun Route.gjenopptaBehandling(
                             correlationId = correlationId,
                         )
 
-                        call.respond(status = HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
+                        call.respondJson(value = sak.tilBehandlingDTO(behandlingId))
                     },
                 )
             }

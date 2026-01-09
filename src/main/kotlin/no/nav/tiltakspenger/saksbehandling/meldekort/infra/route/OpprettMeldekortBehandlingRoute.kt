@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
@@ -73,7 +74,7 @@ fun Route.opprettMeldekortBehandlingRoute(
                             correlationId = correlationId,
                         )
 
-                        call.respond(HttpStatusCode.OK, sak.toMeldeperiodeKjedeDTO(kjedeId, clock))
+                        call.respondJson(value = sak.toMeldeperiodeKjedeDTO(kjedeId, clock))
                     },
                 )
             }

@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
@@ -15,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
@@ -60,10 +59,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
 
                                 is KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
 
-                                is KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke -> it.feil.tilUtbetalingErrorJson()
-                                    .let { (status, message) ->
-                                        call.respond(status, message)
-                                    }
+                                is KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(valueAndStatus = it.feil.tilUtbetalingErrorJson())
                             }
                         },
                         ifRight = {
@@ -74,9 +70,8 @@ fun Route.sendMeldekortTilBeslutterRoute(
                                 contextMessage = "Saksbehandler har fylt ut meldekortet og sendt til beslutter",
                                 correlationId = correlationId,
                             )
-                            call.respond(
-                                message = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock),
-                                status = HttpStatusCode.OK,
+                            call.respondJson(
+                                value = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock),
                             )
                         },
                     )

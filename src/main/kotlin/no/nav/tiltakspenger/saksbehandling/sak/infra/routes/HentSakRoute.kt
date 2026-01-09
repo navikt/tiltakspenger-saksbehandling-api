@@ -2,9 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -22,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.FnrDTO
@@ -65,11 +64,6 @@ fun Route.søkFnrSaksnummerOgSakIdRoute(
                             melding = "Forventer at fødselsnummeret er 11 siffer",
                             kode = "ugyldig_fnr",
                         )
-
-                        else -> call.respond500InternalServerError(
-                            melding = "Ukjent feil ved lesing av fødselsnummeret",
-                            kode = "fnr_parsing_feil",
-                        )
                     }
                     return@withBody
                 },
@@ -94,7 +88,7 @@ fun Route.søkFnrSaksnummerOgSakIdRoute(
                 correlationId = correlationId,
             )
 
-            call.respond(message = sak.toSakDTO(clock), status = HttpStatusCode.OK)
+            call.respondJson(value = sak.toSakDTO(clock))
         }
     }
 }

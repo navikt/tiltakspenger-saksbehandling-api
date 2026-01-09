@@ -49,7 +49,7 @@ interface BehandleSøknadPåNyttBuilder {
         søknadId: SøknadId,
     ): Pair<Rammebehandling, String> {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
-        tac.texasClient.leggTilBruker(jwt, ObjectMother.saksbehandler())
+        tac.leggTilBruker(jwt, ObjectMother.saksbehandler())
         defaultRequest(
             HttpMethod.Post,
             url {
@@ -74,7 +74,7 @@ interface BehandleSøknadPåNyttBuilder {
         saksbehandler: Saksbehandler,
     ): HttpStatusCode {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
-        tac.texasClient.leggTilBruker(jwt, saksbehandler)
+        tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Post,
             url {

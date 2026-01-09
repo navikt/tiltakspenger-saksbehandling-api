@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.start
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
@@ -29,7 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSak
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 interface OpprettKlagebehandlingBuilder {
@@ -41,7 +40,7 @@ interface OpprettKlagebehandlingBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
-        val saksnummer = hentEllerOpprettSak(tac, fnr)
+        val saksnummer = hentEllerOpprettSakForSystembruker(tac, fnr)
         val tomSak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         val personopplysningerForBrukerFraPdl = ObjectMother.personopplysningKjedeligFyr(fnr)
         tac.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltaksdeltakelse())
@@ -70,7 +69,7 @@ interface OpprettKlagebehandlingBuilder {
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
-        tac.texasClient.leggTilBruker(jwt, saksbehandler)
+        tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Post,
             url {

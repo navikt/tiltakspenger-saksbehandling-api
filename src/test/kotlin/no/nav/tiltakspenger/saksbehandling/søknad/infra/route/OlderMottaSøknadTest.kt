@@ -7,8 +7,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.path
-import io.ktor.server.routing.routing
-import io.ktor.server.testing.testApplication
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -16,11 +14,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
-import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.routes
-import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
-import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
-import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
@@ -41,34 +35,26 @@ class OlderMottaSøknadTest {
 
     @Test
     fun `søknad route + service`() {
-        with(TestApplicationContext()) {
-            val tac = this
+        withTestApplicationContext { tac ->
             val sak = ObjectMother.nySak(fnr = IDENT)
             tac.sakContext.sakRepo.opprettSak(sak)
             val søknadId = SøknadId.random()
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    configureExceptions()
-                    setupAuthentication(texasClient)
-                    routing { routes(tac) }
-                }
-                val jwt = tac.jwtGenerator.createJwtForSystembruker(
-                    roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
-                )
-                tac.texasClient.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSakOgLagreSoknad())
-                defaultRequest(
-                    HttpMethod.Post,
-                    url {
-                        protocol = URLProtocol.HTTPS
-                        path(SØKNAD_PATH)
-                    },
-                    jwt = jwt,
-                ) {
-                    setBody(søknadBodyV3(søknadId, sak.saksnummer))
-                }.apply {
-                    status shouldBe HttpStatusCode.OK
-                }
+
+            val jwt = tac.jwtGenerator.createJwtForSystembruker(
+                roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
+            )
+            tac.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSakOgLagreSoknad())
+            defaultRequest(
+                HttpMethod.Post,
+                url {
+                    protocol = URLProtocol.HTTPS
+                    path(SØKNAD_PATH)
+                },
+                jwt = jwt,
+            ) {
+                setBody(søknadBodyV3(søknadId, sak.saksnummer))
+            }.apply {
+                status shouldBe HttpStatusCode.OK
             }
 
             val internTiltaksdeltakerId = tac.tiltakContext.tiltaksdeltakerRepo.hentInternId("123")

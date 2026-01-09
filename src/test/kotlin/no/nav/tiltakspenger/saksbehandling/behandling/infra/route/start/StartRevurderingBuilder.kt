@@ -261,7 +261,7 @@ interface StartRevurderingBuilder {
         forventetJsonBody: String? = null,
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
-        tac.texasClient.leggTilBruker(jwt, saksbehandler)
+        tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Post,
             url {

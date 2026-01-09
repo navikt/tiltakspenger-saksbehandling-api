@@ -1,14 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling
 
 import io.github.serpro69.kfaker.faker
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJsonString
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper.tilDomenePdl
@@ -54,7 +55,7 @@ internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
                     applicationContext = applicationContext,
                     barnetillegg = barnetillegg,
                 )
-                call.respond(HttpStatusCode.OK, saksnummer.toString())
+                call.respondText(saksnummer.verdi)
             } else {
                 val saksnummer = nySøknadForFnr(
                     fnr = fnr,
@@ -62,7 +63,7 @@ internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
                     deltakelsesperiode = body.deltakelsesperiode?.toDomain(),
                     barnetillegg = barnetillegg,
                 )
-                call.respond(HttpStatusCode.OK, saksnummer.toString())
+                call.respondText(saksnummer.verdi)
             }
         }
     }

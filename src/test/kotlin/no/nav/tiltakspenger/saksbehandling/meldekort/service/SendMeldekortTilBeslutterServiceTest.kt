@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager.Dag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
@@ -29,9 +29,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
     fun `En meldeperiode kan ikke være 1 dag`() {
         val correlationId = CorrelationId.generate()
         runTest {
-            with(TestApplicationContext()) {
-                val tac = this
-                val sak = this.meldekortBehandlingOpprettet()
+            withTestApplicationContext { tac ->
+                val sak = tac.meldekortBehandlingOpprettet()
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
                 val dager = OppdaterMeldekortKommando.Dager(
                     dager = nonEmptyListOf(
@@ -62,9 +61,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
     fun `innsendingsperioden kan ikke være før meldeperioden`() {
         val correlationId = CorrelationId.generate()
         runTest {
-            with(TestApplicationContext()) {
-                val tac = this
-                val sak = this.meldekortBehandlingOpprettet(
+            withTestApplicationContext { tac ->
+                val sak = tac.meldekortBehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
@@ -109,9 +107,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
     fun `innsendingsperioden kan ikke være etter meldeperioden`() {
         val correlationId = CorrelationId.generate()
         runTest {
-            with(TestApplicationContext()) {
-                val tac = this
-                val sak = this.meldekortBehandlingOpprettet(
+            withTestApplicationContext { tac ->
+                val sak = tac.meldekortBehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
@@ -157,9 +154,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
     fun `Kan ikke sende IKKE_RETT_TIL_TILTAKSPENGER på en innvilget dag`() {
         val correlationId = CorrelationId.generate()
         runTest {
-            with(TestApplicationContext()) {
-                val tac = this
-                val sak = this.meldekortBehandlingOpprettet(
+            withTestApplicationContext { tac ->
+                val sak = tac.meldekortBehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
@@ -204,9 +200,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
     fun `Må sende IKKE_RETT_TIL_TILTAKSPENGER på en ikke-innvilget dag`() {
         val correlationId = CorrelationId.generate()
         runTest {
-            with(TestApplicationContext()) {
-                val tac = this
-                val sak = this.meldekortBehandlingOpprettet(
+            withTestApplicationContext { tac ->
+                val sak = tac.meldekortBehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
@@ -252,9 +247,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
     fun `IKKE_RETT_TIL_TILTAKSPENGER matcher 1 - 1`() {
         val correlationId = CorrelationId.generate()
         runTest {
-            with(TestApplicationContext()) {
-                val tac = this
-                val sak = this.meldekortBehandlingOpprettet(
+            withTestApplicationContext { tac ->
+                val sak = tac.meldekortBehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!

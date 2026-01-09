@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
@@ -15,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
@@ -55,8 +55,7 @@ fun Route.overtaMeldekortBehandlingRoute(
                         ),
                     ).fold(
                         {
-                            val (status, error) = it.tilStatusOgErrorJson()
-                            call.respond(status, error)
+                            call.respondJson(valueAndStatus = it.tilStatusOgErrorJson())
                         },
                         { (sak, behandling) ->
                             auditService.logMedMeldekortId(
@@ -67,9 +66,8 @@ fun Route.overtaMeldekortBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(
-                                HttpStatusCode.OK,
-                                behandling.tilMeldekortBehandlingDTO(beregninger = sak.meldeperiodeBeregninger),
+                            call.respondJson(
+                                value = behandling.tilMeldekortBehandlingDTO(beregninger = sak.meldeperiodeBeregninger),
                             )
                         },
                     )

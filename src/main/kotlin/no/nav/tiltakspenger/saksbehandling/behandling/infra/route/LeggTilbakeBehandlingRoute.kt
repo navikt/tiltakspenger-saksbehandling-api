@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTil
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
@@ -49,7 +50,7 @@ fun Route.leggTilbakeBehandlingRoute(
                         correlationId = correlationId,
                     )
 
-                    call.respond(status = HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
+                    call.respondJson(value = sak.tilBehandlingDTO(behandlingId))
                 }
             }
         }
