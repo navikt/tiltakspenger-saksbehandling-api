@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDateTime
 
 object SøknadDTOMapper {
@@ -23,7 +24,7 @@ object SøknadDTOMapper {
         dto: SøknadDTO,
         innhentet: LocalDateTime,
         sak: Sak,
-        internTiltaksdeltakelsesId: String,
+        internTiltaksdeltakelsesId: TiltaksdeltakerId,
     ): InnvilgbarSøknad =
         InnvilgbarSøknad(
             id = SøknadId.fromString(dto.søknadId),
@@ -83,7 +84,7 @@ object SøknadDTOMapper {
         }
     }
 
-    fun SøknadsTiltakDTO.tilDomene(internTiltaksdeltakelsesId: String): Søknadstiltak =
+    fun SøknadsTiltakDTO.tilDomene(internTiltaksdeltakelsesId: TiltaksdeltakerId): Søknadstiltak =
         Søknadstiltak(
             id = this.id,
             deltakelseFom = this.deltakelseFom,

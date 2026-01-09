@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
@@ -164,10 +165,17 @@ class SakTest {
     @Test
     fun `henter de nyeste tiltaksdeltakelsene basert på rammevedtak`() {
         val deltakelsesId = "deltakelses-id"
+        val internDeltakelsesId = TiltaksdeltakerId.random()
         val sakId = SakId.random()
         val fnr = Fnr.random()
 
         val vedtaksperiode = Periode(1.april(2025), 30.april(2025))
+        val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(
+            eksternTiltaksdeltakelseId = deltakelsesId,
+            internDeltakelseId = internDeltakelsesId,
+            fom = vedtaksperiode.fraOgMed,
+            tom = vedtaksperiode.tilOgMed,
+        )
         val v1 = Rammevedtak(
             id = VedtakId.random(),
             opprettet = LocalDateTime.now(fixedClock),
@@ -183,19 +191,13 @@ class SakTest {
                 innvilgelsesperioder = listOf(
                     innvilgelsesperiodeKommando(
                         innvilgelsesperiode = vedtaksperiode,
-                        tiltaksdeltakelseId = deltakelsesId,
+                        tiltaksdeltakelse = tiltaksdeltakelse,
                     ),
                 ),
                 saksopplysninger = ObjectMother.saksopplysninger(
                     fom = vedtaksperiode.fraOgMed,
                     tom = vedtaksperiode.tilOgMed,
-                    tiltaksdeltakelse = listOf(
-                        ObjectMother.tiltaksdeltakelse(
-                            eksternTiltaksdeltakelseId = deltakelsesId,
-                            fom = vedtaksperiode.fraOgMed,
-                            tom = vedtaksperiode.tilOgMed,
-                        ),
-                    ),
+                    tiltaksdeltakelse = listOf(tiltaksdeltakelse),
                 ),
             ),
             vedtaksdato = null,
@@ -207,6 +209,12 @@ class SakTest {
         )
 
         val andreVedtaksPeriode = Periode(1.mai(2025), 31.mai(2025))
+        val andreTiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(
+            eksternTiltaksdeltakelseId = deltakelsesId,
+            internDeltakelseId = internDeltakelsesId,
+            fom = andreVedtaksPeriode.fraOgMed,
+            tom = andreVedtaksPeriode.tilOgMed,
+        )
         val v2 = Rammevedtak(
             id = VedtakId.random(),
             opprettet = LocalDateTime.now(enUkeEtterFixedClock),
@@ -222,19 +230,13 @@ class SakTest {
                 innvilgelsesperioder = listOf(
                     innvilgelsesperiodeKommando(
                         innvilgelsesperiode = andreVedtaksPeriode,
-                        tiltaksdeltakelseId = deltakelsesId,
+                        tiltaksdeltakelse = andreTiltaksdeltakelse,
                     ),
                 ),
                 saksopplysninger = ObjectMother.saksopplysninger(
                     fom = andreVedtaksPeriode.fraOgMed,
                     tom = andreVedtaksPeriode.tilOgMed,
-                    tiltaksdeltakelse = listOf(
-                        ObjectMother.tiltaksdeltakelse(
-                            eksternTiltaksdeltakelseId = deltakelsesId,
-                            fom = andreVedtaksPeriode.fraOgMed,
-                            tom = andreVedtaksPeriode.tilOgMed,
-                        ),
-                    ),
+                    tiltaksdeltakelse = listOf(andreTiltaksdeltakelse),
                 ),
             ),
             vedtaksdato = null,

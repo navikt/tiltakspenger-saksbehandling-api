@@ -234,7 +234,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
                 innvilgelsesperiode = saksopplysningsperiode,
-                tiltaksdeltakelseId = saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                tiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser.first(),
             ),
         ),
         barnetillegg: Barnetillegg = barnetillegg(
@@ -307,7 +307,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
                 innvilgelsesperiode = saksopplysningsperiode,
-                tiltaksdeltakelseId = saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                tiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser.first(),
             ),
         ),
         barnetillegg: Barnetillegg = barnetillegg(

@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import kotliquery.Session
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 class TiltaksdeltakerPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -15,14 +15,14 @@ class TiltaksdeltakerPostgresRepo(
     override fun hentEllerLagre(
         eksternId: String,
         sessionContext: SessionContext?,
-    ): String {
+    ): TiltaksdeltakerId {
         return sessionFactory.withSessionContext(sessionContext) { sessionContext ->
             sessionContext.withSession { session ->
                 val id = hentForEksternId(eksternId, session)
                 if (id != null) {
                     return@withSession id
                 } else {
-                    val id = random(ULID_PREFIX_TILTAKSDELTAKER).toString()
+                    val id = TiltaksdeltakerId.random()
                     session.run(
                         sqlQuery(
                             """
@@ -34,7 +34,7 @@ class TiltaksdeltakerPostgresRepo(
                                 :ekstern_id
                             )
                             """.trimIndent(),
-                            "id" to id,
+                            "id" to id.toString(),
                             "ekstern_id" to eksternId,
                         ).asUpdate,
                     )
@@ -44,7 +44,7 @@ class TiltaksdeltakerPostgresRepo(
         }
     }
 
-    override fun lagre(id: String, eksternId: String, sessionContext: SessionContext?) {
+    override fun lagre(id: TiltaksdeltakerId, eksternId: String, sessionContext: SessionContext?) {
         sessionFactory.withSessionContext(sessionContext) { sessionContext ->
             sessionContext.withSession { session ->
                 session.run(
@@ -58,7 +58,7 @@ class TiltaksdeltakerPostgresRepo(
                                 :ekstern_id
                             )
                         """.trimIndent(),
-                        "id" to id,
+                        "id" to id.toString(),
                         "ekstern_id" to eksternId,
                     ).asUpdate,
                 )
@@ -66,7 +66,7 @@ class TiltaksdeltakerPostgresRepo(
         }
     }
 
-    override fun hentInternId(eksternId: String): String? {
+    override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
         return sessionFactory.withSession { session ->
             hentForEksternId(eksternId, session)
         }
@@ -75,12 +75,12 @@ class TiltaksdeltakerPostgresRepo(
     private fun hentForEksternId(
         eksternId: String,
         session: Session,
-    ): String? = session.run(
+    ): TiltaksdeltakerId? = session.run(
         queryOf(
             "select id from tiltaksdeltaker where ekstern_id = ?",
             eksternId,
         )
-            .map { row -> row.string("id") }
+            .map { row -> row.stringOrNull("id")?.let { TiltaksdeltakerId.fromString(it) } }
             .asSingle,
     )
 }

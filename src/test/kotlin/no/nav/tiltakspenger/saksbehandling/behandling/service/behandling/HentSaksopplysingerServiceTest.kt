@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
@@ -84,15 +85,15 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentEllerLagre(
                     eksternId: String,
                     sessionContext: SessionContext?,
-                ): String {
+                ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId!!
                 }
                 override fun lagre(
-                    id: String,
+                    id: TiltaksdeltakerId,
                     eksternId: String,
                     sessionContext: SessionContext?,
                 ) {}
-                override fun hentInternId(eksternId: String): String? {
+                override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
             }
@@ -181,15 +182,15 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentEllerLagre(
                     eksternId: String,
                     sessionContext: SessionContext?,
-                ): String {
+                ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId!!
                 }
                 override fun lagre(
-                    id: String,
+                    id: TiltaksdeltakerId,
                     eksternId: String,
                     sessionContext: SessionContext?,
                 ) {}
-                override fun hentInternId(eksternId: String): String? {
+                override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
             }
@@ -278,15 +279,15 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentEllerLagre(
                     eksternId: String,
                     sessionContext: SessionContext?,
-                ): String {
+                ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId!!
                 }
                 override fun lagre(
-                    id: String,
+                    id: TiltaksdeltakerId,
                     eksternId: String,
                     sessionContext: SessionContext?,
                 ) {}
-                override fun hentInternId(eksternId: String): String? {
+                override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
             }
@@ -389,7 +390,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentEllerLagre(
                     eksternId: String,
                     sessionContext: SessionContext?,
-                ): String {
+                ): TiltaksdeltakerId {
                     return when (eksternId) {
                         tiltak1.first.eksternDeltakelseId -> {
                             tiltak1.first.internDeltakelseId!!
@@ -403,11 +404,11 @@ internal class HentSaksopplysingerServiceTest {
                     }
                 }
                 override fun lagre(
-                    id: String,
+                    id: TiltaksdeltakerId,
                     eksternId: String,
                     sessionContext: SessionContext?,
                 ) {}
-                override fun hentInternId(eksternId: String): String? {
+                override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
             }
@@ -504,7 +505,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentEllerLagre(
                     eksternId: String,
                     sessionContext: SessionContext?,
-                ): String {
+                ): TiltaksdeltakerId {
                     return when (eksternId) {
                         tiltak1.first.eksternDeltakelseId -> {
                             tiltak1.first.internDeltakelseId!!
@@ -518,11 +519,11 @@ internal class HentSaksopplysingerServiceTest {
                     }
                 }
                 override fun lagre(
-                    id: String,
+                    id: TiltaksdeltakerId,
                     eksternId: String,
                     sessionContext: SessionContext?,
                 ) {}
-                override fun hentInternId(eksternId: String): String? {
+                override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
             }

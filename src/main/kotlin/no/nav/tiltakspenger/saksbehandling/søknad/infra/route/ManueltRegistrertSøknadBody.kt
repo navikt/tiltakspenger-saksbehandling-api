@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
 data class ManueltRegistrertSøknadBody(
@@ -19,7 +20,7 @@ data class ManueltRegistrertSøknadBody(
     val søknadstype: SøknadstypeDTO,
     val svar: ManueltRegistrertSøknadSvarDTO,
 ) {
-    fun tilKommando(internTiltaksdeltakelsesId: String?): StartBehandlingAvManueltRegistrertSøknadCommand {
+    fun tilKommando(internTiltaksdeltakelsesId: TiltaksdeltakerId?): StartBehandlingAvManueltRegistrertSøknadCommand {
         return StartBehandlingAvManueltRegistrertSøknadCommand(
             personopplysninger = personopplysninger.tilDomene(),
             journalpostId = JournalpostId(journalpostId),
@@ -125,7 +126,7 @@ data class ManueltRegistrertSøknadBody(
         }
     }
 
-    fun SøknadsTiltakDTO.tilDomene(internTiltaksdeltakelsesId: String?): Søknadstiltak =
+    fun SøknadsTiltakDTO.tilDomene(internTiltaksdeltakelsesId: TiltaksdeltakerId?): Søknadstiltak =
         Søknadstiltak(
             id = this.eksternDeltakelseId,
             deltakelseFom = this.deltakelseFraOgMed,

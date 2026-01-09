@@ -110,7 +110,7 @@ interface SakMother {
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
                 innvilgelsesperiode = vedtaksperiode,
-                tiltaksdeltakelseId = registrerteTiltak.first().eksternDeltakelseId,
+                tiltaksdeltakelse = registrerteTiltak.first(),
             ),
         ),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
@@ -284,7 +284,7 @@ interface SakMother {
                 innvilgelsesperioder = listOf(
                     innvilgelsesperiodeKommando(
                         innvilgelsesperiode = vedtaksperiode,
-                        tiltaksdeltakelseId = søknadsbehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                        tiltaksdeltakelse = søknadsbehandling.saksopplysninger.tiltaksdeltakelser.first(),
                     ),
                 ),
                 automatiskSaksbehandlet = søknadsbehandling.automatiskSaksbehandlet,

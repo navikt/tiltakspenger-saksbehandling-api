@@ -123,7 +123,7 @@ class DelautomatiskBehandlingService(
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
         val innvilgelsesperiode = behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()
         val barnetillegg = utledBarnetillegg(behandling)
-        val tiltaksdeltakelser = utledTiltaksdeltakelser(behandling)
+        val tiltaksdeltakelse = utledTiltaksdeltakelser(behandling)
         val saksbehandler = AUTOMATISK_SAKSBEHANDLER
         val oppdaterKommando = OppdaterSøknadsbehandlingKommando.Innvilgelse(
             sakId = behandling.sakId,
@@ -142,7 +142,8 @@ class DelautomatiskBehandlingService(
                                 behandling,
                             ),
                         ),
-                        tiltaksdeltakelseId = tiltaksdeltakelser,
+                        tiltaksdeltakelseId = tiltaksdeltakelse.id,
+                        internDeltakelseId = tiltaksdeltakelse.tiltaksdeltakerId,
                     ),
                     periode = innvilgelsesperiode,
                 ),
@@ -377,11 +378,11 @@ class DelautomatiskBehandlingService(
 
     private fun utledTiltaksdeltakelser(
         behandling: Søknadsbehandling,
-    ): String {
+    ): Søknadstiltak {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) {
             "Forventet at søknaden var en innvilgbar digital søknad"
         }
-        return behandling.søknad.tiltak.id
+        return behandling.søknad.tiltak
     }
 
     private fun utledAntallDagerPerMeldeperiode(

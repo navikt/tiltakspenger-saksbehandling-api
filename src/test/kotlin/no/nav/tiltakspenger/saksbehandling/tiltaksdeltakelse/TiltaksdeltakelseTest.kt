@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
@@ -10,7 +9,6 @@ import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.ULID_PREFIX_TILTAKSDELTAKER
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -164,7 +162,7 @@ class TiltaksdeltakelseTest {
             antallDagerPerUke = 2.0F,
             kilde = Tiltakskilde.Komet,
             deltidsprosentGjennomforing = 100.0,
-            internDeltakelseId = random(ULID_PREFIX_TILTAKSDELTAKER).toString(),
+            internDeltakelseId = TiltaksdeltakerId.random(),
         )
     }
 }

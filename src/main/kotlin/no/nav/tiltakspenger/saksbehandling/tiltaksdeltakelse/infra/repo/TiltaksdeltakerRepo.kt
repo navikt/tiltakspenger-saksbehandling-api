@@ -1,20 +1,19 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-
-const val ULID_PREFIX_TILTAKSDELTAKER = "tiltaksdeltaker"
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 interface TiltaksdeltakerRepo {
     fun hentEllerLagre(
         eksternId: String,
         sessionContext: SessionContext? = null,
-    ): String
+    ): TiltaksdeltakerId
 
     fun lagre(
-        id: String,
+        id: TiltaksdeltakerId,
         eksternId: String,
         sessionContext: SessionContext? = null,
     )
 
-    fun hentInternId(eksternId: String): String?
+    fun hentInternId(eksternId: String): TiltaksdeltakerId?
 }

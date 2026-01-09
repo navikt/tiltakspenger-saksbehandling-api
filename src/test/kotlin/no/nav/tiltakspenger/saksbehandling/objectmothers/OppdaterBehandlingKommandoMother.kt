@@ -22,18 +22,20 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
 interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
 
     fun innvilgelsesperiodeKommando(
         innvilgelsesperiode: Periode,
         antallDagerPerMeldeperiode: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-        tiltaksdeltakelseId: String = tiltaksdeltakelse().eksternDeltakelseId,
+        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
     ): InnvilgelsesperiodeKommando {
         return InnvilgelsesperiodeKommando(
             periode = innvilgelsesperiode,
             antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(antallDagerPerMeldeperiode),
-            tiltaksdeltakelseId = tiltaksdeltakelseId,
+            tiltaksdeltakelseId = tiltaksdeltakelse.eksternDeltakelseId,
+            internDeltakelseId = tiltaksdeltakelse.internDeltakelseId,
         )
     }
 

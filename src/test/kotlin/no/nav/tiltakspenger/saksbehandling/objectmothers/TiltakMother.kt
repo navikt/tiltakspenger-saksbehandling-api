@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.getOrElse
-import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -14,9 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Deltar
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde.Komet
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.ULID_PREFIX_TILTAKSDELTAKER
 import java.time.LocalDate
 import java.util.UUID
 
@@ -38,7 +37,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Tiltakskilde.Arena,
         deltidsprosentGjennomforing: Double? = null,
-        internDeltakelseId: String = "tiltaksdeltaker_01KEEESATZWSK1FZGEFZA02XZB",
+        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.fromString("tiltaksdeltaker_01KEEESATZWSK1FZGEFZA02XZB"),
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -72,7 +71,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
-        internDeltakelseId: String = "tiltaksdeltaker_01KEEESATZWSK1FZGEFZA02XZB",
+        internDeltakelseId: TiltaksdeltakerId? = TiltaksdeltakerId.fromString(DEFAULT_INTERN_TILTAKSDELTAKELSE_ID),
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -106,7 +105,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
-        tiltaksdeltakerId: String = random(ULID_PREFIX_TILTAKSDELTAKER).toString(),
+        tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
     ): Pair<Tiltaksdeltakelse, Søknadstiltak> {
         val tiltaksdeltakelse = Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -178,10 +177,11 @@ fun Søknadstiltak.toTiltak(
         typeNavn = this.typeNavn,
         fom = this.deltakelseFom,
         tom = this.deltakelseTom,
+        internDeltakelseId = this.tiltaksdeltakerId,
     )
 }
 
-fun Tiltaksdeltakelse.toSøknadstiltak(tiltaksdeltakerId: String = random(ULID_PREFIX_TILTAKSDELTAKER).toString()): Søknadstiltak {
+fun Tiltaksdeltakelse.toSøknadstiltak(tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random()): Søknadstiltak {
     return søknadstiltak(
         id = this.eksternDeltakelseId,
         deltakelseFom = this.deltakelseFraOgMed!!,
@@ -193,3 +193,4 @@ fun Tiltaksdeltakelse.toSøknadstiltak(tiltaksdeltakerId: String = random(ULID_P
 }
 
 const val DEFAULT_TILTAK_DELTAKELSE_ID = "61328250-7d5d-4961-b70e-5cb727a34371"
+const val DEFAULT_INTERN_TILTAKSDELTAKELSE_ID = "tiltaksdeltaker_01KEEFWNJTGDMJV95NH810DS6S"
