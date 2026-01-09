@@ -6,11 +6,14 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortVedtakBrevCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
@@ -27,17 +30,17 @@ class ForhåndsvisBrevMeldekortBehandlingService(
 
         val sak = sakService.hentForSakId(meldekortBehandling.sakId)
 
-        // TODO - verifiser at vi kommer alltid til å ha tiltaksdeltakelser her.
-        val tiltaksdeltakelser = meldekortBehandling.rammevedtak?.let {
-            sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(it)
-        }
-
-        require(tiltaksdeltakelser != null && tiltaksdeltakelser.isNotEmpty()) {
-            "Forventet at et det skal finnes tiltaksdeltakelse for meldekortvedtaksperioden"
+        val beregning = if (command.dager?.tilMeldekortDager(meldekortBehandling.meldeperiode) == null) {
+            null
+        } else {
+            sak.beregnMeldekort(
+                meldekortIdSomBeregnes = meldekortBehandling.id,
+                meldeperiodeSomBeregnes = command.dager.tilMeldekortDager(meldekortBehandling.meldeperiode),
+            )
         }
 
         val nåværendeBeregningMedTidligereBeregning =
-            meldekortBehandling.beregning?.beregninger?.map { meldeperiodeBeregning ->
+            beregning?.map { meldeperiodeBeregning ->
                 val tidligereBeregning = sak.meldeperiodeBeregninger.hentForrigeBeregningEllerSiste(
                     meldeperiodeBeregning.id,
                     meldeperiodeBeregning.kjedeId,
@@ -61,12 +64,19 @@ class ForhåndsvisBrevMeldekortBehandlingService(
                 saksbehandler = meldekortBehandling.saksbehandler,
                 beslutter = meldekortBehandling.beslutter,
                 meldekortbehandlingId = meldekortBehandling.id,
-                beregningsperiode = meldekortBehandling.beregning?.periode,
-                tiltaksdeltakelser = tiltaksdeltakelser,
+                beregningsperiode = beregning?.let {
+                    Periode(
+                        fraOgMed = it.minOf { it.fraOgMed },
+                        tilOgMed = it.maxOf { it.tilOgMed },
+                    )
+                },
+                tiltaksdeltakelser = meldekortBehandling.rammevedtak!!.let {
+                    sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(it)
+                },
                 iverksattTidspunkt = null,
                 erKorrigering = meldekortBehandling.erKorrigering,
                 beregninger = nåværendeBeregningMedTidligereBeregning,
-                totaltBeløp = meldekortBehandling.beregning?.totalBeløp,
+                totaltBeløp = beregning?.sumOf { it.totalBeløp },
                 tekstTilVedtaksbrev = command.tekstTilVedtaksbrev,
                 forhåndsvisning = true,
             ),
@@ -89,4 +99,5 @@ data class ForhåndsvisBrevMeldekortbehandlingCommand(
     val correlationId: CorrelationId,
     val saksbehandler: Saksbehandler,
     val tekstTilVedtaksbrev: NonBlankString?,
+    val dager: Dager?,
 )
