@@ -13,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 class SøknadFakeRepo(private val behandlingRepo: BehandlingFakeRepo) : SøknadRepo {
     private val data = Atomic(mutableMapOf<SøknadId, Søknad>())
@@ -62,6 +64,13 @@ class SøknadFakeRepo(private val behandlingRepo: BehandlingFakeRepo) : SøknadR
             }
         }
         return soknaderUtenBehandling
+    }
+
+    override fun hentSoknadstiltakUtenInternId(limit: Int): List<Søknadstiltak> {
+        return emptyList()
+    }
+
+    override fun oppdaterInternId(eksternId: String, internId: TiltaksdeltakerId) {
     }
 
     fun hentForSakId(sakId: SakId): List<Søknad> {
