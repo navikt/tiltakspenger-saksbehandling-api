@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
@@ -185,27 +184,17 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
 
         meldekortRepo.oppdater(meldekortBehandling, simuleringMedMetadata)
 
-        val (meldekortBehandlingTilBeslutning, andreSimuleringMedMetadata) = meldekortBehandling.sendTilBeslutter(
+        val meldekortBehandlingTilBeslutning = meldekortBehandling.sendTilBeslutter(
             kommando = SendMeldekortTilBeslutterKommando(
                 sakId = sakMedOppdatertMeldekortbehandling.id,
                 meldekortId = meldekortBehandling.id,
                 saksbehandler = saksbehandler,
-                dager = dager,
-                begrunnelse = begrunnelse,
                 correlationId = CorrelationId.generate(),
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             ),
-            beregn = {
-                sakMedOppdatertMeldekortbehandling.beregnMeldekort(
-                    meldekortIdSomBeregnes = meldekortBehandling.id,
-                    meldeperiodeSomBeregnes = dager.tilMeldekortDager(meldekortBehandling.meldeperiode),
-                )
-            },
-            simuler = { KunneIkkeSimulere.Stengt.left() },
             clock = clock,
         ).getOrFail()
 
-        meldekortRepo.oppdater(meldekortBehandlingTilBeslutning, andreSimuleringMedMetadata)
+        meldekortRepo.oppdater(meldekortBehandlingTilBeslutning)
 
         sakRepo.hentForSakId(sakMedOpprettetMeldekortBehandling.id)!! to meldekortBehandlingTilBeslutning
     }

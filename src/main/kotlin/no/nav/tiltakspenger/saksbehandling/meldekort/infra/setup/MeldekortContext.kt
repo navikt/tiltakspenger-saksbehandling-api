@@ -168,7 +168,6 @@ open class MeldekortContext(
         SendMeldekortTilBeslutterService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
-            simulerService = simulerService,
             clock = clock,
         )
     }

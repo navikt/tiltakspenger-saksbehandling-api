@@ -100,19 +100,15 @@ data class Meldekortbehandlinger(
         ).map { Triple(oppdaterMeldekortbehandling(it.first), it.first, it.second) }
     }
 
-    suspend fun sendTilBeslutter(
+    fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
-        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
-        simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
         clock: Clock,
-    ): Either<KanIkkeSendeMeldekortTilBeslutter, Triple<Meldekortbehandlinger, MeldekortBehandletManuelt, SimuleringMedMetadata?>> {
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<Meldekortbehandlinger, MeldekortBehandletManuelt>> {
         val meldekort = hentMeldekortBehandling(kommando.meldekortId) as MeldekortUnderBehandling
         return meldekort.sendTilBeslutter(
             kommando = kommando,
-            beregn = beregn,
             clock = clock,
-            simuler = simuler,
-        ).map { Triple(oppdaterMeldekortbehandling(it.first), it.first, it.second) }
+        ).map { Pair(oppdaterMeldekortbehandling(it), it) }
     }
 
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
