@@ -38,6 +38,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Tiltakskilde.Arena,
         deltidsprosentGjennomforing: Double? = null,
+        internDeltakelseId: String = "tiltaksdeltaker_01KEEESATZWSK1FZGEFZA02XZB",
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -52,6 +53,7 @@ interface TiltakMother {
             kilde = kilde,
             antallDagerPerUke = dagerPrUke,
             deltidsprosentGjennomforing = deltidsprosentGjennomforing,
+            internDeltakelseId = internDeltakelseId,
         )
     }
 
@@ -70,6 +72,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
+        internDeltakelseId: String = "tiltaksdeltaker_01KEEESATZWSK1FZGEFZA02XZB",
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -84,6 +87,7 @@ interface TiltakMother {
             kilde = kilde,
             antallDagerPerUke = dagerPrUke,
             deltidsprosentGjennomforing = deltidsprosentGjennomforing,
+            internDeltakelseId = internDeltakelseId,
         )
     }
 
@@ -117,6 +121,7 @@ interface TiltakMother {
             kilde = kilde,
             antallDagerPerUke = dagerPrUke,
             deltidsprosentGjennomforing = deltidsprosentGjennomforing,
+            internDeltakelseId = tiltaksdeltakerId,
         )
         return tiltaksdeltakelse to søknadstiltak(
             id = eksternTiltaksdeltakelseId,

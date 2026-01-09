@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelseDetErSøktTiltakspengerFor
@@ -22,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Yt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import org.junit.jupiter.api.Test
@@ -78,7 +80,22 @@ internal class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ) = emptyList<ArenaTPVedtak>()
             }
-
+            val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
+                override fun hentEllerLagre(
+                    eksternId: String,
+                    sessionContext: SessionContext?,
+                ): String {
+                    return tiltaksdeltakelser.first.internDeltakelseId!!
+                }
+                override fun lagre(
+                    id: String,
+                    eksternId: String,
+                    sessionContext: SessionContext?,
+                ) {}
+                override fun hentInternId(eksternId: String): String? {
+                    return null
+                }
+            }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
@@ -86,6 +103,7 @@ internal class HentSaksopplysingerServiceTest {
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
                 tiltakspengerArenaClient = tiltakspengerArenaClient,
+                tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             )
 
             val result = service.hentSaksopplysningerFraRegistre(
@@ -159,6 +177,22 @@ internal class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ) = emptyList<ArenaTPVedtak>()
             }
+            val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
+                override fun hentEllerLagre(
+                    eksternId: String,
+                    sessionContext: SessionContext?,
+                ): String {
+                    return tiltaksdeltakelser.first.internDeltakelseId!!
+                }
+                override fun lagre(
+                    id: String,
+                    eksternId: String,
+                    sessionContext: SessionContext?,
+                ) {}
+                override fun hentInternId(eksternId: String): String? {
+                    return null
+                }
+            }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
@@ -166,6 +200,7 @@ internal class HentSaksopplysingerServiceTest {
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
                 tiltakspengerArenaClient = tiltakspengerArenaClient,
+                tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             )
             val result = service.hentSaksopplysningerFraRegistre(
                 fnr = fnr,
@@ -239,6 +274,22 @@ internal class HentSaksopplysingerServiceTest {
                     ),
                 )
             }
+            val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
+                override fun hentEllerLagre(
+                    eksternId: String,
+                    sessionContext: SessionContext?,
+                ): String {
+                    return tiltaksdeltakelser.first.internDeltakelseId!!
+                }
+                override fun lagre(
+                    id: String,
+                    eksternId: String,
+                    sessionContext: SessionContext?,
+                ) {}
+                override fun hentInternId(eksternId: String): String? {
+                    return null
+                }
+            }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
@@ -246,6 +297,7 @@ internal class HentSaksopplysingerServiceTest {
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
                 tiltakspengerArenaClient = tiltakspengerArenaClient,
+                tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             )
             val result = service.hentSaksopplysningerFraRegistre(
                 fnr = fnr,
@@ -333,6 +385,32 @@ internal class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ) = emptyList<ArenaTPVedtak>()
             }
+            val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
+                override fun hentEllerLagre(
+                    eksternId: String,
+                    sessionContext: SessionContext?,
+                ): String {
+                    return when (eksternId) {
+                        tiltak1.first.eksternDeltakelseId -> {
+                            tiltak1.first.internDeltakelseId!!
+                        }
+                        tiltak2.first.eksternDeltakelseId -> {
+                            tiltak2.first.internDeltakelseId!!
+                        }
+                        else -> {
+                            throw IllegalArgumentException("Ukjent tiltak")
+                        }
+                    }
+                }
+                override fun lagre(
+                    id: String,
+                    eksternId: String,
+                    sessionContext: SessionContext?,
+                ) {}
+                override fun hentInternId(eksternId: String): String? {
+                    return null
+                }
+            }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
@@ -340,6 +418,7 @@ internal class HentSaksopplysingerServiceTest {
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
                 tiltakspengerArenaClient = tiltakspengerArenaClient,
+                tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             )
             val result = service.hentSaksopplysningerFraRegistre(
                 fnr = fnr,
@@ -421,6 +500,32 @@ internal class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ) = emptyList<ArenaTPVedtak>()
             }
+            val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
+                override fun hentEllerLagre(
+                    eksternId: String,
+                    sessionContext: SessionContext?,
+                ): String {
+                    return when (eksternId) {
+                        tiltak1.first.eksternDeltakelseId -> {
+                            tiltak1.first.internDeltakelseId!!
+                        }
+                        tiltak2.first.eksternDeltakelseId -> {
+                            tiltak2.first.internDeltakelseId!!
+                        }
+                        else -> {
+                            throw IllegalArgumentException("Ukjent tiltak")
+                        }
+                    }
+                }
+                override fun lagre(
+                    id: String,
+                    eksternId: String,
+                    sessionContext: SessionContext?,
+                ) {}
+                override fun hentInternId(eksternId: String): String? {
+                    return null
+                }
+            }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
@@ -428,6 +533,7 @@ internal class HentSaksopplysingerServiceTest {
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
                 tiltakspengerArenaClient = tiltakspengerArenaClient,
+                tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             )
             val result = service.hentSaksopplysningerFraRegistre(
                 fnr = fnr,

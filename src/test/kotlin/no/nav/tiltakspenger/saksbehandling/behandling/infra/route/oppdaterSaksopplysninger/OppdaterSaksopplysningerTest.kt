@@ -44,6 +44,7 @@ internal class OppdaterSaksopplysningerTest {
                     antallDagerPerUke = 5.0f,
                     kilde = Tiltakskilde.Arena,
                     deltidsprosentGjennomforing = 100.0,
+                    internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.value.first().internDeltakelseId,
                 ),
             )
             val (oppdatertSak, oppdatertBehandling, responseJson) = oppdaterSaksopplysningerForBehandlingId(

@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Yt
 import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import java.time.Clock
 import java.time.LocalDate
@@ -23,6 +24,7 @@ class HentSaksopplysingerService(
     private val sokosUtbetaldataClient: SokosUtbetaldataClient,
     private val tiltakspengerArenaClient: TiltakspengerArenaClient,
     private val clock: Clock,
+    private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
     /**
      * Tiltakspenger er alltid begrenset av tiltaksdeltakelsen(e) det er søkt på.
@@ -94,7 +96,11 @@ class HentSaksopplysingerService(
                     aktuelle
                 }
             }
-        return aktuelleTiltaksdeltakelser
+        val tiltaksdeltakelserMedInternDeltakelseId = aktuelleTiltaksdeltakelser.value.map {
+            val internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(it.eksternDeltakelseId)
+            it.copy(internDeltakelseId = internDeltakelseId)
+        }
+        return Tiltaksdeltakelser(tiltaksdeltakelserMedInternDeltakelseId)
     }
 
     private suspend fun hentYtelser(

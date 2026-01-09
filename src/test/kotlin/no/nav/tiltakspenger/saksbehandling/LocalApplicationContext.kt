@@ -106,7 +106,7 @@ class LocalApplicationContext(
         tom = ObjectMother.vedtaksperiode().tilOgMed,
         kilde = Tiltakskilde.Komet,
     )
-    private val søknadstiltak = tiltaksdeltakelse.toSøknadstiltak()
+    private val søknadstiltak = tiltaksdeltakelse.toSøknadstiltak(tiltaksdeltakelse.internDeltakelseId!!)
 
     override val oppgaveKlient: OppgaveKlient by lazy { OppgaveFakeKlient() }
 
@@ -237,6 +237,7 @@ class LocalApplicationContext(
             personKlient = personContext.personKlient,
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaClient,
+            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
         ) {}
     }
     override val utbetalingContext by lazy {

@@ -338,6 +338,7 @@ open class ApplicationContext(
             personKlient = personContext.personKlient,
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaClient,
+            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
         )
     }
 

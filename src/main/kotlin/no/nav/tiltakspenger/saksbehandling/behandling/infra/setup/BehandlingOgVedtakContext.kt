@@ -42,6 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
@@ -73,6 +74,7 @@ open class BehandlingOgVedtakContext(
     personKlient: PersonKlient,
     oppgaveKlient: OppgaveKlient,
     tiltakspengerArenaClient: TiltakspengerArenaClient,
+    tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val behandlingRepo: BehandlingRepo by lazy {
@@ -133,6 +135,7 @@ open class BehandlingOgVedtakContext(
             sokosUtbetaldataClient = sokosUtbetaldataClient,
             clock = clock,
             tiltakspengerArenaClient = tiltakspengerArenaClient,
+            tiltaksdeltakerRepo = tiltaksdeltakerRepo,
         )
     }
     val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService by lazy {

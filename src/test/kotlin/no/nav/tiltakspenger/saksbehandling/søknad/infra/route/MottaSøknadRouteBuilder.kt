@@ -48,6 +48,7 @@ interface MottaSøknadRouteBuilder {
     ): Pair<Sak, Søknad> {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val saksnummer = hentEllerOpprettSak(tac, sak.fnr)
+        tiltaksdeltakelse.internDeltakelseId?.let { tac.tiltakContext.tiltaksdeltakerRepo.lagre(it, tiltaksdeltakelse.eksternDeltakelseId) }
         mottaSøknad(tac, sak.fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltakelse)
         val oppdatertSak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         return oppdatertSak to oppdatertSak.søknader.single { it.id == søknadId }
@@ -64,6 +65,7 @@ interface MottaSøknadRouteBuilder {
         ),
     ): Pair<Sak, Søknad> {
         val saksnummer = hentEllerOpprettSak(tac, fnr)
+        tiltaksdeltakelse.internDeltakelseId?.let { tac.tiltakContext.tiltaksdeltakerRepo.lagre(it, tiltaksdeltakelse.eksternDeltakelseId) }
         mottaSøknad(tac, fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltakelse)
         val sak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         return sak to sak.søknader.single { it.id == søknadId }

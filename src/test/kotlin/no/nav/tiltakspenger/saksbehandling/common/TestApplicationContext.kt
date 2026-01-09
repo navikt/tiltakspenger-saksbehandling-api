@@ -270,6 +270,7 @@ class TestApplicationContext(
             personKlient = personContext.personKlient,
             oppgaveKlient = oppgaveKlient,
             tiltakspengerArenaClient = tiltakspengerArenaFakeClient,
+            tiltaksdeltakerRepo = tiltaksdeltakerFakeRepo,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo
