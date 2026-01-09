@@ -27,6 +27,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
         [
             {
                 "tiltaksdeltakelseId": "TA12345",
+                "internDeltakelseId": "tiltaksdeltaker_01KEEESATZWSK1FZGEFZA02XZB",
                 "periode": {
                     "fraOgMed": "2025-04-01",
                     "tilOgMed": "2025-04-10"

@@ -195,6 +195,7 @@ class OpprettMeldekortBehandlingServiceTest {
                         periode = andrePeriode.toDTO(),
                         antallDagerPerMeldeperiode = 10,
                         tiltaksdeltakelseId = vedtak.behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                        internDeltakelseId = vedtak.behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId,
                     ),
                 ),
             )

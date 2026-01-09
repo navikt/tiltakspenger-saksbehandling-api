@@ -77,6 +77,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 periode = periode.toDTO(),
                 antallDagerPerMeldeperiode = antallDager,
                 tiltaksdeltakelseId = this.saksopplysninger.tiltaksdeltakelser.single().eksternDeltakelseId,
+                internDeltakelseId = this.saksopplysninger.tiltaksdeltakelser.single().internDeltakelseId,
             ),
         )
     }
@@ -87,6 +88,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 periode = it.periode.toDTO(),
                 antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode.value,
                 tiltaksdeltakelseId = it.valgtTiltaksdeltakelse.eksternDeltakelseId,
+                internDeltakelseId = it.valgtTiltaksdeltakelse.internDeltakelseId,
             )
         }
     }
@@ -221,7 +223,7 @@ interface BehandlingMother : MotherOfAllMothers {
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
                 innvilgelsesperiode = vedtaksperiode,
-                tiltaksdeltakelseId = saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                tiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser.first(),
             ),
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
@@ -288,7 +290,7 @@ interface BehandlingMother : MotherOfAllMothers {
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
                 innvilgelsesperiode = vedtaksperiode,
-                tiltaksdeltakelseId = saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                tiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser.first(),
             ),
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
@@ -345,7 +347,7 @@ interface BehandlingMother : MotherOfAllMothers {
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
                 innvilgelsesperiode = vedtaksperiode,
-                tiltaksdeltakelseId = saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                tiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser.first(),
             ),
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
@@ -397,7 +399,7 @@ interface BehandlingMother : MotherOfAllMothers {
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
                 innvilgelsesperiode = vedtaksperiode,
-                tiltaksdeltakelseId = saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                tiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser.first(),
             ),
         ),
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
@@ -462,7 +464,7 @@ interface BehandlingMother : MotherOfAllMothers {
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
                 innvilgelsesperiode = saksopplysningsperiode,
-                tiltaksdeltakelseId = saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                tiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser.first(),
             ),
         ),
         barnetillegg: Barnetillegg = barnetillegg(

@@ -6,4 +6,5 @@ data class InnvilgelsesperiodeKommando(
     val periode: Periode,
     val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
     val tiltaksdeltakelseId: String,
+    val internDeltakelseId: String?,
 )

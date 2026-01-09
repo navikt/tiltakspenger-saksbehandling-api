@@ -307,20 +307,22 @@ internal class BehandlingPostgresRepoTest {
             val sakRepo = testDataHelper.sakRepo
             val behandlingRepo = testDataHelper.behandlingRepo
 
+            val tiltaksdeltakelse1 = tiltaksdeltakelse(
+                eksternTiltaksdeltakelseId = "asdf",
+                fom = 1.januar(2025),
+                tom = 31.mai(2025),
+            )
+            val tiltaksdeltakelse2 = tiltaksdeltakelse(
+                eksternTiltaksdeltakelseId = "qwer",
+                fom = 1.mars(2025),
+                tom = 30.juni(2025),
+            )
             val saksopplysninger = saksopplysninger(
                 fom = 1.januar(2025),
                 tom = 30.juni(2025),
                 tiltaksdeltakelse = listOf(
-                    tiltaksdeltakelse(
-                        eksternTiltaksdeltakelseId = "asdf",
-                        fom = 1.januar(2025),
-                        tom = 31.mai(2025),
-                    ),
-                    tiltaksdeltakelse(
-                        eksternTiltaksdeltakelseId = "qwer",
-                        fom = 1.mars(2025),
-                        tom = 30.juni(2025),
-                    ),
+                    tiltaksdeltakelse1,
+                    tiltaksdeltakelse2,
                 ),
             )
 
@@ -333,27 +335,27 @@ internal class BehandlingPostgresRepoTest {
                 innvilgelsesperiodeKommando(
                     innvilgelsesperiode = 1.januar(2025) til 10.januar(2025),
                     antallDagerPerMeldeperiode = 6,
-                    tiltaksdeltakelseId = "asdf",
+                    tiltaksdeltakelse = tiltaksdeltakelse1,
                 ),
                 innvilgelsesperiodeKommando(
                     innvilgelsesperiode = 11.januar(2025) til 20.januar(2025),
                     antallDagerPerMeldeperiode = 10,
-                    tiltaksdeltakelseId = "asdf",
+                    tiltaksdeltakelse = tiltaksdeltakelse1,
                 ),
                 innvilgelsesperiodeKommando(
                     innvilgelsesperiode = 21.januar(2025) til 30.april(2025),
                     antallDagerPerMeldeperiode = 4,
-                    tiltaksdeltakelseId = "asdf",
+                    tiltaksdeltakelse = tiltaksdeltakelse1,
                 ),
                 innvilgelsesperiodeKommando(
                     innvilgelsesperiode = 1.mai(2025) til 31.mai(2025),
                     antallDagerPerMeldeperiode = 4,
-                    tiltaksdeltakelseId = "qwer",
+                    tiltaksdeltakelse = tiltaksdeltakelse2,
                 ),
                 innvilgelsesperiodeKommando(
                     innvilgelsesperiode = 1.juni(2025) til 30.juni(2025),
                     antallDagerPerMeldeperiode = 2,
-                    tiltaksdeltakelseId = "qwer",
+                    tiltaksdeltakelse = tiltaksdeltakelse2,
                 ),
             )
 
@@ -380,31 +382,31 @@ internal class BehandlingPostgresRepoTest {
                 listOf(
                     Innvilgelsesperiode(
                         periode = 1.januar(2025) til 10.januar(2025),
-                        valgtTiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser[0],
+                        valgtTiltaksdeltakelse = tiltaksdeltakelse1,
                         antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(6),
                     ).tilPeriodeMedVerdi(),
 
                     Innvilgelsesperiode(
                         periode = 11.januar(2025) til 20.januar(2025),
-                        valgtTiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser[0],
+                        valgtTiltaksdeltakelse = tiltaksdeltakelse1,
                         antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
                     ).tilPeriodeMedVerdi(),
 
                     Innvilgelsesperiode(
                         periode = 21.januar(2025) til 30.april(2025),
-                        valgtTiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser[0],
+                        valgtTiltaksdeltakelse = tiltaksdeltakelse1,
                         antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(4),
                     ).tilPeriodeMedVerdi(),
 
                     Innvilgelsesperiode(
                         periode = 1.mai(2025) til 31.mai(2025),
-                        valgtTiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser[1],
+                        valgtTiltaksdeltakelse = tiltaksdeltakelse2,
                         antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(4),
                     ).tilPeriodeMedVerdi(),
 
                     Innvilgelsesperiode(
                         periode = 1.juni(2025) til 30.juni(2025),
-                        valgtTiltaksdeltakelse = saksopplysninger.tiltaksdeltakelser[1],
+                        valgtTiltaksdeltakelse = tiltaksdeltakelse2,
                         antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(2),
                     ).tilPeriodeMedVerdi(),
                 ).tilIkkeTomPeriodisering(),

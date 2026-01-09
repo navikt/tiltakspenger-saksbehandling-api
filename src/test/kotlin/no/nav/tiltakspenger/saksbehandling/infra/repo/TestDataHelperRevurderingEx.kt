@@ -258,7 +258,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
         innvilgelsesperioder = listOf(
             innvilgelsesperiodeKommando(
                 innvilgelsesperiode = periode,
-                tiltaksdeltakelseId = revurdering.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first(),
             ),
         ),
         barnetillegg = barnetillegg,

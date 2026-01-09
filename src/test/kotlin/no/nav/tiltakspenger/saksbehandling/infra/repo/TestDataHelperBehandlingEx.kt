@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgels
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterSøknadsbehandlingAvslagKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterSøknadsbehandlingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
+import no.nav.tiltakspenger.saksbehandling.objectmothers.toTiltak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -220,7 +221,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
                 innvilgelsesperiodeKommando(
                     innvilgelsesperiode = tiltaksOgVedtaksperiode,
                     antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-                    tiltaksdeltakelseId = behandling.søknad.tiltak!!.id,
+                    tiltaksdeltakelse = behandling.søknad.tiltak!!.toTiltak(),
                 ),
             ),
             barnetillegg = Barnetillegg.utenBarnetillegg(tiltaksOgVedtaksperiode),
@@ -276,7 +277,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
         innvilgelsesperiodeKommando(
             innvilgelsesperiode = tiltaksOgVedtaksperiode,
-            tiltaksdeltakelseId = søknad.tiltak.id,
+            tiltaksdeltakelse = søknad.tiltak.toTiltak(),
         ),
     ),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
