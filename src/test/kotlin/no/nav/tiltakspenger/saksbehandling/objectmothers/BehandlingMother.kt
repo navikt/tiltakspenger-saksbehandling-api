@@ -77,7 +77,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 periode = periode.toDTO(),
                 antallDagerPerMeldeperiode = antallDager,
                 tiltaksdeltakelseId = this.saksopplysninger.tiltaksdeltakelser.single().eksternDeltakelseId,
-                internDeltakelseId = this.saksopplysninger.tiltaksdeltakelser.single().internDeltakelseId,
+                internDeltakelseId = this.saksopplysninger.tiltaksdeltakelser.single().internDeltakelseId?.toString(),
             ),
         )
     }
@@ -88,7 +88,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 periode = it.periode.toDTO(),
                 antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode.value,
                 tiltaksdeltakelseId = it.valgtTiltaksdeltakelse.eksternDeltakelseId,
-                internDeltakelseId = it.valgtTiltaksdeltakelse.internDeltakelseId,
+                internDeltakelseId = it.valgtTiltaksdeltakelse.internDeltakelseId?.toString(),
             )
         }
     }

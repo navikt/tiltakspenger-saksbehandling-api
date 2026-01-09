@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import org.intellij.lang.annotations.Language
 
 internal object SøknadTiltakDAO {
@@ -47,7 +48,7 @@ internal object SøknadTiltakDAO {
                     "typenavn" to søknadstiltak.typeNavn,
                     "deltakelse_fra_og_med" to søknadstiltak.deltakelseFom,
                     "deltakelse_til_og_med" to søknadstiltak.deltakelseTom,
-                    "tiltaksdeltaker_id" to søknadstiltak.tiltaksdeltakerId,
+                    "tiltaksdeltaker_id" to søknadstiltak.tiltaksdeltakerId?.toString(),
                 ),
             ).asUpdate,
         )
@@ -73,7 +74,7 @@ internal object SøknadTiltakDAO {
             deltakelseTom = deltakelseTom,
             typeKode = TiltakResponsDTO.TiltakType.valueOf(typekode),
             typeNavn = typenavn,
-            tiltaksdeltakerId = tiltaksdeltakerId,
+            tiltaksdeltakerId = tiltaksdeltakerId?.let { TiltaksdeltakerId.fromString(it) },
         )
     }
 

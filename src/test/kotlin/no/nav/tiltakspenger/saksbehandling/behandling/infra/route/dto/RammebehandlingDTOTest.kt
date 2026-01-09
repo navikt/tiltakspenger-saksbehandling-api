@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplys
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
@@ -42,7 +43,7 @@ class RammebehandlingDTOTest {
     private val søknadTiltakId = "06872f2f-5ca4-453a-8d41-8e91e1f777a3"
     private val eksternTiltaksdeltakelseId = "f02e50df-d2ee-47f6-9afa-db66bd842bfd"
     private val eksternTiltaksgjennomføringsId = "68f04dee-11a9-4d69-84fd-1096a4264492"
-    private val internTiltaksdeltakelseId = "tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG"
+    private val internTiltaksdeltakelseId = TiltaksdeltakerId.fromString("tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG")
     private val fnr = gyldigFnr()
 
     private val vedtaksperiode = Periode(

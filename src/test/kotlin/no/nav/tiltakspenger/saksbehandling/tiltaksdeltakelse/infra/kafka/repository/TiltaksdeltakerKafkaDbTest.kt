@@ -2,16 +2,15 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.reposi
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.ULID_PREFIX_TILTAKSDELTAKER
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -32,7 +31,7 @@ class TiltaksdeltakerKafkaDbTest {
             antallDagerPerUke = 2.0F,
             kilde = Tiltakskilde.Komet,
             deltidsprosentGjennomforing = 100.0,
-            internDeltakelseId = random(ULID_PREFIX_TILTAKSDELTAKER).toString(),
+            internDeltakelseId = TiltaksdeltakerId.random(),
         )
 
     @Test

@@ -31,6 +31,6 @@ fun Tiltaksdeltakelse.toDTO(): TiltaksdeltakelseDTO {
         antallDagerPerUke = this.antallDagerPerUke,
         kilde = this.kilde.name,
         gjennomforingsprosent = this.deltidsprosentGjennomforing?.toFloat(),
-        internDeltakelseId = this.internDeltakelseId,
+        internDeltakelseId = this.internDeltakelseId?.toString(),
     )
 }

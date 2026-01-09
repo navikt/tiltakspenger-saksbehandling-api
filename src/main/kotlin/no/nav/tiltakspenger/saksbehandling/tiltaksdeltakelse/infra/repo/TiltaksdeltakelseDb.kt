@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
 data class TiltaksdeltakelseDb(
@@ -32,7 +33,7 @@ data class TiltaksdeltakelseDb(
             kilde = kilde.toTiltakskilde(),
             rettPåTiltakspenger = rettPåTiltakspenger,
             deltidsprosentGjennomforing = deltidsprosentGjennomforing,
-            internDeltakelseId = internDeltakelseId,
+            internDeltakelseId = internDeltakelseId?.let { TiltaksdeltakerId.fromString(it) },
         )
     }
 }
@@ -51,6 +52,6 @@ fun Tiltaksdeltakelse.toDbJson(): TiltaksdeltakelseDb {
         kilde = this.kilde.toDb(),
         rettPåTiltakspenger = this.rettPåTiltakspenger,
         deltidsprosentGjennomforing = this.deltidsprosentGjennomforing,
-        internDeltakelseId = internDeltakelseId,
+        internDeltakelseId = internDeltakelseId?.toString(),
     )
 }

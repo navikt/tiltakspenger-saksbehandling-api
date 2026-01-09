@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
-import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.random
@@ -28,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.ULID_PREFIX_TILTAKSDELTAKER
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
@@ -166,7 +165,7 @@ class SakTest {
     @Test
     fun `henter de nyeste tiltaksdeltakelsene basert på rammevedtak`() {
         val deltakelsesId = "deltakelses-id"
-        val internDeltakelsesId = UlidBase.random(ULID_PREFIX_TILTAKSDELTAKER).toString()
+        val internDeltakelsesId = TiltaksdeltakerId.random()
         val sakId = SakId.random()
         val fnr = Fnr.random()
 

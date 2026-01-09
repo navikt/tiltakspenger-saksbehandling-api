@@ -25,7 +25,7 @@ data class Tiltaksdeltakelse(
     val antallDagerPerUke: Float?,
     val kilde: Tiltakskilde,
     val deltidsprosentGjennomforing: Double?,
-    val internDeltakelseId: String?,
+    val internDeltakelseId: TiltaksdeltakerId?,
 ) {
     val kanInnvilges: Boolean = deltakelseStatus.deltarEllerHarDeltatt() && deltakelseFraOgMed != null && deltakelseTilOgMed != null
 
