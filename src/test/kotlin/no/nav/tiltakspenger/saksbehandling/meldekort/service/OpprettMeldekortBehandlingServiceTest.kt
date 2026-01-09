@@ -197,14 +197,6 @@ class OpprettMeldekortBehandlingServiceTest {
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = vedtak.id,
                 innvilgelsesperiode = andrePeriode,
-                innvilgelsesperioder = listOf(
-                    InnvilgelsesperiodeDTO(
-                        periode = andrePeriode.toDTO(),
-                        antallDagerPerMeldeperiode = 10,
-                        tiltaksdeltakelseId = vedtak.behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
-                        internDeltakelseId = vedtak.behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId?.toString(),
-                    ),
-                ),
             )
 
             val (_, meldekortbehandling) = tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(

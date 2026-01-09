@@ -59,14 +59,6 @@ class StartRevurderingOmgjøringTest {
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = rammevedtakSøknadsbehandling.id,
                 innvilgelsesperiode = omgjøringsperiode,
-                innvilgelsesperioder = listOf(
-                    InnvilgelsesperiodeDTO(
-                        periode = omgjøringsperiode.toDTO(),
-                        antallDagerPerMeldeperiode = 10,
-                        tiltaksdeltakelseId = rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
-                        internDeltakelseId = rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId?.toString(),
-                    ),
-                ),
             )
             // TODO jah: Fullfør etter vi har tilstrekkelig route-builder/verktøy i meldekort
         }

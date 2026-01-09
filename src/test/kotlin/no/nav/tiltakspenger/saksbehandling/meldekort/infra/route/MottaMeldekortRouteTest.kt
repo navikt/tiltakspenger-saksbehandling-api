@@ -39,6 +39,7 @@ internal class MottaMeldekortRouteTest {
         },
     )
 
+    // TODO jah: Flytt til egen Builder, slik at den kan gjenbrukes i andre tester og builders.
     private suspend fun ApplicationTestBuilder.mottaMeldekortRequest(
         dto: BrukerutfyltMeldekortDTO,
         tac: TestApplicationContext,

@@ -6,6 +6,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.util.reflect.instanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
@@ -22,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGru
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
@@ -161,8 +163,8 @@ class DelautomatiskBehandlingServiceTest {
 
     @Test
     fun `behandleAutomatisk - behandling var på vent og skal fortsatt vente - oppdaterer venter_til`() {
-        withTestApplicationContext { tac ->
-            val clock = tac.clock
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val iDag = LocalDate.now(clock)
             val innvilgelsesperiode =
                 Periode(fraOgMed = iDag.plusDays(3), tilOgMed = iDag.plusMonths(3))

@@ -200,6 +200,7 @@ interface StartSøknadsbehandlingBuilder {
             tac = tac,
             sakId = sak.id,
             behandlingId = behandling.id,
+            saksbehandler = saksbehandler,
             oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Innvilgelse(
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,

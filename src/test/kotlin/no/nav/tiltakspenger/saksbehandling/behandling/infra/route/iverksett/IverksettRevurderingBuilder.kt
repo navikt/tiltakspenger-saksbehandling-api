@@ -199,6 +199,7 @@ interface IverksettRevurderingBuilder {
     /**
      * Oppretter en revurdering til omgjøring og iverksetter den.
      * Merk: Denne oppretter ikke sak, søknad eller søknadsbehandlingen.
+     * @param innvilgelsesperioder Hvis null, brukes samme periode som [innvilgelsesperiode] og data fra den opprinnelige behandlingen.
      */
     suspend fun ApplicationTestBuilder.iverksettRevurderingOmgjøring(
         tac: TestApplicationContext,
@@ -207,18 +208,23 @@ interface IverksettRevurderingBuilder {
         innvilgelsesperiode: Periode,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        innvilgelsesperioder: List<InnvilgelsesperiodeDTO> = listOf(
-            InnvilgelsesperiodeDTO(
-                periode = innvilgelsesperiode.toDTO(),
-                tiltaksdeltakelseId = DEFAULT_TILTAK_DELTAKELSE_ID,
-                antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-                internDeltakelseId = DEFAULT_INTERN_TILTAKSDELTAKELSE_ID,
-            ),
-        ),
+        innvilgelsesperioder: List<InnvilgelsesperiodeDTO>? = null,
         barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperiode),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
     ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
+        val innvilgelsesperioderEllerDefault = innvilgelsesperioder ?: run {
+            val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+            val rammevedtakSomOmgjøres = sak.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
+            listOf(
+                InnvilgelsesperiodeDTO(
+                    periode = innvilgelsesperiode.toDTO(),
+                    antallDagerPerMeldeperiode = rammevedtakSomOmgjøres.antallDagerPerMeldeperiode!!.krymp(innvilgelsesperiode).single().verdi.value,
+                    tiltaksdeltakelseId = rammevedtakSomOmgjøres.behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                    internDeltakelseId = rammevedtakSomOmgjøres.behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId?.toString(),
+                ),
+            )
+        }
         return iverksettRevurdering(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -227,7 +233,7 @@ interface IverksettRevurderingBuilder {
                 OppdaterRevurderingDTO.Omgjøring(
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                    innvilgelsesperioder = innvilgelsesperioder,
+                    innvilgelsesperioder = innvilgelsesperioderEllerDefault,
                     barnetillegg = barnetilleggRevurdering.toBarnetilleggDTO(),
                 )
             },
