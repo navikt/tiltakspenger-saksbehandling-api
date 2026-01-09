@@ -84,6 +84,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
+                    internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId!!
@@ -181,6 +182,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
+                    internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId!!
@@ -278,6 +280,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
+                    internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId!!
@@ -389,6 +392,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
+                    internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return when (eksternId) {
@@ -504,6 +508,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
+                    internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return when (eksternId) {
