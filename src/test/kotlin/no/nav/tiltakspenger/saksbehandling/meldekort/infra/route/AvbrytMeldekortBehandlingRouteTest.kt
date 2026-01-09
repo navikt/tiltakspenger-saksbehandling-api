@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -28,35 +29,25 @@ class AvbrytMeldekortBehandlingRouteTest {
     @Test
     fun `saksbehandler kan avbryte meldekortbehandling`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _) = this.iverksettSøknadsbehandling(tac)
-            val saksbehandlerIdent = "Z12345"
-            val saksbehandler = ObjectMother.saksbehandler(navIdent = saksbehandlerIdent)
-            val meldekortBehandling = ObjectMother.meldekortUnderBehandling(
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
-                fnr = sak.fnr,
-                saksbehandler = saksbehandlerIdent,
-                status = MeldekortBehandlingStatus.UNDER_BEHANDLING,
-            )
-
-            tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)
-
-            val begrunnelse = "begrunnelse"
-
+            val saksbehandler = ObjectMother.saksbehandler()
+            val (sak, _, _, meldekortUnderBehandling, _) = this.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(
+                tac = tac,
+                saksbehandler = saksbehandler,
+            )!!
             avbrytMeldekortBehandling(
-                tac,
-                meldekortBehandling.sakId,
-                meldekortBehandling.id,
-                begrunnelse,
-                saksbehandler,
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = meldekortUnderBehandling.id,
+                begrunnelse = "begrunnelse",
+                saksbehandler = saksbehandler,
             ).also {
                 val oppdatertMeldekortbehandling =
-                    tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
+                    tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortUnderBehandling.id)
                 oppdatertMeldekortbehandling shouldNotBe null
                 oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.AVBRUTT
-                oppdatertMeldekortbehandling?.avbrutt?.saksbehandler shouldBe saksbehandlerIdent
+                oppdatertMeldekortbehandling?.avbrutt?.saksbehandler shouldBe saksbehandler.navIdent
                 oppdatertMeldekortbehandling?.avbrutt?.tidspunkt?.toLocalDate() shouldBe LocalDate.now()
-                oppdatertMeldekortbehandling?.avbrutt?.begrunnelse shouldBe begrunnelse
+                oppdatertMeldekortbehandling?.avbrutt?.begrunnelse shouldBe "begrunnelse"
 
                 val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
                 oppdatertSak.meldekortbehandlinger.ikkeAvbrutteMeldekortBehandlinger shouldBe emptyList()

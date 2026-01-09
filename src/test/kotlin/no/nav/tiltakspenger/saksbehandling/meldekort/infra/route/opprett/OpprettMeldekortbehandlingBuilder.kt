@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett
 
+import arrow.core.Tuple5
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
@@ -20,12 +21,40 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.MeldeperiodeKjedeDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
 import java.net.URLEncoder
 import java.net.URLEncoder.encode
 
 interface OpprettMeldekortbehandlingBuilder {
+
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(
+        tac: TestApplicationContext,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: String? = null,
+    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
+        val (sak, søknad, rammevedtak, _) = iverksettSøknadsbehandling(tac)
+        val førsteMeldeperiode = sak.meldeperiodeKjeder.sisteMeldeperiodePerKjede.first()
+        val (sakMedMeldekortbehandling, meldekortbehandling, opprettMeldekortbehandlingResponse) = opprettMeldekortbehandlingForSakId(
+            tac = tac,
+            sakId = sak.id,
+            kjedeId = førsteMeldeperiode.kjedeId,
+            saksbehandler = saksbehandler,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        )!!
+        return Tuple5(
+            sakMedMeldekortbehandling,
+            søknad,
+            rammevedtak,
+            meldekortbehandling,
+            opprettMeldekortbehandlingResponse,
+        )
+    }
 
     /** Forventer at det allerede finnes en sak, søknad og iverksatt søknadsbehandling m/rammevedtak */
     suspend fun ApplicationTestBuilder.opprettMeldekortbehandlingForSakId(
