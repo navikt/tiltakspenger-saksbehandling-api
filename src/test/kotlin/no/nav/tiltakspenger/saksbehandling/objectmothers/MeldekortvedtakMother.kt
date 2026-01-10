@@ -27,7 +27,7 @@ interface MeldekortvedtakMother : MotherOfAllMothers {
         id: VedtakId = VedtakId.random(),
         utbetalingId: UtbetalingId = UtbetalingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(LocalDate.now(), "1001"),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(LocalDate.now(clock), "1001"),
         fnr: Fnr = Fnr.random(),
         periode: Periode = Periode(2.januar(2023), 15.januar(2023)),
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,

@@ -130,9 +130,10 @@ class SøknadTest {
         inner class InnvilgbarSøknad {
             @Test
             fun `Manuelt satt søknadsperiode prioriteres over tiltaksperiode`() {
+                val clock = TikkendeKlokke()
                 val søknadstiltak = søknadstiltak(
-                    deltakelseFom = LocalDate.now(),
-                    deltakelseTom = LocalDate.now().plusMonths(1),
+                    deltakelseFom = LocalDate.now(clock),
+                    deltakelseTom = LocalDate.now(clock).plusMonths(1),
                 )
                 val søknadsperiode = Periode(
                     fraOgMed = førsteNovember24.toLocalDate(),
@@ -140,6 +141,7 @@ class SøknadTest {
                 )
 
                 val søknadMedManueltSattPeriode = ObjectMother.nyInnvilgbarSøknad(
+                    clock = clock,
                     søknadstiltak = søknadstiltak,
                     søknadsperiode = søknadsperiode,
                 )
@@ -151,12 +153,14 @@ class SøknadTest {
 
             @Test
             fun `Tiltaksperiode returneres om det ikke er satt noen søknadsperiode manuelt`() {
+                val clock = TikkendeKlokke()
                 val søknadstiltak = søknadstiltak(
-                    deltakelseFom = LocalDate.now(),
-                    deltakelseTom = LocalDate.now().plusMonths(1),
+                    deltakelseFom = LocalDate.now(clock),
+                    deltakelseTom = LocalDate.now(clock).plusMonths(1),
                 )
 
                 val søknadMedManueltSattPeriode = ObjectMother.nyInnvilgbarSøknad(
+                    clock = clock,
                     søknadstiltak = søknadstiltak,
                     søknadsperiode = null,
                 )
@@ -171,9 +175,10 @@ class SøknadTest {
         inner class IkkeInnvilgbarSøknad {
             @Test
             fun `Manuelt satt søknadsperiode prioriteres over tiltaksperiode`() {
+                val clock = TikkendeKlokke()
                 val søknadstiltak = søknadstiltak(
-                    deltakelseFom = LocalDate.now(),
-                    deltakelseTom = LocalDate.now().plusMonths(1),
+                    deltakelseFom = LocalDate.now(clock),
+                    deltakelseTom = LocalDate.now(clock).plusMonths(1),
                 )
                 val søknadsperiode = Periode(
                     fraOgMed = førsteNovember24.toLocalDate(),
@@ -181,6 +186,7 @@ class SøknadTest {
                 )
 
                 val søknadMedManueltSattPeriode = ObjectMother.nyIkkeInnvilgbarSøknad(
+                    clock = clock,
                     søknadstiltak = søknadstiltak,
                     søknadsperiode = søknadsperiode,
                 )
@@ -192,9 +198,10 @@ class SøknadTest {
 
             @Test
             fun `Tiltaksperiode returneres om det ikke er satt noen søknadsperiode manuelt`() {
+                val clock = TikkendeKlokke()
                 val søknadstiltak = søknadstiltak(
-                    deltakelseFom = LocalDate.now(),
-                    deltakelseTom = LocalDate.now().plusMonths(1),
+                    deltakelseFom = LocalDate.now(clock),
+                    deltakelseTom = LocalDate.now(clock).plusMonths(1),
                 )
                 val søknadsperiode = Periode(
                     fraOgMed = førsteNovember24.toLocalDate(),
@@ -202,6 +209,7 @@ class SøknadTest {
                 )
 
                 val søknadMedManueltSattPeriode = ObjectMother.nyIkkeInnvilgbarSøknad(
+                    clock = clock,
                     søknadstiltak = søknadstiltak,
                     søknadsperiode = søknadsperiode,
                 )

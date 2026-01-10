@@ -107,6 +107,7 @@ open class ApplicationContext(
         OppgaveHttpClient(
             baseUrl = Configuration.oppgaveUrl,
             getToken = { texasClient.getSystemToken(Configuration.oppgaveScope, IdentityProvider.AZUREAD) },
+            clock = clock,
         )
     }
 
@@ -217,6 +218,7 @@ open class ApplicationContext(
             personhendelseRepository = personhendelseRepository,
             sakRepo = sakContext.sakRepo,
             oppgaveKlient = oppgaveKlient,
+            clock = clock,
         )
     }
 

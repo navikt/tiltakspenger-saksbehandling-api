@@ -61,6 +61,6 @@ private val dbManager = TestDatabaseManager()
 /**
  * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon. Brukes når man gjør operasjoner på tvers av saker.
  */
-internal fun withMigratedDb(runIsolated: Boolean = false, test: (TestDataHelper) -> Unit) {
-    dbManager.withMigratedDb(runIsolated, test)
+internal fun withMigratedDb(runIsolated: Boolean = false, clock: TikkendeKlokke = TikkendeKlokke(), test: (TestDataHelper) -> Unit) {
+    dbManager.withMigratedDb(runIsolated, clock, test)
 }

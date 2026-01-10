@@ -166,7 +166,7 @@ fun Sak.genererSimuleringFraBeregning(
         } else {
             Simulering.Endring(
                 simuleringPerMeldeperiode = simuleringForMeldeperioder.toNonEmptyListOrThrow(),
-                datoBeregnet = LocalDate.now(),
+                datoBeregnet = LocalDate.now(clock),
                 // TODO jah: Litt usikker på hva denne kommer som fra OS.
                 totalBeløp = simuleringForMeldeperioder.sumOf { it.nyUtbetaling },
                 simuleringstidspunkt = simuleringstidspunkt,

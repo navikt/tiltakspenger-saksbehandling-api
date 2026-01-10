@@ -8,10 +8,12 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -75,8 +77,10 @@ class DelautomatiskBehandlingServiceTest {
     @Test
     fun `behandleAutomatisk - behandling der deltakelsen ikke har startet settes på vent`() {
         withTestApplicationContext { tac ->
+            val clock = tac.clock
+            val iDag = LocalDate.now(clock)
             val innvilgelsesperiode =
-                Periode(fraOgMed = LocalDate.now().plusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
+                Periode(fraOgMed = iDag.plusDays(3), tilOgMed = iDag.plusMonths(3))
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
                 tiltaksdeltakelsesperiode = innvilgelsesperiode,
@@ -112,8 +116,10 @@ class DelautomatiskBehandlingServiceTest {
     @Test
     fun `behandleAutomatisk - behandling der deltakelsen ikke lenger er på vent kan gjenopptas og behandles`() {
         withTestApplicationContext { tac ->
+            val clock = tac.clock
+            val iDag = LocalDate.now(clock)
             val innvilgelsesperiode =
-                Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
+                Periode(fraOgMed = iDag.minusDays(1), tilOgMed = iDag.plusMonths(3))
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
                 tiltaksdeltakelsesperiode = innvilgelsesperiode,
@@ -156,8 +162,10 @@ class DelautomatiskBehandlingServiceTest {
     @Test
     fun `behandleAutomatisk - behandling var på vent og skal fortsatt vente - oppdaterer venter_til`() {
         withTestApplicationContext { tac ->
+            val clock = tac.clock
+            val iDag = LocalDate.now(clock)
             val innvilgelsesperiode =
-                Periode(fraOgMed = LocalDate.now().plusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
+                Periode(fraOgMed = iDag.plusDays(3), tilOgMed = iDag.plusMonths(3))
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
                 tiltaksdeltakelsesperiode = innvilgelsesperiode,
@@ -201,8 +209,10 @@ class DelautomatiskBehandlingServiceTest {
     @Test
     fun `behandleAutomatisk - har ikke deltatt - sendes til manuell behandling`() {
         withTestApplicationContext { tac ->
+            val clock = tac.clock
+            val iDag = LocalDate.now(clock)
             val innvilgelsesperiode =
-                Periode(fraOgMed = LocalDate.now().minusDays(3), tilOgMed = LocalDate.now().plusMonths(3))
+                Periode(fraOgMed = iDag.minusDays(3), tilOgMed = iDag.plusMonths(3))
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
                 tiltaksdeltakelsesperiode = innvilgelsesperiode,
@@ -237,8 +247,10 @@ class DelautomatiskBehandlingServiceTest {
     @Test
     fun `behandleAutomatisk - mangler dager per uke og tiltaket er på deltid - sendes til manuell behandling`() {
         withTestApplicationContext { tac ->
+            val clock = tac.clock
+            val iDag = LocalDate.now(clock)
             val tiltaksdeltakelsesperiode =
-                Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
+                Periode(fraOgMed = iDag.minusDays(1), tilOgMed = iDag.plusMonths(3))
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
                 tiltaksdeltakelsesperiode = tiltaksdeltakelsesperiode,
@@ -276,8 +288,10 @@ class DelautomatiskBehandlingServiceTest {
     @Test
     fun `behandleAutomatisk - mangler dager per uke men tiltaket er på heltid - sendes til beslutning`() {
         withTestApplicationContext { tac ->
+            val clock = tac.clock
+            val iDag = LocalDate.now(clock)
             val tiltaksdeltakelsesperiode =
-                Periode(fraOgMed = LocalDate.now().minusDays(1), tilOgMed = LocalDate.now().plusMonths(3))
+                Periode(fraOgMed = iDag.minusDays(1), tilOgMed = iDag.plusMonths(3))
             val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                 fom = tiltaksdeltakelsesperiode.fraOgMed,
                 tom = tiltaksdeltakelsesperiode.tilOgMed,

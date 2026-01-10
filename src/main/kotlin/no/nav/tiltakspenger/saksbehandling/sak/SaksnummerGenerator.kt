@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.sak
 import java.time.LocalDate
 
 interface SaksnummerGenerator {
-    fun generer(dato: LocalDate = LocalDate.now()): Saksnummer
+    fun generer(dato: LocalDate): Saksnummer
 
     data object Prod : SaksnummerGenerator {
         override fun generer(dato: LocalDate): Saksnummer {

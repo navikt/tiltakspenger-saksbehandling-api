@@ -5,12 +5,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.date.getTimeMillis
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 import org.testcontainers.containers.PostgreSQLContainer
+import java.time.Clock
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.sql.DataSource
@@ -58,7 +60,7 @@ internal class TestDatabaseManager {
     /**
      * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon. Brukes når man gjør operasjoner på tvers av saker.
      */
-    fun withMigratedDb(runIsolated: Boolean = false, test: (TestDataHelper) -> Unit) {
+    fun withMigratedDb(runIsolated: Boolean = false, clock: TikkendeKlokke = TikkendeKlokke(), test: (TestDataHelper) -> Unit) {
         if (isClosed) {
             throw IllegalStateException("The test database is closed.")
         }
@@ -67,11 +69,11 @@ internal class TestDatabaseManager {
             if (runIsolated) {
                 lock.write {
                     cleanDatabase()
-                    test(TestDataHelper(dataSource, saksnummerGenerator))
+                    test(TestDataHelper(dataSource, saksnummerGenerator, clock))
                 }
             } else {
                 lock.read {
-                    test(TestDataHelper(dataSource, saksnummerGenerator))
+                    test(TestDataHelper(dataSource, saksnummerGenerator, clock))
                 }
             }
         } finally {

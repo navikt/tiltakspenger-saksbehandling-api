@@ -156,6 +156,6 @@ class EndretTiltaksdeltakerJobb(
 
         val tiltaksdeltakelseFraBehandling = behandling.getTiltaksdeltakelse(deltaker.id)
             ?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id} på behandling ${behandling.id}, skal ikke kunne skje")
-        return deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)
+        return deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling, clock = clock)
     }
 }

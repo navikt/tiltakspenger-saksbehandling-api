@@ -53,6 +53,7 @@ class IdenthendelseJobbTest {
     fun `behandleIdenthendelser - hendelsen er ikke behandlet - oppdaterer i database og produserer til kafka`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val søknadRepo = testDataHelper.søknadRepo
@@ -73,8 +74,8 @@ class IdenthendelseJobbTest {
                 val nyttFnr = Fnr.random()
 
                 val sak = ObjectMother.nySak(fnr = gammeltFnr)
-                val deltakelseFom = LocalDate.now().minusMonths(3)
-                val deltakelsesTom = LocalDate.now().minusWeeks(2)
+                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
+                val deltakelsesTom = LocalDate.now(clock).minusWeeks(2)
                 val (_, vedtak, _) = testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = gammeltFnr,
@@ -145,6 +146,7 @@ class IdenthendelseJobbTest {
     fun `behandleIdenthendelser - hendelsen er produsert på kafka, ikke oppdatert i db - oppdaterer i database`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val søknadRepo = testDataHelper.søknadRepo
@@ -165,8 +167,8 @@ class IdenthendelseJobbTest {
                 val nyttFnr = Fnr.random()
 
                 val sak = ObjectMother.nySak(fnr = gammeltFnr)
-                val deltakelseFom = LocalDate.now().minusMonths(3)
-                val deltakelsesTom = LocalDate.now().minusWeeks(2)
+                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
+                val deltakelsesTom = LocalDate.now(clock).minusWeeks(2)
                 val (_, vedtak, _) = testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = gammeltFnr,

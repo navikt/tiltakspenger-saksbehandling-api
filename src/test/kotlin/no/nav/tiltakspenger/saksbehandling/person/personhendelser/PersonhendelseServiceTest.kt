@@ -43,6 +43,7 @@ class PersonhendelseServiceTest {
     fun `behandlePersonhendelse - finnes ingen sak - ignorerer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
@@ -52,7 +53,7 @@ class PersonhendelseServiceTest {
                 personhendelseService.behandlePersonhendelse(
                     getPersonhendelse(
                         fnr = fnr,
-                        doedsfall = Doedsfall(LocalDate.now().minusDays(1)),
+                        doedsfall = Doedsfall(LocalDate.now(clock).minusDays(1)),
                     ),
                 )
 
@@ -65,6 +66,7 @@ class PersonhendelseServiceTest {
     fun `behandlePersonhendelse - dødsfall, finnes sak - lagrer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
@@ -82,7 +84,7 @@ class PersonhendelseServiceTest {
                 )
                 val personhendelse = getPersonhendelse(
                     fnr = fnr,
-                    doedsfall = Doedsfall(LocalDate.now().minusDays(1)),
+                    doedsfall = Doedsfall(LocalDate.now(clock).minusDays(1)),
                 )
 
                 personhendelseService.behandlePersonhendelse(personhendelse)
@@ -93,7 +95,7 @@ class PersonhendelseServiceTest {
                 personhendelseDb.fnr shouldBe fnr
                 personhendelseDb.hendelseId shouldBe personhendelse.hendelseId
                 personhendelseDb.opplysningstype shouldBe Opplysningstype.DOEDSFALL_V1
-                personhendelseDb.personhendelseType shouldBe PersonhendelseType.Doedsfall(LocalDate.now().minusDays(1))
+                personhendelseDb.personhendelseType shouldBe PersonhendelseType.Doedsfall(LocalDate.now(clock).minusDays(1))
                 personhendelseDb.sakId shouldBe sak.id
                 personhendelseDb.oppgaveId shouldBe null
                 personhendelseDb.oppgaveSistSjekket shouldBe null

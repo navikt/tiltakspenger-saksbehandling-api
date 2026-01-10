@@ -5,8 +5,12 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juli
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.json.deserialize
@@ -41,7 +45,8 @@ class UtbetalingerIT {
 
     @Test
     fun `Skal etterbetale ved revurdering som legger til barn`() {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(1.desember(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val sak = tac.førsteMeldekortIverksatt(
                 innvilgelsesperiode = vedtaksperiode,
                 fnr = Fnr.fromString("12345678911"),
@@ -101,7 +106,8 @@ class UtbetalingerIT {
 
     @Test
     fun `Skal etterbetale ved søknadsbehandling som legger til barn`() {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(1.desember(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val førsteSøknadsperiode = Periode(1.september(2025), 14.september(2025))
             val andreSøknadsperiode = Periode(7.september(2025), 28.september(2025))
             val sak = tac.førsteMeldekortIverksatt(
@@ -207,7 +213,8 @@ class UtbetalingerIT {
     // TODO: fjern denne og enable den forrige når feilutbetaling støttes igjen
     @Test
     fun `Behandling med feilutbetaling ved stans over utbetalt periode skal ikke kunne sendes til beslutning`() {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(1.desember(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val sak = tac.førsteMeldekortIverksatt(
                 innvilgelsesperiode = vedtaksperiode,
                 fnr = Fnr.fromString("12345678911"),

@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
 fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
     id: String,
     behandlingId: String,
-    opprettet: String = "2025-01-01T01:02:18.456789",
+    opprettet: String = "2025-01-01T01:02:19.456789",
     saksbehandler: String = "Z12345",
     beslutter: String = "B12345",
     opprinneligVedtaksperiode: Periode = 1.april(2025) til 10.april(2025),
@@ -121,7 +121,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
 fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOavslag(
     id: String,
     behandlingId: String,
-    opprettet: String = "2025-01-01T01:02:18.456789",
+    opprettet: String = "2025-01-01T01:02:19.456789",
     saksbehandler: String = "Z12345",
     beslutter: String = "B12345",
     opprinneligVedtaksperiode: Periode = 1.april(2025) til 10.april(2025),

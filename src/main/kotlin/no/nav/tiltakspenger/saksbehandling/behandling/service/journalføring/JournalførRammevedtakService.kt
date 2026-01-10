@@ -44,7 +44,7 @@ class JournalførRammevedtakService(
                 val correlationId = CorrelationId.generate()
                 log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.resultat.tilRammebehandlingResultatTypeDTO()}" }
                 Either.catch {
-                    val vedtaksdato = LocalDate.now()
+                    val vedtaksdato = LocalDate.now(clock)
                     val pdfOgJson = when (vedtak.resultat) {
                         is BehandlingResultat.Innvilgelse -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
                             vedtaksdato = vedtaksdato,

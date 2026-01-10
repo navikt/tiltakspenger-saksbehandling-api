@@ -213,6 +213,7 @@ open class BehandlingOgVedtakContext(
             genererStansbrevClient = genererVedtaksbrevForStansKlient,
             personService = personService,
             navIdentClient = navIdentClient,
+            clock = clock,
         )
     }
 

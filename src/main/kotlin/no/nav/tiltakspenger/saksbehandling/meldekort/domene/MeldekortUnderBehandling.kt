@@ -80,7 +80,7 @@ data class MeldekortUnderBehandling(
         simuler: suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
         clock: Clock,
     ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortUnderBehandling, SimuleringMedMetadata?>> {
-        validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft {
+        validerSaksbehandlerOgTilstand(kommando.saksbehandler, clock).onLeft {
             return it.tilKanIkkeOppdatereMeldekort().left()
         }
         val beregning = Beregning(beregn(meldeperiode))
@@ -104,7 +104,7 @@ data class MeldekortUnderBehandling(
         kommando: SendMeldekortTilBeslutterKommando,
         clock: Clock,
     ): Either<KanIkkeSendeMeldekortTilBeslutter, MeldekortBehandletManuelt> {
-        validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft {
+        validerSaksbehandlerOgTilstand(kommando.saksbehandler, clock).onLeft {
             return it.tilKanIkkeSendeMeldekortTilBeslutter().left()
         }
 
@@ -152,7 +152,7 @@ data class MeldekortUnderBehandling(
         }
     }
 
-    private fun validerSaksbehandlerOgTilstand(saksbehandler: Saksbehandler): Either<TilgangEllerTilstandsfeil, Unit> {
+    private fun validerSaksbehandlerOgTilstand(saksbehandler: Saksbehandler, clock: Clock): Either<TilgangEllerTilstandsfeil, Unit> {
         require(saksbehandler.navIdent == this.saksbehandler)
 
         require(!this.meldeperiode.ingenDagerGirRett) {
@@ -162,7 +162,7 @@ data class MeldekortUnderBehandling(
         if (this.status != UNDER_BEHANDLING) {
             throw IllegalStateException("Status må være UNDER_BEHANDLING. Kan ikke oppdatere meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler.")
         }
-        if (!erKlarTilUtfylling()) {
+        if (!erKlarTilUtfylling(clock)) {
             // John har avklart med Sølvi og Taulant at vi bør ha en begrensning på at vi kan fylle ut et meldekort hvis dagens dato er innenfor meldekortperioden eller senere.
             // Dette kan endres på ved behov.
             return TilgangEllerTilstandsfeil.MeldekortperiodenKanIkkeVæreFremITid.left()
@@ -170,8 +170,8 @@ data class MeldekortUnderBehandling(
         return Unit.right()
     }
 
-    fun erKlarTilUtfylling(): Boolean {
-        return !LocalDate.now().isBefore(periode.fraOgMed)
+    fun erKlarTilUtfylling(clock: Clock): Boolean {
+        return !LocalDate.now(clock).isBefore(periode.fraOgMed)
     }
 
     override fun overta(

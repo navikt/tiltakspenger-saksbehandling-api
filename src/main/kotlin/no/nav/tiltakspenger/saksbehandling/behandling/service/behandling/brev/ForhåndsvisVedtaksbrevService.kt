@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.toAntallDagerTekst
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import java.time.Clock
 import java.time.LocalDate
 
 class ForhåndsvisVedtaksbrevService(
@@ -25,6 +26,7 @@ class ForhåndsvisVedtaksbrevService(
     private val genererStansbrevClient: GenererVedtaksbrevForStansKlient,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
+    private val clock: Clock,
 ) {
     suspend fun forhåndsvisVedtaksbrev(
         kommando: ForhåndsvisVedtaksbrevKommando,
@@ -83,7 +85,7 @@ class ForhåndsvisVedtaksbrevService(
     ): PdfA = genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrev(
         hentBrukersNavn = personService::hentNavn,
         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-        vedtaksdato = LocalDate.now(),
+        vedtaksdato = LocalDate.now(clock),
         fnr = sak.fnr,
         saksbehandlerNavIdent = behandling.saksbehandler!!,
         beslutterNavIdent = behandling.beslutter,
@@ -112,7 +114,7 @@ class ForhåndsvisVedtaksbrevService(
         return genererStansbrevClient.genererStansvedtak(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-            vedtaksdato = LocalDate.now(),
+            vedtaksdato = LocalDate.now(clock),
             fnr = sak.fnr,
             saksbehandlerNavIdent = behandling.saksbehandler!!,
             beslutterNavIdent = behandling.beslutter,
@@ -137,7 +139,7 @@ class ForhåndsvisVedtaksbrevService(
     ): PdfA = genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrev(
         hentBrukersNavn = personService::hentNavn,
         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-        vedtaksdato = LocalDate.now(),
+        vedtaksdato = LocalDate.now(clock),
         fnr = sak.fnr,
         saksbehandlerNavIdent = behandling.saksbehandler!!,
         beslutterNavIdent = behandling.beslutter,
@@ -173,7 +175,7 @@ class ForhåndsvisVedtaksbrevService(
         tilleggstekst = kommando.fritekstTilVedtaksbrev,
         forhåndsvisning = true,
         harSøktBarnetillegg = behandling.søknad.barnetillegg.isNotEmpty(),
-        datoForUtsending = LocalDate.now(),
+        datoForUtsending = LocalDate.now(clock),
     ).fold(
         ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
         ifRight = { it.pdf },
@@ -187,7 +189,7 @@ class ForhåndsvisVedtaksbrevService(
     ): PdfA = genererInnvilgelsesbrevClient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
         hentBrukersNavn = personService::hentNavn,
         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-        vedtaksdato = LocalDate.now(),
+        vedtaksdato = LocalDate.now(clock),
         tilleggstekst = kommando.fritekstTilVedtaksbrev,
         fnr = sak.fnr,
         saksbehandlerNavIdent = behandling.saksbehandler!!,

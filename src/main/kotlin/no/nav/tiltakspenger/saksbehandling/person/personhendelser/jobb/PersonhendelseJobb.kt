@@ -10,12 +10,14 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.Personhen
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.harInnvilgetTiltakspengerEtterDato
 import no.nav.tiltakspenger.saksbehandling.vedtak.harInnvilgetTiltakspengerPåDato
+import java.time.Clock
 import java.time.LocalDate
 
 class PersonhendelseJobb(
     private val personhendelseRepository: PersonhendelseRepository,
     private val sakRepo: SakRepo,
     private val oppgaveKlient: OppgaveKlient,
+    private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -70,7 +72,7 @@ class PersonhendelseJobb(
 
     private fun mottarTiltakspengerNaEllerIFremtiden(
         sak: Sak,
-        dato: LocalDate = LocalDate.now(),
+        dato: LocalDate = LocalDate.now(clock),
     ): Boolean = sak.harInnvilgetTiltakspengerPåDato(dato) || sak.harInnvilgetTiltakspengerEtterDato(dato)
 
     private fun PersonhendelseDb.finnOppgavebehov() =

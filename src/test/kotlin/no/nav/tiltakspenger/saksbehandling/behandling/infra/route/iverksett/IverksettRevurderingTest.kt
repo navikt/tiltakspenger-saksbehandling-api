@@ -216,7 +216,7 @@ internal class IverksettRevurderingTest {
                 gjeldendeInnvilgetPerioder = listOf(9.til(11.april(2025))),
                 opprinneligVedtaksperiode = 9.til(11.april(2025)),
                 opprinneligInnvilgetPerioder = listOf(9.til(11.april(2025))),
-                opprettet = "2025-01-01T01:02:33.456789",
+                opprettet = "2025-01-01T01:02:34.456789",
                 resultat = "REVURDERING_INNVILGELSE",
                 innvilgelsesperioder = """
                     [
@@ -271,6 +271,7 @@ internal class IverksettRevurderingTest {
                 gjeldendeVedtaksperioder = listOf(1.til(4.april(2025))),
                 gjeldendeInnvilgetPerioder = listOf(1.til(4.april(2025))),
                 omgjortGrad = "DELVIS",
+                opprettet = "2025-01-01T01:02:19.456789",
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTO(
                 id = rammevedtakRevurdering.id.toString(),
@@ -279,7 +280,7 @@ internal class IverksettRevurderingTest {
                 gjeldendeInnvilgetPerioder = emptyList(),
                 opprinneligVedtaksperiode = 5.til(10.april(2025)),
                 opprinneligInnvilgetPerioder = emptyList(),
-                opprettet = "2025-01-01T01:02:33.456789",
+                opprettet = "2025-01-01T01:02:34.456789",
                 resultat = "STANS",
                 barnetillegg = null,
                 innvilgelsesperioder = null,
@@ -316,6 +317,7 @@ internal class IverksettRevurderingTest {
                 gjeldendeInnvilgetPerioder = emptyList(),
                 erGjeldende = false,
                 omgjortGrad = "HELT",
+                opprettet = "2025-01-01T01:02:19.456789",
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTO(
                 id = sak.rammevedtaksliste[1].id.toString(),
@@ -324,7 +326,7 @@ internal class IverksettRevurderingTest {
                 gjeldendeInnvilgetPerioder = listOf(1.til(10.april(2025))),
                 opprinneligVedtaksperiode = 1.til(10.april(2025)),
                 opprinneligInnvilgetPerioder = listOf(1.til(10.april(2025))),
-                opprettet = "2025-01-01T01:02:33.456789",
+                opprettet = "2025-01-01T01:02:34.456789",
                 resultat = "OMGJØRING",
                 saksbehandler = revurdering.saksbehandler!!,
                 beslutter = revurdering.beslutter!!,

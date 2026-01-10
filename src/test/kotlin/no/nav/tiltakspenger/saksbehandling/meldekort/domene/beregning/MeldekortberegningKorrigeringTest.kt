@@ -5,11 +5,14 @@ import arrow.core.toNonEmptyListOrNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.dato.desember
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.satser.Satsdag
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilMeldeperiodeBeregninger
@@ -302,9 +305,11 @@ internal class MeldekortberegningKorrigeringTest {
     @Test
     fun `Skal beregne sykedager med riktige satser rundt årsskifte`() {
         runTest {
-            val førsteDag = LocalDate.of(2024, 12, 23)
+            val clock = TikkendeKlokke(fixedClockAt(1.februar(2025)))
+            val førsteDag = 23.desember(2024)
 
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                clock = clock,
                 vedtaksperiode = Periode(førsteDag, førsteDag.plusDays(100)),
                 meldeperioder = nonEmptyListOf(
                     periodeMedFullDeltakelse(førsteDag),

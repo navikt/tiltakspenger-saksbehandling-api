@@ -87,7 +87,7 @@ class DelautomatiskBehandlingService(
         if (!soknadstiltakFraSaksopplysning.deltakelseStatus.harIkkeStartet() || soknadstiltakFraSaksopplysning.deltakelseFraOgMed == null) {
             return false
         }
-        if (soknadstiltakFraSaksopplysning.deltakelseFraOgMed.isAfter(LocalDate.now())) {
+        if (soknadstiltakFraSaksopplysning.deltakelseFraOgMed.isAfter(LocalDate.now(clock))) {
             log.info { "Startdato for deltakelse for behandling ${behandling.id} er ikke passert, setter på vent. CorrelationId: $correlationId" }
             return true
         }
