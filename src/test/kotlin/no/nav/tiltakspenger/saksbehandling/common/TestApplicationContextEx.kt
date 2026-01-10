@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
 fun withTestApplicationContext(
     additionalConfig: Application.() -> Unit = {},
     clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
-    texasClient: TexasClient = TexasClientFake(),
+    texasClient: TexasClient = TexasClientFake(clock),
     sessionFactory: SessionFactory = TestSessionFactory(),
     tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
     testBlock: suspend ApplicationTestBuilder.(TestApplicationContext) -> Unit,

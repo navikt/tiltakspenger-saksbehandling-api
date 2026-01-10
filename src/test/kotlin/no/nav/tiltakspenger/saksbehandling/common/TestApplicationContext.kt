@@ -70,7 +70,7 @@ import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFa
 class TestApplicationContext(
     override val sessionFactory: SessionFactory = TestSessionFactory(),
     override val clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
-    override val texasClient: TexasClient = TexasClientFake(),
+    override val texasClient: TexasClient = TexasClientFake(clock),
     val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
 ) : ApplicationContext(
     gitHash = "fake-git-hash",

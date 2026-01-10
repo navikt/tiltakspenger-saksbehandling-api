@@ -47,13 +47,15 @@ class PersonhendelseServiceTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                val personhendelseService =
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
 
                 personhendelseService.behandlePersonhendelse(
                     getPersonhendelse(
                         fnr = fnr,
                         doedsfall = Doedsfall(LocalDate.now(clock).minusDays(1)),
+                        clock = clock,
                     ),
                 )
 
@@ -70,7 +72,8 @@ class PersonhendelseServiceTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                val personhendelseService =
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 testDataHelper.persisterSakOgSøknad(
@@ -85,6 +88,7 @@ class PersonhendelseServiceTest {
                 val personhendelse = getPersonhendelse(
                     fnr = fnr,
                     doedsfall = Doedsfall(LocalDate.now(clock).minusDays(1)),
+                    clock = clock,
                 )
 
                 personhendelseService.behandlePersonhendelse(personhendelse)
@@ -95,7 +99,9 @@ class PersonhendelseServiceTest {
                 personhendelseDb.fnr shouldBe fnr
                 personhendelseDb.hendelseId shouldBe personhendelse.hendelseId
                 personhendelseDb.opplysningstype shouldBe Opplysningstype.DOEDSFALL_V1
-                personhendelseDb.personhendelseType shouldBe PersonhendelseType.Doedsfall(LocalDate.now(clock).minusDays(1))
+                personhendelseDb.personhendelseType shouldBe PersonhendelseType.Doedsfall(
+                    LocalDate.now(clock).minusDays(1),
+                )
                 personhendelseDb.sakId shouldBe sak.id
                 personhendelseDb.oppgaveId shouldBe null
                 personhendelseDb.oppgaveSistSjekket shouldBe null
@@ -107,10 +113,12 @@ class PersonhendelseServiceTest {
     fun `behandlePersonhendelse - forelderbarnrelasjon, bruker er forelder, finnes sak - lagrer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                val personhendelseService =
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 testDataHelper.persisterSakOgSøknad(
@@ -125,6 +133,7 @@ class PersonhendelseServiceTest {
                 val personhendelse = getPersonhendelse(
                     fnr = fnr,
                     forelderBarnRelasjon = ForelderBarnRelasjon("12345678910", "BARN", "FAR"),
+                    clock = clock,
                 )
 
                 personhendelseService.behandlePersonhendelse(personhendelse)
@@ -150,10 +159,12 @@ class PersonhendelseServiceTest {
     fun `behandlePersonhendelse - forelderbarnrelasjon, bruker er barn, finnes sak - ignorerer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                val personhendelseService =
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 testDataHelper.persisterSakOgSøknad(
@@ -168,6 +179,7 @@ class PersonhendelseServiceTest {
                 val personhendelse = getPersonhendelse(
                     fnr = fnr,
                     forelderBarnRelasjon = ForelderBarnRelasjon("12345678910", "FAR", "BARN"),
+                    clock = clock,
                 )
 
                 personhendelseService.behandlePersonhendelse(personhendelse)
@@ -181,10 +193,12 @@ class PersonhendelseServiceTest {
     fun `behandlePersonhendelse - adressebeskyttelse, finnes sak, adressebeskyttet i PDL - oppdaterer og lagrer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                val personhendelseService =
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling(
@@ -209,6 +223,7 @@ class PersonhendelseServiceTest {
                 val personhendelse = getPersonhendelse(
                     fnr = fnr,
                     adressebeskyttelse = Adressebeskyttelse(Gradering.STRENGT_FORTROLIG),
+                    clock = clock,
                 )
                 coEvery { personKlient.hentEnkelPerson(fnr) } returns EnkelPerson(
                     fnr = fnr,
@@ -250,10 +265,12 @@ class PersonhendelseServiceTest {
     fun `behandlePersonhendelse - adressebeskyttelse, finnes sak, ikke adressebeskyttet i PDL - oppdaterer ikke`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                val personhendelseService =
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling(
@@ -278,6 +295,7 @@ class PersonhendelseServiceTest {
                 val personhendelse = getPersonhendelse(
                     fnr = fnr,
                     adressebeskyttelse = Adressebeskyttelse(Gradering.STRENGT_FORTROLIG),
+                    clock = clock,
                 )
                 coEvery { personKlient.hentEnkelPerson(fnr) } returns EnkelPerson(
                     fnr = fnr,
@@ -309,6 +327,7 @@ class PersonhendelseServiceTest {
         doedsfall: Doedsfall? = null,
         forelderBarnRelasjon: ForelderBarnRelasjon? = null,
         adressebeskyttelse: Adressebeskyttelse? = null,
+        clock: Clock,
     ): Personhendelse {
         val personidenter = listOf("12345", fnr.verdi)
 
@@ -324,7 +343,7 @@ class PersonhendelseServiceTest {
             "hendelseId",
             personidenter,
             "FREG",
-            Instant.now(),
+            Instant.now(clock),
             opplysningstype,
             Endringstype.OPPRETTET,
             null,
