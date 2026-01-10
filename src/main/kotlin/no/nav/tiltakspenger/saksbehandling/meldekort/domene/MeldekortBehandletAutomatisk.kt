@@ -71,15 +71,18 @@ data class MeldekortBehandletAutomatisk(
         }
     }
 
-    override fun overta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
+    override fun overta(
+        saksbehandler: Saksbehandler,
+        clock: Clock,
+    ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return KunneIkkeOvertaMeldekortBehandling.KanIkkeOvertaAutomatiskBehandling.left()
     }
 
-    override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+    override fun taMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling {
         throw IllegalStateException("Kan ikke tildele automatisk behandlet meldekort")
     }
 
-    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling {
         throw IllegalStateException("Kan ikke legge tilbake automatisk behandlet meldekort")
     }
 

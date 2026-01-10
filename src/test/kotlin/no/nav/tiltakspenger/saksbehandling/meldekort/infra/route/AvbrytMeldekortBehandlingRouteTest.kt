@@ -15,6 +15,7 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -46,7 +47,7 @@ class AvbrytMeldekortBehandlingRouteTest {
                 oppdatertMeldekortbehandling shouldNotBe null
                 oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.AVBRUTT
                 oppdatertMeldekortbehandling?.avbrutt?.saksbehandler shouldBe saksbehandler.navIdent
-                oppdatertMeldekortbehandling?.avbrutt?.tidspunkt?.toLocalDate() shouldBe LocalDate.now()
+                oppdatertMeldekortbehandling?.avbrutt?.tidspunkt?.toLocalDate() shouldBe 1.januar(2025)
                 oppdatertMeldekortbehandling?.avbrutt?.begrunnelse shouldBe "begrunnelse"
 
                 val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!

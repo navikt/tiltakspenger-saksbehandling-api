@@ -3,13 +3,14 @@
 package no.nav.tiltakspenger.saksbehandling.sak
 
 import arrow.atomic.Atomic
+import java.time.Clock
 import java.time.LocalDate
 
 /**
- * Trådsikker. Dersom tester deler database, bør de bruke en felles statisk versjon av denne.
+ * Trådsikker.
  */
 class TestSaksnummerGenerator(
-    første: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+    første: Saksnummer,
 ) : SaksnummerGenerator {
     private val neste = Atomic(første)
 

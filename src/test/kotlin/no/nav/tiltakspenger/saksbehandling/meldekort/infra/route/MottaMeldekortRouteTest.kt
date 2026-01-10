@@ -12,6 +12,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
@@ -22,15 +23,16 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.LocalDateTime
 
 internal class MottaMeldekortRouteTest {
-    private fun utfyltMeldekortDTO(meldeperiode: Meldeperiode) = BrukerutfyltMeldekortDTO(
+    private fun utfyltMeldekortDTO(meldeperiode: Meldeperiode, clock: Clock) = BrukerutfyltMeldekortDTO(
         id = MeldekortId.random().toString(),
         meldeperiodeId = meldeperiode.id.toString(),
         sakId = meldeperiode.sakId.toString(),
         periode = meldeperiode.periode.toDTO(),
-        mottatt = LocalDateTime.now(),
+        mottatt = nå(clock),
         journalpostId = "1234",
         dager = meldeperiode.girRett.entries.associate {
             it.key to (if (it.value) BrukerutfyltMeldekortDTO.Status.DELTATT_UTEN_LØNN_I_TILTAKET else BrukerutfyltMeldekortDTO.Status.IKKE_BESVART)
@@ -67,7 +69,7 @@ internal class MottaMeldekortRouteTest {
                 val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
                 tac.meldekortContext.meldeperiodeRepo.lagre(meldeperiode)
 
-                val dto = utfyltMeldekortDTO(meldeperiode)
+                val dto = utfyltMeldekortDTO(meldeperiode, tac.clock)
                 mottaMeldekortRequest(dto, tac).apply {
                     status shouldBe HttpStatusCode.OK
                     tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id))
@@ -91,7 +93,7 @@ internal class MottaMeldekortRouteTest {
                 val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
                 meldeperiodeRepo.lagre(meldeperiode)
 
-                val dto = utfyltMeldekortDTO(meldeperiode)
+                val dto = utfyltMeldekortDTO(meldeperiode, tac.clock)
 
                 mottaMeldekortRequest(dto, tac).apply {
                     status shouldBe HttpStatusCode.OK
@@ -125,7 +127,7 @@ internal class MottaMeldekortRouteTest {
                 val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
                 meldeperiodeRepo.lagre(meldeperiode)
 
-                val dto = utfyltMeldekortDTO(meldeperiode)
+                val dto = utfyltMeldekortDTO(meldeperiode, tac.clock)
                 val dtoMedDiff = dto.copy(mottatt = dto.mottatt.minusDays(1))
 
                 mottaMeldekortRequest(dto, tac).apply {

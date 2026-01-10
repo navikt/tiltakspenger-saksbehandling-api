@@ -51,7 +51,8 @@ interface SakMother {
     fun nySak(
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        clock: Clock = KlokkeMother.clock,
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
         søknader: List<Søknad> = emptyList(),
         behandlinger: Rammebehandlinger = Rammebehandlinger.empty(),
         kanSendeInnHelgForMeldekort: Boolean = false,
@@ -258,13 +259,13 @@ interface SakMother {
     fun nySakMedVedtak(
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        clock: Clock = fixedClock,
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
         saksbehandler: Saksbehandler = saksbehandler(),
         vedtaksperiode: Periode = vedtaksperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
         kanSendeInnHelgForMeldekort: Boolean = false,
-        clock: Clock = fixedClock,
     ): Triple<Sak, Vedtak, Rammebehandling> {
         val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(
             sakId = sakId,
@@ -311,12 +312,12 @@ interface SakMother {
     fun nySakMedAvslagsvedtak(
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        clock: Clock = fixedClock,
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
         saksbehandler: Saksbehandler = saksbehandler(),
         avslagsperiode: Periode = vedtaksperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         kanSendeInnHelgForMeldekort: Boolean = false,
-        clock: Clock = fixedClock,
     ): Triple<Sak, Rammevedtak, Rammebehandling> {
         val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(
             sakId = sakId,

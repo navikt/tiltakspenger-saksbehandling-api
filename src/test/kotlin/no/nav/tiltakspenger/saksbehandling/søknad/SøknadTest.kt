@@ -3,7 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.søknad
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.førsteNovember24
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -19,19 +21,19 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class SøknadTest {
     @Nested
     inner class Opprett {
         @Test
         fun `oppretter en innvilgbar søknad`() {
+            val clock = TikkendeKlokke()
             val sak = ObjectMother.nySak()
             val opprettetSøknad = Søknad.opprett(
                 sak = sak,
                 journalpostId = "99999",
-                opprettet = LocalDateTime.now(),
-                tidsstempelHosOss = LocalDateTime.now(),
+                opprettet = nå(clock),
+                tidsstempelHosOss = nå(clock),
                 personopplysninger = ObjectMother.personSøknad(fnr = sak.fnr),
                 søknadstiltak = søknadstiltak(),
                 barnetillegg = emptyList(),
@@ -60,12 +62,13 @@ class SøknadTest {
 
         @Test
         fun `oppretter en ikke innvilgbar søknad`() {
-            val sak = ObjectMother.nySak()
+            val clock = TikkendeKlokke()
+            val sak = ObjectMother.nySak(clock = clock)
             val opprettetSøknad = Søknad.opprett(
                 sak = sak,
                 journalpostId = "99999",
-                opprettet = LocalDateTime.now(),
-                tidsstempelHosOss = LocalDateTime.now(),
+                opprettet = nå(clock),
+                tidsstempelHosOss = nå(clock),
                 personopplysninger = ObjectMother.personSøknad(fnr = sak.fnr),
                 søknadstiltak = null,
                 barnetillegg = emptyList(),
@@ -87,7 +90,6 @@ class SøknadTest {
                 manueltSattTiltak = null,
                 søknadstype = Søknadstype.PAPIR_SKJEMA,
             )
-
             opprettetSøknad.shouldBeInstanceOf<IkkeInnvilgbarSøknad>()
             opprettetSøknad.tiltak shouldBe null
         }

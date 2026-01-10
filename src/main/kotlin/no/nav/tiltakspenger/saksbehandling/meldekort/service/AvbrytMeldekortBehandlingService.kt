@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
 import arrow.core.left
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeAvbryteMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -10,11 +11,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehand
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.AvbrytMeldekortBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import java.time.LocalDateTime
+import java.time.Clock
 
 class AvbrytMeldekortBehandlingService(
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
+    private val clock: Clock,
 ) {
     fun avbryt(command: AvbrytMeldekortBehandlingCommand): Either<KanIkkeAvbryteMeldekortBehandling, Pair<Sak, MeldekortBehandling>> {
         val sak: Sak = sakService.hentForSakId(command.sakId)
@@ -23,7 +25,7 @@ class AvbrytMeldekortBehandlingService(
         if (meldekortBehandling !is MeldekortUnderBehandling) {
             return KanIkkeAvbryteMeldekortBehandling.MåVæreUnderBehandling.left()
         }
-        return meldekortBehandling.avbryt(command.saksbehandler, command.begrunnelse, LocalDateTime.now()).map {
+        return meldekortBehandling.avbryt(command.saksbehandler, command.begrunnelse, nå(clock)).map {
             when (it.status) {
                 MeldekortBehandlingStatus.AVBRUTT -> meldekortBehandlingRepo.oppdater(it)
                 else -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne avbryte")

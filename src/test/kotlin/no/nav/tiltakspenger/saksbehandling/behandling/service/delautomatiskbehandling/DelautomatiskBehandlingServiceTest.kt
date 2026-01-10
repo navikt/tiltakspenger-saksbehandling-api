@@ -6,6 +6,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.util.reflect.instanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -28,7 +29,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class DelautomatiskBehandlingServiceTest {
     @Test
@@ -171,13 +171,13 @@ class DelautomatiskBehandlingServiceTest {
                 endretAv = AUTOMATISK_SAKSBEHANDLER,
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                 clock = tac.clock,
-                venterTil = LocalDateTime.now(),
+                venterTil = nå(tac.clock),
             ) as Søknadsbehandling
             tac.behandlingContext.behandlingRepo.lagre(behandlingPaVent)
             tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
-                it.venterTil?.toLocalDate() shouldBe LocalDate.now()
+                it.venterTil?.toLocalDate() shouldBe 1.januar(2025)
             }
 
             soknad.shouldBeInstanceOf<InnvilgbarSøknad>()

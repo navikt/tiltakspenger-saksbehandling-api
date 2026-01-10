@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.enUkeEtterFixedClock
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
@@ -280,11 +281,13 @@ class MeldeperiodeKjederTest {
     @Test
     fun `test forskjellige hent-funksjoner`() {
         val sakId = SakId.random()
-        val saksnummer = Saksnummer.genererSaknummer(løpenr = "2001")
+        val clock = TikkendeKlokke()
+        val saksnummer = Saksnummer.genererSaknummer(løpenr = "2001", clock = clock)
         val fnr = Fnr.random()
         val periode1 = 1 til 14.september(2025)
         val periode2 = 15 til 28.september(2025)
         val meldeperiode1V1 = ObjectMother.meldeperiode(
+            clock = clock,
             periode = periode1,
             saksnummer = saksnummer,
             versjon = HendelseVersjon(1),
@@ -292,6 +295,7 @@ class MeldeperiodeKjederTest {
             fnr = fnr,
         )
         val meldeperiode1V2 = ObjectMother.meldeperiode(
+            clock = clock,
             periode = periode1,
             saksnummer = saksnummer,
             versjon = HendelseVersjon(2),
@@ -300,6 +304,7 @@ class MeldeperiodeKjederTest {
             antallDagerForPeriode = 9,
         )
         val meldeperiode2 = ObjectMother.meldeperiode(
+            clock = clock,
             periode = periode2,
             saksnummer = saksnummer,
             sakId = sakId,

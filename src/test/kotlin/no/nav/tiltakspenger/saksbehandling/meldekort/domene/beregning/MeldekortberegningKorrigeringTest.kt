@@ -4,13 +4,13 @@ import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.satser.Satsdag
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilMeldeperiodeBeregninger
 import org.junit.jupiter.api.Test
@@ -125,7 +125,9 @@ internal class MeldekortberegningKorrigeringTest {
     @Test
     fun `Skal beregne sykedager to perioder frem i tid ved korrigering til 0-beløp`() {
         runTest {
+            val clock = TikkendeKlokke()
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                clock = clock,
                 vedtaksperiode = vedtaksperiode,
                 meldeperioder = nonEmptyListOf(
                     periodeMedStatuser(

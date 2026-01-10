@@ -134,7 +134,7 @@ class IdenthendelseServiceTest {
                         saksnummer = sak.saksnummer,
                     ),
                 )
-                val sak2 = ObjectMother.nySak(fnr = nyttFnr, saksnummer = Saksnummer.genererSaknummer(løpenr = "1000"))
+                val sak2 = ObjectMother.nySak(fnr = nyttFnr, saksnummer = Saksnummer.genererSaknummer(løpenr = "1000", clock = testDataHelper.clock))
                 testDataHelper.persisterSakOgSøknad(
                     fnr = nyttFnr,
                     sak = sak2,
@@ -181,7 +181,7 @@ class IdenthendelseServiceTest {
                     ),
                 )
                 val sak2 =
-                    ObjectMother.nySak(fnr = gammeltFnr2, saksnummer = Saksnummer.genererSaknummer(løpenr = "1000"))
+                    ObjectMother.nySak(fnr = gammeltFnr2, saksnummer = Saksnummer.genererSaknummer(løpenr = "1000", clock = testDataHelper.clock))
                 testDataHelper.persisterSakOgSøknad(
                     fnr = gammeltFnr2,
                     sak = sak2,

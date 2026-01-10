@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.sak
 
+import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -25,10 +26,17 @@ data class Saksnummer(
 
     companion object {
         fun genererSaknummer(
-            dato: LocalDate = LocalDate.now(),
+            dato: LocalDate,
             løpenr: String,
         ): Saksnummer {
             return Saksnummer(genererSaksnummerPrefiks(dato) + løpenr)
+        }
+
+        fun genererSaknummer(
+            clock: Clock,
+            løpenr: String,
+        ): Saksnummer {
+            return Saksnummer(genererSaksnummerPrefiks(LocalDate.now(clock)) + løpenr)
         }
 
         fun genererSaksnummerPrefiks(date: LocalDate): String =

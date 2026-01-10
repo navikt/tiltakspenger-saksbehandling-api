@@ -26,7 +26,8 @@ import java.time.temporal.ChronoUnit
 internal class UtbetalingHttpClientTest {
     @Test
     fun `bør håndtere OK_UTEN_UTBETALING fra helved`() {
-        val saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001")
+        val clock = fixedClock
+        val saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock)
         val utbetalingId = UtbetalingId.random()
         val sakId = SakId.random()
         val response = """"OK_UTEN_UTBETALING""""
@@ -38,8 +39,6 @@ internal class UtbetalingHttpClientTest {
                 header = "Content-Type" to "application/json"
                 body = response
             }
-
-            val clock = fixedClock
             val pdlClient = UtbetalingHttpKlient(
                 baseUrl = wiremock.baseUrl(),
                 getToken = { ObjectMother.accessToken() },

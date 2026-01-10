@@ -10,7 +10,9 @@ import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.kafka.Producer
 import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
@@ -29,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 class IdenthendelseJobbTest {
@@ -128,8 +129,8 @@ class IdenthendelseJobbTest {
                 }
                 val oppdatertIdenthendelseDb = identhendelseRepository.hent(identhendelseDb.id)
                 oppdatertIdenthendelseDb shouldNotBe null
-                oppdatertIdenthendelseDb?.produsertHendelse?.toLocalDate() shouldBe LocalDate.now()
-                oppdatertIdenthendelseDb?.oppdatertDatabase?.toLocalDate() shouldBe LocalDate.now()
+                oppdatertIdenthendelseDb?.produsertHendelse?.toLocalDate() shouldBe 1.januar(2025)
+                oppdatertIdenthendelseDb?.oppdatertDatabase?.toLocalDate() shouldBe 1.januar(2025)
 
                 sakRepo.hentForSakId(sak.id)?.fnr shouldBe nyttFnr
                 søknadRepo.hentSøknaderForFnr(gammeltFnr) shouldBe emptyList()
@@ -204,7 +205,7 @@ class IdenthendelseJobbTest {
                         Personident(nyttFnr.verdi, false, Identtype.FOLKEREGISTERIDENT),
                         Personident(gammeltFnr.verdi, true, Identtype.FOLKEREGISTERIDENT),
                     ),
-                    produsertHendelse = LocalDateTime.now(),
+                    produsertHendelse = nå(testDataHelper.clock),
                     oppdatertDatabase = null,
                 )
                 identhendelseRepository.lagre(identhendelseDb)
@@ -215,8 +216,8 @@ class IdenthendelseJobbTest {
 
                 val oppdatertIdenthendelseDb = identhendelseRepository.hent(identhendelseDb.id)
                 oppdatertIdenthendelseDb shouldNotBe null
-                oppdatertIdenthendelseDb?.produsertHendelse?.toLocalDate() shouldBe LocalDate.now()
-                oppdatertIdenthendelseDb?.oppdatertDatabase?.toLocalDate() shouldBe LocalDate.now()
+                oppdatertIdenthendelseDb?.produsertHendelse?.toLocalDate() shouldBe 1.januar(2025)
+                oppdatertIdenthendelseDb?.oppdatertDatabase?.toLocalDate() shouldBe 1.januar(2025)
 
                 sakRepo.hentForSakId(sak.id)?.fnr shouldBe nyttFnr
                 søknadRepo.hentSøknaderForFnr(gammeltFnr) shouldBe emptyList()
@@ -268,8 +269,8 @@ class IdenthendelseJobbTest {
                         Personident(nyttFnr.verdi, false, Identtype.FOLKEREGISTERIDENT),
                         Personident(gammeltFnr.verdi, true, Identtype.FOLKEREGISTERIDENT),
                     ),
-                    produsertHendelse = LocalDateTime.now(),
-                    oppdatertDatabase = LocalDateTime.now(),
+                    produsertHendelse = nå(testDataHelper.clock),
+                    oppdatertDatabase = nå(testDataHelper.clock),
                 )
                 identhendelseRepository.lagre(identhendelseDb)
 

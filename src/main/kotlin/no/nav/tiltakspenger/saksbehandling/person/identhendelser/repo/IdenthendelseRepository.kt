@@ -5,15 +5,17 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
-import java.time.LocalDateTime
+import java.time.Clock
 import java.util.UUID
 
 class IdenthendelseRepository(
     private val sessionFactory: PostgresSessionFactory,
+    private val clock: Clock,
 ) {
     fun lagre(identhendelseDb: IdenthendelseDb) {
         sessionFactory.withSession { session ->
@@ -28,7 +30,7 @@ class IdenthendelseRepository(
                         "sak_id" to identhendelseDb.sakId.toString(),
                         "produsert_hendelse" to identhendelseDb.produsertHendelse,
                         "oppdatert_database" to identhendelseDb.oppdatertDatabase,
-                        "sist_oppdatert" to LocalDateTime.now(),
+                        "sist_oppdatert" to nå(clock),
                     ),
                 ).asUpdate,
             )
@@ -67,7 +69,7 @@ class IdenthendelseRepository(
                         update identhendelse set produsert_hendelse = :produsert_hendelse where id = :id
                     """.trimIndent(),
                     mapOf(
-                        "produsert_hendelse" to LocalDateTime.now(),
+                        "produsert_hendelse" to nå(clock),
                         "id" to id,
                     ),
                 ).asUpdate,
@@ -83,7 +85,7 @@ class IdenthendelseRepository(
                         update identhendelse set oppdatert_database = :oppdatert_database where id = :id
                     """.trimIndent(),
                     mapOf(
-                        "oppdatert_database" to LocalDateTime.now(),
+                        "oppdatert_database" to nå(clock),
                         "id" to id,
                     ),
                 ).asUpdate,
@@ -131,5 +133,6 @@ class IdenthendelseRepository(
     private val sqlHentForId = "select * from identhendelse where id = ?"
 
     @Language("SQL")
-    private val sqlHentAlleSomIkkeErBehandlet = "select * from identhendelse where produsert_hendelse is null or oppdatert_database is null"
+    private val sqlHentAlleSomIkkeErBehandlet =
+        "select * from identhendelse where produsert_hendelse is null or oppdatert_database is null"
 }

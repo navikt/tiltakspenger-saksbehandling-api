@@ -79,7 +79,8 @@ open class BehandlingOgVedtakContext(
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val behandlingRepo: BehandlingRepo by lazy {
         BehandlingPostgresRepo(
-            sessionFactory as PostgresSessionFactory,
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+            clock = clock,
         )
     }
     val behandlingService: BehandlingService by lazy {

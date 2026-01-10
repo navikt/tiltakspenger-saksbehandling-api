@@ -2,14 +2,16 @@ package no.nav.tiltakspenger.saksbehandling.statistikk.meldekort
 
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
-import java.time.LocalDateTime
+import java.time.Clock
 
 class StatistikkMeldekortPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
+    private val clock: Clock,
 ) : StatistikkMeldekortRepo {
     override fun lagre(
         dto: StatistikkMeldekortDTO,
@@ -52,7 +54,7 @@ class StatistikkMeldekortPostgresRepo(
                     mapOf(
                         "nytt_fnr" to nyttFnr.verdi,
                         "gammelt_fnr" to gammeltFnr.verdi,
-                        "sist_endret" to LocalDateTime.now(),
+                        "sist_endret" to nå(clock),
                     ),
                 ).asUpdate,
             )

@@ -10,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
@@ -321,7 +322,12 @@ class PersonhendelseJobbTest {
                 val personhendelseFraDb = personhendelser.first()
                 personhendelseFraDb.oppgaveId shouldBe oppgaveId
 
-                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.ADRESSEBESKYTTELSE) }
+                coVerify(exactly = 1) {
+                    oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                        fnr,
+                        Oppgavebehov.ADRESSEBESKYTTELSE,
+                    )
+                }
             }
         }
     }
@@ -371,7 +377,7 @@ class PersonhendelseJobbTest {
                 val oppdatertPersonhendelseDb = personhendelseRepository.hent(fnr).first()
                 oppdatertPersonhendelseDb shouldNotBe null
                 oppdatertPersonhendelseDb.oppgaveId shouldBe oppgaveId
-                oppdatertPersonhendelseDb.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe LocalDateTime.now()
+                oppdatertPersonhendelseDb.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe nå(testDataHelper.clock)
                     .truncatedTo(ChronoUnit.MINUTES)
                 coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
             }

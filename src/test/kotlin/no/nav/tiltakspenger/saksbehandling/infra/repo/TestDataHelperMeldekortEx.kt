@@ -166,7 +166,6 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
     val (sakMedOpprettetMeldekortBehandling, opprettetMeldekortBehandling) = genererSak(sak)
     val dager = saksbehandlerFyllerUtMeldeperiodeDager(opprettetMeldekortBehandling.meldeperiode)
     val begrunnelse = Begrunnelse.create("TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning")
-    val fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning")
 
     return runBlocking {
         val (sakMedOppdatertMeldekortbehandling, meldekortBehandling, simuleringMedMetadata) = sakMedOpprettetMeldekortBehandling.oppdaterMeldekort(
@@ -219,7 +218,7 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
     val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = genererSak(sak)
 
     val iverksattMeldekortBehandling =
-        (meldekortbehandlingTilBeslutning.taMeldekortBehandling(beslutter) as MeldekortBehandletManuelt)
+        (meldekortbehandlingTilBeslutning.taMeldekortBehandling(beslutter, clock) as MeldekortBehandletManuelt)
             .iverksettMeldekort(beslutter, clock).getOrFail()
 
     val meldekortvedtak = iverksattMeldekortBehandling.opprettVedtak(

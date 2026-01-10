@@ -133,6 +133,7 @@ sealed interface MeldekortBehandling : Behandling {
                 this.tilUnderBehandling(
                     nyMeldeperiode = meldeperiode,
                     ikkeRettTilTiltakspengerTidspunkt = null,
+                    clock = clock,
                 )
             }
 
@@ -156,11 +157,14 @@ sealed interface MeldekortBehandling : Behandling {
         }
     }
 
-    fun overta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling>
+    fun overta(
+        saksbehandler: Saksbehandler,
+        clock: Clock,
+    ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling>
 
-    fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
+    fun taMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling
 
-    fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
+    fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling
     fun oppdaterSimulering(simulering: Simulering?): MeldekortBehandling
 
     fun toSimulertBeregning(beregninger: MeldeperiodeBeregningerVedtatt): SimulertBeregning? {

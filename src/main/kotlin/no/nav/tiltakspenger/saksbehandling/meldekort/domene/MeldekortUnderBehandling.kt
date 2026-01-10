@@ -176,6 +176,7 @@ data class MeldekortUnderBehandling(
 
     override fun overta(
         saksbehandler: Saksbehandler,
+        clock: Clock,
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return when (this.status) {
             UNDER_BEHANDLING -> {
@@ -185,7 +186,7 @@ data class MeldekortUnderBehandling(
                 }
                 this.copy(
                     saksbehandler = saksbehandler.navIdent,
-                    sistEndret = LocalDateTime.now(),
+                    sistEndret = nå(clock),
                 ).right()
             }
 
@@ -200,7 +201,7 @@ data class MeldekortUnderBehandling(
         }
     }
 
-    override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+    override fun taMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling {
         return when (this.status) {
             KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
@@ -208,7 +209,7 @@ data class MeldekortUnderBehandling(
                 this.copy(
                     saksbehandler = saksbehandler.navIdent,
                     status = UNDER_BEHANDLING,
-                    sistEndret = LocalDateTime.now(),
+                    sistEndret = nå(clock),
                 )
             }
 
@@ -227,7 +228,7 @@ data class MeldekortUnderBehandling(
         }
     }
 
-    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling {
         return when (this.status) {
             UNDER_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
@@ -235,7 +236,7 @@ data class MeldekortUnderBehandling(
                 this.copy(
                     saksbehandler = null,
                     status = KLAR_TIL_BEHANDLING,
-                    sistEndret = LocalDateTime.now(),
+                    sistEndret = nå(clock),
                 )
             }
 

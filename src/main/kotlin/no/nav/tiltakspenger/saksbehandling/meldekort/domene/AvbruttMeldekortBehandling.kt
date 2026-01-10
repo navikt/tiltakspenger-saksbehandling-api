@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOve
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import java.time.Clock
 import java.time.LocalDateTime
 
 /**
@@ -55,15 +56,18 @@ data class AvbruttMeldekortBehandling(
     override val ordinærBeløp = beregning?.ordinærBeløp
     override val barnetilleggBeløp = beregning?.barnetilleggBeløp
 
-    override fun overta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
+    override fun overta(
+        saksbehandler: Saksbehandler,
+        clock: Clock,
+    ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         throw IllegalStateException("Kan ikke overta avbrutt meldekortbehandling")
     }
 
-    override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+    override fun taMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling {
         throw IllegalStateException("Kan ikke tildele avbrutt meldekortbehandling")
     }
 
-    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling {
         throw IllegalStateException("Kan ikke legge tilbake avbrutt meldekortbehandling")
     }
 

@@ -5,17 +5,20 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import org.intellij.lang.annotations.Language
+import java.time.Clock
 import java.time.LocalDateTime
 import java.util.UUID
 
 class PersonhendelseRepository(
     private val sessionFactory: PostgresSessionFactory,
+    private val clock: Clock,
 ) {
     fun hent(fnr: Fnr): List<PersonhendelseDb> = sessionFactory.withSession {
         it.run(
@@ -34,7 +37,7 @@ class PersonhendelseRepository(
     }
 
     fun hentAlleMedOppgave(
-        oppgaveSistSjekket: LocalDateTime = LocalDateTime.now().minusHours(1),
+        oppgaveSistSjekket: LocalDateTime = nå(clock).minusHours(1),
     ): List<PersonhendelseDb> = sessionFactory.withSession {
         it.run(
             queryOf(
@@ -65,7 +68,7 @@ class PersonhendelseRepository(
                         "personhendelse_type" to toPGObject(personhendelseDb.personhendelseType),
                         "sak_id" to personhendelseDb.sakId.toString(),
                         "oppgave_id" to personhendelseDb.oppgaveId?.toString(),
-                        "sist_oppdatert" to LocalDateTime.now(),
+                        "sist_oppdatert" to nå(clock),
                         "oppgave_sist_sjekket" to personhendelseDb.oppgaveSistSjekket,
                     ),
                 ).asUpdate,
@@ -105,7 +108,7 @@ class PersonhendelseRepository(
                         update personhendelse set oppgave_sist_sjekket = :oppgave_sist_sjekket where id = :id
                     """.trimIndent(),
                     mapOf(
-                        "oppgave_sist_sjekket" to LocalDateTime.now(),
+                        "oppgave_sist_sjekket" to nå(clock),
                         "id" to id,
                     ),
                 ).asUpdate,

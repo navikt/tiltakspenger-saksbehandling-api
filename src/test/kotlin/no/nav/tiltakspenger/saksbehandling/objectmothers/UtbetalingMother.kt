@@ -117,7 +117,7 @@ interface UtbetalingMother : MotherOfAllMothers {
 
     fun utbetalingDetSkalHentesStatusFor(
         utbetalingId: UtbetalingId = UtbetalingId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
         sakId: SakId = SakId.random(),
         opprettet: LocalDateTime = nå(clock),
         sendtTilUtbetalingstidspunkt: LocalDateTime = nå(fixedClock.plus(1, ChronoUnit.SECONDS)),

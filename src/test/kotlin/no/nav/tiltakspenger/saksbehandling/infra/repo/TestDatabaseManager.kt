@@ -5,6 +5,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.date.getTimeMillis
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
@@ -44,7 +46,8 @@ internal class TestDatabaseManager {
 
     private val counter = AtomicInteger(0)
 
-    private val saksnummerGenerator = TestSaksnummerGenerator()
+    private val saksnummerGenerator =
+        TestSaksnummerGenerator(Saksnummer.genererSaknummer(løpenr = "1001", dato = 1.januar(2021)))
 
     private val started: Long by lazy { getTimeMillis() }
 

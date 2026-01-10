@@ -141,6 +141,7 @@ open class ApplicationContext(
     open val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository by lazy {
         TiltaksdeltakerKafkaRepository(
             sessionFactory = sessionFactory as PostgresSessionFactory,
+            clock = clock,
         )
     }
     open val tiltaksdeltakerService: TiltaksdeltakerService by lazy {
@@ -177,6 +178,7 @@ open class ApplicationContext(
     open val personhendelseRepository: PersonhendelseRepository by lazy {
         PersonhendelseRepository(
             sessionFactory = sessionFactory as PostgresSessionFactory,
+            clock = clock,
         )
     }
 
@@ -192,6 +194,7 @@ open class ApplicationContext(
     open val identhendelseRepository: IdenthendelseRepository by lazy {
         IdenthendelseRepository(
             sessionFactory = sessionFactory as PostgresSessionFactory,
+            clock = clock,
         )
     }
 

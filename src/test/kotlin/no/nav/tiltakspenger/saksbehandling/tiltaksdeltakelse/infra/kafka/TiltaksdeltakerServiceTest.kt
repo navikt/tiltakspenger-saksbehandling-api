@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusType
@@ -94,7 +95,7 @@ class TiltaksdeltakerServiceTest {
                     saksnummer = sak.saksnummer,
                 ),
             )
-            val oppgaveSistSjekket = LocalDateTime.now()
+            val oppgaveSistSjekket = nå(testDataHelper.clock)
             val opprinneligTiltaksdeltakerKafkaDb = TiltaksdeltakerKafkaDb(
                 id = id,
                 deltakelseFraOgMed = LocalDate.of(2024, 10, 14),
@@ -204,7 +205,7 @@ class TiltaksdeltakerServiceTest {
                     saksnummer = sak.saksnummer,
                 ),
             )
-            val oppgaveSistSjekket = LocalDateTime.now()
+            val oppgaveSistSjekket = nå(testDataHelper.clock)
             val opprinneligTiltaksdeltakerKafkaDb = TiltaksdeltakerKafkaDb(
                 id = deltakerId.toString(),
                 deltakelseFraOgMed = LocalDate.of(2024, 10, 14),

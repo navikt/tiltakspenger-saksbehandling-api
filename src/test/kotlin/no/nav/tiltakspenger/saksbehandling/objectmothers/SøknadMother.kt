@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
@@ -18,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -76,6 +78,7 @@ interface SøknadMother {
     fun personopplysningFødselsdato() = 1.januar(2000)
 
     fun nyInnvilgbarSøknad(
+        clock: Clock = TikkendeKlokke(),
         periode: Periode = ObjectMother.vedtaksperiode(),
         versjon: String = "1",
         id: SøknadId = Søknad.randomId(),
@@ -87,7 +90,10 @@ interface SøknadMother {
         opprettet: LocalDateTime = 1.januarDateTime(2022),
         barnetillegg: List<BarnetilleggFraSøknad> = listOf(),
         tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
-        søknadstiltak: Søknadstiltak = søknadstiltak(deltakelseFom = periode.fraOgMed, deltakelseTom = periode.tilOgMed),
+        søknadstiltak: Søknadstiltak = søknadstiltak(
+            deltakelseFom = periode.fraOgMed,
+            deltakelseTom = periode.tilOgMed,
+        ),
         harSøktPåTiltak: Søknad.JaNeiSpm = Søknad.JaNeiSpm.Ja,
         harSøktOmBarnetillegg: Søknad.JaNeiSpm = if (barnetillegg.isEmpty()) Søknad.JaNeiSpm.Nei else Søknad.JaNeiSpm.Ja,
         kvp: Søknad.PeriodeSpm = periodeNei(),
@@ -102,7 +108,7 @@ interface SøknadMother {
         supplerendeStønadFlyktning: Søknad.PeriodeSpm = periodeNei(),
         jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
         vedlegg: Int = 0,
         avbrutt: Avbrutt? = null,
         søknadstype: Søknadstype = Søknadstype.DIGITAL,
@@ -139,6 +145,7 @@ interface SøknadMother {
         )
 
     fun nyIkkeInnvilgbarSøknad(
+        clock: Clock = TikkendeKlokke(),
         periode: Periode = ObjectMother.vedtaksperiode(),
         versjon: String = "1",
         id: SøknadId = Søknad.randomId(),
@@ -166,7 +173,7 @@ interface SøknadMother {
         jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
         sakId: SakId = SakId.random(),
         vedlegg: Int = 0,
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
         avbrutt: Avbrutt? = null,
         søknadsperiode: Periode? = ObjectMother.vedtaksperiode(),
         manueltSattTiltak: String? = null,
@@ -226,6 +233,7 @@ interface SøknadMother {
         Søknad.FraOgMedDatoSpm.Ja(
             fra = fom,
         )
+
     fun periodeJa(
         fom: LocalDate? = 1.januar(2022),
         tom: LocalDate? = 31.januar(2022),
