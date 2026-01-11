@@ -16,7 +16,9 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 private const val HAR_SOKT_PAA_TILTAK = "har_sokt_paa_tiltak"
 private const val HAR_SØKT_OM_BARNETILLEGG = "har_sokt_om_barnetillegg"
@@ -133,6 +135,17 @@ internal object SøknadDAO {
                 row.toSøknad(session)
             }.asList,
         ).filterIsInstance<InnvilgbarSøknad>()
+
+    fun hentSoknadstiltakUtenInternId(limit: Int, session: Session): List<Søknadstiltak> =
+        SøknadTiltakDAO.hentTiltakUtenInternId(limit, session)
+
+    fun oppdaterInternId(
+        eksternId: String,
+        internId: TiltaksdeltakerId,
+        session: Session,
+    ) {
+        SøknadTiltakDAO.oppdaterInternId(eksternId, internId, session)
+    }
 
     private fun søknadFinnes(
         søknadId: SøknadId,
