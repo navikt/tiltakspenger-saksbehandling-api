@@ -36,20 +36,20 @@ internal class TestDataHelper(
     val sessionFactory = PostgresSessionFactory(dataSource, sessionCounter)
     val søknadRepo = SøknadPostgresRepo(sessionFactory)
     val behandlingRepo =
-        no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo(sessionFactory)
+        no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo(sessionFactory, clock)
     val vedtakRepo = RammevedtakPostgresRepo(sessionFactory)
     val sakRepo = SakPostgresRepo(sessionFactory, saksnummerGenerator, clock)
     val statistikkSakRepo = StatistikkSakPostgresRepo(sessionFactory)
     val statistikkStønadRepo = StatistikkStønadPostgresRepo(sessionFactory, clock)
-    val statistikkMeldekortRepo = StatistikkMeldekortPostgresRepo(sessionFactory)
+    val statistikkMeldekortRepo = StatistikkMeldekortPostgresRepo(sessionFactory, clock)
     val meldekortRepo = MeldekortBehandlingPostgresRepo(sessionFactory)
     val meldeperiodeRepo = MeldeperiodePostgresRepo(sessionFactory)
     val meldekortBrukerRepo = BrukersMeldekortPostgresRepo(sessionFactory)
     val meldekortvedtakRepo: MeldekortvedtakRepo = MeldekortvedtakPostgresRepo(sessionFactory)
     val personRepo = PersonPostgresRepo(sessionFactory)
-    val tiltaksdeltakerKafkaRepository = TiltaksdeltakerKafkaRepository(sessionFactory)
-    val personhendelseRepository = PersonhendelseRepository(sessionFactory)
-    val identhendelseRepository = IdenthendelseRepository(sessionFactory)
+    val tiltaksdeltakerKafkaRepository = TiltaksdeltakerKafkaRepository(sessionFactory, clock)
+    val personhendelseRepository = PersonhendelseRepository(sessionFactory, clock)
+    val identhendelseRepository = IdenthendelseRepository(sessionFactory, clock)
     val benkOversiktRepo = BenkOversiktPostgresRepo(sessionFactory)
     val utbetalingRepo = UtbetalingPostgresRepo(sessionFactory)
     val klagebehandlingRepo = KlagebehandlingPostgresRepo(sessionFactory)
@@ -61,6 +61,6 @@ private val dbManager = TestDatabaseManager()
 /**
  * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon. Brukes når man gjør operasjoner på tvers av saker.
  */
-internal fun withMigratedDb(runIsolated: Boolean = false, test: (TestDataHelper) -> Unit) {
-    dbManager.withMigratedDb(runIsolated, test)
+internal fun withMigratedDb(runIsolated: Boolean = false, clock: TikkendeKlokke = TikkendeKlokke(), test: (TestDataHelper) -> Unit) {
+    dbManager.withMigratedDb(runIsolated, clock, test)
 }

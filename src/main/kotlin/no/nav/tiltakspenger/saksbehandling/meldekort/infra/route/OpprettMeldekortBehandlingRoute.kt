@@ -43,6 +43,7 @@ fun Route.opprettMeldekortBehandlingRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
+            val ki = call.parameters["kjedeId"]
             call.withMeldeperiodeKjedeId { kjedeId ->
                 val correlationId = call.correlationId()
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)

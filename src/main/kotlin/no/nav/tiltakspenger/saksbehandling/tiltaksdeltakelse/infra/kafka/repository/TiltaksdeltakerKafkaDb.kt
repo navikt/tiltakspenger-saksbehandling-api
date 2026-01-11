@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -21,6 +22,7 @@ data class TiltaksdeltakerKafkaDb(
 ) {
     fun tiltaksdeltakelseErEndret(
         tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
+        clock: Clock,
     ): List<TiltaksdeltakerEndring> {
         val endringer = mutableListOf<TiltaksdeltakerEndring>()
         val sammeFom = deltakelseFraOgMed == tiltaksdeltakelseFraBehandling.deltakelseFraOgMed
@@ -34,12 +36,12 @@ data class TiltaksdeltakerKafkaDb(
             sammeTom &&
             sammeAntallDagerPerUke &&
             sammeDeltakelsesprosent &&
-            (sammeStatus || deltakelsenErAvsluttetSomForventet())
+            (sammeStatus || deltakelsenErAvsluttetSomForventet(clock = clock))
         ) {
             return emptyList()
         }
 
-        if (erAvbruttDeltakelse(sammeStatus = sammeStatus, sammeTom = sammeTom, tiltaksdeltakelseFraBehandling)) {
+        if (erAvbruttDeltakelse(sammeStatus = sammeStatus, sammeTom = sammeTom, tiltaksdeltakelseFraBehandling, clock = clock)) {
             endringer.add(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
             return endringer
         }
@@ -78,6 +80,7 @@ data class TiltaksdeltakerKafkaDb(
         sammeStatus: Boolean,
         sammeTom: Boolean,
         tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
+        clock: Clock,
     ): Boolean {
         if (!sammeStatus && deltakerstatus == TiltakDeltakerstatus.Avbrutt) {
             return true
@@ -85,7 +88,7 @@ data class TiltaksdeltakerKafkaDb(
         if (!sammeTom &&
             deltakelseTilOgMed != null &&
             deltakelseTilOgMed.isBefore(tiltaksdeltakelseFraBehandling.deltakelseTilOgMed) &&
-            !deltakelseTilOgMed.isAfter(LocalDate.now())
+            !deltakelseTilOgMed.isAfter(LocalDate.now(clock))
         ) {
             return true
         }
@@ -98,11 +101,11 @@ data class TiltaksdeltakerKafkaDb(
         return !sammeStatus && deltakerstatus == TiltakDeltakerstatus.IkkeAktuell
     }
 
-    private fun deltakelsenErAvsluttetSomForventet(): Boolean {
+    private fun deltakelsenErAvsluttetSomForventet(clock: Clock): Boolean {
         return (
             (deltakerstatus == TiltakDeltakerstatus.HarSluttet || deltakerstatus == TiltakDeltakerstatus.Fullført) &&
                 deltakelseTilOgMed != null &&
-                !deltakelseTilOgMed.isAfter(LocalDate.now())
+                !deltakelseTilOgMed.isAfter(LocalDate.now(clock))
             )
     }
 
@@ -112,7 +115,7 @@ data class TiltaksdeltakerKafkaDb(
         } else if (b == null && a == 0F) {
             true
         } else {
-            return compareValues(a, b) == 0
+            compareValues(a, b) == 0
         }
     }
 }

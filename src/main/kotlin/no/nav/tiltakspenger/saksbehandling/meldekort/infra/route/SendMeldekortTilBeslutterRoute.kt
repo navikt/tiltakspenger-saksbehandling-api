@@ -14,11 +14,10 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.SendMeldekortTilBeslutterDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutterService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilUtbetalingErrorJson
@@ -37,45 +36,44 @@ fun Route.sendMeldekortTilBeslutterRoute(
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
             call.withMeldekortId { meldekortId ->
-                call.withBody<SendMeldekortTilBeslutterDTO> { body ->
-                    val correlationId = call.correlationId()
-                    val kommando = body.toDomain(
+                val correlationId = call.correlationId()
+                krevSaksbehandlerRolle(saksbehandler)
+                tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
+                sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
+                    SendMeldekortTilBeslutterKommando(
                         saksbehandler = saksbehandler,
                         meldekortId = meldekortId,
                         sakId = sakId,
                         correlationId = correlationId,
-                    )
-                    krevSaksbehandlerRolle(saksbehandler)
-                    tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                    sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(kommando).fold(
-                        ifLeft = {
-                            when (it) {
-                                is KanIkkeSendeMeldekortTilBeslutter.MeldekortperiodenKanIkkeVæreFremITid -> {
-                                    call.respond400BadRequest(
-                                        melding = "Kan ikke sende inn et meldekort før meldekortperioden har begynt.",
-                                        kode = "meldekortperioden_kan_ikke_være_frem_i_tid",
-                                    )
-                                }
-
-                                is KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
-
-                                is KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(valueAndStatus = it.feil.tilUtbetalingErrorJson())
+                    ),
+                ).fold(
+                    ifLeft = {
+                        when (it) {
+                            is KanIkkeSendeMeldekortTilBeslutter.MeldekortperiodenKanIkkeVæreFremITid -> {
+                                call.respond400BadRequest(
+                                    melding = "Kan ikke sende inn et meldekort før meldekortperioden har begynt.",
+                                    kode = "meldekortperioden_kan_ikke_være_frem_i_tid",
+                                )
                             }
-                        },
-                        ifRight = {
-                            auditService.logMedMeldekortId(
-                                meldekortId = meldekortId,
-                                navIdent = saksbehandler.navIdent,
-                                action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = "Saksbehandler har fylt ut meldekortet og sendt til beslutter",
-                                correlationId = correlationId,
-                            )
-                            call.respondJson(
-                                value = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock),
-                            )
-                        },
-                    )
-                }
+
+                            is KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
+
+                            is KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(valueAndStatus = it.feil.tilUtbetalingErrorJson())
+                        }
+                    },
+                    ifRight = {
+                        auditService.logMedMeldekortId(
+                            meldekortId = meldekortId,
+                            navIdent = saksbehandler.navIdent,
+                            action = AuditLogEvent.Action.UPDATE,
+                            contextMessage = "Saksbehandler har fylt ut meldekortet og sendt til beslutter",
+                            correlationId = correlationId,
+                        )
+                        call.respondJson(
+                            value = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock),
+                        )
+                    },
+                )
             }
         }
     }

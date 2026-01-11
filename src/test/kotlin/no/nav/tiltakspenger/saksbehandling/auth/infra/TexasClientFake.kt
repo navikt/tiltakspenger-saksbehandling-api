@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.auth.infra
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Bruker
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -10,9 +9,12 @@ import no.nav.tiltakspenger.libs.texas.client.TexasIntrospectionResponse
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerrolle
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
+import java.time.Clock
 import java.time.Instant
 
-open class TexasClientFake : TexasClient {
+open class TexasClientFake(
+    private val clock: Clock,
+) : TexasClient {
     private val data = arrow.atomic.Atomic(mutableMapOf<String, Bruker<*, *>>())
 
     override suspend fun introspectToken(
@@ -44,7 +46,7 @@ open class TexasClientFake : TexasClient {
 
     private fun accessToken(): AccessToken = AccessToken(
         token = "asdf",
-        expiresAt = Instant.now().plusSeconds(3600),
+        expiresAt = Instant.now(clock).plusSeconds(3600),
         invaliderCache = { },
     )
 

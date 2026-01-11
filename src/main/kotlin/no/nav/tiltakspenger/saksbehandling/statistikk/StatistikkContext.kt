@@ -19,8 +19,18 @@ open class StatistikkContext(
     clock: Clock,
 ) {
     open val statistikkSakRepo: StatistikkSakRepo by lazy { StatistikkSakPostgresRepo(sessionFactory as PostgresSessionFactory) }
-    open val statistikkStønadRepo: StatistikkStønadRepo by lazy { StatistikkStønadPostgresRepo(sessionFactory as PostgresSessionFactory, clock) }
-    open val statistikkMeldekortRepo: StatistikkMeldekortRepo by lazy { StatistikkMeldekortPostgresRepo(sessionFactory as PostgresSessionFactory) }
+    open val statistikkStønadRepo: StatistikkStønadRepo by lazy {
+        StatistikkStønadPostgresRepo(
+            sessionFactory as PostgresSessionFactory,
+            clock,
+        )
+    }
+    open val statistikkMeldekortRepo: StatistikkMeldekortRepo by lazy {
+        StatistikkMeldekortPostgresRepo(
+            sessionFactory as PostgresSessionFactory,
+            clock,
+        )
+    }
 
     val statistikkSakService: StatistikkSakService by lazy {
         StatistikkSakService(

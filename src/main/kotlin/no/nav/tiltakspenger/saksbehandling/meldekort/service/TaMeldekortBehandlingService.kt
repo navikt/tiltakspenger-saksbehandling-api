@@ -9,10 +9,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.time.Clock
 
 class TaMeldekortBehandlingService(
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
+    private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -24,7 +26,7 @@ class TaMeldekortBehandlingService(
         val sak: Sak = sakService.hentForSakId(sakId)
         val meldekortBehandling: MeldekortBehandling = sak.hentMeldekortBehandling(meldekortId)!!
 
-        return meldekortBehandling.taMeldekortBehandling(saksbehandler).let {
+        return meldekortBehandling.taMeldekortBehandling(saksbehandler, clock).let {
             when (it.status) {
                 MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> throw IllegalArgumentException("Behandlingen er ikke fått en saksbehandler for å lagre behandlingen")
                 MeldekortBehandlingStatus.UNDER_BEHANDLING -> meldekortBehandlingRepo.taBehandlingSaksbehandler(

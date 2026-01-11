@@ -17,13 +17,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKom
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.meldekortBehandlingOpprettet
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-internal class SendMeldekortTilBeslutterServiceTest {
+internal class OppdaterMeldekortServiceTest {
 
     @Test
     fun `En meldeperiode kan ikke være 1 dag`() {
@@ -41,8 +40,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
-                    tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                        SendMeldekortTilBeslutterKommando(
+                    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
+                        OppdaterMeldekortKommando(
                             sakId = sak.id,
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
@@ -87,8 +86,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
-                    tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                        SendMeldekortTilBeslutterKommando(
+                    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
+                        OppdaterMeldekortKommando(
                             sakId = sak.id,
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
@@ -134,8 +133,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
-                    tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                        SendMeldekortTilBeslutterKommando(
+                    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
+                        OppdaterMeldekortKommando(
                             sakId = sak.id,
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
@@ -180,8 +179,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
-                    tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                        SendMeldekortTilBeslutterKommando(
+                    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
+                        OppdaterMeldekortKommando(
                             sakId = sak.id,
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
@@ -227,8 +226,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
-                    tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                        SendMeldekortTilBeslutterKommando(
+                    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
+                        OppdaterMeldekortKommando(
                             sakId = sak.id,
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
@@ -253,8 +252,8 @@ internal class SendMeldekortTilBeslutterServiceTest {
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutterKommando(
+                tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
+                    OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),

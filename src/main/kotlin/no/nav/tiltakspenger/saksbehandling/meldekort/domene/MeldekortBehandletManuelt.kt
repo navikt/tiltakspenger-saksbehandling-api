@@ -82,11 +82,13 @@ data class MeldekortBehandletManuelt(
                 requireNotNull(sendtTilBeslutning)
                 require(beslutter == null)
             }
+
             UNDER_BESLUTNING -> {
                 require(iverksattTidspunkt == null)
                 requireNotNull(sendtTilBeslutning)
                 requireNotNull(beslutter)
             }
+
             GODKJENT -> {
                 require(ikkeRettTilTiltakspengerTidspunkt == null)
                 requireNotNull(iverksattTidspunkt)
@@ -192,6 +194,7 @@ data class MeldekortBehandletManuelt(
 
     override fun overta(
         saksbehandler: Saksbehandler,
+        clock: Clock,
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return when (this.status) {
             MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status KLAR_TIL_BEHANDLING")
@@ -208,9 +211,10 @@ data class MeldekortBehandletManuelt(
                 }
                 this.copy(
                     beslutter = saksbehandler.navIdent,
-                    sistEndret = LocalDateTime.now(),
+                    sistEndret = nå(clock),
                 ).right()
             }
+
             GODKJENT,
             IKKE_RETT_TIL_TILTAKSPENGER,
             AUTOMATISK_BEHANDLET,
@@ -218,7 +222,7 @@ data class MeldekortBehandletManuelt(
         }
     }
 
-    override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+    override fun taMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling {
         return when (this.status) {
             KLAR_TIL_BESLUTNING -> {
                 check(saksbehandler.navIdent != this.saksbehandler) {
@@ -229,7 +233,7 @@ data class MeldekortBehandletManuelt(
                 this.copy(
                     beslutter = saksbehandler.navIdent,
                     status = UNDER_BESLUTNING,
-                    sistEndret = LocalDateTime.now(),
+                    sistEndret = nå(clock),
                 )
             }
 
@@ -248,7 +252,7 @@ data class MeldekortBehandletManuelt(
         }
     }
 
-    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling {
         return when (this.status) {
             UNDER_BESLUTNING -> {
                 krevBeslutterRolle(saksbehandler)
@@ -256,7 +260,7 @@ data class MeldekortBehandletManuelt(
                 this.copy(
                     beslutter = null,
                     status = KLAR_TIL_BESLUTNING,
-                    sistEndret = LocalDateTime.now(),
+                    sistEndret = nå(clock),
                 )
             }
 
@@ -282,6 +286,7 @@ data class MeldekortBehandletManuelt(
     fun tilUnderBehandling(
         nyMeldeperiode: Meldeperiode?,
         ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
+        clock: Clock,
     ): MeldekortUnderBehandling {
         require(this.status !in listOf(GODKJENT, IKKE_RETT_TIL_TILTAKSPENGER, AUTOMATISK_BEHANDLET, AVBRUTT)) {
             "Kan ikke gå fra GODKJENT, AUTOMATISK_BEHANDLET, AVBRUTT eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING"
@@ -306,7 +311,7 @@ data class MeldekortBehandletManuelt(
             simulering = null,
             dager = meldeperiode.tilMeldekortDager(),
             status = UNDER_BEHANDLING,
-            sistEndret = LocalDateTime.now(),
+            sistEndret = nå(clock),
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
         )

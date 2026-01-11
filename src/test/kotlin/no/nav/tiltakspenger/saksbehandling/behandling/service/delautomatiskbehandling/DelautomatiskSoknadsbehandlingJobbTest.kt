@@ -6,6 +6,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
@@ -14,11 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetAutomati
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class DelautomatiskSoknadsbehandlingJobbTest {
     @Test
@@ -77,7 +76,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 soknadRepo.lagreAvbruttSøknad(
                     soknad.copy(
                         avbrutt = Avbrutt(
-                            LocalDateTime.now(),
+                            nå(testDataHelper.clock),
                             "saksbehandler",
                             "begrunnelse",
                         ),
@@ -189,8 +188,8 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 val behandlingPaVent = automatiskBehandling.settPåVent(
                     endretAv = AUTOMATISK_SAKSBEHANDLER,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
-                    clock = clock,
-                    venterTil = LocalDateTime.now().plusDays(1),
+                    clock = testDataHelper.clock,
+                    venterTil = nå(testDataHelper.clock).plusDays(1),
                 ) as Søknadsbehandling
                 behandlingRepo.lagre(behandlingPaVent)
 
@@ -222,8 +221,8 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 val behandlingPaVent = automatiskBehandling.settPåVent(
                     endretAv = AUTOMATISK_SAKSBEHANDLER,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
-                    clock = clock,
-                    venterTil = LocalDateTime.now().minusDays(1),
+                    clock = testDataHelper.clock,
+                    venterTil = nå(testDataHelper.clock).minusDays(1),
                 ) as Søknadsbehandling
                 behandlingRepo.lagre(behandlingPaVent)
                 coEvery { oppdaterSaksopplysningerService.oppdaterSaksopplysninger(any(), any(), any(), any()) } returns (sak to behandlingPaVent).right()

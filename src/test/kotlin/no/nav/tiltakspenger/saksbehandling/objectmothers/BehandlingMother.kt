@@ -856,6 +856,32 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
 }
 
 /**
+ * Oppretter sak, søknad, iverksetter søknadsbehandling og oppretter meldekortbehandling
+ */
+suspend fun TestApplicationContext.meldekortBehandlingOppdatert(
+    innvilgelsesperiode: Periode = ObjectMother.vedtaksperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    beslutter: Saksbehandler = beslutter(),
+): Sak {
+    val tac = this
+    val sak = meldekortBehandlingOpprettet(
+        innvilgelsesperiode = innvilgelsesperiode,
+        fnr = fnr,
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
+    )
+    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
+        sak.meldekortbehandlinger.first().tilOppdaterMeldekortKommando(
+            saksbehandler,
+        ),
+    )
+    return this.sakContext.sakService.hentForSakId(
+        sak.id,
+    )
+}
+
+/**
  * Oppretter sak, søknad, iverksetter søknadsbehandling, oppretter meldekortbehandling og sender den til beslutter
  */
 suspend fun TestApplicationContext.meldekortTilBeslutter(
@@ -865,7 +891,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
     beslutter: Saksbehandler = beslutter(),
 ): Sak {
     val tac = this
-    val sak = meldekortBehandlingOpprettet(
+    val sak = meldekortBehandlingOppdatert(
         innvilgelsesperiode = innvilgelsesperiode,
         fnr = fnr,
         saksbehandler = saksbehandler,
@@ -931,10 +957,14 @@ suspend fun TestApplicationContext.andreMeldekortOpprettet(
         beslutter = beslutter,
     )
 
-    tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
+    val (_, meldekortbehandling) = tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
         sakId = sak.id,
         kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
         saksbehandler = saksbehandler,
+    ).getOrFail()
+
+    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
+        kommando = meldekortbehandling.tilOppdaterMeldekortKommando(saksbehandler),
     )
 
     return this.sakContext.sakService.hentForSakId(sak.id)

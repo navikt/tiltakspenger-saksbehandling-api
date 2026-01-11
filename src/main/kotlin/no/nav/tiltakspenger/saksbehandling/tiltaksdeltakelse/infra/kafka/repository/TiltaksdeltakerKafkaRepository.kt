@@ -3,14 +3,17 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.reposi
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import org.intellij.lang.annotations.Language
+import java.time.Clock
 import java.time.LocalDateTime
 
 class TiltaksdeltakerKafkaRepository(
     private val sessionFactory: PostgresSessionFactory,
+    private val clock: Clock,
 ) {
     fun hent(id: String): TiltaksdeltakerKafkaDb? = sessionFactory.withSession {
         it.run(
@@ -29,7 +32,7 @@ class TiltaksdeltakerKafkaRepository(
     }
 
     fun hentAlleMedOppgave(
-        oppgaveSistSjekket: LocalDateTime = LocalDateTime.now().minusHours(1),
+        oppgaveSistSjekket: LocalDateTime = nå(clock).minusHours(1),
     ): List<TiltaksdeltakerKafkaDb> = sessionFactory.withSession {
         it.run(
             queryOf(
@@ -50,7 +53,7 @@ class TiltaksdeltakerKafkaRepository(
     fun lagre(
         tiltaksdeltakerKafkaDb: TiltaksdeltakerKafkaDb,
         melding: String,
-        sistOppdatert: LocalDateTime = LocalDateTime.now(),
+        sistOppdatert: LocalDateTime = nå(clock),
     ) {
         sessionFactory.withSession { session ->
             session.run(
@@ -106,7 +109,7 @@ class TiltaksdeltakerKafkaRepository(
                         update tiltaksdeltaker_kafka set oppgave_sist_sjekket = :oppgave_sist_sjekket where id = :id
                     """.trimIndent(),
                     mapOf(
-                        "oppgave_sist_sjekket" to LocalDateTime.now(),
+                        "oppgave_sist_sjekket" to nå(clock),
                         "id" to id,
                     ),
                 ).asUpdate,

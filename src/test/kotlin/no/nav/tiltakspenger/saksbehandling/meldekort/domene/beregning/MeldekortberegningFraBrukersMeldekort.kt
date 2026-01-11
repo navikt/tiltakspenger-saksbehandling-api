@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.beregning
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.matchers.equals.shouldBeEqual
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
@@ -49,7 +50,7 @@ class MeldekortberegningFraBrukersMeldekort {
         brukersStatuser: List<InnmeldtStatus>,
         vedtaksperiode: Periode,
     ) {
-        val clock = fixedClockAt(1.april(2025))
+        val clock = TikkendeKlokke(fixedClockAt(1.april(2025)))
 
         val (sak) = ObjectMother.nySakMedVedtak(
             vedtaksperiode = vedtaksperiode,
@@ -61,6 +62,7 @@ class MeldekortberegningFraBrukersMeldekort {
         val meldekortBehandlingId = MeldekortId.random()
 
         val saksbehandlerBehandling = ObjectMother.meldekortUnderBehandling(
+            clock = clock,
             id = meldekortBehandlingId,
             sakId = sak.id,
             periode = meldeperiode.periode,

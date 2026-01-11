@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
@@ -39,7 +40,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 id = meldekortId,
                 meldeperiodeId = meldeperiode.id,
                 sakId = meldeperiode.sakId,
-                mottatt = LocalDateTime.now(),
+                mottatt = nå(tac.clock),
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
@@ -77,7 +78,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 id = meldekortId,
                 meldeperiodeId = meldeperiode.id,
                 sakId = meldeperiode.sakId,
-                mottatt = LocalDateTime.now(),
+                mottatt = nå(tac.clock),
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
@@ -136,7 +137,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 id = meldekortId,
                 meldeperiodeId = meldeperiode.id,
                 sakId = meldeperiode.sakId,
-                mottatt = LocalDateTime.now(),
+                mottatt = nå(tac.clock),
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
@@ -193,7 +194,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 id = meldekortId,
                 meldeperiodeId = meldeperiode.id,
                 sakId = meldeperiode.sakId,
-                mottatt = LocalDateTime.now(),
+                mottatt = nå(tac.clock),
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.mapIndexed { index, entry ->
                     BrukersMeldekort.BrukersMeldekortDag(
@@ -233,7 +234,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 id = meldekortId,
                 meldeperiodeId = meldeperiode.id,
                 sakId = meldeperiode.sakId,
-                mottatt = LocalDateTime.now(),
+                mottatt = nå(tac.clock),
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.mapIndexed { index, entry ->
                     BrukersMeldekort.BrukersMeldekortDag(
@@ -273,7 +274,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 id = meldekortId,
                 meldeperiodeId = meldeperiode.id,
                 sakId = meldeperiode.sakId,
-                mottatt = LocalDateTime.now(),
+                mottatt = nå(tac.clock),
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.chunked(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER + 1)
                     .flatMapIndexed { index, dager ->
@@ -316,7 +317,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 id = meldekortId,
                 meldeperiodeId = meldeperiode.id,
                 sakId = meldeperiode.sakId,
-                mottatt = LocalDateTime.now(),
+                mottatt = nå(tac.clock),
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.chunked(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER)
                     .flatMapIndexed { index, dager ->

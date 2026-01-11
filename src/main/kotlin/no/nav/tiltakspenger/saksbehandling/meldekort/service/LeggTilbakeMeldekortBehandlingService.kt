@@ -9,10 +9,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.time.Clock
 
 class LeggTilbakeMeldekortBehandlingService(
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
+    private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -23,7 +25,7 @@ class LeggTilbakeMeldekortBehandlingService(
     ): Pair<Sak, MeldekortBehandling> {
         val sak: Sak = sakService.hentForSakId(sakId)
         val meldekortBehandling: MeldekortBehandling = sak.hentMeldekortBehandling(meldekortId)!!
-        return meldekortBehandling.leggTilbakeMeldekortBehandling(saksbehandler).let {
+        return meldekortBehandling.leggTilbakeMeldekortBehandling(saksbehandler, clock).let {
             when (it.status) {
                 MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> meldekortBehandlingRepo.leggTilbakeBehandlingSaksbehandler(
                     it.id,

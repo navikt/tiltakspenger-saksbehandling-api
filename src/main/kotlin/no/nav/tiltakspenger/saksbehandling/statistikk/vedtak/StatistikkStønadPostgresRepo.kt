@@ -126,7 +126,7 @@ class StatistikkStønadPostgresRepo(
                 mapOf(
                     "nytt_fnr" to nyttFnr.verdi,
                     "gammelt_fnr" to gammeltFnr.verdi,
-                    "sist_endret" to LocalDateTime.now(),
+                    "sist_endret" to nå(clock),
                 ),
             ).asUpdate,
         )
@@ -145,7 +145,7 @@ class StatistikkStønadPostgresRepo(
                 mapOf(
                     "nytt_fnr" to nyttFnr.verdi,
                     "gammelt_fnr" to gammeltFnr.verdi,
-                    "sist_endret" to LocalDateTime.now(),
+                    "sist_endret" to nå(clock),
                 ),
             ).asUpdate,
         )

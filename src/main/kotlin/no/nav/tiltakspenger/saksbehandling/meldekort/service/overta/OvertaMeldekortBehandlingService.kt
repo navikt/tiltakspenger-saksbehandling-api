@@ -6,10 +6,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.time.Clock
 
 class OvertaMeldekortBehandlingService(
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
+    private val clock: Clock,
 ) {
     fun overta(
         command: OvertaMeldekortBehandlingCommand,
@@ -17,7 +19,7 @@ class OvertaMeldekortBehandlingService(
         val sak: Sak = sakService.hentForSakId(command.sakId)
         val meldekortBehandling: MeldekortBehandling = sak.hentMeldekortBehandling(command.meldekortId)!!
 
-        return meldekortBehandling.overta(command.saksbehandler).map {
+        return meldekortBehandling.overta(command.saksbehandler, clock).map {
             when (it.status) {
                 MeldekortBehandlingStatus.UNDER_BEHANDLING -> meldekortBehandlingRepo.overtaSaksbehandler(
                     meldekortId = it.id,

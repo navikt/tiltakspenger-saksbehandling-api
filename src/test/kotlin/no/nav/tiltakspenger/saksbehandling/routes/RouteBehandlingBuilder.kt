@@ -8,14 +8,15 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.Iver
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater.OppdaterBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger.OppdaterSaksopplysningerBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start.StartRevurderingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start.StartSøknadsbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.OvertaBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.TaBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendRevurderingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendSøknadsbehandlingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.UnderkjennBehandlingBuilder
-import no.nav.tiltakspenger.saksbehandling.behandling.util.SøknadsbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.start.OpprettKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.TaMeldekortBehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett.OpprettMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.HentSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.OpprettSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.MottaSøknadRouteBuilder
@@ -24,7 +25,7 @@ object RouteBehandlingBuilder :
     OpprettSakRouteBuilder,
     HentSakRouteBuilder,
     MottaSøknadRouteBuilder,
-    SøknadsbehandlingBuilder,
+    StartSøknadsbehandlingBuilder,
     OpprettKlagebehandlingBuilder,
     TaBehandlingBuilder,
     SendSøknadsbehandlingTilBeslutningBuilder,
@@ -39,4 +40,5 @@ object RouteBehandlingBuilder :
     TaMeldekortBehandlingBuilder,
     BehandleSøknadPåNyttBuilder,
     ForhåndsvisVedtaksbrevTestbuilder,
-    OppdaterBehandlingBuilder
+    OppdaterBehandlingBuilder,
+    OpprettMeldekortbehandlingBuilder

@@ -26,7 +26,7 @@ class OpprettKlagebehandlingRouteTest {
                      "sistEndret": "${klagebehandling.sistEndret}",
                      "saksbehandler": "Z12345",
                      "journalpostId": "12345",
-                     "journalpostOpprettet": "2025-01-01T01:02:04.456789",
+                     "journalpostOpprettet": "2025-01-01T01:02:05.456789",
                      "status": "UNDER_BEHANDLING",
                      "resultat": "AVVIST",
                      "vedtakDetKlagesPå": null,

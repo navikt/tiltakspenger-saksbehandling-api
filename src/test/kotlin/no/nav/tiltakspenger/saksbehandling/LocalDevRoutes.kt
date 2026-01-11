@@ -8,8 +8,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJsonString
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper.tilDomenePdl
@@ -54,6 +52,7 @@ internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
                     deltakelsesperiode = body.deltakelsesperiode?.toDomain(),
                     applicationContext = applicationContext,
                     barnetillegg = barnetillegg,
+                    tiltaksdeltakerRepo = applicationContext.tiltakContext.tiltaksdeltakerRepo,
                 )
                 call.respondText(saksnummer.verdi)
             } else {

@@ -6,7 +6,11 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
     private val data = arrow.atomic.Atomic(mutableMapOf<String, TiltaksdeltakerId>())
 
-    override fun hentEllerLagre(eksternId: String, sessionContext: SessionContext?): TiltaksdeltakerId {
+    override fun hentEllerLagre(
+        eksternId: String,
+        internIdHvisMangler: TiltaksdeltakerId,
+        sessionContext: SessionContext?,
+    ): TiltaksdeltakerId {
         data.get()[eksternId]?.let { return it }
 
         val id = TiltaksdeltakerId.random()

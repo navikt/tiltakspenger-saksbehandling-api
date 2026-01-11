@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
+import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -22,16 +23,24 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KunneIkkeForhåndsviseBrevMeldekortBehandling
+import java.time.LocalDate
 
 internal const val FORHÅNDSVIS_BREV_MELDEKORTBEHANDLING_PATH =
     "/sak/{sakId}/meldekortbehandling/{meldekortId}/forhandsvis"
 
 private data class ForhåndsvisBrevMeldekortbehandlingBody(
     val tekstTilVedtaksbrev: String?,
-)
+    val dager: List<Dag>?,
+) {
+    data class Dag(
+        val dato: LocalDate,
+        val status: OppdaterMeldekortKommando.Status,
+    )
+}
 
 fun Route.forhåndsvisBrevMeldekortbehandling(
     forhåndsvisBrevMeldekortBehandlingService: ForhåndsvisBrevMeldekortBehandlingService,
@@ -56,6 +65,17 @@ fun Route.forhåndsvisBrevMeldekortbehandling(
                             correlationId = correlationId,
                             saksbehandler = saksbehandler,
                             tekstTilVedtaksbrev = body.tekstTilVedtaksbrev?.toNonBlankString(),
+                            // copy-pasta av Oppdater
+                            dager = body.dager?.let {
+                                OppdaterMeldekortKommando.Dager(
+                                    it.map { dag ->
+                                        OppdaterMeldekortKommando.Dager.Dag(
+                                            dag = dag.dato,
+                                            status = dag.status,
+                                        )
+                                    }.toNonEmptyListOrNull()!!,
+                                )
+                            },
                         ),
                     ).fold(
                         ifLeft = {

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.reposi
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -36,53 +37,60 @@ class TiltaksdeltakerKafkaDbTest {
 
     @Test
     fun `tiltaksdeltakelseErEndret - ingen endring - returnerer ingen endringer`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb()
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe emptyList()
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - endret startdato - returnerer ENDRET_STARTDATO`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb =
             getTiltaksdeltakerKafkaDb(fom = lagretTiltaksdeltakelse.deltakelseFraOgMed!!.minusDays(3))
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_STARTDATO)
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_STARTDATO)
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - forlengelse - returnerer FORLENGELSE`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(tom = lagretTiltaksdeltakelse.deltakelseTilOgMed!!.plusMonths(1))
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse) shouldBe listOf(TiltaksdeltakerEndring.FORLENGELSE)
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.FORLENGELSE)
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - endret dager pr uke - returnerer ENDRET_DELTAKELSESMENGDE`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(dagerPerUke = 1F)
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - endret deltakelsesmengde - returnerer ENDRET_DELTAKELSESMENGDE`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(deltakelsesprosent = 60F)
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - lagret deltakelsesmengde er 0 og mottatt er null - returnerer ingen endringer`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(deltakelsesprosent = null)
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(deltakelseProsent = 0.0F)
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe emptyList()
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - endret status og sluttdato - returnerer AVBRUTT_DELTAKELSE`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
-            deltakelseFraOgMed = LocalDate.now().minusMonths(3),
-            deltakelseTilOgMed = LocalDate.now().plusWeeks(1),
+            deltakelseFraOgMed = LocalDate.now(clock).minusMonths(3),
+            deltakelseTilOgMed = LocalDate.now(clock).plusWeeks(1),
         )
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
             fom = tiltaksdeltakelse.deltakelseFraOgMed,
@@ -90,14 +98,15 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.HarSluttet,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse) shouldBe listOf(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - kun endret status til fullfort, sluttdato er passert - returnerer ingen endringer`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
-            deltakelseFraOgMed = LocalDate.now().minusMonths(3),
-            deltakelseTilOgMed = LocalDate.now().minusDays(1),
+            deltakelseFraOgMed = LocalDate.now(clock).minusMonths(3),
+            deltakelseTilOgMed = LocalDate.now(clock).minusDays(1),
         )
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
             fom = tiltaksdeltakelse.deltakelseFraOgMed,
@@ -105,14 +114,15 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Fullført,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe emptyList()
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - kun endret status til deltar, startdato er passert - returnerer ingen endringer`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
-            deltakelseFraOgMed = LocalDate.now().minusDays(1),
-            deltakelseTilOgMed = LocalDate.now().plusMonths(3),
+            deltakelseFraOgMed = LocalDate.now(clock).minusDays(1),
+            deltakelseTilOgMed = LocalDate.now(clock).plusMonths(3),
         )
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
             fom = tiltaksdeltakelse.deltakelseFraOgMed,
@@ -120,14 +130,15 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Deltar,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe emptyList()
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - kun endret status til deltar, startdato er i dag, forlengelse - returnerer FORLENGELSE`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
-            deltakelseFraOgMed = LocalDate.now(),
-            deltakelseTilOgMed = LocalDate.now().plusMonths(3),
+            deltakelseFraOgMed = LocalDate.now(clock),
+            deltakelseTilOgMed = LocalDate.now(clock).plusMonths(3),
         )
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
             fom = tiltaksdeltakelse.deltakelseFraOgMed,
@@ -135,14 +146,15 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Deltar,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse) shouldBe listOf(TiltaksdeltakerEndring.FORLENGELSE)
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.FORLENGELSE)
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - kun endret status til fullfort, sluttdato er ikke passert - returnerer ENDRET_STATUS`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
-            deltakelseFraOgMed = LocalDate.now().minusMonths(3),
-            deltakelseTilOgMed = LocalDate.now().plusWeeks(1),
+            deltakelseFraOgMed = LocalDate.now(clock).minusMonths(3),
+            deltakelseTilOgMed = LocalDate.now(clock).plusWeeks(1),
         )
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
             fom = tiltaksdeltakelse.deltakelseFraOgMed,
@@ -150,26 +162,28 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Fullført,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_STATUS)
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_STATUS)
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - kun endret status til avbrutt - returnerer AVBRUTT_DELTAKELSE`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
             deltakerstatus = TiltakDeltakerstatus.Avbrutt,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse) shouldBe listOf(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - forlengelse og endret deltakelsesmengde - returnerer begge`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
             tom = lagretTiltaksdeltakelse.deltakelseTilOgMed!!.plusMonths(1),
             dagerPerUke = 1F,
         )
 
-        val endringer = tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse).sorted()
+        val endringer = tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock).sorted()
         endringer.size shouldBe 2
         endringer.first() shouldBe TiltaksdeltakerEndring.FORLENGELSE
         endringer[1] shouldBe TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE
@@ -177,9 +191,10 @@ class TiltaksdeltakerKafkaDbTest {
 
     @Test
     fun `tiltaksdeltakelseErEndret - blir ikke aktuell - returnerer IKKE_AKTUELL_DELTAKELSE`() {
+        val clock = TikkendeKlokke()
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
-            deltakelseFraOgMed = LocalDate.now().plusWeeks(1),
-            deltakelseTilOgMed = LocalDate.now().plusMonths(4),
+            deltakelseFraOgMed = LocalDate.now(clock).plusWeeks(1),
+            deltakelseTilOgMed = LocalDate.now(clock).plusMonths(4),
             deltakelseStatus = TiltakDeltakerstatus.VenterPåOppstart,
         )
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
@@ -188,7 +203,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse) shouldBe listOf(TiltaksdeltakerEndring.IKKE_AKTUELL_DELTAKELSE)
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.IKKE_AKTUELL_DELTAKELSE)
     }
 }
 

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 
 fun nySøknadForFnr(
     fnr: Fnr,
@@ -44,6 +45,7 @@ fun nySakMedNySøknad(
     deltakelsesperiode: Periode? = null,
     barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     applicationContext: ApplicationContext,
+    tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ): Saksnummer {
     val periode = deltakelsesperiode ?: 1.til(10.april(2025))
 
@@ -52,6 +54,7 @@ fun nySakMedNySøknad(
             Fnr.random(),
             CorrelationId.generate(),
         )
+
         val søknad = ObjectMother.nyInnvilgbarSøknad(
             fnr = sak.fnr,
             sakId = sak.id,
@@ -59,6 +62,10 @@ fun nySakMedNySøknad(
             periode = periode,
             barnetillegg = barnetillegg,
         )
+
+        // her lagrer vi tiltaksdeltaker for å unngå feil
+        tiltaksdeltakerRepo.hentEllerLagre(søknad.tiltak.id, søknad.tiltak.tiltaksdeltakerId!!)
+
         applicationContext.søknadContext.søknadService.nySøknad(
             søknad = søknad,
         )

@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Clock
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -25,6 +26,7 @@ class OppgaveHttpClient(
     private val getToken: suspend () -> AccessToken,
     connectTimeout: kotlin.time.Duration = 1.seconds,
     private val timeout: kotlin.time.Duration = 5.seconds,
+    private val clock: Clock,
 ) : OppgaveKlient {
     private val logger = KotlinLogging.logger {}
     private val client =
@@ -46,12 +48,15 @@ class OppgaveHttpClient(
                 OpprettOppgaveRequest.opprettOppgaveRequestForMeldekort(
                     fnr = fnr,
                     journalpostId = journalpostId,
+                    clock = clock,
                 )
             }
+
             Oppgavebehov.NY_SOKNAD -> {
                 OpprettOppgaveRequest.opprettOppgaveRequestForSoknad(
                     fnr = fnr,
                     journalpostId = journalpostId,
+                    clock = clock,
                 )
             }
 
@@ -80,16 +85,15 @@ class OppgaveHttpClient(
             Oppgavebehov.ENDRET_TILTAKDELTAKER -> OpprettOppgaveRequest.opprettOppgaveRequestForEndretTiltaksdeltaker(
                 fnr,
                 tilleggstekst,
+                clock = clock,
             )
 
-            Oppgavebehov.FATT_BARN -> OpprettOppgaveRequest.opprettOppgaveRequestForFattBarn(fnr)
-            Oppgavebehov.DOED -> OpprettOppgaveRequest.opprettOppgaveRequestForDoedsfall(fnr)
-            Oppgavebehov.ADRESSEBESKYTTELSE -> OpprettOppgaveRequest.opprettOppgaveRequestForAdressebeskyttelse(fnr)
+            Oppgavebehov.FATT_BARN -> OpprettOppgaveRequest.opprettOppgaveRequestForFattBarn(fnr, clock = clock)
+            Oppgavebehov.DOED -> OpprettOppgaveRequest.opprettOppgaveRequestForDoedsfall(fnr, clock = clock)
+            Oppgavebehov.ADRESSEBESKYTTELSE -> OpprettOppgaveRequest.opprettOppgaveRequestForAdressebeskyttelse(fnr, clock = clock)
 
-            else -> {
-                logger.error { "Ukjent oppgavebehov for oppgave uten journalpost og duplikatkontroll: ${oppgavebehov.name}" }
-                throw IllegalArgumentException("Ukjent oppgavebehov for oppgave uten journalpost og duplikatkontroll: ${oppgavebehov.name}")
-            }
+            Oppgavebehov.NYTT_MELDEKORT -> TODO()
+            Oppgavebehov.NY_SOKNAD -> TODO()
         }
         return opprettOppgave(opprettOppgaveRequest, callId)
     }

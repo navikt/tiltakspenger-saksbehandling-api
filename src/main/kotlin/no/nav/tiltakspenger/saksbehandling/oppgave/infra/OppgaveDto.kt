@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.oppgave.infra
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.finnFristForFerdigstillingAvOppgave
+import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
 
@@ -19,73 +21,109 @@ data class OpprettOppgaveRequest(
     val beskrivelse: String,
     val tema: String = TEMA_TILTAKSPENGER,
     val oppgavetype: String,
-    val aktivDato: LocalDate = LocalDate.now(),
-    val fristFerdigstillelse: LocalDate = finnFristForFerdigstillingAvOppgave(LocalDate.now().plusDays(3)),
+    val aktivDato: LocalDate,
+    val fristFerdigstillelse: LocalDate,
     val prioritet: PrioritetType = PrioritetType.NORM,
 ) {
     companion object {
         fun opprettOppgaveRequestForEndretTiltaksdeltaker(
             fnr: Fnr,
             tilleggstekst: String?,
-        ) = OpprettOppgaveRequest(
-            personident = fnr.verdi,
-            journalpostId = null,
-            beskrivelse = tilleggstekst?.let { "$ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE: $it" } ?: "$ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE.",
-            behandlesAvApplikasjon = null,
-            oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
-        )
+            clock: Clock,
+        ): OpprettOppgaveRequest {
+            val dagensDato = LocalDate.now(clock)
+            return OpprettOppgaveRequest(
+                personident = fnr.verdi,
+                journalpostId = null,
+                beskrivelse = tilleggstekst?.let { "$ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE: $it" } ?: "$ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE.",
+                behandlesAvApplikasjon = null,
+                oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
+                aktivDato = dagensDato,
+                fristFerdigstillelse = finnFristForFerdigstillingAvOppgave(dagensDato.plusDays(3)),
+            )
+        }
 
         fun opprettOppgaveRequestForFattBarn(
             fnr: Fnr,
-        ) = OpprettOppgaveRequest(
-            personident = fnr.verdi,
-            journalpostId = null,
-            beskrivelse = "Mottaker av tiltakspenger har fått barn. Dette kan påvirke tiltakspengeytelsen.",
-            behandlesAvApplikasjon = null,
-            oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
-        )
+            clock: Clock,
+        ): OpprettOppgaveRequest {
+            val dagensDato = LocalDate.now(clock)
+            return OpprettOppgaveRequest(
+                personident = fnr.verdi,
+                journalpostId = null,
+                beskrivelse = "Mottaker av tiltakspenger har fått barn. Dette kan påvirke tiltakspengeytelsen.",
+                behandlesAvApplikasjon = null,
+                oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
+                aktivDato = dagensDato,
+                fristFerdigstillelse = finnFristForFerdigstillingAvOppgave(dagensDato.plusDays(3)),
+            )
+        }
 
         fun opprettOppgaveRequestForDoedsfall(
             fnr: Fnr,
-        ) = OpprettOppgaveRequest(
-            personident = fnr.verdi,
-            journalpostId = null,
-            beskrivelse = "Mottaker av tiltakspenger er registrert som død.",
-            behandlesAvApplikasjon = null,
-            oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
-        )
+            clock: Clock,
+        ): OpprettOppgaveRequest {
+            val dagensDato = LocalDate.now(clock)
+            return OpprettOppgaveRequest(
+                personident = fnr.verdi,
+                journalpostId = null,
+                beskrivelse = "Mottaker av tiltakspenger er registrert som død.",
+                behandlesAvApplikasjon = null,
+                oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
+                aktivDato = dagensDato,
+                fristFerdigstillelse = finnFristForFerdigstillingAvOppgave(dagensDato.plusDays(3)),
+            )
+        }
 
         fun opprettOppgaveRequestForAdressebeskyttelse(
             fnr: Fnr,
-        ) = OpprettOppgaveRequest(
-            personident = fnr.verdi,
-            journalpostId = null,
-            beskrivelse = "Mottaker av tiltakspenger har fått strengt fortrolig adresse og har en åpen tiltakspengesak som må følges opp i ny løsning.",
-            behandlesAvApplikasjon = null,
-            oppgavetype = OppgaveType.OPPGAVETYPE_BEHANDLE_SAK.value,
-        )
+            clock: Clock,
+        ): OpprettOppgaveRequest {
+            val dagensDato = LocalDate.now(clock)
+            return OpprettOppgaveRequest(
+                personident = fnr.verdi,
+                journalpostId = null,
+                beskrivelse = "Mottaker av tiltakspenger har fått strengt fortrolig adresse og har en åpen tiltakspengesak som må følges opp i ny løsning.",
+                behandlesAvApplikasjon = null,
+                oppgavetype = OppgaveType.OPPGAVETYPE_BEHANDLE_SAK.value,
+                aktivDato = dagensDato,
+                fristFerdigstillelse = finnFristForFerdigstillingAvOppgave(dagensDato.plusDays(3)),
+            )
+        }
 
         fun opprettOppgaveRequestForMeldekort(
             fnr: Fnr,
             journalpostId: JournalpostId,
-        ) = OpprettOppgaveRequest(
-            personident = fnr.verdi,
-            journalpostId = journalpostId.toString(),
-            beskrivelse = "Nytt meldekort for tiltakspenger. Behandles i ny løsning.",
-            behandlesAvApplikasjon = null,
-            oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_HENVENDELSE.value,
-        )
+            clock: Clock,
+        ): OpprettOppgaveRequest {
+            val dagensDato = LocalDate.now(clock)
+            return OpprettOppgaveRequest(
+                personident = fnr.verdi,
+                journalpostId = journalpostId.toString(),
+                beskrivelse = "Nytt meldekort for tiltakspenger. Behandles i ny løsning.",
+                behandlesAvApplikasjon = null,
+                oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_HENVENDELSE.value,
+                aktivDato = dagensDato,
+                fristFerdigstillelse = finnFristForFerdigstillingAvOppgave(dagensDato.plusDays(3)),
+            )
+        }
 
         fun opprettOppgaveRequestForSoknad(
             fnr: Fnr,
             journalpostId: JournalpostId,
-        ) = OpprettOppgaveRequest(
-            personident = fnr.verdi,
-            journalpostId = journalpostId.toString(),
-            beskrivelse = "Ny søknad om tiltakspenger. Behandles i ny løsning.",
-            behandlesAvApplikasjon = null,
-            oppgavetype = OppgaveType.OPPGAVETYPE_BEHANDLE_SAK.value,
-        )
+            clock: Clock,
+        ): OpprettOppgaveRequest {
+            val dagensDato = LocalDate.now(clock)
+            return OpprettOppgaveRequest(
+                personident = fnr.verdi,
+                journalpostId = journalpostId.toString(),
+                beskrivelse = "Ny søknad om tiltakspenger. Behandles i ny løsning.",
+                behandlesAvApplikasjon = null,
+                oppgavetype = OppgaveType.OPPGAVETYPE_BEHANDLE_SAK.value,
+                aktivDato = dagensDato,
+                fristFerdigstillelse = finnFristForFerdigstillingAvOppgave(dagensDato.plusDays(3)),
+            )
+        }
     }
 }
 

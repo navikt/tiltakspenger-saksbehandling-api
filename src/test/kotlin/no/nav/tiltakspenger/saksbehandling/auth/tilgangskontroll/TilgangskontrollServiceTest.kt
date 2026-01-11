@@ -30,7 +30,8 @@ class TilgangskontrollServiceTest {
     private val fnrs = listOf(fnr, fnr2)
     private val saksbehandler = ObjectMother.saksbehandler()
     private val sakId = SakId.random()
-    private val saksnummer = Saksnummer.genererSaknummer(løpenr = "0001")
+    private val clock = ObjectMother.clock
+    private val saksnummer = Saksnummer.genererSaknummer(løpenr = "0001", clock = clock)
 
     @Test
     fun `harTilgangTilPerson - har tilgang - kaster ikke feil`() = runTest {

@@ -53,7 +53,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerFakeRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
@@ -71,7 +70,7 @@ import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFa
 class TestApplicationContext(
     override val sessionFactory: SessionFactory = TestSessionFactory(),
     override val clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
-    override val texasClient: TexasClient = TexasClientFake(),
+    override val texasClient: TexasClient = TexasClientFake(clock),
     val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
 ) : ApplicationContext(
     gitHash = "fake-git-hash",
@@ -146,6 +145,7 @@ class TestApplicationContext(
             søknadFakeRepo = søknadFakeRepo,
             klagebehandlingFakeRepo = klagebehandlingFakeRepo,
             brukersMeldekortFakeRepo = brukersMeldekortFakeRepo,
+            clock = clock,
         )
 
     private val personFakeRepo =
@@ -188,7 +188,7 @@ class TestApplicationContext(
             sakService = sakContext.sakService,
             statistikkSakService = statistikkContext.statistikkSakService,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
-            clock = fixedClock,
+            clock = clock,
             safJournalpostClient = safJournalpostFakeClient,
         ) {
             override val søknadRepo = søknadFakeRepo

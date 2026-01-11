@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -13,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
 import java.time.Clock
-import java.time.LocalDateTime
 
 class EndretTiltaksdeltakerJobb(
     private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
@@ -27,7 +27,7 @@ class EndretTiltaksdeltakerJobb(
     suspend fun opprettOppgaveForEndredeDeltakere() {
         Either.catch {
             val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgave(
-                sistOppdatertTidligereEnn = LocalDateTime.now().minusMinutes(15),
+                sistOppdatertTidligereEnn = nå(clock).minusMinutes(15),
             )
 
             endredeDeltakere.forEach { deltaker ->
@@ -37,11 +37,13 @@ class EndretTiltaksdeltakerJobb(
                 Either.catch {
                     val sak = sakRepo.hentForSakId(sakId)!!
                     val apneBehandlingerForDeltakelse = finnApneBehandlingerForDeltakelse(sak, deltakerId)
-                    val automatiskeBehandlingerPaVent = apneBehandlingerForDeltakelse.filter { it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
+                    val automatiskeBehandlingerPaVent =
+                        apneBehandlingerForDeltakelse.filter { it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
 
                     behandleAutomatiskeBehandlingerPaVentPaNytt(automatiskeBehandlingerPaVent, deltakerId)
 
-                    val apneManuelleBehandlinger = apneBehandlingerForDeltakelse.filter { !it.erUnderAutomatiskBehandling }
+                    val apneManuelleBehandlinger =
+                        apneBehandlingerForDeltakelse.filter { !it.erUnderAutomatiskBehandling }
                     val nyesteIverksatteBehandling = finnNyesteIverksatteBehandlingForDeltakelse(sak, deltakerId)
 
                     if (nyesteIverksatteBehandling == null && apneManuelleBehandlinger.isEmpty()) {
@@ -107,9 +109,10 @@ class EndretTiltaksdeltakerJobb(
     }
 
     private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: String): Rammebehandling? {
-        val iverksatteBehandlingerForDeltakelse: Periodisering<Rammebehandling> = sak.rammevedtaksliste.innvilgetTidslinje
-            .filter { it.verdi.behandling.inneholderSaksopplysningerEksternDeltakelseId(tiltaksdeltakerId) }
-            .map { it.verdi.behandling }
+        val iverksatteBehandlingerForDeltakelse: Periodisering<Rammebehandling> =
+            sak.rammevedtaksliste.innvilgetTidslinje
+                .filter { it.verdi.behandling.inneholderSaksopplysningerEksternDeltakelseId(tiltaksdeltakerId) }
+                .map { it.verdi.behandling }
 
         return iverksatteBehandlingerForDeltakelse.verdier.maxByOrNull { it.iverksattTidspunkt!! }
     }
@@ -120,7 +123,7 @@ class EndretTiltaksdeltakerJobb(
     ) {
         automatiskeBehandlingerPaVent.forEach {
             it.oppdaterVenterTil(
-                nyVenterTil = LocalDateTime.now().plusMinutes(15), // venter i 15 minutter i tilfelle det kommer flere endringer
+                nyVenterTil = nå(clock).plusMinutes(15), // venter i 15 minutter i tilfelle det kommer flere endringer
                 clock = clock,
             ).let {
                 behandlingRepo.lagre(it)
@@ -153,6 +156,6 @@ class EndretTiltaksdeltakerJobb(
 
         val tiltaksdeltakelseFraBehandling = behandling.getTiltaksdeltakelse(deltaker.id)
             ?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id} på behandling ${behandling.id}, skal ikke kunne skje")
-        return deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)
+        return deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling, clock = clock)
     }
 }

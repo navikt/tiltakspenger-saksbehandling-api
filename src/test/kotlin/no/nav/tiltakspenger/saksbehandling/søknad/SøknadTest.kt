@@ -3,7 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.søknad
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.førsteNovember24
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -19,19 +21,19 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class SøknadTest {
     @Nested
     inner class Opprett {
         @Test
         fun `oppretter en innvilgbar søknad`() {
+            val clock = TikkendeKlokke()
             val sak = ObjectMother.nySak()
             val opprettetSøknad = Søknad.opprett(
                 sak = sak,
                 journalpostId = "99999",
-                opprettet = LocalDateTime.now(),
-                tidsstempelHosOss = LocalDateTime.now(),
+                opprettet = nå(clock),
+                tidsstempelHosOss = nå(clock),
                 personopplysninger = ObjectMother.personSøknad(fnr = sak.fnr),
                 søknadstiltak = søknadstiltak(),
                 barnetillegg = emptyList(),
@@ -60,12 +62,13 @@ class SøknadTest {
 
         @Test
         fun `oppretter en ikke innvilgbar søknad`() {
-            val sak = ObjectMother.nySak()
+            val clock = TikkendeKlokke()
+            val sak = ObjectMother.nySak(clock = clock)
             val opprettetSøknad = Søknad.opprett(
                 sak = sak,
                 journalpostId = "99999",
-                opprettet = LocalDateTime.now(),
-                tidsstempelHosOss = LocalDateTime.now(),
+                opprettet = nå(clock),
+                tidsstempelHosOss = nå(clock),
                 personopplysninger = ObjectMother.personSøknad(fnr = sak.fnr),
                 søknadstiltak = null,
                 barnetillegg = emptyList(),
@@ -87,7 +90,6 @@ class SøknadTest {
                 manueltSattTiltak = null,
                 søknadstype = Søknadstype.PAPIR_SKJEMA,
             )
-
             opprettetSøknad.shouldBeInstanceOf<IkkeInnvilgbarSøknad>()
             opprettetSøknad.tiltak shouldBe null
         }
@@ -128,9 +130,10 @@ class SøknadTest {
         inner class InnvilgbarSøknad {
             @Test
             fun `Manuelt satt søknadsperiode prioriteres over tiltaksperiode`() {
+                val clock = TikkendeKlokke()
                 val søknadstiltak = søknadstiltak(
-                    deltakelseFom = LocalDate.now(),
-                    deltakelseTom = LocalDate.now().plusMonths(1),
+                    deltakelseFom = LocalDate.now(clock),
+                    deltakelseTom = LocalDate.now(clock).plusMonths(1),
                 )
                 val søknadsperiode = Periode(
                     fraOgMed = førsteNovember24.toLocalDate(),
@@ -138,6 +141,7 @@ class SøknadTest {
                 )
 
                 val søknadMedManueltSattPeriode = ObjectMother.nyInnvilgbarSøknad(
+                    clock = clock,
                     søknadstiltak = søknadstiltak,
                     søknadsperiode = søknadsperiode,
                 )
@@ -149,12 +153,14 @@ class SøknadTest {
 
             @Test
             fun `Tiltaksperiode returneres om det ikke er satt noen søknadsperiode manuelt`() {
+                val clock = TikkendeKlokke()
                 val søknadstiltak = søknadstiltak(
-                    deltakelseFom = LocalDate.now(),
-                    deltakelseTom = LocalDate.now().plusMonths(1),
+                    deltakelseFom = LocalDate.now(clock),
+                    deltakelseTom = LocalDate.now(clock).plusMonths(1),
                 )
 
                 val søknadMedManueltSattPeriode = ObjectMother.nyInnvilgbarSøknad(
+                    clock = clock,
                     søknadstiltak = søknadstiltak,
                     søknadsperiode = null,
                 )
@@ -169,9 +175,10 @@ class SøknadTest {
         inner class IkkeInnvilgbarSøknad {
             @Test
             fun `Manuelt satt søknadsperiode prioriteres over tiltaksperiode`() {
+                val clock = TikkendeKlokke()
                 val søknadstiltak = søknadstiltak(
-                    deltakelseFom = LocalDate.now(),
-                    deltakelseTom = LocalDate.now().plusMonths(1),
+                    deltakelseFom = LocalDate.now(clock),
+                    deltakelseTom = LocalDate.now(clock).plusMonths(1),
                 )
                 val søknadsperiode = Periode(
                     fraOgMed = førsteNovember24.toLocalDate(),
@@ -179,6 +186,7 @@ class SøknadTest {
                 )
 
                 val søknadMedManueltSattPeriode = ObjectMother.nyIkkeInnvilgbarSøknad(
+                    clock = clock,
                     søknadstiltak = søknadstiltak,
                     søknadsperiode = søknadsperiode,
                 )
@@ -190,9 +198,10 @@ class SøknadTest {
 
             @Test
             fun `Tiltaksperiode returneres om det ikke er satt noen søknadsperiode manuelt`() {
+                val clock = TikkendeKlokke()
                 val søknadstiltak = søknadstiltak(
-                    deltakelseFom = LocalDate.now(),
-                    deltakelseTom = LocalDate.now().plusMonths(1),
+                    deltakelseFom = LocalDate.now(clock),
+                    deltakelseTom = LocalDate.now(clock).plusMonths(1),
                 )
                 val søknadsperiode = Periode(
                     fraOgMed = førsteNovember24.toLocalDate(),
@@ -200,6 +209,7 @@ class SøknadTest {
                 )
 
                 val søknadMedManueltSattPeriode = ObjectMother.nyIkkeInnvilgbarSøknad(
+                    clock = clock,
                     søknadstiltak = søknadstiltak,
                     søknadsperiode = søknadsperiode,
                 )

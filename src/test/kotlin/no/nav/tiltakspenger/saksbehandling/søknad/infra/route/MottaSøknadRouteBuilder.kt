@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import java.time.Clock
 import java.time.LocalDateTime
 
 /**
@@ -48,7 +49,12 @@ interface MottaSøknadRouteBuilder {
     ): Pair<Sak, Søknad> {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val saksnummer = hentEllerOpprettSakForSystembruker(tac, sak.fnr)
-        tiltaksdeltakelse.internDeltakelseId?.let { tac.tiltakContext.tiltaksdeltakerRepo.lagre(it, tiltaksdeltakelse.eksternDeltakelseId) }
+        tiltaksdeltakelse.internDeltakelseId?.let {
+            tac.tiltakContext.tiltaksdeltakerRepo.lagre(
+                it,
+                tiltaksdeltakelse.eksternDeltakelseId,
+            )
+        }
         mottaSøknad(tac, sak.fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltakelse)
         val oppdatertSak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         return oppdatertSak to oppdatertSak.søknader.single { it.id == søknadId }
@@ -65,7 +71,12 @@ interface MottaSøknadRouteBuilder {
         ),
     ): Pair<Sak, Søknad> {
         val saksnummer = hentEllerOpprettSakForSystembruker(tac, fnr)
-        tiltaksdeltakelse.internDeltakelseId?.let { tac.tiltakContext.tiltaksdeltakerRepo.lagre(it, tiltaksdeltakelse.eksternDeltakelseId) }
+        tiltaksdeltakelse.internDeltakelseId?.let {
+            tac.tiltakContext.tiltaksdeltakerRepo.lagre(
+                it,
+                tiltaksdeltakelse.eksternDeltakelseId,
+            )
+        }
         mottaSøknad(tac, fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltakelse)
         val sak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         return sak to sak.søknader.single { it.id == søknadId }
@@ -101,6 +112,7 @@ interface MottaSøknadRouteBuilder {
                     fnr = fnr.verdi,
                     søknadId = søknadId.toString(),
                     deltakelsesperiode = deltakelsesperiode,
+                    clock = tac.clock,
                     tiltaksdeltakelse = tiltaksdeltakelse.toSøknadstiltak(),
                 ),
             )
@@ -126,7 +138,8 @@ interface MottaSøknadRouteBuilder {
 
     private fun createRequest(
         søknadId: String = SøknadId.random().toString(),
-        saksnummer: String = Saksnummer.genererSaknummer(løpenr = "0001").verdi,
+        clock: Clock,
+        saksnummer: String = Saksnummer.genererSaknummer(løpenr = "0001", clock = clock).verdi,
         journalpostId: String = "123456789",
         fnr: String = Fnr.random().toString(),
         deltakelsesperiode: Periode = 1.til(10.april(2025)),

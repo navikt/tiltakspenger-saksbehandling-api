@@ -1,16 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
-import no.nav.tiltakspenger.saksbehandling.objectmothers.saksbehandlerFyllerUtMeldeperiodeDager
+import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilSendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
@@ -28,27 +26,17 @@ suspend fun TestApplicationContext.nyOpprettetMeldekortbehandling(
 
 suspend fun TestApplicationContext.oppdatertMeldekortbehandling(
     sakId: SakId,
-    meldekortId: MeldekortId,
     saksbehandler: Saksbehandler = saksbehandler(),
-    dager: OppdaterMeldekortKommando.Dager = saksbehandlerFyllerUtMeldeperiodeDager(
-        meldekortContext.meldekortBehandlingRepo.hent(
-            meldekortId,
-        )!!.meldeperiode,
-    ),
-    begrunnelse: String? = null,
-    fritekstTilVedtaksbrev: String? = null,
-    correlationId: CorrelationId = CorrelationId.generate(),
+    kjedeId: MeldeperiodeKjedeId,
 ): Pair<Sak, MeldekortBehandling> {
+    val (_, opprettet) = nyOpprettetMeldekortbehandling(
+        sakId = sakId,
+        kjedeId = kjedeId,
+        saksbehandler = saksbehandler,
+    )
+
     return meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
-        kommando = OppdaterMeldekortKommando(
-            sakId = sakId,
-            meldekortId = meldekortId,
-            saksbehandler = saksbehandler,
-            dager = dager,
-            begrunnelse = begrunnelse?.let { Begrunnelse.createOrThrow(it) },
-            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.createOrThrow(it) },
-            correlationId = correlationId,
-        ),
+        kommando = opprettet.tilOppdaterMeldekortKommando(saksbehandler),
     ).getOrFail()
 }
 
@@ -57,7 +45,7 @@ suspend fun TestApplicationContext.meldekortbehandlingKlarTilBeslutning(
     kjedeId: MeldeperiodeKjedeId,
     saksbehandler: Saksbehandler = saksbehandler(),
 ): Pair<Sak, MeldekortBehandletManuelt> {
-    val (_, opprettet) = nyOpprettetMeldekortbehandling(
+    val (_, opprettet) = oppdatertMeldekortbehandling(
         sakId = sakId,
         kjedeId = kjedeId,
         saksbehandler = saksbehandler,

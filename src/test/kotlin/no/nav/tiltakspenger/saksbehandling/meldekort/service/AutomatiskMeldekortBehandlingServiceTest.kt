@@ -234,7 +234,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
                 val automatiskMeldekortBehandlingService =
                     tac.meldekortContext.automatiskMeldekortBehandlingService
-                val nå = LocalDate.now()
+                val nå = LocalDate.now(clock)
                 val mandag = nå.with(DayOfWeek.MONDAY)
 
                 val sak =

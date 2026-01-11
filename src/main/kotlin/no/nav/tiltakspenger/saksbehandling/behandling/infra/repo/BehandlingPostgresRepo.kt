@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -52,12 +53,14 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFraDbJson
 import org.intellij.lang.annotations.Language
+import java.time.Clock
 import java.time.LocalDateTime
 
 private val log = KotlinLogging.logger {}
 
 class BehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
+    private val clock: Clock,
 ) : BehandlingRepo {
 
     override fun hent(
@@ -707,7 +710,7 @@ class BehandlingPostgresRepo(
                     limit :limit
                     """.trimIndent(),
                     mapOf(
-                        "now" to LocalDateTime.now(),
+                        "now" to nå(clock),
                         "limit" to limit,
                     ),
                 ).map { it.toBehandling(session) }.asList,

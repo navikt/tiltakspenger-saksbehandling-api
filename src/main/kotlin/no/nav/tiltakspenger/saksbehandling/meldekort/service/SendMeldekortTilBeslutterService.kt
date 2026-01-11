@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.sendMeldekortTilBesl
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
 /**
@@ -20,34 +19,24 @@ import java.time.Clock
 class SendMeldekortTilBeslutterService(
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
-    private val simulerService: SimulerService,
     private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
 
-    suspend fun sendMeldekortTilBeslutter(
+    fun sendMeldekortTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
     ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<Sak, MeldekortBehandletManuelt>> {
         val sak = hentSak(kommando)
         sakService
         return sak.sendMeldekortTilBeslutter(
             kommando = kommando,
-            simuler = { behandling ->
-                simulerService.simulerMeldekort(
-                    behandling = behandling,
-                    forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
-                    meldeperiodeKjeder = sak.meldeperiodeKjeder,
-                    brukersNavkontor = { behandling.navkontor },
-                    kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort,
-                )
-            },
             clock = clock,
-        ).map { (sak, meldekort, simulering) ->
+        ).map { (sak, meldekort) ->
             meldekort.validerKanIverksetteUtbetaling().onLeft {
                 return KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke(it).left()
             }
 
-            meldekortBehandlingRepo.oppdater(meldekort, simulering)
+            meldekortBehandlingRepo.oppdater(meldekort)
             logger.info { "Meldekort med id ${meldekort.id} sendt til beslutter. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
             Pair(sak, meldekort)
         }

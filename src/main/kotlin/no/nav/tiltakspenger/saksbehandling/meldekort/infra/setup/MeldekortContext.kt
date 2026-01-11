@@ -147,6 +147,7 @@ open class MeldekortContext(
         OvertaMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
+            clock = clock,
         )
     }
 
@@ -154,6 +155,7 @@ open class MeldekortContext(
         TaMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
+            clock = clock,
         )
     }
 
@@ -161,6 +163,7 @@ open class MeldekortContext(
         LeggTilbakeMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
+            clock = clock,
         )
     }
 
@@ -168,7 +171,6 @@ open class MeldekortContext(
         SendMeldekortTilBeslutterService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
-            simulerService = simulerService,
             clock = clock,
         )
     }
@@ -177,6 +179,7 @@ open class MeldekortContext(
         AvbrytMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
+            clock = clock,
         )
     }
 

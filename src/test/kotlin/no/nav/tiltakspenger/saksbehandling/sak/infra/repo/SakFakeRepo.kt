@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -36,6 +37,7 @@ class SakFakeRepo(
     private val søknadFakeRepo: SøknadFakeRepo,
     private val klagebehandlingFakeRepo: KlagebehandlingFakeRepo,
     private val brukersMeldekortFakeRepo: BrukersMeldekortFakeRepo,
+    private val clock: Clock,
 ) : SakRepo {
     val data = Atomic(mutableMapOf<SakId, Sak>())
 
@@ -86,7 +88,7 @@ class SakFakeRepo(
             .map { it.saksnummer }
             .lastOrNull()
             ?.nesteSaksnummer()
-            ?: Saksnummer.genererSaknummer(dato = LocalDate.now(), løpenr = "1001")
+            ?: Saksnummer.genererSaknummer(dato = LocalDate.now(clock), løpenr = "1001")
 
     override fun hentFnrForSaksnummer(saksnummer: Saksnummer, sessionContext: SessionContext?): Fnr? {
         return data.get().values.singleOrNull { it.saksnummer == saksnummer }?.fnr

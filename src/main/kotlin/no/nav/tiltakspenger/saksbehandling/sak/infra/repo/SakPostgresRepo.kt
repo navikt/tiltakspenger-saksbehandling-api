@@ -157,7 +157,7 @@ class SakPostgresRepo(
     }
 
     override fun hentNesteSaksnummer(): Saksnummer {
-        val iDag = LocalDate.now()
+        val iDag = LocalDate.now(clock)
         val saksnummerPrefiks = Saksnummer.genererSaksnummerPrefiks(iDag)
         return sessionFactory.withSession { session ->
             session.run(

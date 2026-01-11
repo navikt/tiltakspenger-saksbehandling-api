@@ -10,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
@@ -48,10 +49,11 @@ class PersonhendelseJobbTest {
     fun `opprettOppgaveForPersonhendelser - ingen vedtak - sletter fra db`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -68,7 +70,7 @@ class PersonhendelseJobbTest {
                     id = id,
                     fnr = fnr,
                     opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now()),
+                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
                     sakId = sak.id,
                 )
                 personhendelseRepository.lagre(personhendelseDb)
@@ -86,15 +88,16 @@ class PersonhendelseJobbTest {
     fun `opprettOppgaveForPersonhendelser - vedtak tilbake i tid - sletter fra db`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now().minusMonths(3)
-                val deltakelsesTom = LocalDate.now().minusWeeks(2)
+                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
+                val deltakelsesTom = LocalDate.now(clock).minusWeeks(2)
                 testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
@@ -115,7 +118,7 @@ class PersonhendelseJobbTest {
                     id = id,
                     fnr = fnr,
                     opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now()),
+                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
                     sakId = sak.id,
                 )
                 personhendelseRepository.lagre(personhendelseDb)
@@ -133,15 +136,16 @@ class PersonhendelseJobbTest {
     fun `opprettOppgaveForPersonhendelser - har vedtak nå - oppretter oppgave`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock = clock)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now().minusMonths(3)
-                val deltakelsesTom = LocalDate.now().plusWeeks(2)
+                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
+                val deltakelsesTom = LocalDate.now(clock).plusWeeks(2)
                 testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
@@ -162,7 +166,7 @@ class PersonhendelseJobbTest {
                     id = id,
                     fnr = fnr,
                     opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now()),
+                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
                     sakId = sak.id,
                 )
                 personhendelseRepository.lagre(personhendelseDb)
@@ -183,15 +187,16 @@ class PersonhendelseJobbTest {
     fun `opprettOppgaveForPersonhendelser - har vedtak frem i tid - oppretter oppgave`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now().plusDays(3)
-                val deltakelsesTom = LocalDate.now().plusMonths(2)
+                val deltakelseFom = LocalDate.now(clock).plusDays(3)
+                val deltakelsesTom = LocalDate.now(clock).plusMonths(2)
                 testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
@@ -233,15 +238,16 @@ class PersonhendelseJobbTest {
     fun `opprettOppgaveForPersonhendelser - har vedtak nå, adressebeskyttelse - oppretter ikke oppgave`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now().minusMonths(3)
-                val deltakelsesTom = LocalDate.now().plusWeeks(2)
+                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
+                val deltakelsesTom = LocalDate.now(clock).plusWeeks(2)
                 testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
@@ -280,15 +286,16 @@ class PersonhendelseJobbTest {
     fun `opprettOppgaveForPersonhendelser - har åpen behandling, adressebeskyttelse - oppretter oppgave`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now().minusMonths(3)
-                val deltakelsesTom = LocalDate.now().plusWeeks(2)
+                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
+                val deltakelsesTom = LocalDate.now(clock).plusWeeks(2)
                 testDataHelper.persisterOpprettetSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
@@ -321,7 +328,12 @@ class PersonhendelseJobbTest {
                 val personhendelseFraDb = personhendelser.first()
                 personhendelseFraDb.oppgaveId shouldBe oppgaveId
 
-                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.ADRESSEBESKYTTELSE) }
+                coVerify(exactly = 1) {
+                    oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                        fnr,
+                        Oppgavebehov.ADRESSEBESKYTTELSE,
+                    )
+                }
             }
         }
     }
@@ -331,15 +343,16 @@ class PersonhendelseJobbTest {
         coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now().plusDays(3)
-                val deltakelsesTom = LocalDate.now().plusMonths(2)
+                val deltakelseFom = LocalDate.now(clock).plusDays(3)
+                val deltakelsesTom = LocalDate.now(clock).plusMonths(2)
                 testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
@@ -371,7 +384,7 @@ class PersonhendelseJobbTest {
                 val oppdatertPersonhendelseDb = personhendelseRepository.hent(fnr).first()
                 oppdatertPersonhendelseDb shouldNotBe null
                 oppdatertPersonhendelseDb.oppgaveId shouldBe oppgaveId
-                oppdatertPersonhendelseDb.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe LocalDateTime.now()
+                oppdatertPersonhendelseDb.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe nå(testDataHelper.clock)
                     .truncatedTo(ChronoUnit.MINUTES)
                 coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
             }
@@ -383,15 +396,16 @@ class PersonhendelseJobbTest {
         coEvery { oppgaveKlient.erFerdigstilt(any()) } returns true
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
+                val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now().plusDays(3)
-                val deltakelsesTom = LocalDate.now().plusMonths(2)
+                val deltakelseFom = LocalDate.now(clock).plusDays(3)
+                val deltakelsesTom = LocalDate.now(clock).plusMonths(2)
                 testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,

@@ -80,7 +80,7 @@ data class MeldekortUnderBehandling(
         simuler: suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
         clock: Clock,
     ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortUnderBehandling, SimuleringMedMetadata?>> {
-        validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft {
+        validerSaksbehandlerOgTilstand(kommando.saksbehandler, clock).onLeft {
             return it.tilKanIkkeOppdatereMeldekort().left()
         }
         val beregning = Beregning(beregn(meldeperiode))
@@ -100,58 +100,39 @@ data class MeldekortUnderBehandling(
         ).right()
     }
 
-    suspend fun sendTilBeslutter(
+    fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
-        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
-        simuler: suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
         clock: Clock,
-    ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<MeldekortBehandletManuelt, SimuleringMedMetadata?>> {
-        validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft {
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, MeldekortBehandletManuelt> {
+        validerSaksbehandlerOgTilstand(kommando.saksbehandler, clock).onLeft {
             return it.tilKanIkkeSendeMeldekortTilBeslutter().left()
         }
 
-        val (oppdatertMeldekort, simulering) = oppdater(
-            kommando = OppdaterMeldekortKommando(
-                sakId = kommando.sakId,
-                meldekortId = kommando.meldekortId,
-                saksbehandler = kommando.saksbehandler,
-                dager = kommando.dager!!,
-                begrunnelse = kommando.begrunnelse,
-                correlationId = kommando.correlationId,
-                fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            ),
-            beregn = beregn,
-            simuler = simuler,
-            clock = clock,
-        ).getOrElse { return KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere(it).left() }
-
-        return (
-            MeldekortBehandletManuelt(
-                id = oppdatertMeldekort.id,
-                sakId = oppdatertMeldekort.sakId,
-                saksnummer = oppdatertMeldekort.saksnummer,
-                fnr = oppdatertMeldekort.fnr,
-                opprettet = oppdatertMeldekort.opprettet,
-                beregning = oppdatertMeldekort.beregning!!,
-                simulering = oppdatertMeldekort.simulering,
-                saksbehandler = oppdatertMeldekort.saksbehandler!!,
-                sendtTilBeslutning = nå(clock),
-                beslutter = oppdatertMeldekort.beslutter,
-                status = KLAR_TIL_BESLUTNING,
-                iverksattTidspunkt = null,
-                navkontor = oppdatertMeldekort.navkontor,
-                ikkeRettTilTiltakspengerTidspunkt = null,
-                brukersMeldekort = oppdatertMeldekort.brukersMeldekort,
-                meldeperiode = oppdatertMeldekort.meldeperiode,
-                type = oppdatertMeldekort.type,
-                begrunnelse = oppdatertMeldekort.begrunnelse,
-                attesteringer = oppdatertMeldekort.attesteringer,
-                dager = oppdatertMeldekort.dager,
-                sistEndret = nå(clock),
-                behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
-                fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
-            ) to simulering
-            ).right()
+        return MeldekortBehandletManuelt(
+            id = this.id,
+            sakId = this.sakId,
+            saksnummer = this.saksnummer,
+            fnr = this.fnr,
+            opprettet = this.opprettet,
+            beregning = this.beregning!!,
+            simulering = this.simulering,
+            saksbehandler = this.saksbehandler!!,
+            sendtTilBeslutning = nå(clock),
+            beslutter = this.beslutter,
+            status = KLAR_TIL_BESLUTNING,
+            iverksattTidspunkt = null,
+            navkontor = this.navkontor,
+            ikkeRettTilTiltakspengerTidspunkt = null,
+            brukersMeldekort = this.brukersMeldekort,
+            meldeperiode = this.meldeperiode,
+            type = this.type,
+            begrunnelse = this.begrunnelse,
+            attesteringer = this.attesteringer,
+            dager = this.dager,
+            sistEndret = nå(clock),
+            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+            fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+        ).right()
     }
 
     sealed interface TilgangEllerTilstandsfeil {
@@ -171,7 +152,7 @@ data class MeldekortUnderBehandling(
         }
     }
 
-    private fun validerSaksbehandlerOgTilstand(saksbehandler: Saksbehandler): Either<TilgangEllerTilstandsfeil, Unit> {
+    private fun validerSaksbehandlerOgTilstand(saksbehandler: Saksbehandler, clock: Clock): Either<TilgangEllerTilstandsfeil, Unit> {
         require(saksbehandler.navIdent == this.saksbehandler)
 
         require(!this.meldeperiode.ingenDagerGirRett) {
@@ -181,7 +162,7 @@ data class MeldekortUnderBehandling(
         if (this.status != UNDER_BEHANDLING) {
             throw IllegalStateException("Status må være UNDER_BEHANDLING. Kan ikke oppdatere meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler.")
         }
-        if (!erKlarTilUtfylling()) {
+        if (!erKlarTilUtfylling(clock)) {
             // John har avklart med Sølvi og Taulant at vi bør ha en begrensning på at vi kan fylle ut et meldekort hvis dagens dato er innenfor meldekortperioden eller senere.
             // Dette kan endres på ved behov.
             return TilgangEllerTilstandsfeil.MeldekortperiodenKanIkkeVæreFremITid.left()
@@ -189,12 +170,13 @@ data class MeldekortUnderBehandling(
         return Unit.right()
     }
 
-    fun erKlarTilUtfylling(): Boolean {
-        return !LocalDate.now().isBefore(periode.fraOgMed)
+    fun erKlarTilUtfylling(clock: Clock): Boolean {
+        return !LocalDate.now(clock).isBefore(periode.fraOgMed)
     }
 
     override fun overta(
         saksbehandler: Saksbehandler,
+        clock: Clock,
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return when (this.status) {
             UNDER_BEHANDLING -> {
@@ -204,7 +186,7 @@ data class MeldekortUnderBehandling(
                 }
                 this.copy(
                     saksbehandler = saksbehandler.navIdent,
-                    sistEndret = LocalDateTime.now(),
+                    sistEndret = nå(clock),
                 ).right()
             }
 
@@ -219,7 +201,7 @@ data class MeldekortUnderBehandling(
         }
     }
 
-    override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+    override fun taMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling {
         return when (this.status) {
             KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
@@ -227,7 +209,7 @@ data class MeldekortUnderBehandling(
                 this.copy(
                     saksbehandler = saksbehandler.navIdent,
                     status = UNDER_BEHANDLING,
-                    sistEndret = LocalDateTime.now(),
+                    sistEndret = nå(clock),
                 )
             }
 
@@ -246,7 +228,7 @@ data class MeldekortUnderBehandling(
         }
     }
 
-    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler, clock: Clock): MeldekortBehandling {
         return when (this.status) {
             UNDER_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
@@ -254,7 +236,7 @@ data class MeldekortUnderBehandling(
                 this.copy(
                     saksbehandler = null,
                     status = KLAR_TIL_BEHANDLING,
-                    sistEndret = LocalDateTime.now(),
+                    sistEndret = nå(clock),
                 )
             }
 

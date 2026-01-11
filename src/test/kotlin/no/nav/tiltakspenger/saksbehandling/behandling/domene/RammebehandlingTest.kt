@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankStrin
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
@@ -19,7 +20,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 class RammebehandlingTest {
@@ -317,7 +317,7 @@ class RammebehandlingTest {
                     endretAv = AUTOMATISK_SAKSBEHANDLER,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                     clock = clockPaVent,
-                    venterTil = LocalDateTime.now().plusWeeks(1),
+                    venterTil = nå(clock).plusWeeks(1),
                 )
                 val gjenopptaClock = Clock.fixed(Instant.parse("2025-07-01T13:30:00Z"), ZoneOffset.UTC)
 

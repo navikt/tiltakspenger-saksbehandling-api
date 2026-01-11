@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -348,7 +350,8 @@ class BenkOversiktPostgresRepoTest {
 
     @Test
     fun `henter ikke meldekort som har mottatt tidspunkt som er mindre enn siste meldekort behandling`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        val clock = TikkendeKlokke(fixedClockAt(18.august(2025)))
+        withMigratedDb(runIsolated = true, clock = clock) { testDataHelper ->
             val periode = Periode(4.august(2025), 17.august(2025))
             val (sakMedInnsendtBrukersMeldekort, brukersMeldekort) = testDataHelper.persisterBrukersMeldekort(
                 periode = periode,
@@ -461,13 +464,16 @@ class BenkOversiktPostgresRepoTest {
 
     @Test
     fun `henter ikke meldekort der en behandling ble endret etter at meldekortet var mottatt`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        val clock = TikkendeKlokke(fixedClockAt(18.august(2025)))
+        withMigratedDb(runIsolated = true, clock = clock) { testDataHelper ->
             val periode = Periode(4.august(2025), 17.august(2025))
             val (sakMedInnsendtBrukersMeldekort, brukersMeldekort) = testDataHelper.persisterBrukersMeldekort(
                 periode = periode,
             )
 
-            val (actualMedNyttMeldekort, totalAntallMedNyttMeldekort) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actualMedNyttMeldekort, totalAntallMedNyttMeldekort) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(),
+            )
 
             totalAntallMedNyttMeldekort shouldBe 1
             actualMedNyttMeldekort.single().behandlingstype shouldBe BehandlingssammendragType.INNSENDT_MELDEKORT
@@ -478,7 +484,9 @@ class BenkOversiktPostgresRepoTest {
                 kjedeId = brukersMeldekort.kjedeId,
             )
 
-            val (actualMedNyBehandling, totalAntallMedNyBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actualMedNyBehandling, totalAntallMedNyBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(),
+            )
 
             totalAntallMedNyBehandling shouldBe 1
             actualMedNyBehandling.single().behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
@@ -489,7 +497,9 @@ class BenkOversiktPostgresRepoTest {
                 periode = periode,
             )
 
-            val (actualMedKorrigeringFraBruker, totalAntallMedNyKorrigeringFraBruker) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actualMedKorrigeringFraBruker, totalAntallMedNyKorrigeringFraBruker) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(),
+            )
 
             // Korrigeringen skal vises inntil meldekortbehandlingen er oppdatert
             totalAntallMedNyKorrigeringFraBruker shouldBe 2
@@ -498,7 +508,9 @@ class BenkOversiktPostgresRepoTest {
 
             testDataHelper.persisterOppdatertMeldekortbehandling(behandling = behandling)
 
-            val (actualMedOppdatertBehandling, totalAntallMedOppdatertBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actualMedOppdatertBehandling, totalAntallMedOppdatertBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(),
+            )
 
             totalAntallMedOppdatertBehandling shouldBe 1
             actualMedOppdatertBehandling.single().behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING

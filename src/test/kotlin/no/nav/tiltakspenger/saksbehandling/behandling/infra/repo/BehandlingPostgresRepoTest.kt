@@ -40,7 +40,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingStansT
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterRevurderingInnvilgelseKommando
@@ -50,7 +49,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplys
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 internal class BehandlingPostgresRepoTest {
@@ -152,7 +150,7 @@ internal class BehandlingPostgresRepoTest {
                 behandling.id,
                 saksbehandler,
                 Rammebehandlingsstatus.UNDER_BEHANDLING,
-                LocalDateTime.now(),
+                nå(testDataHelper.clock),
             )
             behandlingRepo.hent(behandling.id).saksbehandler shouldBe saksbehandler.navIdent
         }
@@ -173,9 +171,9 @@ internal class BehandlingPostgresRepoTest {
                     status = Attesteringsstatus.SENDT_TILBAKE,
                     begrunnelse = NonBlankString.create("fordi"),
                     beslutter = beslutter.navIdent,
-                    tidspunkt = nå(clock),
+                    tidspunkt = nå(testDataHelper.clock),
                 ),
-                clock = clock,
+                clock = testDataHelper.clock,
             ).also {
                 behandlingRepo.lagre(it)
             }
@@ -184,14 +182,14 @@ internal class BehandlingPostgresRepoTest {
 
             behandlingRepo.hent(behandlingId).taBehandling(
                 saksbehandler = beslutter,
-                clock = clock,
+                clock = testDataHelper.clock,
             )
 
             val harTatt = behandlingRepo.taBehandlingSaksbehandler(
                 behandlingId,
                 beslutter,
                 Rammebehandlingsstatus.UNDER_BEHANDLING,
-                LocalDateTime.now(),
+                nå(testDataHelper.clock),
             )
             harTatt shouldBe true
 
@@ -219,16 +217,16 @@ internal class BehandlingPostgresRepoTest {
                     status = Attesteringsstatus.SENDT_TILBAKE,
                     begrunnelse = NonBlankString.create("fordi"),
                     beslutter = beslutter.navIdent,
-                    tidspunkt = nå(clock),
+                    tidspunkt = nå(testDataHelper.clock),
                 ),
-                clock = clock,
+                clock = testDataHelper.clock,
             ).also {
                 behandlingRepo.lagre(it)
             }
 
             val behandlingId = underkjentBehandling.id
 
-            val clockOmToMinutter = clock.plus(2L, ChronoUnit.MINUTES)
+            val clockOmToMinutter = testDataHelper.clock.plus(2L, ChronoUnit.MINUTES)
 
             behandlingRepo.hent(behandlingId).overta(
                 saksbehandler = beslutter,
@@ -239,7 +237,7 @@ internal class BehandlingPostgresRepoTest {
                 behandlingId,
                 beslutter,
                 saksbehandler.navIdent,
-                LocalDateTime.now(),
+                nå(testDataHelper.clock),
             )
             harOvertatt shouldBe true
 
@@ -262,7 +260,7 @@ internal class BehandlingPostgresRepoTest {
                 behandling.id,
                 beslutter,
                 Rammebehandlingsstatus.UNDER_BESLUTNING,
-                LocalDateTime.now(),
+                nå(testDataHelper.clock),
             )
             behandlingRepo.hent(behandling.id).beslutter shouldBe beslutter.navIdent
         }
@@ -281,7 +279,7 @@ internal class BehandlingPostgresRepoTest {
                 behandling.id,
                 nySaksbehandler,
                 behandling.saksbehandler!!,
-                LocalDateTime.now(),
+                nå(testDataHelper.clock),
             )
             behandlingRepo.hent(behandling.id).saksbehandler shouldBe nySaksbehandler.navIdent
         }
@@ -296,7 +294,7 @@ internal class BehandlingPostgresRepoTest {
 
             behandling.beslutter shouldNotBe null
             behandling.beslutter shouldNotBe nyBeslutter.navIdent
-            behandlingRepo.overtaBeslutter(behandling.id, nyBeslutter, behandling.beslutter!!, LocalDateTime.now())
+            behandlingRepo.overtaBeslutter(behandling.id, nyBeslutter, behandling.beslutter!!, nå(testDataHelper.clock))
             behandlingRepo.hent(behandling.id).beslutter shouldBe nyBeslutter.navIdent
         }
     }
@@ -366,7 +364,7 @@ internal class BehandlingPostgresRepoTest {
                     saksbehandler = saksbehandler(behandling.saksbehandler!!),
                     innvilgelsesperioder = innvilgelsesperioder,
                 ),
-                clock = clock,
+                clock = testDataHelper.clock,
                 utbetaling = null,
                 omgjørRammevedtak = OmgjørRammevedtak.empty,
             ).getOrFail()

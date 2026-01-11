@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.json.serialize
@@ -14,7 +15,6 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
-import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
@@ -55,7 +55,7 @@ class RammebehandlingDTOTest {
 
     @Test
     fun `Rammebehandling DTO fra søknadsbehandling med innvilgelse`() {
-        val clock = clock.copy()
+        val clock = fixedClock
 
         val behandling = nyVedtattSøknadsbehandling(
             clock = clock,
@@ -132,14 +132,14 @@ class RammebehandlingDTOTest {
             },
             "ytelser": [],
             "tiltakspengevedtakFraArena": [],
-            "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
+            "oppslagstidspunkt": "2025-01-01T01:02:03.456789"
           },
           "attesteringer": [
             {
               "endretAv": "B12345",
               "status": "GODKJENT",
               "begrunnelse": null,
-              "endretTidspunkt": "2025-01-01T01:02:09.456789"
+              "endretTidspunkt": "2025-01-01T01:02:03.456789"
             }
           ],
           "vedtaksperiode": {
@@ -149,8 +149,8 @@ class RammebehandlingDTOTest {
           "fritekstTilVedtaksbrev": "nyBehandlingUnderBeslutning()",
           "begrunnelseVilkårsvurdering": "nyBehandlingUnderBeslutning()",
           "avbrutt": null,
-          "sistEndret": "2025-01-01T01:02:10.456789",
-          "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
+          "sistEndret": "2025-01-01T01:02:03.456789",
+          "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
           "ventestatus": null,
           "utbetaling": null,
           "innvilgelsesperioder": [
@@ -263,7 +263,7 @@ class RammebehandlingDTOTest {
 
     @Test
     fun `Rammebehandling DTO fra søknadsbehandling med avslag`() {
-        val clock = clock.copy()
+        val clock = fixedClock
 
         val behandling = nyVedtattSøknadsbehandling(
             clock = clock,
@@ -341,14 +341,14 @@ class RammebehandlingDTOTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
+                "oppslagstidspunkt": "2025-01-01T01:02:03.456789"
               },
               "attesteringer": [
                 {
                   "endretAv": "B12345",
                   "status": "GODKJENT",
                   "begrunnelse": null,
-                  "endretTidspunkt": "2025-01-01T01:02:09.456789"
+                  "endretTidspunkt": "2025-01-01T01:02:03.456789"
                 }
               ],
               "vedtaksperiode": {
@@ -358,8 +358,8 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": "nyBehandlingUnderBeslutning()",
               "begrunnelseVilkårsvurdering": "nyBehandlingUnderBeslutning()",
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:10.456789",
-              "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
+              "sistEndret": "2025-01-01T01:02:03.456789",
+              "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
               "ventestatus": null,
               "utbetaling": null,
               "avslagsgrunner": [
@@ -452,7 +452,7 @@ class RammebehandlingDTOTest {
 
     @Test
     fun `Rammebehandling DTO fra søknadsbehandling uten valgt resultat`() {
-        val clock = clock.copy()
+        val clock = fixedClock
 
         val behandling = nyOpprettetSøknadsbehandling(
             clock = clock,
@@ -529,14 +529,14 @@ class RammebehandlingDTOTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-01-01T01:02:05.456789"
+                "oppslagstidspunkt": "2025-01-01T01:02:03.456789"
               },
               "attesteringer": [],
               "vedtaksperiode": null,
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:04.456789",
+              "sistEndret": "2025-01-01T01:02:03.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
@@ -627,7 +627,7 @@ class RammebehandlingDTOTest {
 
     @Test
     fun `Rammebehandling DTO fra revurdering med innvilgelse`() {
-        val clock = clock.copy()
+        val clock = fixedClock
 
         val behandling = nyVedtattRevurderingInnvilgelse(
             clock = clock,
@@ -694,14 +694,14 @@ class RammebehandlingDTOTest {
             },
             "ytelser": [],
             "tiltakspengevedtakFraArena": [],
-            "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
+            "oppslagstidspunkt": "2025-01-01T01:02:03.456789"
           },
           "attesteringer": [
             {
               "endretAv": "B12345",
               "status": "GODKJENT",
               "begrunnelse": null,
-              "endretTidspunkt": "2025-01-01T01:02:05.456789"
+              "endretTidspunkt": "2025-01-01T01:02:03.456789"
             }
           ],
           "vedtaksperiode": {
@@ -711,8 +711,8 @@ class RammebehandlingDTOTest {
           "fritekstTilVedtaksbrev": "nyRevurderingKlarTilBeslutning()",
           "begrunnelseVilkårsvurdering": "nyRevurderingKlarTilBeslutning()",
           "avbrutt": null,
-          "sistEndret": "2025-01-01T01:02:10.456789",
-          "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
+          "sistEndret": "2025-01-01T01:02:03.456789",
+          "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
           "ventestatus": null,
           "utbetaling": null,
           "innvilgelsesperioder": [
@@ -748,7 +748,7 @@ class RammebehandlingDTOTest {
 
     @Test
     fun `Rammebehandling DTO fra revurdering med stans`() {
-        val clock = clock.copy()
+        val clock = fixedClock
 
         val behandling = nyVedtattRevurderingStans(
             clock = clock,
@@ -819,14 +819,14 @@ class RammebehandlingDTOTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-01-01T01:02:04.456789"
+                "oppslagstidspunkt": "2025-01-01T01:02:03.456789"
               },
               "attesteringer": [
                 {
                   "endretAv": "B12345",
                   "status": "GODKJENT",
                   "begrunnelse": null,
-                  "endretTidspunkt": "2025-01-01T01:02:05.456789"
+                  "endretTidspunkt": "2025-01-01T01:02:03.456789"
                 }
               ],
               "vedtaksperiode": {
@@ -836,8 +836,8 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": "nyRevurderingKlarTilBeslutning()",
               "begrunnelseVilkårsvurdering": "nyRevurderingKlarTilBeslutning()",
               "avbrutt": null,
-              "sistEndret": "2025-01-01T01:02:09.456789",
-              "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
+              "sistEndret": "2025-01-01T01:02:03.456789",
+              "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
               "ventestatus": null,
               "utbetaling": null,
               "valgtHjemmelHarIkkeRettighet": [
@@ -855,7 +855,7 @@ class RammebehandlingDTOTest {
 
     @Test
     fun `Rammebehandling DTO fra revurdering med omgjøring`() {
-        val nyClock = clock.copy()
+        val nyClock = fixedClock
 
         val behandling = nyVedtattSøknadsbehandling(
             clock = nyClock,
@@ -969,7 +969,7 @@ class RammebehandlingDTOTest {
             },
             "ytelser": [],
             "tiltakspengevedtakFraArena": [],
-            "oppslagstidspunkt": "2025-01-01T01:02:12.456789"
+            "oppslagstidspunkt": "2025-01-01T01:02:03.456789"
           },
           "attesteringer": [],
           "vedtaksperiode": {
@@ -979,7 +979,7 @@ class RammebehandlingDTOTest {
           "fritekstTilVedtaksbrev": null,
           "begrunnelseVilkårsvurdering": null,
           "avbrutt": null,
-          "sistEndret": "2025-01-01T01:02:13.456789",
+          "sistEndret": "2025-01-01T01:02:03.456789",
           "iverksattTidspunkt": null,
           "ventestatus": null,
           "utbetaling": null,

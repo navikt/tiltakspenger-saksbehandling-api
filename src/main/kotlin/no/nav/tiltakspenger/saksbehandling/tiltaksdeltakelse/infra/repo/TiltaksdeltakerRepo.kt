@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 interface TiltaksdeltakerRepo {
     fun hentEllerLagre(
         eksternId: String,
+        internIdHvisMangler: TiltaksdeltakerId = TiltaksdeltakerId.random(),
         sessionContext: SessionContext? = null,
     ): TiltaksdeltakerId
 

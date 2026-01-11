@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.util
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 
 import arrow.core.NonEmptySet
 import arrow.core.nonEmptySetOf
@@ -38,7 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import java.time.Clock
 
-interface SøknadsbehandlingBuilder {
+interface StartSøknadsbehandlingBuilder {
 
     // oppretter sak (hvis sakId er null), søknad og behandling som er under automatisk behandling
     suspend fun ApplicationTestBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling(
@@ -86,7 +86,10 @@ interface SøknadsbehandlingBuilder {
             søknad,
             CorrelationId.generate(),
         )
-        tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
+        tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+            behandling,
+            CorrelationId.generate(),
+        )
         return Triple(sak, søknad, behandling)
     }
 

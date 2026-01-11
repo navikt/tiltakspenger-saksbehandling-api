@@ -2,8 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
@@ -50,7 +54,8 @@ class OpprettMeldekortBehandlingServiceTest {
 
     @Test
     fun `Skal kunne opprette behandling på andre kjede når første kjede er ferdig behandlet`() {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(3.mars(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 vedtaksperiode = totalPeriode,
@@ -74,7 +79,8 @@ class OpprettMeldekortBehandlingServiceTest {
 
     @Test
     fun `Skal kunne opprette korrigering`() {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(3.mars(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 vedtaksperiode = totalPeriode,
@@ -115,7 +121,8 @@ class OpprettMeldekortBehandlingServiceTest {
 
     @Test
     fun `Skal ikke kunne opprette behandling på tredje kjede dersom bare første kjede er behandlet`() {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(3.mars(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 vedtaksperiode = totalPeriode,
