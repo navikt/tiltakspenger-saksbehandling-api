@@ -6,7 +6,6 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -23,46 +22,6 @@ internal object SøknadTiltakDAO {
         session.run(
             queryOf(hentTiltak, søknadId.toString()).map { row -> row.toTiltak() }.asSingle,
         )
-
-    fun hentTiltakUtenInternId(
-        limit: Int,
-        session: Session,
-    ): List<Søknadstiltak> =
-        session.run(
-            sqlQuery(
-                """
-                    select *
-                    from søknadstiltak
-                    where tiltaksdeltaker_id is null
-                    order by id
-                    limit :limit
-                """.trimIndent(),
-                "limit" to limit,
-            ).map { row: Row ->
-                row.toTiltak()
-            }.asList,
-        )
-
-    fun oppdaterInternId(
-        eksternId: String,
-        internId: TiltaksdeltakerId,
-        session: Session,
-    ) {
-        session.run(
-            queryOf(
-                """
-                        update søknadstiltak
-                        set tiltaksdeltaker_id = :tiltaksdeltaker_id
-                        where tiltaksdeltaker_id is null
-                          and ekstern_id = :ekstern_id
-                """.trimIndent(),
-                mapOf(
-                    "tiltaksdeltaker_id" to internId.toString(),
-                    "ekstern_id" to eksternId,
-                ),
-            ).asUpdate,
-        )
-    }
 
     fun lagre(
         søknadId: SøknadId,

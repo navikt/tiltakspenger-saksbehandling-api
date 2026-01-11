@@ -8,8 +8,6 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 internal class SøknadPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -66,25 +64,6 @@ internal class SøknadPostgresRepo(
         return sessionFactory.withTransaction {
             SøknadDAO.hentAlleUbehandledeDigitalesoknader(
                 limit = limit,
-                session = it,
-            )
-        }
-    }
-
-    override fun hentSoknadstiltakUtenInternId(limit: Int): List<Søknadstiltak> {
-        return sessionFactory.withTransaction {
-            SøknadDAO.hentSoknadstiltakUtenInternId(
-                limit = limit,
-                session = it,
-            )
-        }
-    }
-
-    override fun oppdaterInternId(eksternId: String, internId: TiltaksdeltakerId) {
-        sessionFactory.withTransaction {
-            SøknadDAO.oppdaterInternId(
-                eksternId = eksternId,
-                internId = internId,
                 session = it,
             )
         }
