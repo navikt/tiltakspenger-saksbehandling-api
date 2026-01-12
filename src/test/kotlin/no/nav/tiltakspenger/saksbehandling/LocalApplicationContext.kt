@@ -25,8 +25,10 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
+import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostFakeClient
+import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
@@ -254,6 +256,15 @@ class LocalApplicationContext(
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
         }
+    }
+
+    override val klagebehandlingContext by lazy {
+        object : KlagebehandlingContext(
+            sessionFactory = sessionFactory,
+            sakService = sakContext.sakService,
+            clock = clock,
+            validerJournalpostService = ValiderJournalpostService(safJournalpostClient),
+        ) {}
     }
 
     init {
