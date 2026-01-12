@@ -47,7 +47,7 @@ data class StatistikkStønadDTO(
     // Brukes av DVH for å identifisere vedtakssystem når de sammenstiller data
     val fagsystem: String = "TPSAK",
 
-    // TODO: dette er nå bakt inn i [Innvilgesesperiode] og kan fjernes når DVH ikke bruker dette feltet lengre
+    // TODO: dette er nå bakt inn i [Innvilgelsesperiode] og kan fjernes når DVH ikke bruker dette feltet lengre
     val tiltaksdeltakelser: List<String>,
 
     val barnetillegg: List<Barnetillegg>,
