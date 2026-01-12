@@ -45,6 +45,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
+import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toDbJson
@@ -755,7 +756,7 @@ class BehandlingPostgresRepo(
                     """update behandling set saksopplysninger = :saksopplysninger where id = :id""",
                     mapOf(
                         "id" to behandlingId.toString(),
-                        "saksopplysninger" to saksopplysninger.toDbJson(),
+                        "saksopplysninger" to toPGObject(saksopplysninger.toDbJson()),
                     ),
                 ).asUpdate,
             )
@@ -773,7 +774,7 @@ class BehandlingPostgresRepo(
                     """update behandling set innvilgelsesperioder = :innvilgelsesperioder where id = :id""",
                     mapOf(
                         "id" to behandlingId.toString(),
-                        "innvilgelsesperioder" to innvilgelsesperioder.tilInnvilgelsesperioderDbJson(),
+                        "innvilgelsesperioder" to toPGObject(innvilgelsesperioder.tilInnvilgelsesperioderDbJson()),
                     ),
                 ).asUpdate,
             )
