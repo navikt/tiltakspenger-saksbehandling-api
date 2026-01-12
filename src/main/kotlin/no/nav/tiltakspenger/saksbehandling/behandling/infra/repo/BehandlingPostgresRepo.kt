@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -33,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
@@ -754,6 +756,24 @@ class BehandlingPostgresRepo(
                     mapOf(
                         "id" to behandlingId.toString(),
                         "saksopplysninger" to saksopplysninger.toDbJson(),
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun oppdaterInnvilgelsesperioder(
+        behandlingId: BehandlingId,
+        innvilgelsesperioder: Innvilgelsesperioder,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update behandling set innvilgelsesperioder = :innvilgelsesperioder where id = :id""",
+                    mapOf(
+                        "id" to behandlingId.toString(),
+                        "innvilgelsesperioder" to innvilgelsesperioder.tilInnvilgelsesperioderDbJson(),
                     ),
                 ).asUpdate,
             )

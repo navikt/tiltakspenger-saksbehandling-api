@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -246,6 +247,13 @@ class BehandlingFakeRepo : BehandlingRepo {
     override fun oppdaterSaksopplysninger(
         behandlingId: BehandlingId,
         saksopplysninger: Saksopplysninger,
+        sessionContext: SessionContext?,
+    ) {
+    }
+
+    override fun oppdaterInnvilgelsesperioder(
+        behandlingId: BehandlingId,
+        innvilgelsesperioder: Innvilgelsesperioder,
         sessionContext: SessionContext?,
     ) {
     }

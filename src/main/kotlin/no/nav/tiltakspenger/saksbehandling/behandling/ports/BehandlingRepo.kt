@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -89,6 +90,12 @@ interface BehandlingRepo {
     fun oppdaterSaksopplysninger(
         behandlingId: BehandlingId,
         saksopplysninger: Saksopplysninger,
+        sessionContext: SessionContext? = null,
+    )
+
+    fun oppdaterInnvilgelsesperioder(
+        behandlingId: BehandlingId,
+        innvilgelsesperioder: Innvilgelsesperioder,
         sessionContext: SessionContext? = null,
     )
 }

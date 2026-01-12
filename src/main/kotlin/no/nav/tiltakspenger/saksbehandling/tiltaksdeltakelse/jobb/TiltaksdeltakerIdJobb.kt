@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.jobb
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
@@ -26,6 +27,22 @@ class TiltaksdeltakerIdJobb(
                     } else {
                         it
                     }
+                }
+                if (behandling.innvilgelsesperioder != null && behandling.innvilgelsesperioder!!.valgteTiltaksdeltagelser.any { it.verdi.internDeltakelseId == null }) {
+                    val oppdaterteInnvilgelsesperioder = behandling.innvilgelsesperioder!!.periodisering.map {
+                        if (it.verdi.valgtTiltaksdeltakelse.internDeltakelseId == null) {
+                            val internId = oppdaterteTiltak.first { tiltak -> tiltak.eksternDeltakelseId == it.verdi.valgtTiltaksdeltakelse.eksternDeltakelseId }.internDeltakelseId
+                                ?: throw IllegalStateException("Fant ikke internId for eksternId ${it.verdi.valgtTiltaksdeltakelse.eksternDeltakelseId} fra saksopplysningene")
+                            it.verdi.copy(valgtTiltaksdeltakelse = it.verdi.valgtTiltaksdeltakelse.copy(internDeltakelseId = internId))
+                        } else {
+                            it.verdi
+                        }
+                    }
+                    behandlingRepo.oppdaterInnvilgelsesperioder(
+                        behandlingId = behandling.id,
+                        innvilgelsesperioder = Innvilgelsesperioder(oppdaterteInnvilgelsesperioder),
+                    )
+                    log.info { "Oppdaterte innvilgelsesperioder med internId for tiltaksdeltakelser for behandling ${behandling.id}" }
                 }
                 behandlingRepo.oppdaterSaksopplysninger(
                     behandlingId = behandling.id,
