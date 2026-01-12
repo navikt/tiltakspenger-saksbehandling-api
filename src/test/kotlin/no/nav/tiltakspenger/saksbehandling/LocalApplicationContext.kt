@@ -281,7 +281,7 @@ class LocalApplicationContext(
             saksnummer = sak.saksnummer,
         ).also {
             tiltakContext.tiltaksdeltakerRepo.lagre(
-                id = it.tiltak.tiltaksdeltakerId!!,
+                id = it.tiltak.tiltaksdeltakerId,
                 eksternId = søknadstiltak.id,
             )
             søknadContext.søknadRepo.lagre(it)

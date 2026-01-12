@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
@@ -25,9 +24,8 @@ data class StatistikkStønadDTO(
     val vedtaksperiodeFraOgMed: LocalDate,
     val vedtaksperiodeTilOgMed: LocalDate,
 
-    // Per 2025-10-20 har vi kun støtte for én innvilgelsesperiode per vedtak, men på sikt vil vi kunne ha flere. Dette for å hovedsakelig støtte hull i innvilgelsesperioden ved omgjøringsvedtak. Men kan tenkes at den kan bli brukt i søknadsbehandling og forlengelse også.
     // Listen er tom for stans og avslag
-    val innvilgelsesperioder: List<PeriodeDTO>,
+    val innvilgelsesperioder: List<Innvilgelsesperiode>,
 
     // Lagt til 2025-10-20, vil være null for rader før dette. Kan vurdere migrere rader som mangler dette senere.
     // Dette vedtaket omgjør et tidligere rammevedtak i sin helhet.
@@ -48,8 +46,10 @@ data class StatistikkStønadDTO(
 
     // Brukes av DVH for å identifisere vedtakssystem når de sammenstiller data
     val fagsystem: String = "TPSAK",
-    // tiltaksdeltakelser (eksternId) som det er innvilget tiltakspenger for
+
+    // TODO: dette er nå bakt inn i [Innvilgelsesperiode] og kan fjernes når DVH ikke bruker dette feltet lengre
     val tiltaksdeltakelser: List<String>,
+
     val barnetillegg: List<Barnetillegg>,
     val harBarnetillegg: Boolean,
 ) {
@@ -57,6 +57,12 @@ data class StatistikkStønadDTO(
         val fraOgMed: LocalDate,
         val tilOgMed: LocalDate,
         val antallBarn: Int,
+    )
+
+    data class Innvilgelsesperiode(
+        val fraOgMed: LocalDate,
+        val tilOgMed: LocalDate,
+        val tiltaksdeltakelse: String,
     )
 }
 
