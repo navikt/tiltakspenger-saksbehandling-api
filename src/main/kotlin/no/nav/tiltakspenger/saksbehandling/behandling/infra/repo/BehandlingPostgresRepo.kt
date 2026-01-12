@@ -34,7 +34,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
@@ -45,7 +44,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
-import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toDbJson
@@ -753,10 +751,10 @@ class BehandlingPostgresRepo(
         sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 queryOf(
-                    """update behandling set saksopplysninger = :saksopplysninger where id = :id""",
+                    """update behandling set saksopplysninger = to_jsonb(:saksopplysninger::jsonb) where id = :id""",
                     mapOf(
                         "id" to behandlingId.toString(),
-                        "saksopplysninger" to toPGObject(saksopplysninger.toDbJson()),
+                        "saksopplysninger" to saksopplysninger.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -771,10 +769,10 @@ class BehandlingPostgresRepo(
         sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 queryOf(
-                    """update behandling set innvilgelsesperioder = :innvilgelsesperioder where id = :id""",
+                    """update behandling set innvilgelsesperioder = to_jsonb(:innvilgelsesperioder::jsonb) where id = :id""",
                     mapOf(
                         "id" to behandlingId.toString(),
-                        "innvilgelsesperioder" to toPGObject(innvilgelsesperioder.tilInnvilgelsesperioderDbJson()),
+                        "innvilgelsesperioder" to innvilgelsesperioder.tilInnvilgelsesperioderDbJson(),
                     ),
                 ).asUpdate,
             )
