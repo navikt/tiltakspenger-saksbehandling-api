@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeAvbryteMeldek
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.AvbrytMeldekortBehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.behandling.avbryt.AvbrytMeldekortBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock

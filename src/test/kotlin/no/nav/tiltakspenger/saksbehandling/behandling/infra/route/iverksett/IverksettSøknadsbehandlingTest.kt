@@ -5,11 +5,14 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.instanceOf
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
@@ -62,7 +65,8 @@ class IverksettSøknadsbehandlingTest {
 
     @Test
     fun `iverksett - verifiser avslag vedtak dto`() = runTest {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling) = this.iverksettSøknadsbehandling(
                 tac,
                 resultat = SøknadsbehandlingType.AVSLAG,
@@ -79,7 +83,8 @@ class IverksettSøknadsbehandlingTest {
 
     @Test
     fun `iverksett - verifiser innvilgelse vedtak dto`() = runTest {
-        withTestApplicationContext { tac ->
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling) = this.iverksettSøknadsbehandling(
                 tac,
                 resultat = SøknadsbehandlingType.INNVILGELSE,

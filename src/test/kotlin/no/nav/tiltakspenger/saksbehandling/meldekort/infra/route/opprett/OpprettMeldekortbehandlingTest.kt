@@ -1,7 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett
 
 import io.kotest.assertions.json.shouldEqualJson
+import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
 import org.junit.jupiter.api.Test
@@ -33,7 +41,7 @@ class OpprettMeldekortbehandlingTest {
                       "id": "2025-03-31/2025-04-13",
                       "meldeperioder": [
                         {
-                          "opprettet": "${meldekortbehandling.meldeperiode.opprettet}",
+                          "opprettet": "2025-05-01T01:02:22.456789",
                           "kjedeId": "2025-03-31/2025-04-13",
                           "girRett": {
                             "2025-03-31": false,
@@ -67,7 +75,7 @@ class OpprettMeldekortbehandlingTest {
                           "avbrutt": null,
                           "attesteringer": [],
                           "saksbehandler": "Z12345",
-                          "opprettet": "${meldekortbehandling.opprettet}",
+                          "opprettet": "2025-05-01T01:02:23.456789",
                           "type": "FØRSTE_BEHANDLING",
                           "meldeperiodeId": "${meldekortbehandling.meldeperiode.id}",
                           "beregning": null,
@@ -155,6 +163,38 @@ class OpprettMeldekortbehandlingTest {
                       "status": "UNDER_BEHANDLING"
                     }
                 """.trimIndent(),
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke opprette meldekortbehandling for meldeperiode som ikke gir rett`() {
+        // 1. Iverksetter innvilget søknadsbehandling for jan 2025
+        // 2. Iverksetter omgjøring som opphører alt bortsett fra 1. jan 2025
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiodeSøknadsbehandling: Periode = 1 til 31.januar(2025)
+            val innvilgelsesperiodeOmgjøring: Periode = 1 til 1.januar(2025)
+            val (sak, _, rammevedtakSøknadsbehandling, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                vedtaksperiode = innvilgelsesperiodeSøknadsbehandling,
+            )
+            val (oppdatertSak) = this.iverksettRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = rammevedtakSøknadsbehandling.id,
+                innvilgelsesperiode = innvilgelsesperiodeOmgjøring,
+            )
+            oppdatertSak.meldeperiodeKjeder.size shouldBe 3
+            oppdatertSak.meldeperiodeKjeder[0].last().antallDagerSomGirRett shouldBe 1
+            oppdatertSak.meldeperiodeKjeder[1].last().antallDagerSomGirRett shouldBe 0
+            oppdatertSak.meldeperiodeKjeder[2].last().antallDagerSomGirRett shouldBe 0
+            val andreMeldeperiode = sak.meldeperiodeKjeder.sisteMeldeperiodePerKjede[1]
+            opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = andreMeldeperiode.kjedeId,
+                forventetStatus = BadRequest,
+                forventetJsonBody = """{"melding":"Meldeperiodekjeden er i en tilstand som ikke tillater å opprette en behandling: INGEN_DAGER_GIR_RETT","kode":"INGEN_DAGER_GIR_RETT"}""",
             )
         }
     }

@@ -5,17 +5,12 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.felles.ServiceCommand
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -24,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeAvbryteMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.behandling.avbryt.AvbrytMeldekortBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortBehandlingService
 
@@ -81,7 +77,7 @@ fun Route.avbrytMeldekortBehandlingRoute(
     }
 }
 
-internal fun KanIkkeAvbryteMeldekortBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+private fun KanIkkeAvbryteMeldekortBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
         KanIkkeAvbryteMeldekortBehandling.MåVæreSaksbehandlerForMeldekortet -> HttpStatusCode.BadRequest to ErrorJson(
             "Meldekortbehandlingen er tildelt en annen saksbehandler",
@@ -94,11 +90,3 @@ internal fun KanIkkeAvbryteMeldekortBehandling.tilStatusOgErrorJson(): Pair<Http
         )
     }
 }
-
-data class AvbrytMeldekortBehandlingCommand(
-    val sakId: SakId,
-    val meldekortId: MeldekortId,
-    val begrunnelse: String,
-    override val saksbehandler: Saksbehandler,
-    override val correlationId: CorrelationId,
-) : ServiceCommand
