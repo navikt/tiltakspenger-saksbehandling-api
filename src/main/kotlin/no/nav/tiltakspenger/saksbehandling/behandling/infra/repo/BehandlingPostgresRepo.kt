@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import arrow.core.toNonEmptySetOrNull
-import arrow.core.toNonEmptySetOrThrow
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Row
 import kotliquery.Session
@@ -22,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
@@ -453,7 +454,8 @@ class BehandlingPostgresRepo(
 
                     val resultat = when (resultatType) {
                         RevurderingType.STANS -> RevurderingResultat.Stans(
-                            valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()?.toNonEmptySetOrNull(),
+                            valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()
+                                ?.toNonEmptySetOrNull(),
                             harValgtStansFraFørsteDagSomGirRett = booleanOrNull("har_valgt_stans_fra_første_dag_som_gir_rett"),
                             harValgtStansTilSisteDagSomGirRett = booleanOrNull("har_valgt_stans_til_siste_dag_som_gir_rett"),
                             stansperiode = vedtaksperiode,
@@ -716,6 +718,65 @@ class BehandlingPostgresRepo(
                 ).map { it.toBehandling(session) }.asList,
             )
         }.filterIsInstance<Søknadsbehandling>()
+    }
+
+    override fun hentBehandlingerUtenInternDeltakelseId(limit: Int): List<Rammebehandling> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    // language=SQL
+                    """
+                    select b.*, sak.saksnummer, sak.fnr
+                    from behandling b
+                             join sak on sak.id = b.sak_id
+                    WHERE EXISTS (SELECT 1
+                                  FROM jsonb_array_elements(saksopplysninger -> 'tiltaksdeltagelse') AS tiltaksdeltakelser
+                                  WHERE tiltaksdeltakelser ->> 'internDeltakelseId' IS NULL)
+                    order by b.opprettet
+                    limit :limit
+                    """.trimIndent(),
+                    mapOf(
+                        "limit" to limit,
+                    ),
+                ).map { it.toBehandling(session) }.asList,
+            )
+        }
+    }
+
+    override fun oppdaterSaksopplysninger(
+        behandlingId: BehandlingId,
+        saksopplysninger: Saksopplysninger,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update behandling set saksopplysninger = to_jsonb(:saksopplysninger::jsonb) where id = :id""",
+                    mapOf(
+                        "id" to behandlingId.toString(),
+                        "saksopplysninger" to saksopplysninger.toDbJson(),
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun oppdaterInnvilgelsesperioder(
+        behandlingId: BehandlingId,
+        innvilgelsesperioder: Innvilgelsesperioder,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update behandling set innvilgelsesperioder = to_jsonb(:innvilgelsesperioder::jsonb) where id = :id""",
+                    mapOf(
+                        "id" to behandlingId.toString(),
+                        "innvilgelsesperioder" to innvilgelsesperioder.tilInnvilgelsesperioderDbJson(),
+                    ),
+                ).asUpdate,
+            )
+        }
     }
 }
 

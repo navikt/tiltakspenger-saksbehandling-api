@@ -133,7 +133,7 @@ data class ManueltRegistrertSøknadBody(
             deltakelseTom = this.deltakelseTilOgMed,
             typeKode = this.typeKode.tilTiltakstype(),
             typeNavn = this.typeNavn,
-            tiltaksdeltakerId = internTiltaksdeltakelsesId,
+            tiltaksdeltakerId = internTiltaksdeltakelsesId ?: throw IllegalArgumentException("Mangler intern tiltaksdeltakerid for eksternid ${this.eksternDeltakelseId} for manuelt registrert søknad"),
         )
 
     fun BarnetilleggDTO.tilDomeneManuell(): BarnetilleggFraSøknad.Manuell {

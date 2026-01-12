@@ -9,11 +9,13 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import java.time.LocalDateTime
 
@@ -236,6 +238,24 @@ class BehandlingFakeRepo : BehandlingRepo {
             )
         }
         return true
+    }
+
+    override fun hentBehandlingerUtenInternDeltakelseId(limit: Int): List<Rammebehandling> {
+        return emptyList()
+    }
+
+    override fun oppdaterSaksopplysninger(
+        behandlingId: BehandlingId,
+        saksopplysninger: Saksopplysninger,
+        sessionContext: SessionContext?,
+    ) {
+    }
+
+    override fun oppdaterInnvilgelsesperioder(
+        behandlingId: BehandlingId,
+        innvilgelsesperioder: Innvilgelsesperioder,
+        sessionContext: SessionContext?,
+    ) {
     }
 
     fun hentRammebehandlingerForSakId(sakId: SakId): Rammebehandlinger {
