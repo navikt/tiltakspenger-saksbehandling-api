@@ -26,6 +26,9 @@ data class Klagebehandling(
     val resultat: Klagebehandlingsresultat?,
     val formkrav: KlageFormkrav,
 ) {
+
+    val erÅpen = status == Klagebehandlingsstatus.KLAR_TIL_BEHANDLING || status == Klagebehandlingsstatus.UNDER_BEHANDLING
+
     companion object {
         fun opprett(
             id: KlagebehandlingId = KlagebehandlingId.random(),

@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Rammebehan
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRevurderingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsstatusDTO
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeStatusDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldeperiodeKjedeStatusDTO
@@ -32,6 +33,7 @@ sealed interface ÅpenBehandlingDTO {
         SØKNADSBEHANDLING,
         REVURDERING,
         MELDEKORT,
+        KLAGE,
     }
 
     sealed interface ÅpenRammebehandlingDTO : ÅpenBehandlingDTO {
@@ -100,6 +102,18 @@ sealed interface ÅpenBehandlingDTO {
     ) : ÅpenBehandlingDTO {
         override val type = ÅpenBehandlingTypeDTO.MELDEKORT
     }
+
+    data class ÅpenKlagebehandlingDTO(
+        override val id: String,
+        override val sakId: String,
+        override val saksnummer: String,
+        override val opprettet: LocalDateTime,
+        val status: String,
+        val saksbehandler: String?,
+        val resultat: String?,
+    ) : ÅpenBehandlingDTO {
+        override val type = ÅpenBehandlingTypeDTO.KLAGE
+    }
 }
 
 /**
@@ -113,10 +127,28 @@ fun Sak.tilÅpneBehandlingerDTO(): List<ÅpenBehandlingDTO> {
     val meldeperiodeKjederSomMåBehandles: List<MeldeperiodeKjedeSomMåBehandlesDTO> =
         this.tilMeldeperiodeKjederSomMåBehandles()
 
+    val åpneKlager = this.behandlinger.klagebehandlinger.filter { it.erÅpen }.toÅpenKlagebehandlingDTO()
+
     return søknaderUtenBehandling
         .plus(åpneRammebehandlinger)
         .plus(meldeperiodeKjederSomMåBehandles)
+        .plus(åpneKlager)
         .sortedByDescending { it.opprettet }
+}
+
+private fun List<Klagebehandling>.toÅpenKlagebehandlingDTO(): List<ÅpenBehandlingDTO.ÅpenKlagebehandlingDTO> = this.map {
+    ÅpenBehandlingDTO.ÅpenKlagebehandlingDTO(
+        id = it.id.toString(),
+        sakId = it.sakId.toString(),
+        saksnummer = it.saksnummer.toString(),
+        opprettet = it.opprettet,
+        status = when (it.status) {
+            no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> "KLAR_TIL_BEHANDLING"
+            no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING -> "UNDER_BEHANDLING"
+        },
+        saksbehandler = it.saksbehandler,
+        resultat = it.resultat?.toString(),
+    )
 }
 
 /**
