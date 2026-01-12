@@ -78,7 +78,7 @@ class V176__migrer_statistikk_stonad_innvilgelsesperioder : BaseJavaMigration() 
         return session.run(
             sqlQuery(
                 """
-                    select id, vedtak_id from saksbehandling.public.statistikk_stonad 
+                    select id, vedtak_id from statistikk_stonad 
                     where resultat = 'Innvilgelse' and innvilgelsesperioder->>'tiltaksdeltakelse' is null
                 """,
             ).map {
