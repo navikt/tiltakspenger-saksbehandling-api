@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import java.time.LocalDateTime
 
@@ -236,6 +237,17 @@ class BehandlingFakeRepo : BehandlingRepo {
             )
         }
         return true
+    }
+
+    override fun hentBehandlingerUtenInternDeltakelseId(limit: Int): List<Rammebehandling> {
+        return emptyList()
+    }
+
+    override fun oppdaterSaksopplysninger(
+        behandlingId: BehandlingId,
+        saksopplysninger: Saksopplysninger,
+        sessionContext: SessionContext?,
+    ) {
     }
 
     fun hentRammebehandlingerForSakId(sakId: SakId): Rammebehandlinger {
