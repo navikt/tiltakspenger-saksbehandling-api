@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingerDTO
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagebehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjederDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -28,6 +30,7 @@ data class SakDTO(
     val førsteDagSomGirRett: LocalDate?,
     val sisteDagSomGirRett: LocalDate?,
     val behandlinger: List<RammebehandlingDTO>,
+    val klageBehandlinger: List<KlagebehandlingDTO>,
     val tidslinje: TidslinjeDTO,
     val innvilgetTidslinje: TidslinjeDTO,
     val alleRammevedtak: List<RammevedtakDTO>,
@@ -44,6 +47,7 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     førsteDagSomGirRett = førsteDagSomGirRett,
     sisteDagSomGirRett = sisteDagSomGirRett,
     behandlinger = this.tilBehandlingerDTO(),
+    klageBehandlinger = this.behandlinger.klagebehandlinger.map { it.toDto() },
     tidslinje = rammevedtaksliste.tilRammevedtakTidslinjeDTO(),
     innvilgetTidslinje = rammevedtaksliste.tilRammevedtakInnvilgetTidslinjeDTO(),
     alleRammevedtak = rammevedtaksliste.map { it.tilRammevedtakDTO() },
