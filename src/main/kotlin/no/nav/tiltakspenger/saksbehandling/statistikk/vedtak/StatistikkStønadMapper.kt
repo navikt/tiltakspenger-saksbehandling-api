@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
-import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.VedtakStatistikkResultat.Companion.toVedtakStatistikkResultat
@@ -18,7 +17,13 @@ fun genererStønadsstatistikkForRammevedtak(
 
     val søknad = if (erSøknadsbehandling) vedtak.behandling.søknad else null
 
-    val innvilgelsesperioder = vedtak.innvilgelsesperioder?.perioder?.map { it.toDTO() }
+    val innvilgelsesperioder = vedtak.innvilgelsesperioder?.periodisering?.verdier?.map {
+        StatistikkStønadDTO.Innvilgelsesperiode(
+            fraOgMed = it.periode.fraOgMed,
+            tilOgMed = it.periode.tilOgMed,
+            tiltaksdeltakelse = it.valgtTiltaksdeltakelse.eksternDeltakelseId,
+        )
+    }
 
     val tiltaksdeltakelseEksterneIder =
         vedtak.behandling.valgteTiltaksdeltakelser?.verdier?.map { it.eksternDeltakelseId }
