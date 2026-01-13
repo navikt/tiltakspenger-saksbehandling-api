@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Yt
 import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import java.time.Clock
@@ -83,7 +84,7 @@ class HentSaksopplysingerService(
             correlationId = correlationId,
         )
         // Henter oppdaterte tiltaksdeltakelser det er søkt på, ved forlengelse kan flere overlappe enn på søknadstidspunktet.
-        val tiltaksdeltakelserDetErSøktPå: Tiltaksdeltakelser =
+        val tiltaksdeltakelserDetErSøktPå: TiltaksdeltakelserFraRegister =
             tiltaksdeltakelserSomKanGiRettTilTiltakspenger.filtrerPåTiltaksdeltakelsesIDer(
                 tiltaksdeltakelserDetErSøktTiltakspengerFor.ider,
             )
@@ -96,11 +97,11 @@ class HentSaksopplysingerService(
                     aktuelle
                 }
             }
-        val tiltaksdeltakelserMedInternDeltakelseId = aktuelleTiltaksdeltakelser.value.map {
+        val tiltaksdeltakelser = aktuelleTiltaksdeltakelser.value.map {
             val internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(it.eksternDeltakelseId)
-            it.copy(internDeltakelseId = internDeltakelseId)
+            it.toTiltaksdeltakelse(internDeltakelseId)
         }
-        return Tiltaksdeltakelser(tiltaksdeltakelserMedInternDeltakelseId)
+        return Tiltaksdeltakelser(tiltaksdeltakelser)
     }
 
     private suspend fun hentYtelser(

@@ -15,7 +15,7 @@ data class TiltaksdeltakelseDTO(
     val antallDagerPerUke: Float?,
     val kilde: String,
     val gjennomforingsprosent: Float?,
-    val internDeltakelseId: String?,
+    val internDeltakelseId: String,
 )
 
 fun Tiltaksdeltakelse.toDTO(): TiltaksdeltakelseDTO {
@@ -31,6 +31,6 @@ fun Tiltaksdeltakelse.toDTO(): TiltaksdeltakelseDTO {
         antallDagerPerUke = this.antallDagerPerUke,
         kilde = this.kilde.name,
         gjennomforingsprosent = this.deltidsprosentGjennomforing?.toFloat(),
-        internDeltakelseId = this.internDeltakelseId?.toString(),
+        internDeltakelseId = this.internDeltakelseId.toString(),
     )
 }

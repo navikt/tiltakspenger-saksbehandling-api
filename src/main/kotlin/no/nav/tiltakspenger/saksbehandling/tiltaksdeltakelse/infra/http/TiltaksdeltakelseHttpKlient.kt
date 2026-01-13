@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientGeneric
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
@@ -40,7 +39,7 @@ class TiltaksdeltakelseHttpKlient(
         fnr: Fnr,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
-    ): Tiltaksdeltakelser {
+    ): TiltaksdeltakelserFraRegister {
         return doRequest(
             fnr = fnr,
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,

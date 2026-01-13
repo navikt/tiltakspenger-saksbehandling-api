@@ -45,30 +45,8 @@ data class Tiltaksdeltakelser(
     /** Filtrerer bort tiltaksdeltakelser med ufullstendige perioder */
     val perioder by lazy { value.mapNotNull { it.periode } }
 
-    fun filtrerPåTiltaksdeltakelsesIDer(tiltaksdeltakelseIder: List<String>): Tiltaksdeltakelser {
-        return this.filter { it.eksternDeltakelseId in tiltaksdeltakelseIder }
-    }
-
     inline fun filter(predicate: (Tiltaksdeltakelse) -> Boolean): Tiltaksdeltakelser {
         return Tiltaksdeltakelser(filterTo(ArrayList(), predicate))
-    }
-
-    /**
-     * Inkluderer tvilstilfellene der vi ikke kan si med sikkherhet om de overlapper eller ikke.
-     * Se [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse.overlapperMed] for mer informasjon.
-     */
-    fun overlappende(tiltaksdeltakelse: Tiltaksdeltakelse): Tiltaksdeltakelser {
-        return this.filter { it.overlapperMed(tiltaksdeltakelse) ?: true }
-    }
-
-    /**
-     * Inkluderer tvilstilfellene der vi ikke kan si med sikkherhet om de overlapper eller ikke.
-     * Se [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse.overlapperMed] for mer informasjon.
-     */
-    fun overlappende(tiltaksdeltakelser: Tiltaksdeltakelser): Tiltaksdeltakelser {
-        return this.filter { deltakelse ->
-            tiltaksdeltakelser.any { it.overlapperMed(deltakelse) ?: true }
-        }
     }
 
     companion object {

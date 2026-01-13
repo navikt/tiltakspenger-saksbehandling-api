@@ -18,14 +18,14 @@ class TiltaksdeltakelseFakeKlient(
     private val defaultTiltaksdeltakelserTilSøknadHvisDenMangler: Boolean = false,
     private val søknadRepoProvider: suspend () -> SøknadRepo? = { null },
 ) : TiltaksdeltakelseKlient {
-    private val data = Atomic(mutableMapOf<Fnr, Tiltaksdeltakelser>())
+    private val data = Atomic(mutableMapOf<Fnr, TiltaksdeltakelserFraRegister>())
 
     override suspend fun hentTiltaksdeltakelser(
         fnr: Fnr,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
-    ): Tiltaksdeltakelser {
-        return data.get()[fnr] ?: if (defaultTiltaksdeltakelserTilSøknadHvisDenMangler) hentTiltaksdeltakelseFraSøknad(fnr) else Tiltaksdeltakelser.empty()
+    ): TiltaksdeltakelserFraRegister {
+        return data.get()[fnr] ?: if (defaultTiltaksdeltakelserTilSøknadHvisDenMangler) hentTiltaksdeltakelseFraSøknad(fnr) else TiltaksdeltakelserFraRegister.empty()
     }
 
     override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
@@ -45,30 +45,48 @@ class TiltaksdeltakelseFakeKlient(
             data.get().remove(fnr)
             return
         }
+        val tiltaksdeltakelseFraRegister = tiltaksdeltakelse.toTiltaksdeltakelseFraRegister()
         if (current == null) {
-            data.get()[fnr] = Tiltaksdeltakelser(listOf(tiltaksdeltakelse))
+            data.get()[fnr] = TiltaksdeltakelserFraRegister(listOf(tiltaksdeltakelseFraRegister))
             return
         }
         data.get()[fnr] = if (current.getTiltaksdeltakelse(tiltaksdeltakelse.eksternDeltakelseId) != null) {
-            Tiltaksdeltakelser(
+            TiltaksdeltakelserFraRegister(
                 current.map {
                     if (it.eksternDeltakelseId == tiltaksdeltakelse.eksternDeltakelseId) {
-                        tiltaksdeltakelse
+                        tiltaksdeltakelseFraRegister
                     } else {
                         it
                     }
                 },
             )
         } else {
-            Tiltaksdeltakelser(current + tiltaksdeltakelse)
+            TiltaksdeltakelserFraRegister(current + tiltaksdeltakelseFraRegister)
         }
     }
 
-    private suspend fun hentTiltaksdeltakelseFraSøknad(fnr: Fnr): Tiltaksdeltakelser {
+    private suspend fun hentTiltaksdeltakelseFraSøknad(fnr: Fnr): TiltaksdeltakelserFraRegister {
         val søknadRepo = søknadRepoProvider()!!
         val søknader = søknadRepo.hentSøknaderForFnr(fnr)
         val tiltak = søknader.mapNotNull { it.tiltak?.toTiltak() }.distinctBy { it.eksternDeltakelseId }
+            .map { it.toTiltaksdeltakelseFraRegister() }
 
-        return Tiltaksdeltakelser(tiltak)
+        return TiltaksdeltakelserFraRegister(tiltak)
     }
 }
+
+fun Tiltaksdeltakelse.toTiltaksdeltakelseFraRegister(): TiltaksdeltakelseFraRegister =
+    TiltaksdeltakelseFraRegister(
+        eksternDeltakelseId = eksternDeltakelseId,
+        gjennomføringId = gjennomføringId,
+        typeNavn = typeNavn,
+        typeKode = typeKode,
+        rettPåTiltakspenger = rettPåTiltakspenger,
+        deltakelseFraOgMed = deltakelseFraOgMed,
+        deltakelseTilOgMed = deltakelseTilOgMed,
+        deltakelseStatus = deltakelseStatus,
+        deltakelseProsent = deltakelseProsent,
+        antallDagerPerUke = antallDagerPerUke,
+        kilde = kilde,
+        deltidsprosentGjennomforing = deltidsprosentGjennomforing,
+    )
