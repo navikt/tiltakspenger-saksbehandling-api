@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 sealed interface RevurderingResultat : BehandlingResultat {
@@ -121,6 +122,13 @@ sealed interface RevurderingResultat : BehandlingResultat {
         override val valgteTiltaksdeltakelser = innvilgelsesperioder?.valgteTiltaksdeltagelser
         override val antallDagerPerMeldeperiode = innvilgelsesperioder?.antallDagerPerMeldeperiode
 
+        // Per 27. nov 2025 krever vi at en omgjøringsbehandling omgjør ett enkelt vedtak, men vi har ikke noen begrensning på å utvide omgjøringen, slik at den omgjør flere vedtak.
+        // Tanken med dette feltet er de tilfellene man har spesifikt valgt å omgjøre et spesifikt vedtak i sin helhet.
+        // TODO jah: Anders, hva gjør vi? Legger tilbake omgjørVedtakId? Det føles forvirrende. Skal vi heller sperre for at den kan omgjøre flere vedtak?
+        val omgjortVedtak: Omgjøringsperiode by lazy {
+            omgjørRammevedtak.single { it.omgjøringsgrad == Omgjøringsgrad.HELT }
+        }
+
         // Kommentar jah: Avventer med å extende BehandlingResultat.Innvilgelse inntil vi har på plass periodisering av innvilgelsesperioden.
         // Det er ikke sikkert at vi ønsker å gjenbruke logikken derfra.
 
@@ -141,10 +149,12 @@ sealed interface RevurderingResultat : BehandlingResultat {
             }
 
             return this.copy(
-                vedtaksperiode = utledNyVedtaksperiode(this.vedtaksperiode, oppdatertInnvilgelsesperioder),
+                vedtaksperiode = utledNyVedtaksperiode(
+                    omgjortVedtak.periode,
+                    oppdatertInnvilgelsesperioder,
+                ),
                 innvilgelsesperioder = innvilgelsesperioderMedTiltaksdeltakelse,
                 barnetillegg = oppdatertBarnetillegg,
-                omgjørRammevedtak = this.omgjørRammevedtak,
             )
         }
 
@@ -190,13 +200,14 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 ).right()
             }
 
+            // Ny vedtaksperiode må alltid inneholde hele perioden for vedtaket som omgjøres
             fun utledNyVedtaksperiode(
-                eksisterendeVedtaksperiode: Periode,
+                omgjortVedtaksperiode: Periode,
                 nyeInnvilgelsesperioder: Innvilgelsesperioder,
             ): Periode {
                 return Periode(
-                    fraOgMed = minOf(eksisterendeVedtaksperiode.fraOgMed, nyeInnvilgelsesperioder.fraOgMed),
-                    tilOgMed = maxOf(eksisterendeVedtaksperiode.tilOgMed, nyeInnvilgelsesperioder.tilOgMed),
+                    fraOgMed = minOf(omgjortVedtaksperiode.fraOgMed, nyeInnvilgelsesperioder.fraOgMed),
+                    tilOgMed = maxOf(omgjortVedtaksperiode.tilOgMed, nyeInnvilgelsesperioder.tilOgMed),
                 )
             }
         }
@@ -218,30 +229,15 @@ sealed interface RevurderingResultat : BehandlingResultat {
                     "Vedtaksperioden ($vedtaksperiode) må inneholde alle innvilgelsesperiodene ($innvilgelsesperioder)"
                 }
 
-                if (omgjørRammevedtak.fraOgMed != null && vedtaksperiode.fraOgMed < omgjørRammevedtak.fraOgMed) {
+                if (vedtaksperiode.fraOgMed < omgjortVedtak.periode.fraOgMed) {
                     require(innvilgelsesperioder.fraOgMed == vedtaksperiode.fraOgMed) {
-                        "Når vedtaksperioden sin fraOgMed (${vedtaksperiode.fraOgMed}) starter før det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed}), må innvilgelsesperioden sin fraOgMed (${innvilgelsesperioder.fraOgMed}) starte samtidig som det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed})"
+                        "Når vedtaksperioden sin fraOgMed (${vedtaksperiode.fraOgMed}) starter før det omgjorte vedtaket sin fraOgMed (${omgjortVedtak.periode.fraOgMed}), må innvilgelsesperioden sin fraOgMed (${innvilgelsesperioder.fraOgMed}) være lik vedtaksperioden"
                     }
                 }
-                if (omgjørRammevedtak.tilOgMed != null && vedtaksperiode.tilOgMed > omgjørRammevedtak.tilOgMed) {
+
+                if (vedtaksperiode.tilOgMed > omgjortVedtak.periode.tilOgMed) {
                     require(innvilgelsesperioder.tilOgMed == vedtaksperiode.tilOgMed) {
-                        "Når vedtaksperioden sin tilOgMed (${vedtaksperiode.tilOgMed}) slutter etter det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed}), må innvilgelsesperioden sin tilOgMed (${innvilgelsesperioder.tilOgMed}) slutte samtidig som det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed})"
-                    }
-                }
-
-                val heltOmgjort = omgjørRammevedtak.single {
-                    it.omgjøringsgrad == Omgjøringsgrad.HELT
-                }
-
-                if (vedtaksperiode.fraOgMed < heltOmgjort.periode.fraOgMed) {
-                    require(innvilgelsesperioder.fraOgMed == vedtaksperiode.fraOgMed) {
-                        "Når vedtaksperioden sin fraOgMed (${vedtaksperiode.fraOgMed}) starter før det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed}), må innvilgelsesperioden sin fraOgMed (${innvilgelsesperioder.fraOgMed}) starte samtidig som det omgjorte vedtaket sin fraOgMed (${omgjørRammevedtak.fraOgMed})"
-                    }
-                }
-
-                if (vedtaksperiode.tilOgMed > heltOmgjort.periode.tilOgMed) {
-                    require(innvilgelsesperioder.tilOgMed == vedtaksperiode.tilOgMed) {
-                        "Når vedtaksperioden sin tilOgMed (${vedtaksperiode.tilOgMed}) slutter etter det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed}), må innvilgelsesperioden sin tilOgMed (${innvilgelsesperioder.tilOgMed}) slutte samtidig som det omgjorte vedtaket sin tilOgMed (${omgjørRammevedtak.tilOgMed})"
+                        "Når vedtaksperioden sin tilOgMed (${vedtaksperiode.tilOgMed}) slutter etter det omgjorte vedtaket sin tilOgMed (${omgjortVedtak.periode.tilOgMed}), må innvilgelsesperioden sin tilOgMed (${innvilgelsesperioder.tilOgMed}) være lik vedtaksperioden"
                     }
                 }
             }
