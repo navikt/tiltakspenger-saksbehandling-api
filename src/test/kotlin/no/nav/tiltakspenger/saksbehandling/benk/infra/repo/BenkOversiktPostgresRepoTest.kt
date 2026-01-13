@@ -37,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterManuellMeldekortBehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOppdatertMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingStansTilBeslutning
@@ -88,6 +89,7 @@ class BenkOversiktPostgresRepoTest {
                 saksbehandler = null,
                 beslutter = null,
                 erSattPåVent = false,
+                sistEndret = null,
             )
         }
     }
@@ -319,6 +321,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = null,
                     beslutter = null,
                     erSattPåVent = false,
+                    sistEndret = null,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakMedOpprettetMeldekortBehandling.id,
@@ -331,6 +334,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     erSattPåVent = false,
+                    sistEndret = opprettetMeldekortbehandling.sistEndret,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakMedMeldekortbehandlingTilBeslutning.id,
@@ -343,6 +347,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     erSattPåVent = false,
+                    sistEndret = meldekortbehandlingTilBeslutning.sistEndret,
                 )
             }
         }
@@ -446,7 +451,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.UNDER_BEHANDLING,
                     saksbehandler = behandling.saksbehandler,
                     beslutter = null,
-                    sistEndret = null,
+                    sistEndret = behandling.sistEndret,
                     erSattPåVent = false,
                 ),
             )
@@ -518,17 +523,43 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    fun `henter åpne klagebehandlinger`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val (_, klagebehandling) = testDataHelper.persisterOpprettetKlagebehandlingTilAvvisning()
+
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntall shouldBe 1
+            actual.size shouldBe 1
+            actual.first() shouldBe Behandlingssammendrag(
+                sakId = klagebehandling.sakId,
+                fnr = klagebehandling.fnr,
+                saksnummer = klagebehandling.saksnummer,
+                startet = klagebehandling.opprettet,
+                kravtidspunkt = null,
+                behandlingstype = BehandlingssammendragType.KLAGEBEHANDLING,
+                status = BehandlingssammendragStatus.UNDER_BEHANDLING,
+                saksbehandler = ObjectMother.saksbehandler().navIdent,
+                beslutter = null,
+                erSattPåVent = false,
+                sistEndret = klagebehandling.sistEndret,
+            )
+        }
+    }
+
+    @Test
     fun `henter mix av behandlingene`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             testDataHelper.persisterSakOgSøknad()
             testDataHelper.persisterOpprettetSøknadsbehandling()
             testDataHelper.persisterOpprettetRevurdering()
             testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
+            testDataHelper.persisterOpprettetKlagebehandlingTilAvvisning()
 
             val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
-            totalAntall shouldBe 4
-            actual.size shouldBe 4
+            totalAntall shouldBe 5
+            actual.size shouldBe 5
         }
     }
 
