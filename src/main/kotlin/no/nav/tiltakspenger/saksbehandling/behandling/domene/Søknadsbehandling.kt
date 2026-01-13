@@ -83,7 +83,7 @@ data class Søknadsbehandling(
      */
     val kanInnvilges: Boolean by lazy {
         when (søknad) {
-            is InnvilgbarSøknad -> saksopplysninger.kanInnvilges(søknad.tiltak.id)
+            is InnvilgbarSøknad -> saksopplysninger.kanInnvilges(søknad.tiltak.tiltaksdeltakerId)
             is IkkeInnvilgbarSøknad -> false
         }
     }

@@ -282,17 +282,17 @@ class DelautomatiskBehandlingService(
             }
         }
 
-        val tiltaksid = behandling.søknad.tiltak.id
+        val tiltaksdeltakerId = behandling.søknad.tiltak.tiltaksdeltakerId
         val tiltaksperiode = Periode(behandling.søknad.tiltak.deltakelseFom, behandling.søknad.tiltak.deltakelseTom)
 
         if (behandling.saksopplysninger.harOverlappendeTiltaksdeltakelse(
-                eksternDeltakelseId = tiltaksid,
+                internDeltakelseId = tiltaksdeltakerId,
                 tiltaksperiode = tiltaksperiode,
             )
         ) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_OVERLAPPENDE_TILTAK)
         } else if (behandling.saksopplysninger.harOverlappendeTiltaksdeltakelse(
-                eksternDeltakelseId = tiltaksid,
+                internDeltakelseId = tiltaksdeltakerId,
                 tiltaksperiode = Periode(
                     tiltaksperiode.fraOgMed.minusDays(14),
                     tiltaksperiode.tilOgMed.plusDays(14),
@@ -333,7 +333,7 @@ class DelautomatiskBehandlingService(
             behandling.søknad is InnvilgbarSøknad &&
                 behandling.søknad.erDigitalSøknad(),
         ) { "Kan bare automatisk behandle digitale søknader fra bruker ${behandling.søknad.id}" }
-        return behandling.saksopplysninger.getTiltaksdeltakelse(behandling.søknad.tiltak.id)
+        return behandling.saksopplysninger.getTiltaksdeltakelse(behandling.søknad.tiltak.tiltaksdeltakerId)
     }
 
     private fun tiltakManglerPeriode(
@@ -391,7 +391,7 @@ class DelautomatiskBehandlingService(
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad. BehandlingId: ${behandling.id}" }
 
         val soknadstiltakFraSaksopplysning = behandling.søknad.tiltak
-            .let { tiltak -> behandling.saksopplysninger.getTiltaksdeltakelse(tiltak.id) }
+            .let { tiltak -> behandling.saksopplysninger.getTiltaksdeltakelse(tiltak.tiltaksdeltakerId) }
             ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk. BehandlingId: ${behandling.id}")
 
         require((soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) || soknadstiltakFraSaksopplysning.getDeltakelsesprosent() == 100.0F) {

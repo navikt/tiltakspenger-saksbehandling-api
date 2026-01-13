@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -24,20 +25,20 @@ data class Saksopplysninger(
 ) {
     val periode: Periode? = tiltaksdeltakelser.totalPeriode
 
-    fun kanInnvilges(tiltaksdeltakelseId: String): Boolean {
-        return tiltaksdeltakelser.getTiltaksdeltakelse(tiltaksdeltakelseId)?.kanInnvilges ?: false
+    fun kanInnvilges(internDeltakelseId: TiltaksdeltakerId): Boolean {
+        return tiltaksdeltakelser.getTiltaksdeltakelse(internDeltakelseId)?.kanInnvilges ?: false
     }
 
-    fun getTiltaksdeltakelse(eksternDeltakelseId: String): Tiltaksdeltakelse? {
-        return tiltaksdeltakelser.getTiltaksdeltakelse(eksternDeltakelseId)
+    fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse? {
+        return tiltaksdeltakelser.getTiltaksdeltakelse(internDeltakelseId)
     }
 
     /**
      * Siden denne kun brukes av den del-automatiske behandlingen ønsker vi å behandle tvilstilfellene (null) som om de kan overlappe.
      */
-    fun harOverlappendeTiltaksdeltakelse(eksternDeltakelseId: String, tiltaksperiode: Periode): Boolean {
+    fun harOverlappendeTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId, tiltaksperiode: Periode): Boolean {
         return tiltaksdeltakelser.any {
-            it.eksternDeltakelseId != eksternDeltakelseId && (it.overlapperMedPeriode(tiltaksperiode) ?: true)
+            it.internDeltakelseId != internDeltakelseId && (it.overlapperMedPeriode(tiltaksperiode) ?: true)
         }
     }
 

@@ -55,7 +55,7 @@ data class Innvilgelsesperioder(
     fun krympTilTiltaksdeltakelsesperioder(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilgelsesperioder? {
         val nyeInnvilgelsesperioder = periodisering.verdier.mapNotNull {
             val oppdatertTiltaksdeltakelse =
-                tiltaksdeltakelser.getTiltaksdeltakelse(it.valgtTiltaksdeltakelse.eksternDeltakelseId)
+                tiltaksdeltakelser.getTiltaksdeltakelse(it.valgtTiltaksdeltakelse.internDeltakelseId)
 
             if (oppdatertTiltaksdeltakelse == null || !oppdatertTiltaksdeltakelse.kanInnvilges) {
                 return@mapNotNull null

@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDateTime
@@ -95,11 +96,15 @@ sealed interface Rammebehandling : Behandling {
 
     val utbetaling: BehandlingUtbetaling?
 
-    fun inneholderSaksopplysningerEksternDeltakelseId(eksternDeltakelseId: String): Boolean =
-        saksopplysninger.tiltaksdeltakelser.find { it.eksternDeltakelseId == eksternDeltakelseId } != null
+    fun inneholderSaksopplysningerInternDeltakelseId(internDeltakelseId: TiltaksdeltakerId): Boolean =
+        saksopplysninger.tiltaksdeltakelser.find { it.internDeltakelseId == internDeltakelseId } != null
 
-    fun getTiltaksdeltakelse(eksternDeltakelseId: String): Tiltaksdeltakelse? =
-        saksopplysninger.getTiltaksdeltakelse(eksternDeltakelseId)
+    fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse? =
+        saksopplysninger.getTiltaksdeltakelse(internDeltakelseId)
+
+    // Brukes midlertidig som fallback frem til frontend sender internDeltakelsesId som en del av valgte innvilgelsesperioder
+    fun getTiltaksdeltakelseFallback(eksternDeltakelseId: String): Tiltaksdeltakelse? =
+        saksopplysninger.tiltaksdeltakelser.value.find { it.eksternDeltakelseId == eksternDeltakelseId }
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Rammebehandling
 
