@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusType
 import no.nav.tiltakspenger.libs.tiltak.toDeltakerStatusDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toDomain
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import java.time.LocalDate
@@ -21,7 +22,7 @@ data class DeltakerV1Dto(
         val type: KometDeltakerStatusType,
     )
 
-    fun toTiltaksdeltakerKafkaDb(sakId: SakId) =
+    fun toTiltaksdeltakerKafkaDb(sakId: SakId, tiltaksdeltakerId: TiltaksdeltakerId) =
         TiltaksdeltakerKafkaDb(
             id = id.toString(),
             deltakelseFraOgMed = startDato,
@@ -32,6 +33,7 @@ data class DeltakerV1Dto(
             sakId = sakId,
             oppgaveId = null,
             oppgaveSistSjekket = null,
+            tiltaksdeltakerId = tiltaksdeltakerId,
         )
 
     private fun KometDeltakerStatusType.toTiltakDeltakerStatus(): TiltakDeltakerstatus =
