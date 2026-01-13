@@ -37,7 +37,7 @@ interface IverksettSøknadsbehandlingBuilder {
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandling(
         tac: TestApplicationContext,
         sakId: SakId? = null,
-        fnr: Fnr = Fnr.random(),
+        fnr: Fnr = ObjectMother.gyldigFnr(),
         vedtaksperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),

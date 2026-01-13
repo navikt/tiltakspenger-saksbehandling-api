@@ -43,7 +43,7 @@ data class Beregning(
 
     init {
         require(beregninger.zipWithNext().all { (a, b) -> a.tilOgMed < b.fraOgMed }) {
-            "Beregnede meldeperioder må være sortert og ikke ha overlapp - $beregninger"
+            "Beregnede meldeperioder må være sortert - $beregninger"
         }
 
         require(beregninger.distinctBy { it.beregningKilde }.size == 1) {

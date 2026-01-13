@@ -16,7 +16,14 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortBehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
@@ -25,8 +32,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehand
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgLeggTilbake
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgSendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
 
@@ -80,12 +89,27 @@ interface TaMeldekortbehandlingBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
+        vedtaksperiode: Periode = 1.til(10.april(2025)),
+        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+            fom = vedtaksperiode.fraOgMed,
+            tom = vedtaksperiode.tilOgMed,
+        ),
+        innvilgelsesperioder: List<Innvilgelsesperiode> = listOf(
+            Innvilgelsesperiode(
+                periode = vedtaksperiode,
+                valgtTiltaksdeltakelse = tiltaksdeltakelse,
+                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            ),
+        ),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortBehandletManuelt, MeldekortBehandlingDTOJson>? {
         val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortBehandling, _) = iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning(
             tac = tac,
             saksbehandler = saksbehandler,
+            vedtaksperiode = vedtaksperiode,
+            tiltaksdeltakelse = tiltaksdeltakelse,
+            innvilgelsesperioder = innvilgelsesperioder,
         ) ?: return null
 
         val (sak, tattMeldekort, json) = taMeldekortbehanding(
@@ -97,6 +121,34 @@ interface TaMeldekortbehandlingBuilder {
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
         return Tuple5(sak, søknad, rammevedtakSøknadsbehandling, tattMeldekort as MeldekortBehandletManuelt, json)
+    }
+
+    suspend fun ApplicationTestBuilder.opprettOgBesluttertarMeldekortbehanding(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        kjedeId: MeldeperiodeKjedeId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
+        beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: String? = null,
+    ): Triple<Sak, MeldekortBehandling, MeldekortBehandlingDTOJson>? {
+        val (sakMedMeldekortbehandlingUnderBeslutning, meldekortbehandling) = opprettOgSendMeldekortbehandlingTilBeslutning(
+            tac = tac,
+            sakId = sakId,
+            kjedeId = kjedeId,
+            saksbehandler = saksbehandler,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        ) ?: return null
+
+        return taMeldekortbehanding(
+            tac = tac,
+            sakId = sakMedMeldekortbehandlingUnderBeslutning.id,
+            meldekortId = meldekortbehandling.id,
+            saksbehandlerEllerBeslutter = beslutter,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        )
     }
 
     /**

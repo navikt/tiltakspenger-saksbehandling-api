@@ -463,7 +463,7 @@ class MeldekortBehandlingPostgresRepo(
                     from meldekortbehandling m
                     join sak s on s.id = m.sak_id
                     where s.id = :sakId
-                    order by m.fra_og_med
+                    order by m.opprettet
                     """,
                     "sakId" to sakId.toString(),
                 ).map { fromRow(it, session) }.asList,

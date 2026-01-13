@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 
+import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
@@ -10,7 +12,9 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
@@ -46,20 +50,32 @@ class StartRevurderingOmgjøringTest {
         withTestApplicationContext { tac ->
             val førsteInnvilgelsesperiode = 1.februar(2025) til 28.februar(2025)
             val omgjøringsperiode = 1.januar(2025) til 28.februar(2025)
-            val (sak, søknad, rammevedtakSøknadsbehandling, _) = iverksettSøknadsbehandling(
+            val (sak, _, rammevedtakSøknadsbehandling, _) = iverksettSøknadsbehandlingOgMeldekortbehandling(
                 tac = tac,
                 vedtaksperiode = førsteInnvilgelsesperiode,
                 tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                     fom = omgjøringsperiode.fraOgMed,
                     tom = omgjøringsperiode.tilOgMed,
                 ),
-            )
-            iverksettRevurderingOmgjøring(
+            )!!
+            val (_, vedtakOmgjøring1) = iverksettRevurderingOmgjøring(
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = rammevedtakSøknadsbehandling.id,
                 innvilgelsesperiode = omgjøringsperiode,
             )
+            opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = MeldeperiodeKjedeId.fraPeriode(30.desember(2024) til 12.januar(2025)),
+            )
+            iverksettRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = vedtakOmgjøring1.id,
+                innvilgelsesperiode = omgjøringsperiode,
+            )
+
             // TODO jah: Fullfør etter vi har tilstrekkelig route-builder/verktøy i meldekort
         }
     }
