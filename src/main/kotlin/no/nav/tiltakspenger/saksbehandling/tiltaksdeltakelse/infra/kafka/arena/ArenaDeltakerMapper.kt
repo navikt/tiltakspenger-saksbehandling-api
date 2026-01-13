@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.arena.tiltak.ArenaDeltakerStatusType
 import no.nav.tiltakspenger.libs.arena.tiltak.toDTO
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toDomain
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import java.time.LocalDate
@@ -18,8 +19,9 @@ class ArenaDeltakerMapper {
         eksternId: String,
         arenaKafkaMessage: ArenaKafkaMessage,
         sakId: SakId,
+        tiltaksdeltakerId: TiltaksdeltakerId,
     ): TiltaksdeltakerKafkaDb? {
-        arenaKafkaMessage.after?.let { return it.toTiltaksdeltakerKafkaDb(eksternId, sakId) }
+        arenaKafkaMessage.after?.let { return it.toTiltaksdeltakerKafkaDb(eksternId, sakId, tiltaksdeltakerId) }
 
         if (arenaKafkaMessage.opType == OperationType.D) {
             log.warn { "Deltakelse med id $eksternId er slettet fra Arena" }
@@ -30,7 +32,11 @@ class ArenaDeltakerMapper {
         }
     }
 
-    private fun ArenaDeltakerKafka.toTiltaksdeltakerKafkaDb(eksternId: String, sakId: SakId): TiltaksdeltakerKafkaDb {
+    private fun ArenaDeltakerKafka.toTiltaksdeltakerKafkaDb(
+        eksternId: String,
+        sakId: SakId,
+        tiltaksdeltakerId: TiltaksdeltakerId,
+    ): TiltaksdeltakerKafkaDb {
         val deltakelseFraOgMed = DATO_FRA?.asValidatedLocalDate()
         return TiltaksdeltakerKafkaDb(
             id = eksternId,
@@ -42,6 +48,7 @@ class ArenaDeltakerMapper {
             sakId = sakId,
             oppgaveId = null,
             oppgaveSistSjekket = null,
+            tiltaksdeltakerId = tiltaksdeltakerId,
         )
     }
 

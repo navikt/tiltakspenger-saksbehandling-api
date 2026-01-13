@@ -6,4 +6,5 @@ enum class BehandlingssammendragType {
     MELDEKORTBEHANDLING,
     INNSENDT_MELDEKORT,
     KORRIGERT_MELDEKORT,
+    KLAGEBEHANDLING,
 }

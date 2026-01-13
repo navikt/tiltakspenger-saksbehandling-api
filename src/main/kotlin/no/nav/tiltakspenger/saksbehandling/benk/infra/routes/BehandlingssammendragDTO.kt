@@ -20,4 +20,5 @@ enum class BehandlingssammendragTypeDTO {
     MELDEKORTBEHANDLING,
     INNSENDT_MELDEKORT,
     KORRIGERT_MELDEKORT,
+    KLAGEBEHANDLING,
 }

@@ -150,6 +150,7 @@ open class ApplicationContext(
             tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
             søknadRepo = søknadContext.søknadRepo,
             arenaDeltakerMapper = ArenaDeltakerMapper(),
+            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
         )
     }
 

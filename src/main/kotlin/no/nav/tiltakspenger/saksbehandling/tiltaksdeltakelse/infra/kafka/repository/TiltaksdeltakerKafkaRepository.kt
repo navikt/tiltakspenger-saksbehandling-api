@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import org.intellij.lang.annotations.Language
 import java.time.Clock
 import java.time.LocalDateTime
@@ -71,6 +72,7 @@ class TiltaksdeltakerKafkaRepository(
                         "sist_oppdatert" to sistOppdatert,
                         "melding" to melding,
                         "oppgave_sist_sjekket" to tiltaksdeltakerKafkaDb.oppgaveSistSjekket,
+                        "tiltaksdeltaker_id" to tiltaksdeltakerKafkaDb.tiltaksdeltakerId?.toString(),
                     ),
                 ).asUpdate,
             )
@@ -128,6 +130,7 @@ class TiltaksdeltakerKafkaRepository(
             sakId = SakId.fromString(string("sak_id")),
             oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
             oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),
+            tiltaksdeltakerId = stringOrNull("tiltaksdeltaker_id")?.let { TiltaksdeltakerId.fromString(it) },
         )
 
     @Language("SQL")
@@ -144,7 +147,8 @@ class TiltaksdeltakerKafkaRepository(
             oppgave_id,
             sist_oppdatert,
             melding,
-            oppgave_sist_sjekket
+            oppgave_sist_sjekket,
+            tiltaksdeltaker_id
         ) values (
             :id,
             :deltakelse_fra_og_med,
@@ -156,7 +160,8 @@ class TiltaksdeltakerKafkaRepository(
             :oppgave_id,
             :sist_oppdatert,
             :melding,
-            :oppgave_sist_sjekket
+            :oppgave_sist_sjekket,
+            :tiltaksdeltaker_id
         ) ON CONFLICT (id) DO UPDATE SET
             deltakelse_fra_og_med = :deltakelse_fra_og_med,
             deltakelse_til_og_med = :deltakelse_til_og_med,

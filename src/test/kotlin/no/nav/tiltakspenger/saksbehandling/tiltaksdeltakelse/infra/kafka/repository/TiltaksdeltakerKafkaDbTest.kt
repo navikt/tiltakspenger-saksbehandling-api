@@ -217,6 +217,7 @@ fun getTiltaksdeltakerKafkaDb(
     sakId: SakId = SakId.random(),
     oppgaveId: OppgaveId? = null,
     oppgaveSistSjekket: LocalDateTime? = null,
+    tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
 ) =
     TiltaksdeltakerKafkaDb(
         id = id,
@@ -228,4 +229,5 @@ fun getTiltaksdeltakerKafkaDb(
         sakId = sakId,
         oppgaveId = oppgaveId,
         oppgaveSistSjekket = oppgaveSistSjekket,
+        tiltaksdeltakerId = tiltaksdeltakerId,
     )

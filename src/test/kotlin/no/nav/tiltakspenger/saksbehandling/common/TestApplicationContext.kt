@@ -106,7 +106,7 @@ class TestApplicationContext(
     private val dokumentdistribusjonsFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val meldekortApiFakeKlient = MeldekortApiFakeKlient()
     private val benkOversiktFakeRepo =
-        BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortBehandlingFakeRepo)
+        BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortBehandlingFakeRepo, klagebehandlingFakeRepo)
     private val tiltaksdeltakerFakeRepo = TiltaksdeltakerFakeRepo()
 
     val jwtGenerator = JwtGenerator()
@@ -134,6 +134,7 @@ class TestApplicationContext(
             søknadFakeRepo = søknadFakeRepo,
             behandlingFakeRepo = behandlingFakeRepo,
             meldekortBehandlingFakeRepo = meldekortBehandlingFakeRepo,
+            klagebehandlingFakeRepo = klagebehandlingFakeRepo,
         )
     private val sakFakeRepo =
         SakFakeRepo(
