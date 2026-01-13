@@ -10,45 +10,50 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.A
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.DeltakerV1Dto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import java.util.UUID
 
 class TiltaksdeltakerService(
     private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
     private val søknadRepo: SøknadRepo,
     private val arenaDeltakerMapper: ArenaDeltakerMapper,
+    private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
     private val log = KotlinLogging.logger { }
 
     fun behandleMottattArenadeltaker(deltakerId: String, melding: String) {
         val eksternId = "TA$deltakerId"
+        val tiltaksdeltakerId = tiltaksdeltakerRepo.hentInternId(eksternId)
         val sakId = finnSakIdForTiltaksdeltaker(eksternId)
-        if (sakId != null) {
+        if (tiltaksdeltakerId != null && sakId != null) {
             log.info { "Fant sakId $sakId for arena-deltaker med id $eksternId" }
             val arenaKafkaMessage = objectMapper.readValue<ArenaKafkaMessage>(melding)
             val tiltaksdeltakerKafkaDb = arenaDeltakerMapper.mapArenaDeltaker(
                 eksternId = eksternId,
                 arenaKafkaMessage = arenaKafkaMessage,
                 sakId = sakId,
+                tiltaksdeltakerId = tiltaksdeltakerId,
             )
             if (tiltaksdeltakerKafkaDb != null) {
                 lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, objectMapper.writeValueAsString(arenaKafkaMessage))
                 log.info { "Lagret melding for arenadeltaker med id $eksternId" }
             }
         } else {
-            log.info { "Fant ingen sak knyttet til eksternId $eksternId, lagrer ikke" }
+            log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $eksternId, lagrer ikke" }
         }
     }
 
     fun behandleMottattKometdeltaker(deltakerId: UUID, melding: String) {
+        val tiltaksdeltakerId = tiltaksdeltakerRepo.hentInternId(deltakerId.toString())
         val sakId = finnSakIdForTiltaksdeltaker(deltakerId.toString())
-        if (sakId != null) {
+        if (tiltaksdeltakerId != null && sakId != null) {
             log.info { "Fant sakId $sakId for komet-deltaker med id $deltakerId" }
             val deltakerV1Dto = objectMapper.readValue<DeltakerV1Dto>(melding)
-            val tiltaksdeltakerKafkaDb = deltakerV1Dto.toTiltaksdeltakerKafkaDb(sakId)
+            val tiltaksdeltakerKafkaDb = deltakerV1Dto.toTiltaksdeltakerKafkaDb(sakId, tiltaksdeltakerId)
             lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, objectMapper.writeValueAsString(deltakerV1Dto))
             log.info { "Lagret melding for kometdeltaker med id $deltakerId" }
         } else {
-            log.info { "Fant ingen sak knyttet til eksternId $deltakerId, lagrer ikke" }
+            log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }
         }
     }
 

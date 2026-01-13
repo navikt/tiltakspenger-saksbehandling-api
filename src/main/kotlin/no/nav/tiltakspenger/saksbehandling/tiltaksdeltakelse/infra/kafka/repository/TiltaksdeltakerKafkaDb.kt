@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring
 import java.time.Clock
 import java.time.LocalDate
@@ -19,6 +20,7 @@ data class TiltaksdeltakerKafkaDb(
     val sakId: SakId,
     val oppgaveId: OppgaveId?,
     val oppgaveSistSjekket: LocalDateTime?,
+    val tiltaksdeltakerId: TiltaksdeltakerId?,
 ) {
     fun tiltaksdeltakelseErEndret(
         tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
