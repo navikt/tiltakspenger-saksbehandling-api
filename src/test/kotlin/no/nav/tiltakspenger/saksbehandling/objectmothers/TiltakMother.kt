@@ -71,7 +71,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
-        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.fromString(DEFAULT_INTERN_TILTAKSDELTAKELSE_ID),
+        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -193,4 +193,3 @@ fun Tiltaksdeltakelse.toSøknadstiltak(tiltaksdeltakerId: TiltaksdeltakerId = Ti
 }
 
 const val DEFAULT_TILTAK_DELTAKELSE_ID = "61328250-7d5d-4961-b70e-5cb727a34371"
-const val DEFAULT_INTERN_TILTAKSDELTAKELSE_ID = "tiltaksdeltaker_01KEEFWNJTGDMJV95NH810DS6S"
