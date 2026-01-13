@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VENTE
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VURDERES
 import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Avbrutt
@@ -31,16 +30,15 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Venteliste
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.VenterPåOppstart
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Vurderes
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 
 internal fun mapTiltak(
     tiltakDTOListe: List<TiltakTilSaksbehandlingDTO>,
-): Tiltaksdeltakelser {
+): TiltaksdeltakelserFraRegister {
     return tiltakDTOListe
         .map { tiltakDto ->
-            Tiltaksdeltakelse(
+            TiltaksdeltakelseFraRegister(
                 eksternDeltakelseId = tiltakDto.id,
                 gjennomføringId = tiltakDto.gjennomforing.id,
                 typeNavn = tiltakDto.gjennomforing.typeNavn,
@@ -58,11 +56,9 @@ internal fun mapTiltak(
                 deltakelseProsent = tiltakDto.deltakelseProsent,
                 kilde = tiltakDto.kilde.toTiltakskilde(tiltakDto.id),
                 deltidsprosentGjennomforing = tiltakDto.gjennomforing.deltidsprosent,
-                // internDeltakelsesId må settes når vi vet at den skal inngå i saksopplysningene
-                internDeltakelseId = null,
 
             )
-        }.let { Tiltaksdeltakelser(it) }
+        }.let { TiltaksdeltakelserFraRegister(it) }
 }
 
 internal fun mapTiltakMedArrangørnavn(

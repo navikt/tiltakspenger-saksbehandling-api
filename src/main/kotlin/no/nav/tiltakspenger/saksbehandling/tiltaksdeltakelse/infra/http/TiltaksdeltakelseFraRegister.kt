@@ -1,18 +1,14 @@
-package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import java.time.LocalDate
 
-/**
- * @param eksternDeltakelseId mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api). Dette er tiltaksdeltakelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?). Kalles ekstern_id i databasen. Lagres kun for sporbarhet.
- * @param typeNavn Navn på tiltakstypen, f.eks. "Arbeidsforberedende trening"
- * @param gjennomføringId Ekstern id fra Valp. Dette er gjennomføringen sin ID, eksempelvis Rema 1000 i Strandveien. En person knyttes til en gjennomføring og det kalles da en deltakelse. Per nå mottar vi ikke denne fra Arena, men kun fra Komet.
- * @param deltakelseFraOgMed startdato for deltakelsen. Kan mangle, særlig når deltaker venter på oppstart
- * @param deltakelseTilOgMed sluttdato for deltakelsen. Kan mangle.
- * @param internDeltakelseId vår interne id for tiltaksdeltakelsen som finnes i tiltaksdeltaker-tabellen. Siden eksternId kan endres skal man alltid hente eksternId fra tiltaksdeltaker-tabellen for å finne nåværende eksternId.
- */
-data class Tiltaksdeltakelse(
+data class TiltaksdeltakelseFraRegister(
     val eksternDeltakelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,
@@ -25,10 +21,7 @@ data class Tiltaksdeltakelse(
     val antallDagerPerUke: Float?,
     val kilde: Tiltakskilde,
     val deltidsprosentGjennomforing: Double?,
-    val internDeltakelseId: TiltaksdeltakerId,
 ) {
-    val kanInnvilges: Boolean = deltakelseStatus.deltarEllerHarDeltatt() && deltakelseFraOgMed != null && deltakelseTilOgMed != null
-
     /**
      * null dersom [deltakelseFraOgMed] eller [deltakelseTilOgMed] er null.
      */
@@ -69,7 +62,7 @@ data class Tiltaksdeltakelse(
      * Denne metoden håndterer tvilstilfellene og returnerer null dersom vi ikke kan si sikkert om de overlapper.
      * Den returnerer true/false der vi er sikre.
      */
-    fun overlapperMed(other: Tiltaksdeltakelse): Boolean? {
+    fun overlapperMed(other: TiltaksdeltakelseFraRegister): Boolean? {
         return when {
             this.periode != null && other.periode != null -> this.periode!!.overlapperMed(other.periode!!)
             this.periode != null && other.periode == null -> other.overlapperMedPeriode(this.periode!!)
@@ -81,4 +74,21 @@ data class Tiltaksdeltakelse(
             else -> null
         }
     }
+
+    fun toTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse =
+        Tiltaksdeltakelse(
+            eksternDeltakelseId = eksternDeltakelseId,
+            gjennomføringId = gjennomføringId,
+            typeNavn = typeNavn,
+            typeKode = typeKode,
+            rettPåTiltakspenger = rettPåTiltakspenger,
+            deltakelseFraOgMed = deltakelseFraOgMed,
+            deltakelseTilOgMed = deltakelseTilOgMed,
+            deltakelseStatus = deltakelseStatus,
+            deltakelseProsent = deltakelseProsent,
+            antallDagerPerUke = antallDagerPerUke,
+            kilde = kilde,
+            deltidsprosentGjennomforing = deltidsprosentGjennomforing,
+            internDeltakelseId = internDeltakelseId,
+        )
 }

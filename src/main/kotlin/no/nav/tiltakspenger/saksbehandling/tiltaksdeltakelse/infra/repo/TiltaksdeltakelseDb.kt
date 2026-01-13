@@ -17,7 +17,7 @@ data class TiltaksdeltakelseDb(
     val kilde: String,
     val rettPåTiltakspenger: Boolean,
     val deltidsprosentGjennomforing: Double? = null,
-    val internDeltakelseId: String? = null,
+    val internDeltakelseId: String,
 ) {
     fun toDomain(): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
@@ -33,7 +33,7 @@ data class TiltaksdeltakelseDb(
             kilde = kilde.toTiltakskilde(),
             rettPåTiltakspenger = rettPåTiltakspenger,
             deltidsprosentGjennomforing = deltidsprosentGjennomforing,
-            internDeltakelseId = internDeltakelseId?.let { TiltaksdeltakerId.fromString(it) },
+            internDeltakelseId = TiltaksdeltakerId.fromString(internDeltakelseId),
         )
     }
 }
@@ -52,6 +52,6 @@ fun Tiltaksdeltakelse.toDbJson(): TiltaksdeltakelseDb {
         kilde = this.kilde.toDb(),
         rettPåTiltakspenger = this.rettPåTiltakspenger,
         deltidsprosentGjennomforing = this.deltidsprosentGjennomforing,
-        internDeltakelseId = internDeltakelseId?.toString(),
+        internDeltakelseId = internDeltakelseId.toString(),
     )
 }

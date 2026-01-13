@@ -24,6 +24,8 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toTiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
@@ -57,7 +59,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = Tiltaksdeltakelser(tiltaksdeltakelser.first)
+                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister())
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -87,7 +89,7 @@ internal class HentSaksopplysingerServiceTest {
                     internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
-                    return tiltaksdeltakelser.first.internDeltakelseId!!
+                    return tiltaksdeltakelser.first.internDeltakelseId
                 }
                 override fun lagre(
                     id: TiltaksdeltakerId,
@@ -155,7 +157,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = Tiltaksdeltakelser(tiltaksdeltakelser.first)
+                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister())
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -185,7 +187,7 @@ internal class HentSaksopplysingerServiceTest {
                     internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
-                    return tiltaksdeltakelser.first.internDeltakelseId!!
+                    return tiltaksdeltakelser.first.internDeltakelseId
                 }
                 override fun lagre(
                     id: TiltaksdeltakerId,
@@ -246,7 +248,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = Tiltaksdeltakelser(tiltaksdeltakelser.first)
+                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister())
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -283,7 +285,7 @@ internal class HentSaksopplysingerServiceTest {
                     internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
-                    return tiltaksdeltakelser.first.internDeltakelseId!!
+                    return tiltaksdeltakelser.first.internDeltakelseId
                 }
                 override fun lagre(
                     id: TiltaksdeltakerId,
@@ -365,7 +367,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = Tiltaksdeltakelser(listOf(tiltak1.first, tiltak2.first))
+                ) = TiltaksdeltakelserFraRegister(listOf(tiltak1.first.toTiltaksdeltakelseFraRegister(), tiltak2.first.toTiltaksdeltakelseFraRegister()))
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -397,10 +399,10 @@ internal class HentSaksopplysingerServiceTest {
                 ): TiltaksdeltakerId {
                     return when (eksternId) {
                         tiltak1.first.eksternDeltakelseId -> {
-                            tiltak1.first.internDeltakelseId!!
+                            tiltak1.first.internDeltakelseId
                         }
                         tiltak2.first.eksternDeltakelseId -> {
-                            tiltak2.first.internDeltakelseId!!
+                            tiltak2.first.internDeltakelseId
                         }
                         else -> {
                             throw IllegalArgumentException("Ukjent tiltak")
@@ -481,7 +483,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = Tiltaksdeltakelser(listOf(tiltak1.first, tiltak2.first))
+                ) = TiltaksdeltakelserFraRegister(listOf(tiltak1.first.toTiltaksdeltakelseFraRegister(), tiltak2.first.toTiltaksdeltakelseFraRegister()))
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -513,10 +515,10 @@ internal class HentSaksopplysingerServiceTest {
                 ): TiltaksdeltakerId {
                     return when (eksternId) {
                         tiltak1.first.eksternDeltakelseId -> {
-                            tiltak1.first.internDeltakelseId!!
+                            tiltak1.first.internDeltakelseId
                         }
                         tiltak2.first.eksternDeltakelseId -> {
-                            tiltak2.first.internDeltakelseId!!
+                            tiltak2.first.internDeltakelseId
                         }
                         else -> {
                             throw IllegalArgumentException("Ukjent tiltak")

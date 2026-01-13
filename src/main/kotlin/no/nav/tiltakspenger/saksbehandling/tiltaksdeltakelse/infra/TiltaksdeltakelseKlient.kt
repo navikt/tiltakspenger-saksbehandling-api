@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
 
 interface TiltaksdeltakelseKlient {
     /**
@@ -16,7 +16,7 @@ interface TiltaksdeltakelseKlient {
         fnr: Fnr,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
-    ): Tiltaksdeltakelser
+    ): TiltaksdeltakelserFraRegister
 
     suspend fun hentTiltaksdeltakelserMedArrangørnavn(
         fnr: Fnr,

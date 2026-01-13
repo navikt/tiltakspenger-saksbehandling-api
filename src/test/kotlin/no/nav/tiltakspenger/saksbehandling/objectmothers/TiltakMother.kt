@@ -71,7 +71,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
-        internDeltakelseId: TiltaksdeltakerId? = TiltaksdeltakerId.fromString(DEFAULT_INTERN_TILTAKSDELTAKELSE_ID),
+        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.fromString(DEFAULT_INTERN_TILTAKSDELTAKELSE_ID),
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
