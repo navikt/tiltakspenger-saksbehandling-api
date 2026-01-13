@@ -79,7 +79,6 @@ data class RevurderingDTO(
     override val beslutter: String?,
     override val saksopplysninger: SaksopplysningerDTO,
     override val attesteringer: List<AttesteringDTO>,
-    // TODO: Rename til vedtaksperiode i frontend+backend
     override val vedtaksperiode: PeriodeDTO?,
     override val fritekstTilVedtaksbrev: String?,
     override val begrunnelseVilkårsvurdering: String?,
