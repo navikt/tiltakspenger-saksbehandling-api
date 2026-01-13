@@ -93,17 +93,17 @@ class BenkOversiktPostgresRepo(
                                           m.saksbehandler       as saksbehandler,
                                           m.beslutter           as beslutter,
                                           null                  as erSattPåVent,
-                                          null::timestamp with time zone as sist_endret
+                                          m.sist_endret as sist_endret
                                    from meldekortbehandling m
                                             join sak s on m.sak_id = s.id
                                    where m.avbrutt is null
                                      and m.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
                                                       'UNDER_BESLUTNING')),
-åpneMeldekortTilBehandling AS (
-/*
- * meldekortMetadata er en hjelpe-tabell som vi bruker for å finne riktig behandlingstype, og
- * for at vi ikke skal gi ut 'duplikate' rader til benken
- */
+    åpneMeldekortTilBehandling AS (
+    /*
+     * meldekortMetadata er en hjelpe-tabell som vi bruker for å finne riktig behandlingstype, og
+     * for at vi ikke skal gi ut 'duplikate' rader til benken
+     */
          WITH meldekortMetadata AS (SELECT mbr.sak_id                                                                          AS sakId,
                                            mbr.meldeperiode_kjede_id                                                           AS kjedeId,
                                            COUNT(*) OVER (PARTITION BY mbr.sak_id, mbr.meldeperiode_kjede_id)                  AS antallInnsendteMeldekort,
@@ -111,9 +111,9 @@ class BenkOversiktPostgresRepo(
                                            ROW_NUMBER()
                                            OVER (PARTITION BY mbr.sak_id, mbr.meldeperiode_kjede_id ORDER BY mbr.mottatt DESC) AS sisteMeldekortNr
                                     FROM meldekort_bruker mbr),
-        /*
-        Hjelpe-tabell for å finne siste opprettede meldekortbehandling på en sak/kjede - dette er for å vite om et meldekort er potensielt tatt stilling til
-         */
+            /*
+            Hjelpe-tabell for å finne siste opprettede meldekortbehandling på en sak/kjede - dette er for å vite om et meldekort er potensielt tatt stilling til
+             */
               sisteMeldekortBehandlingForKjede AS (SELECT sak_id,
                                                           meldeperiode_kjede_id,
                                                           MAX(mbh.sist_endret) AS sist_endret_tidspunkt
@@ -144,6 +144,19 @@ class BenkOversiktPostgresRepo(
            AND mdk.sisteMeldekortNr = 1
       AND (mbr.mottatt > smbh.sist_endret_tidspunkt OR smbh.sist_endret_tidspunkt IS NULL)
       ),
+       åpneKlager as (select k.sak_id          as sakId,
+                       s.fnr             as fnr,
+                       s.saksnummer      as saksnummer,
+                       k.opprettet       as startet,
+                       'KLAGEBEHANDLING' as behandlingstype,
+                       k.status          as status,
+                       k.saksbehandler   as saksbehandler,
+                       null              as beslutter,
+                       null              as erSattPåVent,
+                       k.sist_endret     as sist_endret
+                from klagebehandling k
+                         join sak s on k.sak_id = s.id
+                where k.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING')),
      slåttSammen AS (select *
                      from åpneSøknaderUtenBehandling
                      union all
@@ -157,7 +170,10 @@ class BenkOversiktPostgresRepo(
                      from åpneMeldekortBehandlinger
                      union all
                      select *
-                     from åpneMeldekortTilBehandling)
+                     from åpneMeldekortTilBehandling
+                     union all
+                     select *
+                     from åpneKlager)
 select *,
        count(*) over () as total_count
 from slåttSammen
@@ -184,7 +200,14 @@ and (
                     mapOf(
                         "limit" to 500,
                         "behandlingstype" to if (command.åpneBehandlingerFiltrering.behandlingstype == null) {
-                            arrayOf("KORRIGERT_MELDEKORT", "INNSENDT_MELDEKORT", "SØKNADSBEHANDLING", "REVURDERING", "MELDEKORTBEHANDLING")
+                            arrayOf(
+                                "KORRIGERT_MELDEKORT",
+                                "INNSENDT_MELDEKORT",
+                                "SØKNADSBEHANDLING",
+                                "REVURDERING",
+                                "MELDEKORTBEHANDLING",
+                                "KLAGEBEHANDLING",
+                            )
                         } else {
                             command.åpneBehandlingerFiltrering.behandlingstype.map { it.toString() }.toTypedArray()
                         },
@@ -253,6 +276,7 @@ enum class BehandlingssammendragTypeDb {
     MELDEKORTBEHANDLING,
     INNSENDT_MELDEKORT,
     KORRIGERT_MELDEKORT,
+    KLAGEBEHANDLING,
     ;
 
     fun toDomain(): BehandlingssammendragType = when (this) {
@@ -261,6 +285,7 @@ enum class BehandlingssammendragTypeDb {
         MELDEKORTBEHANDLING -> BehandlingssammendragType.MELDEKORTBEHANDLING
         INNSENDT_MELDEKORT -> BehandlingssammendragType.INNSENDT_MELDEKORT
         KORRIGERT_MELDEKORT -> BehandlingssammendragType.KORRIGERT_MELDEKORT
+        KLAGEBEHANDLING -> BehandlingssammendragType.KLAGEBEHANDLING
     }
 }
 

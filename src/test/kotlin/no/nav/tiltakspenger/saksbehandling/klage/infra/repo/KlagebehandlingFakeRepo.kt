@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingFakeRepo
 class KlagebehandlingFakeRepo : KlagebehandlingFakeRepo {
 
     private val data = Atomic(mutableMapOf<KlagebehandlingId, Klagebehandling>())
+    val alle get() = data.get().values.toList()
 
     override fun lagreKlagebehandling(
         klagebehandling: Klagebehandling,

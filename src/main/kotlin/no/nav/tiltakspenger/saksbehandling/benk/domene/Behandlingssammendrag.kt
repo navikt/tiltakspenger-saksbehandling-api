@@ -20,7 +20,7 @@ data class Behandlingssammendrag(
     val status: BehandlingssammendragStatus?,
     val saksbehandler: String?,
     val beslutter: String?,
-    val sistEndret: LocalDateTime? = null,
+    val sistEndret: LocalDateTime?,
     val erSattPåVent: Boolean,
 ) {
     init {

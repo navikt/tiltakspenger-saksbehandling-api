@@ -27,6 +27,7 @@ class BehandlingssammendragTest {
                 saksbehandler = "saksbehandler",
                 beslutter = "beslutter",
                 erSattPåVent = false,
+                sistEndret = null,
             )
         }
 
@@ -42,6 +43,7 @@ class BehandlingssammendragTest {
                 saksbehandler = "saksbehandler",
                 beslutter = "beslutter",
                 erSattPåVent = false,
+                sistEndret = null,
             )
         }
     }
@@ -60,6 +62,7 @@ class BehandlingssammendragTest {
                 saksbehandler = "saksbehandler",
                 beslutter = "beslutter",
                 erSattPåVent = false,
+                sistEndret = null,
             )
         }
 
@@ -75,6 +78,7 @@ class BehandlingssammendragTest {
                 saksbehandler = "saksbehandler",
                 beslutter = "beslutter",
                 erSattPåVent = false,
+                sistEndret = null,
             )
         }
     }

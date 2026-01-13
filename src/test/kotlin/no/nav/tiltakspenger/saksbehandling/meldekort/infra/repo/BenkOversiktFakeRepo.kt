@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 
@@ -18,6 +20,7 @@ class BenkOversiktFakeRepo(
     private val søknadFakeRepo: SøknadFakeRepo,
     private val behandlingFakeRepo: BehandlingFakeRepo,
     private val meldekortBehandlingFakeRepo: MeldekortBehandlingFakeRepo,
+    private val klagebehandlingFakeRepo: KlagebehandlingFakeRepo,
 ) : BenkOversiktRepo {
 
     override fun hentÅpneBehandlinger(
@@ -26,8 +29,16 @@ class BenkOversiktFakeRepo(
         limit: Int,
     ): BenkOversikt {
         return BenkOversikt(
-            behandlingssammendrag = hentÅpneBehandlinger(command) + hentÅpneMeldekortBehandlinger(command) + hentÅpneSøknader(),
-            totalAntall = hentÅpneBehandlinger(command).size + hentÅpneMeldekortBehandlinger(command).size + hentÅpneSøknader().size,
+            behandlingssammendrag =
+            hentÅpneBehandlinger(command) +
+                hentÅpneMeldekortBehandlinger(command) +
+                hentÅpneSøknader() +
+                hentÅpneKlagebehandlinger(command),
+            totalAntall =
+            hentÅpneBehandlinger(command).size +
+                hentÅpneMeldekortBehandlinger(command).size +
+                hentÅpneSøknader().size +
+                hentÅpneKlagebehandlinger(command).size,
         )
     }
 
@@ -37,6 +48,7 @@ class BenkOversiktFakeRepo(
         BehandlingssammendragType.MELDEKORTBEHANDLING -> throw IllegalArgumentException("Meldekortbehanding er ikke en behandlingstype")
         BehandlingssammendragType.INNSENDT_MELDEKORT -> throw IllegalArgumentException("Innsendt meldekort er ikke en behandlingstype")
         BehandlingssammendragType.KORRIGERT_MELDEKORT -> throw IllegalArgumentException("Korrigert meldekort er ikke en behandlingstype")
+        BehandlingssammendragType.KLAGEBEHANDLING -> throw IllegalArgumentException("Klagebehandling er ikke en behandlingstype")
     }
 
     private fun BehandlingssammendragStatus.toBehandlingsstatus(): Rammebehandlingsstatus = when (this) {
@@ -101,6 +113,7 @@ class BenkOversiktFakeRepo(
                 sakId = behandling.sakId,
                 kravtidspunkt = if (behandling.behandlingstype == Behandlingstype.SØKNADSBEHANDLING) behandling.opprettet else null,
                 erSattPåVent = behandling.ventestatus.erSattPåVent,
+                sistEndret = behandling.sistEndret,
             )
         }
     }
@@ -117,6 +130,7 @@ class BenkOversiktFakeRepo(
             sakId = søknad.sakId,
             kravtidspunkt = søknad.opprettet,
             erSattPåVent = false,
+            sistEndret = null,
         )
     }
 
@@ -147,6 +161,7 @@ class BenkOversiktFakeRepo(
                 saksbehandler = it.saksbehandler,
                 beslutter = it.beslutter,
                 erSattPåVent = false,
+                sistEndret = it.sistEndret,
             )
         }
     }
@@ -168,5 +183,49 @@ class BenkOversiktFakeRepo(
         MeldekortBehandlingStatus.GODKJENT -> throw IllegalStateException("Godkjente meldekortbehandlinger skal ikke være åpne")
         MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> throw IllegalStateException("Automatisk behandlede meldekortbehandlinger skal ikke være åpne")
         MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> throw IllegalStateException("Ikke rett til tiltakspenger meldekortbehandlinger skal ikke være åpne")
+    }
+
+    private fun hentÅpneKlagebehandlinger(command: HentÅpneBehandlingerCommand): List<Behandlingssammendrag> {
+        val ønsketBehandlingsstatus = command.åpneBehandlingerFiltrering.status?.filter {
+            Either.catch {
+                it.toKlagebehandlingStatus()
+            }.fold(
+                ifLeft = { false },
+                ifRight = { true },
+            )
+        }?.map {
+            it.toKlagebehandlingStatus()
+        }
+
+        return klagebehandlingFakeRepo.alle.filter {
+            ønsketBehandlingsstatus?.contains(it.status) == true
+        }.map {
+            Behandlingssammendrag(
+                sakId = it.sakId,
+                fnr = it.fnr,
+                saksnummer = it.saksnummer,
+                startet = it.opprettet,
+                kravtidspunkt = null,
+                behandlingstype = BehandlingssammendragType.KLAGEBEHANDLING,
+                status = it.status.toBehandlingssamendragStatus(),
+                saksbehandler = it.saksbehandler,
+                beslutter = null,
+                erSattPåVent = false,
+                sistEndret = it.sistEndret,
+            )
+        }
+    }
+
+    private fun BehandlingssammendragStatus.toKlagebehandlingStatus(): Klagebehandlingsstatus = when (this) {
+        BehandlingssammendragStatus.UNDER_AUTOMATISK_BEHANDLING -> throw IllegalStateException("UNDER_AUTOMATISK_BEHANDLING er ikke en tillatt status for klagebehandling")
+        BehandlingssammendragStatus.KLAR_TIL_BEHANDLING -> Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+        BehandlingssammendragStatus.UNDER_BEHANDLING -> Klagebehandlingsstatus.UNDER_BEHANDLING
+        BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> throw IllegalStateException("KLAR_TIL_BESLUTNING er ikke en tillatt status for klagebehandling")
+        BehandlingssammendragStatus.UNDER_BESLUTNING -> throw IllegalStateException("UNDER_BESLUTNING er ikke en tillatt status for klagebehandling")
+    }
+
+    private fun Klagebehandlingsstatus.toBehandlingssamendragStatus(): BehandlingssammendragStatus = when (this) {
+        Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatus.KLAR_TIL_BEHANDLING
+        Klagebehandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
     }
 }
