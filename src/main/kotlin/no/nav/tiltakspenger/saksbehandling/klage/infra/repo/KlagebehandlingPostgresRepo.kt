@@ -12,12 +12,12 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 class KlagebehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) : KlagebehandlingFakeRepo {
+) : KlagebehandlingRepo {
     /**
      * Oppretter eller oppdaterer en klagebehandling i databasen.
      */

@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -17,6 +18,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJsonString
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebehandlingFormkrav
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppretteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 
 private const val PATH = "/sak/{sakId}/klage"
@@ -45,7 +49,17 @@ fun Route.opprettKlagebehandlingRoute(
                     ),
                 ).fold(
                     ifLeft = {
-                        call.respondJsonString(status = HttpStatusCode.InternalServerError, json = """{"todo":"todo"}""")
+                        call.respondJson(
+                            when (it) {
+                                is KanIkkeOppretteKlagebehandling.FantIkkeJournalpost -> Pair(
+                                    HttpStatusCode.BadRequest,
+                                    ErrorJson(
+                                        "Fant ikke journalpost",
+                                        "fant_ikke_journalpost",
+                                    ),
+                                )
+                            },
+                        )
                     },
                     ifRight = { (_, behandling) ->
                         val behandlingId = behandling.id

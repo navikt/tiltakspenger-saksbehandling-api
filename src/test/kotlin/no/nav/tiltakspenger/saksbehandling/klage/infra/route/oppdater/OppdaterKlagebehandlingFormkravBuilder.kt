@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.klage.infra.route.start
+package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
 import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
@@ -26,37 +26,54 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
-interface OpprettKlagebehandlingBuilder {
-    /** Oppretter ny sak og starter klagebehandling til avvisning  */
-    suspend fun ApplicationTestBuilder.opprettSakOgKlagebehandlingTilAvvisning(
+interface OppdaterKlagebehandlingFormkravBuilder {
+    /** 1. Oppretter ny sak
+     *  2. Starter klagebehandling til avvisning
+     *  3. Oppdaterer formkrav
+     */
+    suspend fun ApplicationTestBuilder.opprettSakOgOppdaterKlagebehandlingFormkrav(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        journalpostId: JournalpostId = JournalpostId("12345"),
+        vedtakDetKlagesPå: VedtakId? = null,
+        erKlagerPartISaken: Boolean = true,
+        klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
+        erKlagefristenOverholdt: Boolean = true,
+        erKlagenSignert: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
-        val saksnummer = hentEllerOpprettSakForSystembruker(tac, fnr)
-        val tomSak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
-        val personopplysningerForBrukerFraPdl = ObjectMother.personopplysningKjedeligFyr(fnr)
-        tac.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltaksdeltakelse())
-        val (oppdatertSak, klagebehandling, klagebehandlingJson) = this.opprettKlagebehandlingForSakId(
+        val (sak, klagebehandling, _) = this.opprettSakOgKlagebehandlingTilAvvisning(
             tac = tac,
-            sakId = tomSak.id,
             saksbehandler = saksbehandler,
+            fnr = fnr,
+
+        ) ?: return null
+        return oppdaterKlagebehandlingFormkravForSakId(
+            tac = tac,
+            sakId = sak.id,
+            klagebehandlingId = klagebehandling.id,
+            saksbehandler = saksbehandler,
+            journalpostId = journalpostId,
+            vedtakDetKlagesPå = vedtakDetKlagesPå,
+            erKlagerPartISaken = erKlagerPartISaken,
+            klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+            erKlagefristenOverholdt = erKlagefristenOverholdt,
+            erKlagenSignert = erKlagenSignert,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
-        )!!
-        return Triple(oppdatertSak, klagebehandling, klagebehandlingJson)
+        )
     }
 
     /** Forventer at det allerede finnes en sak. */
-    suspend fun ApplicationTestBuilder.opprettKlagebehandlingForSakId(
+    suspend fun ApplicationTestBuilder.oppdaterKlagebehandlingFormkravForSakId(
         tac: TestApplicationContext,
         sakId: SakId,
+        klagebehandlingId: KlagebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         journalpostId: JournalpostId = JournalpostId("12345"),
         vedtakDetKlagesPå: VedtakId? = null,
@@ -70,10 +87,10 @@ interface OpprettKlagebehandlingBuilder {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
-            HttpMethod.Post,
+            HttpMethod.Put,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage")
+                path("/sak/$sakId/klage/$klagebehandlingId/formkrav")
             },
             jwt = jwt,
         ) {

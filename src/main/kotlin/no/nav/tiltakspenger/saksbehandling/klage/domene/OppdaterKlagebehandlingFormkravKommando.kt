@@ -6,8 +6,9 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 
-data class OpprettKlagebehandlingKommando(
+data class OppdaterKlagebehandlingFormkravKommando(
     val sakId: SakId,
+    val klagebehandlingId: KlagebehandlingId,
     val saksbehandler: Saksbehandler,
     val journalpostId: JournalpostId,
     val vedtakDetKlagesPå: VedtakId?,
