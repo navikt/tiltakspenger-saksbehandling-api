@@ -68,6 +68,11 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             clock = clock,
         ).getOrFail()
     }.also {
+        it.second.saksopplysninger.tiltaksdeltakelser.forEach { tiltaksdeltakelse ->
+            if (tiltaksdeltakerRepo.hentInternId(tiltaksdeltakelse.eksternDeltakelseId) == null) {
+                tiltaksdeltakerRepo.lagre(tiltaksdeltakelse.internDeltakelseId, tiltaksdeltakelse.eksternDeltakelseId)
+            }
+        }
         behandlingRepo.lagre(it.second)
     }
 }

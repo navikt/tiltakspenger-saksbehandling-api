@@ -265,7 +265,6 @@ class RammebehandlingDTOTest {
     @Test
     fun `Rammebehandling DTO fra søknadsbehandling med avslag`() {
         val clock = fixedClock
-        println(TiltaksdeltakerId.random())
 
         val behandling = nyVedtattSøknadsbehandling(
             clock = clock,
