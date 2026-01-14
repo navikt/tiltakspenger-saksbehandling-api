@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -36,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehand
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortDager
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -100,6 +102,37 @@ interface OppdaterMeldekortbehandlingBuilder {
             rammevedtakSøknadsbehandling,
             oppdatertMeldekortbehandling,
             json,
+        )
+    }
+
+    /**
+     * Forventer at meldekortbehandlingen er i status UNDER_BEHANDLING.
+     * @param dager Dersom null, fylles dager basert på sakens meldeperioden.
+     */
+    suspend fun ApplicationTestBuilder.opprettOgOppdaterMeldekortbehandling(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        kjedeId: MeldeperiodeKjedeId = tac.sakContext.sakRepo.hentForSakId(sakId)!!.meldeperiodeKjeder.sisteMeldeperiodePerKjede.first().kjedeId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        begrunnelse: String? = null,
+        tekstTilVedtaksbrev: String? = null,
+        dager: List<Pair<LocalDate, MeldekortDagStatus>>? = null,
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: String? = null,
+    ): Triple<Sak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
+        val (_, opprettetMeldekortbehandling, _) = opprettMeldekortbehandlingForSakId(
+            tac = tac,
+            sakId = sakId,
+            kjedeId = kjedeId,
+            saksbehandler = saksbehandler,
+        ) ?: return null
+        return oppdaterMeldekortbehandling(
+            tac = tac,
+            sakId = sakId,
+            meldekortId = opprettetMeldekortbehandling.id,
+            saksbehandler = saksbehandler,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
         )
     }
 
@@ -193,7 +226,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val meldekortBehandling = sak.hentMeldekortBehandling(meldekortId) as MeldekortUnderBehandling
         val meldeperiode = meldekortBehandling.meldeperiode
-        val antallDager = meldeperiode.antallDagerSomGirRett
+        val antallDager = meldeperiode.maksAntallDagerForMeldeperiode
         val dager = meldeperiode.tilMeldekortDager()
 
         // Resten av dagene er IKKE_RETT_TIL_TILTAKSPENGER og kan aldri overstyres.

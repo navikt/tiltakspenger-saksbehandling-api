@@ -7,8 +7,10 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.satser.Satsdag
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -129,6 +131,7 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Skal beregne sykedager to perioder frem i tid ved korrigering til 0-beløp`() {
         runTest {
             val clock = TikkendeKlokke()
+            val sisteMeldeperiode = førsteDag.plusWeeks(4) til førsteDag.plusWeeks(4).plusDays(13)
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
                 clock = clock,
                 vedtaksperiode = vedtaksperiode,
@@ -151,7 +154,7 @@ internal class MeldekortberegningKorrigeringTest {
                     ),
 
                     periodeMedStatuser(
-                        førsteDag.plusWeeks(4),
+                        sisteMeldeperiode.fraOgMed,
                         List(1) { Status.FRAVÆR_SYK },
                         List(13) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
@@ -173,11 +176,9 @@ internal class MeldekortberegningKorrigeringTest {
             // Skal inkludere alle beregninger frem til siste korrigerte meldeperiode
             korrigeringAvFørsteMeldekort.beregning.size shouldBe 3
 
-            val sisteKjedeId = meldekortbehandlinger.last().kjedeId
-
             val beregninger = meldekortbehandlinger.tilMeldeperiodeBeregninger(clock)
 
-            beregninger.gjeldendeBeregningPerKjede[sisteKjedeId]!!.totalBeløp shouldBe 0
+            beregninger.gjeldendeBeregningPerKjede[MeldeperiodeKjedeId.fraPeriode(sisteMeldeperiode)]!!.totalBeløp shouldBe 0
         }
     }
 

@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -32,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehand
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgOppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -84,6 +86,33 @@ interface SendMeldekortbehandlingTilBeslutningBuilder {
             rammevedtakSøknadsbehandling,
             meldekortUnderBehandling,
             json,
+        )
+    }
+
+    /**
+     * Forventer at det allerede finnes en sak og meldekortbehandling i status UNDER_BEHANDLING
+     */
+    suspend fun ApplicationTestBuilder.opprettOgSendMeldekortbehandlingTilBeslutning(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        kjedeId: MeldeperiodeKjedeId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: String? = null,
+    ): Triple<Sak, MeldekortBehandletManuelt, MeldekortBehandlingDTOJson>? {
+        val (sakMedMeldekortbehandlingUnderBeslutning, meldekortBehandlingUnderBeslutning) = opprettOgOppdaterMeldekortbehandling(
+            tac = tac,
+            sakId = sakId,
+            kjedeId = kjedeId,
+            saksbehandler = saksbehandler,
+        ) ?: return null
+        return sendMeldekortbehandlingTilBeslutning(
+            tac = tac,
+            sakId = sakMedMeldekortbehandlingUnderBeslutning.id,
+            meldekortId = meldekortBehandlingUnderBeslutning.id,
+            saksbehandler = saksbehandler,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
         )
     }
 

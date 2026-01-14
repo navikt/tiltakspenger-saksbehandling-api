@@ -68,22 +68,12 @@ data class Meldekortbehandlinger(
         }
     }
 
-    val sisteGodkjenteMeldekort: MeldekortBehandling.Behandlet? by lazy { godkjenteMeldekort.lastOrNull() }
-
-    @Suppress("unused")
-    val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.tilOgMed }
-
-    /** Merk at denne går helt tilbake til siste godkjente, utbetalte dag. Dette er ikke nødvendigvis den siste godkjente meldeperioden. */
-    val sisteUtbetalteMeldekortDag: LocalDate? by lazy {
-        godkjenteMeldekort.flatMap { it.beregning.first().dager }.lastOrNull { it.beløp > 0 }?.dato
-    }
+    val sisteGodkjenteMeldekort: MeldekortBehandling.Behandlet? by lazy { godkjenteMeldekort.maxByOrNull { it.opprettet } }
 
     /** Meldekort som er under behandling eller venter på beslutning */
     val åpenMeldekortBehandling: MeldekortBehandling? by lazy { this.singleOrNullOrThrow { it.erÅpen() } }
 
-    val harÅpenBehandling: Boolean by lazy {
-        åpenMeldekortBehandling != null
-    }
+    val harÅpenBehandling: Boolean by lazy { åpenMeldekortBehandling != null }
 
     suspend fun oppdaterMeldekort(
         kommando: OppdaterMeldekortKommando,
@@ -166,20 +156,20 @@ data class Meldekortbehandlinger(
 
     fun leggTil(behandling: MeldekortUnderBehandling): Meldekortbehandlinger {
         return Meldekortbehandlinger(
-            verdi = verdi.plus(behandling).sortedBy { it.fraOgMed },
+            verdi = verdi.plus(behandling).sortedBy { it.opprettet },
         )
     }
 
     fun leggTil(behandling: MeldekortBehandletAutomatisk): Meldekortbehandlinger {
         return Meldekortbehandlinger(
-            verdi = verdi.plus(behandling).sortedBy { it.fraOgMed },
+            verdi = verdi.plus(behandling).sortedBy { it.opprettet },
         )
     }
 
     init {
         verdi.zipWithNext { a, b ->
-            require(a.kjedeId == b.kjedeId || a.tilOgMed < b.fraOgMed) {
-                "Meldekortperiodene må være sammenhengende og sortert, men var ${verdi.map { it.periode }}"
+            require(a.opprettet < b.opprettet) {
+                "Meldekortperiodene må være sortert på opprettet-tidspunkt. ${a.opprettet}(${a.id}) er ikke før ${b.opprettet}(${b.id})"
             }
         }
 

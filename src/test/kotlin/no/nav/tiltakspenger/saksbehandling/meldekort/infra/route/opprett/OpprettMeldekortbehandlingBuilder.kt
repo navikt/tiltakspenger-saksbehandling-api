@@ -37,6 +37,9 @@ import org.json.JSONObject
 import java.net.URLEncoder
 import java.net.URLEncoder.encode
 
+/**
+ * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprettMeldekortBehandlingRoute]
+ */
 interface OpprettMeldekortbehandlingBuilder {
 
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(

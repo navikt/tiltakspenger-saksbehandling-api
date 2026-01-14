@@ -40,7 +40,7 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:satser:$felleslibVersion")
 
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.14")
-    implementation("ch.qos.logback:logback-classic:1.5.23")
+    implementation("ch.qos.logback:logback-classic:1.5.24")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
     implementation("com.aallam.ulid:ulid-kotlin:1.5.0")
@@ -95,7 +95,7 @@ dependencies {
     // Caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 
-    testImplementation(platform("org.junit:junit-bom:6.0.1"))
+    testImplementation(platform("org.junit:junit-bom:6.0.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

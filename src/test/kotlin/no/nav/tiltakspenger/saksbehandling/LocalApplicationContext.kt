@@ -273,7 +273,7 @@ class LocalApplicationContext(
             fnr = fnr,
             saksnummer = sakRepo.hentNesteSaksnummer(),
         ).also { sakRepo.opprettSak(it) }
-        val søknad = søknadContext.søknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nyInnvilgbarSøknad(
+        søknadContext.søknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nyInnvilgbarSøknad(
             fnr = fnr,
             id = søknadId,
             søknadstiltak = søknadstiltak,
@@ -285,9 +285,6 @@ class LocalApplicationContext(
                 eksternId = søknadstiltak.id,
             )
             søknadContext.søknadRepo.lagre(it)
-        }
-        require(søknadstiltak == søknad.tiltak) {
-            "Diff mellom søknadstiltak i lokal database og statiske tiltaksdata i LocalApplicationContext. Mulig løsning: Tøm lokal db."
         }
         leggTilPerson(
             fnr = fnr,

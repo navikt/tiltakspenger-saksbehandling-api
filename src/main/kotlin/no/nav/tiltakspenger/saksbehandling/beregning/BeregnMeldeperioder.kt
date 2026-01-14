@@ -62,7 +62,7 @@ private data class BeregnMeldeperioder(
 
     init {
         meldeperioderSomBeregnes.zipWithNext().forEach { (a, b) ->
-            require(a.tilOgMed.plusDays(1) == b.fraOgMed) {
+            require(a.fraOgMed < b.fraOgMed) {
                 "Meldeperioder som skal beregnes må være sammenhengede uten overlapp - $a og $b oppfyller ikke kriteriene"
             }
         }
@@ -329,6 +329,7 @@ private fun Sak.beregnRammebehandling(
 
     val meldeperioderSomBeregnesPåNytt = meldeperiodeBeregninger
         .sisteBeregningerForPeriode(vedtaksperiode)
+        .sortedBy { it.fraOgMed }
         .map { beregning ->
             beregning.tilSkalBeregnes(
                 harMistetRett = { dato ->
