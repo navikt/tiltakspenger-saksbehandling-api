@@ -171,7 +171,14 @@ sealed interface RevurderingResultat : BehandlingResultat {
             val barnetillegg = innvilgelsesperioder?.let { barnetillegg?.krympPerioder(innvilgelsesperioder.perioder) }
 
             return Omgjøring(
-                vedtaksperiode = vedtaksperiode,
+                vedtaksperiode = if (innvilgelsesperioder == null) {
+                    omgjortVedtak.periode
+                } else {
+                    utledNyVedtaksperiode(
+                        omgjortVedtak.periode,
+                        innvilgelsesperioder,
+                    )
+                },
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
                 omgjørRammevedtak = omgjørRammevedtak,

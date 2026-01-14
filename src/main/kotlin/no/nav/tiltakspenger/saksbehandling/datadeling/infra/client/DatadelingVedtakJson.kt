@@ -23,6 +23,7 @@ private data class DatadelingVedtakJson(
     val tom: LocalDate,
     // TODO: Rename til vedtaksperiode her og i datadeling
     val virkningsperiode: PeriodeDTO,
+    // TODO: oppdater til periodisert innvilgelse
     val innvilgelsesperiode: PeriodeDTO?,
     val omgjørRammevedtakId: String?,
     val omgjortAvRammevedtakId: String?,
