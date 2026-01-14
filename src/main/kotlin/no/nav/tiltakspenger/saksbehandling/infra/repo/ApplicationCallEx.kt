@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 private val logger = KotlinLogging.logger {}
@@ -96,6 +97,18 @@ internal suspend inline fun ApplicationCall.withMeldeperiodeId(
         parse = MeldeperiodeId::fromString,
         errorMessage = "Ugyldig meldeperiode id",
         errorCode = "ugyldig_meldeperiode_id",
+        onSuccess = onRight,
+    )
+}
+
+internal suspend inline fun ApplicationCall.withKlagebehandlingId(
+    crossinline onRight: suspend (KlagebehandlingId) -> Unit,
+) {
+    withValidParam(
+        paramName = "klagebehandlingId",
+        parse = KlagebehandlingId::fromString,
+        errorMessage = "Ugyldig klagebehandlingbehandling id",
+        errorCode = "ugyldig_klagebehandling_id",
         onSuccess = onRight,
     )
 }

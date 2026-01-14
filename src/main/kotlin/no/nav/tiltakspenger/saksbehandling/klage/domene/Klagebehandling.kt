@@ -1,9 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import java.time.Clock
 import java.time.LocalDateTime
 
 /**
@@ -27,7 +32,27 @@ data class Klagebehandling(
     val formkrav: KlageFormkrav,
 ) {
 
-    val erÅpen = status == Klagebehandlingsstatus.KLAR_TIL_BEHANDLING || status == Klagebehandlingsstatus.UNDER_BEHANDLING
+    val erÅpen =
+        status == Klagebehandlingsstatus.KLAR_TIL_BEHANDLING || status == Klagebehandlingsstatus.UNDER_BEHANDLING
+
+    fun oppdaterFormkrav(
+        kommando: OppdaterKlagebehandlingFormkravKommando,
+        journalpostOpprettet: LocalDateTime,
+        clock: Clock,
+    ): Either<KanIkkeOppdatereKlagebehandlingFormkrav, Klagebehandling> {
+        if (saksbehandler != kommando.saksbehandler.navIdent) {
+            return KanIkkeOppdatereKlagebehandlingFormkrav.SaksbehandlerMismatch(
+                forventetSaksbehandler = this.saksbehandler!!,
+                faktiskSaksbehandler = kommando.saksbehandler.navIdent,
+            ).left()
+        }
+        return this.copy(
+            sistEndret = nå(clock),
+            formkrav = kommando.toKlageFormkrav(),
+            journalpostId = kommando.journalpostId,
+            journalpostOpprettet = journalpostOpprettet,
+        ).right()
+    }
 
     companion object {
         fun opprett(
@@ -38,13 +63,7 @@ data class Klagebehandling(
             journalpostOpprettet: LocalDateTime,
             kommando: OpprettKlagebehandlingKommando,
         ): Klagebehandling {
-            val formkrav = KlageFormkrav(
-                erKlagerPartISaken = kommando.erKlagerPartISaken,
-                klagesDetPåKonkreteElementerIVedtaket = kommando.klagesDetPåKonkreteElementerIVedtaket,
-                erKlagefristenOverholdt = kommando.erKlagefristenOverholdt,
-                erKlagenSignert = kommando.erKlagenSignert,
-                vedtakDetKlagesPå = kommando.vedtakDetKlagesPå,
-            )
+            val formkrav = kommando.toKlageFormkrav()
             return Klagebehandling(
                 id = id,
                 sakId = kommando.sakId,
@@ -70,6 +89,19 @@ data class Klagebehandling(
         } else {
             require(resultat == null) {
                 "Klagebehandling som ikke er avvist kan ikke ha resultat satt ved opprettelse"
+            }
+        }
+        when (status) {
+            Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> {
+                require(saksbehandler == null) {
+                    "Klagebehandling som er $status kan ikke ha saksbehandler satt"
+                }
+            }
+
+            Klagebehandlingsstatus.UNDER_BEHANDLING -> {
+                require(saksbehandler != null) {
+                    "Klagebehandling som er $status må ha saksbehandler satt"
+                }
             }
         }
     }
