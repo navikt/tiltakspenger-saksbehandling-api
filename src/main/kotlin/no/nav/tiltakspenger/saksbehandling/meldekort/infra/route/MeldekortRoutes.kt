@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.frameldekortapi.mottaMeldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortBehandlingService
@@ -23,7 +22,6 @@ fun Route.meldekortRoutes(
     iverksettMeldekortService: IverksettMeldekortService,
     oppdaterMeldekortService: OppdaterMeldekortService,
     auditService: AuditService,
-    sakService: SakService,
     mottaBrukerutfyltMeldekortService: MottaBrukerutfyltMeldekortService,
     underkjennMeldekortBehandlingService: UnderkjennMeldekortBehandlingService,
     overtaMeldekortBehandlingService: OvertaMeldekortBehandlingService,
@@ -45,5 +43,5 @@ fun Route.meldekortRoutes(
     underkjennMeldekortBehandlingRoute(underkjennMeldekortBehandlingService, auditService, tilgangskontrollService)
     leggTilbakeMeldekortBehandlingRoute(auditService, leggTilbakeMeldekortBehandlingService, tilgangskontrollService)
     avbrytMeldekortBehandlingRoute(auditService, avbrytMeldekortBehandlingService, tilgangskontrollService)
-    forhåndsvisBrevMeldekortbehandling(forhåndsvisBrevMeldekortBehandlingService, auditService, tilgangskontrollService)
+    forhåndsvisBrevMeldekortbehandlingRoute(forhåndsvisBrevMeldekortBehandlingService, auditService, tilgangskontrollService)
 }

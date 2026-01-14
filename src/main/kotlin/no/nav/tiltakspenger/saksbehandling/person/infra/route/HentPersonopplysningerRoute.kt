@@ -50,6 +50,7 @@ fun Route.hentPersonRoute(
                         action = AuditLogEvent.Action.ACCESS,
                         contextMessage = "Henter personopplysninger for en sak",
                         correlationId = correlationId,
+                        behandlingId = null,
                     )
                     call.respondJson(value = personopplysninger)
                 },

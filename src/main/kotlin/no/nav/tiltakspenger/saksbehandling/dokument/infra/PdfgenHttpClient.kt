@@ -31,6 +31,9 @@ import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.klage.domene.ForhåndsvisBrevKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.person.Navn
@@ -57,7 +60,8 @@ internal class PdfgenHttpClient(
 ) : GenererVedtaksbrevForInnvilgelseKlient,
     GenererVedtaksbrevForUtbetalingKlient,
     GenererVedtaksbrevForStansKlient,
-    GenererVedtaksbrevForAvslagKlient {
+    GenererVedtaksbrevForAvslagKlient,
+    GenererKlagebrevKlient {
 
     private val log = KotlinLogging.logger {}
 
@@ -73,6 +77,7 @@ internal class PdfgenHttpClient(
     private val meldekortvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
     private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/stansvedtak")
     private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
+    private val klageAvvisUri = URI.create("$baseUrl/api/v1/genpdf/tpts/klageAvvis")
 
     override suspend fun genererInnvilgelsesvedtaksbrev(
         vedtak: Rammevedtak,
@@ -365,6 +370,31 @@ internal class PdfgenHttpClient(
             },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}",
             uri = vedtakAvslagUri,
+        )
+    }
+
+    override suspend fun genererAvvisningsvedtak(
+        klagebehandling: Klagebehandling,
+        kommando: ForhåndsvisBrevKlagebehandlingKommando,
+        vedtaksdato: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                BrevKlageAvvisningDTO.create(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    datoForUtsending = vedtaksdato,
+                    tilleggstekst = kommando.tekstTilVedtaksbrev,
+                    saksbehandlerNavIdent = klagebehandling.saksbehandler ?: kommando.saksbehandler.navIdent,
+                    saksnummer = klagebehandling.saksnummer,
+                    forhåndsvisning = true,
+                    fnr = klagebehandling.fnr,
+                )
+            },
+            errorContext = "SakId: ${klagebehandling.sakId}, saksnummer: ${klagebehandling.saksnummer}",
+            uri = klageAvvisUri,
         )
     }
 

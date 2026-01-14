@@ -57,6 +57,7 @@ fun Route.hentEllerOpprettSakRoute(
                         action = if (opprettet) AuditLogEvent.Action.CREATE else AuditLogEvent.Action.ACCESS,
                         contextMessage = "Hentet eller opprettet sak.",
                         correlationId = correlationId,
+                        behandlingId = null,
                     )
 
                     call.respondJson(

@@ -45,6 +45,7 @@ fun Route.toggleKanSendeHelgForMeldekortSakRoute(
                     action = AuditLogEvent.Action.UPDATE,
                     contextMessage = "Oppdaterer brukerens mulighet til å melde helg",
                     correlationId = call.correlationId(),
+                    behandlingId = null,
                 )
                 sakService.oppdaterKanSendeInnHelgForMeldekort(
                     sakId = sakId,

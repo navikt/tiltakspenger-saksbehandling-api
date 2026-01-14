@@ -5,8 +5,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
-import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -16,21 +14,16 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJsonString
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.klage.domene.AvbrytKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeAvbryteKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebehandlingFormkrav
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppretteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 
 private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/avbryt"
 
-fun Route.avbrytKlagebehandling(
+fun Route.avbrytKlagebehandlingRoute(
     avbrytKlagebehandlingService: AvbrytKlagebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,

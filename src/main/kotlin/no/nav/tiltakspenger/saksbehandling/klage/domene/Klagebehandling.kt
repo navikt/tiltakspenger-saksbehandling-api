@@ -35,6 +35,7 @@ data class Klagebehandling(
     val erÅpen =
         status == Klagebehandlingsstatus.KLAR_TIL_BEHANDLING || status == Klagebehandlingsstatus.UNDER_BEHANDLING
 
+    val erAvvisning = formkrav.erAvvisning
     fun oppdaterFormkrav(
         kommando: OppdaterKlagebehandlingFormkravKommando,
         journalpostOpprettet: LocalDateTime,

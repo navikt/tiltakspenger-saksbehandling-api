@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.Journalfør
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostFakeClient
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BenkOversiktFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
@@ -284,11 +285,14 @@ class TestApplicationContext(
     }
 
     override val klagebehandlingContext by lazy {
-        object : no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext(
+        object : KlagebehandlingContext(
             sessionFactory = sessionFactory,
             sakService = sakContext.sakService,
             clock = clock,
             validerJournalpostService = søknadContext.validerJournalpostService,
+            personService = personContext.personService,
+            navIdentClient = personContext.navIdentClient,
+            genererKlagebrevKlient = genererFakseVedtaksrevForInnvilgelseKlient,
         ) {
             override val klageRepo = klagebehandlingFakeRepo
         }
