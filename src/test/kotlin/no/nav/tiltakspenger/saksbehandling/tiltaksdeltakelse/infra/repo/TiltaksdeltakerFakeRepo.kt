@@ -8,7 +8,6 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
 
     override fun hentEllerLagre(
         eksternId: String,
-        internIdHvisMangler: TiltaksdeltakerId,
         sessionContext: SessionContext?,
     ): TiltaksdeltakerId {
         data.get()[eksternId]?.let { return it }

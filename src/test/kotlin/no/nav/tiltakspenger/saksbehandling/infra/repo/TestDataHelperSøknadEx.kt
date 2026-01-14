@@ -40,7 +40,7 @@ internal fun TestDataHelper.persisterSakOgSøknad(
     this.persisterSak(fnr, sak = sak)
     if (søknad.tiltak?.id != null && søknad.tiltak?.tiltaksdeltakerId != null) {
         this.tiltaksdeltakerRepo.lagre(
-            id = søknad.tiltak!!.tiltaksdeltakerId!!,
+            id = søknad.tiltak!!.tiltaksdeltakerId,
             eksternId = søknad.tiltak!!.id,
         )
     }

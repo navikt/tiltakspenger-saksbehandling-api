@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.getTiltaksdeltakerKafkaDb
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -61,22 +62,27 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
+                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 testDataHelper.persisterSakOgSøknad(
                     fnr = fnr,
                     sak = sak,
                     søknad = ObjectMother.nyInnvilgbarSøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(id = id),
+                        søknadstiltak = ObjectMother.søknadstiltak(
+                            id = id,
+                            tiltaksdeltakerId = tiltaksdeltakerId,
+                        ),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
                     ),
                 )
-                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id)
+                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id, tiltaksdeltakerId = tiltaksdeltakerId)
                 tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
@@ -95,8 +101,9 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
+                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -130,11 +137,13 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
+                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = LocalDate.now(clock).minusDays(2)
                 val deltakelsesTom = LocalDate.now(clock).plusMonths(3)
                 testDataHelper.persisterOpprettetSøknadsbehandling(
@@ -149,6 +158,7 @@ class EndretTiltaksdeltakerJobbTest {
                             id = id,
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
+                            tiltaksdeltakerId = tiltaksdeltakerId,
                         ),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -160,6 +170,7 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
                     fom = null,
                     tom = null,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
                 )
                 tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
 
@@ -187,11 +198,13 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
+                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = LocalDate.now(clock).plusDays(2)
                 val deltakelsesTom = LocalDate.now(clock).plusMonths(3)
                 val (_, behandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
@@ -206,6 +219,7 @@ class EndretTiltaksdeltakerJobbTest {
                             id = id,
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
+                            tiltaksdeltakerId = tiltaksdeltakerId,
                         ),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -224,6 +238,7 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
                     fom = null,
                     tom = null,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
                 )
                 tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
 
@@ -243,11 +258,13 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
+                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = 5.januar(2025)
                 val deltakelsesTom = 5.mai(2025)
                 testDataHelper.persisterIverksattSøknadsbehandling(
@@ -262,6 +279,7 @@ class EndretTiltaksdeltakerJobbTest {
                             id = id,
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
+                            tiltaksdeltakerId = tiltaksdeltakerId,
                         ),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -275,6 +293,7 @@ class EndretTiltaksdeltakerJobbTest {
                         tom = deltakelsesTom,
                         dagerPerUke = 5F,
                         deltakelsesprosent = 100F,
+                        tiltaksdeltakerId = tiltaksdeltakerId,
                     )
                 tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
 
@@ -293,11 +312,13 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
+                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = 5.januar(2025)
                 val deltakelsesTom = 5.mai(2025)
                 testDataHelper.persisterIverksattSøknadsbehandling(
@@ -312,6 +333,7 @@ class EndretTiltaksdeltakerJobbTest {
                             id = id,
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
+                            tiltaksdeltakerId = tiltaksdeltakerId,
                         ),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -322,6 +344,7 @@ class EndretTiltaksdeltakerJobbTest {
                     sakId = sak.id,
                     fom = deltakelseFom,
                     tom = deltakelsesTom.plusMonths(1),
+                    tiltaksdeltakerId = tiltaksdeltakerId,
                 )
                 tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
 
@@ -349,11 +372,13 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
+                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = 5.januar(2025)
                 val deltakelsesTom = 5.mai(2025)
                 testDataHelper.persisterIverksattSøknadsbehandling(
@@ -368,6 +393,7 @@ class EndretTiltaksdeltakerJobbTest {
                             id = id,
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
+                            tiltaksdeltakerId = tiltaksdeltakerId,
                         ),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -379,6 +405,7 @@ class EndretTiltaksdeltakerJobbTest {
                     fom = deltakelseFom,
                     tom = deltakelsesTom.minusDays(2),
                     deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
                 )
                 tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
 
@@ -400,6 +427,7 @@ class EndretTiltaksdeltakerJobbTest {
         private val førsteDeltakelseFom = 5.januar(2025)
         private val førsteDeltakelsesTom = 5.mai(2025)
         private val førsteSøknadstiltakId = UUID.randomUUID().toString()
+        private val forsteTiltaksdeltakerId = TiltaksdeltakerId.random()
         private val førsteSøknadId = SøknadId.random()
         private val førsteSøknad = ObjectMother.nyInnvilgbarSøknad(
             clock = clock,
@@ -409,6 +437,7 @@ class EndretTiltaksdeltakerJobbTest {
                 id = førsteSøknadstiltakId,
                 deltakelseFom = førsteDeltakelseFom,
                 deltakelseTom = førsteDeltakelsesTom,
+                tiltaksdeltakerId = forsteTiltaksdeltakerId,
             ),
             sakId = sak.id,
             saksnummer = sak.saksnummer,
@@ -416,6 +445,7 @@ class EndretTiltaksdeltakerJobbTest {
         private val andreDeltakelseFom = 10.mai(2025)
         private val andreDeltakelsesTom = 11.juni(2025)
         private val andreSøknadstiltakId = UUID.randomUUID().toString()
+        private val andreTiltaksdeltakerId = TiltaksdeltakerId.random()
         private val andreSøknadId = SøknadId.random()
         private val andreSøknad = ObjectMother.nyInnvilgbarSøknad(
             clock = clock,
@@ -425,6 +455,7 @@ class EndretTiltaksdeltakerJobbTest {
                 id = andreSøknadstiltakId,
                 deltakelseFom = andreDeltakelseFom,
                 deltakelseTom = andreDeltakelsesTom,
+                tiltaksdeltakerId = andreTiltaksdeltakerId,
             ),
             sakId = sak.id,
             saksnummer = sak.saksnummer,
@@ -435,6 +466,7 @@ class EndretTiltaksdeltakerJobbTest {
             fom = førsteDeltakelseFom,
             tom = LocalDate.now(clock),
             deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+            tiltaksdeltakerId = forsteTiltaksdeltakerId,
         )
         private val andreTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
             id = andreSøknadstiltakId,
@@ -442,6 +474,7 @@ class EndretTiltaksdeltakerJobbTest {
             fom = andreDeltakelseFom,
             tom = LocalDate.now(clock),
             deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+            tiltaksdeltakerId = andreTiltaksdeltakerId,
         )
 
         @Test
@@ -452,8 +485,9 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val behandlingRepo = testDataHelper.behandlingRepo
+                    val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                     val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
                     val (sakMedFørstegangsvedtak, vedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
                         fnr = fnr,
@@ -474,6 +508,7 @@ class EndretTiltaksdeltakerJobbTest {
                         fom = førsteDeltakelseFom,
                         tom = LocalDate.now(clock),
                         deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                        tiltaksdeltakerId = forsteTiltaksdeltakerId,
                     )
 
                     tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
@@ -494,8 +529,9 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val behandlingRepo = testDataHelper.behandlingRepo
+                    val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                     val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
                         fnr = fnr,
@@ -540,8 +576,9 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val behandlingRepo = testDataHelper.behandlingRepo
+                    val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                     val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterRammevedtakAvslag(
                         sakId = sak.id,
                         fnr = fnr,
@@ -589,11 +626,13 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
+                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = 5.januar(2025)
                 val deltakelsesTom = 5.mai(2025)
                 testDataHelper.persisterIverksattSøknadsbehandling(
@@ -609,6 +648,7 @@ class EndretTiltaksdeltakerJobbTest {
                             id = id,
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
+                            tiltaksdeltakerId = tiltaksdeltakerId,
                         ),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -622,6 +662,7 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                     oppgaveId = oppgaveId,
                     oppgaveSistSjekket = null,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
                 )
                 tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
 
@@ -646,11 +687,13 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
+                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = 5.januar(2025)
                 val deltakelsesTom = 5.mai(2025)
                 testDataHelper.persisterIverksattSøknadsbehandling(
@@ -666,6 +709,7 @@ class EndretTiltaksdeltakerJobbTest {
                             id = id,
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
+                            tiltaksdeltakerId = tiltaksdeltakerId,
                         ),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -679,6 +723,7 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                     oppgaveId = oppgaveId,
                     oppgaveSistSjekket = nå(testDataHelper.clock).minusHours(2),
+                    tiltaksdeltakerId = tiltaksdeltakerId,
                 )
                 tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
 

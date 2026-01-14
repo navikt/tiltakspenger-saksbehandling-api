@@ -11,8 +11,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import java.time.Clock
 
 class EndretTiltaksdeltakerJobb(
@@ -20,6 +22,8 @@ class EndretTiltaksdeltakerJobb(
     private val sakRepo: SakRepo,
     private val oppgaveKlient: OppgaveKlient,
     private val behandlingRepo: BehandlingRepo,
+    // tiltaksdeltakerRepo kan fjernes når alle lagrede meldinger inneholder intern id
+    private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
     private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
@@ -33,10 +37,11 @@ class EndretTiltaksdeltakerJobb(
             endredeDeltakere.forEach { deltaker ->
                 val deltakerId = deltaker.id
                 val sakId = deltaker.sakId
+                val internTiltaksdeltakerId = deltaker.tiltaksdeltakerId ?: tiltaksdeltakerRepo.hentEllerLagre(deltakerId)
 
                 Either.catch {
                     val sak = sakRepo.hentForSakId(sakId)!!
-                    val apneBehandlingerForDeltakelse = finnApneBehandlingerForDeltakelse(sak, deltakerId)
+                    val apneBehandlingerForDeltakelse = finnApneBehandlingerForDeltakelse(sak, internTiltaksdeltakerId)
                     val automatiskeBehandlingerPaVent =
                         apneBehandlingerForDeltakelse.filter { it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
 
@@ -44,7 +49,7 @@ class EndretTiltaksdeltakerJobb(
 
                     val apneManuelleBehandlinger =
                         apneBehandlingerForDeltakelse.filter { !it.erUnderAutomatiskBehandling }
-                    val nyesteIverksatteBehandling = finnNyesteIverksatteBehandlingForDeltakelse(sak, deltakerId)
+                    val nyesteIverksatteBehandling = finnNyesteIverksatteBehandlingForDeltakelse(sak, internTiltaksdeltakerId)
 
                     if (nyesteIverksatteBehandling == null && apneManuelleBehandlinger.isEmpty()) {
                         log.info { "Fant ingen åpen manuell behandling eller iverksatt behandling for sakId $sakId og ekstern deltakerId $deltakerId, sletter deltakerinnslag" }
@@ -52,7 +57,7 @@ class EndretTiltaksdeltakerJobb(
                         return@forEach
                     }
 
-                    val endringer = finnEndringer(apneManuelleBehandlinger, nyesteIverksatteBehandling, deltaker)
+                    val endringer = finnEndringer(apneManuelleBehandlinger, nyesteIverksatteBehandling, deltaker, internTiltaksdeltakerId)
                     if (endringer.isNotEmpty()) {
                         log.info { "Tiltaksdeltakelse $deltakerId er endret, oppretter oppgave" }
                         val oppgaveId =
@@ -104,11 +109,11 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
-    private fun finnApneBehandlingerForDeltakelse(sak: Sak, tiltaksdeltakerId: String): List<Søknadsbehandling> {
-        return sak.apneSoknadsbehandlinger.filter { it.søknad.tiltak?.id == tiltaksdeltakerId }
+    private fun finnApneBehandlingerForDeltakelse(sak: Sak, tiltaksdeltakerId: TiltaksdeltakerId): List<Søknadsbehandling> {
+        return sak.apneSoknadsbehandlinger.filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId }
     }
 
-    private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: String): Rammebehandling? {
+    private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: TiltaksdeltakerId): Rammebehandling? {
         val iverksatteBehandlingerForDeltakelse: Periodisering<Rammebehandling> =
             sak.rammevedtaksliste.innvilgetTidslinje
                 .filter { it.verdi.behandling.inneholderSaksopplysningerInternDeltakelseId(tiltaksdeltakerId) }
@@ -136,13 +141,14 @@ class EndretTiltaksdeltakerJobb(
         apneManuelleBehandlinger: List<Søknadsbehandling>,
         nyesteIverksatteBehandling: Rammebehandling?,
         deltaker: TiltaksdeltakerKafkaDb,
+        tiltaksdeltakerId: TiltaksdeltakerId,
     ): List<TiltaksdeltakerEndring> {
         val tidligstEndredeApneBehandling = apneManuelleBehandlinger.minByOrNull { it.sistEndret }
 
         return if (nyesteIverksatteBehandling != null) {
-            finnEndringerForBehandling(nyesteIverksatteBehandling, deltaker)
+            finnEndringerForBehandling(nyesteIverksatteBehandling, deltaker, tiltaksdeltakerId)
         } else if (tidligstEndredeApneBehandling != null) {
-            finnEndringerForBehandling(tidligstEndredeApneBehandling, deltaker)
+            finnEndringerForBehandling(tidligstEndredeApneBehandling, deltaker, tiltaksdeltakerId)
         } else {
             throw IllegalStateException("Skal ikke komme hit hvis det ikke finnes åpne eller iverksatte behandlinger")
         }
@@ -151,11 +157,13 @@ class EndretTiltaksdeltakerJobb(
     private fun finnEndringerForBehandling(
         behandling: Rammebehandling,
         deltaker: TiltaksdeltakerKafkaDb,
+        tiltaksdeltakerId: TiltaksdeltakerId,
     ): List<TiltaksdeltakerEndring> {
         log.info { "Fant behandling ${behandling.id} for sakId ${behandling.sakId} og deltakerId ${deltaker.id}" }
 
-        val tiltaksdeltakelseFraBehandling = behandling.getTiltaksdeltakelse(deltaker.id)
-            ?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id} på behandling ${behandling.id}, skal ikke kunne skje")
+        val tiltaksdeltakelseFraBehandling = behandling.getTiltaksdeltakelse(
+            internDeltakelseId = deltaker.tiltaksdeltakerId ?: tiltaksdeltakerId,
+        ) ?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id} på behandling ${behandling.id}, skal ikke kunne skje")
         return deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling, clock = clock)
     }
 }

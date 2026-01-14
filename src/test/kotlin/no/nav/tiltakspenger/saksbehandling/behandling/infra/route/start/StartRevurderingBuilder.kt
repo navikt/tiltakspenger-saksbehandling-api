@@ -123,7 +123,7 @@ interface StartRevurderingBuilder {
         val tiltaksdeltakelseFakeKlient = tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
         val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
         val oppdatertTiltaksdeltakelse =
-            søknadsbehandling.saksopplysninger.getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
+            søknadsbehandling.saksopplysninger.getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.tiltaksdeltakerId)!!.copy(
                 deltakelseFraOgMed = revurderingVedtaksperiode.fraOgMed,
                 deltakelseTilOgMed = revurderingVedtaksperiode.tilOgMed,
             )
@@ -203,7 +203,7 @@ interface StartRevurderingBuilder {
         val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
         val oppdatertTiltaksdeltakelse = if (oppdaterTiltaksdeltakelsesperiode != null) {
             søknadsbehandling.saksopplysninger
-                .getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
+                .getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.tiltaksdeltakerId)!!.copy(
                 deltakelseFraOgMed = oppdaterTiltaksdeltakelsesperiode.fraOgMed,
                 deltakelseTilOgMed = oppdaterTiltaksdeltakelsesperiode.tilOgMed,
             )

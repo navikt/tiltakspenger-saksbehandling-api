@@ -14,7 +14,6 @@ class TiltaksdeltakerPostgresRepo(
 
     override fun hentEllerLagre(
         eksternId: String,
-        internIdHvisMangler: TiltaksdeltakerId,
         sessionContext: SessionContext?,
     ): TiltaksdeltakerId {
         return sessionFactory.withSessionContext(sessionContext) { sessionContext ->
@@ -23,6 +22,7 @@ class TiltaksdeltakerPostgresRepo(
                 if (id != null) {
                     return@withSession id
                 } else {
+                    val id = TiltaksdeltakerId.random()
                     session.run(
                         sqlQuery(
                             """
@@ -34,11 +34,11 @@ class TiltaksdeltakerPostgresRepo(
                                 :ekstern_id
                             )
                             """.trimIndent(),
-                            "id" to internIdHvisMangler.toString(),
+                            "id" to id.toString(),
                             "ekstern_id" to eksternId,
                         ).asUpdate,
                     )
-                    return@withSession internIdHvisMangler
+                    return@withSession id
                 }
             }
         }
