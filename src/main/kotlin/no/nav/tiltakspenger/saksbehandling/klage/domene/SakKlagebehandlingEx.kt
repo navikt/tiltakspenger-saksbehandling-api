@@ -29,3 +29,14 @@ fun Sak.oppdaterKlagebehandlingFormkrav(
             Pair(oppdatertSak, it)
         }
 }
+
+fun Sak.avbrytKlagebehandling(
+    kommando: AvbrytKlagebehandlingKommando,
+    clock: Clock,
+): Either<KanIkkeAvbryteKlagebehandling, Pair<Sak, Klagebehandling>> {
+    return this.hentKlagebehandling(kommando.klagebehandlingId).avbryt(kommando, clock)
+        .map {
+            val oppdatertSak = this.oppdaterKlagebehandling(it)
+            Pair(oppdatertSak, it)
+        }
+}

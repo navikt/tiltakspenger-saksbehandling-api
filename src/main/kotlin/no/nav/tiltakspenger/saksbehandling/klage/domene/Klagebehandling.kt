@@ -54,6 +54,22 @@ data class Klagebehandling(
         ).right()
     }
 
+    fun avbryt(
+        kommando: AvbrytKlagebehandlingKommando,
+        clock: Clock,
+    ): Either<KanIkkeAvbryteKlagebehandling, Klagebehandling> {
+        if (saksbehandler != kommando.saksbehandler.navIdent) {
+            return KanIkkeAvbryteKlagebehandling.SaksbehandlerMismatch(
+                forventetSaksbehandler = this.saksbehandler!!,
+                faktiskSaksbehandler = kommando.saksbehandler.navIdent,
+            ).left()
+        }
+        return this.copy(
+            sistEndret = nå(clock),
+            status = Klagebehandlingsstatus.AVBRUTT,
+        ).right()
+    }
+
     companion object {
         fun opprett(
             id: KlagebehandlingId = KlagebehandlingId.random(),
@@ -99,6 +115,12 @@ data class Klagebehandling(
             }
 
             Klagebehandlingsstatus.UNDER_BEHANDLING -> {
+                require(saksbehandler != null) {
+                    "Klagebehandling som er $status må ha saksbehandler satt"
+                }
+            }
+
+            Klagebehandlingsstatus.AVBRUTT -> {
                 require(saksbehandler != null) {
                     "Klagebehandling som er $status må ha saksbehandler satt"
                 }

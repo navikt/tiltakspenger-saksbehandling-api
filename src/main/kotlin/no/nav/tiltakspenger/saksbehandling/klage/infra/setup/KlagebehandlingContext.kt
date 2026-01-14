@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 import java.time.Clock
@@ -33,6 +34,13 @@ open class KlagebehandlingContext(
             sakService = sakService,
             clock = clock,
             validerJournalpostService = validerJournalpostService,
+            klageRepo = klageRepo,
+        )
+    }
+    open val avbrytKlagebehandlingService: AvbrytKlagebehandlingService by lazy {
+        AvbrytKlagebehandlingService(
+            sakService = sakService,
+            clock = clock,
             klageRepo = klageRepo,
         )
     }

@@ -47,6 +47,7 @@ fun Route.routes(
         klagebehandlingRoutes(
             opprettKlagebehandlingService = applicationContext.klagebehandlingContext.opprettKlagebehandlingService,
             oppdaterKlagebehandlingFormkravService = applicationContext.klagebehandlingContext.oppdaterKlagebehandlingFormkravService,
+            avbrytKlagebehandlingService = applicationContext.klagebehandlingContext.avbrytKlagebehandlingService,
             auditService = applicationContext.personContext.auditService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
         )
