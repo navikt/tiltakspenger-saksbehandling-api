@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingT
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
@@ -50,11 +49,9 @@ interface IverksettSøknadsbehandlingBuilder {
             tom = vedtaksperiode.tilOgMed,
         ),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(
-            innvilgelsesperiode(
-                periode = vedtaksperiode,
-                valgtTiltaksdeltakelse = tiltaksdeltakelse,
-                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            ),
+            periode = vedtaksperiode,
+            valgtTiltaksdeltakelse = tiltaksdeltakelse,
+            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
         ),
     ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(

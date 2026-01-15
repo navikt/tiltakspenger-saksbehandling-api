@@ -36,7 +36,7 @@ data class Innvilgelsesperioder(
                 Periode(valgtTiltaksdeltakelse.deltakelseFraOgMed!!, valgtTiltaksdeltakelse.deltakelseTilOgMed!!)
 
             require(deltakelsesperiode.inneholderHele(it.periode)) {
-                "Valgt deltakelsesperiode $deltakelsesperiode for tiltak med id ${valgtTiltaksdeltakelse.internDeltakelseId} må være inneholde hele innvilgelsesperioden ${it.periode}"
+                "Valgt deltakelsesperiode $deltakelsesperiode for tiltak med id ${valgtTiltaksdeltakelse.internDeltakelseId} må inneholde hele innvilgelsesperioden ${it.periode}"
             }
         }
     }

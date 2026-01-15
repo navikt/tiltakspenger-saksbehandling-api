@@ -50,12 +50,11 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             fom = vedtaksperiode.fraOgMed,
             tom = vedtaksperiode.tilOgMed,
         ),
-        innvilgelsesperioder: Innvilgelsesperioder =
-            innvilgelsesperioder(
-                periode = vedtaksperiode,
-                valgtTiltaksdeltakelse = tiltaksdeltakelse,
-                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            ),
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(
+            periode = vedtaksperiode,
+            valgtTiltaksdeltakelse = tiltaksdeltakelse,
+            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+        ),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandling) = when (resultat) {
             SøknadsbehandlingType.INNVILGELSE -> opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
