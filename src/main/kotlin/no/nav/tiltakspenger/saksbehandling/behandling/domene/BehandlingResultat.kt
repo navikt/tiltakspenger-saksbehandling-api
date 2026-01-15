@@ -101,10 +101,10 @@ fun skalNullstilleResultatVedNyeSaksopplysninger(
         true
     } else {
         (
-            valgteTiltaksdeltakelser.sortedBy { it.eksternDeltakelseId }
-                .zip(nyeSaksopplysninger.tiltaksdeltakelser.sortedBy { it.eksternDeltakelseId }) { forrige, nye ->
+            valgteTiltaksdeltakelser.sortedBy { it.internDeltakelseId }
+                .zip(nyeSaksopplysninger.tiltaksdeltakelser.sortedBy { it.internDeltakelseId }) { forrige, nye ->
                     // Vi nullstiller resultatet og vedtaksperioden dersom det har kommet nye tiltaksdeltakelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
-                    forrige.eksternDeltakelseId != nye.eksternDeltakelseId ||
+                    forrige.internDeltakelseId != nye.internDeltakelseId ||
                         forrige.deltakelseFraOgMed != nye.deltakelseFraOgMed ||
                         forrige.deltakelseTilOgMed != nye.deltakelseTilOgMed
                 }.any { it }

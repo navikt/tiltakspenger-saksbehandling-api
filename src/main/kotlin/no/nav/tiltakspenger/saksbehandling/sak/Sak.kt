@@ -225,13 +225,13 @@ data class Sak(
     // Et meldeperiode har ikke informasjon om tiltaksdeltakelsen, så vi må hente det fra rammevedtakene som gjelder for dette meldekortvedtaket.
     // Det er mulig at flere rammevedtak gjelder for samme meldekortvedtak, f.eks. ved revurdering.
     // Ved flere rammevedtak kan de inneholde de samme tiltaksdeltakelsene.
-    // Derfor må vi gruppere på eksternDeltakelseId og ta den nyeste.
+    // Derfor må vi gruppere på internDeltakelseId og ta den nyeste.
     fun hentNyesteTiltaksdeltakelserForRammevedtakIder(rammevedtakIder: List<VedtakId>): Tiltaksdeltakelser =
         rammevedtakIder
             .map { this.hentRammevedtakForId(it) }
             .mapNotNull { vedtak -> vedtak.valgteTiltaksdeltakelser?.let { vedtak.opprettet to it } }
             .flatMap { (opprettet, deltakelser) -> deltakelser.verdier.map { opprettet to it } }
-            .groupBy { it.second.eksternDeltakelseId }
+            .groupBy { it.second.internDeltakelseId }
             .map { (_, verdi) -> verdi.maxBy { it.first }.second }
             .let { Tiltaksdeltakelser(it) }
 }

@@ -20,6 +20,7 @@ data class TiltaksdeltakerKafkaDb(
     val sakId: SakId,
     val oppgaveId: OppgaveId?,
     val oppgaveSistSjekket: LocalDateTime?,
+    // kan gjøres påkrevd når ingen innslag i databasen mangler denne
     val tiltaksdeltakerId: TiltaksdeltakerId?,
 ) {
     fun tiltaksdeltakelseErEndret(

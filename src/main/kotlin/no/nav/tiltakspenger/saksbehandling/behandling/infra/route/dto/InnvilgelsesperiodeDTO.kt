@@ -29,7 +29,7 @@ fun InnvilgelsesperioderDTO.tilKommando(): IkkeTomPeriodisering<Innvilgelsesperi
                 periode = periode,
                 antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
                 tiltaksdeltakelseId = it.tiltaksdeltakelseId,
-                internDeltakelseId = it.internDeltakelseId?.let { TiltaksdeltakerId.fromString(it) },
+                internDeltakelseId = it.internDeltakelseId?.let { id -> TiltaksdeltakerId.fromString(id) },
             ),
         )
     }.tilIkkeTomPeriodisering()
@@ -41,7 +41,7 @@ fun Innvilgelsesperioder.tilDTO(): InnvilgelsesperioderDTO {
             periode = it.periode.toDTO(),
             antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode.value,
             tiltaksdeltakelseId = it.verdi.valgtTiltaksdeltakelse.eksternDeltakelseId,
-            internDeltakelseId = it.verdi.valgtTiltaksdeltakelse.internDeltakelseId?.toString(),
+            internDeltakelseId = it.verdi.valgtTiltaksdeltakelse.internDeltakelseId.toString(),
         )
     }
 }

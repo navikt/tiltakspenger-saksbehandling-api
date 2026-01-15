@@ -158,6 +158,7 @@ open class BehandlingOgVedtakContext(
             sakService = sakService,
             clock = clock,
             statistikkSakService = statistikkSakService,
+            tiltaksdeltakerRepo = tiltaksdeltakerRepo,
         )
     }
 

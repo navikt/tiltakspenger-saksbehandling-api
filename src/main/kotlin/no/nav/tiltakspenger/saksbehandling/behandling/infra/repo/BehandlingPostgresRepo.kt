@@ -30,6 +30,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
@@ -49,6 +51,8 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toOmgjørRammev
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFraDbJson
 import org.intellij.lang.annotations.Language
@@ -366,7 +370,10 @@ class BehandlingPostgresRepo(
                 Begrunnelse.create(it)
             }
 
-            val saksopplysninger = string("saksopplysninger").toSaksopplysninger()
+            val saksopplysninger = saksopplysningerMedOppdatertEksternDeltakselseId(
+                saksopplysninger = string("saksopplysninger").toSaksopplysninger(),
+                session = session,
+            )
 
             // TODO: Rename virkningsperiode_fra_og_med -> vedtaksperiode_fra_og_med og virkningsperiode_til_og_med -> vedtaksperiode_til_og_med
             val vedtaksperiodeFraOgMed = localDateOrNull("virkningsperiode_fra_og_med")
@@ -515,6 +522,17 @@ class BehandlingPostgresRepo(
                     )
                 }
             }
+        }
+
+        private fun saksopplysningerMedOppdatertEksternDeltakselseId(
+            saksopplysninger: Saksopplysninger,
+            session: Session,
+        ): Saksopplysninger {
+            val oppdaterteTiltaksdeltakelser = saksopplysninger.tiltaksdeltakelser.value.map {
+                val oppdatertEksternId = TiltaksdeltakerPostgresRepo.hentEksternId(internId = it.internDeltakelseId, session = session)
+                it.copy(eksternDeltakelseId = oppdatertEksternId)
+            }
+            return saksopplysninger.copy(tiltaksdeltakelser = Tiltaksdeltakelser(oppdaterteTiltaksdeltakelser))
         }
 
         @Language("SQL")

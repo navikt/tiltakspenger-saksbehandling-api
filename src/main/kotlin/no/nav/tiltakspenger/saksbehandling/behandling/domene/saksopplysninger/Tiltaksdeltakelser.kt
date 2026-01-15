@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import kotlin.collections.ArrayList
 
 /**
@@ -38,8 +39,8 @@ data class Tiltaksdeltakelser(
         }
     }
 
-    fun getTiltaksdeltakelse(eksternDeltakelseId: String): Tiltaksdeltakelse? {
-        return this.find { it.eksternDeltakelseId == eksternDeltakelseId }
+    fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse? {
+        return this.find { it.internDeltakelseId == internDeltakelseId }
     }
 
     /** Filtrerer bort tiltaksdeltakelser med ufullstendige perioder */

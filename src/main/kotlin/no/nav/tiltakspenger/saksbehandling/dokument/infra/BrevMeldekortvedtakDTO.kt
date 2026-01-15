@@ -48,8 +48,6 @@ data class BrevMeldekortvedtakDTO(
     data class TiltakDTO(
         val tiltakstypenavn: String,
         val tiltakstype: String,
-        val eksternDeltagelseId: String,
-        val eksternGjennomføringId: String?,
     )
 
     data class SammenligningAvBeregningerDTO(
@@ -167,8 +165,6 @@ fun Tiltaksdeltakelse.toTiltakDTO() =
     BrevMeldekortvedtakDTO.TiltakDTO(
         tiltakstypenavn = typeNavn,
         tiltakstype = typeKode.name,
-        eksternDeltagelseId = eksternDeltakelseId,
-        eksternGjennomføringId = gjennomføringId,
     )
 
 suspend fun String.tilSaksbehandlerDto(

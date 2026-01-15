@@ -64,7 +64,7 @@ fun nySakMedNySøknad(
         )
 
         // her lagrer vi tiltaksdeltaker for å unngå feil
-        tiltaksdeltakerRepo.hentEllerLagre(søknad.tiltak.id, søknad.tiltak.tiltaksdeltakerId!!)
+        tiltaksdeltakerRepo.lagre(eksternId = søknad.tiltak.id, id = søknad.tiltak.tiltaksdeltakerId)
 
         applicationContext.søknadContext.søknadService.nySøknad(
             søknad = søknad,

@@ -46,7 +46,7 @@ class DelautomatiskBehandlingServiceTest {
 
             soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
             val tiltaksdeltakelse =
-                behandling.saksopplysninger.tiltaksdeltakelser.find { it.eksternDeltakelseId == soknad.tiltak.id }!!
+                behandling.saksopplysninger.tiltaksdeltakelser.find { it.internDeltakelseId == soknad.tiltak.tiltaksdeltakerId }!!
             val expectedVedtaksperiode = soknad.tiltaksdeltakelseperiodeDetErSøktOm()
 
             tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(

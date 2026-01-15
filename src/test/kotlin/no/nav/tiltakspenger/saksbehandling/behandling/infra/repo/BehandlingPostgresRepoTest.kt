@@ -48,6 +48,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehand
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 
@@ -309,11 +310,13 @@ internal class BehandlingPostgresRepoTest {
                 eksternTiltaksdeltakelseId = "asdf",
                 fom = 1.januar(2025),
                 tom = 31.mai(2025),
+                internDeltakelseId = TiltaksdeltakerId.random(),
             )
             val tiltaksdeltakelse2 = tiltaksdeltakelse(
                 eksternTiltaksdeltakelseId = "qwer",
                 fom = 1.mars(2025),
                 tom = 30.juni(2025),
+                internDeltakelseId = TiltaksdeltakerId.random(),
             )
             val saksopplysninger = saksopplysninger(
                 fom = 1.januar(2025),

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -19,8 +20,10 @@ class BehandlingResultatKtTest {
             fom = periode.fraOgMed,
             tom = periode.tilOgMed,
         )
+        private val annenInternDeltakelseId = TiltaksdeltakerId.random()
+        private val annenInternDeltakelseId2 = TiltaksdeltakerId.random()
         private val endretSaksopplysning = ObjectMother.saksopplysninger(
-            tiltaksdeltakelse = listOf(ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = "annen-id")),
+            tiltaksdeltakelse = listOf(ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = "annen-id", internDeltakelseId = annenInternDeltakelseId)),
         )
 
         @Test
@@ -29,8 +32,8 @@ class BehandlingResultatKtTest {
                 valgteTiltaksdeltakelser,
                 ObjectMother.saksopplysninger(
                     tiltaksdeltakelse = listOf(
-                        ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = "annen-id"),
-                        ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = "annen-id2"),
+                        ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = "annen-id", internDeltakelseId = annenInternDeltakelseId),
+                        ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = "annen-id2", internDeltakelseId = annenInternDeltakelseId2),
                     ),
                 ),
             )

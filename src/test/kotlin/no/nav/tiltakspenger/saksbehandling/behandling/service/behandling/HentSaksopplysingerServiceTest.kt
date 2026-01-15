@@ -52,7 +52,7 @@ internal class HentSaksopplysingerServiceTest {
                 tiltaksdeltakelser.second,
                 periode.fraOgMed.atStartOfDay(),
             )
-            val aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltaksdeltakelser.first.eksternDeltakelseId)
+            val aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltaksdeltakelser.first.internDeltakelseId)
 
             val tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
                 override suspend fun hentTiltaksdeltakelser(
@@ -86,7 +86,6 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
@@ -98,6 +97,9 @@ internal class HentSaksopplysingerServiceTest {
                 ) {}
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
+                }
+                override fun hentEksternId(id: TiltaksdeltakerId): String {
+                    return tiltaksdeltakelser.first.eksternDeltakelseId
                 }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
@@ -150,7 +152,7 @@ internal class HentSaksopplysingerServiceTest {
                 tiltaksdeltakelser.second,
                 periode.fraOgMed.atStartOfDay(),
             )
-            val aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltaksdeltakelser.first.eksternDeltakelseId)
+            val aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltaksdeltakelser.first.internDeltakelseId)
 
             val tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
                 override suspend fun hentTiltaksdeltakelser(
@@ -184,7 +186,6 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
@@ -196,6 +197,9 @@ internal class HentSaksopplysingerServiceTest {
                 ) {}
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
+                }
+                override fun hentEksternId(id: TiltaksdeltakerId): String {
+                    return tiltaksdeltakelser.first.eksternDeltakelseId
                 }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
@@ -241,7 +245,7 @@ internal class HentSaksopplysingerServiceTest {
                 tiltaksdeltakelser.second,
                 søknadsperiode.fraOgMed.atStartOfDay(),
             )
-            val aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltaksdeltakelser.first.eksternDeltakelseId)
+            val aktuelleTiltaksdeltakelserForBehandlingen = listOf(tiltaksdeltakelser.first.internDeltakelseId)
 
             val tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
                 override suspend fun hentTiltaksdeltakelser(
@@ -282,7 +286,6 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
@@ -294,6 +297,9 @@ internal class HentSaksopplysingerServiceTest {
                 ) {}
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
+                }
+                override fun hentEksternId(id: TiltaksdeltakerId): String {
+                    return tiltaksdeltakelser.first.eksternDeltakelseId
                 }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
@@ -359,7 +365,7 @@ internal class HentSaksopplysingerServiceTest {
             )
             // Simulerer at vi søknadsbehandler tiltak1. Tiltak2 overlapper og algoritmen vil da hente begge tiltakene.
             val aktuelleTiltaksdeltakelserForBehandlingen = listOf(
-                tiltak1.first.eksternDeltakelseId,
+                tiltak1.first.internDeltakelseId,
             )
 
             val tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
@@ -394,7 +400,6 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return when (eksternId) {
@@ -416,6 +421,19 @@ internal class HentSaksopplysingerServiceTest {
                 ) {}
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
+                }
+                override fun hentEksternId(id: TiltaksdeltakerId): String {
+                    return when (id) {
+                        tiltak1.first.internDeltakelseId -> {
+                            tiltak1.first.eksternDeltakelseId
+                        }
+                        tiltak2.first.internDeltakelseId -> {
+                            tiltak2.first.eksternDeltakelseId
+                        }
+                        else -> {
+                            throw IllegalArgumentException("Ukjent eksternId")
+                        }
+                    }
                 }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
@@ -474,8 +492,8 @@ internal class HentSaksopplysingerServiceTest {
                 ),
             )
             val aktuelleTiltaksdeltakelserForBehandlingen = listOf(
-                tiltak1.first.eksternDeltakelseId,
-                tiltak2.first.eksternDeltakelseId,
+                tiltak1.first.internDeltakelseId,
+                tiltak2.first.internDeltakelseId,
             )
 
             val tiltaksdeltakelseKlient = object : TiltaksdeltakelseKlient {
@@ -510,7 +528,6 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    internIdHvisMangler: TiltaksdeltakerId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return when (eksternId) {
@@ -532,6 +549,19 @@ internal class HentSaksopplysingerServiceTest {
                 ) {}
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
+                }
+                override fun hentEksternId(id: TiltaksdeltakerId): String {
+                    return when (id) {
+                        tiltak1.first.internDeltakelseId -> {
+                            tiltak1.first.eksternDeltakelseId
+                        }
+                        tiltak2.first.internDeltakelseId -> {
+                            tiltak2.first.eksternDeltakelseId
+                        }
+                        else -> {
+                            throw IllegalArgumentException("Ukjent eksternId")
+                        }
+                    }
                 }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)

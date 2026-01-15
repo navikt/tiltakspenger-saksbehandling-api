@@ -55,7 +55,7 @@ data class Innvilgelsesperioder(
     fun krympTilTiltaksdeltakelsesperioder(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilgelsesperioder? {
         val nyeInnvilgelsesperioder = periodisering.verdier.mapNotNull {
             val oppdatertTiltaksdeltakelse =
-                tiltaksdeltakelser.getTiltaksdeltakelse(it.valgtTiltaksdeltakelse.eksternDeltakelseId)
+                tiltaksdeltakelser.getTiltaksdeltakelse(it.valgtTiltaksdeltakelse.internDeltakelseId)
 
             if (oppdatertTiltaksdeltakelse == null || !oppdatertTiltaksdeltakelse.kanInnvilges) {
                 return@mapNotNull null
@@ -93,14 +93,14 @@ data class Innvilgelsesperiode(
 ) {
     init {
         require(valgtTiltaksdeltakelse.deltakelseFraOgMed != null && valgtTiltaksdeltakelse.deltakelseTilOgMed != null) {
-            "Kan ikke velge tiltaksdeltakelse med id ${valgtTiltaksdeltakelse.eksternDeltakelseId} som mangler start- eller sluttdato"
+            "Kan ikke velge tiltaksdeltakelse med id ${valgtTiltaksdeltakelse.internDeltakelseId} som mangler start- eller sluttdato"
         }
 
         val deltakelsesperiode =
             Periode(valgtTiltaksdeltakelse.deltakelseFraOgMed, valgtTiltaksdeltakelse.deltakelseTilOgMed)
 
         require(deltakelsesperiode.inneholderHele(periode)) {
-            "Valgt deltakelsesperiode $deltakelsesperiode for tiltak med id ${valgtTiltaksdeltakelse.eksternDeltakelseId} må være inneholde hele innvilgelsesperioden $periode"
+            "Valgt deltakelsesperiode $deltakelsesperiode for tiltak med id ${valgtTiltaksdeltakelse.internDeltakelseId} må være inneholde hele innvilgelsesperioden $periode"
         }
     }
 

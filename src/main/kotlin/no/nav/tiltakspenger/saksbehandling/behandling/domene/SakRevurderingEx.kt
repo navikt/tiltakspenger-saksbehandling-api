@@ -70,7 +70,7 @@ private suspend fun Sak.startRevurderingStans(
             this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
             // TODO jah: På sikt er det mer presist at saksbehandler velger denne når hen starter en stans.
             //  Vi kan begrense denne litt mer ved å fjerne de tiltaksdeltakelsene det ikke er innvilget for, men vi kan utsette det til etter satsingsperioden.
-            this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
+            this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
             false,
         ),
 
@@ -99,7 +99,7 @@ private suspend fun Sak.startRevurderingInnvilgelse(
             this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
             // TODO jah: På sikt er det mer presist at saksbehandler velger disse når hen starter en revurdering innvilgelse.
             //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
-            this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
+            this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
             false,
         ),
         clock = clock,
@@ -125,7 +125,7 @@ private suspend fun Sak.startRevurderingOmgjøring(
             this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
             // TODO jah: På sikt er det mer presist at saksbehandler velger disse når hen starter en revurdering innvilgelse.
             //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
-            this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
+            this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
             false,
         ),
         clock = clock,

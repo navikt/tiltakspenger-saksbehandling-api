@@ -83,7 +83,7 @@ data class Søknadsbehandling(
      */
     val kanInnvilges: Boolean by lazy {
         when (søknad) {
-            is InnvilgbarSøknad -> saksopplysninger.kanInnvilges(søknad.tiltak.id)
+            is InnvilgbarSøknad -> saksopplysninger.kanInnvilges(søknad.tiltak.tiltaksdeltakerId)
             is IkkeInnvilgbarSøknad -> false
         }
     }
@@ -224,7 +224,7 @@ data class Søknadsbehandling(
                     sak.fnr,
                     correlationId,
                     sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                    listOf(søknad.tiltak.id),
+                    listOf(søknad.tiltak.tiltaksdeltakerId),
                     true,
                 )
 
@@ -232,7 +232,7 @@ data class Søknadsbehandling(
                     sak.fnr,
                     correlationId,
                     sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                    søknad.tiltak?.let { listOf(it.id) } ?: emptyList(),
+                    søknad.tiltak?.let { listOf(it.tiltaksdeltakerId) } ?: emptyList(),
                     true,
                 )
             }
@@ -277,7 +277,7 @@ data class Søknadsbehandling(
                 søknad.fnr,
                 correlationId,
                 sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                listOf(søknad.tiltak.id),
+                listOf(søknad.tiltak.tiltaksdeltakerId),
                 true,
             )
             return Søknadsbehandling(

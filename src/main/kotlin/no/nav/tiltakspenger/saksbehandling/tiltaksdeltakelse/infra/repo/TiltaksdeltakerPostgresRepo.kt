@@ -12,9 +12,24 @@ class TiltaksdeltakerPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : TiltaksdeltakerRepo {
 
+    companion object {
+        fun hentEksternId(
+            internId: TiltaksdeltakerId,
+            session: Session,
+        ): String {
+            return session.run(
+                queryOf(
+                    "select ekstern_id from tiltaksdeltaker where id = ?",
+                    internId.toString(),
+                )
+                    .map { row -> row.string("ekstern_id") }
+                    .asSingle,
+            ) ?: throw IllegalArgumentException("Fant ikke eksternId for internId $internId!")
+        }
+    }
+
     override fun hentEllerLagre(
         eksternId: String,
-        internIdHvisMangler: TiltaksdeltakerId,
         sessionContext: SessionContext?,
     ): TiltaksdeltakerId {
         return sessionFactory.withSessionContext(sessionContext) { sessionContext ->
@@ -23,6 +38,7 @@ class TiltaksdeltakerPostgresRepo(
                 if (id != null) {
                     return@withSession id
                 } else {
+                    val id = TiltaksdeltakerId.random()
                     session.run(
                         sqlQuery(
                             """
@@ -34,13 +50,19 @@ class TiltaksdeltakerPostgresRepo(
                                 :ekstern_id
                             )
                             """.trimIndent(),
-                            "id" to internIdHvisMangler.toString(),
+                            "id" to id.toString(),
                             "ekstern_id" to eksternId,
                         ).asUpdate,
                     )
-                    return@withSession internIdHvisMangler
+                    return@withSession id
                 }
             }
+        }
+    }
+
+    override fun hentEksternId(id: TiltaksdeltakerId): String {
+        return sessionFactory.withSession { session ->
+            hentEksternId(id, session)
         }
     }
 

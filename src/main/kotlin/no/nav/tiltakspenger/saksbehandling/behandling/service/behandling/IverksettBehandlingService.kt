@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDT
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
@@ -44,6 +45,7 @@ class IverksettBehandlingService(
     private val sakService: SakService,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
+    private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
     suspend fun iverksettRammebehandling(
         behandlingId: BehandlingId,
@@ -77,7 +79,11 @@ class IverksettBehandlingService(
         val stønadStatistikk = if (vedtak.resultat is SøknadsbehandlingResultat.Avslag) {
             null
         } else {
-            genererStønadsstatistikkForRammevedtak(vedtak)
+            val tiltaksdeltakelseEksterneIder =
+                vedtak.behandling.valgteTiltaksdeltakelser?.verdier?.map {
+                    tiltaksdeltakerRepo.hentEksternId(it.internDeltakelseId)
+                }
+            genererStønadsstatistikkForRammevedtak(vedtak, tiltaksdeltakelseEksterneIder)
         }
 
         val doubleOppdatertSak = when (behandling) {

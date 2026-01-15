@@ -31,7 +31,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                         periode = (1.januar(2025) til 31.mars(2025)).toDTO(),
                         antallDagerPerMeldeperiode = 10,
                         tiltaksdeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
-                        internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId?.toString(),
+                        internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                     ),
                 ),
                 resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
@@ -57,7 +57,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                         periode = innvilgelsesperiode.toDTO(),
                         antallDagerPerMeldeperiode = 10,
                         tiltaksdeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
-                        internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId?.toString(),
+                        internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                     ),
                 ),
                 barnetillegg = listOf(
@@ -89,7 +89,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                         periode = (1.januar(2025) til 31.mars(2025)).toDTO(),
                         antallDagerPerMeldeperiode = 10,
                         tiltaksdeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
-                        internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId?.toString(),
+                        internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                     ),
                 ),
                 barnetillegg = listOf(

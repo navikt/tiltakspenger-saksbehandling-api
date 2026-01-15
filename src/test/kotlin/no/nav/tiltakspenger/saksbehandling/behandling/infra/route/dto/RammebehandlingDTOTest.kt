@@ -44,6 +44,7 @@ class RammebehandlingDTOTest {
     private val eksternTiltaksdeltakelseId = "f02e50df-d2ee-47f6-9afa-db66bd842bfd"
     private val eksternTiltaksgjennomføringsId = "68f04dee-11a9-4d69-84fd-1096a4264492"
     private val internTiltaksdeltakelseId = TiltaksdeltakerId.fromString("tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG")
+    private val soknadstiltakInternTiltaksdeltakelseId = TiltaksdeltakerId.fromString("tiltaksdeltaker_01KEXQCG2FZV0629GX7QM4W1DV")
     private val fnr = gyldigFnr()
 
     private val vedtaksperiode = Periode(
@@ -280,7 +281,7 @@ class RammebehandlingDTOTest {
                     deltakelseFom = vedtaksperiode.fraOgMed,
                     deltakelseTom = vedtaksperiode.tilOgMed,
                     id = søknadTiltakId,
-                    tiltaksdeltakerId = internTiltaksdeltakelseId,
+                    tiltaksdeltakerId = soknadstiltakInternTiltaksdeltakelseId,
                 ),
             ),
             saksopplysninger = saksopplysninger(
@@ -871,7 +872,7 @@ class RammebehandlingDTOTest {
                     deltakelseFom = vedtaksperiode.fraOgMed,
                     deltakelseTom = vedtaksperiode.tilOgMed,
                     id = søknadTiltakId,
-                    tiltaksdeltakerId = internTiltaksdeltakelseId,
+                    tiltaksdeltakerId = soknadstiltakInternTiltaksdeltakelseId,
                 ),
             ),
             saksopplysninger = saksopplysninger(
