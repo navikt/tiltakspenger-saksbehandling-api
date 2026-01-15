@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
@@ -28,7 +28,7 @@ fun String.toBarnetillegg(): Barnetillegg {
                 periode = it.periode.toDomain(),
                 verdi = AntallBarn(it.verdi),
             )
-        }.tilSammenhengendePeriodisering(),
+        }.tilIkkeTomPeriodisering(),
         begrunnelse = barnetilleggDbJson.begrunnelse?.let { Begrunnelse.create(it) },
     )
 }
