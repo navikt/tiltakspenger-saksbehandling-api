@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import arrow.core.toNonEmptyListOrThrow
 import arrow.core.toNonEmptySetOrThrow
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -50,7 +49,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 innvilgelsesperioder = innvilgelsesperioder,
-                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.totalPeriode),
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
             )
         }
     }
@@ -79,7 +78,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 innvilgelsesperioder = innvilgelsesperioder,
-                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.totalPeriode),
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
             )
         }
     }

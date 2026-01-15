@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 
+import arrow.core.nonEmptyListOf
+import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
@@ -10,8 +12,6 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -157,7 +157,6 @@ class StartRevurderingOmgjøringTest {
         }
     }
 
-    @Disabled("TODO Anders: Fikser etter vi støtter og revurdere over hull")
     @Test
     fun `kan revurdere med hull`() {
         /**
@@ -197,7 +196,8 @@ class StartRevurderingOmgjøringTest {
                 tac = tac,
                 sakId = sakId,
             )!!
-            oppdaterBehandling(
+
+            val (_, behandlingMedHull) = oppdaterBehandling(
                 tac = tac,
                 sakId = sakId,
                 behandlingId = opprettetRevurdering.id,
@@ -233,6 +233,13 @@ class StartRevurderingOmgjøringTest {
                         begrunnelse = null,
                     ),
                 ),
+            )
+
+            behandlingMedHull.innvilgelsesperioder!!.periodisering.erSammenhengende shouldBe false
+
+            behandlingMedHull.innvilgelsesperioder!!.perioder shouldBe nonEmptyListOf(
+                førsteInnvilgelsesperiode,
+                andreInnvilgelsesperiode,
             )
         }
     }

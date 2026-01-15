@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -94,9 +93,7 @@ class ForhåndsvisVedtaksbrevService(
         forhåndsvisning = true,
         innvilgelsesperiode = innvilgelsesperiode,
         tilleggstekst = kommando.fritekstTilVedtaksbrev,
-        barnetillegg = kommando.barnetillegg?.let {
-            it.utvid(AntallBarn(0), innvilgelsesperiode) as SammenhengendePeriodisering
-        },
+        barnetillegg = kommando.barnetillegg?.utvid(AntallBarn(0), innvilgelsesperiode),
         antallDagerTekst = toAntallDagerTekst(kommando.antallDagerPerMeldeperiode),
     ).fold(
         ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
@@ -148,9 +145,7 @@ class ForhåndsvisVedtaksbrevService(
         forhåndsvisning = true,
         innvilgelsesperiode = innvilgelsesperiode,
         tilleggstekst = kommando.fritekstTilVedtaksbrev,
-        barnetillegg = kommando.barnetillegg?.let {
-            it.utvid(AntallBarn(0), innvilgelsesperiode) as SammenhengendePeriodisering
-        },
+        barnetillegg = kommando.barnetillegg?.utvid(AntallBarn(0), innvilgelsesperiode),
         antallDagerTekst = toAntallDagerTekst(kommando.antallDagerPerMeldeperiode),
     ).fold(
         ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
@@ -198,9 +193,7 @@ class ForhåndsvisVedtaksbrevService(
         saksnummer = sak.saksnummer,
         sakId = sak.id,
         forhåndsvisning = true,
-        barnetilleggsPerioder = kommando.barnetillegg?.let {
-            it.utvid(AntallBarn(0), innvilgelsesperiode) as SammenhengendePeriodisering
-        },
+        barnetilleggsPerioder = kommando.barnetillegg?.utvid(AntallBarn(0), innvilgelsesperiode),
         antallDagerTekst = toAntallDagerTekst(kommando.antallDagerPerMeldeperiode),
     ).fold(
         ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
