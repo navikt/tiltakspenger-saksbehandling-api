@@ -6,6 +6,7 @@ enum class KlagebehandlingsstatusDbEnum {
     KLAR_TIL_BEHANDLING,
     UNDER_BEHANDLING,
     AVBRUTT,
+    IVERKSATT,
     ;
 
     fun toDomain(): Klagebehandlingsstatus {
@@ -13,6 +14,7 @@ enum class KlagebehandlingsstatusDbEnum {
             KLAR_TIL_BEHANDLING -> Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
             UNDER_BEHANDLING -> Klagebehandlingsstatus.UNDER_BEHANDLING
             AVBRUTT -> Klagebehandlingsstatus.AVBRUTT
+            IVERKSATT -> Klagebehandlingsstatus.IVERKSATT
         }
     }
 }
@@ -22,6 +24,7 @@ fun Klagebehandlingsstatus.toDbEnum(): KlagebehandlingsstatusDbEnum {
         Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> KlagebehandlingsstatusDbEnum.KLAR_TIL_BEHANDLING
         Klagebehandlingsstatus.UNDER_BEHANDLING -> KlagebehandlingsstatusDbEnum.UNDER_BEHANDLING
         Klagebehandlingsstatus.AVBRUTT -> KlagebehandlingsstatusDbEnum.AVBRUTT
+        Klagebehandlingsstatus.IVERKSATT -> KlagebehandlingsstatusDbEnum.IVERKSATT
     }
 }
 

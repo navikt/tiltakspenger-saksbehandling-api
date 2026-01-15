@@ -37,6 +37,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                      "fnr": "12345678912",
                      "opprettet": "2025-01-01T01:02:06.456789",
                      "sistEndret": "2025-01-01T01:02:08.456789",
+                     "iverksattTidspunkt": null,
                      "saksbehandler": "Z12345",
                      "journalpostId": "123456",
                      "journalpostOpprettet": "2025-01-01T01:02:07.456789",
@@ -48,7 +49,8 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                      "erKlagefristenOverholdt": false,
                      "erKlagenSignert": false,
                      "brevtekst": [],
-                     "erAvbrutt": false
+                     "erAvbrutt": false,
+                     "kanIverksette": false
                    }
                 """.trimIndent(),
             )

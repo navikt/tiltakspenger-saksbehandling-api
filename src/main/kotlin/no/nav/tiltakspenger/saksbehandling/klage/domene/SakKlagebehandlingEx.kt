@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.Either
+import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
 import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
@@ -11,6 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDateTime
@@ -71,4 +74,17 @@ suspend fun Sak.forhåndsvisKlagebrev(
         kommando = kommando,
         genererAvvisningsbrev = genererAvvisningsbrev,
     )
+}
+
+suspend fun Sak.iverksettKlagebehandling(
+    kommando: IverksettKlagebehandlingKommando,
+    clock: Clock,
+): Either<KanIkkeIverksetteKlagebehandling, Pair<Sak, Klagebehandling>> {
+    return this.hentKlagebehandling(kommando.klagebehandlingId).iverksett(
+        kommando = kommando,
+        clock = clock,
+    ).map {
+        val oppdatertSak = this.oppdaterKlagebehandling(it)
+        Pair(oppdatertSak, it)
+    }
 }

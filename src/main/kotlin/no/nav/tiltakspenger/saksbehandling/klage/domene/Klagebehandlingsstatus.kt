@@ -8,4 +8,5 @@ enum class Klagebehandlingsstatus {
     UNDER_BEHANDLING,
 
     AVBRUTT,
+    IVERKSATT,
 }

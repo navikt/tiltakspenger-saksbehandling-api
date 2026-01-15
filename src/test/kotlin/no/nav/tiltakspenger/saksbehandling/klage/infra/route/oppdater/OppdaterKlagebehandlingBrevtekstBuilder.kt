@@ -35,9 +35,10 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
  * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.oppdaterTekstTilBrev]
  */
 interface OppdaterKlagebehandlingBrevtekstBuilder {
-    /** 1. Oppretter ny sak
-     *  2. Starter klagebehandling til avvisning
-     *  3. Oppdaterer brevtekst
+    /**
+     * 1. Oppretter ny sak
+     * 2. Starter klagebehandling til avvisning
+     * 3. Oppdaterer brevtekst
      */
     suspend fun ApplicationTestBuilder.opprettSakOgOppdaterKlagebehandlingBrevtekst(
         tac: TestApplicationContext,

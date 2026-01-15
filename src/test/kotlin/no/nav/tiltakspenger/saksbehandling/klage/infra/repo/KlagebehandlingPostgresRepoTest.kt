@@ -50,6 +50,7 @@ class KlagebehandlingPostgresRepoTest {
                         ),
                     ),
                 ),
+                iverksattTidspunkt = null,
             )
         }
     }
