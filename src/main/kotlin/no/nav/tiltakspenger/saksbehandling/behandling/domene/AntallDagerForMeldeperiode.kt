@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.validerMeldeperiode
 
 @JvmInline
@@ -29,12 +28,4 @@ value class AntallDagerForMeldeperiode(val value: Int) : Comparable<AntallDagerF
 fun Periodisering<AntallDagerForMeldeperiode>.finnAntallDagerForMeldeperiode(periode: Periode): AntallDagerForMeldeperiode? {
     periode.validerMeldeperiode()
     return this.overlappendePeriode(periode).perioderMedVerdi.map { it.verdi }.maxOfOrNull { it }
-}
-
-fun Periodisering<AntallDagerForMeldeperiode>?.maksAntallDager(): Int {
-    return this?.verdier?.maxBy { it.value }?.value ?: 0
-}
-
-fun Periodisering<AntallDagerForMeldeperiode>?.krympPeriode(periode: Periode): Periodisering<AntallDagerForMeldeperiode>? {
-    return this?.krymp(periode)
 }

@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRevurde
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeStatusDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldeperiodeKjedeStatusDTO
@@ -143,9 +144,10 @@ private fun List<Klagebehandling>.toÅpenKlagebehandlingDTO(): List<ÅpenBehandl
         saksnummer = it.saksnummer.toString(),
         opprettet = it.opprettet,
         status = when (it.status) {
-            no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> "KLAR_TIL_BEHANDLING"
-            no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING -> "UNDER_BEHANDLING"
-            no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT -> "AVBRUTT"
+            Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> "KLAR_TIL_BEHANDLING"
+            Klagebehandlingsstatus.UNDER_BEHANDLING -> "UNDER_BEHANDLING"
+            Klagebehandlingsstatus.AVBRUTT -> "AVBRUTT"
+            Klagebehandlingsstatus.IVERKSATT -> "IVERKSATT"
         },
         saksbehandler = it.saksbehandler,
         resultat = it.resultat?.toString(),

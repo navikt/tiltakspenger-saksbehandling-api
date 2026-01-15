@@ -17,8 +17,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.klage.domene.AvbrytKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeAvbryteKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 
 private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/avbryt"
@@ -31,7 +31,7 @@ fun Route.avbrytKlagebehandlingRoute(
     val logger = KotlinLogging.logger {}
 
     patch(PATH) {
-        logger.debug { "Mottatt post-request på '$PATH' - Avbryter klagebehandling" }
+        logger.debug { "Mottatt patch-request på '$PATH' - Avbryter klagebehandling" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@patch
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@patch
         call.withSakId { sakId ->

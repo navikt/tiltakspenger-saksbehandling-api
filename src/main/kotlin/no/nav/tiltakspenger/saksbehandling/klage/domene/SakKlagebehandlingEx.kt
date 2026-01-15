@@ -1,6 +1,19 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.Either
+import arrow.core.right
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
+import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
+import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
+import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDateTime
@@ -21,9 +34,21 @@ fun Sak.oppdaterKlagebehandlingFormkrav(
     kommando: OppdaterKlagebehandlingFormkravKommando,
     journalpostOpprettet: LocalDateTime,
     clock: Clock,
-): Either<KanIkkeOppdatereKlagebehandlingFormkrav, Pair<Sak, Klagebehandling>> {
+): Either<KanIkkeOppdatereKlagebehandling, Pair<Sak, Klagebehandling>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId)
         .oppdaterFormkrav(kommando, journalpostOpprettet, clock)
+        .map {
+            val oppdatertSak = this.oppdaterKlagebehandling(it)
+            Pair(oppdatertSak, it)
+        }
+}
+
+fun Sak.oppdaterKlagebehandlingBrevtekst(
+    kommando: KlagebehandlingBrevKommando,
+    clock: Clock,
+): Either<KanIkkeOppdatereKlagebehandling, Pair<Sak, Klagebehandling>> {
+    return this.hentKlagebehandling(kommando.klagebehandlingId)
+        .oppdaterBrevtekst(kommando, clock)
         .map {
             val oppdatertSak = this.oppdaterKlagebehandling(it)
             Pair(oppdatertSak, it)
@@ -39,4 +64,27 @@ fun Sak.avbrytKlagebehandling(
             val oppdatertSak = this.oppdaterKlagebehandling(it)
             Pair(oppdatertSak, it)
         }
+}
+
+suspend fun Sak.forhåndsvisKlagebrev(
+    kommando: KlagebehandlingBrevKommando,
+    genererAvvisningsbrev: GenererKlageAvvisningsbrev,
+): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    return this.hentKlagebehandling(kommando.klagebehandlingId).genererBrev(
+        kommando = kommando,
+        genererAvvisningsbrev = genererAvvisningsbrev,
+    )
+}
+
+suspend fun Sak.iverksettKlagebehandling(
+    kommando: IverksettKlagebehandlingKommando,
+    clock: Clock,
+): Either<KanIkkeIverksetteKlagebehandling, Pair<Sak, Klagebehandling>> {
+    return this.hentKlagebehandling(kommando.klagebehandlingId).iverksett(
+        kommando = kommando,
+        clock = clock,
+    ).map {
+        val oppdatertSak = this.oppdaterKlagebehandling(it)
+        Pair(oppdatertSak, it)
+    }
 }

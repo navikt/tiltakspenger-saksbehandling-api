@@ -19,7 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebehandlingFormkrav
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.kanIkkeOppdatereBehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 
 private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/formkrav"
@@ -32,7 +33,7 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
     val logger = KotlinLogging.logger {}
 
     put(PATH) {
-        logger.debug { "Mottatt post-request på '$PATH' - Oppdaterer formkrav på eksisterende klagebehandling" }
+        logger.debug { "Mottatt put-request på '$PATH' - Oppdaterer formkrav på eksisterende klagebehandling" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@put
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@put
         call.withSakId { sakId ->
@@ -50,24 +51,7 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
                         ),
                     ).fold(
                         ifLeft = {
-                            call.respondJson(
-                                when (it) {
-                                    is KanIkkeOppdatereKlagebehandlingFormkrav.FantIkkeJournalpost -> Pair(
-                                        HttpStatusCode.BadRequest,
-                                        ErrorJson(
-                                            "Fant ikke journalpost",
-                                            "fant_ikke_journalpost",
-                                        ),
-                                    )
-
-                                    is KanIkkeOppdatereKlagebehandlingFormkrav.SaksbehandlerMismatch -> Pair(
-                                        HttpStatusCode.BadRequest,
-                                        behandlingenEiesAvAnnenSaksbehandler(
-                                            it.forventetSaksbehandler,
-                                        ),
-                                    )
-                                },
-                            )
+                            call.respondJson(it.toStatusAndErrorJson())
                         },
                         ifRight = { (_, behandling) ->
                             val behandlingId = behandling.id
@@ -85,5 +69,29 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
                 }
             }
         }
+    }
+}
+
+fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+    return when (this) {
+        is KanIkkeOppdatereKlagebehandling.FantIkkeJournalpost -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Fant ikke journalpost",
+                "fant_ikke_journalpost",
+            ),
+        )
+
+        is KanIkkeOppdatereKlagebehandling.SaksbehandlerMismatch -> Pair(
+            HttpStatusCode.BadRequest,
+            behandlingenEiesAvAnnenSaksbehandler(
+                this.forventetSaksbehandler,
+            ),
+        )
+
+        is KanIkkeOppdatereKlagebehandling.KanIkkeOppdateres -> Pair(
+            HttpStatusCode.BadRequest,
+            kanIkkeOppdatereBehandling(),
+        )
     }
 }

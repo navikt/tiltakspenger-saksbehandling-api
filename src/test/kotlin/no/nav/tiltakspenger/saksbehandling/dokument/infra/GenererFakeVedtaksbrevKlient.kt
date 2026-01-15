@@ -17,8 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevFo
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.klage.domene.ForhåndsvisBrevKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -138,9 +139,12 @@ class GenererFakeVedtaksbrevKlient :
     }
 
     override suspend fun genererAvvisningsvedtak(
-        klagebehandling: Klagebehandling,
-        kommando: ForhåndsvisBrevKlagebehandlingKommando,
+        saksnummer: Saksnummer,
+        fnr: Fnr,
+        tilleggstekst: Brevtekster,
+        saksbehandlerNavIdent: String,
         vedtaksdato: LocalDate,
+        forhåndsvisning: Boolean,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {

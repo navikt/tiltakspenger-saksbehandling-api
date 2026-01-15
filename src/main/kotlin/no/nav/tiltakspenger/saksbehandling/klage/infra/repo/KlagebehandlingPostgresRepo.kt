@@ -40,7 +40,9 @@ class KlagebehandlingPostgresRepo(
                         saksbehandler,
                         journalpost_id,
                         journalpost_opprettet,
-                        resultat
+                        resultat,
+                        brevtekst,
+                        iverksatt_tidspunkt
                     ) values (
                         :id,
                         :sak_id,
@@ -51,7 +53,9 @@ class KlagebehandlingPostgresRepo(
                         :saksbehandler,
                         :journalpost_id,
                         :journalpost_opprettet,
-                        to_jsonb(:resultat::jsonb)
+                        to_jsonb(:resultat::jsonb),
+                        to_jsonb(:brevtekst::jsonb),
+                        :iverksatt_tidspunkt
                     ) on conflict (id) do update set
                         sak_id = :sak_id,
                         opprettet = :opprettet,
@@ -61,7 +65,9 @@ class KlagebehandlingPostgresRepo(
                         saksbehandler = :saksbehandler,
                         journalpost_id = :journalpost_id,
                         journalpost_opprettet = :journalpost_opprettet,
-                        resultat = to_jsonb(:resultat::jsonb)
+                        resultat = to_jsonb(:resultat::jsonb),
+                        brevtekst = to_jsonb(:brevtekst::jsonb),
+                        iverksatt_tidspunkt = :iverksatt_tidspunkt
                     """.trimIndent(),
                     mapOf(
                         "id" to klagebehandling.id.toString(),
@@ -74,6 +80,8 @@ class KlagebehandlingPostgresRepo(
                         "journalpost_id" to klagebehandling.journalpostId.toString(),
                         "journalpost_opprettet" to klagebehandling.journalpostOpprettet,
                         "resultat" to klagebehandling.resultat?.toDbJson(),
+                        "brevtekst" to klagebehandling.brevtekst?.toDbJson(),
+                        "iverksatt_tidspunkt" to klagebehandling.iverksattTidspunkt,
                     ),
                 ).asUpdate,
             )
@@ -115,6 +123,8 @@ class KlagebehandlingPostgresRepo(
                 journalpostId = JournalpostId(row.string("journalpost_id")),
                 journalpostOpprettet = row.localDateTime("journalpost_opprettet"),
                 resultat = row.stringOrNull("resultat")?.toKlagebehandlingResultat(),
+                brevtekst = row.stringOrNull("brevtekst")?.toKlageBrevtekst(),
+                iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
             )
         }
     }

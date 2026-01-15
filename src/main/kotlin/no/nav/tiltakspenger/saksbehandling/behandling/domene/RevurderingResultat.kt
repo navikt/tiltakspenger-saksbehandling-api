@@ -168,7 +168,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
             val innvilgelsesperioder =
                 innvilgelsesperioder?.krympTilTiltaksdeltakelsesperioder(oppdaterteSaksopplysninger.tiltaksdeltakelser)
 
-            val barnetillegg = innvilgelsesperioder?.let { barnetillegg?.krympPerioder(innvilgelsesperioder.perioder) }
+            val barnetillegg = innvilgelsesperioder?.let { barnetillegg?.krympTilPerioder(innvilgelsesperioder.perioder) }
 
             return Omgjøring(
                 vedtaksperiode = if (innvilgelsesperioder == null) {
@@ -195,7 +195,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                     omgjørRammevedtak.innvilgelsesperioder?.krympTilTiltaksdeltakelsesperioder(saksopplysninger.tiltaksdeltakelser)
                         ?: return KunneIkkeOppretteOmgjøring.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag.left()
 
-                val barnetillegg = omgjørRammevedtak.barnetillegg!!.krympPerioder(innvilgelsesperioder.perioder)
+                val barnetillegg = omgjørRammevedtak.barnetillegg!!.krympTilPerioder(innvilgelsesperioder.perioder)
 
                 return Omgjøring(
                     // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.

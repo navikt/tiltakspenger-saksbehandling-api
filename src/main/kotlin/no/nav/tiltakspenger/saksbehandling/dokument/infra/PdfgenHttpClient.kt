@@ -31,8 +31,9 @@ import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.klage.domene.ForhåndsvisBrevKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
@@ -374,9 +375,12 @@ internal class PdfgenHttpClient(
     }
 
     override suspend fun genererAvvisningsvedtak(
-        klagebehandling: Klagebehandling,
-        kommando: ForhåndsvisBrevKlagebehandlingKommando,
+        saksnummer: Saksnummer,
+        fnr: Fnr,
+        tilleggstekst: Brevtekster,
+        saksbehandlerNavIdent: String,
         vedtaksdato: LocalDate,
+        forhåndsvisning: Boolean,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
@@ -386,14 +390,14 @@ internal class PdfgenHttpClient(
                     hentBrukersNavn = hentBrukersNavn,
                     hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                     datoForUtsending = vedtaksdato,
-                    tilleggstekst = kommando.tekstTilVedtaksbrev,
-                    saksbehandlerNavIdent = klagebehandling.saksbehandler ?: kommando.saksbehandler.navIdent,
-                    saksnummer = klagebehandling.saksnummer,
-                    forhåndsvisning = true,
-                    fnr = klagebehandling.fnr,
+                    tilleggstekst = tilleggstekst,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    saksnummer = saksnummer,
+                    forhåndsvisning = forhåndsvisning,
+                    fnr = fnr,
                 )
             },
-            errorContext = "SakId: ${klagebehandling.sakId}, saksnummer: ${klagebehandling.saksnummer}",
+            errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning",
             uri = klageAvvisUri,
         )
     }

@@ -15,12 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJsonString
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebehandlingFormkrav
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppretteKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.KanIkkeOppretteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 
 private const val PATH = "/sak/{sakId}/klage"

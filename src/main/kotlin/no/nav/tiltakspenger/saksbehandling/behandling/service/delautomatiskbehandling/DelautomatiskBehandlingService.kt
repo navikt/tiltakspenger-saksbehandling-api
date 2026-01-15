@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
 import arrow.core.getOrElse
+import arrow.core.nonEmptyListOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -364,14 +364,16 @@ class DelautomatiskBehandlingService(
         return if (behandling.søknad.barnetillegg.isNotEmpty()) {
             val antallBarnFraSøknad = behandling.søknad.barnetillegg.size
             Barnetillegg(
-                periodisering = SammenhengendePeriodisering(
-                    AntallBarn(antallBarnFraSøknad),
-                    periode,
-                ),
+                periodisering = nonEmptyListOf(
+                    PeriodeMedVerdi(
+                        AntallBarn(antallBarnFraSøknad),
+                        periode,
+                    ),
+                ).tilIkkeTomPeriodisering(),
                 begrunnelse = null,
             )
         } else {
-            Barnetillegg.utenBarnetillegg(periode)
+            Barnetillegg.utenBarnetillegg(nonEmptyListOf(periode))
         }
     }
 

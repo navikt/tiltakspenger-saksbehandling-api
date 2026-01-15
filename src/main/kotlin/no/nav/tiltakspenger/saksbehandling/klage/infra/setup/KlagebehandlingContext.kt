@@ -10,9 +10,10 @@ import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
+import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.time.Clock
 
@@ -60,6 +61,20 @@ open class KlagebehandlingContext(
             personService = personService,
             navIdentClient = navIdentClient,
             genererKlagebrevKlient = genererKlagebrevKlient,
+        )
+    }
+    open val oppdaterKlagebehandlingTekstTilBrevService: OppdaterKlagebehandlingTekstTilBrevService by lazy {
+        OppdaterKlagebehandlingTekstTilBrevService(
+            sakService = sakService,
+            clock = clock,
+            klageRepo = klageRepo,
+        )
+    }
+    open val iverksettKlagebehandlingService: IverksettKlagebehandlingService by lazy {
+        IverksettKlagebehandlingService(
+            sakService = sakService,
+            clock = clock,
+            klageRepo = klageRepo,
         )
     }
 }

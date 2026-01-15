@@ -13,7 +13,6 @@ import java.time.LocalDate
 
 data class ManueltRegistrertSøknadBody(
     val journalpostId: String,
-    val personopplysninger: PersonopplysningerDTO,
     val manueltSattSøknadsperiode: PeriodeDTO?,
     val manueltSattTiltak: String?,
     val antallVedlegg: Int,
@@ -22,7 +21,6 @@ data class ManueltRegistrertSøknadBody(
 ) {
     fun tilKommando(internTiltaksdeltakelsesId: TiltaksdeltakerId?): StartBehandlingAvManueltRegistrertSøknadCommand {
         return StartBehandlingAvManueltRegistrertSøknadCommand(
-            personopplysninger = personopplysninger.tilDomene(),
             journalpostId = JournalpostId(journalpostId),
             manueltSattSøknadsperiode = manueltSattSøknadsperiode?.toDomain(),
             manueltSattTiltak = manueltSattTiltak,

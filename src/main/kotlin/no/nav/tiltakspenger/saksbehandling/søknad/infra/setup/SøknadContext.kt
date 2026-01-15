@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
@@ -20,6 +21,7 @@ open class SøknadContext(
     behandlingRepo: BehandlingRepo,
     hentSaksopplysingerService: HentSaksopplysingerService,
     sakService: SakService,
+    personService: PersonService,
     statistikkSakRepo: StatistikkSakRepo,
     statistikkSakService: StatistikkSakService,
     clock: Clock,
@@ -38,6 +40,7 @@ open class SøknadContext(
             sessionFactory = sessionFactory,
             behandlingRepo = behandlingRepo,
             hentSaksopplysingerService = hentSaksopplysingerService,
+            personService = personService,
             sakService = sakService,
             statistikkSakRepo = statistikkSakRepo,
             statistikkSakService = statistikkSakService,

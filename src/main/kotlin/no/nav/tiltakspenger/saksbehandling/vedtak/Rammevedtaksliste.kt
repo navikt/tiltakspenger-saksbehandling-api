@@ -69,8 +69,6 @@ data class Rammevedtaksliste(
      * Men det er fremdeles riktig og gi bruker avslag på tiltak 2.
      *
      * Vil være [no.nav.tiltakspenger.libs.periodisering.TomPeriodisering] før vi har noen vedtak.
-     * [no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering] ved etter første innvilgelse.
-     * Og [no.nav.tiltakspenger.libs.periodisering.IkkesammenhengendePeriodisering] dersom vi får en ny innvilgelse som ikke overlapper med den første.
      */
     val tidslinje: Periodisering<Rammevedtak> by lazy { vedtakUtenAvslag.toTidslinje() }
 

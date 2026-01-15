@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
@@ -29,6 +30,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val journalpostService: ValiderJournalpostService,
+    private val personService: PersonService,
     private val sessionFactory: SessionFactory,
 ) {
     val logger = KotlinLogging.logger { }
@@ -50,12 +52,18 @@ class StartBehandlingAvManueltRegistrertSøknadService(
             throw IllegalArgumentException("Journalpost ${kommando.journalpostId} mangler datoOpprettet")
         }
 
+        val personopplysninger = personService.hentPersonopplysninger(sak.fnr)
+
         val manueltRegistrertSøknad = Søknad.opprett(
             sak = sak,
             journalpostId = kommando.journalpostId.toString(),
             opprettet = journalpostValidering.datoOpprettet,
             tidsstempelHosOss = nå(clock),
-            personopplysninger = kommando.personopplysninger,
+            personopplysninger = Søknad.Personopplysninger(
+                fnr = personopplysninger.fnr,
+                fornavn = personopplysninger.fornavn,
+                etternavn = personopplysninger.etternavn,
+            ),
             søknadstiltak = kommando.søknadstiltak,
             barnetillegg = kommando.barnetillegg,
             harSøktPåTiltak = kommando.harSøktPåTiltak,

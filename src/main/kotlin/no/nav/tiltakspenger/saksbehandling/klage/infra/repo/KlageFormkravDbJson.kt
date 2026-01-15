@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KlageFormkrav
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 
 private data class KlagebehandlingFormkravDbJson(
     val vedtakDetKlagesPå: String?,

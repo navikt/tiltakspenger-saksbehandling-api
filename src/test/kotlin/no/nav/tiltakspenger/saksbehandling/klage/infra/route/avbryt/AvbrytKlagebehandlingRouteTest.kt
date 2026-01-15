@@ -30,6 +30,7 @@ class AvbrytKlagebehandlingRouteTest {
                      "fnr": "12345678911",
                      "opprettet": "2025-01-01T01:02:06.456789",
                      "sistEndret": "2025-01-01T01:02:07.456789",
+                     "iverksattTidspunkt": null,
                      "saksbehandler": "Z12345",
                      "journalpostId": "12345",
                      "journalpostOpprettet": "2025-01-01T01:02:05.456789",
@@ -39,7 +40,10 @@ class AvbrytKlagebehandlingRouteTest {
                      "erKlagerPartISaken": true,
                      "klagesDetPåKonkreteElementerIVedtaket": true,
                      "erKlagefristenOverholdt": true,
-                     "erKlagenSignert": true
+                     "erKlagenSignert": true,
+                     "brevtekst": [],
+                     "erAvbrutt": true,
+                     "kanIverksette": false
                    }
                 """.trimIndent(),
             )

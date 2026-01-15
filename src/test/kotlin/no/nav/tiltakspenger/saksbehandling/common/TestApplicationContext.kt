@@ -189,6 +189,7 @@ class TestApplicationContext(
             behandlingRepo = behandlingContext.behandlingRepo,
             hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
             sakService = sakContext.sakService,
+            personService = personContext.personService,
             statistikkSakService = statistikkContext.statistikkSakService,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             clock = clock,

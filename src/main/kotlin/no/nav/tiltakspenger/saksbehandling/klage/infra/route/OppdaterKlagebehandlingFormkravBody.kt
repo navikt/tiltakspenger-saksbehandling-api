@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.OppdaterKlagebehandlingFormkravKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
 
 data class OppdaterKlagebehandlingFormkravBody(
     val journalpostId: String,

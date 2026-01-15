@@ -3,7 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
-import no.nav.tiltakspenger.saksbehandling.klage.domene.TittelOgTekst
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
@@ -23,7 +24,7 @@ data class BrevKlageAvvisningDTO(
 
     companion object {
         suspend fun create(
-            tilleggstekst: List<TittelOgTekst>,
+            tilleggstekst: Brevtekster,
             hentBrukersNavn: suspend (Fnr) -> Navn,
             hentSaksbehandlersNavn: suspend (String) -> String,
             saksbehandlerNavIdent: String,

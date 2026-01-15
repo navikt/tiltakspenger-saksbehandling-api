@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.klage.domene.AvbrytKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeAvbryteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak

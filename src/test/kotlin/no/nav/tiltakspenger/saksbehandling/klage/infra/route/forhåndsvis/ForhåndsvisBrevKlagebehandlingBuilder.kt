@@ -1,12 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.forhåndsvis
 
-import io.kotest.assertions.json.CompareJsonOptions
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsBytes
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -19,23 +16,18 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
-import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.TittelOgTekst
-import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.forhåndsvisBrevKlagebehandlingRoute]
+ * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.forhåndsvisBrevKlagebehandlingRoute]
  */
 interface ForhåndsvisBrevKlagebehandlingBuilder {
     /** 1. Oppretter ny sak
@@ -96,8 +88,8 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
             val tekstTilVedtaksbrevListe = tekstTilVedtaksbrev.joinToString(separator = ",") {
                 """
                 {
-                    "tittel": "${it.tittel}",
-                    "tekst": "${it.tekst}"
+                    "tittel": "${it.tittel.value}",
+                    "tekst": "${it.tekst.value}"
                 }
                 """.trimIndent()
             }
