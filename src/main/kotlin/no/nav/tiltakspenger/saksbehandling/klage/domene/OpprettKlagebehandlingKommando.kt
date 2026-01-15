@@ -16,4 +16,14 @@ data class OpprettKlagebehandlingKommando(
     val erKlagefristenOverholdt: Boolean,
     val erKlagenSignert: Boolean,
     val correlationId: CorrelationId,
-)
+) {
+    fun toKlageFormkrav(): KlageFormkrav {
+        return KlageFormkrav(
+            vedtakDetKlagesPå = vedtakDetKlagesPå,
+            erKlagerPartISaken = erKlagerPartISaken,
+            klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+            erKlagefristenOverholdt = erKlagefristenOverholdt,
+            erKlagenSignert = erKlagenSignert,
+        )
+    }
+}

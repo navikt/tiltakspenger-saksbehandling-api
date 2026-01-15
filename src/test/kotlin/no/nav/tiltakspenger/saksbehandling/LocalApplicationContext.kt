@@ -78,7 +78,8 @@ class LocalApplicationContext(
         null
     }
 
-    override val texasClient = if (Configuration.brukFakeTexasClientLokalt) TexasClientFake(clock) else super.texasClient
+    override val texasClient =
+        if (Configuration.brukFakeTexasClientLokalt) TexasClientFake(clock) else super.texasClient
 
     private val personFakeKlient = PersonFakeKlient(clock)
     private val genererFakeVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient =
@@ -264,6 +265,9 @@ class LocalApplicationContext(
             sakService = sakContext.sakService,
             clock = clock,
             validerJournalpostService = ValiderJournalpostService(safJournalpostClient),
+            personService = personContext.personService,
+            navIdentClient = personContext.navIdentClient,
+            genererKlagebrevKlient = dokumentContext.genererKlagebrevKlient,
         ) {}
     }
 

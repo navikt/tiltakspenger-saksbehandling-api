@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -35,7 +34,7 @@ interface OpprettKlagebehandlingBuilder {
     /** Oppretter ny sak og starter klagebehandling til avvisning  */
     suspend fun ApplicationTestBuilder.opprettSakOgKlagebehandlingTilAvvisning(
         tac: TestApplicationContext,
-        fnr: Fnr = Fnr.random(),
+        fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,

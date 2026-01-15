@@ -17,6 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevFo
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.klage.domene.ForhåndsvisBrevKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -25,7 +28,8 @@ import java.time.LocalDate
 class GenererFakeVedtaksbrevKlient :
     GenererVedtaksbrevForInnvilgelseKlient,
     GenererVedtaksbrevForStansKlient,
-    GenererVedtaksbrevForAvslagKlient {
+    GenererVedtaksbrevForAvslagKlient,
+    GenererKlagebrevKlient {
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json").right() }
     override suspend fun genererInnvilgelsesvedtaksbrev(
         vedtak: Rammevedtak,
@@ -127,6 +131,16 @@ class GenererFakeVedtaksbrevKlient :
     override suspend fun genererAvslagsvVedtaksbrev(
         vedtak: Rammevedtak,
         datoForUtsending: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response
+    }
+
+    override suspend fun genererAvvisningsvedtak(
+        klagebehandling: Klagebehandling,
+        kommando: ForhåndsvisBrevKlagebehandlingKommando,
+        vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {

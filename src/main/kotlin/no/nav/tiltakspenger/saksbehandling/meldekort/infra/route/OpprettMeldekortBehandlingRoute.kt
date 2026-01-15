@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
@@ -66,13 +64,14 @@ fun Route.opprettMeldekortBehandlingRoute(
                             )
                         }
                     },
-                    { (sak) ->
+                    { (sak, behandling) ->
                         auditService.logMedSakId(
                             sakId = sakId,
                             navIdent = saksbehandler.navIdent,
                             action = AuditLogEvent.Action.CREATE,
                             contextMessage = "Oppretter meldekort-behandling",
                             correlationId = correlationId,
+                            behandlingId = behandling.id,
                         )
 
                         call.respondJson(value = sak.toMeldeperiodeKjedeDTO(kjedeId, clock))

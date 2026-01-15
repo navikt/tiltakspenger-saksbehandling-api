@@ -50,6 +50,7 @@ fun Route.hentPersonopplysningerBarnRoute(
                         action = AuditLogEvent.Action.ACCESS,
                         contextMessage = "Henter barn for en sak",
                         correlationId = correlationId,
+                        behandlingId = null,
                     )
                     call.respondJson(value = barn)
                 },

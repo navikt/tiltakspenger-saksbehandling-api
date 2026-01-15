@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 
-class KlagebehandlingFakeRepo : KlagebehandlingFakeRepo {
+class KlagebehandlingFakeRepo : KlagebehandlingRepo {
 
     private val data = Atomic(mutableMapOf<KlagebehandlingId, Klagebehandling>())
     val alle get() = data.get().values.toList()

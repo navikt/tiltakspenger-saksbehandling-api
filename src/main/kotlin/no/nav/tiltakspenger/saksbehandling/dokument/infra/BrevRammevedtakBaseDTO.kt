@@ -1,10 +1,6 @@
-package no.nav.tiltakspenger.saksbehandling.dokument.infra
+@file:Suppress("unused")
 
-data class BrevPersonaliaDTO(
-    val ident: String,
-    val fornavn: String,
-    val etternavn: String,
-)
+package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 sealed interface BrevRammevedtakBaseDTO {
     val personalia: BrevPersonaliaDTO

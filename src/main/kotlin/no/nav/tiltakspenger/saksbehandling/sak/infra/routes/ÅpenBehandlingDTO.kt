@@ -145,6 +145,7 @@ private fun List<Klagebehandling>.toÅpenKlagebehandlingDTO(): List<ÅpenBehandl
         status = when (it.status) {
             no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> "KLAR_TIL_BEHANDLING"
             no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING -> "UNDER_BEHANDLING"
+            no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT -> "AVBRUTT"
         },
         saksbehandler = it.saksbehandler,
         resultat = it.resultat?.toString(),

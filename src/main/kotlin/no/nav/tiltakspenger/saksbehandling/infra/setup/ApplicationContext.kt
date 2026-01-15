@@ -318,7 +318,6 @@ open class ApplicationContext(
             statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
             genererVedtaksbrevForUtbetalingKlient = dokumentContext.genererVedtaksbrevForUtbetalingKlient,
             navIdentClient = personContext.navIdentClient,
-
         )
     }
     open val behandlingContext by lazy {
@@ -355,6 +354,9 @@ open class ApplicationContext(
             sakService = sakContext.sakService,
             clock = clock,
             validerJournalpostService = søknadContext.validerJournalpostService,
+            personService = personContext.personService,
+            navIdentClient = personContext.navIdentClient,
+            genererKlagebrevKlient = dokumentContext.genererKlagebrevKlient,
         )
     }
 

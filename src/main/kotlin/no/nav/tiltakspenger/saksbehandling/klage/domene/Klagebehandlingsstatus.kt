@@ -6,4 +6,6 @@ enum class Klagebehandlingsstatus {
 
     /** En saksbehandler står på behandlingen. */
     UNDER_BEHANDLING,
+
+    AVBRUTT,
 }

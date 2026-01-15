@@ -82,7 +82,6 @@ interface StartRevurderingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        beslutter: Saksbehandler = ObjectMother.beslutter(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
@@ -155,9 +154,7 @@ interface StartRevurderingBuilder {
     suspend fun ApplicationTestBuilder.startRevurderingInnvilgelse(
         tac: TestApplicationContext,
         sakId: SakId,
-        innvilgelsesperiode: Periode,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        beslutter: Saksbehandler = ObjectMother.beslutter(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
@@ -166,6 +163,7 @@ interface StartRevurderingBuilder {
             sakId = sakId,
             type = RevurderingType.INNVILGELSE,
             saksbehandler = saksbehandler,
+            rammevedtakIdSomOmgjøres = null,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         )
@@ -246,6 +244,7 @@ interface StartRevurderingBuilder {
             sakId = sakId,
             type = RevurderingType.OMGJØRING,
             rammevedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres,
+            saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
         )
     }

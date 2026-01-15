@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -42,7 +41,7 @@ private data class ForhåndsvisBrevMeldekortbehandlingBody(
     )
 }
 
-fun Route.forhåndsvisBrevMeldekortbehandling(
+fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
     forhåndsvisBrevMeldekortBehandlingService: ForhåndsvisBrevMeldekortBehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
@@ -82,12 +81,13 @@ fun Route.forhåndsvisBrevMeldekortbehandling(
                             call.respondJson(valueAndStatus = it.tilStatusOgErrorJson())
                         },
                         ifRight = {
-                            auditService.logMedMeldekortId(
-                                meldekortId = meldekortId,
+                            auditService.logMedSakId(
+                                sakId = sakId,
                                 navIdent = saksbehandler.navIdent,
                                 action = AuditLogEvent.Action.ACCESS,
                                 contextMessage = "Forhåndsviser brev for meldekortbehandling",
                                 correlationId = correlationId,
+                                behandlingId = meldekortId,
                             )
                             call.respondBytes(it.pdf.getContent(), ContentType.Application.Pdf)
                         },
@@ -98,9 +98,16 @@ fun Route.forhåndsvisBrevMeldekortbehandling(
     }
 }
 
-internal fun KunneIkkeForhåndsviseBrevMeldekortBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> =
-    when (this) {
-        is KunneIkkeForhåndsviseBrevMeldekortBehandling.FeilVedGenereringAvPdf -> this.feil.tilStatusOgErrorJson()
+internal fun KunneIkkeForhåndsviseBrevMeldekortBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+    return when (this) {
+        is KunneIkkeForhåndsviseBrevMeldekortBehandling.FeilVedGenereringAvPdf -> Pair(
+            HttpStatusCode.InternalServerError,
+            ErrorJson(
+                "Feil ved generering av PDF. Feilen er blitt logget. Vennligst prøv igjen senere.",
+                "feil_ved_generering_av_pdf",
+            ),
+        )
+
         KunneIkkeForhåndsviseBrevMeldekortBehandling.FantIkkeMeldekortbehandling -> Pair(
             HttpStatusCode.NotFound,
             ErrorJson(
@@ -109,11 +116,4 @@ internal fun KunneIkkeForhåndsviseBrevMeldekortBehandling.tilStatusOgErrorJson(
             ),
         )
     }
-
-internal fun KunneIkkeGenererePdf.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = Pair(
-    HttpStatusCode.InternalServerError,
-    ErrorJson(
-        "Feil ved generering av PDF. Feilen er blitt logget. Vennligst prøv igjen senere.",
-        "feil_ved_generering_av_pdf",
-    ),
-)
+}

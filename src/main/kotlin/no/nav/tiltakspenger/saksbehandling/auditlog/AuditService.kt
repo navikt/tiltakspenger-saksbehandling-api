@@ -262,7 +262,7 @@ class AuditService(
         action: AuditLogEvent.Action,
         correlationId: CorrelationId,
         contextMessage: String,
-        behandlingId: Ulid? = null,
+        behandlingId: Ulid?,
     ) {
         Either.catch {
             val berørtBrukerId = personService.hentFnrForSakId(sakId)

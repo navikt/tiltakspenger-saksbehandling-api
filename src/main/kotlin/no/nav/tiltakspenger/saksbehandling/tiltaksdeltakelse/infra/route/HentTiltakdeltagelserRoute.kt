@@ -68,6 +68,7 @@ fun Route.hentTiltakdeltakelserRoute(
                             action = AuditLogEvent.Action.ACCESS,
                             contextMessage = "Henter tiltaksdeltakelser for en sak",
                             correlationId = correlationId,
+                            behandlingId = null,
                         )
                         call.respondJson(value = tiltaksdeltakelser)
                     },

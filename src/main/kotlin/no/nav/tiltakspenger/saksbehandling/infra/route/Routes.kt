@@ -46,6 +46,9 @@ fun Route.routes(
         )
         klagebehandlingRoutes(
             opprettKlagebehandlingService = applicationContext.klagebehandlingContext.opprettKlagebehandlingService,
+            oppdaterKlagebehandlingFormkravService = applicationContext.klagebehandlingContext.oppdaterKlagebehandlingFormkravService,
+            avbrytKlagebehandlingService = applicationContext.klagebehandlingContext.avbrytKlagebehandlingService,
+            forhåndsvisBrevKlagebehandlingService = applicationContext.klagebehandlingContext.forhåndsvisBrevKlagebehandlingService,
             auditService = applicationContext.personContext.auditService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
         )
@@ -73,7 +76,6 @@ fun Route.routes(
             oppdaterMeldekortService = applicationContext.meldekortContext.oppdaterMeldekortService,
             opprettMeldekortBehandlingService = applicationContext.meldekortContext.opprettMeldekortBehandlingService,
             auditService = applicationContext.personContext.auditService,
-            sakService = applicationContext.sakContext.sakService,
             mottaBrukerutfyltMeldekortService = applicationContext.mottaBrukerutfyltMeldekortService,
             underkjennMeldekortBehandlingService = applicationContext.meldekortContext.underkjennMeldekortBehandlingService,
             overtaMeldekortBehandlingService = applicationContext.meldekortContext.overtaMeldekortBehandlingService,

@@ -36,6 +36,7 @@ fun Klagebehandling.toDto() = KlagebehandlingDTO(
     status = when (status) {
         Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> "KLAR_TIL_BEHANDLING"
         Klagebehandlingsstatus.UNDER_BEHANDLING -> "UNDER_BEHANDLING"
+        Klagebehandlingsstatus.AVBRUTT -> "AVBRUTT"
     },
     resultat = when (resultat) {
         Klagebehandlingsresultat.AVVIST -> "AVVIST"
