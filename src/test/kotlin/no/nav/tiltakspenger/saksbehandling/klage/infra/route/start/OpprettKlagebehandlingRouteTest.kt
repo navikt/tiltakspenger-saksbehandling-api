@@ -37,7 +37,9 @@ class OpprettKlagebehandlingRouteTest {
                      "erKlagerPartISaken": true,
                      "klagesDetPåKonkreteElementerIVedtaket": true,
                      "erKlagefristenOverholdt": true,
-                     "erKlagenSignert": true
+                     "erKlagenSignert": true,
+                     "brevtekst": [],
+                     "erAvbrutt": false
                    }
                 """.trimIndent(),
             )

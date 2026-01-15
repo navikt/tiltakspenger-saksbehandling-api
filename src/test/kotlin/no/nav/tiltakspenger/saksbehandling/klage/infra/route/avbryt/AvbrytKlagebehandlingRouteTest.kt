@@ -39,7 +39,9 @@ class AvbrytKlagebehandlingRouteTest {
                      "erKlagerPartISaken": true,
                      "klagesDetPåKonkreteElementerIVedtaket": true,
                      "erKlagefristenOverholdt": true,
-                     "erKlagenSignert": true
+                     "erKlagenSignert": true,
+                     "brevtekst": [],
+                     "erAvbrutt": true
                    }
                 """.trimIndent(),
             )

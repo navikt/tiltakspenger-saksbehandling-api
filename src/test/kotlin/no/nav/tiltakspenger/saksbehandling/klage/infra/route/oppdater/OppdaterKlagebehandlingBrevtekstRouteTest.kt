@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -12,18 +13,38 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
     @Test
     fun `kan oppdatere klagebehandling - brevtekst`() {
         withTestApplicationContext { tac ->
-            opprettSakOgOppdaterKlagebehandlingBrevtekst(
+            val (_, behandling, json) = opprettSakOgOppdaterKlagebehandlingBrevtekst(
                 tac = tac,
-            )!!.second.also {
-                it.brevtekst!! shouldBe Brevtekster(
-                    listOf(
-                        TittelOgTekst(
-                            tittel = NonBlankString.create("Avvisning av klage"),
-                            tekst = NonBlankString.create("Din klage er dessverre avvist."),
-                        ),
-                    ),
-                )
-            }
+            )!!
+            json.toString().shouldEqualJson(
+                """
+                {
+                  "id": "${behandling.id}",
+                  "sakId": "${behandling.sakId}",
+                  "saksnummer": "202505011001",
+                  "fnr": "12345678911",
+                  "opprettet": "2025-05-01T01:02:06.456789",
+                  "sistEndret": "2025-05-01T01:02:07.456789",
+                  "saksbehandler": "Z12345",
+                  "journalpostId": "12345",
+                  "journalpostOpprettet": "2025-05-01T01:02:05.456789",
+                  "status": "UNDER_BEHANDLING",
+                  "resultat": "AVVIST",
+                  "vedtakDetKlagesPå": null,
+                  "erKlagerPartISaken": true,
+                  "klagesDetPåKonkreteElementerIVedtaket": true,
+                  "erKlagefristenOverholdt": true,
+                  "erKlagenSignert": true,
+                  "brevtekst": [
+                    {
+                      "tittel": "Avvisning av klage",
+                      "tekst": "Din klage er dessverre avvist."
+                    }
+                  ],
+                  "erAvbrutt": false
+                }
+                """.trimIndent(),
+            )
         }
     }
 }

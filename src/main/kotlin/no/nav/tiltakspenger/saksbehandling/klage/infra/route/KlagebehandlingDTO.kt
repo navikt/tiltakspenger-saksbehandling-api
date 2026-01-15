@@ -21,7 +21,14 @@ data class KlagebehandlingDTO(
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
     val erKlagefristenOverholdt: Boolean,
     val erKlagenSignert: Boolean,
-)
+    val brevtekst: List<TittelOgTekstDTO>,
+    val erAvbrutt: Boolean,
+) {
+    data class TittelOgTekstDTO(
+        val tittel: String,
+        val tekst: String,
+    )
+}
 
 fun Klagebehandling.toDto() = KlagebehandlingDTO(
     id = id.toString(),
@@ -47,4 +54,11 @@ fun Klagebehandling.toDto() = KlagebehandlingDTO(
     klagesDetPåKonkreteElementerIVedtaket = formkrav.klagesDetPåKonkreteElementerIVedtaket,
     erKlagefristenOverholdt = formkrav.erKlagefristenOverholdt,
     erKlagenSignert = formkrav.erKlagenSignert,
+    brevtekst = brevtekst?.map {
+        KlagebehandlingDTO.TittelOgTekstDTO(
+            tittel = it.tittel.value,
+            tekst = it.tekst.value,
+        )
+    } ?: emptyList(),
+    erAvbrutt = erAvbrutt,
 )
