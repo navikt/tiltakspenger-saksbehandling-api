@@ -224,7 +224,7 @@ data class Søknadsbehandling(
                     sak.fnr,
                     correlationId,
                     sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                    listOf(søknad.tiltak.id),
+                    listOf(søknad.tiltak.tiltaksdeltakerId),
                     true,
                 )
 
@@ -232,7 +232,7 @@ data class Søknadsbehandling(
                     sak.fnr,
                     correlationId,
                     sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                    søknad.tiltak?.let { listOf(it.id) } ?: emptyList(),
+                    søknad.tiltak?.let { listOf(it.tiltaksdeltakerId) } ?: emptyList(),
                     true,
                 )
             }
@@ -277,7 +277,7 @@ data class Søknadsbehandling(
                 søknad.fnr,
                 correlationId,
                 sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                listOf(søknad.tiltak.id),
+                listOf(søknad.tiltak.tiltaksdeltakerId),
                 true,
             )
             return Søknadsbehandling(

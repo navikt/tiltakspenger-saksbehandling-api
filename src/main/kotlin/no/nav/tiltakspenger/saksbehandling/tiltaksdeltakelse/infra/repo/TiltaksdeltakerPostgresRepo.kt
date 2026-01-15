@@ -60,6 +60,12 @@ class TiltaksdeltakerPostgresRepo(
         }
     }
 
+    override fun hentEksternId(id: TiltaksdeltakerId): String {
+        return sessionFactory.withSession { session ->
+            hentEksternId(id, session)
+        }
+    }
+
     override fun lagre(id: TiltaksdeltakerId, eksternId: String, sessionContext: SessionContext?) {
         sessionFactory.withSessionContext(sessionContext) { sessionContext ->
             sessionContext.withSession { session ->

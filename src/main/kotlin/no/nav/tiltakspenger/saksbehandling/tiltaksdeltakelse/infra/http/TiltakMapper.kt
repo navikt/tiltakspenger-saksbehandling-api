@@ -123,7 +123,7 @@ fun DeltakerStatusDTO.toDomain(): TiltakDeltakerstatus {
 fun TiltakTilSaksbehandlingDTO.harFomOgTomEllerRelevantStatus(
     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
 ): Boolean {
-    if (tiltaksdeltakelserDetErSøktTiltakspengerFor.ider.contains(id)) {
+    if (tiltaksdeltakelserDetErSøktTiltakspengerFor.eksterneIder.contains(id)) {
         return true
     }
     if (deltakelseFom != null || deltakelseTom != null) {

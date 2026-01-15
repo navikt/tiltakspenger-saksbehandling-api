@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger
 
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDateTime
 
 /**
@@ -23,8 +24,11 @@ data class TiltaksdeltakelserDetErSøktTiltakspengerFor(
         value.zipWithNext { a, b -> a.kravtidspunkt <= b.kravtidspunkt }
     }
 
-    /** TiltaksdeltakelseIden. Uavhengig av kildesystem. */
-    val ider: List<String> by lazy { value.map { it.søknadstiltak.id }.distinct() }
+    /** Intern tiltaksdeltakerId. */
+    val ider: List<TiltaksdeltakerId> by lazy { value.map { it.søknadstiltak.tiltaksdeltakerId }.distinct() }
+
+    /** Ekstern tiltaksdeltakelse-id. Uavhengig av kildesystem. */
+    val eksterneIder: List<String> by lazy { value.map { it.søknadstiltak.id }.distinct() }
 
     companion object {
         fun empty() = TiltaksdeltakelserDetErSøktTiltakspengerFor(emptyList())

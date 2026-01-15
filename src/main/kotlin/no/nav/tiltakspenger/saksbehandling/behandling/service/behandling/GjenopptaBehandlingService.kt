@@ -36,8 +36,8 @@ class GjenopptaBehandlingService(
                 correlationId = correlationId,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
                 aktuelleTiltaksdeltakelserForBehandlingen = when (behandling) {
-                    is Revurdering -> sak.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }
-                    is Søknadsbehandling -> listOfNotNull(behandling.søknad.tiltak?.id)
+                    is Revurdering -> sak.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }
+                    is Søknadsbehandling -> listOfNotNull(behandling.søknad.tiltak?.tiltaksdeltakerId)
                 },
                 inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = when (behandling) {
                     is Revurdering -> false

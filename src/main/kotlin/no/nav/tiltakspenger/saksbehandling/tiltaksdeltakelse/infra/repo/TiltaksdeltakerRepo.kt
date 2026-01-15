@@ -17,4 +17,6 @@ interface TiltaksdeltakerRepo {
     )
 
     fun hentInternId(eksternId: String): TiltaksdeltakerId?
+
+    fun hentEksternId(id: TiltaksdeltakerId): String
 }

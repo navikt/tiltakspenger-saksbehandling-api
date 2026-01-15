@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
@@ -41,7 +42,7 @@ class HentSaksopplysingerService(
         fnr: Fnr,
         correlationId: CorrelationId,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
-        aktuelleTiltaksdeltakelserForBehandlingen: List<String>,
+        aktuelleTiltaksdeltakelserForBehandlingen: List<TiltaksdeltakerId>,
         inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
     ): Saksopplysninger {
         val oppslagstidspunkt = LocalDateTime.now(clock)
@@ -75,7 +76,7 @@ class HentSaksopplysingerService(
         fnr: Fnr,
         correlationId: CorrelationId,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
-        aktuelleTiltaksdeltakelserForBehandlingen: List<String>,
+        aktuelleTiltaksdeltakelserForBehandlingen: List<TiltaksdeltakerId>,
         inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
     ): Tiltaksdeltakelser {
         val tiltaksdeltakelserSomKanGiRettTilTiltakspenger = tiltaksdeltakelseKlient.hentTiltaksdeltakelser(
@@ -86,10 +87,13 @@ class HentSaksopplysingerService(
         // Henter oppdaterte tiltaksdeltakelser det er søkt på, ved forlengelse kan flere overlappe enn på søknadstidspunktet.
         val tiltaksdeltakelserDetErSøktPå: TiltaksdeltakelserFraRegister =
             tiltaksdeltakelserSomKanGiRettTilTiltakspenger.filtrerPåTiltaksdeltakelsesIDer(
-                tiltaksdeltakelserDetErSøktTiltakspengerFor.ider,
+                tiltaksdeltakelserDetErSøktTiltakspengerFor.eksterneIder,
             )
+        val aktuelleEksterneTiltaksdeltakelseIderForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen.map {
+            tiltaksdeltakerRepo.hentEksternId(it)
+        }
         val aktuelleTiltaksdeltakelser = tiltaksdeltakelserDetErSøktPå
-            .filtrerPåTiltaksdeltakelsesIDer(aktuelleTiltaksdeltakelserForBehandlingen)
+            .filtrerPåTiltaksdeltakelsesIDer(aktuelleEksterneTiltaksdeltakelseIderForBehandlingen)
             .let { aktuelle ->
                 if (inkluderOverlappendeTiltaksdeltakelserDetErSøktOm) {
                     tiltaksdeltakelserDetErSøktPå.overlappende(aktuelle)

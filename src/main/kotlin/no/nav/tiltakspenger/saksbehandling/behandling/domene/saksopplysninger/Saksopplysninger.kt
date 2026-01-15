@@ -56,6 +56,6 @@ typealias HentSaksopplysninger = suspend (
     fnr: Fnr,
     correlationId: CorrelationId,
     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
-    aktuelleTiltaksdeltakelserForBehandlingen: List<String>,
+    aktuelleTiltaksdeltakelserForBehandlingen: List<TiltaksdeltakerId>,
     inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
 ) -> Saksopplysninger

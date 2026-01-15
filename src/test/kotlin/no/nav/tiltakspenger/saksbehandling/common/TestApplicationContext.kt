@@ -119,6 +119,7 @@ class TestApplicationContext(
         personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = person)
         tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
         tilgangsmaskinFakeClient.leggTil(fnr, Tilgangsvurdering.Godkjent)
+        tiltaksdeltakerFakeRepo.lagre(tiltaksdeltakelse.internDeltakelseId, tiltaksdeltakelse.eksternDeltakelseId)
     }
 
     fun leggTilBruker(token: String, bruker: Bruker<*, *>) {

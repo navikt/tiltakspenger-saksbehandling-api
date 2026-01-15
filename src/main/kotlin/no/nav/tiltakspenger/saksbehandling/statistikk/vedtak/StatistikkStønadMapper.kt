@@ -12,6 +12,7 @@ import java.util.UUID
  */
 fun genererStønadsstatistikkForRammevedtak(
     vedtak: Rammevedtak,
+    tiltaksdeltakelseEksterneIder: List<String>?,
 ): StatistikkStønadDTO {
     val erSøknadsbehandling = vedtak.behandling is Søknadsbehandling
 
@@ -24,9 +25,6 @@ fun genererStønadsstatistikkForRammevedtak(
             tiltaksdeltakelse = it.valgtTiltaksdeltakelse.eksternDeltakelseId,
         )
     }
-
-    val tiltaksdeltakelseEksterneIder =
-        vedtak.behandling.valgteTiltaksdeltakelser?.verdier?.map { it.eksternDeltakelseId }
 
     val barnetillegg = vedtak.barnetillegg?.periodisering?.mapNotNull { bt ->
         if (bt.verdi.value > 0) {
