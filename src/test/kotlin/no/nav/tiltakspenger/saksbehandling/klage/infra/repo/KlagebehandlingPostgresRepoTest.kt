@@ -4,11 +4,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import org.junit.jupiter.api.Test
 
 class KlagebehandlingPostgresRepoTest {
@@ -39,6 +39,7 @@ class KlagebehandlingPostgresRepoTest {
                     erKlagenSignert = true,
                     vedtakDetKlagesPå = null,
                 ),
+                brevtekst = null,
             )
         }
     }

@@ -1,6 +1,5 @@
-package no.nav.tiltakspenger.saksbehandling.klage.domene
+package no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav
 
-import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.VedtakId
 
 /**

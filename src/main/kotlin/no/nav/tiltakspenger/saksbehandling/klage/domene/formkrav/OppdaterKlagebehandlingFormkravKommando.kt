@@ -1,10 +1,11 @@
-package no.nav.tiltakspenger.saksbehandling.klage.domene
+package no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 
 data class OppdaterKlagebehandlingFormkravKommando(
     val sakId: SakId,

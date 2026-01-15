@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.klage.domene
+package no.nav.tiltakspenger.saksbehandling.klage.domene.brev
 
 import no.nav.tiltakspenger.libs.common.NonBlankString
 

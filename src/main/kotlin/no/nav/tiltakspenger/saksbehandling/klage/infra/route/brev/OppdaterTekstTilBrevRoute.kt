@@ -1,11 +1,9 @@
-package no.nav.tiltakspenger.saksbehandling.klage.infra.route
+package no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
-import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -18,31 +16,30 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.kanIkkeOppdatereBehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toStatusAndErrorJson
+import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 
-private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/formkrav"
+private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/brevtekst"
 
-fun Route.oppdaterKlagebehandlingFormkravRoute(
-    oppdaterKlagebehandlingFormkravService: OppdaterKlagebehandlingFormkravService,
+fun Route.oppdaterTekstTilBrev(
+    oppdaterKlagebehandlingTekstTilBrevService: OppdaterKlagebehandlingTekstTilBrevService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger {}
 
     put(PATH) {
-        logger.debug { "Mottatt put-request på '$PATH' - Oppdaterer formkrav på eksisterende klagebehandling" }
+        logger.debug { "Mottatt put-request på '$PATH' - Oppdaterer brevtekst på eksisterende klagebehandling" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@put
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@put
         call.withSakId { sakId ->
             call.withKlagebehandlingId { klagebehandlingId ->
-                call.withBody<OppdaterKlagebehandlingFormkravBody> { body ->
+                call.withBody<KlagebehandlingTeksterTilBrevBody> { body ->
                     val correlationId = call.correlationId()
                     krevSaksbehandlerRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                    oppdaterKlagebehandlingFormkravService.oppdaterFormkrav(
+                    oppdaterKlagebehandlingTekstTilBrevService.oppdaterTekstTilBrev(
                         kommando = body.tilKommando(
                             sakId = sakId,
                             saksbehandler = saksbehandler,
@@ -59,7 +56,7 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
                                 sakId = sakId,
                                 navIdent = saksbehandler.navIdent,
                                 action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = "Oppdaterer formkrav på klagebehandling på sak $sakId",
+                                contextMessage = "Oppdaterer brevtekst på klagebehandling på sak $sakId",
                                 correlationId = correlationId,
                                 behandlingId = behandlingId,
                             )
@@ -69,29 +66,5 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
                 }
             }
         }
-    }
-}
-
-fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
-    return when (this) {
-        is KanIkkeOppdatereKlagebehandling.FantIkkeJournalpost -> Pair(
-            HttpStatusCode.BadRequest,
-            ErrorJson(
-                "Fant ikke journalpost",
-                "fant_ikke_journalpost",
-            ),
-        )
-
-        is KanIkkeOppdatereKlagebehandling.SaksbehandlerMismatch -> Pair(
-            HttpStatusCode.BadRequest,
-            behandlingenEiesAvAnnenSaksbehandler(
-                this.forventetSaksbehandler,
-            ),
-        )
-
-        is KanIkkeOppdatereKlagebehandling.KanIkkeOppdateres -> Pair(
-            HttpStatusCode.BadRequest,
-            kanIkkeOppdatereBehandling(),
-        )
     }
 }
