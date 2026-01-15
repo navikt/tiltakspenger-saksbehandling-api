@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 
+import arrow.core.nonEmptyListOf
+import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
@@ -194,7 +196,8 @@ class StartRevurderingOmgjøringTest {
                 tac = tac,
                 sakId = sakId,
             )!!
-            oppdaterBehandling(
+
+            val (_, behandlingMedHull) = oppdaterBehandling(
                 tac = tac,
                 sakId = sakId,
                 behandlingId = opprettetRevurdering.id,
@@ -230,6 +233,13 @@ class StartRevurderingOmgjøringTest {
                         begrunnelse = null,
                     ),
                 ),
+            )
+
+            behandlingMedHull.innvilgelsesperioder!!.periodisering.erSammenhengende shouldBe false
+
+            behandlingMedHull.innvilgelsesperioder!!.perioder shouldBe nonEmptyListOf(
+                førsteInnvilgelsesperiode,
+                andreInnvilgelsesperiode,
             )
         }
     }
