@@ -161,7 +161,6 @@ class RammebehandlingDTOTest {
                 "tilOgMed": "2025-03-31"
               },
               "antallDagerPerMeldeperiode": 10,
-              "tiltaksdeltakelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
               "internDeltakelseId": "tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG"
             }
           ],
@@ -723,7 +722,6 @@ class RammebehandlingDTOTest {
                 "tilOgMed": "2025-03-31"
               },
               "antallDagerPerMeldeperiode": 10,
-              "tiltaksdeltakelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
               "internDeltakelseId": "tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG"
             }
           ],
@@ -991,7 +989,6 @@ class RammebehandlingDTOTest {
                 "tilOgMed": "2025-03-31"
               },
               "antallDagerPerMeldeperiode": 10,
-              "tiltaksdeltakelseId": "f02e50df-d2ee-47f6-9afa-db66bd842bfd",
               "internDeltakelseId": "tiltaksdeltaker_01KEF73CZJX0MKYG4NK27BV7HG"
             }
           ],

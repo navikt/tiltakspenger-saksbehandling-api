@@ -96,7 +96,7 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
                                 "tilOgMed": "${periode.periode.tilOgMed}"
                             },
                             "antallDagerPerMeldeperiode": ${periode.antallDagerPerMeldeperiode},
-                            "tiltaksdeltakelseId": "${periode.tiltaksdeltakelseId}"
+                            "internDeltakelseId": "${periode.internDeltakelseId}"
                         }
                     """
                     }

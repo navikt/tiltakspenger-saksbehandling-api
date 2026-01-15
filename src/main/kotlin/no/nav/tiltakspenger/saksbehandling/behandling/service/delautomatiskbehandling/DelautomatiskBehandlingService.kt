@@ -142,7 +142,6 @@ class DelautomatiskBehandlingService(
                                 behandling,
                             ),
                         ),
-                        tiltaksdeltakelseId = tiltaksdeltakelse.id,
                         internDeltakelseId = tiltaksdeltakelse.tiltaksdeltakerId,
                     ),
                     periode = innvilgelsesperiode,

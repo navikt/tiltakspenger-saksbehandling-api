@@ -13,8 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 data class InnvilgelsesperiodeDTO(
     val periode: PeriodeDTO,
     val antallDagerPerMeldeperiode: Int,
-    val tiltaksdeltakelseId: String,
-    val internDeltakelseId: String?,
+    val internDeltakelseId: String,
 )
 
 typealias InnvilgelsesperioderDTO = List<InnvilgelsesperiodeDTO>
@@ -28,8 +27,7 @@ fun InnvilgelsesperioderDTO.tilKommando(): IkkeTomPeriodisering<Innvilgelsesperi
             verdi = InnvilgelsesperiodeKommando(
                 periode = periode,
                 antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
-                tiltaksdeltakelseId = it.tiltaksdeltakelseId,
-                internDeltakelseId = it.internDeltakelseId?.let { id -> TiltaksdeltakerId.fromString(id) },
+                internDeltakelseId = TiltaksdeltakerId.fromString(it.internDeltakelseId),
             ),
         )
     }.tilIkkeTomPeriodisering()
@@ -40,7 +38,6 @@ fun Innvilgelsesperioder.tilDTO(): InnvilgelsesperioderDTO {
         InnvilgelsesperiodeDTO(
             periode = it.periode.toDTO(),
             antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode.value,
-            tiltaksdeltakelseId = it.verdi.valgtTiltaksdeltakelse.eksternDeltakelseId,
             internDeltakelseId = it.verdi.valgtTiltaksdeltakelse.internDeltakelseId.toString(),
         )
     }

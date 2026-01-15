@@ -34,7 +34,6 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         return InnvilgelsesperiodeKommando(
             periode = innvilgelsesperiode,
             antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(antallDagerPerMeldeperiode),
-            tiltaksdeltakelseId = tiltaksdeltakelse.eksternDeltakelseId,
             internDeltakelseId = tiltaksdeltakelse.internDeltakelseId,
         )
     }
