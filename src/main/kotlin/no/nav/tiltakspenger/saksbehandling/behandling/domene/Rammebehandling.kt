@@ -102,10 +102,6 @@ sealed interface Rammebehandling : Behandling {
     fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse? =
         saksopplysninger.getTiltaksdeltakelse(internDeltakelseId)
 
-    // Brukes midlertidig som fallback frem til frontend sender internDeltakelsesId som en del av valgte innvilgelsesperioder
-    fun getTiltaksdeltakelseFallback(eksternDeltakelseId: String): Tiltaksdeltakelse? =
-        saksopplysninger.tiltaksdeltakelser.value.find { it.eksternDeltakelseId == eksternDeltakelseId }
-
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Rammebehandling
 
     fun erFerdigutfylt(): Boolean

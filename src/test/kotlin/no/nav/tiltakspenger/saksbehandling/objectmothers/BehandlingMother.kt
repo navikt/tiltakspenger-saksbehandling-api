@@ -59,6 +59,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -76,7 +77,6 @@ interface BehandlingMother : MotherOfAllMothers {
             InnvilgelsesperiodeDTO(
                 periode = periode.toDTO(),
                 antallDagerPerMeldeperiode = antallDager,
-                tiltaksdeltakelseId = this.saksopplysninger.tiltaksdeltakelser.single().eksternDeltakelseId,
                 internDeltakelseId = this.saksopplysninger.tiltaksdeltakelser.single().internDeltakelseId.toString(),
             ),
         )
@@ -87,7 +87,6 @@ interface BehandlingMother : MotherOfAllMothers {
             InnvilgelsesperiodeDTO(
                 periode = it.periode.toDTO(),
                 antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode.value,
-                tiltaksdeltakelseId = it.valgtTiltaksdeltakelse.eksternDeltakelseId,
                 internDeltakelseId = it.valgtTiltaksdeltakelse.internDeltakelseId.toString(),
             )
         }
@@ -616,6 +615,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
     ),
     tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
     tiltaksdeltakelseId: String = UUID.randomUUID().toString(),
+    internTiltaksdeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
     søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(
         fnr = fnr,
@@ -625,6 +625,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
             id = tiltaksdeltakelseId,
             deltakelseFom = periode.fraOgMed,
             deltakelseTom = periode.tilOgMed,
+            tiltaksdeltakerId = internTiltaksdeltakelseId,
         ),
         intro = if (deltarPåIntroduksjonsprogram) {
             Søknad.PeriodeSpm.Ja(
@@ -688,7 +689,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     val (sakMedSøknadsbehandling) = startSøknadsbehandling(
         periode = periode,
         fnr = fnr,
-        tiltaksdeltakelseId = innvilgelsesperioder.first().tiltaksdeltakelseId,
+        internTiltaksdeltakelseId = innvilgelsesperioder.first().internDeltakelseId,
     )
     val behandling = sakMedSøknadsbehandling.rammebehandlinger.singleOrNullOrThrow()!! as Søknadsbehandling
 

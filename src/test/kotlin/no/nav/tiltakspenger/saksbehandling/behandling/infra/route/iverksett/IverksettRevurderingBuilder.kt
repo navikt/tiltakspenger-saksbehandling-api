@@ -59,7 +59,6 @@ interface IverksettRevurderingBuilder {
         innvilgelsesperioder: List<InnvilgelsesperiodeDTO> = listOf(
             InnvilgelsesperiodeDTO(
                 periode = revurderingInnvilgelsesperiode.toDTO(),
-                tiltaksdeltakelseId = tiltaksdeltakelse.eksternDeltakelseId,
                 antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
                 internDeltakelseId = tiltaksdeltakelse.internDeltakelseId.toString(),
             ),
@@ -159,7 +158,6 @@ interface IverksettRevurderingBuilder {
         innvilgelsesperioder: List<InnvilgelsesperiodeDTO> = listOf(
             InnvilgelsesperiodeDTO(
                 periode = revurderingInnvilgelsesperiode.toDTO(),
-                tiltaksdeltakelseId = tiltaksdeltakelse.eksternDeltakelseId,
                 antallDagerPerMeldeperiode = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
                 internDeltakelseId = tiltaksdeltakelse.internDeltakelseId.toString(),
             ),
@@ -218,7 +216,6 @@ interface IverksettRevurderingBuilder {
                 InnvilgelsesperiodeDTO(
                     periode = innvilgelsesperiode.toDTO(),
                     antallDagerPerMeldeperiode = rammevedtakSomOmgjøres.antallDagerPerMeldeperiode!!.krymp(innvilgelsesperiode).single().verdi.value,
-                    tiltaksdeltakelseId = rammevedtakSomOmgjøres.behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
                     internDeltakelseId = rammevedtakSomOmgjøres.behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                 ),
             )

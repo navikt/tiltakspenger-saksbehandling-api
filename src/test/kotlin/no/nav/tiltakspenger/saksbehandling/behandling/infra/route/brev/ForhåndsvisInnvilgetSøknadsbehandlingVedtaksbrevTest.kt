@@ -30,7 +30,6 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     InnvilgelsesperiodeDTO(
                         periode = (1.januar(2025) til 31.mars(2025)).toDTO(),
                         antallDagerPerMeldeperiode = 10,
-                        tiltaksdeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
                         internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                     ),
                 ),
@@ -56,7 +55,6 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     InnvilgelsesperiodeDTO(
                         periode = innvilgelsesperiode.toDTO(),
                         antallDagerPerMeldeperiode = 10,
-                        tiltaksdeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
                         internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                     ),
                 ),
@@ -88,7 +86,6 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                     InnvilgelsesperiodeDTO(
                         periode = (1.januar(2025) til 31.mars(2025)).toDTO(),
                         antallDagerPerMeldeperiode = 10,
-                        tiltaksdeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
                         internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                     ),
                 ),

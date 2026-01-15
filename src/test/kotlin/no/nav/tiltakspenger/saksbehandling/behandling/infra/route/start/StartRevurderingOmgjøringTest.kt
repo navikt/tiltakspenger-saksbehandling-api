@@ -139,7 +139,6 @@ class StartRevurderingOmgjøringTest {
                         InnvilgelsesperiodeDTO(
                             periode = revurderingsperiode.toDTO(),
                             antallDagerPerMeldeperiode = 10,
-                            tiltaksdeltakelseId = tiltaksdeltakelse.eksternDeltakelseId,
                             internDeltakelseId = tiltaksdeltakelse.internDeltakelseId.toString(),
                         ),
                     ),
@@ -209,13 +208,11 @@ class StartRevurderingOmgjøringTest {
                         InnvilgelsesperiodeDTO(
                             periode = førsteInnvilgelsesperiode.toDTO(),
                             antallDagerPerMeldeperiode = 10,
-                            tiltaksdeltakelseId = tiltaksdeltakelse.eksternDeltakelseId,
                             internDeltakelseId = tiltaksdeltakelse.internDeltakelseId.toString(),
                         ),
                         InnvilgelsesperiodeDTO(
                             periode = andreInnvilgelsesperiode.toDTO(),
                             antallDagerPerMeldeperiode = 10,
-                            tiltaksdeltakelseId = tiltaksdeltakelse.eksternDeltakelseId,
                             internDeltakelseId = tiltaksdeltakelse.internDeltakelseId.toString(),
                         ),
                     ),

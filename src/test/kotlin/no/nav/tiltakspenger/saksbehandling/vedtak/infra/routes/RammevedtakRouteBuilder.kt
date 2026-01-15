@@ -26,7 +26,6 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
     innvilgelsesperioder: String = """
         [
             {
-                "tiltaksdeltakelseId": "TA12345",
                 "internDeltakelseId": "tiltaksdeltaker_01KEEESATZWSK1FZGEFZA02XZB",
                 "periode": {
                     "fraOgMed": "2025-04-01",

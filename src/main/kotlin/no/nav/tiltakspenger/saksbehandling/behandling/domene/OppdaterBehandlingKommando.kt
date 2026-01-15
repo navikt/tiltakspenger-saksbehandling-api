@@ -23,12 +23,10 @@ sealed interface OppdaterBehandlingKommando {
         fun tilInnvilgelseperioder(behandling: Rammebehandling): Innvilgelsesperioder {
             return Innvilgelsesperioder(
                 innvilgelsesperioder.map {
-                    val tiltaksdeltakelse =
-                        it.verdi.internDeltakelseId?.let { internId -> behandling.getTiltaksdeltakelse(internId) }
-                            ?: behandling.getTiltaksdeltakelseFallback(it.verdi.tiltaksdeltakelseId)
+                    val tiltaksdeltakelse = behandling.getTiltaksdeltakelse(it.verdi.internDeltakelseId)
 
                     requireNotNull(tiltaksdeltakelse) {
-                        "Fant ikke tiltaket ${it.verdi.tiltaksdeltakelseId} i saksopplysningene for ${behandling.id}"
+                        "Fant ikke tiltaket ${it.verdi.internDeltakelseId} i saksopplysningene for ${behandling.id}"
                     }
 
                     Innvilgelsesperiode(
