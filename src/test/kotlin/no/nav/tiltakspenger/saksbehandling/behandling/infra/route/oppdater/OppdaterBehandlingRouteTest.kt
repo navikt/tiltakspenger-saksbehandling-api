@@ -383,7 +383,7 @@ class OppdaterBehandlingRouteTest {
             oppdatertRevurdering.saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltakelse
             val resultat = oppdatertRevurdering.resultat as RevurderingResultat.Omgjøring
             // Kommentar jah: Beklager for alt todomain-greiene. Her bør det expectes på eksplisitte verdier uten å bruke domenekode for mapping.
-            resultat.barnetillegg shouldBe barnetillegg.tilBarnetillegg(oppdatertRevurdering.innvilgelsesperioder!!.totalPeriode)
+            resultat.barnetillegg shouldBe barnetillegg.tilBarnetillegg(oppdatertRevurdering.innvilgelsesperioder!!.perioder)
             resultat.antallDagerPerMeldeperiode shouldBe innvilgelsesperioder.map {
                 PeriodeMedVerdi(
                     AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),

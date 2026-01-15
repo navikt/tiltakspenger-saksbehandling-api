@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
@@ -22,7 +23,7 @@ data class Innvilgelsesperioder(
     val fraOgMed: LocalDate = totalPeriode.fraOgMed
     val tilOgMed: LocalDate = totalPeriode.tilOgMed
 
-    val perioder: List<Periode> = periodisering.perioder
+    val perioder: NonEmptyList<Periode> = periodisering.perioder
 
     val valgteTiltaksdeltagelser: IkkeTomPeriodisering<Tiltaksdeltakelse> by lazy {
         periodisering.map { it.verdi.valgtTiltaksdeltakelse }
@@ -33,10 +34,6 @@ data class Innvilgelsesperioder(
     }
 
     init {
-        require(periodisering.erSammenhengende) {
-            "Vi støtter ikke innvilgelsesperioder med hull riktig ennå!"
-        }
-
         // abn: det føles litt rart å duplisere periodene egentlig :think:
         require(periodisering.perioderMedVerdi.all { it.periode == it.verdi.periode }) {
             "Innvilgelsesperiodene må ha samme perioder som i periodiseringen"

@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg
 
+import arrow.core.NonEmptyList
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -13,15 +15,17 @@ data class BarnetilleggDTO(
     val perioder: List<BarnetilleggPeriodeDTO>,
     val begrunnelse: String?,
 ) {
-    fun tilBarnetillegg(innvilgelsesperiode: Periode): Barnetillegg =
+    fun tilBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): Barnetillegg =
         if (this.perioder.isNotEmpty()) {
             Barnetillegg.periodiserOgFyllUtHullMed0(
                 begrunnelse = begrunnelse?.let { (Begrunnelse.create(it)) },
-                perioder = perioder.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) },
-                innvilgelsesperiode = innvilgelsesperiode,
+                perioderMedBarn = perioder
+                    .map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) }
+                    .toNonEmptyListOrThrow(),
+                innvilgelsesperioder = innvilgelsesperioder,
             )
         } else {
-            Barnetillegg.utenBarnetillegg(innvilgelsesperiode)
+            Barnetillegg.utenBarnetillegg(innvilgelsesperioder)
         }
 }
 

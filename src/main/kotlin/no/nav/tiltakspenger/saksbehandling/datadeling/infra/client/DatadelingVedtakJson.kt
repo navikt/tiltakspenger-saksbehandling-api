@@ -67,6 +67,7 @@ fun Rammevedtak.toDatadelingJson(): String {
         fom = periode.fraOgMed,
         tom = periode.tilOgMed,
         virkningsperiode = periode.toDTO(),
+        // TODO abn: burde vi sende periodiseringen istedenfor totalperioden?
         innvilgelsesperiode = innvilgelsesperioder?.totalPeriode?.toDTO(),
         // TODO jah: omgjørRammevedtakId og omgjortAvRammevedtakId bør gjøres om etter vi har lagt på eksplisitt omgjøring på vedtakene.
         // Kommentar jah: Disse ble lagt til utelukkende for revurdering til omgjøring for å tydeliggjøre at vedtaket omgjør et annet vedtak i sin helhet.

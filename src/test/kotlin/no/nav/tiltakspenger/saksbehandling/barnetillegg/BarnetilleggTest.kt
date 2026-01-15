@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.uke
@@ -7,6 +8,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+
+// TODO abn: skriv tester med flere innvilgelsesperioder med og uten hull
 
 class BarnetilleggTest {
 
@@ -21,22 +24,22 @@ class BarnetilleggTest {
 
             assertThrows<IllegalArgumentException> {
                 Barnetillegg.periodiserOgFyllUtHullMed0(
-                    perioder = listOf(bt1, overlappendeBt1),
+                    perioderMedBarn = nonEmptyListOf(bt1, overlappendeBt1),
                     begrunnelse = null,
-                    innvilgelsesperiode = Periode(1.januar(2026), 31.januar(2026)),
+                    innvilgelsesperioder = nonEmptyListOf(Periode(1.januar(2026), 31.januar(2026))),
                 )
-            }.message shouldBe "Periodene kan ikke overlappe"
+            }.message shouldBe ("Støtter ikke overlappende perioder, men var: [1.–4. januar 2026, 5.–11. januar 2026, 10.–15. januar 2026, 16.–31. januar 2026]")
         }
 
         @Test
         fun `perioder med hull skal bli tettet og bli sammenhengende`() {
-            val barnetilleggPerioder = listOf(bt1, bt2)
+            val barnetilleggPerioder = nonEmptyListOf(bt1, bt2)
             val innvilgelsesperiode = Periode(5.januar(2026), 25.januar(2026))
 
             val sammenhengendeBarnetilleggPerioder = Barnetillegg.periodiserOgFyllUtHullMed0(
-                perioder = barnetilleggPerioder,
+                perioderMedBarn = barnetilleggPerioder,
                 begrunnelse = null,
-                innvilgelsesperiode = innvilgelsesperiode,
+                innvilgelsesperioder = nonEmptyListOf(innvilgelsesperiode),
             )
 
             sammenhengendeBarnetilleggPerioder.periodisering.perioderMedVerdi.let {

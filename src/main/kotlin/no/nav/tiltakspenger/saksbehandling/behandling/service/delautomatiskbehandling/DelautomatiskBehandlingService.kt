@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
 import arrow.core.getOrElse
+import arrow.core.nonEmptyListOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -372,7 +373,7 @@ class DelautomatiskBehandlingService(
                 begrunnelse = null,
             )
         } else {
-            Barnetillegg.utenBarnetillegg(periode)
+            Barnetillegg.utenBarnetillegg(nonEmptyListOf(periode))
         }
     }
 

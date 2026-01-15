@@ -49,7 +49,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 innvilgelsesperioder = innvilgelsesperioder,
-                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.totalPeriode),
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
                 automatiskSaksbehandlet = false,
             )
         }
@@ -83,7 +83,6 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
     data class IkkeValgtResultat(
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
-
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat = null
 
