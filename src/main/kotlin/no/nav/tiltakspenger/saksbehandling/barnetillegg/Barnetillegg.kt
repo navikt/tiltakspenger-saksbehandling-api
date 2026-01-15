@@ -88,7 +88,6 @@ data class Barnetillegg(
             )
         }
 
-        // TODO abn: fjern denne etter å ha oppdatert testene
         @TestOnly
         fun utenBarnetillegg(periode: Periode): Barnetillegg {
             return utenBarnetillegg(nonEmptyListOf(periode))
