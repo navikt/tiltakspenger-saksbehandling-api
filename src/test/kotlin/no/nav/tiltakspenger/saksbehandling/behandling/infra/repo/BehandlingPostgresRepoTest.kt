@@ -18,13 +18,10 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
-import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -41,7 +38,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSÃ
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterRevurderingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandlerOgBeslutter
@@ -379,38 +378,36 @@ internal class BehandlingPostgresRepoTest {
 
             sakFraDb.rammebehandlinger.last() shouldBe behandlingFraDb
 
-            behandlingFraDb.innvilgelsesperioder!! shouldBe Innvilgelsesperioder(
-                listOf(
-                    Innvilgelsesperiode(
-                        periode = 1.januar(2025) til 10.januar(2025),
-                        valgtTiltaksdeltakelse = tiltaksdeltakelse1,
-                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(6),
-                    ).tilPeriodeMedVerdi(),
+            behandlingFraDb.innvilgelsesperioder!! shouldBe innvilgelsesperioder(
+                innvilgelsesperiode(
+                    periode = 1.januar(2025) til 10.januar(2025),
+                    valgtTiltaksdeltakelse = tiltaksdeltakelse1,
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(6),
+                ),
 
-                    Innvilgelsesperiode(
-                        periode = 11.januar(2025) til 20.januar(2025),
-                        valgtTiltaksdeltakelse = tiltaksdeltakelse1,
-                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
-                    ).tilPeriodeMedVerdi(),
+                innvilgelsesperiode(
+                    periode = 11.januar(2025) til 20.januar(2025),
+                    valgtTiltaksdeltakelse = tiltaksdeltakelse1,
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(10),
+                ),
 
-                    Innvilgelsesperiode(
-                        periode = 21.januar(2025) til 30.april(2025),
-                        valgtTiltaksdeltakelse = tiltaksdeltakelse1,
-                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(4),
-                    ).tilPeriodeMedVerdi(),
+                innvilgelsesperiode(
+                    periode = 21.januar(2025) til 30.april(2025),
+                    valgtTiltaksdeltakelse = tiltaksdeltakelse1,
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(4),
+                ),
 
-                    Innvilgelsesperiode(
-                        periode = 1.mai(2025) til 31.mai(2025),
-                        valgtTiltaksdeltakelse = tiltaksdeltakelse2,
-                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(4),
-                    ).tilPeriodeMedVerdi(),
+                innvilgelsesperiode(
+                    periode = 1.mai(2025) til 31.mai(2025),
+                    valgtTiltaksdeltakelse = tiltaksdeltakelse2,
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(4),
+                ),
 
-                    Innvilgelsesperiode(
-                        periode = 1.juni(2025) til 30.juni(2025),
-                        valgtTiltaksdeltakelse = tiltaksdeltakelse2,
-                        antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(2),
-                    ).tilPeriodeMedVerdi(),
-                ).tilIkkeTomPeriodisering(),
+                innvilgelsesperiode(
+                    periode = 1.juni(2025) til 30.juni(2025),
+                    valgtTiltaksdeltakelse = tiltaksdeltakelse2,
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(2),
+                ),
             )
         }
     }

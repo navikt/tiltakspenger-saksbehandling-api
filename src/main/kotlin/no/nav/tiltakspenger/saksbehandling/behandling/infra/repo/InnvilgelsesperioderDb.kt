@@ -4,7 +4,6 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.InnvilgelsesperioderDbJson.InnvilgelsesperiodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
@@ -25,11 +24,10 @@ private data class InnvilgelsesperioderDbJson(
     fun tilDomene(): Innvilgelsesperioder {
         return Innvilgelsesperioder(
             value.map {
-                Innvilgelsesperiode(
-                    periode = it.periode.toDomain(),
+                Innvilgelsesperioder.InnvilgelsesperiodeVerdi(
                     valgtTiltaksdeltakelse = it.valgtTiltaksdeltakelse.toDomain(),
                     antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
-                ).tilPeriodeMedVerdi()
+                ).tilPeriodeMedVerdi(it.periode.toDomain())
             }.tilIkkeTomPeriodisering(),
         )
     }

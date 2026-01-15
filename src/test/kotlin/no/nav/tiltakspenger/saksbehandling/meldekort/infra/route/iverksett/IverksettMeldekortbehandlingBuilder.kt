@@ -23,12 +23,13 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.MeldeperiodeKjedeDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBeslutterTarBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgBesluttertarMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -63,12 +64,10 @@ interface IverksettMeldekortbehandlingBuilder {
             fom = vedtaksperiode.fraOgMed,
             tom = vedtaksperiode.tilOgMed,
         ),
-        innvilgelsesperioder: List<Innvilgelsesperiode> = listOf(
-            Innvilgelsesperiode(
-                periode = vedtaksperiode,
-                valgtTiltaksdeltakelse = tiltaksdeltakelse,
-                antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            ),
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(
+            periode = vedtaksperiode,
+            valgtTiltaksdeltakelse = tiltaksdeltakelse,
+            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
         ),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,

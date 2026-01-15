@@ -18,17 +18,17 @@ fun genererStønadsstatistikkForRammevedtak(
 
     val søknad = if (erSøknadsbehandling) vedtak.behandling.søknad else null
 
-    val innvilgelsesperioder = vedtak.innvilgelsesperioder?.periodisering?.verdier?.map {
-        StatistikkStønadDTO.Innvilgelsesperiode(
+    val innvilgelsesperioder = vedtak.innvilgelsesperioder?.periodisering?.perioderMedVerdi?.map {
+        StatistikkStønadDTO.InnvilgelsesperiodeStatistikk(
             fraOgMed = it.periode.fraOgMed,
             tilOgMed = it.periode.tilOgMed,
-            tiltaksdeltakelse = it.valgtTiltaksdeltakelse.eksternDeltakelseId,
+            tiltaksdeltakelse = it.verdi.valgtTiltaksdeltakelse.eksternDeltakelseId,
         )
     }
 
     val barnetillegg = vedtak.barnetillegg?.periodisering?.mapNotNull { bt ->
         if (bt.verdi.value > 0) {
-            StatistikkStønadDTO.Barnetillegg(
+            StatistikkStønadDTO.BarnetilleggStatistikk(
                 fraOgMed = bt.periode.fraOgMed,
                 tilOgMed = bt.periode.tilOgMed,
                 antallBarn = bt.verdi.value,

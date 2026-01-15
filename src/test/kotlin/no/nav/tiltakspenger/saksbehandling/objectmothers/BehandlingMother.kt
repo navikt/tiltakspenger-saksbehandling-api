@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -80,16 +79,6 @@ interface BehandlingMother : MotherOfAllMothers {
                 internDeltakelseId = this.saksopplysninger.tiltaksdeltakelser.single().internDeltakelseId.toString(),
             ),
         )
-    }
-
-    fun List<Innvilgelsesperiode>.tilDTO(): List<InnvilgelsesperiodeDTO> {
-        return this.map {
-            InnvilgelsesperiodeDTO(
-                periode = it.periode.toDTO(),
-                antallDagerPerMeldeperiode = it.antallDagerPerMeldeperiode.value,
-                internDeltakelseId = it.valgtTiltaksdeltakelse.internDeltakelseId.toString(),
-            )
-        }
     }
 
     fun godkjentAttestering(beslutter: Saksbehandler = beslutter(), clock: Clock = this.clock): Attestering =

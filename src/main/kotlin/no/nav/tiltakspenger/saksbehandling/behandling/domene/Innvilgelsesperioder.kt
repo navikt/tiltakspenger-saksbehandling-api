@@ -12,13 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import java.time.LocalDate
 
 data class Innvilgelsesperioder(
-    val periodisering: IkkeTomPeriodisering<Innvilgelsesperiode>,
+    val periodisering: IkkeTomPeriodisering<InnvilgelsesperiodeVerdi>,
 ) {
-    constructor(perioder: List<Innvilgelsesperiode>) : this(
-        perioder.map { it.tilPeriodeMedVerdi() }.tilIkkeTomPeriodisering(),
-    )
-    constructor(vararg perioder: Innvilgelsesperiode) : this(perioder.toList())
-
     val totalPeriode: Periode = periodisering.totalPeriode
     val fraOgMed: LocalDate = totalPeriode.fraOgMed
     val tilOgMed: LocalDate = totalPeriode.tilOgMed
@@ -34,9 +29,15 @@ data class Innvilgelsesperioder(
     }
 
     init {
-        // abn: det føles litt rart å duplisere periodene egentlig :think:
-        require(periodisering.perioderMedVerdi.all { it.periode == it.verdi.periode }) {
-            "Innvilgelsesperiodene må ha samme perioder som i periodiseringen"
+        periodisering.perioderMedVerdi.forEach {
+            val valgtTiltaksdeltakelse = it.verdi.valgtTiltaksdeltakelse
+
+            val deltakelsesperiode =
+                Periode(valgtTiltaksdeltakelse.deltakelseFraOgMed!!, valgtTiltaksdeltakelse.deltakelseTilOgMed!!)
+
+            require(deltakelsesperiode.inneholderHele(it.periode)) {
+                "Valgt deltakelsesperiode $deltakelsesperiode for tiltak med id ${valgtTiltaksdeltakelse.internDeltakelseId} må være inneholde hele innvilgelsesperioden ${it.periode}"
+            }
         }
     }
 
@@ -49,9 +50,9 @@ data class Innvilgelsesperioder(
      * eller null dersom ingen overlapper
      * */
     fun krympTilTiltaksdeltakelsesperioder(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilgelsesperioder? {
-        val nyeInnvilgelsesperioder = periodisering.verdier.mapNotNull {
+        val nyeInnvilgelsesperioder = periodisering.perioderMedVerdi.mapNotNull {
             val oppdatertTiltaksdeltakelse =
-                tiltaksdeltakelser.getTiltaksdeltakelse(it.valgtTiltaksdeltakelse.internDeltakelseId)
+                tiltaksdeltakelser.getTiltaksdeltakelse(it.verdi.valgtTiltaksdeltakelse.internDeltakelseId)
 
             if (oppdatertTiltaksdeltakelse == null || !oppdatertTiltaksdeltakelse.kanInnvilges) {
                 return@mapNotNull null
@@ -61,10 +62,12 @@ data class Innvilgelsesperioder(
             val overlappendePeriode =
                 it.periode.overlappendePeriode(oppdatertTiltaksdeltakelse.periode as Periode) ?: return@mapNotNull null
 
-            it.copy(
+            PeriodeMedVerdi(
                 periode = overlappendePeriode,
-                valgtTiltaksdeltakelse = oppdatertTiltaksdeltakelse,
-            ).tilPeriodeMedVerdi()
+                verdi = it.verdi.copy(
+                    valgtTiltaksdeltakelse = oppdatertTiltaksdeltakelse,
+                ),
+            )
         }
 
         if (nyeInnvilgelsesperioder.isEmpty()) {
@@ -80,30 +83,25 @@ data class Innvilgelsesperioder(
     fun erInnenforTiltaksperiodene(saksopplysninger: Saksopplysninger): Boolean {
         return this.perioder.trekkFra(saksopplysninger.tiltaksdeltakelser.perioder).isEmpty()
     }
-}
 
-data class Innvilgelsesperiode(
-    val periode: Periode,
-    val valgtTiltaksdeltakelse: Tiltaksdeltakelse,
-    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
-) {
-    init {
-        require(valgtTiltaksdeltakelse.deltakelseFraOgMed != null && valgtTiltaksdeltakelse.deltakelseTilOgMed != null) {
-            "Kan ikke velge tiltaksdeltakelse med id ${valgtTiltaksdeltakelse.internDeltakelseId} som mangler start- eller sluttdato"
+    data class InnvilgelsesperiodeVerdi(
+        val valgtTiltaksdeltakelse: Tiltaksdeltakelse,
+        val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
+    ) {
+        init {
+            require(valgtTiltaksdeltakelse.deltakelseFraOgMed != null && valgtTiltaksdeltakelse.deltakelseTilOgMed != null) {
+                "Kan ikke innvilge for tiltaksdeltakelse med id ${valgtTiltaksdeltakelse.internDeltakelseId} som mangler start- eller sluttdato"
+            }
         }
 
-        val deltakelsesperiode =
-            Periode(valgtTiltaksdeltakelse.deltakelseFraOgMed, valgtTiltaksdeltakelse.deltakelseTilOgMed)
-
-        require(deltakelsesperiode.inneholderHele(periode)) {
-            "Valgt deltakelsesperiode $deltakelsesperiode for tiltak med id ${valgtTiltaksdeltakelse.internDeltakelseId} må være inneholde hele innvilgelsesperioden $periode"
+        fun tilPeriodeMedVerdi(periode: Periode): PeriodeMedVerdi<InnvilgelsesperiodeVerdi> {
+            return PeriodeMedVerdi(
+                periode = periode,
+                verdi = InnvilgelsesperiodeVerdi(
+                    valgtTiltaksdeltakelse = valgtTiltaksdeltakelse,
+                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                ),
+            )
         }
-    }
-
-    fun tilPeriodeMedVerdi(): PeriodeMedVerdi<Innvilgelsesperiode> {
-        return PeriodeMedVerdi(
-            periode = periode,
-            verdi = this,
-        )
     }
 }
