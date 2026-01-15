@@ -73,7 +73,6 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
 }
 
 data class StartBehandlingAvManueltRegistrertSøknadCommand(
-    val personopplysninger: Søknad.Personopplysninger,
     val journalpostId: JournalpostId,
     val manueltSattSøknadsperiode: Periode?,
     val manueltSattTiltak: String?,

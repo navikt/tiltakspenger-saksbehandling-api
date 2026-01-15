@@ -366,6 +366,7 @@ open class ApplicationContext(
             behandlingRepo = behandlingContext.behandlingRepo,
             hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
             sakService = sakContext.sakService,
+            personService = personContext.personService,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkSakService = statistikkContext.statistikkSakService,
             clock = clock,
