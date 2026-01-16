@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -83,11 +82,6 @@ class ForhåndsvisVedtaksbrevService(
         innvilgelsesperioder: NonEmptyList<Periode>,
         kommando: ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando,
     ): PdfA {
-        val innvilgelseTotalperiode = Periode(
-            innvilgelsesperioder.first().fraOgMed,
-            innvilgelsesperioder.last().tilOgMed,
-        )
-
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -99,7 +93,7 @@ class ForhåndsvisVedtaksbrevService(
             sakId = sak.id,
             innvilgelsesperioder = innvilgelsesperioder,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
-            barnetillegg = kommando.barnetillegg?.utvid(AntallBarn(0), innvilgelseTotalperiode),
+            barnetillegg = kommando.barnetillegg,
             antallDagerTekst = toAntallDagerTekst(kommando.antallDagerPerMeldeperiode),
         ).fold(
             ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
@@ -141,11 +135,6 @@ class ForhåndsvisVedtaksbrevService(
         innvilgelsesperioder: NonEmptyList<Periode>,
         kommando: ForhåndsvisVedtaksbrevForRevurderingOmgjøringKommando,
     ): PdfA {
-        val innvilgelseTotalperiode = Periode(
-            innvilgelsesperioder.first().fraOgMed,
-            innvilgelsesperioder.last().tilOgMed,
-        )
-
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -157,7 +146,7 @@ class ForhåndsvisVedtaksbrevService(
             sakId = sak.id,
             innvilgelsesperioder = innvilgelsesperioder,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
-            barnetillegg = kommando.barnetillegg?.utvid(AntallBarn(0), innvilgelseTotalperiode),
+            barnetillegg = kommando.barnetillegg,
             antallDagerTekst = toAntallDagerTekst(kommando.antallDagerPerMeldeperiode),
         ).fold(
             ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
@@ -195,11 +184,6 @@ class ForhåndsvisVedtaksbrevService(
         behandling: Søknadsbehandling,
         innvilgelsesperioder: NonEmptyList<Periode>,
     ): PdfA {
-        val innvilgelseTotalperiode = Periode(
-            innvilgelsesperioder.first().fraOgMed,
-            innvilgelsesperioder.last().tilOgMed,
-        )
-
         return genererInnvilgelsesbrevClient.genererInnvilgetSøknadBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -211,7 +195,7 @@ class ForhåndsvisVedtaksbrevService(
             innvilgelsesperioder = innvilgelsesperioder,
             saksnummer = sak.saksnummer,
             sakId = sak.id,
-            barnetilleggsPerioder = kommando.barnetillegg?.utvid(AntallBarn(0), innvilgelseTotalperiode),
+            barnetilleggsPerioder = kommando.barnetillegg,
             antallDagerTekst = toAntallDagerTekst(kommando.antallDagerPerMeldeperiode),
         ).fold(
             ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
