@@ -79,7 +79,7 @@ internal class PdfgenHttpClient(
     private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
     private val klageAvvisUri = URI.create("$baseUrl/api/v1/genpdf/tpts/klageAvvis")
 
-    override suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+    override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         tilleggstekst: FritekstTilVedtaksbrev?,
@@ -112,7 +112,7 @@ internal class PdfgenHttpClient(
         )
     }
 
-    override suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+    override suspend fun genererInnvilgetSøknadBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
@@ -123,7 +123,6 @@ internal class PdfgenHttpClient(
         innvilgelsesperioder: NonEmptyList<Periode>,
         saksnummer: Saksnummer,
         sakId: SakId,
-        forhåndsvisning: Boolean,
         barnetilleggsPerioder: Periodisering<AntallBarn>?,
         antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
@@ -139,7 +138,7 @@ internal class PdfgenHttpClient(
                     beslutterNavIdent = beslutterNavIdent,
                     innvilgelsesperioder = innvilgelsesperioder,
                     saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
+                    forhåndsvisning = true,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     antallDagerTekst = antallDagerTekst,
                 )
@@ -149,7 +148,7 @@ internal class PdfgenHttpClient(
         )
     }
 
-    override suspend fun genererInnvilgetRevurderingBrev(
+    override suspend fun genererInnvilgetRevurderingBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
@@ -158,7 +157,6 @@ internal class PdfgenHttpClient(
         beslutterNavIdent: String?,
         saksnummer: Saksnummer,
         sakId: SakId,
-        forhåndsvisning: Boolean,
         innvilgelsesperioder: NonEmptyList<Periode>,
         tilleggstekst: FritekstTilVedtaksbrev?,
         barnetillegg: Periodisering<AntallBarn>?,
@@ -173,7 +171,7 @@ internal class PdfgenHttpClient(
                     saksbehandlerNavIdent = saksbehandlerNavIdent,
                     beslutterNavIdent = beslutterNavIdent,
                     saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
+                    forhåndsvisning = true,
                     innvilgelsesperioder = innvilgelsesperioder,
                     tilleggstekst = tilleggstekst,
                     barnetilleggsPerioder = barnetillegg,

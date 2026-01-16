@@ -17,7 +17,7 @@ import java.time.LocalDate
 
 interface GenererVedtaksbrevForInnvilgelseKlient {
 
-    suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+    suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         tilleggstekst: FritekstTilVedtaksbrev?,
@@ -25,7 +25,7 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
-    suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+    suspend fun genererInnvilgetSøknadBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
@@ -36,12 +36,11 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         innvilgelsesperioder: NonEmptyList<Periode>,
         saksnummer: Saksnummer,
         sakId: SakId,
-        forhåndsvisning: Boolean,
         barnetilleggsPerioder: Periodisering<AntallBarn>?,
         antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
-    suspend fun genererInnvilgetRevurderingBrev(
+    suspend fun genererInnvilgetRevurderingBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
@@ -50,7 +49,6 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         beslutterNavIdent: String?,
         saksnummer: Saksnummer,
         sakId: SakId,
-        forhåndsvisning: Boolean,
         innvilgelsesperioder: NonEmptyList<Periode>,
         tilleggstekst: FritekstTilVedtaksbrev?,
         barnetillegg: Periodisering<AntallBarn>?,
