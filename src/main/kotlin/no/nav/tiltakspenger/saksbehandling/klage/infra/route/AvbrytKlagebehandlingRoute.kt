@@ -20,6 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingen
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
 private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/avbryt"
 
@@ -27,6 +29,7 @@ fun Route.avbrytKlagebehandlingRoute(
     avbrytKlagebehandlingService: AvbrytKlagebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -59,7 +62,7 @@ fun Route.avbrytKlagebehandlingRoute(
                             },
                         )
                     },
-                    ifRight = { (_, behandling) ->
+                    ifRight = { (sak, behandling) ->
                         val behandlingId = behandling.id
                         auditService.logMedSakId(
                             sakId = sakId,
@@ -69,7 +72,10 @@ fun Route.avbrytKlagebehandlingRoute(
                             correlationId = correlationId,
                             behandlingId = behandlingId,
                         )
-                        call.respondJson(value = behandling.toDto())
+                        /*
+                            returnerer sak fordi vi oppdaterer klagen 2 forskjellige plasser i json.
+                         */
+                        call.respondJson(value = sak.toSakDTO(clock))
                     },
                 )
             }

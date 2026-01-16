@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlin
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
+import java.time.Clock
 
 fun Route.klagebehandlingRoutes(
     opprettKlagebehandlingService: OpprettKlagebehandlingService,
@@ -22,6 +23,7 @@ fun Route.klagebehandlingRoutes(
     iverksettKlagebehandlingService: IverksettKlagebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     opprettKlagebehandlingRoute(
         opprettKlagebehandlingService = opprettKlagebehandlingService,
@@ -37,6 +39,7 @@ fun Route.klagebehandlingRoutes(
         avbrytKlagebehandlingService = avbrytKlagebehandlingService,
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
+        clock = clock,
     )
     forhåndsvisBrevKlagebehandlingRoute(
         forhåndsvisBrevKlagebehandlingService = forhåndsvisBrevKlagebehandlingService,

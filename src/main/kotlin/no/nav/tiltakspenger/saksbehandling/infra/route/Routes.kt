@@ -53,6 +53,7 @@ fun Route.routes(
             auditService = applicationContext.personContext.auditService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             iverksettKlagebehandlingService = applicationContext.klagebehandlingContext.iverksettKlagebehandlingService,
+            clock = applicationContext.clock,
         )
         hentBenkRoute(
             benkOversiktService = applicationContext.benkOversiktContext.benkOversiktService,

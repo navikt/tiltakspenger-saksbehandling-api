@@ -4,7 +4,6 @@ import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -16,12 +15,10 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
-import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
@@ -86,13 +83,17 @@ interface AvbrytKlagebehandlingBuilder {
                 bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
-            val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
-            val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asText())
+            val sakJSon = objectMapper.readTree(bodyAsText)
+
+            val klagebehandling = sakJSon.get("klageBehandlinger").single {
+                it.get("id").asText() == klagebehandlingId.toString()
+            }
+
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(
                 oppdatertSak,
                 oppdatertSak.hentKlagebehandling(klagebehandlingId),
-                jsonObject,
+                klagebehandling,
             )
         }
     }
