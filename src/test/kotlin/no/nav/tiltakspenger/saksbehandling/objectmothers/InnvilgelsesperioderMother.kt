@@ -5,8 +5,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -46,14 +46,14 @@ interface InnvilgelsesperioderMother {
         valgtTiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(fom = periode.fraOgMed, tom = periode.tilOgMed),
         antallDagerPerMeldeperiode: AntallDagerForMeldeperiode = AntallDagerForMeldeperiode.default,
     ): Innvilgelsesperioder {
-        return Innvilgelsesperioder(
+        return innvilgelsesperioder(
             listOf(
                 innvilgelsesperiode(
                     periode,
                     valgtTiltaksdeltakelse,
                     antallDagerPerMeldeperiode,
                 ),
-            ).tilIkkeTomPeriodisering(),
+            ),
         )
     }
 }

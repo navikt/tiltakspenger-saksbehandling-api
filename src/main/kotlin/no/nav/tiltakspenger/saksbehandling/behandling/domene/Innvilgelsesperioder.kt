@@ -14,6 +14,12 @@ import java.time.LocalDate
 data class Innvilgelsesperioder(
     val periodisering: IkkeTomPeriodisering<InnvilgelsesperiodeVerdi>,
 ) {
+    constructor(perioder: List<Pair<InnvilgelsesperiodeVerdi, Periode>>) : this(
+        perioder.map {
+            it.first.tilPeriodeMedVerdi(it.second)
+        }.tilIkkeTomPeriodisering(),
+    )
+
     val totalPeriode: Periode = periodisering.totalPeriode
     val fraOgMed: LocalDate = totalPeriode.fraOgMed
     val tilOgMed: LocalDate = totalPeriode.tilOgMed
@@ -83,25 +89,22 @@ data class Innvilgelsesperioder(
     fun erInnenforTiltaksperiodene(saksopplysninger: Saksopplysninger): Boolean {
         return this.perioder.trekkFra(saksopplysninger.tiltaksdeltakelser.perioder).isEmpty()
     }
+}
 
-    data class InnvilgelsesperiodeVerdi(
-        val valgtTiltaksdeltakelse: Tiltaksdeltakelse,
-        val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
-    ) {
-        init {
-            require(valgtTiltaksdeltakelse.deltakelseFraOgMed != null && valgtTiltaksdeltakelse.deltakelseTilOgMed != null) {
-                "Kan ikke innvilge for tiltaksdeltakelse med id ${valgtTiltaksdeltakelse.internDeltakelseId} som mangler start- eller sluttdato"
-            }
+data class InnvilgelsesperiodeVerdi(
+    val valgtTiltaksdeltakelse: Tiltaksdeltakelse,
+    val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
+) {
+    init {
+        require(valgtTiltaksdeltakelse.deltakelseFraOgMed != null && valgtTiltaksdeltakelse.deltakelseTilOgMed != null) {
+            "Kan ikke innvilge for tiltaksdeltakelse med id ${valgtTiltaksdeltakelse.internDeltakelseId} som mangler start- eller sluttdato"
         }
+    }
 
-        fun tilPeriodeMedVerdi(periode: Periode): PeriodeMedVerdi<InnvilgelsesperiodeVerdi> {
-            return PeriodeMedVerdi(
-                periode = periode,
-                verdi = InnvilgelsesperiodeVerdi(
-                    valgtTiltaksdeltakelse = valgtTiltaksdeltakelse,
-                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-                ),
-            )
-        }
+    fun tilPeriodeMedVerdi(periode: Periode): PeriodeMedVerdi<InnvilgelsesperiodeVerdi> {
+        return PeriodeMedVerdi(
+            periode = periode,
+            verdi = this,
+        )
     }
 }
