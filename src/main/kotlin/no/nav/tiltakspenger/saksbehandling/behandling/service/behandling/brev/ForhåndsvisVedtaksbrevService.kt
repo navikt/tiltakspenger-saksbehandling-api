@@ -88,7 +88,7 @@ class ForhåndsvisVedtaksbrevService(
             innvilgelsesperioder.last().tilOgMed,
         )
 
-        return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrev(
+        return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
             vedtaksdato = LocalDate.now(clock),
@@ -97,7 +97,6 @@ class ForhåndsvisVedtaksbrevService(
             beslutterNavIdent = behandling.beslutter,
             saksnummer = sak.saksnummer,
             sakId = sak.id,
-            forhåndsvisning = true,
             innvilgelsesperioder = innvilgelsesperioder,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             barnetillegg = kommando.barnetillegg?.utvid(AntallBarn(0), innvilgelseTotalperiode),
@@ -147,7 +146,7 @@ class ForhåndsvisVedtaksbrevService(
             innvilgelsesperioder.last().tilOgMed,
         )
 
-        return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrev(
+        return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
             vedtaksdato = LocalDate.now(clock),
@@ -156,7 +155,6 @@ class ForhåndsvisVedtaksbrevService(
             beslutterNavIdent = behandling.beslutter,
             saksnummer = sak.saksnummer,
             sakId = sak.id,
-            forhåndsvisning = true,
             innvilgelsesperioder = innvilgelsesperioder,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             barnetillegg = kommando.barnetillegg?.utvid(AntallBarn(0), innvilgelseTotalperiode),
@@ -202,7 +200,7 @@ class ForhåndsvisVedtaksbrevService(
             innvilgelsesperioder.last().tilOgMed,
         )
 
-        return genererInnvilgelsesbrevClient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+        return genererInnvilgelsesbrevClient.genererInnvilgetSøknadBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
             vedtaksdato = LocalDate.now(clock),
@@ -213,7 +211,6 @@ class ForhåndsvisVedtaksbrevService(
             innvilgelsesperioder = innvilgelsesperioder,
             saksnummer = sak.saksnummer,
             sakId = sak.id,
-            forhåndsvisning = true,
             barnetilleggsPerioder = kommando.barnetillegg?.utvid(AntallBarn(0), innvilgelseTotalperiode),
             antallDagerTekst = toAntallDagerTekst(kommando.antallDagerPerMeldeperiode),
         ).fold(

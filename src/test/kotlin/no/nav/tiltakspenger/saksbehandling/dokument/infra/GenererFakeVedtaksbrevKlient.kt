@@ -32,7 +32,7 @@ class GenererFakeVedtaksbrevKlient :
     GenererKlagebrevKlient {
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json").right() }
 
-    override suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+    override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         tilleggstekst: FritekstTilVedtaksbrev?,
@@ -42,7 +42,7 @@ class GenererFakeVedtaksbrevKlient :
         return response
     }
 
-    override suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+    override suspend fun genererInnvilgetSøknadBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
@@ -53,14 +53,13 @@ class GenererFakeVedtaksbrevKlient :
         innvilgelsesperioder: NonEmptyList<Periode>,
         saksnummer: Saksnummer,
         sakId: SakId,
-        forhåndsvisning: Boolean,
         barnetilleggsPerioder: Periodisering<AntallBarn>?,
         antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }
 
-    override suspend fun genererInnvilgetRevurderingBrev(
+    override suspend fun genererInnvilgetRevurderingBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
@@ -69,7 +68,6 @@ class GenererFakeVedtaksbrevKlient :
         beslutterNavIdent: String?,
         saksnummer: Saksnummer,
         sakId: SakId,
-        forhåndsvisning: Boolean,
         innvilgelsesperioder: NonEmptyList<Periode>,
         tilleggstekst: FritekstTilVedtaksbrev?,
         barnetillegg: Periodisering<AntallBarn>?,
