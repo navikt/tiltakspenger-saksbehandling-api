@@ -2,9 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.satser.Satser
-import no.nav.tiltakspenger.libs.satser.Satser.Companion.satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.BrevRammevedtakInnvilgelseBaseDTO.SatserDTO
@@ -61,5 +59,15 @@ fun Satser.Companion.tilSatserDTO(periode: Periode): List<SatserDTO> {
             ordinær = it.sats,
             barnetillegg = it.satsBarnetillegg,
         )
+    }
+}
+
+// Joiner til komma-separert string med 'og' som siste separator
+fun List<String>.joinMedKonjunksjon(): String {
+    return when (this.size) {
+        0 -> throw IllegalStateException("Må ha minst en string")
+        1 -> this.first()
+        2 -> "${this.first()} og ${this.last()}"
+        else -> this.dropLast(1).joinToString(", ").plus(" og ${this.last()}")
     }
 }

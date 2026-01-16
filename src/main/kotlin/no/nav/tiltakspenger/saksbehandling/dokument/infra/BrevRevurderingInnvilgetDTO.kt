@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -81,12 +82,14 @@ internal suspend fun genererRevurderingInnvilgetBrev(
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
     val besluttersNavn = beslutterNavIdent?.let { hentSaksbehandlersNavn(it) }
 
+    val innvilgelsesperioderSlåttSammen = innvilgelsesperioder.leggSammen(false)
+
     val innvilgelseTotalperiode = Periode(
-        innvilgelsesperioder.first().fraOgMed,
-        innvilgelsesperioder.last().tilOgMed,
+        innvilgelsesperioderSlåttSammen.first().fraOgMed,
+        innvilgelsesperioderSlåttSammen.last().tilOgMed,
     )
 
-    val barnetilleggTekst = barnetilleggsPerioder?.tilIntroTekst(innvilgelseTotalperiode, antallDagerTekst)
+    val barnetilleggTekst = barnetilleggsPerioder?.tilIntroTekst(innvilgelsesperioderSlåttSammen, antallDagerTekst)
 
     return BrevRevurderingInnvilgetDTO(
         personalia = BrevPersonaliaDTO(
@@ -97,7 +100,7 @@ internal suspend fun genererRevurderingInnvilgetBrev(
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        innvilgelsesperioder = innvilgelsesperioder.map { BrevPeriodeDTO.fraPeriode(it) },
+        innvilgelsesperioder = innvilgelsesperioderSlåttSammen.map { BrevPeriodeDTO.fraPeriode(it) },
         fraDato = innvilgelseTotalperiode.fraOgMed.format(norskDatoFormatter),
         tilDato = innvilgelseTotalperiode.tilOgMed.format(norskDatoFormatter),
         satser = Satser.tilSatserDTO(innvilgelseTotalperiode),
@@ -111,7 +114,10 @@ internal suspend fun genererRevurderingInnvilgetBrev(
     ).let { serialize(it) }
 }
 
-private fun Periodisering<AntallBarn>.tilIntroTekst(vedtaksperiode: Periode, antallDagerTekst: String?): String? {
+private fun Periodisering<AntallBarn>.tilIntroTekst(
+    innvilgelsesperioder: List<Periode>,
+    antallDagerTekst: String?,
+): String? {
     val antallDagerPerUkeTekst = antallDagerTekst?.let { " for $it" } ?: ""
     val perioderMedBarnetillegg = perioderMedVerdi
         .filter { it.verdi.value > 0 }
@@ -120,7 +126,7 @@ private fun Periodisering<AntallBarn>.tilIntroTekst(vedtaksperiode: Periode, ant
         return null
     }
 
-    val harBarnetilleggOverHeleInnvilgelsesperiode = perioder.all { periode -> vedtaksperiode == periode }
+    val harBarnetilleggOverHeleInnvilgelsesperiode = perioder == innvilgelsesperioder
 
     val perioderMedBarnetilleggString = perioderMedBarnetillegg
         .map { periodeMedVerdi ->
@@ -128,22 +134,17 @@ private fun Periodisering<AntallBarn>.tilIntroTekst(vedtaksperiode: Periode, ant
             "for $antallBarn barn fra og med ${periodeMedVerdi.periode.fraOgMed.format(norskDatoFormatter)} til og med ${
                 periodeMedVerdi.periode.tilOgMed.format(norskDatoFormatter)
             }"
-        }.let {
-            when (it.size) {
-                0 -> throw IllegalStateException("Skal ikke være mulig å ha 0 perioder med barnetillegg her!")
-                1 -> it.first()
-                2 -> "${it.first()} og ${it.last()}"
-                else -> it.dropLast(1).joinToString(", ").plus(" og ${it.last()}")
-            }
-        }
+        }.joinMedKonjunksjon()
 
     return if (harBarnetilleggOverHeleInnvilgelsesperiode) {
         "Du får tiltakspenger og barnetillegg $perioderMedBarnetilleggString$antallDagerPerUkeTekst."
     } else {
+        val tiltakspengerString = innvilgelsesperioder.map {
+            "fra og med ${it.fraOgMed.format(norskDatoFormatter)} til og med ${it.tilOgMed.format(norskDatoFormatter)}"
+        }.joinMedKonjunksjon()
+
         """
-            Du får tiltakspenger fra og med ${vedtaksperiode.fraOgMed.format(norskDatoFormatter)} til og med ${
-            vedtaksperiode.tilOgMed.format(norskDatoFormatter)
-        }$antallDagerPerUkeTekst.
+            Du får tiltakspenger $tiltakspengerString$antallDagerPerUkeTekst.
         
             Du får barnetillegg $perioderMedBarnetilleggString.
         """.trimIndent()

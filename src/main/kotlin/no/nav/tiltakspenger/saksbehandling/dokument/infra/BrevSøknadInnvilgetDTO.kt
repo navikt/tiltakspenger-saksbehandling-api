@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -75,9 +76,11 @@ internal suspend fun genererInnvilgetSøknadsbrev(
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
     val besluttersNavn = beslutterNavIdent?.let { hentSaksbehandlersNavn(it) }
 
+    val innvilgelsesperioderSlåttSammen = innvilgelsesperioder.leggSammen(false)
+
     val innvilgelseTotalperiode = Periode(
-        innvilgelsesperioder.first().fraOgMed,
-        innvilgelsesperioder.last().tilOgMed,
+        innvilgelsesperioderSlåttSammen.first().fraOgMed,
+        innvilgelsesperioderSlåttSammen.last().tilOgMed,
     )
 
     val perioderMedBarn = barnetilleggsPerioder?.perioderMedVerdi?.filter {
@@ -106,7 +109,7 @@ internal suspend fun genererInnvilgetSøknadsbrev(
         ),
         rammevedtakFraDato = innvilgelseTotalperiode.fraOgMed.format(norskDatoFormatter),
         rammevedtakTilDato = innvilgelseTotalperiode.tilOgMed.format(norskDatoFormatter),
-        innvilgelsesperioder = innvilgelsesperioder.map { BrevPeriodeDTO.fraPeriode(it) },
+        innvilgelsesperioder = innvilgelsesperioderSlåttSammen.map { BrevPeriodeDTO.fraPeriode(it) },
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
