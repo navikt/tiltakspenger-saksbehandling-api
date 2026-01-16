@@ -4,6 +4,7 @@ import arrow.core.NonEmptySet
 import arrow.core.nonEmptySetOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
@@ -221,7 +222,7 @@ internal fun TestDataHelper.persisterAvbruttRevurdering(
 
     val avbruttRevurdering = opprettetRevurdering.avbryt(
         avbruttAv = avbruttAv,
-        begrunnelse = begrunnelse,
+        begrunnelse = begrunnelse.toNonBlankString(),
         tidspunkt = LocalDateTime.now(clock),
     )
 

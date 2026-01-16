@@ -6,6 +6,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
@@ -78,7 +79,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                         avbrutt = Avbrutt(
                             nå(testDataHelper.clock),
                             "saksbehandler",
-                            "begrunnelse",
+                            "begrunnelse".toNonBlankString(),
                         ),
                     ),
                 )

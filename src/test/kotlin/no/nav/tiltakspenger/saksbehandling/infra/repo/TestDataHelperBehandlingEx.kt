@@ -5,6 +5,7 @@ import arrow.core.Tuple4
 import arrow.core.nonEmptySetOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -459,7 +460,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
             .singleOrNullOrThrow()!!
     val avbruttBehandling = søknadsbehandling.avbryt(
         saksbehandler,
-        "begrunnelse",
+        "begrunnelse".toNonBlankString(),
         avbruttTidspunkt,
     )
     behandlingRepo.lagre(avbruttBehandling)

@@ -7,6 +7,8 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.NonBlankString
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -264,7 +266,7 @@ data class MeldekortUnderBehandling(
 
     fun avbryt(
         avbruttAv: Saksbehandler,
-        begrunnelse: String,
+        begrunnelse: NonBlankString,
         tidspunkt: LocalDateTime,
     ): Either<KanIkkeAvbryteMeldekortBehandling, MeldekortBehandling> {
         require(this.status == UNDER_BEHANDLING) {
@@ -325,7 +327,7 @@ data class MeldekortUnderBehandling(
             avbrutt = Avbrutt(
                 tidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
-                begrunnelse = "Ikke rett til tiltakspenger",
+                begrunnelse = "Ikke rett til tiltakspenger".toNonBlankString(),
             ),
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,

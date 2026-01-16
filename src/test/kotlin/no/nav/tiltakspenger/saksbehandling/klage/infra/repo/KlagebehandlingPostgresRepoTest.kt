@@ -2,11 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetKlagebehandlingTilAvvisning
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
@@ -51,6 +48,7 @@ class KlagebehandlingPostgresRepoTest {
                     ),
                 ),
                 iverksattTidspunkt = null,
+                avbrutt = null,
             )
         }
     }

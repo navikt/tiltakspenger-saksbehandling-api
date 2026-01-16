@@ -520,7 +520,7 @@ interface BehandlingMother : MotherOfAllMothers {
             clock = clock,
         ).avbryt(
             avbruttAv = avbruttAv,
-            begrunnelse = begrunnelse,
+            begrunnelse = begrunnelse.toNonBlankString(),
             tidspunkt = tidspunkt,
         )
     }

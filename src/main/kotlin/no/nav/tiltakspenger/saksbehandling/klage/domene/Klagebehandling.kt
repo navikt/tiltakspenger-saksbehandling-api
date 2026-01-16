@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.IVERKSATT
@@ -50,6 +51,7 @@ data class Klagebehandling(
     val resultat: Klagebehandlingsresultat?,
     val formkrav: KlageFormkrav,
     val brevtekst: Brevtekster?,
+    val avbrutt: Avbrutt?,
 ) {
     val erUnderBehandling = status == UNDER_BEHANDLING
     val erKlarTilBehandling = status == KLAR_TIL_BEHANDLING
@@ -184,6 +186,11 @@ data class Klagebehandling(
         return this.copy(
             sistEndret = nå(clock),
             status = AVBRUTT,
+            avbrutt = Avbrutt(
+                begrunnelse = kommando.begrunnelse,
+                saksbehandler = kommando.saksbehandler.navIdent,
+                tidspunkt = nå(clock),
+            ),
         ).right()
     }
 
@@ -233,6 +240,7 @@ data class Klagebehandling(
                 resultat = if (formkrav.erAvvisning) Klagebehandlingsresultat.AVVIST else null,
                 brevtekst = null,
                 iverksattTidspunkt = null,
+                avbrutt = null,
             )
         }
     }

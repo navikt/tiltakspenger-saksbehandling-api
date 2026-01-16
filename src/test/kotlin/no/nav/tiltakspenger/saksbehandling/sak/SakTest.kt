@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -48,7 +49,7 @@ class SakTest {
                 behandlingId = null,
                 avsluttetAv = ObjectMother.saksbehandler(),
                 correlationId = CorrelationId.generate(),
-                begrunnelse = "begrunnelse",
+                begrunnelse = "begrunnelse".toNonBlankString(),
             ),
             avbruttTidspunkt = førsteNovember24,
         )
@@ -71,7 +72,7 @@ class SakTest {
                 behandlingId = behandling.id,
                 avsluttetAv = ObjectMother.saksbehandler(),
                 correlationId = CorrelationId.generate(),
-                begrunnelse = "begrunnelse",
+                begrunnelse = "begrunnelse".toNonBlankString(),
             ),
             avbruttTidspunkt = førsteNovember24,
         )

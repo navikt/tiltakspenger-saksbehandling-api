@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -102,7 +103,7 @@ sealed interface Rammebehandling : Behandling {
     fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse? =
         saksopplysninger.getTiltaksdeltakelse(internDeltakelseId)
 
-    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Rammebehandling
+    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: NonBlankString, tidspunkt: LocalDateTime): Rammebehandling
 
     fun erFerdigutfylt(): Boolean
 

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt
 
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -63,7 +64,7 @@ data class AvbrytSøknadOgBehandlingCommand(
     val behandlingId: BehandlingId?,
     val avsluttetAv: Saksbehandler,
     val correlationId: CorrelationId,
-    val begrunnelse: String,
+    val begrunnelse: NonBlankString,
 ) {
     init {
         require(søknadId != null || behandlingId != null) { "Enten søknadId eller behandlingId må være satt" }

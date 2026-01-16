@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -340,7 +341,7 @@ data class MeldekortBehandletManuelt(
             avbrutt = Avbrutt(
                 tidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
-                begrunnelse = "Ikke rett til tiltakspenger",
+                begrunnelse = "Ikke rett til tiltakspenger".toNonBlankString(),
             ),
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,

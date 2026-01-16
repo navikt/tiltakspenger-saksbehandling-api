@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.domene
 
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -157,7 +158,7 @@ sealed interface Søknad {
     fun kanInnvilges() =
         (erDigitalSøknad() && tiltak != null) || (erManueltRegistrertSøknad() && tiltak != null && manueltSattSøknadsperiode != null)
 
-    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknad {
+    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: NonBlankString, tidspunkt: LocalDateTime): Søknad {
         if (this.avbrutt != null) {
             throw IllegalStateException("Søknad er allerede avbrutt")
         }

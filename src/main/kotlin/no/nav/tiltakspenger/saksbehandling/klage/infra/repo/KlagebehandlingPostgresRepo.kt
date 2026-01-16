@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
@@ -42,7 +44,8 @@ class KlagebehandlingPostgresRepo(
                         journalpost_opprettet,
                         resultat,
                         brevtekst,
-                        iverksatt_tidspunkt
+                        iverksatt_tidspunkt,
+                        avbrutt
                     ) values (
                         :id,
                         :sak_id,
@@ -55,7 +58,8 @@ class KlagebehandlingPostgresRepo(
                         :journalpost_opprettet,
                         to_jsonb(:resultat::jsonb),
                         to_jsonb(:brevtekst::jsonb),
-                        :iverksatt_tidspunkt
+                        :iverksatt_tidspunkt,
+                        to_jsonb(:avbrutt::jsonb)
                     ) on conflict (id) do update set
                         sak_id = :sak_id,
                         opprettet = :opprettet,
@@ -67,7 +71,8 @@ class KlagebehandlingPostgresRepo(
                         journalpost_opprettet = :journalpost_opprettet,
                         resultat = to_jsonb(:resultat::jsonb),
                         brevtekst = to_jsonb(:brevtekst::jsonb),
-                        iverksatt_tidspunkt = :iverksatt_tidspunkt
+                        iverksatt_tidspunkt = :iverksatt_tidspunkt,
+                        avbrutt = to_jsonb(:avbrutt::jsonb)
                     """.trimIndent(),
                     mapOf(
                         "id" to klagebehandling.id.toString(),
@@ -82,6 +87,7 @@ class KlagebehandlingPostgresRepo(
                         "resultat" to klagebehandling.resultat?.toDbJson(),
                         "brevtekst" to klagebehandling.brevtekst?.toDbJson(),
                         "iverksatt_tidspunkt" to klagebehandling.iverksattTidspunkt,
+                        "avbrutt" to klagebehandling.avbrutt?.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -125,6 +131,7 @@ class KlagebehandlingPostgresRepo(
                 resultat = row.stringOrNull("resultat")?.toKlagebehandlingResultat(),
                 brevtekst = row.stringOrNull("brevtekst")?.toKlageBrevtekst(),
                 iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
+                avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
             )
         }
     }

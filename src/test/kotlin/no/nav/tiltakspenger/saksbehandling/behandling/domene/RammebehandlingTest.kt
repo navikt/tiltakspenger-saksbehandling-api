@@ -29,7 +29,7 @@ class RammebehandlingTest {
         val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
         val avbruttBehandling = behandling.avbryt(
             avbruttAv = ObjectMother.saksbehandler(),
-            begrunnelse = "begrunnelse",
+            begrunnelse = "begrunnelse".toNonBlankString(),
             tidspunkt = førsteNovember24,
         )
 
@@ -37,7 +37,7 @@ class RammebehandlingTest {
         avbruttBehandling.avbrutt.let {
             it shouldNotBe null
             it!!.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
-            it.begrunnelse shouldBe "begrunnelse"
+            it.begrunnelse.value shouldBe "begrunnelse"
             it.tidspunkt shouldBe førsteNovember24
         }
         avbruttBehandling.søknad.avbrutt shouldNotBe null
@@ -50,7 +50,7 @@ class RammebehandlingTest {
         val behandling = ObjectMother.nyOpprettetAutomatiskSøknadsbehandling()
         val avbruttBehandling = behandling.avbryt(
             avbruttAv = ObjectMother.saksbehandler(),
-            begrunnelse = "begrunnelse",
+            begrunnelse = "begrunnelse".toNonBlankString(),
             tidspunkt = førsteNovember24,
         )
 
@@ -58,7 +58,7 @@ class RammebehandlingTest {
         avbruttBehandling.avbrutt.let {
             it shouldNotBe null
             it!!.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
-            it.begrunnelse shouldBe "begrunnelse"
+            it.begrunnelse.value shouldBe "begrunnelse"
             it.tidspunkt shouldBe førsteNovember24
         }
         avbruttBehandling.søknad.avbrutt shouldNotBe null
@@ -77,7 +77,7 @@ class RammebehandlingTest {
         assertThrows<IllegalArgumentException> {
             avbruttBehandling.avbryt(
                 avbruttAv = ObjectMother.saksbehandler(),
-                begrunnelse = "begrunnelse",
+                begrunnelse = "begrunnelse".toNonBlankString(),
                 tidspunkt = førsteNovember24,
             )
         }

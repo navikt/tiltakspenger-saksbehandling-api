@@ -4,6 +4,7 @@ import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -71,7 +72,9 @@ interface AvbrytKlagebehandlingBuilder {
                 path("/sak/$sakId/klage/$klagebehandlingId/avbryt")
             },
             jwt = jwt,
-        ).apply {
+        ) {
+            setBody("""{"begrunnelse": "oppdaterKlagebehandlingFormkravForSakId"}""")
+        }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",

@@ -1,0 +1,1 @@
+ALTER TABLE klagebehandling ADD COLUMN IF NOT EXISTS avbrutt jsonb DEFAULT NULL;

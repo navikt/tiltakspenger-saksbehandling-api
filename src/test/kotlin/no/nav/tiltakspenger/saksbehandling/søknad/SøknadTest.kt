@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.nå
@@ -98,13 +99,13 @@ class SøknadTest {
     @Test
     fun `avbryter en søknad`() {
         val søknad = ObjectMother.nyInnvilgbarSøknad()
-        val avbruttSøknad = søknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad", førsteNovember24)
+        val avbruttSøknad = søknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad".toNonBlankString(), førsteNovember24)
 
         avbruttSøknad.erAvbrutt shouldBe true
         avbruttSøknad.avbrutt.let {
             it shouldNotBe null
             it!!.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
-            it.begrunnelse shouldBe "jeg avbryter søknad"
+            it.begrunnelse.value shouldBe "jeg avbryter søknad"
             it.tidspunkt shouldBe førsteNovember24
         }
     }
@@ -115,12 +116,12 @@ class SøknadTest {
             avbrutt = Avbrutt(
                 tidspunkt = førsteNovember24,
                 saksbehandler = "navident",
-                begrunnelse = "skal få exception",
+                begrunnelse = "skal få exception".toNonBlankString(),
             ),
         )
 
         assertThrows<IllegalStateException> {
-            avbruttSøknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad", førsteNovember24)
+            avbruttSøknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad".toNonBlankString(), førsteNovember24)
         }
     }
 

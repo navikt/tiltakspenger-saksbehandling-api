@@ -5,6 +5,7 @@ import arrow.core.right
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar
@@ -138,7 +139,7 @@ internal fun TestDataHelper.persisterAvsluttetMeldekortBehandling(
 
     val avbruttMeldekortbehandling = meldekortBehandling.avbryt(
         avbruttAv = saksbehandler,
-        begrunnelse = begrunnelse,
+        begrunnelse = begrunnelse.toNonBlankString(),
         tidspunkt = LocalDateTime.now(clock),
     ).getOrFail()
 

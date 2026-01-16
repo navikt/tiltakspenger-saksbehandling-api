@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -174,7 +175,7 @@ data class Revurdering(
         ).right()
     }
 
-    override fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Revurdering {
+    override fun avbryt(avbruttAv: Saksbehandler, begrunnelse: NonBlankString, tidspunkt: LocalDateTime): Revurdering {
         if (this.status == AVBRUTT || avbrutt != null) {
             throw IllegalArgumentException("Behandlingen er allerede avbrutt")
         }

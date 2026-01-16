@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo.dto
 
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -14,13 +15,13 @@ data class AvbruttJson(
         return Avbrutt(
             tidspunkt = LocalDateTime.parse(avbruttTidspunkt),
             saksbehandler = avbruttAv,
-            begrunnelse = begrunnelse,
+            begrunnelse = begrunnelse.toNonBlankString(),
         )
     }
 }
 
 fun Avbrutt.toDbJson(): String = AvbruttJson(
-    begrunnelse = this.begrunnelse,
+    begrunnelse = this.begrunnelse.value,
     avbruttAv = this.saksbehandler,
     avbruttTidspunkt = this.tidspunkt.toString(),
 ).let { serialize(it) }

@@ -11,5 +11,5 @@ data class AvbruttDTO(
 fun Avbrutt.toAvbruttDTO() = AvbruttDTO(
     avbruttAv = saksbehandler,
     avbruttTidspunkt = tidspunkt.toString(),
-    begrunnelse = begrunnelse,
+    begrunnelse = begrunnelse.value,
 )

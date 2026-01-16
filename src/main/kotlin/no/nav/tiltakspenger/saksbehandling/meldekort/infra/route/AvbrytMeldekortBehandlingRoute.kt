@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -51,7 +52,7 @@ fun Route.avbrytMeldekortBehandlingRoute(
                             meldekortId = meldekortId,
                             saksbehandler = saksbehandler,
                             correlationId = correlationId,
-                            begrunnelse = body.begrunnelse,
+                            begrunnelse = body.begrunnelse.toNonBlankString(),
                         ),
                     ).fold(
                         {
