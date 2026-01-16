@@ -189,19 +189,23 @@ data class Rammevedtaksliste(
     }
 
     init {
-        verdi.map { it.id }.let {
-            require(it.size == it.distinct().size) { "Vedtakene må ha unike IDer men var: $it" }
+        if (verdi.isNotEmpty()) {
+            (this.map { it.id.toString() } + this.map { it.behandling.id.toString() }).also {
+                require(it.size == it.distinct().size) { "Klagebehandlingene og klagevedtakene kan ikke ha overlapp i IDer. sakId=$sakId, saksnummer=$saksnummer" }
+            }
+            verdi.zipWithNext().forEach {
+                require(it.first.opprettet.isBefore(it.second.opprettet)) { "Vedtakene må være sortert på opprettet-tidspunkt, men var: ${verdi.map { it.opprettet }}" }
+            }
+            verdi.mapNotNull { it.journalpostId }.let { journalpostIds ->
+                require(journalpostIds.size == journalpostIds.distinct().size) {
+                    "Alle rammevedtakene må ha unik journalpostId. ${verdi.map { it.id to it.journalpostId }}"
+                }
+            }
+            require(tidslinjeFraGjeldendeVedtak() == this.tidslinje) {
+                "Ugyldig gjeldende tidslinje. For vedtaksliste med vedtak ${this.map { it.id }}, forventet gjeldende tidslinje: ${this.tidslinje},"
+            }
+            validerOmgjøringer()
         }
-        verdi.map { it.behandling.id }.let {
-            require(it.size == it.distinct().size) { "Behandlingene må ha unike IDer men var: $it" }
-        }
-        verdi.zipWithNext().forEach {
-            require(it.first.opprettet.isBefore(it.second.opprettet)) { "Vedtakene må være sortert på opprettet-tidspunkt, men var: ${verdi.map { it.opprettet }}" }
-        }
-        require(tidslinjeFraGjeldendeVedtak() == this.tidslinje) {
-            "Ugyldig gjeldende tidslinje. For vedtaksliste med vedtak ${this.map { it.id }}, forventet gjeldende tidslinje: ${this.tidslinje},"
-        }
-        validerOmgjøringer()
     }
 
     companion object {

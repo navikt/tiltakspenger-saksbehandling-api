@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøk
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
@@ -254,12 +255,13 @@ class SakTest {
             saksnummer = Saksnummer.genererSaknummer(1.desember(2025), "0001"),
             behandlinger = Behandlinger(
                 Rammebehandlinger(emptyList()),
-                Meldekortbehandlinger(emptyList()),
+                Meldekortbehandlinger.empty(),
                 klagebehandlinger = Klagebehandlinger.empty(),
             ),
             vedtaksliste = Vedtaksliste(
                 Rammevedtaksliste(listOf(v1, v2)),
-                Meldekortvedtaksliste(emptyList()),
+                Meldekortvedtaksliste.empty(),
+                klagevedtaksliste = Klagevedtaksliste.empty(),
             ),
             meldeperiodeKjeder = MeldeperiodeKjeder(),
             brukersMeldekort = listOf(),

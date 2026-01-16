@@ -9,6 +9,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
@@ -16,16 +18,24 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
 
 /**
- * En kombinasjon av [no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak] og [Rammevedtak].
+ * En kombinasjon av [no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak], [Rammevedtak] og [Klagevedtak].
  */
 data class Vedtaksliste(
     val rammevedtaksliste: Rammevedtaksliste,
     val meldekortvedtaksliste: Meldekortvedtaksliste,
-) : List<Vedtak> by slåSammenVedtakslistene(rammevedtaksliste, meldekortvedtaksliste) {
-
-    val avslagsvedtak: List<Rammevedtak> by lazy {
-        rammevedtaksliste.avslagsvedtak
+    val klagevedtaksliste: Klagevedtaksliste,
+) {
+    val alle: List<Vedtak> by lazy {
+        slåSammenVedtakslistene(rammevedtaksliste, meldekortvedtaksliste, klagevedtaksliste)
     }
+
+    val fnr: Fnr? by lazy { alle.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow() }
+    val sakId: SakId? by lazy { alle.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow() }
+    val saksnummer: Saksnummer? by lazy {
+        alle.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
+    }
+
+    val avslagsvedtak: List<Rammevedtak> by lazy { rammevedtaksliste.avslagsvedtak }
     val avslåtteBehandlinger: List<Søknadsbehandling> by lazy {
         avslagsvedtak.map { it.behandling as Søknadsbehandling }
     }
@@ -36,12 +46,6 @@ data class Vedtaksliste(
 
     fun hentAvslåtteBehandlingerForSøknadId(søknadId: SøknadId): List<Søknadsbehandling> {
         return avslåtteBehandlinger.filter { it.søknad.id == søknadId }
-    }
-
-    val fnr: Fnr? by lazy { this.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow() }
-    val sakId: SakId? by lazy { this.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow() }
-    val saksnummer: Saksnummer? by lazy {
-        this.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
     }
 
     val harFørstegangsvedtak: Boolean by lazy {
@@ -67,6 +71,10 @@ data class Vedtaksliste(
         return copy(meldekortvedtaksliste = meldekortvedtaksliste.leggTil(meldekortvedtak))
     }
 
+    fun leggTilKlagevedtak(klagevedtak: Klagevedtak): Vedtaksliste {
+        return copy(klagevedtaksliste = klagevedtaksliste.leggTil(klagevedtak))
+    }
+
     /**
      * Tenkt kalt under behandlingen for å avgjøre hvilke rammevedtak som vil bli omgjort.
      * Husk og dobbeltsjekk denne ved iverksettelse.
@@ -83,10 +91,10 @@ data class Vedtaksliste(
     }
 
     init {
-        require(this.nonDistinctBy { it.opprettet }.isEmpty()) {
+        require(alle.nonDistinctBy { it.opprettet }.isEmpty()) {
             "Vedtakene i Vedtaksliste kan ikke ha samme opprettet-tidspunkt."
         }
-        require(this.nonDistinctBy { it.id }.isEmpty()) {
+        require(alle.nonDistinctBy { it.id }.isEmpty()) {
             "Vedtakene i Vedtaksliste må ha unike IDer."
         }
     }
@@ -96,6 +104,7 @@ data class Vedtaksliste(
             return Vedtaksliste(
                 rammevedtaksliste = Rammevedtaksliste.empty(),
                 meldekortvedtaksliste = Meldekortvedtaksliste.empty(),
+                klagevedtaksliste = Klagevedtaksliste.empty(),
             )
         }
     }
@@ -104,6 +113,7 @@ data class Vedtaksliste(
 private fun slåSammenVedtakslistene(
     rammevedtaksliste: Rammevedtaksliste,
     meldekortvedtaksliste: Meldekortvedtaksliste,
+    klagevedtaksliste: Klagevedtaksliste,
 ): List<Vedtak> {
-    return (rammevedtaksliste.verdi + meldekortvedtaksliste.verdi).sortedBy { it.opprettet }
+    return (rammevedtaksliste.verdi + meldekortvedtaksliste.verdi + klagevedtaksliste.verdi).sortedBy { it.opprettet }
 }

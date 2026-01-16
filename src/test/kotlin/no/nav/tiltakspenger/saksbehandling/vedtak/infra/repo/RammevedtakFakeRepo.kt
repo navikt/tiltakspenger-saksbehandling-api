@@ -3,7 +3,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo
 
 import arrow.atomic.Atomic
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -59,8 +58,8 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
         }.take(limit)
     }
 
-    override fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, tidspunkt: LocalDateTime) {
-        data.get()[id] = data.get()[id]!!.copy(distribusjonId = distribusjonId, distribusjonstidspunkt = tidspunkt)
+    override fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, distribusjonstidspunkt: LocalDateTime) {
+        data.get()[id] = data.get()[id]!!.copy(distribusjonId = distribusjonId, distribusjonstidspunkt = distribusjonstidspunkt)
     }
 
     override fun hentRammevedtakTilDatadeling(limit: Int): List<Rammevedtak> {

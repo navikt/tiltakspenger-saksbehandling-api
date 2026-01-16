@@ -92,7 +92,7 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
 
         fun fraVedtaksliste(vedtaksliste: Vedtaksliste): MeldeperiodeBeregningerVedtatt {
             return MeldeperiodeBeregningerVedtatt(
-                vedtaksliste
+                (vedtaksliste.rammevedtaksliste + vedtaksliste.meldekortvedtaksliste)
                     .sortedBy { it.opprettet }
                     .flatMap { it.beregning?.beregninger ?: emptyList() },
             )

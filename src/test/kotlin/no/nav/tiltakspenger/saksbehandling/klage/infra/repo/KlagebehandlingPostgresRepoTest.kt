@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -19,6 +21,7 @@ class KlagebehandlingPostgresRepoTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, klagebehandling, _) = opprettSakOgOppdaterKlagebehandlingBrevtekst(
                 tac = tac,
+                fnr = Fnr.random(),
             )!!
             klagebehandling shouldBe Klagebehandling(
                 id = klagebehandling.id,

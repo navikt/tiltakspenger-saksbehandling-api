@@ -140,20 +140,24 @@ class RammevedtakPostgresRepo(
         }
     }
 
-    override fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, tidspunkt: LocalDateTime) {
+    override fun markerDistribuert(
+        id: VedtakId,
+        distribusjonId: DistribusjonId,
+        distribusjonstidspunkt: LocalDateTime,
+    ) {
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
                     """
                     update rammevedtak
                     set distribusjon_id = :distribusjon_id,
-                        distribusjonstidspunkt = :tidspunkt
+                        distribusjonstidspunkt = :distribusjonstidspunkt
                     where id = :id
                     """.trimIndent(),
                     mapOf(
                         "id" to id.toString(),
                         "distribusjon_id" to distribusjonId.toString(),
-                        "tidspunkt" to tidspunkt,
+                        "distribusjonstidspunkt" to distribusjonstidspunkt,
                     ),
                 ).asUpdate,
             )

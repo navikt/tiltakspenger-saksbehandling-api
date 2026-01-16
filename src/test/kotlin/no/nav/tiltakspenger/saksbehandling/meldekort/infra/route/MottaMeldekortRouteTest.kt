@@ -24,7 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
 import org.junit.jupiter.api.Test
 import java.time.Clock
-import java.time.LocalDateTime
 
 internal class MottaMeldekortRouteTest {
     private fun utfyltMeldekortDTO(meldeperiode: Meldeperiode, clock: Clock) = BrukerutfyltMeldekortDTO(

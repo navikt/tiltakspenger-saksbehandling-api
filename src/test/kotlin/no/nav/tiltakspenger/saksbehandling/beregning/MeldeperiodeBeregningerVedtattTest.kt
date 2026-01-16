@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -34,7 +35,11 @@ class MeldeperiodeBeregningerVedtattTest {
                 meldekortBehandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr),
             )
 
-            val vedtaksliste = Vedtaksliste(Rammevedtaksliste(emptyList()), Meldekortvedtaksliste(listOf(v1, v2)))
+            val vedtaksliste = Vedtaksliste(
+                Rammevedtaksliste.empty(),
+                Meldekortvedtaksliste(listOf(v1, v2)),
+                Klagevedtaksliste.empty(),
+            )
 
             val meldeperiodeBeregningerVedtatt = MeldeperiodeBeregningerVedtatt.fraVedtaksliste(vedtaksliste)
 
@@ -55,7 +60,11 @@ class MeldeperiodeBeregningerVedtattTest {
 
             val behandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr)
 
-            val vedtaksliste = Vedtaksliste(Rammevedtaksliste(emptyList()), Meldekortvedtaksliste(listOf(v1)))
+            val vedtaksliste = Vedtaksliste(
+                Rammevedtaksliste.empty(),
+                Meldekortvedtaksliste(listOf(v1)),
+                Klagevedtaksliste.empty(),
+            )
 
             val meldeperiodeBeregningerVedtatt = MeldeperiodeBeregningerVedtatt.fraVedtaksliste(vedtaksliste)
 

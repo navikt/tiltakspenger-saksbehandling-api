@@ -57,8 +57,8 @@ fun Route.iverksettKlagebehandlingRoute(
                     ifLeft = {
                         call.respondJson(it.toStatusAndErrorJson())
                     },
-                    ifRight = { (_, behandling) ->
-                        val behandlingId = behandling.id
+                    ifRight = { (_, vedtak) ->
+                        val behandlingId = vedtak.behandling.id
                         auditService.logMedSakId(
                             sakId = sakId,
                             navIdent = saksbehandler.navIdent,
@@ -67,7 +67,7 @@ fun Route.iverksettKlagebehandlingRoute(
                             correlationId = correlationId,
                             behandlingId = behandlingId,
                         )
-                        call.respondJson(value = behandling.toDto())
+                        call.respondJson(value = vedtak.behandling.toDto())
                     },
                 )
             }

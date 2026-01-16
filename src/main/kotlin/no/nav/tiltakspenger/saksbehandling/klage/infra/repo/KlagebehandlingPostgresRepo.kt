@@ -5,7 +5,7 @@ import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
@@ -22,13 +22,15 @@ class KlagebehandlingPostgresRepo(
 ) : KlagebehandlingRepo {
     /**
      * Oppretter eller oppdaterer en klagebehandling i databasen.
+     *
+     * @param sessionContext vi gjør bare en insert i dette leddet og trenger derfor ikke transaksjonskontekst, selvom det støttes og sende den inn.
      */
     override fun lagreKlagebehandling(
         klagebehandling: Klagebehandling,
-        transactionContext: TransactionContext?,
+        sessionContext: SessionContext?,
     ) {
-        sessionFactory.withTransaction(transactionContext) { tx ->
-            tx.run(
+        sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
                 queryOf(
                     //language=SQL
                     """
@@ -95,6 +97,29 @@ class KlagebehandlingPostgresRepo(
     }
 
     companion object {
+        fun hentOrNull(
+            klagebehandlingId: KlagebehandlingId,
+            session: Session,
+        ): Klagebehandling? {
+            return session.run(
+                queryOf(
+                    """
+                    select
+                      k.*,
+                      s.fnr,
+                      s.saksnummer
+                    from klagebehandling k
+                    join sak s on s.id = k.sak_id
+                    where k.id = :id
+                    order by k.opprettet
+                    """,
+                    mapOf(
+                        "id" to klagebehandlingId.toString(),
+                    ),
+                ).map { fromRow(it) }.asSingle,
+            )
+        }
+
         fun hentForSakId(sakId: SakId, session: Session): Klagebehandlinger {
             return session.run(
                 sqlQuery(

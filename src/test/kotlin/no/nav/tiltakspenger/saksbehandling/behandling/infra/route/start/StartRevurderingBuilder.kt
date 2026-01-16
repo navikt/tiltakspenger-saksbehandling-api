@@ -214,7 +214,7 @@ interface StartRevurderingBuilder {
             tac = tac,
             sakId = sak.id,
             type = RevurderingType.OMGJØRING,
-            rammevedtakIdSomOmgjøres = sak.vedtaksliste.single().id,
+            rammevedtakIdSomOmgjøres = sak.rammevedtaksliste.single().id,
             forventetStatus = forventetStatusForStartRevurdering,
             forventetJsonBody = forventetJsonBodyForStartRevurdering,
         ) ?: return null

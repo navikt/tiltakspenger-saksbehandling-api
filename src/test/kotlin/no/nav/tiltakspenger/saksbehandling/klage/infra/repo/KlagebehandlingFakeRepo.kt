@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
@@ -15,7 +16,7 @@ class KlagebehandlingFakeRepo : KlagebehandlingRepo {
 
     override fun lagreKlagebehandling(
         klagebehandling: Klagebehandling,
-        transactionContext: TransactionContext?,
+        sessionContext: SessionContext?,
     ) {
         data.get()[klagebehandling.id] = klagebehandling
     }

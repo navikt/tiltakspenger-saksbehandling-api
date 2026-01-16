@@ -6,8 +6,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
@@ -26,15 +28,18 @@ open class KlagebehandlingContext(
     private val navIdentClient: NavIdentClient,
     private val genererKlagebrevKlient: GenererKlagebrevKlient,
 ) {
-    open val klageRepo: KlagebehandlingRepo by lazy {
+    open val klagebehandlingRepo: KlagebehandlingRepo by lazy {
         KlagebehandlingPostgresRepo(sessionFactory as PostgresSessionFactory)
+    }
+    open val klagevedtakRepo: KlagevedtakRepo by lazy {
+        KlagevedtakPostgresRepo(sessionFactory as PostgresSessionFactory)
     }
     open val opprettKlagebehandlingService: OpprettKlagebehandlingService by lazy {
         OpprettKlagebehandlingService(
             sakService = sakService,
             clock = clock,
             validerJournalpostService = validerJournalpostService,
-            klageRepo = klageRepo,
+            klageRepo = klagebehandlingRepo,
         )
     }
 
@@ -43,14 +48,14 @@ open class KlagebehandlingContext(
             sakService = sakService,
             clock = clock,
             validerJournalpostService = validerJournalpostService,
-            klageRepo = klageRepo,
+            klageRepo = klagebehandlingRepo,
         )
     }
     open val avbrytKlagebehandlingService: AvbrytKlagebehandlingService by lazy {
         AvbrytKlagebehandlingService(
             sakService = sakService,
             clock = clock,
-            klageRepo = klageRepo,
+            klageRepo = klagebehandlingRepo,
         )
     }
 
@@ -67,14 +72,16 @@ open class KlagebehandlingContext(
         OppdaterKlagebehandlingTekstTilBrevService(
             sakService = sakService,
             clock = clock,
-            klageRepo = klageRepo,
+            klageRepo = klagebehandlingRepo,
         )
     }
     open val iverksettKlagebehandlingService: IverksettKlagebehandlingService by lazy {
         IverksettKlagebehandlingService(
             sakService = sakService,
             clock = clock,
-            klageRepo = klageRepo,
+            klagebehandlingRepo = klagebehandlingRepo,
+            klagevedtakRepo = klagevedtakRepo,
+            sessionFactory = sessionFactory,
         )
     }
 }

@@ -13,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeR
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
@@ -34,6 +36,7 @@ class SakFakeRepo(
     private val meldekortBehandlingRepo: MeldekortBehandlingFakeRepo,
     private val meldeperiodeRepo: MeldeperiodeFakeRepo,
     private val meldekortvedtakRepo: MeldekortvedtakFakeRepo,
+    private val klagevedtakRepo: KlagevedtakFakeRepo,
     private val søknadFakeRepo: SøknadFakeRepo,
     private val klagebehandlingFakeRepo: KlagebehandlingFakeRepo,
     private val brukersMeldekortFakeRepo: BrukersMeldekortFakeRepo,
@@ -74,6 +77,7 @@ class SakFakeRepo(
             vedtaksliste = Vedtaksliste(
                 rammevedtaksliste = rammevedtakRepo.hentForSakId(sakId),
                 meldekortvedtaksliste = meldekortvedtakRepo.hentForSakId(sakId),
+                klagevedtaksliste = klagevedtakRepo.hentForSakId(sakId),
             ),
             meldeperiodeKjeder = meldeperiodeRepo.hentForSakId(sakId),
             brukersMeldekort = brukersMeldekortFakeRepo.hentForSakId(sakId),

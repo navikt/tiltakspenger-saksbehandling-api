@@ -28,7 +28,7 @@ interface RammevedtakRepo {
 
     fun markerJournalført(id: VedtakId, vedtaksdato: LocalDate, brevJson: String, journalpostId: JournalpostId, tidspunkt: LocalDateTime)
 
-    fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, tidspunkt: LocalDateTime)
+    fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, distribusjonstidspunkt: LocalDateTime)
 
     fun hentRammevedtakTilDatadeling(limit: Int = 10): List<Rammevedtak>
 

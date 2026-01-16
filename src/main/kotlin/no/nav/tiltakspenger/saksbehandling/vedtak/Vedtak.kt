@@ -10,7 +10,9 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDateTime
 
 /**
- * Kommentar jah: Denne vil ikke passe for klagevedtak og tilbakekrevingsvedtak, da må vi lage et abstraksjonslag til.
+ * @param beslutter Vil være null for alle klagebehandlinger.
+ * @param beregning Vil være null for alle klagebehandlinger og rammevedtak uten utbetaling.
+ * @param utbetaling Vil være null for alle klagebehandlinger og rammevedtak uten utbetaling.
  */
 interface Vedtak {
     val id: VedtakId
@@ -19,7 +21,7 @@ interface Vedtak {
     val fnr: Fnr
     val opprettet: LocalDateTime
     val saksbehandler: String
-    val beslutter: String
+    val beslutter: String?
     val journalpostId: JournalpostId?
     val journalføringstidspunkt: LocalDateTime?
     val beregning: Beregning?

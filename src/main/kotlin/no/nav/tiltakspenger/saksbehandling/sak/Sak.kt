@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -56,6 +57,7 @@ data class Sak(
     }
     val rammevedtaksliste: Rammevedtaksliste = vedtaksliste.rammevedtaksliste
     val meldekortvedtaksliste: Meldekortvedtaksliste = vedtaksliste.meldekortvedtaksliste
+    val klagevedtaksliste: Klagevedtaksliste = vedtaksliste.klagevedtaksliste
     val rammebehandlinger: Rammebehandlinger = behandlinger.rammebehandlinger
     val meldekortbehandlinger: Meldekortbehandlinger = behandlinger.meldekortbehandlinger
 

@@ -323,7 +323,7 @@ internal fun TestDataHelper.persisterOpprettetOmgjøring(
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
                 revurderingType = RevurderingType.OMGJØRING,
-                vedtakIdSomOmgjøres = sakMedVedtak.vedtaksliste.single().id,
+                vedtakIdSomOmgjøres = sakMedVedtak.rammevedtaksliste.single().id,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,

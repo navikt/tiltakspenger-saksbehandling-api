@@ -1,14 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.Either
-import arrow.core.right
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
 import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
@@ -79,12 +76,16 @@ suspend fun Sak.forhåndsvisKlagebrev(
 suspend fun Sak.iverksettKlagebehandling(
     kommando: IverksettKlagebehandlingKommando,
     clock: Clock,
-): Either<KanIkkeIverksetteKlagebehandling, Pair<Sak, Klagebehandling>> {
+): Either<KanIkkeIverksetteKlagebehandling, Pair<Sak, Klagevedtak>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).iverksett(
         kommando = kommando,
         clock = clock,
     ).map {
-        val oppdatertSak = this.oppdaterKlagebehandling(it)
-        Pair(oppdatertSak, it)
+        val klagevedtak = Klagevedtak.createFromKlagebehandling(
+            clock = clock,
+            klagebehandling = it,
+        )
+        val oppdatertSak = this.oppdaterKlagebehandling(it).leggTilKlagevedtak(klagevedtak)
+        Pair(oppdatertSak, klagevedtak)
     }
 }

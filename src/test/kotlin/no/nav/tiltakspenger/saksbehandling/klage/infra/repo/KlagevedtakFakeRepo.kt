@@ -1,0 +1,69 @@
+package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
+
+import arrow.atomic.Atomic
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
+import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
+import java.time.LocalDate
+import java.time.LocalDateTime
+
+class KlagevedtakFakeRepo : KlagevedtakRepo {
+    private val data = Atomic(mutableMapOf<VedtakId, Klagevedtak>())
+    val alle get() = data.get().values.toList()
+
+    fun hentForSakId(sakId: SakId): Klagevedtaksliste {
+        return data.get().values.toList()
+            .filter { it.sakId == sakId }
+            .let { Klagevedtaksliste(it) }
+    }
+
+    override fun lagreVedtak(
+        klagevedtak: Klagevedtak,
+        sessionContext: SessionContext?,
+    ) {
+        data.get()[klagevedtak.id] = klagevedtak
+    }
+
+    override fun markerJournalført(
+        id: VedtakId,
+        vedtaksdato: LocalDate,
+        brevJson: String,
+        journalpostId: JournalpostId,
+        tidspunkt: LocalDateTime,
+    ) {
+        data.get()[id] =
+            data.get()[id]!!.copy(
+                journalpostId = journalpostId,
+                journalføringstidspunkt = tidspunkt,
+                vedtaksdato = vedtaksdato,
+                brevJson = brevJson,
+            )
+    }
+
+    override fun markerDistribuert(
+        id: VedtakId,
+        distribusjonId: DistribusjonId,
+        distribusjonstidspunkt: LocalDateTime,
+    ) {
+        data.get()[id] =
+            data.get()[id]!!.copy(
+                distribusjonId = distribusjonId,
+                distribusjonstidspunkt = distribusjonstidspunkt,
+            )
+    }
+
+    override fun markerSendtTilDatadeling(
+        id: VedtakId,
+        tidspunkt: LocalDateTime,
+    ) {
+        data.get()[id] =
+            data.get()[id]!!.copy(
+                sendtTilDatadeling = tidspunkt,
+            )
+    }
+}

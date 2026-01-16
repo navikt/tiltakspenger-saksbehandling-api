@@ -40,12 +40,8 @@ internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilAvvisning(
         erKlagefristenOverholdt = erKlagefristenOverholdt,
         erKlagenSignert = erKlagenSignert,
     )
-    this.sessionFactory.withTransactionContext { tx ->
-        this.klagebehandlingRepo.lagreKlagebehandling(
-            klagebehandling = klagebehandling,
-            transactionContext = tx,
-        )
-    }
+    this.klagebehandlingRepo.lagreKlagebehandling(klagebehandling)
+
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
     oppdatertSak.behandlinger.klagebehandlinger.single() shouldBe klagebehandling
     return Pair(

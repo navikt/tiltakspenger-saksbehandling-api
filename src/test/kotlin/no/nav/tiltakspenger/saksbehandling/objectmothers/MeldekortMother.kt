@@ -46,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
@@ -1016,10 +1017,9 @@ fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): Meldeperiode
     }.let {
         MeldeperiodeBeregningerVedtatt.fraVedtaksliste(
             Vedtaksliste(
-                Rammevedtaksliste(emptyList()),
-                Meldekortvedtaksliste(
-                    it,
-                ),
+                Rammevedtaksliste.empty(),
+                Meldekortvedtaksliste(it),
+                Klagevedtaksliste.empty(),
             ),
         )
     }
