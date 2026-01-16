@@ -7,11 +7,8 @@ import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.til
-import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -20,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Rammebehan
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
@@ -94,14 +92,10 @@ class SendRevurderingTilBeslutningTest {
                     ),
                     begrunnelse = søknadsbehandling.barnetillegg.begrunnelse,
                 ),
-                innvilgelsesperioder = Innvilgelsesperioder(
-                    periodisering = listOf(
-                        Innvilgelsesperiode(
-                            periode = revurderingInnvilgelsesperiode,
-                            valgtTiltaksdeltakelse = revurdering.valgteTiltaksdeltakelser!!.single().verdi,
-                            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode.default,
-                        ).tilPeriodeMedVerdi(),
-                    ).tilIkkeTomPeriodisering(),
+                innvilgelsesperioder = innvilgelsesperioder(
+                    periode = revurderingInnvilgelsesperiode,
+                    valgtTiltaksdeltakelse = revurdering.valgteTiltaksdeltakelser!!.single().verdi,
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode.default,
                 ),
                 omgjørRammevedtak = OmgjørRammevedtak(
                     Omgjøringsperiode(

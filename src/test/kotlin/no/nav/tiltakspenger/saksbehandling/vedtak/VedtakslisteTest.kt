@@ -8,9 +8,10 @@ import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import org.junit.jupiter.api.Test
@@ -46,13 +47,13 @@ internal class VedtakslisteTest {
             val tiltaksdeltakelse =
                 tiltaksdeltakelse(fom = innvilgelsesperiode.fraOgMed, tom = innvilgelsesperiode.tilOgMed)
 
-            val innvilgelsesperioder = listOf(
-                Innvilgelsesperiode(
+            val innvilgelsesperioder = innvilgelsesperioder(
+                innvilgelsesperiode(
                     periode = 1 til 14.september(2025),
                     antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(9),
                     valgtTiltaksdeltakelse = tiltaksdeltakelse,
                 ),
-                Innvilgelsesperiode(
+                innvilgelsesperiode(
                     periode = 15 til 28.september(2025),
                     antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(8),
                     valgtTiltaksdeltakelse = tiltaksdeltakelse,
@@ -66,7 +67,7 @@ internal class VedtakslisteTest {
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
 
-            sak.rammevedtaksliste.innvilgelsesperioder.verdier shouldBe innvilgelsesperioder
+            sak.rammevedtaksliste.innvilgelsesperioder.verdier shouldBe innvilgelsesperioder.periodisering.verdier
             sak.rammevedtaksliste.antallDagerForMeldeperiode(1 til 14.september(2025)) shouldBe AntallDagerForMeldeperiode(
                 9,
             )
@@ -85,13 +86,13 @@ internal class VedtakslisteTest {
             val tiltaksdeltakelse =
                 tiltaksdeltakelse(fom = innvilgelsesperiode.fraOgMed, tom = innvilgelsesperiode.tilOgMed)
 
-            val innvilgelsesperioder = listOf(
-                Innvilgelsesperiode(
+            val innvilgelsesperioder = innvilgelsesperioder(
+                innvilgelsesperiode(
                     periode = 1 til 21.september(2025),
                     antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(9),
                     valgtTiltaksdeltakelse = tiltaksdeltakelse,
                 ),
-                Innvilgelsesperiode(
+                innvilgelsesperiode(
                     periode = 22 til 28.september(2025),
                     antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(8),
                     valgtTiltaksdeltakelse = tiltaksdeltakelse,
@@ -104,7 +105,7 @@ internal class VedtakslisteTest {
                 innvilgelsesperioder = innvilgelsesperioder,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
-            sak.rammevedtaksliste.innvilgelsesperioder.verdier shouldBe innvilgelsesperioder
+            sak.rammevedtaksliste.innvilgelsesperioder.verdier shouldBe innvilgelsesperioder.periodisering.verdier
             sak.rammevedtaksliste.antallDagerForMeldeperiode(1 til 14.september(2025)) shouldBe AntallDagerForMeldeperiode(
                 9,
             )
@@ -123,13 +124,13 @@ internal class VedtakslisteTest {
             val tiltaksdeltakelse =
                 tiltaksdeltakelse(fom = innvilgelsesperiode.fraOgMed, tom = innvilgelsesperiode.tilOgMed)
 
-            val innvilgelsesperioder = listOf(
-                Innvilgelsesperiode(
+            val innvilgelsesperioder = innvilgelsesperioder(
+                innvilgelsesperiode(
                     periode = 1 til 15.september(2025),
                     antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(9),
                     valgtTiltaksdeltakelse = tiltaksdeltakelse,
                 ),
-                Innvilgelsesperiode(
+                innvilgelsesperiode(
                     periode = 16 til 28.september(2025),
                     antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(8),
                     valgtTiltaksdeltakelse = tiltaksdeltakelse,
@@ -142,7 +143,7 @@ internal class VedtakslisteTest {
                 innvilgelsesperioder = innvilgelsesperioder,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
-            sak.rammevedtaksliste.innvilgelsesperioder.verdier shouldBe innvilgelsesperioder
+            sak.rammevedtaksliste.innvilgelsesperioder.verdier shouldBe innvilgelsesperioder.periodisering.verdier
             sak.rammevedtaksliste.antallDagerForMeldeperiode(1 til 14.september(2025)) shouldBe AntallDagerForMeldeperiode(
                 9,
             )

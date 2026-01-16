@@ -29,8 +29,7 @@ sealed interface OppdaterBehandlingKommando {
                         "Fant ikke tiltaket ${it.verdi.internDeltakelseId} i saksopplysningene for ${behandling.id}"
                     }
 
-                    Innvilgelsesperiode(
-                        periode = it.periode,
+                    InnvilgelsesperiodeVerdi(
                         valgtTiltaksdeltakelse = tiltaksdeltakelse,
                         antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode,
                     )

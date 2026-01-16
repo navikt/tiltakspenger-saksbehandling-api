@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
@@ -98,7 +98,7 @@ data class Rammevedtaksliste(
     /**
      * Tar utgangspunkt i [innvilgetTidslinje]
      */
-    val innvilgelsesperioder: Periodisering<Innvilgelsesperiode> by lazy {
+    val innvilgelsesperioder: Periodisering<InnvilgelsesperiodeVerdi> by lazy {
         innvilgetTidslinje.flatMapPeriodisering { it.verdi.behandling.innvilgelsesperioder!!.periodisering }
     }
 

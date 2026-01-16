@@ -25,7 +25,7 @@ data class StatistikkStønadDTO(
     val vedtaksperiodeTilOgMed: LocalDate,
 
     // Listen er tom for stans og avslag
-    val innvilgelsesperioder: List<Innvilgelsesperiode>,
+    val innvilgelsesperioder: List<InnvilgelsesperiodeStatistikk>,
 
     // Lagt til 2025-10-20, vil være null for rader før dette. Kan vurdere migrere rader som mangler dette senere.
     // Dette vedtaket omgjør et tidligere rammevedtak i sin helhet.
@@ -50,16 +50,16 @@ data class StatistikkStønadDTO(
     // TODO: dette er nå bakt inn i [Innvilgelsesperiode] og kan fjernes når DVH ikke bruker dette feltet lengre
     val tiltaksdeltakelser: List<String>,
 
-    val barnetillegg: List<Barnetillegg>,
+    val barnetillegg: List<BarnetilleggStatistikk>,
     val harBarnetillegg: Boolean,
 ) {
-    data class Barnetillegg(
+    data class BarnetilleggStatistikk(
         val fraOgMed: LocalDate,
         val tilOgMed: LocalDate,
         val antallBarn: Int,
     )
 
-    data class Innvilgelsesperiode(
+    data class InnvilgelsesperiodeStatistikk(
         val fraOgMed: LocalDate,
         val tilOgMed: LocalDate,
         val tiltaksdeltakelse: String,
