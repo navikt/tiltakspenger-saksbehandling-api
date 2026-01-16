@@ -1,8 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
+import no.nav.tiltakspenger.libs.satser.Satser
+import no.nav.tiltakspenger.libs.satser.Satser.Companion.satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.BrevRammevedtakInnvilgelseBaseDTO.SatserDTO
 
 /**
  * https://sprakradet.no/godt-og-korrekt-sprak/rettskriving-og-grammatikk/tall-tid-dato/
@@ -48,3 +53,13 @@ fun toAntallDagerTekst(
 
 private fun erOddetall(tall: Int): Boolean =
     tall % 2 != 0
+
+fun Satser.Companion.tilSatserDTO(periode: Periode): List<SatserDTO> {
+    return satser.filter { it.periode.overlapperMed(periode) }.map {
+        SatserDTO(
+            år = it.periode.fraOgMed.year,
+            ordinær = it.sats,
+            barnetillegg = it.satsBarnetillegg,
+        )
+    }
+}
