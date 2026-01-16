@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.ports
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -15,12 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
 interface GenererVedtaksbrevForInnvilgelseKlient {
-    suspend fun genererInnvilgelsesvedtaksbrev(
-        vedtak: Rammevedtak,
-        vedtaksdato: LocalDate,
-        hentBrukersNavn: suspend (Fnr) -> Navn,
-        hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
         vedtak: Rammevedtak,
@@ -38,7 +33,7 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        innvilgelsesperiode: Periode,
+        innvilgelsesperioder: NonEmptyList<Periode>,
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
@@ -56,7 +51,7 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
-        innvilgelsesperiode: Periode,
+        innvilgelsesperioder: NonEmptyList<Periode>,
         tilleggstekst: FritekstTilVedtaksbrev?,
         barnetillegg: Periodisering<AntallBarn>?,
         antallDagerTekst: String?,

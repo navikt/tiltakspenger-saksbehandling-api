@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -8,6 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.BrevRammevedtakInnvilgelseBaseDTO.SatserDTO
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -21,26 +23,17 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     override val datoForUtsending: String,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
+
+    override val innvilgelsesperioder: List<BrevPeriodeDTO>,
+    override val harBarnetillegg: Boolean,
+    override val barnetilleggTekst: String?,
+    override val satser: List<SatserDTO>,
+    override val antallDagerTekst: String?,
+
+    // TODO abn: rammevedtakFraDato og rammevedtakTilDato kan fjernes når pdfgen er oppdatert til å bruke innvilgelsesperioder
     val rammevedtakFraDato: String,
     val rammevedtakTilDato: String,
-    val antallBarn: List<AntallBarnPerPeriodeDTO>,
-    val barnetilleggTekst: String?,
-    val antallBarnHvis1PeriodeIHeleInnvilgelsesperiode: Int?,
-    val satser: List<Any>,
-    val satsBarn: Int,
-    val antallDagerTekst: String?,
-) : BrevRammevedtakBaseDTO {
-
-    @Suppress("unused")
-    val barnetillegg: Boolean = antallBarn.isNotEmpty()
-
-    data class AntallBarnPerPeriodeDTO(
-        val antallBarn: Int,
-        val antallBarnTekst: String,
-        val fraOgMed: String,
-        val tilOgMed: String,
-    )
-}
+) : BrevRammevedtakInnvilgelseBaseDTO
 
 internal suspend fun Rammevedtak.tilInnvilgetSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -56,10 +49,10 @@ internal suspend fun Rammevedtak.tilInnvilgetSøknadsbrev(
         fnr = fnr,
         saksbehandlerNavIdent = saksbehandler,
         beslutterNavIdent = beslutter,
-        innvilgelsesperiode = this.periode,
+        innvilgelsesperioder = this.innvilgelsesperioder!!.perioder,
         saksnummer = saksnummer,
         forhåndsvisning = false,
-        barnetilleggsPerioder = this.behandling.barnetillegg?.periodisering,
+        barnetilleggsPerioder = this.behandling.barnetillegg!!.periodisering,
         antallDagerTekst = toAntallDagerTekst(this.antallDagerPerMeldeperiode),
     )
 }
@@ -72,7 +65,7 @@ internal suspend fun genererInnvilgetSøknadsbrev(
     fnr: Fnr,
     saksbehandlerNavIdent: String,
     beslutterNavIdent: String?,
-    innvilgelsesperiode: Periode,
+    innvilgelsesperioder: NonEmptyList<Periode>,
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
     barnetilleggsPerioder: Periodisering<AntallBarn>?,
@@ -82,21 +75,23 @@ internal suspend fun genererInnvilgetSøknadsbrev(
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
     val besluttersNavn = beslutterNavIdent?.let { hentSaksbehandlersNavn(it) }
 
-    val antallBarn = barnetilleggsPerioder?.perioderMedVerdi?.filter {
+    val innvilgelseTotalperiode = Periode(
+        innvilgelsesperioder.first().fraOgMed,
+        innvilgelsesperioder.last().tilOgMed,
+    )
+
+    val perioderMedBarn = barnetilleggsPerioder?.perioderMedVerdi?.filter {
         it.verdi.value > 0
-    }?.map {
-        BrevFørstegangsvedtakInnvilgelseDTO.AntallBarnPerPeriodeDTO(
-            antallBarn = it.verdi.value,
-            antallBarnTekst = it.verdi.toTekst(),
-            fraOgMed = it.periode.fraOgMed.format(norskDatoFormatter),
-            tilOgMed = it.periode.tilOgMed.format(norskDatoFormatter),
-        )
     } ?: emptyList()
 
-    val barnetilleggTekst = if (antallBarn.isNotEmpty()) {
+    val barnetilleggTekst = if (perioderMedBarn.isNotEmpty()) {
         "Du får barnetillegg for ${
-            antallBarn.joinToString(" og ") {
-                "${it.antallBarnTekst} barn fra ${it.fraOgMed} til og med ${it.tilOgMed}"
+            perioderMedBarn.joinToString(" og ") {
+                "${it.verdi.toTekst()} barn fra ${it.periode.fraOgMed.format(norskDatoFormatter)} til og med ${
+                    it.periode.tilOgMed.format(
+                        norskDatoFormatter,
+                    )
+                }"
             }
         }."
     } else {
@@ -109,31 +104,18 @@ internal suspend fun genererInnvilgetSøknadsbrev(
             fornavn = brukersNavn.fornavn,
             etternavn = brukersNavn.mellomnavnOgEtternavn,
         ),
-        rammevedtakFraDato = innvilgelsesperiode.fraOgMed.format(norskDatoFormatter),
-        rammevedtakTilDato = innvilgelsesperiode.tilOgMed.format(norskDatoFormatter),
+        rammevedtakFraDato = innvilgelseTotalperiode.fraOgMed.format(norskDatoFormatter),
+        rammevedtakTilDato = innvilgelseTotalperiode.tilOgMed.format(norskDatoFormatter),
+        innvilgelsesperioder = innvilgelsesperioder.map { BrevPeriodeDTO.fraPeriode(it) },
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
-        satser = Satser.satser.filter { it.periode.overlapperMed(innvilgelsesperiode) }.map {
-            @Suppress("unused")
-            object {
-                val år = it.periode.fraOgMed.year
-                val ordinær = it.sats
-                val barnetillegg = it.satsBarnetillegg
-            }
-        },
-        satsBarn = Satser.sats(innvilgelsesperiode.fraOgMed).satsBarnetillegg,
+        satser = Satser.tilSatserDTO(innvilgelseTotalperiode),
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
-        antallBarn = antallBarn,
+        harBarnetillegg = perioderMedBarn.isNotEmpty(),
         barnetilleggTekst = barnetilleggTekst,
-        antallBarnHvis1PeriodeIHeleInnvilgelsesperiode = when {
-            barnetilleggsPerioder?.size != 1 -> null
-            barnetilleggsPerioder.first().periode == innvilgelsesperiode -> barnetilleggsPerioder.first().verdi.value
-            else -> null
-        },
         antallDagerTekst = antallDagerTekst,
     ).let { serialize(it) }
 }

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -17,9 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevFo
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
-import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -32,14 +31,6 @@ class GenererFakeVedtaksbrevKlient :
     GenererVedtaksbrevForAvslagKlient,
     GenererKlagebrevKlient {
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json").right() }
-    override suspend fun genererInnvilgelsesvedtaksbrev(
-        vedtak: Rammevedtak,
-        vedtaksdato: LocalDate,
-        hentBrukersNavn: suspend (Fnr) -> Navn,
-        hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return response
-    }
 
     override suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
         vedtak: Rammevedtak,
@@ -59,7 +50,7 @@ class GenererFakeVedtaksbrevKlient :
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        innvilgelsesperiode: Periode,
+        innvilgelsesperioder: NonEmptyList<Periode>,
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
@@ -79,7 +70,7 @@ class GenererFakeVedtaksbrevKlient :
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
-        innvilgelsesperiode: Periode,
+        innvilgelsesperioder: NonEmptyList<Periode>,
         tilleggstekst: FritekstTilVedtaksbrev?,
         barnetillegg: Periodisering<AntallBarn>?,
         antallDagerTekst: String?,
