@@ -2,12 +2,15 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
+import no.nav.tiltakspenger.libs.periodisering.perioder
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.BrevRammevedtakInnvilgelseBaseDTO.SatserDTO
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -21,16 +24,11 @@ private data class BrevRevurderingInnvilgetDTO(
     override val datoForUtsending: String,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-    val fraDato: String,
-    val tilDato: String,
-    val harBarnetillegg: Boolean,
-    /**
-     Intro teksten som vises dersom [harBarnetillegg] er true - ellers vil brevet ha sin egen introtekst uten barnetillegg.
-     */
-    val introTekstMedBarnetillegg: String?,
-    val satser: List<Any>,
-    val antallDagerTekst: String?,
-) : BrevRammevedtakBaseDTO
+
+    override val introTekst: String,
+    override val harBarnetillegg: Boolean,
+    override val satser: List<SatserDTO>,
+) : BrevRammevedtakInnvilgelseBaseDTO
 
 suspend fun Rammevedtak.tilRevurderingInnvilgetBrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -46,27 +44,25 @@ suspend fun Rammevedtak.tilRevurderingInnvilgetBrev(
         fnr = fnr,
         saksbehandlerNavIdent = saksbehandler,
         beslutterNavIdent = beslutter,
-        innvilgelsesperiode = innvilgelsesperioder!!.totalPeriode,
         saksnummer = saksnummer,
         forhåndsvisning = false,
-        barnetilleggsPerioder = barnetillegg?.periodisering,
-        antallDagerTekst = toAntallDagerTekst(antallDagerPerMeldeperiode),
+        innvilgelsesperioder = innvilgelsesperioder!!,
+        barnetillegg = barnetillegg?.periodisering,
     )
 }
 
-internal suspend fun genererRevurderingInnvilgetBrev(
+suspend fun genererRevurderingInnvilgetBrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
-    tilleggstekst: FritekstTilVedtaksbrev?,
     fnr: Fnr,
     saksbehandlerNavIdent: String,
     beslutterNavIdent: String?,
     saksnummer: Saksnummer,
-    innvilgelsesperiode: Periode,
     vedtaksdato: LocalDate,
-    barnetilleggsPerioder: Periodisering<AntallBarn>?,
     forhåndsvisning: Boolean,
-    antallDagerTekst: String?,
+    innvilgelsesperioder: Innvilgelsesperioder,
+    barnetillegg: Periodisering<AntallBarn>?,
+    tilleggstekst: FritekstTilVedtaksbrev?,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
@@ -81,60 +77,46 @@ internal suspend fun genererRevurderingInnvilgetBrev(
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        fraDato = innvilgelsesperiode.fraOgMed.format(norskDatoFormatter),
-        tilDato = innvilgelsesperiode.tilOgMed.format(norskDatoFormatter),
-        satser = Satser.satser.filter { it.periode.overlapperMed(innvilgelsesperiode) }.map {
-            @Suppress("unused")
-            object {
-                val år = it.periode.fraOgMed.year
-                val ordinær = it.sats
-                val barnetillegg = it.satsBarnetillegg
-            }
-        },
+        satser = Satser.tilSatserDTO(innvilgelsesperioder.totalPeriode),
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
-        harBarnetillegg = barnetilleggsPerioder != null && barnetilleggsPerioder.any { it.verdi.value > 0 },
-        introTekstMedBarnetillegg = barnetilleggsPerioder?.tilIntroTekst(innvilgelsesperiode, antallDagerTekst),
+        harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
+        introTekst = tilIntroTekst(innvilgelsesperioder, barnetillegg),
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
-        antallDagerTekst = antallDagerTekst,
     ).let { serialize(it) }
 }
 
-private fun Periodisering<AntallBarn>.tilIntroTekst(vedtaksperiode: Periode, antallDagerTekst: String?): String? {
-    val antallDagerPerUkeTekst = antallDagerTekst?.let { " for $it" } ?: ""
-    val perioderMedBarnetillegg = perioderMedVerdi
-        .filter { it.verdi.value > 0 }
+private fun tilIntroTekst(
+    innvilgelsesperioder: Innvilgelsesperioder,
+    barnetillegg: Periodisering<AntallBarn>?,
+): String {
+    val antallDagerPerUkeTekst =
+        toAntallDagerTekst(innvilgelsesperioder.antallDagerPerMeldeperiode)?.let { " for $it" } ?: ""
 
-    if (perioderMedBarnetillegg.isEmpty()) {
-        return null
-    }
+    val perioderMedBarnetillegg = barnetillegg?.perioderMedVerdi?.filter { it.verdi.value > 0 }
 
-    val harBarnetilleggOverHeleInnvilgelsesperiode = perioder.all { periode -> vedtaksperiode == periode }
+    val sammenhengendeInnvilgelsesperioder = innvilgelsesperioder.perioder.leggSammen(false)
+
+    val harBarnetilleggForHeleInnvilgelsesperioden =
+        perioderMedBarnetillegg?.perioder() == sammenhengendeInnvilgelsesperioder
 
     val perioderMedBarnetilleggString = perioderMedBarnetillegg
-        .map { periodeMedVerdi ->
+        ?.map { periodeMedVerdi ->
             val antallBarn = periodeMedVerdi.verdi.toTekst()
             "for $antallBarn barn fra og med ${periodeMedVerdi.periode.fraOgMed.format(norskDatoFormatter)} til og med ${
                 periodeMedVerdi.periode.tilOgMed.format(norskDatoFormatter)
             }"
-        }.let {
-            when (it.size) {
-                0 -> throw IllegalStateException("Skal ikke være mulig å ha 0 perioder med barnetillegg her!")
-                1 -> it.first()
-                2 -> "${it.first()} og ${it.last()}"
-                else -> it.dropLast(1).joinToString(", ").plus(" og ${it.last()}")
-            }
-        }
+        }?.joinMedKonjunksjon()
 
-    return if (harBarnetilleggOverHeleInnvilgelsesperiode) {
+    return if (harBarnetilleggForHeleInnvilgelsesperioden) {
         "Du får tiltakspenger og barnetillegg $perioderMedBarnetilleggString$antallDagerPerUkeTekst."
     } else {
-        """
-            Du får tiltakspenger fra og med ${vedtaksperiode.fraOgMed.format(norskDatoFormatter)} til og med ${
-            vedtaksperiode.tilOgMed.format(norskDatoFormatter)
-        }$antallDagerPerUkeTekst.
-        
-            Du får barnetillegg $perioderMedBarnetilleggString.
-        """.trimIndent()
+        val tiltakspengerString = sammenhengendeInnvilgelsesperioder.map {
+            "fra og med ${it.fraOgMed.format(norskDatoFormatter)} til og med ${it.tilOgMed.format(norskDatoFormatter)}"
+        }.joinMedKonjunksjon()
+
+        "Du får tiltakspenger $tiltakspengerString$antallDagerPerUkeTekst.".plus(
+            perioderMedBarnetilleggString?.let { "\n\nDu får barnetillegg $perioderMedBarnetilleggString." } ?: "",
+        )
     }
 }

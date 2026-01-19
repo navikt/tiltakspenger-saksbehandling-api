@@ -28,7 +28,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 innvilgelsesperioder = listOf(
                     InnvilgelsesperiodeDTO(
-                        periode = (1.januar(2025) til 31.mars(2025)).toDTO(),
+                        periode = behandling.saksopplysninger.tiltaksdeltakelser.first().periode!!.toDTO(),
                         antallDagerPerMeldeperiode = 10,
                         internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                     ),
@@ -42,10 +42,13 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
     @Test
     fun `kan forhåndsvise vedtaksbrev for innvilget søknadsbehandling med ett barn`() {
         withTestApplicationContext { tac ->
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(
+                tac,
+                tiltaksdeltakelsesperiode = innvilgelsesperiode,
+            )
             val behandlingId = behandling.id
             val fritekstTilVedtaksbrev = "some_tekst"
-            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
             val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
@@ -74,7 +77,8 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
     @Test
     fun `kan forhåndsvise vedtaksbrev for innvilget søknadsbehandling med to barn`() {
         withTestApplicationContext { tac ->
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+            val innvilgelsesperiode = (1.januar(2025) til 31.mars(2025))
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac, tiltaksdeltakelsesperiode = innvilgelsesperiode)
             val behandlingId = behandling.id
             val fritekstTilVedtaksbrev = "some_tekst"
             val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
@@ -84,7 +88,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 innvilgelsesperioder = listOf(
                     InnvilgelsesperiodeDTO(
-                        periode = (1.januar(2025) til 31.mars(2025)).toDTO(),
+                        periode = innvilgelsesperiode.toDTO(),
                         antallDagerPerMeldeperiode = 10,
                         internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                     ),

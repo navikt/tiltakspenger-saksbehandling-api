@@ -193,7 +193,6 @@ open class BehandlingOgVedtakContext(
             personService = personService,
             navIdentClient = navIdentClient,
             genererVedtaksbrevForStansKlient = genererVedtaksbrevForStansKlient,
-            sakService = sakService,
             clock = clock,
         )
     }

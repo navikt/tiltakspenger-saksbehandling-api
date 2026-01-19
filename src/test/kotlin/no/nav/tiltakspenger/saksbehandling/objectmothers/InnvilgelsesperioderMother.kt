@@ -42,17 +42,21 @@ interface InnvilgelsesperioderMother {
     }
 
     fun innvilgelsesperioder(
+        vararg perioder: Periode,
+    ): Innvilgelsesperioder {
+        return innvilgelsesperioder(perioder.toList().map { innvilgelsesperiode(it) })
+    }
+
+    fun innvilgelsesperioder(
         periode: Periode = vedtaksperiode(),
         valgtTiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(fom = periode.fraOgMed, tom = periode.tilOgMed),
         antallDagerPerMeldeperiode: AntallDagerForMeldeperiode = AntallDagerForMeldeperiode.default,
     ): Innvilgelsesperioder {
         return innvilgelsesperioder(
-            listOf(
-                innvilgelsesperiode(
-                    periode,
-                    valgtTiltaksdeltakelse,
-                    antallDagerPerMeldeperiode,
-                ),
+            innvilgelsesperiode(
+                periode,
+                valgtTiltaksdeltakelse,
+                antallDagerPerMeldeperiode,
             ),
         )
     }

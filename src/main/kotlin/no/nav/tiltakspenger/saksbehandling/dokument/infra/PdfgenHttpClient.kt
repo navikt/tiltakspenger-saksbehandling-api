@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
@@ -31,9 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
-import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
@@ -80,22 +79,7 @@ internal class PdfgenHttpClient(
     private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
     private val klageAvvisUri = URI.create("$baseUrl/api/v1/genpdf/tpts/klageAvvis")
 
-    override suspend fun genererInnvilgelsesvedtaksbrev(
-        vedtak: Rammevedtak,
-        vedtaksdato: LocalDate,
-        hentBrukersNavn: suspend (Fnr) -> Navn,
-        hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                vedtak.tilInnvilgetSøknadsbrev(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato)
-            },
-            errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
-            uri = vedtakInnvilgelseUri,
-        )
-    }
-
-    override suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+    override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         tilleggstekst: FritekstTilVedtaksbrev?,
@@ -128,20 +112,18 @@ internal class PdfgenHttpClient(
         )
     }
 
-    override suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+    override suspend fun genererInnvilgetSøknadBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
-        tilleggstekst: FritekstTilVedtaksbrev?,
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        innvilgelsesperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
-        forhåndsvisning: Boolean,
-        barnetilleggsPerioder: Periodisering<AntallBarn>?,
-        antallDagerTekst: String?,
+        innvilgelsesperioder: Innvilgelsesperioder,
+        barnetilleggsperioder: Periodisering<AntallBarn>?,
+        tilleggstekst: FritekstTilVedtaksbrev?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -153,11 +135,10 @@ internal class PdfgenHttpClient(
                     fnr = fnr,
                     saksbehandlerNavIdent = saksbehandlerNavIdent,
                     beslutterNavIdent = beslutterNavIdent,
-                    innvilgelsesperiode = innvilgelsesperiode,
                     saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
-                    barnetilleggsPerioder = barnetilleggsPerioder,
-                    antallDagerTekst = antallDagerTekst,
+                    forhåndsvisning = true,
+                    innvilgelsesperioder = innvilgelsesperioder,
+                    barnetillegg = barnetilleggsperioder,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",
@@ -165,7 +146,7 @@ internal class PdfgenHttpClient(
         )
     }
 
-    override suspend fun genererInnvilgetRevurderingBrev(
+    override suspend fun genererInnvilgetRevurderingBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
@@ -174,11 +155,9 @@ internal class PdfgenHttpClient(
         beslutterNavIdent: String?,
         saksnummer: Saksnummer,
         sakId: SakId,
-        forhåndsvisning: Boolean,
-        innvilgelsesperiode: Periode,
+        innvilgelsesperioder: Innvilgelsesperioder,
+        barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        barnetillegg: Periodisering<AntallBarn>?,
-        antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -189,12 +168,11 @@ internal class PdfgenHttpClient(
                     saksbehandlerNavIdent = saksbehandlerNavIdent,
                     beslutterNavIdent = beslutterNavIdent,
                     saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
-                    innvilgelsesperiode = innvilgelsesperiode,
+                    forhåndsvisning = true,
+                    innvilgelsesperioder = innvilgelsesperioder,
                     tilleggstekst = tilleggstekst,
-                    barnetilleggsPerioder = barnetillegg,
+                    barnetillegg = barnetilleggsperioder,
                     vedtaksdato = vedtaksdato,
-                    antallDagerTekst = antallDagerTekst,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",
