@@ -123,7 +123,7 @@ class RammevedtakPostgresRepo(
                     """
                     update rammevedtak set 
                         vedtaksdato = :vedtaksdato,
-                        brev_json = to_jsonb(:brev_json),
+                        brev_json = to_jsonb(:brev_json::jsonb),
                         journalpost_id = :journalpost_id,
                         journalføringstidspunkt = :tidspunkt
                     where id = :id

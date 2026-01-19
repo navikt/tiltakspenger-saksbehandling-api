@@ -20,4 +20,5 @@ interface KlagevedtakRepo {
 
     fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, distribusjonstidspunkt: LocalDateTime)
     fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime)
+    fun hentKlagevedtakSomSkalJournalføres(limit: Int = 10): List<Klagevedtak>
 }

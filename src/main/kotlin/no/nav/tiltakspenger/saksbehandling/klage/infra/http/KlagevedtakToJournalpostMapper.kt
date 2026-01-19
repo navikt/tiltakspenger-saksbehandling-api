@@ -1,44 +1,35 @@
-package no.nav.tiltakspenger.saksbehandling.vedtak.infra.http
+package no.nav.tiltakspenger.saksbehandling.klage.infra.http
 
 import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest.JournalpostDokument.DokumentVariant.ArkivPDF
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest.JournalpostDokument.DokumentVariant.OriginalJson
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import java.time.format.DateTimeFormatter
+import java.time.temporal.WeekFields
 
-/** Denne ligger nærmere vedtak enn journalføring strukturmessig */
-internal fun Rammevedtak.utgåendeJournalpostRequest(
+/** Denne ligger nærmere klage enn journalføring strukturmessig */
+fun Klagevedtak.toJournalpostRequest(
     pdfOgJson: PdfOgJson,
 ): String {
-    return toJournalpostRequest(
-        pdfOgJson = pdfOgJson,
-        journalPostType = DokarkivRequest.JournalPostType.UTGAAENDE,
+    val tittel = "Avvisning av klage på vedtak om tiltakspenger"
+    return DokarkivRequest(
+        tittel = tittel,
+        journalpostType = DokarkivRequest.JournalPostType.UTGAAENDE,
         // Når vi distribuerer en utgående journalpost skal kanal være null. https://nav-it.slack.com/archives/C6W9E5GPJ/p1736327853663619 Hvis vi skal distribuere den selv, må vi se på dette igjen.
         kanal = null,
         avsenderMottaker = DokarkivRequest.AvsenderMottaker(this.fnr.verdi),
-    )
-}
-
-private fun Rammevedtak.toJournalpostRequest(
-    pdfOgJson: PdfOgJson,
-    journalPostType: DokarkivRequest.JournalPostType,
-    kanal: DokarkivRequest.Distribusjonskanal?,
-    avsenderMottaker: DokarkivRequest.AvsenderMottaker?,
-): String {
-    val tittel = "Vedtak om tiltakspenger"
-    return DokarkivRequest(
-        tittel = tittel,
-        journalpostType = journalPostType,
-        kanal = kanal,
-        avsenderMottaker = avsenderMottaker,
         bruker = DokarkivRequest.Bruker(this.fnr.verdi),
         sak = DokarkivRequest.DokarkivSak.Fagsak(this.saksnummer.toString()),
         dokumenter = listOf(
             DokarkivRequest.JournalpostDokument(
                 tittel = tittel,
                 // TODO jah:brevkode bør være bakt inn i PdfOgJson og settes samtidig som vi mottar PDFen fra pdfgen.
-                brevkode = "RAMMEVEDTAK-TILTAKSPENGER",
+                brevkode = "KLAGE-AVVISNING-TILTAKSPENGER",
                 dokumentvarianter = listOf(
                     ArkivPDF(
                         fysiskDokument = pdfOgJson.pdfAsBase64(),

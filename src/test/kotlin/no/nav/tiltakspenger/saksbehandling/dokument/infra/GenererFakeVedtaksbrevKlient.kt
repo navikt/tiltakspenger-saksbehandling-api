@@ -135,6 +135,18 @@ class GenererFakeVedtaksbrevKlient :
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return response
+        return PdfOgJson(
+            pdf = PdfA("pdf".toByteArray()),
+            json = BrevKlageAvvisningDTO.create(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                datoForUtsending = vedtaksdato,
+                tilleggstekst = tilleggstekst,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = forhåndsvisning,
+                fnr = fnr,
+            ),
+        ).right()
     }
 }

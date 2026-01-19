@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostFakeClient
@@ -44,6 +45,7 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonFakeRepo
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortFakeRepo
@@ -99,14 +101,16 @@ class TestApplicationContextMedInMemoryDb(
     private val tiltakspengerArenaFakeClient = TiltakspengerArenaFakeClient()
     private val personFakeKlient = PersonFakeKlient(clock)
     private val genererFakeVedtaksbrevForUtbetalingKlient = GenererFakeVedtaksbrevForUtbetalingKlient()
-    private val genererFakseVedtaksrevForInnvilgelseKlient = GenererFakeVedtaksbrevKlient()
+    private val genererFakeVedtaksbrevForInnvilgelseKlient = GenererFakeVedtaksbrevKlient()
     private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
     private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
+    private val journalførFakeKlagevedtaksbrevKlient = JournalførFakeKlagevedtakKlient(journalpostIdGenerator)
     private val dokumentdistribusjonsFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val meldekortApiFakeKlient = MeldekortApiFakeKlient()
     private val benkOversiktFakeRepo =
         BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortBehandlingFakeRepo, klagebehandlingFakeRepo)
     private val tiltaksdeltakerFakeRepo = TiltaksdeltakerFakeRepo()
+    private val fakeNavIdentClient = FakeNavIdentClient()
 
     override val jwtGenerator: JwtGenerator = JwtGenerator()
 
@@ -164,13 +168,14 @@ class TestApplicationContextMedInMemoryDb(
         object : PersonContext(sessionFactory, texasClient) {
             override val personKlient = personFakeKlient
             override val personRepo = personFakeRepo
+            override val navIdentClient = fakeNavIdentClient
         }
     override val dokumentContext by lazy {
         object : DokumentContext(texasClient) {
             override val journalførMeldekortKlient = journalførFakeMeldekortKlient
             override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
             override val genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient
-            override val genererVedtaksbrevForInnvilgelseKlient = genererFakseVedtaksrevForInnvilgelseKlient
+            override val genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevForInnvilgelseKlient
         }
     }
 
@@ -262,9 +267,9 @@ class TestApplicationContextMedInMemoryDb(
             statistikkSakRepo = statistikkSakFakeRepo,
             statistikkStønadRepo = statistikkStønadFakeRepo,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,
-            genererVedtaksbrevForInnvilgelseKlient = genererFakseVedtaksrevForInnvilgelseKlient,
-            genererVedtaksbrevForAvslagKlient = genererFakseVedtaksrevForInnvilgelseKlient,
-            genererVedtaksbrevForStansKlient = genererFakseVedtaksrevForInnvilgelseKlient,
+            genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
+            genererVedtaksbrevForAvslagKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
+            genererVedtaksbrevForStansKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
             personService = personContext.personService,
             dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
             navIdentClient = personContext.navIdentClient,
@@ -293,7 +298,8 @@ class TestApplicationContextMedInMemoryDb(
             validerJournalpostService = søknadContext.validerJournalpostService,
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
-            genererKlagebrevKlient = genererFakseVedtaksrevForInnvilgelseKlient,
+            genererKlagebrevKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
+            journalførKlagevedtaksbrevKlient = journalførFakeKlagevedtaksbrevKlient,
         ) {
             override val klagebehandlingRepo = klagebehandlingFakeRepo
             override val klagevedtakRepo = klagevedtakFakeRepo

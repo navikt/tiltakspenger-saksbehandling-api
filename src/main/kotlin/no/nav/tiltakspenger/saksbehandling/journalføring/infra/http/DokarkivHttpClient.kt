@@ -26,6 +26,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedt
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientWithRetry
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
+import no.nav.tiltakspenger.saksbehandling.klage.infra.http.toJournalpostRequest
+import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.toJournalpostRequest
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
@@ -45,7 +48,8 @@ internal class DokarkivHttpClient(
     private val client: HttpClient = httpClientWithRetry(timeout = 30L),
     private val getToken: suspend () -> AccessToken,
 ) : JournalførRammevedtaksbrevKlient,
-    JournalførMeldekortKlient {
+    JournalførMeldekortKlient,
+    JournalførKlagebrevKlient {
 
     private val log = KotlinLogging.logger {}
 
@@ -58,12 +62,21 @@ internal class DokarkivHttpClient(
         return opprettJournalpost(jsonBody, correlationId)
     }
 
-    override suspend fun journalførMeldekortvedtak(
+    override suspend fun journalførVedtaksbrevForMeldekortvedtak(
         meldekortvedtak: Meldekortvedtak,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
     ): JournalpostId {
         val jsonBody = meldekortvedtak.toJournalpostRequest(pdfOgJson)
+        return opprettJournalpost(jsonBody, correlationId)
+    }
+
+    override suspend fun journalførAvvisningsvedtakForKlagevedtak(
+        klagevedtak: Klagevedtak,
+        pdfOgJson: PdfOgJson,
+        correlationId: CorrelationId,
+    ): JournalpostId {
+        val jsonBody = klagevedtak.toJournalpostRequest(pdfOgJson)
         return opprettJournalpost(jsonBody, correlationId)
     }
 
@@ -100,7 +113,7 @@ internal class DokarkivHttpClient(
                         response.journalpostId
                     }
 
-                    if ((response.journalpostferdigstilt == null) || (response.journalpostferdigstilt == false)) {
+                    if ((response.journalpostferdigstilt == null) || !response.journalpostferdigstilt) {
                         log.error { "Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId. response=$response" }
                     }
 

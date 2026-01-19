@@ -81,7 +81,7 @@ class JournalførMeldekortvedtakService(
                             false,
                         ).getOrElse { return@forEach }
                     log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
-                    val journalpostId = journalførMeldekortKlient.journalførMeldekortvedtak(
+                    val journalpostId = journalførMeldekortKlient.journalførVedtaksbrevForMeldekortvedtak(
                         meldekortvedtak = meldekortvedtak,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,

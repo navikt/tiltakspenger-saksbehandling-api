@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivHttpClient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
+import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 
@@ -32,6 +33,7 @@ open class DokumentContext(
     }
     open val journalførMeldekortKlient: JournalførMeldekortKlient by lazy { dokarkivClient }
     open val journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient by lazy { dokarkivClient }
+    open val journalførKlagevedtaksbrevKlient: JournalførKlagebrevKlient by lazy { dokarkivClient }
     private val pdfgen by lazy {
         PdfgenHttpClient(Configuration.pdfgenUrl)
     }

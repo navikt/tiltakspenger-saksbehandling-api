@@ -8,11 +8,13 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
+import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.JournalførKlagevedtakService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
@@ -27,6 +29,7 @@ open class KlagebehandlingContext(
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
     private val genererKlagebrevKlient: GenererKlagebrevKlient,
+    private val journalførKlagevedtaksbrevKlient: JournalførKlagebrevKlient,
 ) {
     open val klagebehandlingRepo: KlagebehandlingRepo by lazy {
         KlagebehandlingPostgresRepo(sessionFactory as PostgresSessionFactory)
@@ -82,6 +85,17 @@ open class KlagebehandlingContext(
             klagebehandlingRepo = klagebehandlingRepo,
             klagevedtakRepo = klagevedtakRepo,
             sessionFactory = sessionFactory,
+        )
+    }
+
+    open val journalførKlagevedtakService: JournalførKlagevedtakService by lazy {
+        JournalførKlagevedtakService(
+            journalførKlagevedtaksbrevKlient = journalførKlagevedtaksbrevKlient,
+            klagevedtakRepo = klagevedtakRepo,
+            genererKlagebrevKlient = genererKlagebrevKlient,
+            personService = personService,
+            navIdentClient = navIdentClient,
+            clock = clock,
         )
     }
 }

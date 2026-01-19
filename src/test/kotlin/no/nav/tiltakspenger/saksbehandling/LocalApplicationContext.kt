@@ -268,6 +268,7 @@ class LocalApplicationContext(
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
             genererKlagebrevKlient = dokumentContext.genererKlagebrevKlient,
+            journalførKlagevedtaksbrevKlient = dokumentContext.journalførKlagevedtaksbrevKlient,
         ) {}
     }
 

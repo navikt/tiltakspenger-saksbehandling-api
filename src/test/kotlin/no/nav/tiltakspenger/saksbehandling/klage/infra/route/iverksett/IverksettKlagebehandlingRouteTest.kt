@@ -6,10 +6,13 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgIverksettKlagebehandling
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class IverksettKlagebehandlingRouteTest {
@@ -21,18 +24,25 @@ class IverksettKlagebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = klagevedtak.behandling
-            klagevedtak shouldBe Klagevedtak(
+            val expectedBrevJson = """{"personalia": {"ident": "12345678911", "fornavn": "Fornavn", "etternavn": "Etternavn"}, "saksnummer": "202501011001", "tilleggstekst": [{"tekst": "Din klage er dessverre avvist.", "tittel": "Avvisning av klage"}], "forhandsvisning": false, "datoForUtsending": "1. januar 2025", "saksbehandlerNavn": "Saksbehandler Saksbehandleren"}""".trimIndent()
+            val expectedKlagevedtak = Klagevedtak(
                 id = klagevedtak.id,
                 opprettet = LocalDateTime.parse("2025-01-01T01:02:10.456789"),
                 behandling = klagebehandling,
-                journalpostId = null,
-                journalføringstidspunkt = null,
+                journalpostId = JournalpostId("1"),
+                journalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:12.456789"),
                 distribusjonId = null,
                 distribusjonstidspunkt = null,
-                vedtaksdato = null,
+                vedtaksdato = LocalDate.parse("2025-01-01"),
                 sendtTilDatadeling = null,
-                brevJson = null,
+                brevJson = expectedBrevJson,
             )
+            klagevedtak shouldBe expectedKlagevedtak
+            tac.klagebehandlingContext.klagevedtakRepo.lagreVedtak(klagevedtak)
+            tac.sessionFactory.withSession {
+                KlagevedtakPostgresRepo.hentForSakId(sak.id, it).single() shouldBe expectedKlagevedtak
+            }
+
             json.toString().shouldEqualJson(
                 """
                    {
@@ -72,14 +82,14 @@ class IverksettKlagebehandlingRouteTest {
                         """
                     {
                       "klagebehandlingId": "${klagebehandling.id}",
-                      "journalføringstidspunkt": null,
+                      "journalføringstidspunkt": "2025-01-01T01:02:12.456789",
                       "opprettet": "2025-01-01T01:02:10.456789",
                       "distribusjonstidspunkt": null,
                       "distribusjonId": null,
                       "sakId": "${sak.id}",
                       "klagevedtakId": "${klagevedtak.id}",
-                      "vedtaksdato": null,
-                      "journalpostId": null
+                      "vedtaksdato": "2025-01-01",
+                      "journalpostId": "1"
                     }
                         """.trimIndent(),
                     )

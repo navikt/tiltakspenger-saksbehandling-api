@@ -36,6 +36,8 @@ data class Klagevedtak(
     override val fnr: Fnr = behandling.fnr
     override val saksbehandler: String = behandling.saksbehandler!!
 
+    val resultat: Klagebehandlingsresultat = behandling.resultat!!
+
     companion object {
         fun createFromKlagebehandling(
             id: VedtakId = VedtakId.random(),

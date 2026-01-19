@@ -53,7 +53,7 @@ class KlagevedtakPostgresRepo(
                         :distribusjonstidspunkt,
                         :sendt_til_datadeling,
                         :vedtaksdato,
-                        :brev_json
+                        to_jsonb(:brev_json::jsonb)
                     ) on conflict (id) do update set
                         sak_id = :sak_id,
                         klagebehandling_id = :klagebehandling_id,
@@ -97,7 +97,7 @@ class KlagevedtakPostgresRepo(
                     """
                     update klagevedtak set 
                         vedtaksdato = :vedtaksdato,
-                        brev_json = to_jsonb(:brev_json),
+                        brev_json = to_jsonb(:brev_json::jsonb),
                         journalpost_id = :journalpost_id,
                         journalføringstidspunkt = :journalforingstidspunkt
                     where id = :id
@@ -148,6 +148,27 @@ class KlagevedtakPostgresRepo(
                         "tidspunkt" to tidspunkt,
                     ),
                 ).asUpdate,
+            )
+        }
+    }
+
+    override fun hentKlagevedtakSomSkalJournalføres(limit: Int): List<Klagevedtak> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select
+                      k.*,
+                      s.fnr,
+                      s.saksnummer
+                    from klagevedtak k
+                    join sak s on s.id = k.sak_id
+                    where k.journalpost_id is null
+                    order by k.opprettet
+                    limit :limit
+                    """,
+                    "limit" to limit,
+                ).map { fromRow(it, session) }.asList,
             )
         }
     }

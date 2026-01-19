@@ -57,7 +57,10 @@ interface IverksettKlagebehandlingBuilder {
         )
     }
 
-    /** Forventer at det allerede finnes en sak. */
+    /**
+     * Forventer at det allerede finnes en sak.
+     * Emulerer journalføring av vedtaksbrev.
+     */
     suspend fun ApplicationTestBuilder.iverksettKlagebehandlinForSakId(
         tac: TestApplicationContext,
         sakId: SakId,
@@ -87,9 +90,12 @@ interface IverksettKlagebehandlingBuilder {
                 bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
+            // Emulerer journalføring av vedtaksbrev
+            tac.klagebehandlingContext.journalførKlagevedtakService.journalfør()
             val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
             val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asText())
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+
             return Triple(
                 oppdatertSak,
                 oppdatertSak.hentKlagevedtakForKlagebehandlingId(klagebehandlingId),
