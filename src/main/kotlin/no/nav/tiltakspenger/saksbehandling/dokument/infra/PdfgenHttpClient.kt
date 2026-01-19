@@ -156,7 +156,7 @@ internal class PdfgenHttpClient(
         saksnummer: Saksnummer,
         sakId: SakId,
         innvilgelsesperioder: Innvilgelsesperioder,
-        barnetilleggsPerioder: Periodisering<AntallBarn>?,
+        barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
@@ -171,7 +171,7 @@ internal class PdfgenHttpClient(
                     forhåndsvisning = true,
                     innvilgelsesperioder = innvilgelsesperioder,
                     tilleggstekst = tilleggstekst,
-                    barnetillegg = barnetilleggsPerioder,
+                    barnetillegg = barnetilleggsperioder,
                     vedtaksdato = vedtaksdato,
                 )
             },

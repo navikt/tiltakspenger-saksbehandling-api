@@ -68,8 +68,6 @@ suspend fun genererRevurderingInnvilgetBrev(
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
     val besluttersNavn = beslutterNavIdent?.let { hentSaksbehandlersNavn(it) }
 
-    val introTekst = tilIntroTekst(innvilgelsesperioder, barnetillegg)
-
     return BrevRevurderingInnvilgetDTO(
         personalia = BrevPersonaliaDTO(
             ident = fnr.verdi,
@@ -83,7 +81,7 @@ suspend fun genererRevurderingInnvilgetBrev(
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
-        introTekst = introTekst,
+        introTekst = tilIntroTekst(innvilgelsesperioder, barnetillegg),
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
     ).let { serialize(it) }
 }

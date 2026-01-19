@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -66,24 +67,6 @@ suspend fun genererInnvilgetSøknadsbrev(
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
     val besluttersNavn = beslutterNavIdent?.let { hentSaksbehandlersNavn(it) }
 
-    val perioderMedBarn = barnetillegg?.perioderMedVerdi?.filter {
-        it.verdi.value > 0
-    } ?: emptyList()
-
-    val barnetilleggTekst = if (perioderMedBarn.isNotEmpty()) {
-        "Du får barnetillegg for ${
-            perioderMedBarn.joinToString(" og ") {
-                "${it.verdi.toTekst()} barn fra ${it.periode.fraOgMed.format(norskDatoFormatter)} til og med ${
-                    it.periode.tilOgMed.format(
-                        norskDatoFormatter,
-                    )
-                }"
-            }
-        }."
-    } else {
-        null
-    }
-
     return BrevFørstegangsvedtakInnvilgelseDTO(
         personalia = BrevPersonaliaDTO(
             ident = fnr.verdi,
@@ -93,11 +76,39 @@ suspend fun genererInnvilgetSøknadsbrev(
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         satser = Satser.tilSatserDTO(innvilgelsesperioder.totalPeriode),
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
-        harBarnetillegg = perioderMedBarn.isNotEmpty(),
-        introTekst = "barnetilleggTekst",
+        harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
+        introTekst = tilIntroTekst(innvilgelsesperioder, barnetillegg),
+        datoForUtsending = vedtaksdato.format(norskDatoFormatter),
     ).let { serialize(it) }
+}
+
+private fun tilIntroTekst(
+    innvilgelsesperioder: Innvilgelsesperioder,
+    barnetillegg: Periodisering<AntallBarn>?,
+): String {
+    val antallDagerPerUkeTekst =
+        toAntallDagerTekst(innvilgelsesperioder.antallDagerPerMeldeperiode)?.let { " for $it" } ?: ""
+
+    val perioderMedBarnetillegg = barnetillegg?.perioderMedVerdi?.filter { it.verdi.value > 0 }
+
+    val sammenhengendeInnvilgelsesperioder = innvilgelsesperioder.perioder.leggSammen(false)
+
+    val tiltakspengerPerioderString = sammenhengendeInnvilgelsesperioder.map {
+        "fra og med ${it.fraOgMed.format(norskDatoFormatter)} til og med ${it.tilOgMed.format(norskDatoFormatter)}"
+    }.joinMedKonjunksjon()
+
+    val barnetilleggPerioderString = perioderMedBarnetillegg
+        ?.map { periodeMedVerdi ->
+            val antallBarn = periodeMedVerdi.verdi.toTekst()
+            "for $antallBarn barn fra og med ${periodeMedVerdi.periode.fraOgMed.format(norskDatoFormatter)} til og med ${
+                periodeMedVerdi.periode.tilOgMed.format(norskDatoFormatter)
+            }"
+        }?.joinMedKonjunksjon()
+
+    return "Du får tiltakspenger $tiltakspengerPerioderString$antallDagerPerUkeTekst fordi du deltar på arbeidsmarkedstiltak.".plus(
+        barnetilleggPerioderString?.let { " Du får barnetillegg $barnetilleggPerioderString." } ?: "",
+    )
 }
