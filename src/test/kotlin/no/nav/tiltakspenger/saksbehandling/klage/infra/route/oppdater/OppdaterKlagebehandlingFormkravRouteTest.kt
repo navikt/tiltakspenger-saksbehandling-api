@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingFormkrav
 import org.junit.jupiter.api.Test
 
@@ -49,7 +48,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                      "erKlagefristenOverholdt": false,
                      "erKlagenSignert": false,
                      "brevtekst": [],
-                     "erAvbrutt": false,
+                     "avbrutt": null,
                      "kanIverksette": false
                    }
                 """.trimIndent(),

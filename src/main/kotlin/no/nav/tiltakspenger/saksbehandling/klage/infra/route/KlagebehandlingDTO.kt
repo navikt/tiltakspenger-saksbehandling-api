@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
+import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
@@ -23,7 +25,7 @@ data class KlagebehandlingDTO(
     val erKlagefristenOverholdt: Boolean,
     val erKlagenSignert: Boolean,
     val brevtekst: List<TittelOgTekstDTO>,
-    val erAvbrutt: Boolean,
+    val avbrutt: AvbruttDTO?,
     val kanIverksette: Boolean,
 ) {
     data class TittelOgTekstDTO(
@@ -64,6 +66,6 @@ fun Klagebehandling.toDto() = KlagebehandlingDTO(
             tekst = it.tekst.value,
         )
     } ?: emptyList(),
-    erAvbrutt = erAvbrutt,
+    avbrutt = this.avbrutt?.toAvbruttDTO(),
     kanIverksette = kanIverksette,
 )

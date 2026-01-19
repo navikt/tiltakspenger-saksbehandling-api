@@ -40,7 +40,7 @@ class OpprettKlagebehandlingRouteTest {
                      "erKlagefristenOverholdt": true,
                      "erKlagenSignert": true,
                      "brevtekst": [],
-                     "erAvbrutt": false,
+                     "avbrutt": null,
                      "kanIverksette": false
                    }
                 """.trimIndent(),

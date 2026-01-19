@@ -58,7 +58,7 @@ class IverksettKlagebehandlingRouteTest {
                           "tekst": "Din klage er dessverre avvist."
                         }
                       ],
-                     "erAvbrutt": false,
+                     "avbrutt": null,
                      "kanIverksette": false,
                      "iverksattTidspunkt": "2025-01-01T01:02:09.456789"
                    }

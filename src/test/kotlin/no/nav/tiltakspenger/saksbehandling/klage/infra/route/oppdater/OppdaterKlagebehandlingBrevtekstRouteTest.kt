@@ -1,11 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
 import io.kotest.assertions.json.shouldEqualJson
-import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
-import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingBrevtekst
 import org.junit.jupiter.api.Test
 
@@ -42,7 +38,7 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                       "tekst": "Din klage er dessverre avvist."
                     }
                   ],
-                  "erAvbrutt": false,
+                  "avbrutt": null,
                   "kanIverksette": true
                 }
                 """.trimIndent(),
