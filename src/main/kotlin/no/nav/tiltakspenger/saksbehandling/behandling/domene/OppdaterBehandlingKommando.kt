@@ -21,20 +21,7 @@ sealed interface OppdaterBehandlingKommando {
         val barnetillegg: Barnetillegg
 
         fun tilInnvilgelseperioder(behandling: Rammebehandling): Innvilgelsesperioder {
-            return Innvilgelsesperioder(
-                innvilgelsesperioder.map {
-                    val tiltaksdeltakelse = behandling.getTiltaksdeltakelse(it.verdi.internDeltakelseId)
-
-                    requireNotNull(tiltaksdeltakelse) {
-                        "Fant ikke tiltaket ${it.verdi.internDeltakelseId} i saksopplysningene for ${behandling.id}"
-                    }
-
-                    InnvilgelsesperiodeVerdi(
-                        valgtTiltaksdeltakelse = tiltaksdeltakelse,
-                        antallDagerPerMeldeperiode = it.verdi.antallDagerPerMeldeperiode,
-                    )
-                },
-            )
+            return innvilgelsesperioder.tilInnvilgelsesperioder(behandling)
         }
     }
 }

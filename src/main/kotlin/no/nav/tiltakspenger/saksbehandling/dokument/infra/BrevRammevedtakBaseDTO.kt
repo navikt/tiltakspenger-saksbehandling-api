@@ -19,11 +19,9 @@ sealed interface BrevRammevedtakBaseDTO {
 }
 
 sealed interface BrevRammevedtakInnvilgelseBaseDTO : BrevRammevedtakBaseDTO {
-    val innvilgelsesperioder: List<BrevPeriodeDTO>
+    val introTekst: String
     val harBarnetillegg: Boolean
-    val barnetilleggTekst: String?
     val satser: List<SatserDTO>
-    val antallDagerTekst: String?
 
     data class SatserDTO(
         val år: Int,

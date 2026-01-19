@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
-import arrow.core.nonEmptyListOf
 import io.kotest.assertions.json.shouldEqualJson
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -20,6 +19,7 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import org.junit.jupiter.api.Test
@@ -39,11 +39,10 @@ class BrevRevurderingInnvilgetDTOTest {
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                innvilgelsesperioder = nonEmptyListOf(Periode(1.juni(2025), 31.august(2025))),
-                barnetilleggsPerioder = null,
+                innvilgelsesperioder = innvilgelsesperioder(Periode(1.juni(2025), 31.august(2025))),
+                barnetillegg = null,
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
-                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -54,17 +53,8 @@ class BrevRevurderingInnvilgetDTOTest {
                  "saksbehandlerNavn":"Saksbehandler Navn",
                  "beslutterNavn":"Saksbehandler Navn",
                  "kontor":"Nav Tiltakspenger",
-                 "fraDato":"1. juni 2025",
-                 "tilDato":"31. august 2025",
-                 "innvilgelsesperioder": [
-                   {
-                     "fraOgMed": "1. juni 2025",
-                     "tilOgMed": "31. august 2025"
-                   }
-                 ],
                  "harBarnetillegg":false,
-                 "introTekstMedBarnetillegg":null,
-                 "barnetilleggTekst":null,
+                 "introTekst": "Du får tiltakspenger fra og med 1. juni 2025 til og med 31. august 2025 for fem dager per uke.",
                  "satser": [
                    {
                      "år": 2025,
@@ -74,8 +64,7 @@ class BrevRevurderingInnvilgetDTOTest {
                  ],
                  "tilleggstekst":"Dette er en vurdering",
                  "forhandsvisning":true,
-                 "datoForUtsending": "31. januar 2025",
-                 "antallDagerTekst": "5 dager per uke"
+                 "datoForUtsending": "31. januar 2025"
                }
             """.trimIndent()
         }
@@ -94,11 +83,10 @@ class BrevRevurderingInnvilgetDTOTest {
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                innvilgelsesperioder = nonEmptyListOf(Periode(1.desember(2024), 31.januar(2025))),
-                barnetilleggsPerioder = null,
+                innvilgelsesperioder = innvilgelsesperioder(Periode(1.desember(2024), 31.januar(2025))),
+                barnetillegg = null,
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
-                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -109,33 +97,23 @@ class BrevRevurderingInnvilgetDTOTest {
                   "saksbehandlerNavn":"Saksbehandler Navn",
                   "beslutterNavn":"Saksbehandler Navn",
                   "kontor":"Nav Tiltakspenger",
-                  "fraDato":"1. desember 2024",
-                  "tilDato":"31. januar 2025",
-                  "innvilgelsesperioder": [
-                    {
-                      "fraOgMed": "1. desember 2024",
-                      "tilOgMed": "31. januar 2025"
-                    }
-                  ],                  
                   "harBarnetillegg":false,
-                  "introTekstMedBarnetillegg":null,
-                  "barnetilleggTekst":null,
-                    "satser": [
-                      {
-                        "år": 2024,
-                        "ordinær": 285,
-                        "barnetillegg": 53
-                      },
-                      {
-                        "år": 2025,
-                        "ordinær": 298,
-                        "barnetillegg": 55
-                      }
-                    ],
+                  "introTekst": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 for fem dager per uke.",
+                  "satser": [
+                  {
+                    "år": 2024,
+                    "ordinær": 285,
+                    "barnetillegg": 53
+                  },
+                  {
+                    "år": 2025,
+                    "ordinær": 298,
+                    "barnetillegg": 55
+                  }
+                  ],
                   "tilleggstekst":"Dette er en vurdering",
                   "forhandsvisning":true,
-                  "datoForUtsending": "31. januar 2025",
-                  "antallDagerTekst": "5 dager per uke"
+                  "datoForUtsending": "31. januar 2025"
                }
             """.trimIndent()
         }
@@ -154,11 +132,10 @@ class BrevRevurderingInnvilgetDTOTest {
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                innvilgelsesperioder = nonEmptyListOf(Periode(1.juni(2025), 31.august(2025))),
-                barnetilleggsPerioder = SammenhengendePeriodisering(AntallBarn(2), 1.juni(2025) til 31.august(2025)),
+                innvilgelsesperioder = innvilgelsesperioder(Periode(1.juni(2025), 31.august(2025))),
+                barnetillegg = SammenhengendePeriodisering(AntallBarn(2), 1.juni(2025) til 31.august(2025)),
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
-                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -169,17 +146,8 @@ class BrevRevurderingInnvilgetDTOTest {
                  "saksbehandlerNavn":"Saksbehandler Navn",
                  "beslutterNavn":"Saksbehandler Navn",
                  "kontor":"Nav Tiltakspenger",
-                 "fraDato":"1. juni 2025",
-                 "tilDato":"31. august 2025",
-                 "innvilgelsesperioder": [
-                   {
-                     "fraOgMed": "1. juni 2025",
-                     "tilOgMed": "31. august 2025"
-                   }
-                 ],
                  "harBarnetillegg":true,
-                 "introTekstMedBarnetillegg":"Du får tiltakspenger og barnetillegg for to barn fra og med 1. juni 2025 til og med 31. august 2025 for 5 dager per uke.",
-                 "barnetilleggTekst":"Du får tiltakspenger og barnetillegg for to barn fra og med 1. juni 2025 til og med 31. august 2025 for 5 dager per uke.",
+                 "introTekst":"Du får tiltakspenger og barnetillegg for to barn fra og med 1. juni 2025 til og med 31. august 2025 for fem dager per uke.",
                  "satser": [
                    {
                      "år": 2025,
@@ -189,8 +157,7 @@ class BrevRevurderingInnvilgetDTOTest {
                  ],
                  "tilleggstekst":"Dette er en vurdering",
                  "forhandsvisning":true,
-                 "datoForUtsending": "31. januar 2025",
-                 "antallDagerTekst": "5 dager per uke"
+                 "datoForUtsending": "31. januar 2025"
                }
             """.trimIndent()
         }
@@ -209,14 +176,13 @@ class BrevRevurderingInnvilgetDTOTest {
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                innvilgelsesperioder = nonEmptyListOf(Periode(1.desember(2024), 31.januar(2025))),
-                barnetilleggsPerioder = SammenhengendePeriodisering(
+                innvilgelsesperioder = innvilgelsesperioder(Periode(1.desember(2024), 31.januar(2025))),
+                barnetillegg = SammenhengendePeriodisering(
                     PeriodeMedVerdi(AntallBarn(2), Periode(1.desember(2024), 31.desember(2024))),
                     PeriodeMedVerdi(AntallBarn(3), Periode(1.januar(2025), 31.januar(2025))),
                 ),
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
-                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -231,14 +197,8 @@ class BrevRevurderingInnvilgetDTOTest {
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
-                  "fraDato": "1. desember 2024",
-                  "tilDato": "31. januar 2025",
-                  "innvilgelsesperioder": [
-                    { "fraOgMed": "1. desember 2024", "tilOgMed": "31. januar 2025" }
-                   ],
                   "harBarnetillegg": true,
-                  "introTekstMedBarnetillegg": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 for 5 dager per uke.\n\nDu får barnetillegg for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
-                  "barnetilleggTekst": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 for 5 dager per uke.\n\nDu får barnetillegg for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
+                  "introTekst": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 for fem dager per uke.\n\nDu får barnetillegg for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
                   "satser": [
                     {
                       "år": 2024,
@@ -253,8 +213,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   ],
                   "tilleggstekst": "Dette er en vurdering",
                   "forhandsvisning": true,
-                  "datoForUtsending": "31. januar 2025",
-                  "antallDagerTekst": "5 dager per uke"
+                  "datoForUtsending": "31. januar 2025"
                 }
             """.trimIndent()
         }
@@ -273,15 +232,14 @@ class BrevRevurderingInnvilgetDTOTest {
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                innvilgelsesperioder = nonEmptyListOf(Periode(1.november(2024), 31.januar(2025))),
-                barnetilleggsPerioder = SammenhengendePeriodisering(
+                innvilgelsesperioder = innvilgelsesperioder(Periode(1.november(2024), 31.januar(2025))),
+                barnetillegg = SammenhengendePeriodisering(
                     PeriodeMedVerdi(AntallBarn(1), Periode(1.november(2024), 30.november(2024))),
                     PeriodeMedVerdi(AntallBarn(2), Periode(1.desember(2024), 31.desember(2024))),
                     PeriodeMedVerdi(AntallBarn(3), Periode(1.januar(2025), 31.januar(2025))),
                 ),
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
-                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -296,14 +254,8 @@ class BrevRevurderingInnvilgetDTOTest {
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
-                  "fraDato": "1. november 2024",
-                  "tilDato": "31. januar 2025",
-                  "innvilgelsesperioder": [
-                    { "fraOgMed": "1. november 2024", "tilOgMed": "31. januar 2025" }
-                   ],
                   "harBarnetillegg": true,
-                  "introTekstMedBarnetillegg": "Du får tiltakspenger fra og med 1. november 2024 til og med 31. januar 2025 for 5 dager per uke.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 30. november 2024, for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
-                  "barnetilleggTekst": "Du får tiltakspenger fra og med 1. november 2024 til og med 31. januar 2025 for 5 dager per uke.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 30. november 2024, for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
+                  "introTekst": "Du får tiltakspenger fra og med 1. november 2024 til og med 31. januar 2025 for fem dager per uke.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 30. november 2024, for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
                   "satser": [
                     {
                       "år": 2024,
@@ -318,8 +270,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   ],
                   "tilleggstekst": "Dette er en vurdering",
                   "forhandsvisning": true,
-                  "datoForUtsending": "31. januar 2025",
-                  "antallDagerTekst": "5 dager per uke"
+                  "datoForUtsending": "31. januar 2025"
                 }
             """.trimIndent()
         }
@@ -338,19 +289,18 @@ class BrevRevurderingInnvilgetDTOTest {
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                innvilgelsesperioder = nonEmptyListOf(
+                innvilgelsesperioder = innvilgelsesperioder(
                     Periode(1.november(2024), 31.januar(2025)),
                     Periode(1.februar(2025), 28.februar(2025)),
                     Periode(1.april(2025), 30.april(2025)),
                 ),
-                barnetilleggsPerioder = Periodisering(
+                barnetillegg = Periodisering(
                     PeriodeMedVerdi(AntallBarn(1), Periode(1.november(2024), 31.januar(2025))),
                     PeriodeMedVerdi(AntallBarn(2), Periode(1.februar(2025), 28.februar(2025))),
                     PeriodeMedVerdi(AntallBarn(3), Periode(1.april(2025), 30.april(2025))),
                 ),
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
-                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -365,15 +315,8 @@ class BrevRevurderingInnvilgetDTOTest {
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
-                  "fraDato": "1. november 2024",
-                  "tilDato": "30. april 2025",
-                  "innvilgelsesperioder": [
-                    { "fraOgMed": "1. november 2024", "tilOgMed": "28. februar 2025" },
-                    { "fraOgMed": "1. april 2025", "tilOgMed": "30. april 2025" }
-                   ],
                   "harBarnetillegg": true,
-                  "introTekstMedBarnetillegg": "Du får tiltakspenger fra og med 1. november 2024 til og med 28. februar 2025 og fra og med 1. april 2025 til og med 30. april 2025 for 5 dager per uke.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 31. januar 2025, for to barn fra og med 1. februar 2025 til og med 28. februar 2025 og for tre barn fra og med 1. april 2025 til og med 30. april 2025.",
-                  "barnetilleggTekst": "Du får tiltakspenger fra og med 1. november 2024 til og med 28. februar 2025 og fra og med 1. april 2025 til og med 30. april 2025 for 5 dager per uke.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 31. januar 2025, for to barn fra og med 1. februar 2025 til og med 28. februar 2025 og for tre barn fra og med 1. april 2025 til og med 30. april 2025.",
+                  "introTekst": "Du får tiltakspenger fra og med 1. november 2024 til og med 28. februar 2025 og fra og med 1. april 2025 til og med 30. april 2025 for fem dager per uke.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 31. januar 2025, for to barn fra og med 1. februar 2025 til og med 28. februar 2025 og for tre barn fra og med 1. april 2025 til og med 30. april 2025.",
                   "satser": [
                     {
                       "år": 2024,
@@ -388,8 +331,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   ],
                   "tilleggstekst": "Dette er en vurdering",
                   "forhandsvisning": true,
-                  "datoForUtsending": "31. januar 2025",
-                  "antallDagerTekst": "5 dager per uke"
+                  "datoForUtsending": "31. januar 2025"
                 }
             """.trimIndent()
         }
@@ -408,20 +350,19 @@ class BrevRevurderingInnvilgetDTOTest {
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                innvilgelsesperioder = nonEmptyListOf(
+                innvilgelsesperioder = innvilgelsesperioder(
                     Periode(1.november(2024), 31.januar(2025)),
                     Periode(1.februar(2025), 28.februar(2025)),
                     Periode(1.april(2025), 30.april(2025)),
                     Periode(2.mai(2025), 31.mai(2025)),
                 ),
-                barnetilleggsPerioder = Periodisering(
+                barnetillegg = Periodisering(
                     PeriodeMedVerdi(AntallBarn(1), Periode(1.november(2024), 28.februar(2025))),
                     PeriodeMedVerdi(AntallBarn(2), Periode(1.april(2025), 30.april(2025))),
                     PeriodeMedVerdi(AntallBarn(3), Periode(2.mai(2025), 31.mai(2025))),
                 ),
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
-                antallDagerTekst = "5 dager per uke",
             )
 
             //language=json
@@ -436,16 +377,8 @@ class BrevRevurderingInnvilgetDTOTest {
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
-                  "fraDato": "1. november 2024",
-                  "tilDato": "31. mai 2025",
-                  "innvilgelsesperioder": [
-                    { "fraOgMed": "1. november 2024", "tilOgMed": "28. februar 2025" },
-                    { "fraOgMed": "1. april 2025", "tilOgMed": "30. april 2025" },
-                    { "fraOgMed": "2. mai 2025", "tilOgMed": "31. mai 2025" }
-                   ],
                   "harBarnetillegg": true,
-                  "introTekstMedBarnetillegg": "Du får tiltakspenger og barnetillegg for ett barn fra og med 1. november 2024 til og med 28. februar 2025, for to barn fra og med 1. april 2025 til og med 30. april 2025 og for tre barn fra og med 2. mai 2025 til og med 31. mai 2025 for 5 dager per uke.",
-                  "barnetilleggTekst": "Du får tiltakspenger og barnetillegg for ett barn fra og med 1. november 2024 til og med 28. februar 2025, for to barn fra og med 1. april 2025 til og med 30. april 2025 og for tre barn fra og med 2. mai 2025 til og med 31. mai 2025 for 5 dager per uke.",
+                  "introTekst": "Du får tiltakspenger og barnetillegg for ett barn fra og med 1. november 2024 til og med 28. februar 2025, for to barn fra og med 1. april 2025 til og med 30. april 2025 og for tre barn fra og med 2. mai 2025 til og med 31. mai 2025 for fem dager per uke.",
                   "satser": [
                     {
                       "år": 2024,
@@ -460,8 +393,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   ],
                   "tilleggstekst": "Dette er en vurdering",
                   "forhandsvisning": true,
-                  "datoForUtsending": "31. januar 2025",
-                  "antallDagerTekst": "5 dager per uke"
+                  "datoForUtsending": "31. januar 2025"
                 }
             """.trimIndent()
         }

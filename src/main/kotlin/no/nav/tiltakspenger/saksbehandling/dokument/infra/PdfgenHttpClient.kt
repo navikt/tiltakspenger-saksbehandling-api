@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -19,6 +18,7 @@ import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
@@ -116,15 +116,14 @@ internal class PdfgenHttpClient(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
-        tilleggstekst: FritekstTilVedtaksbrev?,
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        innvilgelsesperioder: NonEmptyList<Periode>,
         saksnummer: Saksnummer,
         sakId: SakId,
-        barnetilleggsPerioder: Periodisering<AntallBarn>?,
-        antallDagerTekst: String?,
+        innvilgelsesperioder: Innvilgelsesperioder,
+        barnetilleggsperioder: Periodisering<AntallBarn>?,
+        tilleggstekst: FritekstTilVedtaksbrev?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -136,11 +135,10 @@ internal class PdfgenHttpClient(
                     fnr = fnr,
                     saksbehandlerNavIdent = saksbehandlerNavIdent,
                     beslutterNavIdent = beslutterNavIdent,
-                    innvilgelsesperioder = innvilgelsesperioder,
                     saksnummer = saksnummer,
                     forhåndsvisning = true,
-                    barnetilleggsPerioder = barnetilleggsPerioder,
-                    antallDagerTekst = antallDagerTekst,
+                    innvilgelsesperioder = innvilgelsesperioder,
+                    barnetillegg = barnetilleggsperioder,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",
@@ -157,10 +155,9 @@ internal class PdfgenHttpClient(
         beslutterNavIdent: String?,
         saksnummer: Saksnummer,
         sakId: SakId,
-        innvilgelsesperioder: NonEmptyList<Periode>,
+        innvilgelsesperioder: Innvilgelsesperioder,
+        barnetilleggsPerioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        barnetillegg: Periodisering<AntallBarn>?,
-        antallDagerTekst: String?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -174,9 +171,8 @@ internal class PdfgenHttpClient(
                     forhåndsvisning = true,
                     innvilgelsesperioder = innvilgelsesperioder,
                     tilleggstekst = tilleggstekst,
-                    barnetilleggsPerioder = barnetillegg,
+                    barnetillegg = barnetilleggsPerioder,
                     vedtaksdato = vedtaksdato,
-                    antallDagerTekst = antallDagerTekst,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",

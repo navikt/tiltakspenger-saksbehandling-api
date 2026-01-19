@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -11,6 +10,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
@@ -46,15 +46,14 @@ class GenererFakeVedtaksbrevKlient :
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
-        tilleggstekst: FritekstTilVedtaksbrev?,
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        innvilgelsesperioder: NonEmptyList<Periode>,
         saksnummer: Saksnummer,
         sakId: SakId,
-        barnetilleggsPerioder: Periodisering<AntallBarn>?,
-        antallDagerTekst: String?,
+        innvilgelsesperioder: Innvilgelsesperioder,
+        barnetilleggsperioder: Periodisering<AntallBarn>?,
+        tilleggstekst: FritekstTilVedtaksbrev?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }
@@ -68,10 +67,9 @@ class GenererFakeVedtaksbrevKlient :
         beslutterNavIdent: String?,
         saksnummer: Saksnummer,
         sakId: SakId,
-        innvilgelsesperioder: NonEmptyList<Periode>,
-        tilleggstekst: FritekstTilVedtaksbrev?,
+        innvilgelsesperioder: Innvilgelsesperioder,
         barnetillegg: Periodisering<AntallBarn>?,
-        antallDagerTekst: String?,
+        tilleggstekst: FritekstTilVedtaksbrev?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
 
     override suspend fun genererStansvedtak(

@@ -32,20 +32,23 @@ fun Int.toTekst(): String = when (this) {
 fun AntallBarn.toTekst(): String = this.value.toTekst()
 
 fun toAntallDagerTekst(
-    antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>?,
+    antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>,
 ): String? {
-    if (antallDagerPerMeldeperiode?.size != 1) {
+    val verdier = antallDagerPerMeldeperiode.verdier.distinctBy { it.value }
+
+    // Dersom det er ulikt antall dager i periodiseringen må saksbehandler spesifisere dette i fritekst
+    if (verdier.size > 1) {
         return null
+    }
+
+    val antallDager = verdier.single().value
+    if (antallDager == 0 || antallDager > 10 || erOddetall(antallDager)) {
+        return null
+    } else if (antallDager == 2) {
+        return "en dag per uke"
     } else {
-        val antallDager = antallDagerPerMeldeperiode.first().verdi.value
-        if (antallDager == 0 || antallDager > 10 || erOddetall(antallDager)) {
-            return null
-        } else if (antallDager == 2) {
-            return "en dag per uke"
-        } else {
-            val antallDagerPerUke = antallDager / 2
-            return "${antallDagerPerUke.toTekst()} dager per uke"
-        }
+        val antallDagerPerUke = antallDager / 2
+        return "${antallDagerPerUke.toTekst()} dager per uke"
     }
 }
 
