@@ -40,7 +40,6 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
-import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
@@ -208,6 +207,7 @@ class TestApplicationContextMedPostgres(
             navIdentClient = personContext.navIdentClient,
             genererKlagebrevKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
             journalførKlagevedtaksbrevKlient = journalførFakeKlagevedtaksbrevKlient,
+            dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
         ) {}
     }
 

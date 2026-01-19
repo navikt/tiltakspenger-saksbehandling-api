@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
@@ -31,8 +32,8 @@ class IverksettKlagebehandlingRouteTest {
                 behandling = klagebehandling,
                 journalpostId = JournalpostId("1"),
                 journalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:12.456789"),
-                distribusjonId = null,
-                distribusjonstidspunkt = null,
+                distribusjonId = DistribusjonId("1"),
+                distribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:13.456789"),
                 vedtaksdato = LocalDate.parse("2025-01-01"),
                 sendtTilDatadeling = null,
                 brevJson = expectedBrevJson,
@@ -84,8 +85,8 @@ class IverksettKlagebehandlingRouteTest {
                       "klagebehandlingId": "${klagebehandling.id}",
                       "journalføringstidspunkt": "2025-01-01T01:02:12.456789",
                       "opprettet": "2025-01-01T01:02:10.456789",
-                      "distribusjonstidspunkt": null,
-                      "distribusjonId": null,
+                      "distribusjonstidspunkt": "2025-01-01T01:02:13.456789",
+                      "distribusjonId": "1",
                       "sakId": "${sak.id}",
                       "klagevedtakId": "${klagevedtak.id}",
                       "vedtaksdato": "2025-01-01",

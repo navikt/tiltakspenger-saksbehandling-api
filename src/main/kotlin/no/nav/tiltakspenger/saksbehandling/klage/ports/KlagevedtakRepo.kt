@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -21,4 +22,5 @@ interface KlagevedtakRepo {
     fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, distribusjonstidspunkt: LocalDateTime)
     fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime)
     fun hentKlagevedtakSomSkalJournalføres(limit: Int = 10): List<Klagevedtak>
+    fun hentKlagevedtakSomSkalDistribueres(limit: Int = 10): List<VedtakSomSkalDistribueres>
 }

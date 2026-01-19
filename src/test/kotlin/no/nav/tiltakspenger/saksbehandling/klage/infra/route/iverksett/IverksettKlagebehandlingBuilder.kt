@@ -90,8 +90,9 @@ interface IverksettKlagebehandlingBuilder {
                 bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
-            // Emulerer journalføring av vedtaksbrev
+            // Emulerer journalføring og distribuering av vedtaksbrev
             tac.klagebehandlingContext.journalførKlagevedtakService.journalfør()
+            tac.klagebehandlingContext.distribuerKlagevedtaksbrevService.distribuer()
             val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
             val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asText())
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

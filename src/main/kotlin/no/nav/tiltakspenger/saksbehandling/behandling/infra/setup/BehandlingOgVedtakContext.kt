@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehan
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskBehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerVedtaksbrevService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerRammevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring.JournalførRammevedtakService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -197,8 +197,8 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val distribuerVedtaksbrevService by lazy {
-        DistribuerVedtaksbrevService(
+    val distribuerRammevedtaksbrevService by lazy {
+        DistribuerRammevedtaksbrevService(
             dokumentdistribusjonsklient = dokumentdistribusjonsklient,
             rammevedtakRepo = rammevedtakRepo,
             clock = clock,

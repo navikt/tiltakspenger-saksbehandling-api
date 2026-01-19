@@ -300,6 +300,7 @@ class TestApplicationContextMedInMemoryDb(
             navIdentClient = personContext.navIdentClient,
             genererKlagebrevKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
             journalførKlagevedtaksbrevKlient = journalførFakeKlagevedtaksbrevKlient,
+            dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
         ) {
             override val klagebehandlingRepo = klagebehandlingFakeRepo
             override val klagevedtakRepo = klagevedtakFakeRepo

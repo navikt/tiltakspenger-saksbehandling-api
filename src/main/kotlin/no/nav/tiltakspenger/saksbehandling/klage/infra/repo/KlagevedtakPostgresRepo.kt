@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
+import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -114,7 +115,11 @@ class KlagevedtakPostgresRepo(
         }
     }
 
-    override fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, distribusjonstidspunkt: LocalDateTime) {
+    override fun markerDistribuert(
+        id: VedtakId,
+        distribusjonId: DistribusjonId,
+        distribusjonstidspunkt: LocalDateTime,
+    ) {
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
@@ -169,6 +174,31 @@ class KlagevedtakPostgresRepo(
                     """,
                     "limit" to limit,
                 ).map { fromRow(it, session) }.asList,
+            )
+        }
+    }
+
+    override fun hentKlagevedtakSomSkalDistribueres(limit: Int): List<VedtakSomSkalDistribueres> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                        select v.id,v.journalpost_id
+                        from klagevedtak v
+                        where v.journalpost_id is not null
+                        and v.journalføringstidspunkt is not null
+                        and v.distribusjonstidspunkt is null
+                        and v.distribusjon_id is null
+                        order by v.opprettet
+                        limit :limit
+                    """,
+                    "limit" to limit,
+                ).map { row ->
+                    VedtakSomSkalDistribueres(
+                        id = VedtakId.fromString(row.string("id")),
+                        journalpostId = JournalpostId(row.string("journalpost_id")),
+                    )
+                }.asList,
             )
         }
     }

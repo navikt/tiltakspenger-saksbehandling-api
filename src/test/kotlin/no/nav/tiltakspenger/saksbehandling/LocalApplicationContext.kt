@@ -269,6 +269,7 @@ class LocalApplicationContext(
             navIdentClient = personContext.navIdentClient,
             genererKlagebrevKlient = dokumentContext.genererKlagebrevKlient,
             journalførKlagevedtaksbrevKlient = dokumentContext.journalførKlagevedtaksbrevKlient,
+            dokumentdistribusjonsklient = dokumentdistribusjonsklientFakeKlient,
         ) {}
     }
 

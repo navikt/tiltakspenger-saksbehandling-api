@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
+import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -69,5 +70,13 @@ class KlagevedtakFakeRepo : KlagevedtakRepo {
 
     override fun hentKlagevedtakSomSkalJournalføres(limit: Int): List<Klagevedtak> {
         return data.get().values.filter { it.journalpostId == null }.sortedBy { it.opprettet }.take(limit)
+    }
+
+    override fun hentKlagevedtakSomSkalDistribueres(limit: Int): List<VedtakSomSkalDistribueres> {
+        return data.get().values
+            .filter { it.journalpostId != null && it.journalføringstidspunkt != null && it.distribusjonstidspunkt == null && it.distribusjonId == null }
+            .sortedBy { it.journalføringstidspunkt }
+            .take(limit)
+            .map { VedtakSomSkalDistribueres(it.id, it.journalpostId!!) }
     }
 }

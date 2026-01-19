@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
@@ -18,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.JournalførKlagevedtakS
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.DistribuerKlagevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.time.Clock
 
@@ -30,7 +32,9 @@ open class KlagebehandlingContext(
     private val navIdentClient: NavIdentClient,
     private val genererKlagebrevKlient: GenererKlagebrevKlient,
     private val journalførKlagevedtaksbrevKlient: JournalførKlagebrevKlient,
+    private val dokumentdistribusjonsklient: Dokumentdistribusjonsklient,
 ) {
+
     open val klagebehandlingRepo: KlagebehandlingRepo by lazy {
         KlagebehandlingPostgresRepo(sessionFactory as PostgresSessionFactory)
     }
@@ -95,6 +99,14 @@ open class KlagebehandlingContext(
             genererKlagebrevKlient = genererKlagebrevKlient,
             personService = personService,
             navIdentClient = navIdentClient,
+            clock = clock,
+        )
+    }
+
+    open val distribuerKlagevedtaksbrevService by lazy {
+        DistribuerKlagevedtaksbrevService(
+            dokumentdistribusjonsklient = dokumentdistribusjonsklient,
+            klagevedtakRepo = klagevedtakRepo,
             clock = clock,
         )
     }

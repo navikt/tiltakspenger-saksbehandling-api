@@ -358,6 +358,7 @@ open class ApplicationContext(
             navIdentClient = personContext.navIdentClient,
             genererKlagebrevKlient = dokumentContext.genererKlagebrevKlient,
             journalførKlagevedtaksbrevKlient = dokumentContext.journalførKlagevedtaksbrevKlient,
+            dokumentdistribusjonsklient = dokumentContext.dokumentdistribusjonsklient,
         )
     }
 

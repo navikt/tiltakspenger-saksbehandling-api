@@ -91,7 +91,8 @@ internal fun start(
             { applicationContext.utbetalingContext.journalførMeldekortvedtakService.journalfør() },
             { applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør() },
             { applicationContext.klagebehandlingContext.journalførKlagevedtakService.journalfør() },
-            { applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer() },
+            { applicationContext.behandlingContext.distribuerRammevedtaksbrevService.distribuer() },
+            { applicationContext.klagebehandlingContext.distribuerKlagevedtaksbrevService.distribuer() },
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },
             { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock) },
         ).let {
