@@ -92,7 +92,9 @@ private fun tilIntroTekst(
     val antallDagerPerUkeTekst =
         toAntallDagerTekst(innvilgelsesperioder.antallDagerPerMeldeperiode)?.let { " for $it" } ?: ""
 
-    val perioderMedBarnetillegg = barnetillegg?.perioderMedVerdi?.filter { it.verdi.value > 0 }
+    val perioderMedBarnetillegg = barnetillegg?.perioderMedVerdi
+        ?.filter { it.verdi.value > 0 }
+        ?.let { it.ifEmpty { null } }
 
     val sammenhengendeInnvilgelsesperioder = innvilgelsesperioder.perioder.leggSammen(false)
 
@@ -109,6 +111,6 @@ private fun tilIntroTekst(
         }?.joinMedKonjunksjon()
 
     return "Du får tiltakspenger $tiltakspengerPerioderString$antallDagerPerUkeTekst fordi du deltar på arbeidsmarkedstiltak.".plus(
-        barnetilleggPerioderString?.let { " Du får barnetillegg $barnetilleggPerioderString." } ?: "",
+        barnetilleggPerioderString?.let { " Du får barnetillegg $it." } ?: "",
     )
 }
