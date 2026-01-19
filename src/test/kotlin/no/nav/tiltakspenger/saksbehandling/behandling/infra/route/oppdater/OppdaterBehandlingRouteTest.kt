@@ -8,10 +8,12 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -26,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingR
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat.Avslag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
@@ -35,6 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
@@ -43,6 +47,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 class OppdaterBehandlingRouteTest {
@@ -403,6 +408,68 @@ class OppdaterBehandlingRouteTest {
 
             // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
             tac.sakContext.sakService.hentForSakId(sakId = rammevedtakRevurdering.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering
+        }
+    }
+
+    @Test
+    fun `oppdatering feiler dersom søknadsbehandling opphører en tidligere innvilget periode`() = runTest {
+        withTestApplicationContext { tac ->
+            val saksbehandler = saksbehandler()
+            val innvilgelsesperiode = 1.januar(2026) til 31.januar(2026)
+
+            val (sak) = this.iverksettSøknadsbehandling(
+                tac,
+                vedtaksperiode = innvilgelsesperiode,
+            )
+
+            val (_, _, nesteSøknadsbehandling) = this.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac,
+                saksbehandler = saksbehandler,
+                sakId = sak.id,
+                innvilgelsesperiode = innvilgelsesperiode,
+            )
+
+            val behandlingId = nesteSøknadsbehandling.id
+            val tiltaksId =
+                nesteSøknadsbehandling.innvilgelsesperioder!!.valgteTiltaksdeltagelser.first().verdi.internDeltakelseId.toString()
+
+            // Perioder med hull i innvilgelsen
+            val nyePerioder = listOf(
+                InnvilgelsesperiodeDTO(
+                    periode = (1.januar(2026) til 15.januar(2026)).toDTO(),
+                    antallDagerPerMeldeperiode = 10,
+                    internDeltakelseId = tiltaksId,
+                ),
+                InnvilgelsesperiodeDTO(
+                    periode = (17.januar(2026) til 31.januar(2026)).toDTO(),
+                    antallDagerPerMeldeperiode = 10,
+                    internDeltakelseId = tiltaksId,
+                ),
+            )
+
+            val (_, _, responseJson) = oppdaterBehandling(
+                tac,
+                sakId = sak.id,
+                behandlingId = nesteSøknadsbehandling.id,
+                oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Innvilgelse(
+                    fritekstTilVedtaksbrev = "asdf",
+                    begrunnelseVilkårsvurdering = null,
+                    innvilgelsesperioder = nyePerioder,
+                    barnetillegg = Barnetillegg.utenBarnetillegg(
+                        nonEmptyListOf(
+                            1.januar(2026) til 15.januar(2026),
+                            17.januar(2026) til 31.januar(2026),
+                        ),
+                    ).toBarnetilleggDTO(),
+                ),
+                forventetStatus = HttpStatusCode.BadRequest,
+            )
+
+            JSONObject(responseJson).getString("kode") shouldBe "kan_ikke_opphøre"
+
+            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                it.innvilgelsesperioder!!.perioder shouldBe nonEmptyListOf(innvilgelsesperiode)
+            }
         }
     }
 }

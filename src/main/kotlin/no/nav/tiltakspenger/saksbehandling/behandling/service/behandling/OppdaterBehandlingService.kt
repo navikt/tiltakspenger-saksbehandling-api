@@ -3,7 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling
@@ -24,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import java.time.Clock
 
 class OppdaterBehandlingService(
@@ -46,6 +49,12 @@ class OppdaterBehandlingService(
         if (behandling.ventestatus.erSattPåVent) {
             return KanIkkeOppdatereBehandling.ErPaVent.left()
         }
+
+        sak.rammevedtaksliste.validerOpphør(kommando).onLeft {
+            log.error { "Ugyldig opphør ved forsøk på oppdatering av behandling - $kommando" }
+            return it.left()
+        }
+
         val (utbetaling, simuleringMedMetadata) = sak.beregnOgSimulerHvisAktuelt(kommando, behandling)
 
         return when (kommando) {
@@ -135,7 +144,10 @@ class OppdaterBehandlingService(
         val søknadsbehandling: Søknadsbehandling = this.hentRammebehandling(kommando.behandlingId) as Søknadsbehandling
 
         val omgjørRammevedtak = when (kommando) {
-            is OppdaterSøknadsbehandlingKommando.Avslag, is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat -> OmgjørRammevedtak.empty
+            is OppdaterSøknadsbehandlingKommando.Avslag,
+            is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat,
+            -> OmgjørRammevedtak.empty
+
             is OppdaterSøknadsbehandlingKommando.Innvilgelse -> this.vedtaksliste.finnRammevedtakSomOmgjøres(
                 vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             )
@@ -188,6 +200,29 @@ class OppdaterBehandlingService(
                     utbetaling = utbetaling,
                     omgjørRammevedtak = this.vedtaksliste.finnRammevedtakSomOmgjøres(stansperiode),
                 )
+            }
+        }
+    }
+
+    /**
+     *  Validerer at oppdateringen ikke fører til et opphør for resultat-typer der opphør ikke støttes
+     * */
+    private fun Rammevedtaksliste.validerOpphør(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Unit> {
+        return when (kommando) {
+            is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat,
+            is OppdaterSøknadsbehandlingKommando.Avslag,
+            is OppdaterRevurderingKommando.Stans,
+            is OppdaterRevurderingKommando.Omgjøring,
+            -> Unit.right()
+
+            is OppdaterRevurderingKommando.Innvilgelse,
+            is OppdaterSøknadsbehandlingKommando.Innvilgelse,
+            -> {
+                val eksisterendeInnvilgetPerioder = innvilgetTidslinje.krymp(kommando.innvilgelsesperioder.totalPeriode).perioder
+
+                val perioderSomOpphøres = eksisterendeInnvilgetPerioder.trekkFra(kommando.innvilgelsesperioder.perioder)
+
+                if (perioderSomOpphøres.isEmpty()) Unit.right() else KanIkkeOppdatereBehandling.KanIkkeOpphøre.left()
             }
         }
     }
