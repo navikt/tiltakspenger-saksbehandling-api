@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 
 data class OpprettKlagebehandlingKommando(
     val sakId: SakId,
@@ -15,6 +16,7 @@ data class OpprettKlagebehandlingKommando(
     val erKlagerPartISaken: Boolean,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
     val erKlagefristenOverholdt: Boolean,
+    val erUnntakForKlagefrist: KlagefristUnntakSvarord?,
     val erKlagenSignert: Boolean,
     val correlationId: CorrelationId,
 ) {
@@ -24,6 +26,7 @@ data class OpprettKlagebehandlingKommando(
             erKlagerPartISaken = erKlagerPartISaken,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
             erKlagefristenOverholdt = erKlagefristenOverholdt,
+            erUnntakForKlagefrist = erUnntakForKlagefrist,
             erKlagenSignert = erKlagenSignert,
         )
     }

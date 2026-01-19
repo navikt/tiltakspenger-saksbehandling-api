@@ -16,6 +16,7 @@ data class OppdaterKlagebehandlingFormkravKommando(
     val erKlagerPartISaken: Boolean,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
     val erKlagefristenOverholdt: Boolean,
+    val erUnntakForKlagefrist: KlagefristUnntakSvarord?,
     val erKlagenSignert: Boolean,
     val correlationId: CorrelationId,
 ) {
@@ -25,6 +26,7 @@ data class OppdaterKlagebehandlingFormkravKommando(
             erKlagerPartISaken = erKlagerPartISaken,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
             erKlagefristenOverholdt = erKlagefristenOverholdt,
+            erUnntakForKlagefrist = erUnntakForKlagefrist,
             erKlagenSignert = erKlagenSignert,
         )
     }

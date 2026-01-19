@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -32,6 +33,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         erKlagerPartISaken: Boolean = true,
         klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
         erKlagefristenOverholdt: Boolean = true,
+        erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
         erKlagenSignert: Boolean = true,
         correlationId: CorrelationId = CorrelationId.generate(),
     ): Klagebehandling {
@@ -50,6 +52,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
                     erKlagerPartISaken = erKlagerPartISaken,
                     klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                     erKlagefristenOverholdt = erKlagefristenOverholdt,
+                    erUnntakForKlagefrist = erUnntakForKlagefrist,
                     erKlagenSignert = erKlagenSignert,
                     correlationId = correlationId,
                 ),

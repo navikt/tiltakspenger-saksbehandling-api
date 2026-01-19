@@ -13,6 +13,7 @@ data class OpprettKlagebehandlingBody(
     val erKlagerPartISaken: Boolean,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
     val erKlagefristenOverholdt: Boolean,
+    val erUnntakForKlagefrist: KlagefristUnntakSvarordDto?,
     val erKlagenSignert: Boolean,
 ) {
     fun tilKommando(
@@ -28,6 +29,7 @@ data class OpprettKlagebehandlingBody(
             erKlagerPartISaken = erKlagerPartISaken,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
             erKlagefristenOverholdt = erKlagefristenOverholdt,
+            erUnntakForKlagefrist = erUnntakForKlagefrist?.toDomain(),
             erKlagenSignert = erKlagenSignert,
             correlationId = correlationId,
         )

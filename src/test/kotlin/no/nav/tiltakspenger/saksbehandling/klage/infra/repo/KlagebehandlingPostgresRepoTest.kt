@@ -40,6 +40,7 @@ class KlagebehandlingPostgresRepoTest {
                     klagesDetPåKonkreteElementerIVedtaket = true,
                     erKlagefristenOverholdt = true,
                     erKlagenSignert = true,
+                    erUnntakForKlagefrist = null,
                     vedtakDetKlagesPå = null,
                 ),
                 brevtekst = Brevtekster(

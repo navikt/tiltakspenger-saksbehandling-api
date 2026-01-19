@@ -10,6 +10,7 @@ data class KlageFormkrav(
     val erKlagerPartISaken: Boolean,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
     val erKlagefristenOverholdt: Boolean,
+    val erUnntakForKlagefrist: KlagefristUnntakSvarord?,
     val erKlagenSignert: Boolean,
 ) {
     val erAvvisning: Boolean by lazy {
@@ -17,6 +18,7 @@ data class KlageFormkrav(
             !erKlagerPartISaken ||
             !klagesDetPåKonkreteElementerIVedtaket ||
             !erKlagefristenOverholdt ||
+            erUnntakForKlagefrist == KlagefristUnntakSvarord.NEI ||
             !erKlagenSignert
     }
 }
