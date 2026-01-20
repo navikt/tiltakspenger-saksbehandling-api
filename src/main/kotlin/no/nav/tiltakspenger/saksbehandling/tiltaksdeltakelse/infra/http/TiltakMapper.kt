@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.SOKT_
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VENTELISTE
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VENTER_PA_OPPSTART
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VURDERES
-import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
+import no.nav.tiltakspenger.libs.tiltak.TiltakshistorikkDTO
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -34,7 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMe
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 
 internal fun mapTiltak(
-    tiltakDTOListe: List<TiltakTilSaksbehandlingDTO>,
+    tiltakDTOListe: List<TiltakshistorikkDTO>,
 ): TiltaksdeltakelserFraRegister {
     return tiltakDTOListe
         .map { tiltakDto ->
@@ -52,7 +52,7 @@ internal fun mapTiltak(
                 deltakelseFraOgMed = tiltakDto.deltakelseFom,
                 deltakelseTilOgMed = tiltakDto.deltakelseTom,
                 deltakelseStatus = tiltakDto.deltakelseStatus.toDomain(),
-                antallDagerPerUke = tiltakDto.deltakelsePerUke,
+                antallDagerPerUke = tiltakDto.antallDagerPerUke,
                 deltakelseProsent = tiltakDto.deltakelseProsent,
                 kilde = tiltakDto.kilde.toTiltakskilde(tiltakDto.id),
                 deltidsprosentGjennomforing = tiltakDto.gjennomforing.deltidsprosent,
@@ -63,13 +63,13 @@ internal fun mapTiltak(
 
 internal fun mapTiltakMedArrangørnavn(
     harAdressebeskyttelse: Boolean,
-    tiltakDTOListe: List<TiltakTilSaksbehandlingDTO>,
+    tiltakDTOListe: List<TiltakshistorikkDTO>,
 ): List<TiltaksdeltakelseMedArrangørnavn> {
     return tiltakDTOListe
         .map { tiltakDto ->
             TiltaksdeltakelseMedArrangørnavn(
                 harAdressebeskyttelse = harAdressebeskyttelse,
-                arrangørnavnFørSensur = tiltakDto.gjennomforing.arrangørnavn,
+                arrangørnavnFørSensur = tiltakDto.gjennomforing.arrangornavn ?: "Ukjent",
                 eksternDeltakelseId = tiltakDto.id,
                 gjennomføringId = tiltakDto.gjennomforing.id,
                 typeNavn = tiltakDto.gjennomforing.typeNavn,
@@ -83,20 +83,22 @@ internal fun mapTiltakMedArrangørnavn(
                 deltakelseFraOgMed = tiltakDto.deltakelseFom,
                 deltakelseTilOgMed = tiltakDto.deltakelseTom,
                 deltakelseStatus = tiltakDto.deltakelseStatus.toDomain(),
-                antallDagerPerUke = tiltakDto.deltakelsePerUke,
+                antallDagerPerUke = tiltakDto.antallDagerPerUke,
                 deltakelseProsent = tiltakDto.deltakelseProsent,
                 kilde = tiltakDto.kilde.toTiltakskilde(tiltakDto.id),
+                visningsnavn = if (!harAdressebeskyttelse) {
+                    tiltakDto.gjennomforing.visningsnavn
+                } else {
+                    tiltakDto.gjennomforing.typeNavn
+                },
             )
         }
 }
 
-fun String.toTiltakskilde(tiltaksId: String): Tiltakskilde {
-    return when {
-        this.lowercase()
-            .contains("komet") -> Tiltakskilde.Komet
-
-        this.lowercase()
-            .contains("arena") -> Tiltakskilde.Arena
+fun TiltakshistorikkDTO.Kilde.toTiltakskilde(tiltaksId: String): Tiltakskilde {
+    return when (this) {
+        TiltakshistorikkDTO.Kilde.KOMET -> Tiltakskilde.Komet
+        TiltakshistorikkDTO.Kilde.ARENA -> Tiltakskilde.Arena
 
         else -> throw IllegalStateException(
             "Kunne ikke parse tiltak fra tiltakspenger-tiltak. Ukjent kilde: $this. Forventet Arena eller Komet. Tiltaksid: $tiltaksId",
@@ -120,7 +122,7 @@ fun DeltakerStatusDTO.toDomain(): TiltakDeltakerstatus {
     }
 }
 
-fun TiltakTilSaksbehandlingDTO.harFomOgTomEllerRelevantStatus(
+fun TiltakshistorikkDTO.harFomOgTomEllerRelevantStatus(
     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
 ): Boolean {
     if (tiltaksdeltakelserDetErSøktTiltakspengerFor.eksterneIder.contains(id)) {
@@ -133,5 +135,5 @@ fun TiltakTilSaksbehandlingDTO.harFomOgTomEllerRelevantStatus(
     return deltakelseStatus == VENTER_PA_OPPSTART
 }
 
-fun TiltakTilSaksbehandlingDTO.rettPaTiltakspenger(): Boolean =
+fun TiltakshistorikkDTO.rettPaTiltakspenger(): Boolean =
     gjennomforing.arenaKode.toTiltakstypeSomGirRett().isRight()

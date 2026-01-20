@@ -17,7 +17,7 @@ import io.ktor.http.contentType
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
+import no.nav.tiltakspenger.libs.tiltak.TiltakshistorikkDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientGeneric
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
@@ -70,11 +70,11 @@ class TiltaksdeltakelseHttpKlient(
         fnr: Fnr,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
-        mapper: suspend (List<TiltakTilSaksbehandlingDTO>) -> T,
+        mapper: suspend (List<TiltakshistorikkDTO>) -> T,
     ): T {
         try {
             val token = getToken()
-            val httpResponse = httpClient.preparePost("$baseUrl/azure/tiltak") {
+            val httpResponse = httpClient.preparePost("$baseUrl/azure/tiltakshistorikk") {
                 header(NAV_CALL_ID_HEADER, correlationId.value)
                 bearerAuth(token.token)
                 accept(ContentType.Application.Json)
@@ -82,7 +82,7 @@ class TiltaksdeltakelseHttpKlient(
                 setBody(TiltakRequestDTO(fnr.verdi))
             }.execute()
             return when (httpResponse.status) {
-                HttpStatusCode.OK -> httpResponse.call.response.body<List<TiltakTilSaksbehandlingDTO>>().let { dto ->
+                HttpStatusCode.OK -> httpResponse.call.response.body<List<TiltakshistorikkDTO>>().let { dto ->
                     val relevanteTiltak =
                         dto.filter { it.harFomOgTomEllerRelevantStatus(tiltaksdeltakelserDetErSøktTiltakspengerFor) }
                             .filter { it.rettPaTiltakspenger() }

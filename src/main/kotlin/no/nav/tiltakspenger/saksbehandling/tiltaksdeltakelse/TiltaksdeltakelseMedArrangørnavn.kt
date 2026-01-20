@@ -30,6 +30,7 @@ data class TiltaksdeltakelseMedArrangørnavn(
     val deltakelseProsent: Float?,
     val antallDagerPerUke: Float?,
     val kilde: Tiltakskilde,
+    val visningsnavn: String?,
 ) {
     val arrangørnavn: String? by lazy { if (harAdressebeskyttelse) null else arrangørnavnFørSensur }
     val periode: Periode? by lazy {

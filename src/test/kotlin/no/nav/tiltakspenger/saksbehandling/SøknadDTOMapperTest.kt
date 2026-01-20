@@ -127,6 +127,7 @@ internal class SøknadDTOMapperTest {
                 typeNavn = "AMO",
                 deltakelseFom = fra,
                 deltakelseTom = til,
+                visningsnavn = "AMO hos Arrangørnavn",
             ),
         alderspensjon: FraOgMedDatoSpmDTO = FraOgMedDatoSpmDTO(svar = SpmSvarDTO.Nei, fom = null),
         etterlønn: JaNeiSpmDTO = JaNeiSpmDTO(SpmSvarDTO.Nei),

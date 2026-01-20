@@ -146,6 +146,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         harAdressebeskyttelse: Boolean = false,
+        visningsnavn: String? = if (harAdressebeskyttelse) typeNavn else "$typeNavn hos $arrangørnavn",
     ): TiltaksdeltakelseMedArrangørnavn {
         return TiltaksdeltakelseMedArrangørnavn(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -161,6 +162,7 @@ interface TiltakMother {
             kilde = kilde,
             antallDagerPerUke = dagerPrUke,
             harAdressebeskyttelse = harAdressebeskyttelse,
+            visningsnavn = visningsnavn,
         )
     }
 }
