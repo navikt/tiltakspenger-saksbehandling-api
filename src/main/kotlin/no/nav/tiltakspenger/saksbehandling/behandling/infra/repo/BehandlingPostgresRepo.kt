@@ -461,7 +461,6 @@ class BehandlingPostgresRepo(
                             valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()
                                 ?.toNonEmptySetOrNull(),
                             harValgtStansFraFørsteDagSomGirRett = booleanOrNull("har_valgt_stans_fra_første_dag_som_gir_rett"),
-                            harValgtStansTilSisteDagSomGirRett = booleanOrNull("har_valgt_stans_til_siste_dag_som_gir_rett"),
                             stansperiode = vedtaksperiode,
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
@@ -812,7 +811,6 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
     is RevurderingResultat.Stans -> arrayOf(
         "valgt_hjemmel_har_ikke_rettighet" to this.valgtHjemmel.toDbJson(),
         "har_valgt_stans_fra_forste_dag_som_gir_rett" to this.harValgtStansFraFørsteDagSomGirRett,
-        "har_valgt_stans_til_siste_dag_som_gir_rett" to this.harValgtStansTilSisteDagSomGirRett,
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 

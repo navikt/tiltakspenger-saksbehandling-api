@@ -25,7 +25,6 @@ internal class ForhåndsvisAvslagVedtaksbrevTest {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 vedtaksperiode = 1.januar(2025) til 31.mars(2025),
                 stansFraOgMed = null,
-                stansTilOgMed = null,
                 valgteHjemler = null,
                 barnetillegg = null,
                 resultat = RammebehandlingResultatTypeDTO.AVSLAG,

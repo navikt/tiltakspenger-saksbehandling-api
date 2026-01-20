@@ -757,7 +757,6 @@ class RammebehandlingDTOTest {
             fnr = fnr,
             vedtaksperiode = vedtaksperiode,
             stansFraOgMed = vedtaksperiode.fraOgMed.plusDays(7),
-            stansTilOgMed = vedtaksperiode.tilOgMed,
             førsteDagSomGirRett = vedtaksperiode.fraOgMed,
             sisteDagSomGirRett = vedtaksperiode.tilOgMed,
             saksopplysninger = saksopplysninger(
@@ -843,7 +842,6 @@ class RammebehandlingDTOTest {
                 "DeltarIkkePåArbeidsmarkedstiltak"
               ],
               "harValgtStansFraFørsteDagSomGirRett": false,
-              "harValgtStansTilSisteDagSomGirRett": false,
               "resultat": "STANS",
               "type": "REVURDERING"
             }

@@ -32,10 +32,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Innvilgels
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -43,6 +43,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
@@ -193,19 +194,14 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
 
-            oppdaterBehandling(
+            oppdaterRevurderingStans(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
-                    fritekstTilVedtaksbrev = "ny brevtekst",
-                    begrunnelseVilkårsvurdering = "ny begrunnelse",
-                    valgteHjemler = listOf(ValgtHjemmelForStansDTO.DeltarIkkePåArbeidsmarkedstiltak),
-                    stansFraOgMed = 9.april(2025),
-                    stansTilOgMed = null,
-                    harValgtStansFraFørsteDagSomGirRett = false,
-                    harValgtStansTilSisteDagSomGirRett = true,
-                ),
+                fritekstTilVedtaksbrev = "ny brevtekst",
+                begrunnelseVilkårsvurdering = "ny begrunnelse",
+                stansFraOgMed = 9.april(2025),
+                harValgtStansFraFørsteDagSomGirRett = false,
             )
 
             val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(revurdering.id)
@@ -223,19 +219,15 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
 
-            oppdaterBehandling(
+            oppdaterRevurderingStans(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
-                    fritekstTilVedtaksbrev = "ny brevtekst",
-                    begrunnelseVilkårsvurdering = "ny begrunnelse",
-                    valgteHjemler = listOf(ValgtHjemmelForStansDTO.DeltarIkkePåArbeidsmarkedstiltak),
-                    stansFraOgMed = 9.april(2025),
-                    stansTilOgMed = null,
-                    harValgtStansFraFørsteDagSomGirRett = false,
-                    harValgtStansTilSisteDagSomGirRett = true,
-                ),
+                fritekstTilVedtaksbrev = "ny brevtekst",
+                begrunnelseVilkårsvurdering = "ny begrunnelse",
+                valgteHjemler = setOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+                stansFraOgMed = 9.april(2025),
+                harValgtStansFraFørsteDagSomGirRett = false,
             )
 
             val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(revurdering.id)
@@ -301,45 +293,64 @@ class OppdaterBehandlingRouteTest {
 
             val stansFraOgMed = sak.førsteDagSomGirRett!!.minusDays(2)
 
-            oppdaterBehandling(
+            oppdaterRevurderingStans(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
-                    begrunnelseVilkårsvurdering = null,
-                    fritekstTilVedtaksbrev = null,
-                    valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = stansFraOgMed,
-                    stansTilOgMed = null,
-                    harValgtStansFraFørsteDagSomGirRett = false,
-                    harValgtStansTilSisteDagSomGirRett = true,
-                ),
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
+                stansFraOgMed = stansFraOgMed,
+                harValgtStansFraFørsteDagSomGirRett = false,
                 forventetStatus = HttpStatusCode.InternalServerError,
             )
         }
     }
 
     @Test
-    fun `send revurdering stans til beslutning feiler hvis stansFraOgMed er etter innvilgelsesperioden`() {
+    fun `oppdater revurdering stans feiler hvis stansFraOgMed er etter innvilgelsesperioden`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
             val stansFraOgMed = sak.sisteDagSomGirRett!!.plusDays(2)
 
-            oppdaterBehandling(
+            oppdaterRevurderingStans(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
-                    begrunnelseVilkårsvurdering = null,
-                    fritekstTilVedtaksbrev = null,
-                    valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = stansFraOgMed,
-                    stansTilOgMed = null,
-                    harValgtStansFraFørsteDagSomGirRett = false,
-                    harValgtStansTilSisteDagSomGirRett = true,
-                ),
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
+                stansFraOgMed = stansFraOgMed,
+                harValgtStansFraFørsteDagSomGirRett = false,
                 forventetStatus = HttpStatusCode.InternalServerError,
             )
+        }
+    }
+
+    @Test
+    fun `revurdering stans over hull i innvilgelsesperiodene`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
+                tac,
+                vedtaksperiode = 1.januar(2026) til 30.januar(2026),
+                innvilgelsesperioder = innvilgelsesperioder(
+                    1.januar(2026) til 10.januar(2026),
+                    15.januar(2026) til 30.januar(2026),
+                ),
+            )
+
+            val (_, oppdatertStans) = oppdaterRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
+                stansFraOgMed = 9.januar(2026),
+                harValgtStansFraFørsteDagSomGirRett = false,
+            )
+
+            oppdatertStans.vedtaksperiode shouldBe (9.januar(2026) til 30.januar(2026))
         }
     }
 
@@ -426,7 +437,7 @@ class OppdaterBehandlingRouteTest {
                 tac,
                 saksbehandler = saksbehandler,
                 sakId = sak.id,
-                innvilgelsesperiode = innvilgelsesperiode,
+                vedtaksperiode = innvilgelsesperiode,
             )
 
             val behandlingId = nesteSøknadsbehandling.id

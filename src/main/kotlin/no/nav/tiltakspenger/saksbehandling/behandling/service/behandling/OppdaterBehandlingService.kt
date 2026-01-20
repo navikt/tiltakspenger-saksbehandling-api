@@ -189,8 +189,8 @@ class OppdaterBehandlingService(
                 val stansperiode = kommando.utledStansperiode(førsteDagSomGirRett!!, sisteDagSomGirRett!!)
                 val overlappendeperiode =
                     this.vedtaksliste.rammevedtaksliste.innvilgetTidslinje.overlappendePeriode(stansperiode)
-                if (!overlappendeperiode.erSammenhengende) {
-                    throw IllegalStateException("Stansperioden $stansperiode må være sammenhengende med eksisterende innvilgede perioder på saken. Finnes ikke sammenhengende periode i ${this.vedtaksliste.rammevedtaksliste.innvilgelsesperioder} for sakId=$id")
+                if (overlappendeperiode.isEmpty()) {
+                    throw IllegalStateException("Stansperioden $stansperiode må inneholde eksisterende innvilgede perioder på saken. Finnes ingen innvilgelser i ${this.vedtaksliste.rammevedtaksliste.innvilgelsesperioder} for sakId=$id")
                 }
                 revurdering.oppdaterStans(
                     kommando = kommando,

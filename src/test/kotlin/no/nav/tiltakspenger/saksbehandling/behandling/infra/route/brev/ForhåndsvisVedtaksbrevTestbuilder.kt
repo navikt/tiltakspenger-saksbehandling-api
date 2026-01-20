@@ -41,7 +41,6 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
         fritekstTilVedtaksbrev: String = "some_tekst",
         vedtaksperiode: Periode? = null,
         stansFraOgMed: LocalDate? = null,
-        stansTilOgMed: LocalDate? = null,
         valgteHjemler: List<ValgtHjemmelForStansDTO>? = null,
         barnetillegg: List<BarnetilleggPeriodeDTO>? = null,
         resultat: RammebehandlingResultatTypeDTO,
@@ -73,9 +72,7 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
                     "fritekst": "$fritekstTilVedtaksbrev",
                     "vedtaksperiode": ${if (vedtaksperiode != null) """{"fraOgMed":"${vedtaksperiode.fraOgMed}","tilOgMed":"${vedtaksperiode.tilOgMed}"}""" else null},
                     "stansFraOgMed": ${if (stansFraOgMed != null) """"$stansFraOgMed"""" else null},
-                    "stansTilOgMed": ${if (stansTilOgMed != null) """"$stansTilOgMed"""" else null},
                     "harValgtStansFraFørsteDagSomGirRett": ${stansFraOgMed == null},
-                    "harValgtStansTilSisteDagSomGirRett": ${stansTilOgMed == null},
                     "valgteHjemler": ${valgteHjemler?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
                     "barnetillegg": ${
                 barnetillegg?.joinToString(

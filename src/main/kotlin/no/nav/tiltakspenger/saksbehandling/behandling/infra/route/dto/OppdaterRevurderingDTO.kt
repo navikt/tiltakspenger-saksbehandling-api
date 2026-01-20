@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
@@ -88,17 +87,13 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val fritekstTilVedtaksbrev: String? = null,
         val valgteHjemler: List<ValgtHjemmelForStansDTO>,
         val harValgtStansFraFørsteDagSomGirRett: Boolean,
-        val harValgtStansTilSisteDagSomGirRett: Boolean,
         val stansFraOgMed: LocalDate?,
-        val stansTilOgMed: LocalDate?,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.STANS
 
         init {
             if (harValgtStansFraFørsteDagSomGirRett) require(stansFraOgMed == null) { "stansFraOgMed må være null når harValgtStansFraFørsteDagSomGirRett er true" }
-            if (harValgtStansTilSisteDagSomGirRett) require(stansTilOgMed == null) { "stansTilOgMed må være null når harValgtStansTilSisteDagSomGirRett er true" }
             if (!harValgtStansFraFørsteDagSomGirRett) requireNotNull(stansFraOgMed) { "stansFraOgMed kan ikke være null når harValgtStansFraFørsteDagSomGirRett er false" }
-            if (!harValgtStansTilSisteDagSomGirRett) requireNotNull(stansTilOgMed) { "stansTilOgMed kan ikke være null når harValgtStansTilSisteDagSomGirRett er false" }
         }
 
         override fun tilDomene(
@@ -115,7 +110,6 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 stansFraOgMed = ValgtStansFraOgMed.create(stansFraOgMed),
-                stansTilOgMed = ValgtStansTilOgMed.create(stansTilOgMed),
                 valgteHjemler = valgteHjemler.toDomain().toNonEmptySetOrThrow(),
             )
         }

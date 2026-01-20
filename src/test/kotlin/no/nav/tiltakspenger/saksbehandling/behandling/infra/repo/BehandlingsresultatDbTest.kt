@@ -32,7 +32,6 @@ class BehandlingsresultatDbTest {
         val revurderingStans = RevurderingResultat.Stans(
             valgtHjemmel = null,
             harValgtStansFraFørsteDagSomGirRett = false,
-            harValgtStansTilSisteDagSomGirRett = true,
             stansperiode = 1 til 10.januar(2025),
             omgjørRammevedtak = OmgjørRammevedtak(
                 Omgjøringsperiode(

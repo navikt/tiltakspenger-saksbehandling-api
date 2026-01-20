@@ -89,7 +89,6 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     begrunnelse: Begrunnelse = Begrunnelse.createOrThrow("TestDataHelper.persisterRevurderingTilBeslutning"),
     stansFraOgMed: LocalDate? = s?.førsteDagSomGirRett ?: ObjectMother.revurderingVedtaksperiode().fraOgMed,
-    stansTilOgMed: LocalDate? = s?.sisteDagSomGirRett ?: ObjectMother.revurderingVedtaksperiode().tilOgMed,
     valgteHjemler: NonEmptySet<ValgtHjemmelForStans> = nonEmptySetOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     utbetaling: BehandlingUtbetaling? = null,
     clock: Clock = this.clock,
@@ -103,7 +102,6 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
         correlationId = CorrelationId.generate(),
         begrunnelseVilkårsvurdering = begrunnelse,
         stansFraOgMed = OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed.create(stansFraOgMed),
-        stansTilOgMed = OppdaterRevurderingKommando.Stans.ValgtStansTilOgMed.create(stansTilOgMed),
         valgteHjemler = valgteHjemler,
         fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("TestDataHelper.persisterRevurderingTilBeslutning"),
     )
@@ -132,7 +130,6 @@ internal fun TestDataHelper.persisterRevurderingStansUnderBeslutning(
     beslutterAv: Saksbehandler = ObjectMother.beslutter(),
     begrunnelse: Begrunnelse = Begrunnelse.createOrThrow("TestDataHelper.persisterRevurderingUnderBeslutning"),
     stansFraOgMed: LocalDate? = ObjectMother.revurderingVedtaksperiode().fraOgMed,
-    stansTilOgMed: LocalDate? = ObjectMother.revurderingVedtaksperiode().tilOgMed,
     valgteHjemler: NonEmptySet<ValgtHjemmelForStans> = nonEmptySetOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Rammebehandling> = { s ->
@@ -141,7 +138,6 @@ internal fun TestDataHelper.persisterRevurderingStansUnderBeslutning(
             saksbehandler = opprettetAv,
             begrunnelse = begrunnelse,
             stansFraOgMed = stansFraOgMed,
-            stansTilOgMed = stansTilOgMed,
             valgteHjemler = valgteHjemler,
             clock = clock,
         )
@@ -167,7 +163,6 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     begrunnelse: Begrunnelse = Begrunnelse.createOrThrow("TestDataHelper.persisterRevurderingTilBeslutning"),
     stansFraOgMed: LocalDate = ObjectMother.revurderingVedtaksperiode().fraOgMed,
-    stansTilOgMed: LocalDate = ObjectMother.revurderingVedtaksperiode().tilOgMed,
     valgteHjemler: NonEmptySet<ValgtHjemmelForStans> = nonEmptySetOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Rammebehandling> = { s ->
@@ -177,7 +172,6 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
             beslutterAv = beslutter,
             begrunnelse = begrunnelse,
             stansFraOgMed = stansFraOgMed,
-            stansTilOgMed = stansTilOgMed,
             valgteHjemler = valgteHjemler,
             clock = clock,
         )
