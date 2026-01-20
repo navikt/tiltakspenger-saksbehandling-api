@@ -21,4 +21,17 @@ data class KlageFormkrav(
             erUnntakForKlagefrist == KlagefristUnntakSvarord.NEI ||
             !erKlagenSignert
     }
+
+    init {
+        if (erKlagefristenOverholdt) {
+            require(erUnntakForKlagefrist == null) {
+                "Hvis klagefristen er overholdt, skal ikke unntak for klagefrist være satt."
+            }
+        }
+        if (!erKlagefristenOverholdt) {
+            require(erUnntakForKlagefrist != null) {
+                "Hvis klagefristen ikke er overholdt, må unntak for klagefrist være satt."
+            }
+        }
+    }
 }
