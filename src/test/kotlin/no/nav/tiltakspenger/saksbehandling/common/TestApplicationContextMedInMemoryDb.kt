@@ -51,6 +51,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakFa
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortFakeRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
@@ -122,7 +123,11 @@ class TestApplicationContextMedInMemoryDb(
         personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = person)
         tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
         tilgangsmaskinFakeClient.leggTil(fnr, Tilgangsvurdering.Godkjent)
-        tiltaksdeltakerFakeRepo.lagre(tiltaksdeltakelse.internDeltakelseId, tiltaksdeltakelse.eksternDeltakelseId)
+        tiltaksdeltakerFakeRepo.lagre(
+            id = tiltaksdeltakelse.internDeltakelseId,
+            eksternId = tiltaksdeltakelse.eksternDeltakelseId,
+            tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+        )
     }
 
     override fun leggTilBruker(token: String, bruker: Bruker<*, *>) {

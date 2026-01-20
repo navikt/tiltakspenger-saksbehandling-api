@@ -42,6 +42,7 @@ internal fun TestDataHelper.persisterSakOgSøknad(
         this.tiltaksdeltakerRepo.lagre(
             id = søknad.tiltak!!.tiltaksdeltakerId,
             eksternId = søknad.tiltak!!.id,
+            tiltakstype = søknad.tiltak!!.typeKode,
         )
     }
     this.søknadRepo.lagre(søknad)
