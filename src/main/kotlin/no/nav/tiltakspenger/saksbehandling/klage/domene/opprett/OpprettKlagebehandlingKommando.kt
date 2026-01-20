@@ -8,6 +8,9 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 
+/**
+ * @param erKlagefristenOverholdt Hvis true, skal erUnntakForKlagefrist være null. Hvis false, må erUnntakForKlagefrist være satt.
+ */
 data class OpprettKlagebehandlingKommando(
     val sakId: SakId,
     val saksbehandler: Saksbehandler,
@@ -29,5 +32,18 @@ data class OpprettKlagebehandlingKommando(
             erUnntakForKlagefrist = erUnntakForKlagefrist,
             erKlagenSignert = erKlagenSignert,
         )
+    }
+
+    init {
+        if (erKlagefristenOverholdt) {
+            require(erUnntakForKlagefrist == null) {
+                "Hvis klagefristen er overholdt, skal ikke unntak for klagefrist være satt. sakId: $sakId"
+            }
+        }
+        if (!erKlagefristenOverholdt) {
+            require(erUnntakForKlagefrist != null) {
+                "Hvis klagefristen ikke er overholdt, må unntak for klagefrist være satt sakId: $sakId"
+            }
+        }
     }
 }

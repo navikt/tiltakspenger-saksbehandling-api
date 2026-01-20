@@ -190,24 +190,32 @@ tasks {
 
     register("checkFlywayMigrationNames") {
         doLast {
-            val sqlFiles = project.file("src/main/resources/db/migration").walk()
-                .filter { it.isFile && it.extension == "sql" }
-                .toList()
+            val sqlFiles =
+                project
+                    .file("src/main/resources/db/migration")
+                    .walk()
+                    .filter { it.isFile && it.extension == "sql" }
+                    .toList()
 
-            val invalidSqlFiles = sqlFiles
-                .filterNot { it.name.matches(Regex("V[0-9]+__[a-zA-Z0-9][\\w]+\\.sql")) }
-                .map { it.name }
+            val invalidSqlFiles =
+                sqlFiles
+                    .filterNot { it.name.matches(Regex("V[0-9]+__[a-zA-Z0-9][\\w]+\\.sql")) }
+                    .map { it.name }
 
             if (invalidSqlFiles.isNotEmpty()) {
                 throw GradleException("Invalid SQL migration filenames:\n${invalidSqlFiles.joinToString("\n")}")
             }
-            val kotlinFiles = project.file("src/main/kotlin/db/migration").walk()
-                .filter { it.isFile && (it.extension == "kt" || it.extension == "java") }
-                .toList()
+            val kotlinFiles =
+                project
+                    .file("src/main/kotlin/db/migration")
+                    .walk()
+                    .filter { it.isFile && (it.extension == "kt" || it.extension == "java") }
+                    .toList()
 
-            val invalidKotlinFiles = kotlinFiles
-                .filterNot { it.name.matches(Regex("V[0-9]+__[a-zA-Z0-9][\\w]+\\.(kt|java)")) }
-                .map { it.name }
+            val invalidKotlinFiles =
+                kotlinFiles
+                    .filterNot { it.name.matches(Regex("V[0-9]+__[a-zA-Z0-9][\\w]+\\.(kt|java)")) }
+                    .map { it.name }
 
             if (invalidKotlinFiles.isNotEmpty()) {
                 throw GradleException("Invalid Kotlin/Java migration filenames:\n${invalidKotlinFiles.joinToString("\n")}")
@@ -215,14 +223,22 @@ tasks {
 
             // Check for duplicate versions across ALL migration types
             val allFiles = sqlFiles + kotlinFiles
-            val duplicateVersions = allFiles
-                .mapNotNull { it.name.split("__").firstOrNull()?.removePrefix("V")?.toIntOrNull() }
-                .groupBy { it }
-                .filter { it.value.size > 1 }
-                .keys
+            val duplicateVersions =
+                allFiles
+                    .mapNotNull {
+                        it.name
+                            .split("__")
+                            .firstOrNull()
+                            ?.removePrefix("V")
+                            ?.toIntOrNull()
+                    }.groupBy { it }
+                    .filter { it.value.size > 1 }
+                    .keys
 
             if (duplicateVersions.isNotEmpty()) {
-                throw GradleException("Duplicate version numbers found:\n${duplicateVersions.joinToString("\n") { "Version $it is used multiple times" }}")
+                throw GradleException(
+                    "Duplicate version numbers found:\n${duplicateVersions.joinToString("\n") { "Version $it is used multiple times" }}",
+                )
             }
 
             println("All migration filenames are valid and version numbers are unique.")
@@ -237,9 +253,10 @@ tasks {
 
         manifest {
             attributes["Main-Class"] = "no.nav.tiltakspenger.saksbehandling.AppKt"
-            attributes["Class-Path"] = configurations.runtimeClasspath
-                .get()
-                .joinToString(separator = " ") { file -> file.name }
+            attributes["Class-Path"] =
+                configurations.runtimeClasspath
+                    .get()
+                    .joinToString(separator = " ") { file -> file.name }
         }
     }
 }

@@ -22,10 +22,11 @@ class OppdaterKlagebehandlingFormkravService(
         kommando: OppdaterKlagebehandlingFormkravKommando,
     ): Either<KanIkkeOppdatereKlagebehandling, Pair<Sak, Klagebehandling>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
-        val journalpost: ValiderJournalpostResponse = validerJournalpostService.hentOgValiderJournalpost(
-            fnr = sak.fnr,
-            journalpostId = kommando.journalpostId,
-        )
+        val journalpost: ValiderJournalpostResponse =
+            validerJournalpostService.hentOgValiderJournalpost(
+                fnr = sak.fnr,
+                journalpostId = kommando.journalpostId,
+            )
         if (!journalpost.journalpostFinnes) return KanIkkeOppdatereKlagebehandling.FantIkkeJournalpost.left()
         require(journalpost.datoOpprettet != null) {
             // Dette er ikke en forventet feil - så vi lager ikke en left for den.
