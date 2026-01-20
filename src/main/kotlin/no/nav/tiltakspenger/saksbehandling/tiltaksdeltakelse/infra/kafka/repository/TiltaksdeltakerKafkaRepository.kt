@@ -119,6 +119,22 @@ class TiltaksdeltakerKafkaRepository(
         }
     }
 
+    fun lagreTiltaksdeltakerId(id: String, tiltaksdeltakerId: TiltaksdeltakerId) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        update tiltaksdeltaker_kafka set tiltaksdeltaker_id = :tiltaksdeltaker_id where id = :id and tiltaksdeltaker_id is null
+                    """.trimIndent(),
+                    mapOf(
+                        "tiltaksdeltaker_id" to tiltaksdeltakerId.toString(),
+                        "id" to id,
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
     private fun Row.toTiltaksdeltakerKafkaDb() =
         TiltaksdeltakerKafkaDb(
             id = string("id"),
