@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
-import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorSerial
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
@@ -78,7 +78,7 @@ class TestApplicationContextMedInMemoryDb(
     clock = clock,
 ) {
     @Suppress("MemberVisibilityCanBePrivate")
-    val journalpostIdGenerator = JournalpostIdGenerator()
+    val journalpostIdGenerator = JournalpostIdGeneratorSerial()
 
     @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()
