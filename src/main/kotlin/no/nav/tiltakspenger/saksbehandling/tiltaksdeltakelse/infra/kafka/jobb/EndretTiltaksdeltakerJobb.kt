@@ -98,6 +98,12 @@ class EndretTiltaksdeltakerJobb(
                         } else {
                             log.info { "Oppgave med id $oppgaveId er ikke ferdigstilt, oppdaterer sist sjekket for tiltaksdeltakelse $deltakerId" }
                             tiltaksdeltakerKafkaRepository.oppdaterOppgaveSistSjekket(deltakerId)
+                            if (it.tiltaksdeltakerId == null) {
+                                log.info { "Mangler intern tiltaksdeltakerId for ekstern id $deltakerId" }
+                                val internId = tiltaksdeltakerRepo.hentEllerLagre(deltakerId)
+                                tiltaksdeltakerKafkaRepository.lagreTiltaksdeltakerId(deltakerId, internId)
+                                log.info { "Lagret intern tiltaksdeltakerId $internId for ekstern id $deltakerId" }
+                            }
                         }
                     }
                 }.onLeft {

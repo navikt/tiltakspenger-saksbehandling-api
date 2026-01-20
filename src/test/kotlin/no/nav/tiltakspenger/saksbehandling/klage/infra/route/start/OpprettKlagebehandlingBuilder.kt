@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
@@ -63,6 +64,7 @@ interface OpprettKlagebehandlingBuilder {
         erKlagerPartISaken: Boolean = true,
         klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
         erKlagefristenOverholdt: Boolean = true,
+        erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
         erKlagenSignert: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
@@ -86,6 +88,7 @@ interface OpprettKlagebehandlingBuilder {
                     "erKlagerPartISaken": $erKlagerPartISaken,
                     "klagesDetPåKonkreteElementerIVedtaket": $klagesDetPåKonkreteElementerIVedtaket,
                     "erKlagefristenOverholdt": $erKlagefristenOverholdt,
+                    "erUnntakForKlagefrist": ${erUnntakForKlagefrist?.let { "\"$it\"" }},
                     "erKlagenSignert": $erKlagenSignert
                 }
                 """.trimIndent(),

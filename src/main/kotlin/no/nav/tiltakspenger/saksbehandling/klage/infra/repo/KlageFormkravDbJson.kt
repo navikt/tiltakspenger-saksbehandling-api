@@ -27,26 +27,25 @@ private data class KlagebehandlingFormkravDbJson(
 }
 
 enum class KlagefristUnntakSvarordDb {
-    JA,
     JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN,
     JA_AV_SÆRLIGE_GRUNNER,
     NEI,
     ;
 
-    fun toDomain(): KlagefristUnntakSvarord = when (this) {
-        JA -> KlagefristUnntakSvarord.JA
-        JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN -> KlagefristUnntakSvarord.JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN
-        JA_AV_SÆRLIGE_GRUNNER -> KlagefristUnntakSvarord.JA_AV_SÆRLIGE_GRUNNER
-        NEI -> KlagefristUnntakSvarord.NEI
-    }
+    fun toDomain(): KlagefristUnntakSvarord =
+        when (this) {
+            JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN -> KlagefristUnntakSvarord.JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN
+            JA_AV_SÆRLIGE_GRUNNER -> KlagefristUnntakSvarord.JA_AV_SÆRLIGE_GRUNNER
+            NEI -> KlagefristUnntakSvarord.NEI
+        }
 
     companion object {
-        fun toDbDto(svarord: KlagefristUnntakSvarord): KlagefristUnntakSvarordDb = when (svarord) {
-            KlagefristUnntakSvarord.JA -> JA
-            KlagefristUnntakSvarord.JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN -> JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN
-            KlagefristUnntakSvarord.JA_AV_SÆRLIGE_GRUNNER -> JA_AV_SÆRLIGE_GRUNNER
-            KlagefristUnntakSvarord.NEI -> NEI
-        }
+        fun toDbDto(svarord: KlagefristUnntakSvarord): KlagefristUnntakSvarordDb =
+            when (svarord) {
+                KlagefristUnntakSvarord.JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN -> JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN
+                KlagefristUnntakSvarord.JA_AV_SÆRLIGE_GRUNNER -> JA_AV_SÆRLIGE_GRUNNER
+                KlagefristUnntakSvarord.NEI -> NEI
+            }
     }
 }
 

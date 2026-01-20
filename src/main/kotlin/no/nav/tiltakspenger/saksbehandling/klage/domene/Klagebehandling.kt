@@ -87,11 +87,13 @@ data class Klagebehandling(
                 faktiskSaksbehandler = kommando.saksbehandler.navIdent,
             ).left()
         }
+        val oppdaterteFormkrav = kommando.toKlageFormkrav()
         return this.copy(
             sistEndret = nå(clock),
-            formkrav = kommando.toKlageFormkrav(),
+            formkrav = oppdaterteFormkrav,
             journalpostId = kommando.journalpostId,
             journalpostOpprettet = journalpostOpprettet,
+            resultat = if (oppdaterteFormkrav.erAvvisning) Klagebehandlingsresultat.AVVIST else null,
         ).right()
     }
 

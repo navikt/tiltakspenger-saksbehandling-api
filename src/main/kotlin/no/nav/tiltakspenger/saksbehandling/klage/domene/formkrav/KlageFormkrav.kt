@@ -14,11 +14,23 @@ data class KlageFormkrav(
     val erKlagenSignert: Boolean,
 ) {
     val erAvvisning: Boolean by lazy {
-        vedtakDetKlagesPå == null ||
-            !erKlagerPartISaken ||
-            !klagesDetPåKonkreteElementerIVedtaket ||
-            !erKlagefristenOverholdt ||
-            erUnntakForKlagefrist == KlagefristUnntakSvarord.NEI ||
-            !erKlagenSignert
+        if (vedtakDetKlagesPå == null) return@lazy true
+        if (!erKlagerPartISaken) return@lazy true
+        if (!klagesDetPåKonkreteElementerIVedtaket) return@lazy true
+        if (!erKlagenSignert) return@lazy true
+        if (!erKlagefristenOverholdt && (erUnntakForKlagefrist!! == KlagefristUnntakSvarord.NEI)) return@lazy true
+        false
+    }
+    init {
+        if (erKlagefristenOverholdt) {
+            require(erUnntakForKlagefrist == null) {
+                "Hvis klagefristen er overholdt, skal ikke unntak for klagefrist være satt."
+            }
+        }
+        if (!erKlagefristenOverholdt) {
+            require(erUnntakForKlagefrist != null) {
+                "Hvis klagefristen ikke er overholdt, må unntak for klagefrist være satt."
+            }
+        }
     }
 }

@@ -42,30 +42,32 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
                     val correlationId = call.correlationId()
                     krevSaksbehandlerRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                    oppdaterKlagebehandlingFormkravService.oppdaterFormkrav(
-                        kommando = body.tilKommando(
-                            sakId = sakId,
-                            saksbehandler = saksbehandler,
-                            correlationId = correlationId,
-                            klagebehandlingId = klagebehandlingId,
-                        ),
-                    ).fold(
-                        ifLeft = {
-                            call.respondJson(it.toStatusAndErrorJson())
-                        },
-                        ifRight = { (_, behandling) ->
-                            val behandlingId = behandling.id
-                            auditService.logMedSakId(
+                    oppdaterKlagebehandlingFormkravService
+                        .oppdaterFormkrav(
+                            kommando =
+                            body.tilKommando(
                                 sakId = sakId,
-                                navIdent = saksbehandler.navIdent,
-                                action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = "Oppdaterer formkrav på klagebehandling på sak $sakId",
+                                saksbehandler = saksbehandler,
                                 correlationId = correlationId,
-                                behandlingId = behandlingId,
-                            )
-                            call.respondJson(value = behandling.toDto())
-                        },
-                    )
+                                klagebehandlingId = klagebehandlingId,
+                            ),
+                        ).fold(
+                            ifLeft = {
+                                call.respondJson(it.toStatusAndErrorJson())
+                            },
+                            ifRight = { (_, behandling) ->
+                                val behandlingId = behandling.id
+                                auditService.logMedSakId(
+                                    sakId = sakId,
+                                    navIdent = saksbehandler.navIdent,
+                                    action = AuditLogEvent.Action.UPDATE,
+                                    contextMessage = "Oppdaterer formkrav på klagebehandling på sak $sakId",
+                                    correlationId = correlationId,
+                                    behandlingId = behandlingId,
+                                )
+                                call.respondJson(value = behandling.toDto())
+                            },
+                        )
                 }
             }
         }
@@ -74,24 +76,30 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
 
 fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
-        is KanIkkeOppdatereKlagebehandling.FantIkkeJournalpost -> Pair(
-            HttpStatusCode.BadRequest,
-            ErrorJson(
-                "Fant ikke journalpost",
-                "fant_ikke_journalpost",
-            ),
-        )
+        is KanIkkeOppdatereKlagebehandling.FantIkkeJournalpost -> {
+            Pair(
+                HttpStatusCode.BadRequest,
+                ErrorJson(
+                    "Fant ikke journalpost",
+                    "fant_ikke_journalpost",
+                ),
+            )
+        }
 
-        is KanIkkeOppdatereKlagebehandling.SaksbehandlerMismatch -> Pair(
-            HttpStatusCode.BadRequest,
-            behandlingenEiesAvAnnenSaksbehandler(
-                this.forventetSaksbehandler,
-            ),
-        )
+        is KanIkkeOppdatereKlagebehandling.SaksbehandlerMismatch -> {
+            Pair(
+                HttpStatusCode.BadRequest,
+                behandlingenEiesAvAnnenSaksbehandler(
+                    this.forventetSaksbehandler,
+                ),
+            )
+        }
 
-        is KanIkkeOppdatereKlagebehandling.KanIkkeOppdateres -> Pair(
-            HttpStatusCode.BadRequest,
-            kanIkkeOppdatereBehandling(),
-        )
+        is KanIkkeOppdatereKlagebehandling.KanIkkeOppdateres -> {
+            Pair(
+                HttpStatusCode.BadRequest,
+                kanIkkeOppdatereBehandling(),
+            )
+        }
     }
 }

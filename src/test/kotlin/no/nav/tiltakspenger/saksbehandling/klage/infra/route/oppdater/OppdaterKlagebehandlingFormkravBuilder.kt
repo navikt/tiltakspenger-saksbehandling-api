@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
@@ -43,16 +44,17 @@ interface OppdaterKlagebehandlingFormkravBuilder {
         erKlagerPartISaken: Boolean = true,
         klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
         erKlagefristenOverholdt: Boolean = true,
+        erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
         erKlagenSignert: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
-        val (sak, klagebehandling, _) = this.opprettSakOgKlagebehandlingTilAvvisning(
-            tac = tac,
-            saksbehandler = saksbehandler,
-            fnr = fnr,
-
-        ) ?: return null
+        val (sak, klagebehandling, _) =
+            this.opprettSakOgKlagebehandlingTilAvvisning(
+                tac = tac,
+                saksbehandler = saksbehandler,
+                fnr = fnr,
+            ) ?: return null
         return oppdaterKlagebehandlingFormkravForSakId(
             tac = tac,
             sakId = sak.id,
@@ -63,6 +65,7 @@ interface OppdaterKlagebehandlingFormkravBuilder {
             erKlagerPartISaken = erKlagerPartISaken,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
             erKlagefristenOverholdt = erKlagefristenOverholdt,
+            erUnntakForKlagefrist = erUnntakForKlagefrist,
             erKlagenSignert = erKlagenSignert,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
@@ -80,6 +83,7 @@ interface OppdaterKlagebehandlingFormkravBuilder {
         erKlagerPartISaken: Boolean = true,
         klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
         erKlagefristenOverholdt: Boolean = true,
+        erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
         erKlagenSignert: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
@@ -103,31 +107,31 @@ interface OppdaterKlagebehandlingFormkravBuilder {
                     "erKlagerPartISaken": $erKlagerPartISaken,
                     "klagesDetPåKonkreteElementerIVedtaket": $klagesDetPåKonkreteElementerIVedtaket,
                     "erKlagefristenOverholdt": $erKlagefristenOverholdt,
+                    "erUnntakForKlagefrist": ${erUnntakForKlagefrist?.let { "\"$it\"" }},
                     "erKlagenSignert": $erKlagenSignert
                 }
                 """.trimIndent(),
             )
-        }
-            .apply {
-                val bodyAsText = this.bodyAsText()
-                withClue(
-                    "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-                ) {
-                    if (forventetStatus != null) status shouldBe forventetStatus
-                }
-
-                if (forventetJsonBody != null) {
-                    bodyAsText.shouldEqualJson(forventetJsonBody)
-                }
-                if (status != HttpStatusCode.OK) return null
-                val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
-                val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asText())
-                val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-                return Triple(
-                    oppdatertSak,
-                    oppdatertSak.hentKlagebehandling(klagebehandlingId),
-                    jsonObject,
-                )
+        }.apply {
+            val bodyAsText = this.bodyAsText()
+            withClue(
+                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
+            ) {
+                if (forventetStatus != null) status shouldBe forventetStatus
             }
+
+            if (forventetJsonBody != null) {
+                bodyAsText.shouldEqualJson(forventetJsonBody)
+            }
+            if (status != HttpStatusCode.OK) return null
+            val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
+            val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asText())
+            val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+            return Triple(
+                oppdatertSak,
+                oppdatertSak.hentKlagebehandling(klagebehandlingId),
+                jsonObject,
+            )
+        }
     }
 }
