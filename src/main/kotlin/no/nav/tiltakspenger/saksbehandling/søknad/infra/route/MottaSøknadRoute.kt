@@ -7,6 +7,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.texas.systembruker
+import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
@@ -39,7 +40,10 @@ fun Route.mottaSøknadRoute(
                     søknadDTO.saksnummer,
                 ),
             )
-            val internTiltaksdeltakelsesId = tiltaksdeltakerRepo.hentEllerLagre(søknadDTO.tiltak.id)
+            val internTiltaksdeltakelsesId = tiltaksdeltakerRepo.hentEllerLagre(
+                eksternId = søknadDTO.tiltak.id,
+                tiltakstype = TiltakResponsDTO.TiltakType.valueOf(søknadDTO.tiltak.typeKode),
+            )
 
             // Oppretter søknad og lagrer den med kobling til angitt sak
             søknadService.nySøknad(
