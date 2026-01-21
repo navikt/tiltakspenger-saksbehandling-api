@@ -11,8 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
@@ -21,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.DEFAULT_TILTAK_DELTAKEL
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
@@ -30,7 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
@@ -77,7 +75,7 @@ internal class IverksettRevurderingTest {
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingVedtaksperiode),
-                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelsesperiode),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse(revurderingInnvilgelsesperiode),
             )
 
             val barnetillegg = barnetillegg(
@@ -86,16 +84,14 @@ internal class IverksettRevurderingTest {
                 antallBarn = AntallBarn(1),
             )
 
-            oppdaterBehandling(
+            oppdaterRevurderingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
-                    fritekstTilVedtaksbrev = "ny brevtekst",
-                    begrunnelseVilkårsvurdering = "ny begrunnelse",
-                    innvilgelsesperioder = revurdering.innvilgelsesperioderDTO(revurderingInnvilgelsesperiode),
-                    barnetillegg = barnetillegg.toBarnetilleggDTO(),
-                ),
+                fritekstTilVedtaksbrev = "ny brevtekst",
+                begrunnelseVilkårsvurdering = "ny begrunnelse",
+                innvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelsesperiode),
+                barnetillegg = barnetillegg,
             )
 
             sendRevurderingTilBeslutningForBehandlingId(
@@ -117,7 +113,7 @@ internal class IverksettRevurderingTest {
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingVedtaksperiode),
-                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelsesperiode),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse(revurderingInnvilgelsesperiode),
             )
 
             val barnetillegg = barnetillegg(
@@ -126,18 +122,14 @@ internal class IverksettRevurderingTest {
                 antallBarn = AntallBarn(1),
             )
 
-            oppdaterBehandling(
+            oppdaterRevurderingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
-                    fritekstTilVedtaksbrev = "ny brevtekst",
-                    begrunnelseVilkårsvurdering = "ny begrunnelse",
-                    innvilgelsesperioder = revurdering.innvilgelsesperioderDTO(
-                        revurderingInnvilgelsesperiode,
-                    ),
-                    barnetillegg = barnetillegg.toBarnetilleggDTO(),
-                ),
+                fritekstTilVedtaksbrev = "ny brevtekst",
+                begrunnelseVilkårsvurdering = "ny begrunnelse",
+                innvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelsesperiode),
+                barnetillegg = barnetillegg,
             )
 
             sendRevurderingTilBeslutningForBehandlingId(
@@ -192,7 +184,6 @@ internal class IverksettRevurderingTest {
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(1.til(10.april(2025))),
                 revurderingInnvilgelsesperioder = innvilgelsesperioder(9.til(11.april(2025))),
-
             )
             val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
             val revurdering = rammevedtakRevurdering.behandling as Revurdering

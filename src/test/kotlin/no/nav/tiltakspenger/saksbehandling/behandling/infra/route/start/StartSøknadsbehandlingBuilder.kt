@@ -16,16 +16,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterSøknadsbehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingAvslag
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadPåSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
@@ -166,17 +163,15 @@ interface StartSøknadsbehandlingBuilder {
             clock = clock,
         )
 
-        val (oppdatertSak, oppdatertBehandling) = oppdaterBehandling(
+        val (oppdatertSak, oppdatertBehandling) = oppdaterSøknadsbehandlingInnvilgelse(
             tac = tac,
             sakId = sak.id,
             behandlingId = behandling.id,
             saksbehandler = saksbehandler,
-            oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Innvilgelse(
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
-                innvilgelsesperioder = innvilgelsesperioder.tilDTO(),
-                barnetillegg = barnetillegg.toBarnetilleggDTO(),
-            ),
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
+            innvilgelsesperioder = innvilgelsesperioder,
+            barnetillegg = barnetillegg,
         )
 
         return Triple(oppdatertSak, søknad, oppdatertBehandling as Søknadsbehandling)
@@ -199,16 +194,14 @@ interface StartSøknadsbehandlingBuilder {
             clock = clock,
         )
 
-        val (oppdatertSak, oppdatertBehandling) = oppdaterBehandling(
+        val (oppdatertSak, oppdatertBehandling) = oppdaterSøknadsbehandlingAvslag(
             tac = tac,
             sakId = sak.id,
             behandlingId = behandling.id,
             saksbehandler = saksbehandler,
-            oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Avslag(
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
-                avslagsgrunner = avslagsgrunner.toValgtHjemmelForAvslagDTO(),
-            ),
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
+            avslagsgrunner = avslagsgrunner,
         )
 
         return Triple(oppdatertSak, søknad, oppdatertBehandling as Søknadsbehandling)

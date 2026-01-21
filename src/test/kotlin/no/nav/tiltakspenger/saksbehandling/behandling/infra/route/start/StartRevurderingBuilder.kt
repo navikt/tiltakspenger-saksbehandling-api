@@ -24,7 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -82,6 +81,7 @@ interface StartRevurderingBuilder {
         )
     }
 
+    @Suppress("unused")
     /** Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering. */
     suspend fun ApplicationTestBuilder.startRevurderingStans(
         tac: TestApplicationContext,
@@ -106,7 +106,7 @@ interface StartRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        revurderingInnvilgelsesperioder: Innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
+        oppdatertTiltaksdeltakelse: Tiltaksdeltakelse? = tiltaksdeltakelse(søknadsbehandlingInnvilgelsesperioder.totalPeriode),
         fnr: Fnr = Fnr.random(),
         sakId: SakId? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {
@@ -120,13 +120,6 @@ interface StartRevurderingBuilder {
         )
 
         val tiltaksdeltakelseFakeKlient = tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
-        val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
-        val oppdatertTiltaksdeltakelse =
-            søknadsbehandling.saksopplysninger.getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.tiltaksdeltakerId)!!
-                .copy(
-                    deltakelseFraOgMed = revurderingInnvilgelsesperioder.totalPeriode.fraOgMed,
-                    deltakelseTilOgMed = revurderingInnvilgelsesperioder.totalPeriode.tilOgMed,
-                )
 
         tiltaksdeltakelseFakeKlient.lagre(
             sak.fnr,

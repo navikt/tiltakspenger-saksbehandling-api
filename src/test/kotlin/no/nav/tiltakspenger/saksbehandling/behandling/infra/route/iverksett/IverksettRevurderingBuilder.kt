@@ -10,27 +10,25 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
@@ -46,6 +44,7 @@ interface IverksettRevurderingBuilder {
         fnr: Fnr = Fnr.random(),
         søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         revurderingInnvilgelsesperioder: Innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
+        oppdatertTiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(revurderingInnvilgelsesperioder.totalPeriode),
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperioder.perioder),
@@ -55,7 +54,7 @@ interface IverksettRevurderingBuilder {
         val (sak, søknad, søknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
             tac = tac,
             søknadsbehandlingInnvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
-            revurderingInnvilgelsesperioder = revurderingInnvilgelsesperioder,
+            oppdatertTiltaksdeltakelse = oppdatertTiltaksdeltakelse,
             saksbehandler = saksbehandler,
             beslutter = beslutter,
             fnr = fnr,
@@ -184,16 +183,14 @@ interface IverksettRevurderingBuilder {
             sakId = sakId,
         )!!
 
-        oppdaterBehandling(
+        oppdaterRevurderingOmgjøring(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
-            oppdaterBehandlingDTO = OppdaterRevurderingDTO.Omgjøring(
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                innvilgelsesperioder = revurderingInnvilgelsesperioder.tilDTO(),
-                barnetillegg = barnetilleggRevurdering.toBarnetilleggDTO(),
-            ),
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+            innvilgelsesperioder = revurderingInnvilgelsesperioder,
+            barnetillegg = barnetilleggRevurdering,
             saksbehandler = saksbehandler,
         )
 
@@ -243,16 +240,14 @@ interface IverksettRevurderingBuilder {
             saksbehandler = saksbehandler,
         )!!
 
-        oppdaterBehandling(
+        oppdaterRevurderingOmgjøring(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
-            oppdaterBehandlingDTO = OppdaterRevurderingDTO.Omgjøring(
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                innvilgelsesperioder = innvilgelsesperioder.tilDTO(),
-                barnetillegg = barnetilleggRevurdering.toBarnetilleggDTO(),
-            ),
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+            innvilgelsesperioder = innvilgelsesperioder,
+            barnetillegg = barnetilleggRevurdering,
             saksbehandler = saksbehandler,
         )
 

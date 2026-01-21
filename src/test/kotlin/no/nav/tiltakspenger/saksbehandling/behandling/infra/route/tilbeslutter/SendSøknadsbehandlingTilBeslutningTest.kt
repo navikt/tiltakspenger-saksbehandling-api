@@ -9,11 +9,10 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingIkkeValgt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
@@ -100,14 +99,12 @@ class SendSøknadsbehandlingTilBeslutningTest {
 
             val behandlingId = behandling.id
 
-            oppdaterBehandling(
+            oppdaterSøknadsbehandlingIkkeValgt(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandlingId,
-                oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.IkkeValgtResultat(
-                    fritekstTilVedtaksbrev = "ny brevtekst",
-                    begrunnelseVilkårsvurdering = "ny begrunnelse",
-                ),
+                fritekstTilVedtaksbrev = "ny brevtekst",
+                begrunnelseVilkårsvurdering = "ny begrunnelse",
             )
 
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
