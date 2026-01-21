@@ -307,9 +307,17 @@ internal class IverksettRevurderingTest {
                 erGjeldende = true,
                 vedtaksdato = null,
                 omgjortGrad = null,
-                omgjøringskommando = null,
                 stanskommando = null,
                 opphørskommando = null,
+                omgjøringskommando = """
+                    "OMGJØR": {
+                      "tvungenOmgjøringsperiode": {
+                        "fraOgMed": "2023-01-05",
+                        "tilOgMed": "2023-03-31"
+                      },
+                      "type": "OMGJØR"
+                    }
+                """.trimIndent(),
             )
         }
     }
