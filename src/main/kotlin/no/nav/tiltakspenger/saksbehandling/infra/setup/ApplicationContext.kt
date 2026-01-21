@@ -51,7 +51,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.T
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.jobb.TiltaksdeltakerJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
@@ -151,12 +150,6 @@ open class ApplicationContext(
             tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
             søknadRepo = søknadContext.søknadRepo,
             arenaDeltakerMapper = ArenaDeltakerMapper(),
-            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
-        )
-    }
-
-    open val tiltaksdeltakerJobb by lazy {
-        TiltaksdeltakerJobb(
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
         )
     }
