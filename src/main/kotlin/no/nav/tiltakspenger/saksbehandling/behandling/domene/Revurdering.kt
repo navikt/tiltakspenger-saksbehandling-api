@@ -167,7 +167,6 @@ data class Revurdering(
             resultat = Stans(
                 valgtHjemmel = kommando.valgteHjemler,
                 harValgtStansFraFørsteDagSomGirRett = kommando.harValgtStansFraFørsteDagSomGirRett,
-                harValgtStansTilSisteDagSomGirRett = kommando.harValgtStansTilSisteDagSomGirRett,
                 stansperiode = kommando.utledStansperiode(førsteDagSomGirRett, sisteDagSomGirRett),
                 omgjørRammevedtak = omgjørRammevedtak,
             ),

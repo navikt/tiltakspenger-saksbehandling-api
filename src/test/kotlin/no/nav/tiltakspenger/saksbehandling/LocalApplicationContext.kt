@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
-import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorRandom
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
@@ -68,7 +68,7 @@ class LocalApplicationContext(
 ) : ApplicationContext(gitHash = "fake-git-hash", clock = clock) {
 
     @Suppress("MemberVisibilityCanBePrivate")
-    val journalpostIdGenerator = JournalpostIdGenerator()
+    val journalpostIdGenerator = JournalpostIdGeneratorRandom()
 
     @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()

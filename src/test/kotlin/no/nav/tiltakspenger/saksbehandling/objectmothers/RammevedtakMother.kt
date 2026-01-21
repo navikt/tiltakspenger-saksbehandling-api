@@ -170,7 +170,6 @@ interface RammevedtakMother : MotherOfAllMothers {
             førsteDagSomGirRett = periode.fraOgMed,
             sisteDagSomGirRett = periode.tilOgMed,
             stansFraOgMed = periode.fraOgMed,
-            stansTilOgMed = periode.tilOgMed,
             omgjørRammevedtak = omgjørRammevedtak,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),

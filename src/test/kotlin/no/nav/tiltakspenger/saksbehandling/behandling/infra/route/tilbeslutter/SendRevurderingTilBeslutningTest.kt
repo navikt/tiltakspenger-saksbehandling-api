@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
-import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.HttpStatusCode
@@ -12,17 +11,16 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingsstatusDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingStansTilBeslutningForBehandlingId
 import org.json.JSONObject
@@ -36,19 +34,15 @@ class SendRevurderingTilBeslutningTest {
 
             val stansFraOgMed = sak.førsteDagSomGirRett!!.plusDays(1)
 
-            oppdaterBehandling(
+            oppdaterRevurderingStans(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
-                    begrunnelseVilkårsvurdering = null,
-                    fritekstTilVedtaksbrev = null,
-                    valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = stansFraOgMed,
-                    stansTilOgMed = null,
-                    harValgtStansFraFørsteDagSomGirRett = false,
-                    harValgtStansTilSisteDagSomGirRett = true,
-                ),
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
+                stansFraOgMed = stansFraOgMed,
+                harValgtStansFraFørsteDagSomGirRett = false,
             )
 
             val responseBody = sendRevurderingStansTilBeslutningForBehandlingId(

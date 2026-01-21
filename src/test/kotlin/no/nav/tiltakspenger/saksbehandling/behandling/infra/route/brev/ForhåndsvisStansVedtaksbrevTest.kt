@@ -18,7 +18,7 @@ internal class ForhåndsvisStansVedtaksbrevTest {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025),
+                vedtaksperiode = 1.januar(2025) til 31.mars(2025),
             )
             val behandlingId = revurdering.id
             val fritekstTilVedtaksbrev = "some_tekst"
@@ -29,7 +29,6 @@ internal class ForhåndsvisStansVedtaksbrevTest {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 vedtaksperiode = null,
                 stansFraOgMed = 1.februar(2025),
-                stansTilOgMed = null,
                 valgteHjemler = listOf(ValgtHjemmelForStansDTO.LønnFraAndre),
                 barnetillegg = null,
                 resultat = RammebehandlingResultatTypeDTO.STANS,

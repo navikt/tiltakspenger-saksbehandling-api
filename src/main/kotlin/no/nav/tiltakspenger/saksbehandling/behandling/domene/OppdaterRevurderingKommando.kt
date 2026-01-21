@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -29,14 +28,10 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         val valgteHjemler: NonEmptySet<ValgtHjemmelForStans>,
         val stansFraOgMed: ValgtStansFraOgMed,
-        val stansTilOgMed: ValgtStansTilOgMed,
     ) : OppdaterRevurderingKommando {
 
         /** Dersom saksbehandler har valgt at det skal stanses fra første dag som gir rett */
         val harValgtStansFraFørsteDagSomGirRett: Boolean get() = stansFraOgMed is ValgtStansFraOgMed.StansFraFørsteDagSomGirRett
-
-        /** Dersom saksbehandler har valgt at det skal stanses til siste dag som gir rett */
-        val harValgtStansTilSisteDagSomGirRett: Boolean get() = stansTilOgMed is ValgtStansTilOgMed.StansTilSisteDagSomGirRett
 
         fun utledStansperiode(førsteDagSomGirRett: LocalDate, sisteDagSomGirRett: LocalDate): Periode {
             if (stansFraOgMed.stansFraOgMed != null) {
@@ -44,23 +39,14 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
                     "Stans fra og med ${stansFraOgMed.stansFraOgMed} kan ikke være før første dag som gir rett $førsteDagSomGirRett"
                 }
             }
-            if (stansTilOgMed.stansTilOgMed != null) {
-                require(stansTilOgMed.stansTilOgMed!! <= sisteDagSomGirRett) {
-                    "Stans til og med ${stansTilOgMed.stansTilOgMed} kan ikke være etter siste dag som gir rett $sisteDagSomGirRett"
-                }
-            }
             return Periode(
                 fraOgMed = hentStansFraOgMed(førsteDagSomGirRett),
-                tilOgMed = hentStansTilOgMed(sisteDagSomGirRett),
+                tilOgMed = sisteDagSomGirRett,
             )
         }
 
         private fun hentStansFraOgMed(førsteDagSomGirRett: LocalDate): LocalDate {
             return stansFraOgMed.stansFraOgMed ?: førsteDagSomGirRett
-        }
-
-        private fun hentStansTilOgMed(sisteDagSomGirRett: LocalDate): LocalDate {
-            return stansTilOgMed.stansTilOgMed ?: sisteDagSomGirRett
         }
 
         sealed interface ValgtStansFraOgMed {
@@ -78,26 +64,6 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
                         StansFraFørsteDagSomGirRett
                     } else {
                         StansFraOgMed(dato)
-                    }
-                }
-            }
-        }
-
-        sealed interface ValgtStansTilOgMed {
-            val stansTilOgMed: LocalDate?
-
-            data object StansTilSisteDagSomGirRett : ValgtStansTilOgMed {
-                override val stansTilOgMed = null
-            }
-
-            data class StansTilOgMed(override val stansTilOgMed: LocalDate) : ValgtStansTilOgMed
-
-            companion object {
-                fun create(dato: LocalDate?): ValgtStansTilOgMed {
-                    return if (dato == null) {
-                        StansTilSisteDagSomGirRett
-                    } else {
-                        StansTilOgMed(dato)
                     }
                 }
             }

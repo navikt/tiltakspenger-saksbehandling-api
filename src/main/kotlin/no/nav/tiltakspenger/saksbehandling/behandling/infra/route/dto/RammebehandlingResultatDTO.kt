@@ -43,7 +43,6 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     data class Stans(
         val valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelForStansDTO>,
         val harValgtStansFraFørsteDagSomGirRett: Boolean?,
-        val harValgtStansTilSisteDagSomGirRett: Boolean?,
     ) : RevurderingResultatDTO {
         override val resultat = RammebehandlingResultatTypeDTO.STANS
     }
@@ -88,7 +87,6 @@ fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
         is RevurderingResultat.Stans -> RevurderingResultatDTO.Stans(
             valgtHjemmelHarIkkeRettighet = valgtHjemmel?.tilValgtHjemmelForStansDTO() ?: emptyList(),
             harValgtStansFraFørsteDagSomGirRett = harValgtStansFraFørsteDagSomGirRett,
-            harValgtStansTilSisteDagSomGirRett = harValgtStansTilSisteDagSomGirRett,
         )
 
         is RevurderingResultat.Omgjøring -> RevurderingResultatDTO.Omgjøring(

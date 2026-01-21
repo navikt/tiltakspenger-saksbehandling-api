@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
 import arrow.core.Tuple4
-import arrow.core.nonEmptyListOf
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
@@ -21,15 +20,16 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -52,19 +52,15 @@ interface SendRevurderingTilBeslutningBuilder {
         val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
         taBehandling(tac, sak.id, revurderingId, saksbehandler)
 
-        oppdaterBehandling(
+        oppdaterRevurderingStans(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
-            oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
-                begrunnelseVilkårsvurdering = null,
-                fritekstTilVedtaksbrev = null,
-                valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                stansFraOgMed = søknadsbehandling.vedtaksperiode!!.fraOgMed,
-                stansTilOgMed = null,
-                harValgtStansFraFørsteDagSomGirRett = false,
-                harValgtStansTilSisteDagSomGirRett = true,
-            ),
+            begrunnelseVilkårsvurdering = null,
+            fritekstTilVedtaksbrev = null,
+            valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
+            stansFraOgMed = søknadsbehandling.vedtaksperiode!!.fraOgMed,
+            harValgtStansFraFørsteDagSomGirRett = false,
         )
 
         return Tuple4(

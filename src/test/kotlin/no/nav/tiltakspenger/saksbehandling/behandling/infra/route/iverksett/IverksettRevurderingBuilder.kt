@@ -120,15 +120,13 @@ interface IverksettRevurderingBuilder {
                     fritekstTilVedtaksbrev = null,
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = stansFraOgMed,
-                    stansTilOgMed = null,
                     harValgtStansFraFørsteDagSomGirRett = false,
-                    harValgtStansTilSisteDagSomGirRett = true,
                 )
             },
         ) {
             iverksettSøknadsbehandlingOgStartRevurderingStans(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
+                vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
                 saksbehandler = saksbehandler,
                 beslutter = beslutter,
                 fnr = fnr,

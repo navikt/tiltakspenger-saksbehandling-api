@@ -28,17 +28,19 @@ enum class ValgtHjemmelForStansDTO {
 
 fun List<ValgtHjemmelForStansDTO>.toDomain(): List<ValgtHjemmelForStans> = this.map { it.toDomain() }
 
+fun ValgtHjemmelForStans.tilDTO(): ValgtHjemmelForStansDTO {
+    return when (this) {
+        ValgtHjemmelForStans.Alder -> ValgtHjemmelForStansDTO.Alder
+        ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelForStansDTO.DeltarIkkePåArbeidsmarkedstiltak
+        ValgtHjemmelForStans.Institusjonsopphold -> ValgtHjemmelForStansDTO.Institusjonsopphold
+        ValgtHjemmelForStans.Introduksjonsprogrammet -> ValgtHjemmelForStansDTO.Introduksjonsprogrammet
+        ValgtHjemmelForStans.Kvalifiseringsprogrammet -> ValgtHjemmelForStansDTO.Kvalifiseringsprogrammet
+        ValgtHjemmelForStans.Livsoppholdytelser -> ValgtHjemmelForStansDTO.Livsoppholdytelser
+        ValgtHjemmelForStans.LønnFraAndre -> ValgtHjemmelForStansDTO.LønnFraAndre
+        ValgtHjemmelForStans.LønnFraTiltaksarrangør -> ValgtHjemmelForStansDTO.LønnFraTiltaksarrangør
+    }
+}
+
 fun NonEmptySet<ValgtHjemmelForStans>.tilValgtHjemmelForStansDTO(): List<ValgtHjemmelForStansDTO> {
-    return this.map {
-        when (it) {
-            ValgtHjemmelForStans.Alder -> ValgtHjemmelForStansDTO.Alder
-            ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelForStansDTO.DeltarIkkePåArbeidsmarkedstiltak
-            ValgtHjemmelForStans.Institusjonsopphold -> ValgtHjemmelForStansDTO.Institusjonsopphold
-            ValgtHjemmelForStans.Introduksjonsprogrammet -> ValgtHjemmelForStansDTO.Introduksjonsprogrammet
-            ValgtHjemmelForStans.Kvalifiseringsprogrammet -> ValgtHjemmelForStansDTO.Kvalifiseringsprogrammet
-            ValgtHjemmelForStans.Livsoppholdytelser -> ValgtHjemmelForStansDTO.Livsoppholdytelser
-            ValgtHjemmelForStans.LønnFraAndre -> ValgtHjemmelForStansDTO.LønnFraAndre
-            ValgtHjemmelForStans.LønnFraTiltaksarrangør -> ValgtHjemmelForStansDTO.LønnFraTiltaksarrangør
-        }
-    }.sortedBy { it.name }
+    return this.map { it.tilDTO() }.sortedBy { it.name }
 }

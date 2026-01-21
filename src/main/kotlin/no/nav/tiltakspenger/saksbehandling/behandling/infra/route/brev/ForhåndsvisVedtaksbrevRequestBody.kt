@@ -122,9 +122,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     data class RevurderingStans(
         val fritekst: String?,
         val harValgtStansFraFørsteDagSomGirRett: Boolean?,
-        val harValgtStansTilSisteDagSomGirRett: Boolean?,
         val stansFraOgMed: LocalDate?,
-        val stansTilOgMed: LocalDate?,
         val valgteHjemler: List<ValgtHjemmelForStansDTO>,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(

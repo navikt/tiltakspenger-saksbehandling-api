@@ -61,7 +61,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 tac = tac,
                 sakId = sakId,
                 fnr = fnr,
-                innvilgelsesperiode = vedtaksperiode,
+                vedtaksperiode = vedtaksperiode,
                 saksbehandler = saksbehandler,
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,

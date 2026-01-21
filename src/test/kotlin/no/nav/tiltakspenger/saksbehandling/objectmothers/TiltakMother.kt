@@ -37,7 +37,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Tiltakskilde.Arena,
         deltidsprosentGjennomforing: Double? = null,
-        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.fromString("tiltaksdeltaker_01KEEESATZWSK1FZGEFZA02XZB"),
+        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.fromString(DEFAULT_TILTAK_DELTAKELSE_INTERN_ID),
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -58,7 +58,7 @@ interface TiltakMother {
 
     fun tiltaksdeltakelse(
         // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer. Så vi benytter en enkel statisk id her.
-        eksternTiltaksdeltakelseId: String = DEFAULT_TILTAK_DELTAKELSE_ID,
+        eksternTiltaksdeltakelseId: String = DEFAULT_TILTAK_DELTAKELSE_EKSTERN_ID,
         typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
         // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer. Så vi benytter en enkel statisk id her.
@@ -71,7 +71,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
-        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.fromString("tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0"),
+        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.fromString(DEFAULT_TILTAK_DELTAKELSE_INTERN_ID),
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -194,4 +194,6 @@ fun Tiltaksdeltakelse.toSøknadstiltak(tiltaksdeltakerId: TiltaksdeltakerId = Ti
     )
 }
 
-const val DEFAULT_TILTAK_DELTAKELSE_ID = "61328250-7d5d-4961-b70e-5cb727a34371"
+const val DEFAULT_TILTAK_DELTAKELSE_EKSTERN_ID = "61328250-7d5d-4961-b70e-5cb727a34371"
+
+const val DEFAULT_TILTAK_DELTAKELSE_INTERN_ID = "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0"

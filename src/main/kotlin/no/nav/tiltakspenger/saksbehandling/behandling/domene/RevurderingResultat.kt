@@ -23,12 +23,10 @@ sealed interface RevurderingResultat : BehandlingResultat {
      * [vedtaksperiode] og [stansperiode] vil være 1-1 ved denne revurderingstypen. [innvilgelsesperioder] vil alltid være null.
      *
      * @param harValgtStansFraFørsteDagSomGirRett Dersom saksbehandler har valgt at det skal stanses fra første dag som gir rett. Vil være null når man oppretter stansen.
-     * @param harValgtStansTilSisteDagSomGirRett Dersom saksbehandler har valgt at det skal stanses til siste dag som gir rett. Vil være null når man oppretter stansen.
      */
     data class Stans(
         val valgtHjemmel: NonEmptySet<ValgtHjemmelForStans>?,
         val harValgtStansFraFørsteDagSomGirRett: Boolean?,
-        val harValgtStansTilSisteDagSomGirRett: Boolean?,
         val stansperiode: Periode?,
         override val omgjørRammevedtak: OmgjørRammevedtak,
     ) : RevurderingResultat {
@@ -55,7 +53,6 @@ sealed interface RevurderingResultat : BehandlingResultat {
             val empty: Stans = Stans(
                 valgtHjemmel = null,
                 harValgtStansFraFørsteDagSomGirRett = null,
-                harValgtStansTilSisteDagSomGirRett = null,
                 stansperiode = null,
                 omgjørRammevedtak = OmgjørRammevedtak.empty,
             )

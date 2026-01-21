@@ -45,7 +45,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.fixedClock
-import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorSerial
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
@@ -816,7 +816,7 @@ interface MeldekortMother : MotherOfAllMothers {
             meldeperiode = meldeperiode,
             sakId = sakId,
             dager = dager,
-            journalpostId = JournalpostIdGenerator().neste(),
+            journalpostId = JournalpostIdGeneratorSerial().neste(),
             oppgaveId = null,
             behandlesAutomatisk = behandlesAutomatisk,
             behandletAutomatiskStatus = behandletAutomatiskStatus,
@@ -847,7 +847,7 @@ interface MeldekortMother : MotherOfAllMothers {
             meldeperiodeId = meldeperiodeId,
             sakId = sakId,
             dager = dager,
-            journalpostId = JournalpostIdGenerator().neste(),
+            journalpostId = JournalpostIdGeneratorSerial().neste(),
         )
     }
 

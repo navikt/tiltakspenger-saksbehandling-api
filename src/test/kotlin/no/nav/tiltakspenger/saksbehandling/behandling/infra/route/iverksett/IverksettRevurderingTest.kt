@@ -1,23 +1,22 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
-import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.objectmothers.DEFAULT_TILTAK_DELTAKELSE_INTERN_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
@@ -29,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingStansTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
@@ -45,19 +45,15 @@ internal class IverksettRevurderingTest {
                 tac,
             )
 
-            oppdaterBehandling(
+            oppdaterRevurderingStans(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
-                    begrunnelseVilkårsvurdering = null,
-                    fritekstTilVedtaksbrev = null,
-                    valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = rammevedtakSøknadsbehandling.behandling.vedtaksperiode!!.fraOgMed,
-                    stansTilOgMed = null,
-                    harValgtStansFraFørsteDagSomGirRett = false,
-                    harValgtStansTilSisteDagSomGirRett = true,
-                ),
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
+                stansFraOgMed = rammevedtakSøknadsbehandling.behandling.vedtaksperiode!!.fraOgMed,
+                harValgtStansFraFørsteDagSomGirRett = false,
             )
 
             sendRevurderingStansTilBeslutningForBehandlingId(
@@ -159,19 +155,15 @@ internal class IverksettRevurderingTest {
                 tac,
             )
 
-            oppdaterBehandling(
+            oppdaterRevurderingStans(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
-                    begrunnelseVilkårsvurdering = null,
-                    fritekstTilVedtaksbrev = null,
-                    valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                    stansFraOgMed = rammevedtakSøknadsbehandling.behandling.vedtaksperiode!!.fraOgMed,
-                    stansTilOgMed = null,
-                    harValgtStansFraFørsteDagSomGirRett = false,
-                    harValgtStansTilSisteDagSomGirRett = true,
-                ),
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
+                stansFraOgMed = rammevedtakSøknadsbehandling.behandling.vedtaksperiode!!.fraOgMed,
+                harValgtStansFraFørsteDagSomGirRett = false,
             )
 
             sendRevurderingStansTilBeslutningForBehandlingId(
@@ -226,7 +218,7 @@ internal class IverksettRevurderingTest {
                 innvilgelsesperioder = """
                     [
                         {
-                            "internDeltakelseId": "tiltaksdeltaker_01KEEESATZWSK1FZGEFZA02XZB",
+                            "internDeltakelseId": "$DEFAULT_TILTAK_DELTAKELSE_INTERN_ID",
                             "periode": {
                                 "fraOgMed": "2025-04-09",
                                 "tilOgMed": "2025-04-11"
@@ -340,7 +332,7 @@ internal class IverksettRevurderingTest {
                 vedtaksdato = null,
                 innvilgelsesperioder = """[
                     {
-                        "internDeltakelseId": "tiltaksdeltaker_01KEEESATZWSK1FZGEFZA02XZB",
+                        "internDeltakelseId": "$DEFAULT_TILTAK_DELTAKELSE_INTERN_ID",
                         "periode": {
                             "fraOgMed": "2025-04-01",
                             "tilOgMed": "2025-04-10"

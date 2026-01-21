@@ -45,7 +45,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
             val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(
                 tac,
-                tiltaksdeltakelsesperiode = innvilgelsesperiode,
+                vedtaksperiode = innvilgelsesperiode,
             )
             val behandlingId = behandling.id
             val fritekstTilVedtaksbrev = "some_tekst"
@@ -78,7 +78,7 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
     fun `kan forhåndsvise vedtaksbrev for innvilget søknadsbehandling med to barn`() {
         withTestApplicationContext { tac ->
             val innvilgelsesperiode = (1.januar(2025) til 31.mars(2025))
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac, tiltaksdeltakelsesperiode = innvilgelsesperiode)
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac, vedtaksperiode = innvilgelsesperiode)
             val behandlingId = behandling.id
             val fritekstTilVedtaksbrev = "some_tekst"
             val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(

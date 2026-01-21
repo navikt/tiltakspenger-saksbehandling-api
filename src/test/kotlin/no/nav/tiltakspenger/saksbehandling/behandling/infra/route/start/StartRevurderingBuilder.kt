@@ -23,6 +23,8 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -31,6 +33,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -48,13 +52,19 @@ interface StartRevurderingBuilder {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        søknadsbehandlingInnvilgelsesperiode: Periode = 1.til(10.april(2025)),
+        vedtaksperiode: Periode = 1.til(10.april(2025)),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(fom = vedtaksperiode.fraOgMed, tom = vedtaksperiode.tilOgMed),
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode, tiltaksdeltakelse),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac = tac,
-            vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
+            vedtaksperiode = vedtaksperiode,
+            innvilgelsesperioder = innvilgelsesperioder,
+            barnetillegg = barnetillegg,
+            tiltaksdeltakelse = tiltaksdeltakelse,
             fnr = fnr,
             sakId = sakId,
             saksbehandler = saksbehandler,
