@@ -28,7 +28,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.Tiltaksdeltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toTiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.jobb.TiltaksdeltakerIdOgTiltakstype
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import org.junit.jupiter.api.Test
@@ -104,11 +103,6 @@ internal class HentSaksopplysingerServiceTest {
                 }
                 override fun hentEksternId(id: TiltaksdeltakerId): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
-                }
-                override fun hentIdUtenTiltakstypeOgTiltakstypen(limit: Int): List<TiltaksdeltakerIdOgTiltakstype> {
-                    return emptyList()
-                }
-                override fun lagreTiltakstype(tiltaksdeltakerIdOgTiltakstype: TiltaksdeltakerIdOgTiltakstype) {
                 }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
@@ -212,11 +206,6 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentEksternId(id: TiltaksdeltakerId): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
                 }
-                override fun hentIdUtenTiltakstypeOgTiltakstypen(limit: Int): List<TiltaksdeltakerIdOgTiltakstype> {
-                    return emptyList()
-                }
-                override fun lagreTiltakstype(tiltaksdeltakerIdOgTiltakstype: TiltaksdeltakerIdOgTiltakstype) {
-                }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
@@ -318,11 +307,6 @@ internal class HentSaksopplysingerServiceTest {
                 }
                 override fun hentEksternId(id: TiltaksdeltakerId): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
-                }
-                override fun hentIdUtenTiltakstypeOgTiltakstypen(limit: Int): List<TiltaksdeltakerIdOgTiltakstype> {
-                    return emptyList()
-                }
-                override fun lagreTiltakstype(tiltaksdeltakerIdOgTiltakstype: TiltaksdeltakerIdOgTiltakstype) {
                 }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
@@ -460,11 +444,6 @@ internal class HentSaksopplysingerServiceTest {
                         }
                     }
                 }
-                override fun hentIdUtenTiltakstypeOgTiltakstypen(limit: Int): List<TiltaksdeltakerIdOgTiltakstype> {
-                    return emptyList()
-                }
-                override fun lagreTiltakstype(tiltaksdeltakerIdOgTiltakstype: TiltaksdeltakerIdOgTiltakstype) {
-                }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
@@ -594,11 +573,6 @@ internal class HentSaksopplysingerServiceTest {
                             throw IllegalArgumentException("Ukjent eksternId")
                         }
                     }
-                }
-                override fun hentIdUtenTiltakstypeOgTiltakstypen(limit: Int): List<TiltaksdeltakerIdOgTiltakstype> {
-                    return emptyList()
-                }
-                override fun lagreTiltakstype(tiltaksdeltakerIdOgTiltakstype: TiltaksdeltakerIdOgTiltakstype) {
                 }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
