@@ -5,6 +5,7 @@ import arrow.core.NonEmptySet
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.overlappendePerioder
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
@@ -165,7 +166,8 @@ sealed interface RevurderingResultat : BehandlingResultat {
             val innvilgelsesperioder =
                 innvilgelsesperioder?.krympTilTiltaksdeltakelsesperioder(oppdaterteSaksopplysninger.tiltaksdeltakelser)
 
-            val barnetillegg = innvilgelsesperioder?.let { barnetillegg?.krympTilPerioder(innvilgelsesperioder.perioder) }
+            val barnetillegg =
+                innvilgelsesperioder?.let { barnetillegg?.krympTilPerioder(innvilgelsesperioder.perioder) }
 
             return Omgjøring(
                 vedtaksperiode = if (innvilgelsesperioder == null) {
@@ -187,12 +189,20 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 omgjørRammevedtak: Rammevedtak,
                 saksopplysninger: Saksopplysninger,
             ): Either<KunneIkkeOppretteOmgjøring, Omgjøring> {
-                // Vi har en generell begrensning om innvilgelseserperioden ikke kan være større enn tiltaksdeltakelsene.
+                val perioderSomKanInnvilges =
+                    omgjørRammevedtak.gjeldendePerioder.overlappendePerioder(saksopplysninger.tiltaksdeltakelser.perioder)
+
+                if (perioderSomKanInnvilges.isEmpty()) {
+                    return KunneIkkeOppretteOmgjøring.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag.left()
+                }
+
+                // Denne bør oppdateres til kun å hente gjeldende innvilgelsesperioder når vi skal tillate å omgjøre delvis gjeldende vedtak
                 val innvilgelsesperioder =
                     omgjørRammevedtak.innvilgelsesperioder?.krympTilTiltaksdeltakelsesperioder(saksopplysninger.tiltaksdeltakelser)
-                        ?: return KunneIkkeOppretteOmgjøring.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag.left()
 
-                val barnetillegg = omgjørRammevedtak.barnetillegg!!.krympTilPerioder(innvilgelsesperioder.perioder)
+                val barnetillegg = innvilgelsesperioder?.let {
+                    omgjørRammevedtak.barnetillegg!!.krympTilPerioder(it.perioder)
+                }
 
                 return Omgjøring(
                     // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.

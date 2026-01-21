@@ -21,11 +21,9 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class StartRevurderingOmgjøringTest {
-    @Disabled("TODO jah: Midlertidig deaktivert fordi omgjøring av stans ikke fungerer atm.")
     @Test
     fun `kan omgjøre stans`() {
         withTestApplicationContext { tac ->
