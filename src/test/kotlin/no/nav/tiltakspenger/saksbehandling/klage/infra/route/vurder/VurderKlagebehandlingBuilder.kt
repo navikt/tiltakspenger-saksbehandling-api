@@ -109,7 +109,7 @@ interface VurderKlagebehandlingBuilder {
                 //language=JSON
                 """
                 {
-                    "begrunnelse": "$begrunnelse",
+                    "begrunnelse": "${begrunnelse.verdi}",
                     "årsak": "$årsak"
                 }
                 """.trimIndent(),
