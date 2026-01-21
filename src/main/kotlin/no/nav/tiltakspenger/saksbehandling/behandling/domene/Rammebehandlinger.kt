@@ -4,6 +4,8 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 /**
@@ -50,6 +52,11 @@ data class Rammebehandlinger(
         behandlinger.single { it.id == behandling.id }
         val behandlinger = this.behandlinger.map { if (it.id == behandling.id) behandling else it }
         return this.copy(behandlinger = behandlinger)
+    }
+
+    fun åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
+        return behandlinger
+            .filter { !it.erAvsluttet && it.klagebehandling?.id == klagebehandlingId }
     }
 
     init {

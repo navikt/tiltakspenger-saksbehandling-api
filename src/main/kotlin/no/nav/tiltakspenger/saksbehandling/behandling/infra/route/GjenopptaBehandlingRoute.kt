@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
@@ -12,7 +11,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KunneIkkeGjenopptaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
@@ -57,7 +56,7 @@ fun Route.gjenopptaBehandling(
                             correlationId = correlationId,
                         )
 
-                        call.respondJson(value = sak.tilBehandlingDTO(behandlingId))
+                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
                     },
                 )
             }

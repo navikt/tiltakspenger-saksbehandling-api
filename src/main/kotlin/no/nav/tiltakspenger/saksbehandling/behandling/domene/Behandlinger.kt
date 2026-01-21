@@ -66,6 +66,10 @@ data class Behandlinger(
         return klagebehandlinger.hentKlagebehandling(klagebehandlingId)
     }
 
+    fun åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
+        return rammebehandlinger.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId)
+    }
+
     init {
         require(slåttSammen.distinctBy { it.opprettet }.size == slåttSammen.size) {
             "Behandlingene kan ikke ha samme opprettet-tidspunkt."

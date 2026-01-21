@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -64,7 +64,7 @@ fun Route.sendBehandlingTilBeslutningRoute(
                         },
                         correlationId = correlationId,
                     )
-                    call.respondJson(value = sak.tilBehandlingDTO(behandlingId))
+                    call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
                 }
             }
         }

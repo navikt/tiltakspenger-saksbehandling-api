@@ -8,14 +8,14 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
-class SøknadFakeRepo(private val behandlingRepo: BehandlingFakeRepo) : SøknadRepo {
+class SøknadFakeRepo(private val behandlingRepo: RammebehandlingFakeRepo) : SøknadRepo {
     private val data = Atomic(mutableMapOf<SøknadId, Søknad>())
 
     val alle get() = data.get().values.toList()

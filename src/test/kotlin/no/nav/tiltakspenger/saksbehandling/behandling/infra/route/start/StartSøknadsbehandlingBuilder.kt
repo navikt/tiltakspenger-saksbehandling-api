@@ -106,7 +106,7 @@ interface StartSøknadsbehandlingBuilder {
             manueltBehandlesGrunner = manueltBehandlesGrunner,
             clock = clock,
         ).also {
-            tac.behandlingContext.behandlingRepo.lagre(it)
+            tac.behandlingContext.rammebehandlingRepo.lagre(it)
         }
 
         val oppdaterSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!

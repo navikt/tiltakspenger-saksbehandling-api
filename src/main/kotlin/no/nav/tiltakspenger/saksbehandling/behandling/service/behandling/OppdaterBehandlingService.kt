@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingStans
@@ -31,7 +31,7 @@ import java.time.Clock
 
 class OppdaterBehandlingService(
     private val sakService: SakService,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val navkontorService: NavkontorService,
     private val clock: Clock,
     private val simulerService: SimulerService,
@@ -65,8 +65,8 @@ class OppdaterBehandlingService(
 
             log.debug { "Lagrer oppdatert behandling ${behandling.id} for sak ${behandling.sakId}" }
             sessionFactory.withTransactionContext { tx ->
-                behandlingRepo.lagre(oppdatertBehandling, tx)
-                behandlingRepo.oppdaterSimuleringMetadata(
+                rammebehandlingRepo.lagre(oppdatertBehandling, tx)
+                rammebehandlingRepo.oppdaterSimuleringMetadata(
                     oppdatertBehandling.id,
                     simuleringMedMetadata?.originalResponseBody,
                     tx,

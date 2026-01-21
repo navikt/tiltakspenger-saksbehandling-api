@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
@@ -15,7 +15,7 @@ import java.time.Clock
 
 class TaBehandlingService(
     private val behandlingService: BehandlingService,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
     private val statistikkSakService: StatistikkSakService,
@@ -40,7 +40,7 @@ class TaBehandlingService(
             sessionFactory.withTransactionContext { tx ->
                 when (it.status) {
                     Rammebehandlingsstatus.UNDER_BEHANDLING -> {
-                        behandlingRepo.taBehandlingSaksbehandler(
+                        rammebehandlingRepo.taBehandlingSaksbehandler(
                             it.id,
                             saksbehandler,
                             it.status,
@@ -50,7 +50,7 @@ class TaBehandlingService(
                     }
 
                     Rammebehandlingsstatus.UNDER_BESLUTNING -> {
-                        behandlingRepo.taBehandlingBeslutter(
+                        rammebehandlingRepo.taBehandlingBeslutter(
                             it.id,
                             saksbehandler,
                             it.status,

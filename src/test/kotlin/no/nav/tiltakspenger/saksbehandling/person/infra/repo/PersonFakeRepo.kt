@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -16,7 +16,7 @@ class PersonFakeRepo(
     private val sakFakeRepo: SakFakeRepo,
     private val søknadFakeRepo: SøknadFakeRepo,
     private val meldekortBehandlingFakeRepo: MeldekortBehandlingFakeRepo,
-    private val behandlingFakeRepo: BehandlingFakeRepo,
+    private val behandlingFakeRepo: RammebehandlingFakeRepo,
 ) : PersonRepo {
 
     override fun hentFnrForSakId(sakId: SakId): Fnr {

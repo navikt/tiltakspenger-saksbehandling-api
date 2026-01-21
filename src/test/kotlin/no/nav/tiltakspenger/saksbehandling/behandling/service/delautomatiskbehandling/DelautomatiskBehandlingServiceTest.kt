@@ -37,7 +37,7 @@ class DelautomatiskBehandlingServiceTest {
     fun `behandleAutomatisk - behandling som kan behandles automatisk sendes til beslutning`() {
         withTestApplicationContext { tac ->
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac)
-            tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             }
@@ -52,7 +52,7 @@ class DelautomatiskBehandlingServiceTest {
                 CorrelationId.generate(),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             oppdatertBehandling.automatiskSaksbehandlet shouldBe true
@@ -89,7 +89,7 @@ class DelautomatiskBehandlingServiceTest {
                     status = TiltakDeltakerstatus.VenterPåOppstart,
                 ),
             )
-            tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 it.venterTil shouldBe null
@@ -102,7 +102,7 @@ class DelautomatiskBehandlingServiceTest {
                 CorrelationId.generate(),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
             oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             oppdatertBehandling.venterTil?.toLocalDate() shouldBe innvilgelsesperiode.fraOgMed
@@ -133,8 +133,8 @@ class DelautomatiskBehandlingServiceTest {
                 clock = tac.clock,
                 venterTil = innvilgelsesperiode.fraOgMed.atStartOfDay(),
             ) as Søknadsbehandling
-            tac.behandlingContext.behandlingRepo.lagre(behandlingPaVent)
-            tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+            tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 it.venterTil shouldNotBe null
@@ -147,7 +147,7 @@ class DelautomatiskBehandlingServiceTest {
                 CorrelationId.generate(),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             oppdatertBehandling.venterTil?.toLocalDate() shouldBe null
@@ -178,8 +178,8 @@ class DelautomatiskBehandlingServiceTest {
                 clock = tac.clock,
                 venterTil = nå(tac.clock),
             ) as Søknadsbehandling
-            tac.behandlingContext.behandlingRepo.lagre(behandlingPaVent)
-            tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+            tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 it.venterTil?.toLocalDate() shouldBe 1.januar(2025)
@@ -192,7 +192,7 @@ class DelautomatiskBehandlingServiceTest {
                 CorrelationId.generate(),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
             oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             oppdatertBehandling.venterTil?.toLocalDate() shouldBe innvilgelsesperiode.fraOgMed
@@ -218,7 +218,7 @@ class DelautomatiskBehandlingServiceTest {
                     status = TiltakDeltakerstatus.Venteliste,
                 ),
             )
-            tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             }
@@ -230,7 +230,7 @@ class DelautomatiskBehandlingServiceTest {
                 CorrelationId.generate(),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
             oppdatertBehandling.saksbehandler shouldBe null
             oppdatertBehandling.automatiskSaksbehandlet shouldBe false
@@ -258,7 +258,7 @@ class DelautomatiskBehandlingServiceTest {
                     deltidsprosentGjennomforing = 100.0,
                 ),
             )
-            tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             }
@@ -270,7 +270,7 @@ class DelautomatiskBehandlingServiceTest {
                 CorrelationId.generate(),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
             oppdatertBehandling.saksbehandler shouldBe null
             oppdatertBehandling.automatiskSaksbehandlet shouldBe false
@@ -299,7 +299,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac = tac,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
-            tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             }
@@ -311,7 +311,7 @@ class DelautomatiskBehandlingServiceTest {
                 CorrelationId.generate(),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             oppdatertBehandling.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             oppdatertBehandling.automatiskSaksbehandlet shouldBe true
@@ -352,14 +352,14 @@ class DelautomatiskBehandlingServiceTest {
             )
             val behandling = sakOgBehandling.second
             tac.søknadContext.søknadRepo.lagre(behandling.søknad)
-            tac.behandlingContext.behandlingRepo.lagre(behandling)
+            tac.behandlingContext.rammebehandlingRepo.lagre(behandling)
             tac.leggTilPerson(
                 fnr = sak.fnr,
                 person = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
                 tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first(),
             )
 
-            tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 (it as Søknadsbehandling).søknad.sykepenger.erJa() shouldBe true
@@ -370,7 +370,7 @@ class DelautomatiskBehandlingServiceTest {
                 CorrelationId.generate(),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
             oppdatertBehandling.saksbehandler shouldBe null
             oppdatertBehandling.automatiskSaksbehandlet shouldBe false
@@ -385,7 +385,7 @@ class DelautomatiskBehandlingServiceTest {
             opprettSøknadsbehandlingKlarTilBehandling(tac, fnr = fnr)
 
             val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr = fnr)
-            tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             }
@@ -395,7 +395,7 @@ class DelautomatiskBehandlingServiceTest {
                 CorrelationId.generate(),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
             oppdatertBehandling.saksbehandler shouldBe null
             oppdatertBehandling.automatiskSaksbehandlet shouldBe false
@@ -423,14 +423,14 @@ class DelautomatiskBehandlingServiceTest {
             )
             val behandling = sakOgBehandling.second
             tac.søknadContext.søknadRepo.lagre(behandling.søknad)
-            tac.behandlingContext.behandlingRepo.lagre(behandling)
+            tac.behandlingContext.rammebehandlingRepo.lagre(behandling)
             tac.leggTilPerson(
                 fnr = sak.fnr,
                 person = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
                 tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first(),
             )
 
-            tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 (it as Søknadsbehandling).søknad.kvp.erJa() shouldBe true
@@ -443,7 +443,7 @@ class DelautomatiskBehandlingServiceTest {
                 CorrelationId.generate(),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id) as Søknadsbehandling
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
             oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
             oppdatertBehandling.saksbehandler shouldBe null
             oppdatertBehandling.automatiskSaksbehandlet shouldBe false

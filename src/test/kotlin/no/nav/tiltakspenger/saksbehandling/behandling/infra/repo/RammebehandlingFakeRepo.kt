@@ -14,10 +14,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import java.time.LocalDateTime
 
-class BehandlingFakeRepo : BehandlingRepo {
+class RammebehandlingFakeRepo : RammebehandlingRepo {
     private val data = Atomic(mutableMapOf<BehandlingId, Rammebehandling>())
 
     val alle get() = data.get().values.toList()

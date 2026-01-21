@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -13,7 +13,7 @@ import java.time.Clock
 
 class OvertaBehandlingService(
     private val behandlingService: BehandlingService,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
@@ -35,7 +35,7 @@ class OvertaBehandlingService(
             sessionFactory.withTransactionContext { tx ->
                 when (it.status) {
                     Rammebehandlingsstatus.UNDER_BEHANDLING -> {
-                        behandlingRepo.overtaSaksbehandler(
+                        rammebehandlingRepo.overtaSaksbehandler(
                             it.id,
                             saksbehandler,
                             overtarFra,
@@ -45,7 +45,7 @@ class OvertaBehandlingService(
                     }
 
                     Rammebehandlingsstatus.UNDER_BESLUTNING -> {
-                        behandlingRepo.overtaBeslutter(
+                        rammebehandlingRepo.overtaBeslutter(
                             it.id,
                             saksbehandler,
                             overtarFra,

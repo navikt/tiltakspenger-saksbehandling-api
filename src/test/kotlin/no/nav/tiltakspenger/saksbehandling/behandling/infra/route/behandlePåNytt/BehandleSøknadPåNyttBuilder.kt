@@ -63,7 +63,7 @@ interface BehandleSøknadPåNyttBuilder {
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
             ) {}
             val behandlingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
-            return tac.behandlingContext.behandlingRepo.hent(behandlingId) to bodyAsText
+            return tac.behandlingContext.rammebehandlingRepo.hent(behandlingId) to bodyAsText
         }
     }
 

@@ -209,6 +209,8 @@ class TestApplicationContextMedPostgres(
             genererKlagebrevKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
             journalførKlagevedtaksbrevKlient = journalførFakeKlagevedtaksbrevKlient,
             dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
+            behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
+            startRevurderingService = behandlingContext.startRevurderingService,
         ) {}
     }
 

@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -323,7 +323,7 @@ class RammevedtakPostgresRepo(
                 id = VedtakId.fromString(string("id")),
                 sakId = SakId.fromString(string("sak_id")),
                 behandling =
-                BehandlingPostgresRepo.hentOrNull(
+                RammebehandlingPostgresRepo.hentOrNull(
                     BehandlingId.fromString(string("behandling_id")),
                     session,
                 )!!,

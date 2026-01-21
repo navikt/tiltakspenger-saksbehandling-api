@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
@@ -24,7 +24,7 @@ import java.time.Clock
 class StartBehandlingAvManueltRegistrertSøknadService(
     private val clock: Clock,
     private val sakService: SakService,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val søknadRepo: SøknadRepo,
     private val statistikkSakService: StatistikkSakService,
@@ -88,7 +88,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
         // Legg søknaden inn i sak før vi oppretter behandlingen eventuelt tiltak inkluderes i saksopplysningene
         val sakMedSøknad = sak.copy(søknader = sak.søknader + manueltRegistrertSøknad)
 
-        val søknadsbehandling = Søknadsbehandling.opprett(
+        val (oppdatertSak, søknadsbehandling) = Søknadsbehandling.opprett(
             sak = sakMedSøknad,
             søknad = manueltRegistrertSøknad,
             saksbehandler = saksbehandler,
@@ -103,19 +103,19 @@ class StartBehandlingAvManueltRegistrertSøknadService(
         )
 
         sessionFactory.withTransactionContext { tx ->
-            // TODO Statistikk for søknad?
             søknadRepo.lagre(manueltRegistrertSøknad, tx)
-            behandlingRepo.lagre(søknadsbehandling, tx)
+            rammebehandlingRepo.lagre(søknadsbehandling, tx)
             statistikkSakRepo.lagre(opprettetBehandlingStatistikk, tx)
             sakService.oppdaterSkalSendesTilMeldekortApi(
                 sakId = sak.id,
                 skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
+            tx.onSuccess {
+                MetricRegister.STARTET_BEHANDLING.inc()
+                MetricRegister.MOTTATT_MANUELT_REGISTRERT_SOKNAD.inc()
+            }
         }
-        val oppdatertSak = sakMedSøknad.leggTilSøknadsbehandling(søknadsbehandling)
-        MetricRegister.STARTET_BEHANDLING.inc()
-        MetricRegister.MOTTATT_MANUELT_REGISTRERT_SOKNAD.inc()
         return (oppdatertSak to søknadsbehandling)
     }
 }

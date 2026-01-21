@@ -139,7 +139,7 @@ interface SakMother {
                     clock = clock,
                     correlationId = correlationId,
                     klagebehandling = klagebehandling,
-                )
+                ).second
 
                 behandling.oppdater(
                     when (resultat) {

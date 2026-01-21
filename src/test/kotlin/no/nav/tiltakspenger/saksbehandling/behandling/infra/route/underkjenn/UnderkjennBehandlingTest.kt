@@ -21,7 +21,7 @@ class UnderkjennBehandlingTest {
             withTestApplicationContext { tac ->
                 val (_, _, behandlingId, _) = this.underkjenn(tac)
 
-                val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
+                val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
                 oppdatertBehandling.attesteringer.single().let {
                     it shouldBe
                         Attestering(
@@ -45,7 +45,7 @@ class UnderkjennBehandlingTest {
             withTestApplicationContext { tac ->
                 val (_, _, behandlingId, _) = this.underkjennAutomatiskSaksbehandletBehandling(tac)
 
-                val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
+                val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
                 oppdatertBehandling.attesteringer.single().let {
                     it shouldBe
                         Attestering(

@@ -34,7 +34,7 @@ class OppdaterRevurderingStansRouteTest {
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(revurdering.id)
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
 
             oppdatertBehandling.resultat.shouldBeInstanceOf<Stans>()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
@@ -63,7 +63,7 @@ class OppdaterRevurderingStansRouteTest {
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(revurdering.id)
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
 
             oppdatertBehandling.resultat.shouldBeInstanceOf<Stans>()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"

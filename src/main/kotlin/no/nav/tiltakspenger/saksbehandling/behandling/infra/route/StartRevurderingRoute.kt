@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppretteOm
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
@@ -68,7 +68,7 @@ fun Route.startRevurderingRoute(
                             correlationId = correlationId,
                             behandlingId = behandlingId,
                         )
-                        call.respondJson(value = sak.tilBehandlingDTO(behandlingId))
+                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
                     },
                 )
             }
@@ -92,7 +92,6 @@ internal fun KunneIkkeStarteRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusC
 private data class StartRevurderingBody(
     val revurderingType: RammebehandlingResultatTypeDTO,
     val rammevedtakIdSomOmgjøres: String? = null,
-    val klagebehandlingId: KlagebehandlingId? = null,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -105,7 +104,7 @@ private data class StartRevurderingBody(
             saksbehandler = saksbehandler,
             revurderingType = revurderingType.tilRevurderingType(),
             vedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres?.let { VedtakId.fromString(it) },
-            klagebehandlingId = klagebehandlingId,
+            klagebehandlingId = null,
         )
     }
 }

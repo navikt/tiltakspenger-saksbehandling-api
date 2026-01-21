@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -25,7 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakSe
 import java.time.Clock
 
 class BehandlingService(
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
@@ -96,7 +96,7 @@ class BehandlingService(
         }
 
         sessionFactory.withTransactionContext(tx) { tx ->
-            behandlingRepo.lagre(behandling, tx)
+            rammebehandlingRepo.lagre(behandling, tx)
             statistikkSakRepo.lagre(statistikk, tx)
         }
     }

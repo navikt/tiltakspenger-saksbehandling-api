@@ -4,9 +4,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
@@ -19,7 +19,7 @@ import java.time.Clock
 class StartSøknadsbehandlingService(
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val clock: Clock,
@@ -56,7 +56,7 @@ class StartSøknadsbehandlingService(
         )
 
         sessionFactory.withTransactionContext { tx ->
-            behandlingRepo.lagre(behandling, tx)
+            rammebehandlingRepo.lagre(behandling, tx)
             statistikkSakRepo.lagre(statistikk, tx)
             sakService.oppdaterSkalSendesTilMeldekortApi(
                 sakId = soknad.sakId,

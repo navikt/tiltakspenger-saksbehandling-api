@@ -5,7 +5,7 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
@@ -19,7 +19,7 @@ import java.time.Clock
 
 class SendTilDatadelingService(
     private val rammevedtakRepo: RammevedtakRepo,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val sakRepo: SakRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val meldekortvedtakRepo: MeldekortvedtakRepo,
@@ -81,13 +81,13 @@ class SendTilDatadelingService(
 
     private suspend fun sendBehandlinger() {
         Either.catch {
-            behandlingRepo.hentBehandlingerTilDatadeling().forEach { behandling ->
+            rammebehandlingRepo.hentBehandlingerTilDatadeling().forEach { behandling ->
                 val correlationId = CorrelationId.generate()
 
                 Either.catch {
                     datadelingClient.send(behandling, correlationId).onRight {
                         logger.info { "Behandling sendt til datadeling. Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}" }
-                        behandlingRepo.markerSendtTilDatadeling(behandling.id, nå(clock))
+                        rammebehandlingRepo.markerSendtTilDatadeling(behandling.id, nå(clock))
                         logger.info { "Behandling markert som sendt til datadeling. Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}" }
                     }.onLeft {
                         logger.error { "Behandling kunne ikke sendes til datadeling. Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}" }

@@ -5,7 +5,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -37,7 +37,7 @@ class BehandlingDTOTest {
 
                 val sak = ObjectMother.nySak(behandlinger = Rammebehandlinger(listOf(behandlingSattPåVent)))
 
-                val dto = sak.tilBehandlingDTO(behandlingSattPåVent.id)
+                val dto = sak.tilRammebehandlingDTO(behandlingSattPåVent.id)
 
                 dto.ventestatus?.erSattPåVent shouldBe true
                 dto.ventestatus?.sattPåVentAv shouldBe beslutter.navIdent

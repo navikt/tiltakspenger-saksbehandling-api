@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 
 class BenkOversiktFakeRepo(
     private val søknadFakeRepo: SøknadFakeRepo,
-    private val behandlingFakeRepo: BehandlingFakeRepo,
+    private val behandlingFakeRepo: RammebehandlingFakeRepo,
     private val meldekortBehandlingFakeRepo: MeldekortBehandlingFakeRepo,
     private val klagebehandlingFakeRepo: KlagebehandlingFakeRepo,
 ) : BenkOversiktRepo {

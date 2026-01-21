@@ -71,7 +71,7 @@ class SendBehandlingTilBeslutningServiceTest {
                 clock = tac.clock,
             )
 
-            tac.behandlingContext.behandlingRepo.lagre(behandlingMedAvslag)
+            tac.behandlingContext.rammebehandlingRepo.lagre(behandlingMedAvslag)
 
             val kommando = SendBehandlingTilBeslutningKommando(
                 sakId = sak.id,

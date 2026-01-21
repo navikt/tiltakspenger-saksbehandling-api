@@ -159,7 +159,7 @@ open class ApplicationContext(
             tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
             sakRepo = sakContext.sakRepo,
             oppgaveKlient = oppgaveKlient,
-            behandlingRepo = behandlingContext.behandlingRepo,
+            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             clock = clock,
         )
     }
@@ -253,7 +253,7 @@ open class ApplicationContext(
     open val delautomatiskSoknadsbehandlingJobb by lazy {
         DelautomatiskSoknadsbehandlingJobb(
             søknadRepo = søknadContext.søknadRepo,
-            behandlingRepo = behandlingContext.behandlingRepo,
+            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             startSøknadsbehandlingService = behandlingContext.startSøknadsbehandlingService,
             delautomatiskBehandlingService = behandlingContext.delautomatiskBehandlingService,
             oppdaterSaksopplysningerService = behandlingContext.oppdaterSaksopplysningerService,
@@ -358,13 +358,15 @@ open class ApplicationContext(
             genererKlagebrevKlient = dokumentContext.genererKlagebrevKlient,
             journalførKlagevedtaksbrevKlient = dokumentContext.journalførKlagevedtaksbrevKlient,
             dokumentdistribusjonsklient = dokumentContext.dokumentdistribusjonsklient,
+            behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
+            startRevurderingService = behandlingContext.startRevurderingService,
         )
     }
 
     open val søknadContext by lazy {
         SøknadContext(
             sessionFactory = sessionFactory,
-            behandlingRepo = behandlingContext.behandlingRepo,
+            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
             sakService = sakContext.sakService,
             personService = personContext.personService,
@@ -392,7 +394,7 @@ open class ApplicationContext(
     val sendTilDatadelingService by lazy {
         SendTilDatadelingService(
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
-            behandlingRepo = behandlingContext.behandlingRepo,
+            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             sakRepo = sakContext.sakRepo,
             meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
             meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,

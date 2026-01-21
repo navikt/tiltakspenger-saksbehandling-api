@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbeh
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
@@ -37,7 +37,7 @@ import java.time.Clock
 import java.time.LocalDate
 
 class DelautomatiskBehandlingService(
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
@@ -61,7 +61,7 @@ class DelautomatiskBehandlingService(
                 hentSaksopplysninger = null,
                 clock = clock,
             ).getOrNull()!!
-            behandlingRepo.lagre(gjenopptattBehandling)
+            rammebehandlingRepo.lagre(gjenopptattBehandling)
             gjenopptattBehandling as Søknadsbehandling
         } else {
             behandling
@@ -103,7 +103,7 @@ class DelautomatiskBehandlingService(
                 nyVenterTil = venterTil,
                 clock = clock,
             ).let {
-                behandlingRepo.lagre(it)
+                rammebehandlingRepo.lagre(it)
             }
             log.info { "Har oppdatert venterTil for behandling med id ${behandling.id} som allerede var på vent. CorrelationId: $correlationId" }
         } else {
@@ -113,7 +113,7 @@ class DelautomatiskBehandlingService(
                 clock = clock,
                 venterTil = venterTil,
             ).let {
-                behandlingRepo.lagre(it)
+                rammebehandlingRepo.lagre(it)
             }
             log.info { "Har satt behandling med id ${behandling.id} på vent. CorrelationId: $correlationId" }
         }
@@ -195,8 +195,8 @@ class DelautomatiskBehandlingService(
         }.map {
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
             sessionFactory.withTransactionContext { tx ->
-                behandlingRepo.lagre(it, tx)
-                behandlingRepo.oppdaterSimuleringMetadata(it.id, simuleringMedMetadata?.originalResponseBody, tx)
+                rammebehandlingRepo.lagre(it, tx)
+                rammebehandlingRepo.oppdaterSimuleringMetadata(it.id, simuleringMedMetadata?.originalResponseBody, tx)
                 statistikkSakRepo.lagre(statistikk, tx)
             }
         }
@@ -211,7 +211,7 @@ class DelautomatiskBehandlingService(
         behandling.tilManuellBehandling(manueltBehandlesGrunner, clock).also {
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
             sessionFactory.withTransactionContext { tx ->
-                behandlingRepo.lagre(it, tx)
+                rammebehandlingRepo.lagre(it, tx)
                 statistikkSakRepo.lagre(statistikk, tx)
             }
         }
@@ -312,7 +312,7 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_ER_UNDER_18_I_SOKNADSPERIODEN)
         }
 
-        val behandlinger = behandlingRepo.hentAlleForFnr(behandling.fnr)
+        val behandlinger = rammebehandlingRepo.hentAlleForFnr(behandling.fnr)
         if (behandlinger.any { !it.erAvsluttet && it.id != behandling.id }) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)
         }

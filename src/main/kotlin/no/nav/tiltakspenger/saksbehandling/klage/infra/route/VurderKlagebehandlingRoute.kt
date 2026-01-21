@@ -5,6 +5,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
+import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -20,9 +23,15 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.kanIkkeOppdatereBehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KanIkkeVurdereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.ANNET
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.FEIL_ELLER_ENDRET_FAKTA
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.FEIL_LOVANVENDELSE
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.FEIL_REGELVERKSFORSTAAELSE
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.PROSESSUELL_FEIL
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OmgjørKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
@@ -34,10 +43,10 @@ private data class VurderKlagebehandlingBody(
     val årsak: String,
 ) {
     fun tilKommando(
-        sakId: no.nav.tiltakspenger.libs.common.SakId,
-        saksbehandler: no.nav.tiltakspenger.libs.common.Saksbehandler,
-        correlationId: no.nav.tiltakspenger.libs.common.CorrelationId,
-        klagebehandlingId: no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId,
+        sakId: SakId,
+        saksbehandler: Saksbehandler,
+        correlationId: CorrelationId,
+        klagebehandlingId: KlagebehandlingId,
     ): VurderKlagebehandlingKommando {
         return OmgjørKlagebehandlingKommando(
             sakId = sakId,
@@ -46,11 +55,11 @@ private data class VurderKlagebehandlingBody(
             correlationId = correlationId,
             begrunnelse = Begrunnelse.create(begrunnelse)!!,
             årsak = when (årsak) {
-                "FEIL_LOVANVENDELSE" -> KlageOmgjøringsårsak.FEIL_LOVANVENDELSE
-                "FEIL_REGELVERKSFORSTAAELSE" -> KlageOmgjøringsårsak.FEIL_REGELVERKSFORSTAAELSE
-                "FEIL_ELLER_ENDRET_FAKTA" -> KlageOmgjøringsårsak.FEIL_ELLER_ENDRET_FAKTA
-                "PROSESSUELL_FEIL" -> KlageOmgjøringsårsak.PROSESSUELL_FEIL
-                "ANNET" -> KlageOmgjøringsårsak.ANNET
+                "FEIL_LOVANVENDELSE" -> FEIL_LOVANVENDELSE
+                "FEIL_REGELVERKSFORSTAAELSE" -> FEIL_REGELVERKSFORSTAAELSE
+                "FEIL_ELLER_ENDRET_FAKTA" -> FEIL_ELLER_ENDRET_FAKTA
+                "PROSESSUELL_FEIL" -> PROSESSUELL_FEIL
+                "ANNET" -> ANNET
                 else -> throw IllegalArgumentException("Ukjent omgjøringsårsak: $årsak")
             },
         )

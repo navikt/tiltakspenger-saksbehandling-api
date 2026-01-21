@@ -133,7 +133,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 clock = clock,
                 correlationId = correlationId,
                 klagebehandling = klagebehandling,
-            ).copy(id = id)
+            ).second.copy(id = id)
         }
     }
 
@@ -660,7 +660,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
         status = Rammebehandlingsstatus.UNDER_BEHANDLING,
         saksbehandler = saksbehandler.navIdent,
     ).also {
-        this.behandlingContext.behandlingRepo.lagre(it)
+        this.behandlingContext.rammebehandlingRepo.lagre(it)
     }
     return sak.leggTilSøknadsbehandling(behandlingUnderBehandling) to behandlingUnderBehandling
 }

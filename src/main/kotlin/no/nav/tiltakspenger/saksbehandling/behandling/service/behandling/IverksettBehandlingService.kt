@@ -15,13 +15,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
+import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -35,7 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
 
 class IverksettBehandlingService(
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val rammevedtakRepo: RammevedtakRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val meldeperiodeRepo: MeldeperiodeRepo,
@@ -118,7 +119,7 @@ class IverksettBehandlingService(
             is SøknadsbehandlingResultat.Avslag -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
                 sessionFactory.withTransactionContext { tx ->
-                    behandlingRepo.lagre(vedtak.behandling, tx)
+                    rammebehandlingRepo.lagre(vedtak.behandling, tx)
                     sakService.oppdaterSkalSendesTilMeldekortApi(
                         sakId = this.id,
                         skalSendesTilMeldekortApi = true,
@@ -126,6 +127,7 @@ class IverksettBehandlingService(
                     )
                     rammevedtakRepo.lagre(vedtak, tx)
                     statistikkSakRepo.lagre(sakStatistikk, tx)
+                    tx.onSuccess { MetricRegister.IVERKSATT_BEHANDLING.inc() }
                 }
                 this
             }
@@ -160,7 +162,7 @@ class IverksettBehandlingService(
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
-            behandlingRepo.lagre(vedtak.behandling, tx)
+            rammebehandlingRepo.lagre(vedtak.behandling, tx)
             sakService.oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
                 sakId = sakOppdatertMedMeldeperioder.id,
                 skalSendesTilMeldekortApi = true,
@@ -181,6 +183,7 @@ class IverksettBehandlingService(
                     tx,
                 )
             }
+            tx.onSuccess { MetricRegister.IVERKSATT_BEHANDLING.inc() }
         }
         return sakOppdatertMedMeldekortbehandlinger
     }

@@ -1,18 +1,16 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.StartSøknadsbehandlingPåNyttKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.startSøknadsbehandlingPåNytt
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
@@ -20,7 +18,7 @@ import java.time.Clock
 class BehandleSøknadPåNyttService(
     private val clock: Clock,
     private val sakService: SakService,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
@@ -29,47 +27,30 @@ class BehandleSøknadPåNyttService(
     val logger = KotlinLogging.logger { }
 
     suspend fun startSøknadsbehandlingPåNytt(
-        søknadId: SøknadId,
-        sakId: SakId,
-        saksbehandler: Saksbehandler,
-        klagebehandlingId: KlagebehandlingId?,
-        correlationId: CorrelationId,
+        kommando: StartSøknadsbehandlingPåNyttKommando,
     ): Pair<Sak, Søknadsbehandling> {
-        val sak = sakService.hentForSakId(sakId)
-        // Merk at i teorien kan en søknad være knyttet til flere avslåtte behandlinger, men i praksis bør det tilnærmet ikke skje.
-        val søknad = sak.vedtaksliste.hentAvslåtteBehandlingerForSøknadId(søknadId).single().søknad
-        val klagebehandling = klagebehandlingId?.let { sak.hentKlagebehandling(it) }
-        val søknadsbehandling = Søknadsbehandling.opprett(
-            sak = sak,
-            søknad = søknad,
-            saksbehandler = saksbehandler,
-            hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
-            correlationId = correlationId,
-            klagebehandling = klagebehandling,
+        val sakId: SakId = kommando.sakId
+        val sak: Sak = sakService.hentForSakId(sakId)
+        val (oppdatertSak, søknadsbehandling, statistikk) = sak.startSøknadsbehandlingPåNytt(
+            kommando = kommando,
             clock = clock,
+            genererStatistikkForSøknadsbehandling = statistikkSakService::genererStatistikkForSøknadsbehandling,
+            genererStatistikkForSøknadSomBehandlesPåNytt = statistikkSakService::genererStatistikkForSøknadSomBehandlesPåNytt,
+            hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
         )
-
-        val opprettetBehandlingStatistikk = statistikkSakService.genererStatistikkForSøknadsbehandling(
-            behandling = søknadsbehandling,
-        )
-
-        val opprettetBehandlingPåNyttStatistikk = statistikkSakService.genererStatistikkForSøknadSomBehandlesPåNytt(
-            behandling = søknadsbehandling,
-        )
-
         sessionFactory.withTransactionContext { tx ->
-            behandlingRepo.lagre(søknadsbehandling, tx)
-            statistikkSakRepo.lagre(opprettetBehandlingStatistikk, tx)
-            statistikkSakRepo.lagre(opprettetBehandlingPåNyttStatistikk, tx)
+            rammebehandlingRepo.lagre(søknadsbehandling, tx)
+            statistikk.forEach { statistikkSakRepo.lagre(it, tx) }
             sakService.oppdaterSkalSendesTilMeldekortApi(
                 sakId = sakId,
                 skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
+            tx.onSuccess {
+                MetricRegister.STARTET_BEHANDLING.inc()
+                MetricRegister.SØKNAD_BEHANDLET_PÅ_NYTT.inc()
+            }
         }
-        val oppdatertSak = sak.leggTilSøknadsbehandling(søknadsbehandling)
-        MetricRegister.STARTET_BEHANDLING.inc()
-        MetricRegister.SØKNAD_BEHANDLET_PÅ_NYTT.inc()
         return (oppdatertSak to søknadsbehandling)
     }
 }

@@ -9,12 +9,10 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakFakeRepo
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
@@ -31,7 +29,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class SakFakeRepo(
-    private val behandlingRepo: BehandlingFakeRepo,
+    private val behandlingRepo: RammebehandlingFakeRepo,
     private val rammevedtakRepo: RammevedtakFakeRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingFakeRepo,
     private val meldeperiodeRepo: MeldeperiodeFakeRepo,

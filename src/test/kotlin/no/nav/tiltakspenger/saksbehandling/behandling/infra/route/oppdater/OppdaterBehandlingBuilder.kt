@@ -260,7 +260,7 @@ interface OppdaterBehandlingBuilder {
                 status shouldBe forventetStatus
             }
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val behandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
+            val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
             return Triple(sak, behandling, bodyAsText)
         }
     }

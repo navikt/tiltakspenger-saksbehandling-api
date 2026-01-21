@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -17,7 +17,7 @@ import java.time.Clock
 
 class SendBehandlingTilBeslutningService(
     private val sakService: SakService,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
@@ -59,7 +59,7 @@ class SendBehandlingTilBeslutningService(
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
 
             sessionFactory.withTransactionContext { tx ->
-                behandlingRepo.lagre(it, tx)
+                rammebehandlingRepo.lagre(it, tx)
                 statistikkSakRepo.lagre(statistikk, tx)
             }
 
