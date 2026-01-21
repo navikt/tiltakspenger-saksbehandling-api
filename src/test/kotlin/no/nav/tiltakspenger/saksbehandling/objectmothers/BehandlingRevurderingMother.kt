@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStan
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
@@ -195,6 +196,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 clock = clock,
             )
         },
+        klagebehandling: Klagebehandling? = null,
     ): Revurdering {
         return runBlocking {
             Revurdering.opprettInnvilgelse(
@@ -204,6 +206,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 saksbehandler = saksbehandler,
                 saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
                 clock = clock,
+                klagebehandling = klagebehandling,
             ).copy(id = id)
         }
     }
@@ -365,12 +368,14 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             fnr = fnr,
             behandling = innvilgetSøknadsbehandling,
         ),
+        klagebehandling: Klagebehandling? = null,
     ): Revurdering {
         return Revurdering.opprettOmgjøring(
             saksbehandler = saksbehandler,
             saksopplysninger = hentSaksopplysninger(omgjøringInnvilgelsesperiode),
             omgjørRammevedtak = vedtattInnvilgetSøknadsbehandling,
             clock = clock,
+            klagebehandling = klagebehandling,
         ).getOrFail().copy(id = id)
     }
 

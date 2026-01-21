@@ -44,6 +44,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toDbJson
@@ -435,6 +437,9 @@ class BehandlingPostgresRepo(
                         resultat = resultat,
                         automatiskSaksbehandlet = automatiskSaksbehandlet,
                         manueltBehandlesGrunner = manueltBehandlesGrunner,
+                        klagebehandling = stringOrNull("klagebehandling_id")?.let {
+                            KlagebehandlingPostgresRepo.hentOrNull(KlagebehandlingId.fromString(it), session)
+                        },
                         utbetaling = stringOrNull("beregning")?.let {
                             BehandlingUtbetaling(
                                 beregning = Beregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
@@ -502,6 +507,9 @@ class BehandlingPostgresRepo(
                         ventestatus = ventestatus,
                         venterTil = venterTil,
                         resultat = resultat,
+                        klagebehandling = stringOrNull("klagebehandling_id")?.let {
+                            KlagebehandlingPostgresRepo.hentOrNull(KlagebehandlingId.fromString(it), session)
+                        },
                         utbetaling = stringOrNull("beregning")?.let {
                             BehandlingUtbetaling(
                                 beregning = Beregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
@@ -527,7 +535,8 @@ class BehandlingPostgresRepo(
             session: Session,
         ): Saksopplysninger {
             val oppdaterteTiltaksdeltakelser = saksopplysninger.tiltaksdeltakelser.value.map {
-                val oppdatertEksternId = TiltaksdeltakerPostgresRepo.hentEksternId(internId = it.internDeltakelseId, session = session)
+                val oppdatertEksternId =
+                    TiltaksdeltakerPostgresRepo.hentEksternId(internId = it.internDeltakelseId, session = session)
                 it.copy(eksternDeltakelseId = oppdatertEksternId)
             }
             return saksopplysninger.copy(tiltaksdeltakelser = Tiltaksdeltakelser(oppdaterteTiltaksdeltakelser))
@@ -572,7 +581,8 @@ class BehandlingPostgresRepo(
                 har_valgt_stans_fra_første_dag_som_gir_rett,
                 har_valgt_stans_til_siste_dag_som_gir_rett,
                 innvilgelsesperioder,
-                omgjør_rammevedtak
+                omgjør_rammevedtak,
+                klagebehandling_id
             ) values (
                 :id,
                 :sak_id,
@@ -609,7 +619,8 @@ class BehandlingPostgresRepo(
                 :har_valgt_stans_fra_forste_dag_som_gir_rett,
                 :har_valgt_stans_til_siste_dag_som_gir_rett,
                 to_jsonb(:innvilgelsesperioder::jsonb),
-                to_jsonb(:omgjoer_rammevedtak::jsonb)
+                to_jsonb(:omgjoer_rammevedtak::jsonb),
+                :klagebehandling_id
             )
             """.trimIndent()
 
@@ -649,7 +660,8 @@ class BehandlingPostgresRepo(
                 har_valgt_stans_fra_første_dag_som_gir_rett = :har_valgt_stans_fra_forste_dag_som_gir_rett,
                 har_valgt_stans_til_siste_dag_som_gir_rett = :har_valgt_stans_til_siste_dag_som_gir_rett,
                 innvilgelsesperioder = to_jsonb(:innvilgelsesperioder::jsonb),
-                omgjør_rammevedtak = to_jsonb(:omgjoer_rammevedtak::jsonb)
+                omgjør_rammevedtak = to_jsonb(:omgjoer_rammevedtak::jsonb),
+                klagebehandling_id = :klagebehandling_id
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -669,7 +681,7 @@ class BehandlingPostgresRepo(
             """.trimIndent()
     }
 
-    /** Siden dette er på tvers av saker, gir det ikke mening og bruke [Rammebehandlinger] */
+/** Siden dette er på tvers av saker, gir det ikke mening og bruke [Rammebehandlinger] */
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
         return sessionFactory.withSession { session ->
             session.run(
@@ -779,6 +791,7 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "simulering" to this.utbetaling?.simulering?.toDbJson(),
         "navkontor" to this.utbetaling?.navkontor?.kontornummer,
         "navkontor_navn" to this.utbetaling?.navkontor?.kontornavn,
+        "klagebehandling_id" to this.klagebehandling?.id?.toString(),
 
         *this.resultat.tilDbParams(),
     )

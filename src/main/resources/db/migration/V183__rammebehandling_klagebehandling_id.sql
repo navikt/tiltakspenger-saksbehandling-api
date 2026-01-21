@@ -1,0 +1,1 @@
+alter table behandling add column if not exists klagebehandling_id varchar REFERENCES klagebehandling(id);

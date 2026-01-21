@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
@@ -30,18 +32,20 @@ class BehandleSøknadPåNyttService(
         søknadId: SøknadId,
         sakId: SakId,
         saksbehandler: Saksbehandler,
+        klagebehandlingId: KlagebehandlingId?,
         correlationId: CorrelationId,
     ): Pair<Sak, Søknadsbehandling> {
         val sak = sakService.hentForSakId(sakId)
         // Merk at i teorien kan en søknad være knyttet til flere avslåtte behandlinger, men i praksis bør det tilnærmet ikke skje.
         val søknad = sak.vedtaksliste.hentAvslåtteBehandlingerForSøknadId(søknadId).single().søknad
-
+        val klagebehandling = klagebehandlingId?.let { sak.hentKlagebehandling(it) }
         val søknadsbehandling = Søknadsbehandling.opprett(
             sak = sak,
             søknad = søknad,
             saksbehandler = saksbehandler,
             hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
             correlationId = correlationId,
+            klagebehandling = klagebehandling,
             clock = clock,
         )
 
