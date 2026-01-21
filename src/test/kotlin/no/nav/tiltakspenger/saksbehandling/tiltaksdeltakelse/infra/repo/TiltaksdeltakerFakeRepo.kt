@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.jobb.TiltaksdeltakerIdOgTiltakstype
 
 class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
     private val data = arrow.atomic.Atomic(mutableMapOf<String, TiltaksdeltakerId>())
@@ -38,5 +39,12 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
         sessionContext: SessionContext?,
     ) {
         data.get()[eksternId] = id
+    }
+
+    override fun hentIdUtenTiltakstypeOgTiltakstypen(limit: Int): List<TiltaksdeltakerIdOgTiltakstype> {
+        return emptyList()
+    }
+
+    override fun lagreTiltakstype(tiltaksdeltakerIdOgTiltakstype: TiltaksdeltakerIdOgTiltakstype) {
     }
 }
