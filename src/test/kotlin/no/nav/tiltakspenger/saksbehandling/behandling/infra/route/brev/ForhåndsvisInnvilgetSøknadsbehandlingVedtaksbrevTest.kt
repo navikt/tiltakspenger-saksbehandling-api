@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.B
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.forhåndsvisVedtaksbrevForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import org.junit.jupiter.api.Test
@@ -45,8 +46,9 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
             val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(
                 tac,
-                vedtaksperiode = innvilgelsesperiode,
+                tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperiode),
             )
+
             val behandlingId = behandling.id
             val fritekstTilVedtaksbrev = "some_tekst"
             val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
@@ -78,7 +80,10 @@ internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
     fun `kan forhåndsvise vedtaksbrev for innvilget søknadsbehandling med to barn`() {
         withTestApplicationContext { tac ->
             val innvilgelsesperiode = (1.januar(2025) til 31.mars(2025))
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac, vedtaksperiode = innvilgelsesperiode)
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(
+                tac,
+                tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperiode),
+            )
             val behandlingId = behandling.id
             val fritekstTilVedtaksbrev = "some_tekst"
             val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(

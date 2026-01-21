@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -19,7 +20,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.DEFAULT_TILTAK_DELTAKELSE_INTERN_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
@@ -29,8 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingStansTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTOinnvilgelse
@@ -56,7 +58,7 @@ internal class IverksettRevurderingTest {
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
 
-            sendRevurderingStansTilBeslutningForBehandlingId(
+            sendRevurderingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
@@ -74,8 +76,8 @@ internal class IverksettRevurderingTest {
 
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac,
-                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVedtaksperiode,
-                revurderingVedtaksperiode = revurderingInnvilgelsesperiode,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingVedtaksperiode),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelsesperiode),
             )
 
             val barnetillegg = barnetillegg(
@@ -96,7 +98,7 @@ internal class IverksettRevurderingTest {
                 ),
             )
 
-            sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+            sendRevurderingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
@@ -114,8 +116,8 @@ internal class IverksettRevurderingTest {
 
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
                 tac,
-                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingVedtaksperiode,
-                revurderingVedtaksperiode = revurderingInnvilgelsesperiode,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingVedtaksperiode),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelsesperiode),
             )
 
             val barnetillegg = barnetillegg(
@@ -138,7 +140,7 @@ internal class IverksettRevurderingTest {
                 ),
             )
 
-            sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+            sendRevurderingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
@@ -166,7 +168,7 @@ internal class IverksettRevurderingTest {
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
 
-            sendRevurderingStansTilBeslutningForBehandlingId(
+            sendRevurderingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
@@ -188,8 +190,9 @@ internal class IverksettRevurderingTest {
         withTestApplicationContext(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering) = iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = 1.til(10.april(2025)),
-                revurderingInnvilgelsesperiode = 9.til(11.april(2025)),
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(1.til(10.april(2025))),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(9.til(11.april(2025))),
+
             )
             val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
             val revurdering = rammevedtakRevurdering.behandling as Revurdering
@@ -205,6 +208,34 @@ internal class IverksettRevurderingTest {
                 gjeldendeVedtaksperioder = listOf(1.til(8.april(2025))),
                 gjeldendeInnvilgetPerioder = listOf(1.til(8.april(2025))),
                 omgjortGrad = "DELVIS",
+                opprettet = "2025-01-01T01:02:19.456789",
+                opprinneligVedtaksperiode = 1.til(10.april(2025)),
+                innvilgelsesperioder = """
+                    [
+                        {
+                            "internDeltakelseId": "$DEFAULT_TILTAK_DELTAKELSE_INTERN_ID",
+                            "periode": {
+                                "fraOgMed": "2025-04-01",
+                                "tilOgMed": "2025-04-10"
+                            },
+                            "antallDagerPerMeldeperiode": 10
+                        }
+                    ]
+                """.trimIndent(),
+                barnetillegg = """
+                    {
+                        "begrunnelse": null,
+                        "perioder": [
+                          {
+                            "antallBarn": 0,
+                            "periode": {
+                              "fraOgMed": "2025-04-01",
+                              "tilOgMed": "2025-04-10"
+                            }
+                          }
+                        ]
+                    }
+                """.trimIndent(),
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
                 id = sak.rammevedtaksliste[1].id.toString(),
@@ -251,8 +282,7 @@ internal class IverksettRevurderingTest {
         withTestApplicationContext(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering) = iverksettSøknadsbehandlingOgRevurderingStans(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = 1.til(10.april(2025)),
-                stansFraOgMed = 5.april(2025),
+                stansFraOgMed = 5.januar(2023),
             )
             val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
             val revurdering = rammevedtakRevurdering.behandling as Revurdering
@@ -265,19 +295,19 @@ internal class IverksettRevurderingTest {
             søknadsbehandlingvedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
                 id = rammevedtakSøknadsbehandling.id.toString(),
                 behandlingId = søknadsbehandling.id.toString(),
-                gjeldendeVedtaksperioder = listOf(1.til(4.april(2025))),
-                gjeldendeInnvilgetPerioder = listOf(1.til(4.april(2025))),
+                gjeldendeVedtaksperioder = listOf(1.til(4.januar(2023))),
+                gjeldendeInnvilgetPerioder = listOf(1.til(4.januar(2023))),
                 omgjortGrad = "DELVIS",
-                opprettet = "2025-01-01T01:02:19.456789",
+                opprettet = "2025-01-01T01:02:20.456789",
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTO(
                 id = rammevedtakRevurdering.id.toString(),
                 behandlingId = revurdering.id.toString(),
-                gjeldendeVedtaksperioder = listOf(5.til(10.april(2025))),
+                gjeldendeVedtaksperioder = listOf(5.januar(2023) til 31.mars(2023)),
                 gjeldendeInnvilgetPerioder = emptyList(),
-                opprinneligVedtaksperiode = 5.til(10.april(2025)),
+                opprinneligVedtaksperiode = 5.januar(2023) til 31.mars(2023),
                 opprinneligInnvilgetPerioder = emptyList(),
-                opprettet = "2025-01-01T01:02:34.456789",
+                opprettet = "2025-01-01T01:02:42.456789",
                 resultat = "STANS",
                 barnetillegg = null,
                 innvilgelsesperioder = null,
@@ -300,6 +330,7 @@ internal class IverksettRevurderingTest {
             val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering, _) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
                 tac,
             )!!
+            val innvilgelsesperiode = vedtaksperiode()
             val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
             val revurdering = rammevedtakRevurdering.behandling as Revurdering
             val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, sak.saksnummer)!!
@@ -315,16 +346,16 @@ internal class IverksettRevurderingTest {
                 gjeldendeInnvilgetPerioder = emptyList(),
                 erGjeldende = false,
                 omgjortGrad = "HELT",
-                opprettet = "2025-01-01T01:02:19.456789",
+                opprettet = "2025-01-01T01:02:20.456789",
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTO(
                 id = sak.rammevedtaksliste[1].id.toString(),
                 behandlingId = revurdering.id.toString(),
-                gjeldendeVedtaksperioder = listOf(1.til(10.april(2025))),
-                gjeldendeInnvilgetPerioder = listOf(1.til(10.april(2025))),
-                opprinneligVedtaksperiode = 1.til(10.april(2025)),
-                opprinneligInnvilgetPerioder = listOf(1.til(10.april(2025))),
-                opprettet = "2025-01-01T01:02:34.456789",
+                gjeldendeVedtaksperioder = listOf(innvilgelsesperiode),
+                gjeldendeInnvilgetPerioder = listOf(innvilgelsesperiode),
+                opprinneligVedtaksperiode = innvilgelsesperiode,
+                opprinneligInnvilgetPerioder = listOf(innvilgelsesperiode),
+                opprettet = "2025-01-01T01:02:42.456789",
                 resultat = "OMGJØRING",
                 saksbehandler = revurdering.saksbehandler!!,
                 beslutter = revurdering.beslutter!!,
@@ -334,8 +365,8 @@ internal class IverksettRevurderingTest {
                     {
                         "internDeltakelseId": "$DEFAULT_TILTAK_DELTAKELSE_INTERN_ID",
                         "periode": {
-                            "fraOgMed": "2025-04-01",
-                            "tilOgMed": "2025-04-10"
+                            "fraOgMed": "2023-01-01",
+                            "tilOgMed": "2023-03-31"
                         },
                         "antallDagerPerMeldeperiode": 10
                     }
@@ -347,8 +378,8 @@ internal class IverksettRevurderingTest {
                           {
                             "antallBarn": 0,
                             "periode": {
-                              "fraOgMed": "2025-04-01",
-                              "tilOgMed": "2025-04-10"
+                            "fraOgMed": "2023-01-01",
+                            "tilOgMed": "2023-03-31"
                             }
                           }
                         ]
@@ -358,24 +389,24 @@ internal class IverksettRevurderingTest {
                 omgjøringskommando = """
                     "OMGJØR": {
                       "tvungenOmgjøringsperiode": {
-                        "fraOgMed": "2025-04-01",
-                        "tilOgMed": "2025-04-10"
+                        "fraOgMed": "2023-01-01",
+                        "tilOgMed": "2023-03-31"
                       },
                       "type": "OMGJØR"
                     }
                 """.trimIndent(),
                 stanskommando = """
                     "STANS": {
-                        "tidligsteFraOgMedDato": "2025-04-01",
+                        "tidligsteFraOgMedDato": "2023-01-01",
                         "type": "STANS",
-                        "tvungenStansTilOgMedDato": "2025-04-10"
+                        "tvungenStansTilOgMedDato": "2023-03-31"
                     }
                 """.trimIndent(),
                 opphørskommando = """"OPPHØR": {
                       "innvilgelsesperioder": [
                         {
-                          "fraOgMed": "2025-04-01",
-                          "tilOgMed": "2025-04-10"
+                          "fraOgMed": "2023-01-01",
+                          "tilOgMed": "2023-03-31"
                         }
                       ],
                       "type": "OPPHØR"

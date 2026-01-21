@@ -9,12 +9,10 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -85,7 +83,6 @@ class DelautomatiskBehandlingServiceTest {
                 Periode(fraOgMed = iDag.plusDays(3), tilOgMed = iDag.plusMonths(3))
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
-                tiltaksdeltakelsesperiode = innvilgelsesperiode,
                 tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                     fom = innvilgelsesperiode.fraOgMed,
                     tom = innvilgelsesperiode.tilOgMed,
@@ -124,7 +121,6 @@ class DelautomatiskBehandlingServiceTest {
                 Periode(fraOgMed = iDag.minusDays(1), tilOgMed = iDag.plusMonths(3))
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
-                tiltaksdeltakelsesperiode = innvilgelsesperiode,
                 tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                     fom = innvilgelsesperiode.fraOgMed,
                     tom = innvilgelsesperiode.tilOgMed,
@@ -170,7 +166,6 @@ class DelautomatiskBehandlingServiceTest {
                 Periode(fraOgMed = iDag.plusDays(3), tilOgMed = iDag.plusMonths(3))
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
-                tiltaksdeltakelsesperiode = innvilgelsesperiode,
                 tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                     fom = innvilgelsesperiode.fraOgMed,
                     tom = innvilgelsesperiode.tilOgMed,
@@ -217,7 +212,6 @@ class DelautomatiskBehandlingServiceTest {
                 Periode(fraOgMed = iDag.minusDays(3), tilOgMed = iDag.plusMonths(3))
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
-                tiltaksdeltakelsesperiode = innvilgelsesperiode,
                 tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                     fom = innvilgelsesperiode.fraOgMed,
                     tom = innvilgelsesperiode.tilOgMed,
@@ -255,7 +249,6 @@ class DelautomatiskBehandlingServiceTest {
                 Periode(fraOgMed = iDag.minusDays(1), tilOgMed = iDag.plusMonths(3))
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
-                tiltaksdeltakelsesperiode = tiltaksdeltakelsesperiode,
                 tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                     fom = tiltaksdeltakelsesperiode.fraOgMed,
                     tom = tiltaksdeltakelsesperiode.tilOgMed,
@@ -304,7 +297,6 @@ class DelautomatiskBehandlingServiceTest {
             )
             val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
                 tac = tac,
-                tiltaksdeltakelsesperiode = tiltaksdeltakelsesperiode,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
             tac.behandlingContext.behandlingRepo.hent(behandling.id).also {

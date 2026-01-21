@@ -19,10 +19,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -52,16 +49,14 @@ interface StartRevurderingBuilder {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        vedtaksperiode: Periode = 1.til(10.april(2025)),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(fom = vedtaksperiode.fraOgMed, tom = vedtaksperiode.tilOgMed),
-        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode, tiltaksdeltakelse),
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperioder.totalPeriode),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac = tac,
-            vedtaksperiode = vedtaksperiode,
             innvilgelsesperioder = innvilgelsesperioder,
             barnetillegg = barnetillegg,
             tiltaksdeltakelse = tiltaksdeltakelse,
@@ -110,32 +105,28 @@ interface StartRevurderingBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        søknadsbehandlingInnvilgelsesperiode: Periode = 1.til(10.april(2025)),
-        revurderingVedtaksperiode: Periode = søknadsbehandlingInnvilgelsesperiode.plusTilOgMed(14L),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = søknadsbehandlingInnvilgelsesperiode.fraOgMed,
-            tom = søknadsbehandlingInnvilgelsesperiode.tilOgMed,
-        ),
+        søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
+        revurderingInnvilgelsesperioder: Innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
         fnr: Fnr = Fnr.random(),
         sakId: SakId? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {
         val (sak, søknad, rammevedtakSøknadsbehandling) = iverksettSøknadsbehandling(
             tac,
-            vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
             fnr = fnr,
             beslutter = beslutter,
             resultat = SøknadsbehandlingType.INNVILGELSE,
             sakId = sakId,
-            tiltaksdeltakelse = tiltaksdeltakelse,
+            innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
         )
 
         val tiltaksdeltakelseFakeKlient = tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
         val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
         val oppdatertTiltaksdeltakelse =
-            søknadsbehandling.saksopplysninger.getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.tiltaksdeltakerId)!!.copy(
-                deltakelseFraOgMed = revurderingVedtaksperiode.fraOgMed,
-                deltakelseTilOgMed = revurderingVedtaksperiode.tilOgMed,
-            )
+            søknadsbehandling.saksopplysninger.getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.tiltaksdeltakerId)!!
+                .copy(
+                    deltakelseFraOgMed = revurderingInnvilgelsesperioder.totalPeriode.fraOgMed,
+                    deltakelseTilOgMed = revurderingInnvilgelsesperioder.totalPeriode.tilOgMed,
+                )
 
         tiltaksdeltakelseFakeKlient.lagre(
             sak.fnr,
@@ -182,7 +173,7 @@ interface StartRevurderingBuilder {
     /**
      * Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering til omgjøring.
      * Default: Tiltaksdeltakelsen har endret seg fra 1. til 3. april.
-     * @param oppdaterTiltaksdeltakelsesperiode Dersom null, fjernes den for dette fødselsnummeret.
+     * @param [oppdatertTiltaksdeltakelse] Dersom null, fjernes den for dette fødselsnummeret.
      * */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
         tac: TestApplicationContext,
@@ -190,34 +181,20 @@ interface StartRevurderingBuilder {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        søknadsbehandlingInnvilgelsesperiode: Periode = 1 til 10.april(2025),
-        oppdaterTiltaksdeltakelsesperiode: Periode? = 3 til 10.april(2025),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = søknadsbehandlingInnvilgelsesperiode.fraOgMed,
-            tom = søknadsbehandlingInnvilgelsesperiode.tilOgMed,
-        ),
+        søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
+        oppdatertTiltaksdeltakelse: Tiltaksdeltakelse? = søknadsbehandlingInnvilgelsesperioder.periodisering.first().verdi.valgtTiltaksdeltakelse,
         forventetStatusForStartRevurdering: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBodyForStartRevurdering: String? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling) = iverksettSøknadsbehandling(
             tac = tac,
-            vedtaksperiode = søknadsbehandlingInnvilgelsesperiode,
             beslutter = beslutter,
             saksbehandler = saksbehandler,
             sakId = sakId,
             fnr = fnr,
-            tiltaksdeltakelse = tiltaksdeltakelse,
+            innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
         )
-        val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
-        val oppdatertTiltaksdeltakelse = if (oppdaterTiltaksdeltakelsesperiode != null) {
-            søknadsbehandling.saksopplysninger
-                .getTiltaksdeltakelse(søknadsbehandling.søknad.tiltak!!.tiltaksdeltakerId)!!.copy(
-                deltakelseFraOgMed = oppdaterTiltaksdeltakelsesperiode.fraOgMed,
-                deltakelseTilOgMed = oppdaterTiltaksdeltakelsesperiode.tilOgMed,
-            )
-        } else {
-            null
-        }
+
         tac.oppdaterTiltaksdeltakelse(sak.fnr, oppdatertTiltaksdeltakelse)
 
         val (oppdatertSak, revurdering, jsonResponse) = startRevurderingForSakId(

@@ -80,7 +80,7 @@ internal fun KunneIkkeStarteRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusC
     when (this) {
         is KunneIkkeStarteRevurdering.Omgjøring -> when (this.årsak) {
             KunneIkkeOppretteOmgjøring.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag -> Pair(
-                HttpStatusCode.Forbidden,
+                HttpStatusCode.BadRequest,
                 ErrorJson(
                     "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere.",
                     "kan_kun_starte_omgjøring_dersom_vi_kan_innvilge_minst_1_dag",

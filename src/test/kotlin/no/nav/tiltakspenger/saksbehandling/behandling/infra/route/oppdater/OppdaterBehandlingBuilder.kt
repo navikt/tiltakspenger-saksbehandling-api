@@ -16,13 +16,17 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.medQuotes
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.intellij.lang.annotations.Language
 import java.time.LocalDate
@@ -47,7 +51,63 @@ interface OppdaterBehandlingBuilder {
         )
     }
 
-    // TODO: lag en funksjon for hver behandlingstype
+    suspend fun ApplicationTestBuilder.oppdaterRevurderingInnvilgelse(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        behandlingId: BehandlingId,
+        begrunnelseVilkårsvurdering: String? = null,
+        fritekstTilVedtaksbrev: String? = null,
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    ): Triple<Sak, Rammebehandling, String> {
+        @Language("JSON")
+        val body = """
+            {
+              "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
+              "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
+              "innvilgelsesperioder": [${innvilgelsesperioder.tilDTO().joinToString(",") {
+            """
+                    {
+                        "periode": ${serialize(it.periode)},
+                        "antallDagerPerMeldeperiode": ${it.antallDagerPerMeldeperiode},
+                        "internDeltakelseId": ${it.internDeltakelseId.medQuotes()}
+                    }                  
+            """.trimIndent()
+        }
+        }],
+              "barnetillegg": ${barnetillegg.toBarnetilleggDTO().let { bt ->
+            """
+                    {
+                        "begrunnelse": ${bt.begrunnelse?.medQuotes()},
+                        "perioder": [${bt.perioder.joinToString(",") {
+                """
+                                {
+                                    "periode": ${serialize(it.periode)},
+                                    "antallBarn": ${it.antallBarn} 
+                                }
+                """.trimIndent()
+            }
+            }]                                                  
+                    }
+            """.trimIndent()
+        }}
+              ,
+              "resultat": "REVURDERING_INNVILGELSE"
+            }
+        """.trimIndent()
+
+        return oppdaterBehandling(
+            tac = tac,
+            sakId = sakId,
+            behandlingId = behandlingId,
+            body = body,
+            forventetStatus = forventetStatus,
+            saksbehandler = saksbehandler,
+        )
+    }
+
     suspend fun ApplicationTestBuilder.oppdaterRevurderingStans(
         tac: TestApplicationContext,
         sakId: SakId,

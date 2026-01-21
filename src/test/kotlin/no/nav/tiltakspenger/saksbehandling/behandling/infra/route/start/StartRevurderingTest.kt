@@ -17,6 +17,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
@@ -64,8 +66,14 @@ internal class StartRevurderingTest {
     @Test
     fun `kan starte revurdering omgjøring`() {
         withTestApplicationContext { tac ->
-            val (sak, _, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
-            val søknadsvedtakResultat = rammevedtakSøknadsbehandling.behandling.resultat as SøknadsbehandlingResultat.Innvilgelse
+            val innvilgelsesperiode = 3 til 10.april(2025)
+
+            val (sak, _, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
+                tac,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )!!
+            val søknadsvedtakResultat =
+                rammevedtakSøknadsbehandling.behandling.resultat as SøknadsbehandlingResultat.Innvilgelse
             val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
             revurdering.shouldBeInstanceOf<Revurdering>()
             revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
@@ -79,24 +87,24 @@ internal class StartRevurderingTest {
             revurdering.vedtaksperiode shouldBe rammevedtakSøknadsbehandling.periode
             revurdering.resultat.vedtaksperiode shouldBe søknadsvedtakResultat.vedtaksperiode
             revurdering.resultat.vedtaksperiode shouldBe søknadsvedtakResultat.innvilgelsesperioder.totalPeriode
-            revurdering.resultat.innvilgelsesperioder!!.totalPeriode shouldBe (3 til 10.april(2025))
+            revurdering.resultat.innvilgelsesperioder!!.totalPeriode shouldBe (innvilgelsesperiode)
             revurdering.barnetillegg shouldBe Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
                     søknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
-                    (3 til 10.april(2025)),
+                    innvilgelsesperiode,
                 ),
                 begrunnelse = søknadsbehandling.barnetillegg.begrunnelse,
             )
             revurdering.antallDagerPerMeldeperiode shouldBe listOf(
                 PeriodeMedVerdi(
                     søknadsbehandling.antallDagerPerMeldeperiode!!.verdier.single(),
-                    (3 til 10.april(2025)),
+                    innvilgelsesperiode,
                 ),
             ).tilIkkeTomPeriodisering()
             revurdering.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
                     revurdering.saksopplysninger.tiltaksdeltakelser.single(),
-                    (3 til 10.april(2025)),
+                    innvilgelsesperiode,
                 ),
             ).tilIkkeTomPeriodisering()
             revurdering.attesteringer shouldBe emptyList()
@@ -110,12 +118,16 @@ internal class StartRevurderingTest {
         withTestApplicationContext { tac ->
             val (_, _, rammevedtakSøknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = 1 til 10.april(2025),
-                oppdaterTiltaksdeltakelsesperiode = 2 til 9.april(2025),
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(1 til 10.april(2025)),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse(2 til 9.april(2025)),
             )!!
             rammevedtakSøknadsbehandling.behandling.vedtaksperiode shouldBe (1 til 10.april(2025))
             rammevedtakSøknadsbehandling.behandling.innvilgelsesperioder!!.totalPeriode shouldBe (1 til 10.april(2025))
-            rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
+            rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (
+                1 til 10.april(
+                    2025,
+                )
+                )
             omgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
             omgjøring.vedtaksperiode shouldBe (1 til 10.april(2025))
             omgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
@@ -148,12 +160,16 @@ internal class StartRevurderingTest {
         withTestApplicationContext { tac ->
             val (_, _, rammevedtakSøknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = 2 til 9.april(2025),
-                oppdaterTiltaksdeltakelsesperiode = 1 til 10.april(2025),
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(2 til 9.april(2025)),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse(1 til 10.april(2025)),
             )!!
             rammevedtakSøknadsbehandling.behandling.vedtaksperiode shouldBe (2 til 9.april(2025))
             rammevedtakSøknadsbehandling.behandling.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
-            rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (2 til 9.april(2025))
+            rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (
+                2 til 9.april(
+                    2025,
+                )
+                )
             omgjøring.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (1 til 10.april(2025))
             omgjøring.vedtaksperiode shouldBe (2 til 9.april(2025))
             omgjøring.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
@@ -186,9 +202,9 @@ internal class StartRevurderingTest {
         withTestApplicationContext { tac ->
             iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = 2 til 9.april(2025),
-                oppdaterTiltaksdeltakelsesperiode = null,
-                forventetStatusForStartRevurdering = HttpStatusCode.Forbidden,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(2 til 9.april(2025)),
+                oppdatertTiltaksdeltakelse = null,
+                forventetStatusForStartRevurdering = HttpStatusCode.BadRequest,
             ) shouldBe null
         }
     }

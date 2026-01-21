@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
@@ -68,7 +67,7 @@ fun Route.oppdaterSaksopplysningerRoute(
 internal fun KunneIkkeOppdatereSaksopplysninger.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
     is KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling -> this.valideringsfeil.tilStatusOgErrorJson()
     KunneIkkeOppdatereSaksopplysninger.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag -> Pair(
-        HttpStatusCode.Forbidden,
+        HttpStatusCode.BadRequest,
         ErrorJson(
             "Kan kun oppdatere omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere.",
             "kan_kun_oppdatere_omgjøring_dersom_vi_kan_innvilge_minst_1_dag",

@@ -21,10 +21,12 @@ internal class VedtakslisteTest {
     fun `default antall dager for hele innvilgelsesperioden`() {
         withTestApplicationContext { tac ->
             val innvilgelsesperiode = 1 til 31.januar(2025)
+            val tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperiode)
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
+                tiltaksdeltakelse = tiltaksdeltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse(innvilgelsesperiode)),
             )
             sak.rammevedtaksliste.antallDagerPerMeldeperiode shouldBe Periodisering(
                 AntallDagerForMeldeperiode.default,
@@ -61,7 +63,6 @@ internal class VedtakslisteTest {
             )
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 innvilgelsesperioder = innvilgelsesperioder,
                 tiltaksdeltakelse = tiltaksdeltakelse,
@@ -100,7 +101,6 @@ internal class VedtakslisteTest {
             )
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 innvilgelsesperioder = innvilgelsesperioder,
                 tiltaksdeltakelse = tiltaksdeltakelse,
@@ -138,7 +138,6 @@ internal class VedtakslisteTest {
             )
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 innvilgelsesperioder = innvilgelsesperioder,
                 tiltaksdeltakelse = tiltaksdeltakelse,

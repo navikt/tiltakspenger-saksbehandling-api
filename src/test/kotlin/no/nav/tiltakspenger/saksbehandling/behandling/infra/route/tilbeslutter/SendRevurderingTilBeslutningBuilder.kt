@@ -14,21 +14,17 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -67,7 +63,7 @@ interface SendRevurderingTilBeslutningBuilder {
             sak,
             søknad,
             revurderingId,
-            sendRevurderingStansTilBeslutningForBehandlingId(
+            sendRevurderingTilBeslutningForBehandlingId(
                 tac,
                 sakId,
                 revurderingId,
@@ -79,35 +75,31 @@ interface SendRevurderingTilBeslutningBuilder {
     /** Oppretter ny sak, søknad og behandling. */
     suspend fun ApplicationTestBuilder.sendRevurderingInnvilgelseTilBeslutning(
         tac: TestApplicationContext,
-        søknadsbehandlingInnvilgelsesperiode: Periode = 1.til(10.april(2025)),
-        revurderingInnvilgelsesperiode: Periode = søknadsbehandlingInnvilgelsesperiode.plusTilOgMed(14L),
+        søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
+        revurderingInnvilgelsesperioder: Innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Rammevedtak, String> {
         val (sak, søknad, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
             tac,
-            søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
-            revurderingVedtaksperiode = revurderingInnvilgelsesperiode,
+            søknadsbehandlingInnvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
+            revurderingInnvilgelsesperioder = revurderingInnvilgelsesperioder,
         )
 
-        oppdaterBehandling(
+        oppdaterRevurderingInnvilgelse(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
-            oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
-                begrunnelseVilkårsvurdering = null,
-                fritekstTilVedtaksbrev = null,
-                innvilgelsesperioder = revurdering.innvilgelsesperioderDTO(
-                    revurderingInnvilgelsesperiode,
-                ),
-                barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperiode).toBarnetilleggDTO(),
-            ),
+            begrunnelseVilkårsvurdering = null,
+            fritekstTilVedtaksbrev = null,
+            innvilgelsesperioder = revurderingInnvilgelsesperioder,
+            barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperioder.perioder),
         )
 
         return Tuple4(
             sak,
             søknad,
             rammevedtakSøknadsbehandling,
-            sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+            sendRevurderingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
@@ -117,42 +109,7 @@ interface SendRevurderingTilBeslutningBuilder {
     }
 
     /** Forventer at det allerede finnes en behandling med status `UNDER_BEHANDLING` */
-    suspend fun ApplicationTestBuilder.sendRevurderingStansTilBeslutningForBehandlingId(
-        tac: TestApplicationContext,
-        sakId: SakId,
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
-    ): String {
-        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-            saksbehandler = saksbehandler,
-        )
-        tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutning")
-            },
-            jwt = jwt,
-        ).apply {
-            val bodyAsText = this.bodyAsText()
-            withClue(
-                """
-                    Response details:
-                    Status: ${this.status}
-                    Content-Type: ${this.contentType()}
-                    Body: $bodyAsText
-                """.trimMargin(),
-            ) {
-                status shouldBe forventetStatus
-            }
-            return bodyAsText
-        }
-    }
-
-    /** Forventer at det allerede finnes en behandling med status `UNDER_BEHANDLING` */
-    suspend fun ApplicationTestBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+    suspend fun ApplicationTestBuilder.sendRevurderingTilBeslutningForBehandlingId(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,

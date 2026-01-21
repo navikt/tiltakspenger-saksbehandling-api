@@ -4,11 +4,10 @@ import io.kotest.assertions.json.FieldComparison
 import io.kotest.assertions.json.NumberFormat
 import io.kotest.assertions.json.PropertyOrder
 import io.kotest.assertions.json.shouldEqualJson
-import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.DEFAULT_TILTAK_DELTAKELSE_INTERN_ID
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
 import org.json.JSONObject
 
 /**
@@ -17,10 +16,10 @@ import org.json.JSONObject
 fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
     id: String,
     behandlingId: String,
-    opprettet: String = "2025-01-01T01:02:19.456789",
+    opprettet: String,
+    opprinneligVedtaksperiode: Periode = vedtaksperiode(),
     saksbehandler: String = "Z12345",
     beslutter: String = "B12345",
-    opprinneligVedtaksperiode: Periode = 1.april(2025) til 10.april(2025),
     gjeldendeVedtaksperioder: List<Periode> = listOf(opprinneligVedtaksperiode),
     opprinneligInnvilgetPerioder: List<Periode> = listOf(opprinneligVedtaksperiode),
     gjeldendeInnvilgetPerioder: List<Periode> = gjeldendeVedtaksperioder,
@@ -30,8 +29,8 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
             {
                 "internDeltakelseId": "$DEFAULT_TILTAK_DELTAKELSE_INTERN_ID",
                 "periode": {
-                    "fraOgMed": "2025-04-01",
-                    "tilOgMed": "2025-04-10"
+                    "fraOgMed": "2023-01-01",
+                    "tilOgMed": "2023-03-31"
                 },
                 "antallDagerPerMeldeperiode": 10
             }
@@ -45,8 +44,8 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
               {
                 "antallBarn": 0,
                 "periode": {
-                  "fraOgMed": "2025-04-01",
-                  "tilOgMed": "2025-04-10"
+                  "fraOgMed": "2023-01-01",
+                  "tilOgMed": "2023-03-31"
                 }
               }
             ]
@@ -122,10 +121,10 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
 fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOavslag(
     id: String,
     behandlingId: String,
-    opprettet: String = "2025-01-01T01:02:19.456789",
-    saksbehandler: String = "Z12345",
+    opprettet: String,
+    opprinneligVedtaksperiode: Periode,
     beslutter: String = "B12345",
-    opprinneligVedtaksperiode: Periode = 1.april(2025) til 10.april(2025),
+    saksbehandler: String = "Z12345",
     vedtaksdato: String? = null,
 ) {
     shouldBeEqualToRammevedtakDTO(

@@ -5,12 +5,9 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.common.getOrFail
-import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.til
-import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING
@@ -21,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandlingI
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -34,12 +32,14 @@ class OpprettMeldekortBehandlingServiceTest {
 
     val totalPeriode = førstePeriode.fraOgMed til tredjePeriode.tilOgMed
 
+    val innvilgelsesperioderTotal = innvilgelsesperioder(totalPeriode)
+
     @Test
     fun `Skal kunne opprette behandling på første kjede når den gir rett`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = totalPeriode,
+                innvilgelsesperioder = innvilgelsesperioderTotal,
             )
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
@@ -58,7 +58,7 @@ class OpprettMeldekortBehandlingServiceTest {
         withTestApplicationContext(clock = clock) { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = totalPeriode,
+                innvilgelsesperioder = innvilgelsesperioderTotal,
             )
 
             tac.meldekortbehandlingIverksatt(
@@ -83,7 +83,7 @@ class OpprettMeldekortBehandlingServiceTest {
         withTestApplicationContext(clock = clock) { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = totalPeriode,
+                innvilgelsesperioder = innvilgelsesperioderTotal,
             )
 
             tac.meldekortbehandlingIverksatt(
@@ -108,7 +108,7 @@ class OpprettMeldekortBehandlingServiceTest {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = totalPeriode,
+                innvilgelsesperioder = innvilgelsesperioderTotal,
             )
 
             tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
@@ -125,7 +125,7 @@ class OpprettMeldekortBehandlingServiceTest {
         withTestApplicationContext(clock = clock) { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = totalPeriode,
+                innvilgelsesperioder = innvilgelsesperioderTotal,
             )
 
             tac.meldekortbehandlingIverksatt(
@@ -146,8 +146,8 @@ class OpprettMeldekortBehandlingServiceTest {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = totalPeriode,
-                revurderingInnvilgelsesperiode = andrePeriode,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioderTotal,
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(andrePeriode),
             )!!
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
@@ -165,8 +165,8 @@ class OpprettMeldekortBehandlingServiceTest {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = totalPeriode,
-                revurderingInnvilgelsesperiode = andrePeriode,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioderTotal,
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(andrePeriode),
             )!!
 
             tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
@@ -182,7 +182,7 @@ class OpprettMeldekortBehandlingServiceTest {
         withTestApplicationContext { tac ->
             val (sak, _, vedtak) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = totalPeriode,
+                innvilgelsesperioder = innvilgelsesperioderTotal,
             )
 
             val brukersMeldekortMedRett = ObjectMother.brukersMeldekort(
@@ -196,7 +196,7 @@ class OpprettMeldekortBehandlingServiceTest {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = vedtak.id,
-                innvilgelsesperiode = andrePeriode,
+                innvilgelsesperioder = innvilgelsesperioder(andrePeriode),
             )
 
             val (_, meldekortbehandling) = tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
@@ -215,7 +215,7 @@ class OpprettMeldekortBehandlingServiceTest {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = totalPeriode,
+                innvilgelsesperioder = innvilgelsesperioderTotal,
             )
 
             tac.nyOpprettetMeldekortbehandling(
@@ -238,7 +238,7 @@ class OpprettMeldekortBehandlingServiceTest {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = totalPeriode,
+                innvilgelsesperioder = innvilgelsesperioderTotal,
             )
 
             val (_, nyBehandling) = tac.nyOpprettetMeldekortbehandling(
