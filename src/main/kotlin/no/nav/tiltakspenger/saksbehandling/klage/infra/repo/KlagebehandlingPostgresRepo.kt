@@ -81,7 +81,7 @@ class KlagebehandlingPostgresRepo(
                         "sak_id" to klagebehandling.sakId.toString(),
                         "opprettet" to klagebehandling.opprettet,
                         "sist_endret" to klagebehandling.sistEndret,
-                        "status" to klagebehandling.status.toDbEnum().name,
+                        "status" to klagebehandling.status.toDbEnum(),
                         "formkrav" to klagebehandling.formkrav.toDbJson(),
                         "saksbehandler" to klagebehandling.saksbehandler,
                         "journalpost_id" to klagebehandling.journalpostId.toString(),
@@ -153,8 +153,9 @@ class KlagebehandlingPostgresRepo(
                 saksbehandler = row.stringOrNull("saksbehandler"),
                 journalpostId = JournalpostId(row.string("journalpost_id")),
                 journalpostOpprettet = row.localDateTime("journalpost_opprettet"),
-                resultat = row.stringOrNull("resultat")?.toKlagebehandlingResultat(),
-                brevtekst = row.stringOrNull("brevtekst")?.toKlageBrevtekst(),
+                resultat = row.stringOrNull("resultat")?.toKlagebehandlingResultat(
+                    brevtekst = row.stringOrNull("brevtekst")?.toKlageBrevtekst(),
+                ),
                 iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                 avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
             )

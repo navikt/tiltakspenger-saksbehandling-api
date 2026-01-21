@@ -3,24 +3,24 @@ package no.nav.tiltakspenger.saksbehandling.klage.service
 import arrow.core.Either
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandlingBrevtekst
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KanIkkeVurdereKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurderKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
-class OppdaterKlagebehandlingTekstTilBrevService(
+class VurderKlagebehandlingService(
     private val sakService: SakService,
-    private val clock: Clock,
     private val klagebehandlingRepo: KlagebehandlingRepo,
+    private val clock: Clock,
 ) {
-    suspend fun oppdaterTekstTilBrev(
-        kommando: KlagebehandlingBrevKommando,
-    ): Either<KanIkkeOppdatereKlagebehandling, Pair<Sak, Klagebehandling>> {
+    fun vurder(
+        kommando: VurderKlagebehandlingKommando,
+    ): Either<KanIkkeVurdereKlagebehandling, Pair<Sak, Klagebehandling>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
 
-        return sak.oppdaterKlagebehandlingBrevtekst(kommando, clock).onRight {
+        return sak.vurderKlagebehandling(kommando, clock).onRight {
             klagebehandlingRepo.lagreKlagebehandling(it.second)
         }
     }

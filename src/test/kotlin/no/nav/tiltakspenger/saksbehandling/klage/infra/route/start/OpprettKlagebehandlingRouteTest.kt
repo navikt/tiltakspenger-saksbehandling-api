@@ -38,6 +38,7 @@ class OpprettKlagebehandlingRouteTest {
                      "erKlagerPartISaken": true,
                      "klagesDetPåKonkreteElementerIVedtaket": true,
                      "erKlagefristenOverholdt": true,
+                     "erUnntakForKlagefrist": null,
                      "erKlagenSignert": true,
                      "brevtekst": [],
                      "avbrutt": null,

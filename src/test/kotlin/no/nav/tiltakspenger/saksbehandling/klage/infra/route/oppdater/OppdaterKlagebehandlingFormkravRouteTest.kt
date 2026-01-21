@@ -49,6 +49,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                   "erKlagerPartISaken": false,
                   "klagesDetPåKonkreteElementerIVedtaket": false,
                   "erKlagefristenOverholdt": false,
+                  "erUnntakForKlagefrist": "NEI",
                   "erKlagenSignert": false,
                   "brevtekst": [],
                   "avbrutt": null,

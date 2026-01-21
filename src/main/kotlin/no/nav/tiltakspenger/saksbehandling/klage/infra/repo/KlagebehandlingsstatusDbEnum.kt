@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 
-enum class KlagebehandlingsstatusDbEnum {
+private enum class KlagebehandlingsstatusDbEnum {
     KLAR_TIL_BEHANDLING,
     UNDER_BEHANDLING,
     AVBRUTT,
@@ -19,13 +19,13 @@ enum class KlagebehandlingsstatusDbEnum {
     }
 }
 
-fun Klagebehandlingsstatus.toDbEnum(): KlagebehandlingsstatusDbEnum {
+fun Klagebehandlingsstatus.toDbEnum(): String {
     return when (this) {
         Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> KlagebehandlingsstatusDbEnum.KLAR_TIL_BEHANDLING
         Klagebehandlingsstatus.UNDER_BEHANDLING -> KlagebehandlingsstatusDbEnum.UNDER_BEHANDLING
         Klagebehandlingsstatus.AVBRUTT -> KlagebehandlingsstatusDbEnum.AVBRUTT
         Klagebehandlingsstatus.IVERKSATT -> KlagebehandlingsstatusDbEnum.IVERKSATT
-    }
+    }.name
 }
 
 fun String.toKlagebehandlingsstatus(): Klagebehandlingsstatus {

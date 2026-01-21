@@ -26,6 +26,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebe
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KanIkkeVurdereKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OmgjørKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDateTime
@@ -33,8 +36,6 @@ import java.time.LocalDateTime
 /**
  * Representerer registrering og vurdering av en klage på et vedtak om tiltakspenger.
  * En klagebehandling har ingen beslutter, da klager avgjøres av en saksbehandler alene. Hvis det fører til medhold, vil en beslutter måtte beslutte selve revurderingen.
- *
- * @param brevtekst Brukes både for avvisning og innstilling.
  */
 data class Klagebehandling(
     val id: KlagebehandlingId,
@@ -50,25 +51,26 @@ data class Klagebehandling(
     val status: Klagebehandlingsstatus,
     val resultat: Klagebehandlingsresultat?,
     val formkrav: KlageFormkrav,
-    val brevtekst: Brevtekster?,
+
     val avbrutt: Avbrutt?,
 ) {
+    val brevtekst: Brevtekster? = resultat?.brevtekst
     val erUnderBehandling = status == UNDER_BEHANDLING
     val erKlarTilBehandling = status == KLAR_TIL_BEHANDLING
     val erAvbrutt = status == AVBRUTT
     val erIverksatt = status == IVERKSATT
     val erAvsluttet = erAvbrutt || erIverksatt
     val erÅpen = !erAvsluttet
-    val erAvvisning = formkrav.erAvvisning
+    val erAvvisning = resultat is Klagebehandlingsresultat.Avvist
+    val erOmgjøring = resultat is Klagebehandlingsresultat.Omgjør
 
-    val kanIverksette: Boolean = erUnderBehandling && resultat != null && !brevtekst.isNullOrEmpty()
+    val kanIverksette: Boolean = erUnderBehandling && resultat != null && resultat.kanIverksette
 
     val kanIkkeIverksetteGrunner: List<String> by lazy {
         val grunner = mutableListOf<String>()
         if (!erUnderBehandling) grunner.add("Klagebehandling er ikke under behandling")
         if (resultat == null) grunner.add("Resultat er ikke satt")
-        if (brevtekst.isNullOrEmpty()) grunner.add("Må ha minst et element i brevtekst")
-        grunner
+        grunner + (resultat?.kanIkkeIverksetteGrunner ?: emptyList())
     }
 
     fun erSaksbehandlerPåBehandlingen(saksbehandler: Saksbehandler): Boolean {
@@ -88,12 +90,17 @@ data class Klagebehandling(
             ).left()
         }
         val oppdaterteFormkrav = kommando.toKlageFormkrav()
+        val tidligereResultat = this.resultat
         return this.copy(
             sistEndret = nå(clock),
             formkrav = oppdaterteFormkrav,
             journalpostId = kommando.journalpostId,
             journalpostOpprettet = journalpostOpprettet,
-            resultat = if (oppdaterteFormkrav.erAvvisning) Klagebehandlingsresultat.AVVIST else null,
+            resultat = when {
+                oppdaterteFormkrav.erAvvisning && tidligereResultat is Klagebehandlingsresultat.Avvist -> tidligereResultat
+                oppdaterteFormkrav.erAvvisning -> Klagebehandlingsresultat.Avvist.empty
+                else -> null
+            },
         ).right()
     }
 
@@ -101,16 +108,43 @@ data class Klagebehandling(
         kommando: KlagebehandlingBrevKommando,
         clock: Clock,
     ): Either<KanIkkeOppdatereKlagebehandling, Klagebehandling> {
-        if (!erUnderBehandling) return KanIkkeOppdatereKlagebehandling.KanIkkeOppdateres.left()
+        if (!erAvvisning || !erUnderBehandling) {
+            return KanIkkeOppdatereKlagebehandling.KanIkkeOppdateres.left()
+        }
         if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
             return KanIkkeOppdatereKlagebehandling.SaksbehandlerMismatch(
                 forventetSaksbehandler = this.saksbehandler!!,
                 faktiskSaksbehandler = kommando.saksbehandler.navIdent,
             ).left()
         }
+        return (resultat as Klagebehandlingsresultat.Avvist).oppdaterBrevtekst(kommando.brevtekster).let {
+            this.copy(
+                sistEndret = nå(clock),
+                resultat = it,
+            ).right()
+        }
+    }
+
+    fun vurder(
+        kommando: VurderKlagebehandlingKommando,
+        clock: Clock,
+    ): Either<KanIkkeVurdereKlagebehandling, Klagebehandling> {
+        require(kommando is OmgjørKlagebehandlingKommando)
+        if (!erUnderBehandling) {
+            return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres.left()
+        }
+        if (resultat != null && !erOmgjøring) {
+            return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres.left()
+        }
+        if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
+            return KanIkkeVurdereKlagebehandling.SaksbehandlerMismatch(
+                forventetSaksbehandler = this.saksbehandler!!,
+                faktiskSaksbehandler = kommando.saksbehandler.navIdent,
+            ).left()
+        }
         return this.copy(
             sistEndret = nå(clock),
-            brevtekst = kommando.brevtekster,
+            resultat = kommando.toResultat(),
         ).right()
     }
 
@@ -122,10 +156,11 @@ data class Klagebehandling(
         kommando: KlagebehandlingBrevKommando,
         genererAvvisningsbrev: GenererKlageAvvisningsbrev,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        require(erAvvisning) {
+        require(resultat is Klagebehandlingsresultat.Avvist) {
             "Kan kun generere klagebrev for avvisning når formkrav er avvisning.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
         }
         if (erIverksatt) return genererBrev(genererAvvisningsbrev)
+        val brevtekst = resultat.brevtekst
         val saksbehandler: String = when (status) {
             KLAR_TIL_BEHANDLING -> "-"
             UNDER_BEHANDLING -> this.saksbehandler!!
@@ -141,7 +176,7 @@ data class Klagebehandling(
                 brevtekst ?: Brevtekster.empty
             }
 
-            AVBRUTT -> this.brevtekst ?: Brevtekster.empty
+            AVBRUTT -> brevtekst ?: Brevtekster.empty
             IVERKSATT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
         }
         return genererAvvisningsbrev(
@@ -167,7 +202,7 @@ data class Klagebehandling(
             saksnummer,
             fnr,
             saksbehandler!!,
-            brevtekst!!,
+            (resultat as Klagebehandlingsresultat.Avvist).brevtekst!!,
             false,
         )
     }
@@ -239,8 +274,7 @@ data class Klagebehandling(
                 journalpostOpprettet = journalpostOpprettet,
                 journalpostId = kommando.journalpostId,
                 status = UNDER_BEHANDLING,
-                resultat = if (formkrav.erAvvisning) Klagebehandlingsresultat.AVVIST else null,
-                brevtekst = null,
+                resultat = if (formkrav.erAvvisning) Klagebehandlingsresultat.Avvist.empty else null,
                 iverksattTidspunkt = null,
                 avbrutt = null,
             )
@@ -248,15 +282,12 @@ data class Klagebehandling(
     }
 
     init {
-        if (formkrav.erAvvisning) {
-            require(resultat == Klagebehandlingsresultat.AVVIST) {
+        if (formkrav.erAvvisning || resultat == Klagebehandlingsresultat.Avvist) {
+            require(resultat is Klagebehandlingsresultat.Avvist && formkrav.erAvvisning) {
                 "Klagebehandling som er avvist må ha resultat satt til AVVIST.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
             }
-        } else {
-            require(resultat == null) {
-                "Klagebehandling som ikke er avvist kan ikke ha resultat satt ved opprettelse.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
-            }
         }
+
         when (status) {
             KLAR_TIL_BEHANDLING -> {
                 require(saksbehandler == null) {
@@ -286,8 +317,12 @@ data class Klagebehandling(
                 require(resultat != null) {
                     "Klagebehandling som er $status må ha resultat satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
                 }
-                require(brevtekst != null) {
-                    "Klagebehandling som er $status må ha brevtekst satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+                when (resultat) {
+                    is Klagebehandlingsresultat.Omgjør -> {}
+
+                    is Klagebehandlingsresultat.Avvist -> require(!resultat.brevtekst.isNullOrEmpty()) {
+                        "Klagebehandling som er $status må ha brevtekst satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+                    }
                 }
             }
         }

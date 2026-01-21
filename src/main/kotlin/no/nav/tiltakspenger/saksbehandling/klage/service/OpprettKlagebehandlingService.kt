@@ -18,7 +18,7 @@ class OpprettKlagebehandlingService(
     private val sakService: SakService,
     private val clock: java.time.Clock,
     private val validerJournalpostService: ValiderJournalpostService,
-    private val klageRepo: KlagebehandlingRepo,
+    private val klagebehandlingRepo: KlagebehandlingRepo,
 ) {
     suspend fun opprettKlagebehandling(
         kommando: OpprettKlagebehandlingKommando,
@@ -41,7 +41,7 @@ class OpprettKlagebehandlingService(
             kommando = kommando,
         )
         val oppdatertSak = sak.leggTilKlagebehandling(klagebehandling)
-        klageRepo.lagreKlagebehandling(klagebehandling)
+        klagebehandlingRepo.lagreKlagebehandling(klagebehandling)
         return Pair(oppdatertSak, klagebehandling).right()
     }
 }

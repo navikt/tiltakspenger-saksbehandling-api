@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 class AvbrytKlagebehandlingService(
     private val sakService: SakService,
     private val clock: java.time.Clock,
-    private val klageRepo: KlagebehandlingRepo,
+    private val klagebehandlingRepo: KlagebehandlingRepo,
 ) {
     suspend fun avbrytKlagebehandling(
         kommando: AvbrytKlagebehandlingKommando,
@@ -22,7 +22,7 @@ class AvbrytKlagebehandlingService(
             kommando = kommando,
             clock = clock,
         ).onRight {
-            klageRepo.lagreKlagebehandling(it.second)
+            klagebehandlingRepo.lagreKlagebehandling(it.second)
         }
     }
 }

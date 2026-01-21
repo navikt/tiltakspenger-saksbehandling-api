@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.start
 
+import arrow.core.Tuple5
 import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
@@ -29,7 +30,10 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 interface OpprettKlagebehandlingBuilder {
     /** Oppretter ny sak og starter klagebehandling til avvisning  */
@@ -52,6 +56,41 @@ interface OpprettKlagebehandlingBuilder {
             forventetJsonBody = forventetJsonBody,
         )!!
         return Triple(oppdatertSak, klagebehandling, klagebehandlingJson)
+    }
+
+    /** Oppretter ny sak, søknad og iverksetter søknadsbehandlingen; og starter klagebehandling  */
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandling(
+        tac: TestApplicationContext,
+        saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
+        saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        journalpostId: JournalpostId = JournalpostId("12345"),
+        erKlagerPartISaken: Boolean = true,
+        klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
+        erKlagefristenOverholdt: Boolean = true,
+        erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
+        erKlagenSignert: Boolean = true,
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+    ): Tuple5<Sak, Søknad, Rammevedtak, Klagebehandling, KlagebehandlingDTOJson>? {
+        val (sak, søknad, vedtakSøknadsbehandling, _) = iverksettSøknadsbehandling(
+            tac = tac,
+            saksbehandler = saksbehandlerSøknadsbehandling,
+        )
+        val (oppdatertSak, klagebehandling, klagebehandlingJson) = this.opprettKlagebehandlingForSakId(
+            tac = tac,
+            sakId = sak.id,
+            saksbehandler = saksbehandlerKlagebehandling,
+            journalpostId = journalpostId,
+            vedtakDetKlagesPå = vedtakSøknadsbehandling.id,
+            erKlagerPartISaken = erKlagerPartISaken,
+            klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+            erKlagefristenOverholdt = erKlagefristenOverholdt,
+            erUnntakForKlagefrist = erUnntakForKlagefrist,
+            erKlagenSignert = erKlagenSignert,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        ) ?: return null
+        return Tuple5(oppdatertSak, søknad, vedtakSøknadsbehandling, klagebehandling, klagebehandlingJson)
     }
 
     /** Forventer at det allerede finnes en sak. */

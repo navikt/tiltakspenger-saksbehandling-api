@@ -34,7 +34,16 @@ class KlagebehandlingPostgresRepoTest {
                 journalpostId = JournalpostId("12345"),
                 journalpostOpprettet = klagebehandling.journalpostOpprettet,
                 saksbehandler = "Z12345",
-                resultat = Klagebehandlingsresultat.AVVIST,
+                resultat = Klagebehandlingsresultat.Avvist(
+                    Brevtekster(
+                        listOf(
+                            TittelOgTekst(
+                                tittel = "Avvisning av klage",
+                                tekst = "Din klage er dessverre avvist.",
+                            ),
+                        ),
+                    ),
+                ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
                     klagesDetPåKonkreteElementerIVedtaket = true,
@@ -42,14 +51,6 @@ class KlagebehandlingPostgresRepoTest {
                     erKlagenSignert = true,
                     erUnntakForKlagefrist = null,
                     vedtakDetKlagesPå = null,
-                ),
-                brevtekst = Brevtekster(
-                    listOf(
-                        TittelOgTekst(
-                            tittel = "Avvisning av klage",
-                            tekst = "Din klage er dessverre avvist.",
-                        ),
-                    ),
                 ),
                 iverksattTidspunkt = null,
                 avbrutt = null,

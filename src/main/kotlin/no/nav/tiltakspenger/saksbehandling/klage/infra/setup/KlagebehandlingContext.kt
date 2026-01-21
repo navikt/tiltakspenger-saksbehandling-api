@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.JournalførKlagevedtakS
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.DistribuerKlagevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.time.Clock
@@ -46,7 +47,7 @@ open class KlagebehandlingContext(
             sakService = sakService,
             clock = clock,
             validerJournalpostService = validerJournalpostService,
-            klageRepo = klagebehandlingRepo,
+            klagebehandlingRepo = klagebehandlingRepo,
         )
     }
 
@@ -55,14 +56,14 @@ open class KlagebehandlingContext(
             sakService = sakService,
             clock = clock,
             validerJournalpostService = validerJournalpostService,
-            klageRepo = klagebehandlingRepo,
+            klagebehandlingRepo = klagebehandlingRepo,
         )
     }
     open val avbrytKlagebehandlingService: AvbrytKlagebehandlingService by lazy {
         AvbrytKlagebehandlingService(
             sakService = sakService,
             clock = clock,
-            klageRepo = klagebehandlingRepo,
+            klagebehandlingRepo = klagebehandlingRepo,
         )
     }
 
@@ -79,7 +80,7 @@ open class KlagebehandlingContext(
         OppdaterKlagebehandlingTekstTilBrevService(
             sakService = sakService,
             clock = clock,
-            klageRepo = klagebehandlingRepo,
+            klagebehandlingRepo = klagebehandlingRepo,
         )
     }
     open val iverksettKlagebehandlingService: IverksettKlagebehandlingService by lazy {
@@ -107,6 +108,13 @@ open class KlagebehandlingContext(
         DistribuerKlagevedtaksbrevService(
             dokumentdistribusjonsklient = dokumentdistribusjonsklient,
             klagevedtakRepo = klagevedtakRepo,
+            clock = clock,
+        )
+    }
+    open val vurderKlagebehandlingService by lazy {
+        VurderKlagebehandlingService(
+            sakService = sakService,
+            klagebehandlingRepo = klagebehandlingRepo,
             clock = clock,
         )
     }

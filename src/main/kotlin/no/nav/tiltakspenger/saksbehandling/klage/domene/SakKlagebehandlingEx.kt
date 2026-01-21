@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdater
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KanIkkeVurdereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDateTime
@@ -88,4 +89,16 @@ suspend fun Sak.iverksettKlagebehandling(
         val oppdatertSak = this.oppdaterKlagebehandling(it).leggTilKlagevedtak(klagevedtak)
         Pair(oppdatertSak, klagevedtak)
     }
+}
+
+fun Sak.vurderKlagebehandling(
+    kommando: no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando,
+    clock: Clock,
+): Either<KanIkkeVurdereKlagebehandling, Pair<Sak, Klagebehandling>> {
+    return this.hentKlagebehandling(kommando.klagebehandlingId)
+        .vurder(kommando, clock)
+        .map {
+            val oppdatertSak = this.oppdaterKlagebehandling(it)
+            Pair(oppdatertSak, it)
+        }
 }

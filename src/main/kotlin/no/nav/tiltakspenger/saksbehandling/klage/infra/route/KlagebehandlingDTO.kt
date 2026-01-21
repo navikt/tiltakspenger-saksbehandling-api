@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 
 data class KlagebehandlingDTO(
     val id: String,
@@ -23,6 +24,7 @@ data class KlagebehandlingDTO(
     val erKlagerPartISaken: Boolean,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
     val erKlagefristenOverholdt: Boolean,
+    val erUnntakForKlagefrist: KlagefristUnntakSvarordDto?,
     val erKlagenSignert: Boolean,
     val brevtekst: List<TittelOgTekstDTO>,
     val avbrutt: AvbruttDTO?,
@@ -52,13 +54,20 @@ fun Klagebehandling.toDto() = KlagebehandlingDTO(
         Klagebehandlingsstatus.IVERKSATT -> "IVERKSATT"
     },
     resultat = when (resultat) {
-        Klagebehandlingsresultat.AVVIST -> "AVVIST"
         null -> null
+        is Klagebehandlingsresultat.Avvist -> "AVVIST"
+        is Klagebehandlingsresultat.Omgjør -> "OMGJØR"
     },
     vedtakDetKlagesPå = formkrav.vedtakDetKlagesPå?.toString(),
     erKlagerPartISaken = formkrav.erKlagerPartISaken,
     klagesDetPåKonkreteElementerIVedtaket = formkrav.klagesDetPåKonkreteElementerIVedtaket,
     erKlagefristenOverholdt = formkrav.erKlagefristenOverholdt,
+    erUnntakForKlagefrist = when (formkrav.erUnntakForKlagefrist) {
+        null -> null
+        KlagefristUnntakSvarord.JA_AV_SÆRLIGE_GRUNNER -> KlagefristUnntakSvarordDto.JA_AV_SÆRLIGE_GRUNNER
+        KlagefristUnntakSvarord.JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN -> KlagefristUnntakSvarordDto.JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN
+        KlagefristUnntakSvarord.NEI -> KlagefristUnntakSvarordDto.NEI
+    },
     erKlagenSignert = formkrav.erKlagenSignert,
     brevtekst = brevtekst?.map {
         KlagebehandlingDTO.TittelOgTekstDTO(

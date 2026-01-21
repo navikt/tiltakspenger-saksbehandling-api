@@ -39,11 +39,11 @@ class JournalførKlagevedtakService(
         Either.catch {
             klagevedtakRepo.hentKlagevedtakSomSkalJournalføres().forEach { vedtak ->
                 val correlationId = CorrelationId.generate()
-                log.info { "Journalfører vedtaksbrev for klagevedtak ${vedtak.id}, type: ${vedtak.resultat.name}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
+                log.info { "Journalfører vedtaksbrev for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
                 Either.catch {
                     val vedtaksdato = LocalDate.now(clock)
                     val pdfOgJson = when (vedtak.resultat) {
-                        Klagebehandlingsresultat.AVVIST -> genererKlagebrevKlient.genererAvvisningsvedtak(
+                        is Klagebehandlingsresultat.Avvist -> genererKlagebrevKlient.genererAvvisningsvedtak(
                             vedtaksdato = vedtaksdato,
                             tilleggstekst = vedtak.behandling.brevtekst!!,
                             hentBrukersNavn = personService::hentNavn,
@@ -53,17 +53,19 @@ class JournalførKlagevedtakService(
                             saksbehandlerNavIdent = vedtak.saksbehandler,
                             forhåndsvisning = false,
                         )
+
+                        is Klagebehandlingsresultat.Omgjør -> throw IllegalStateException("Ugyldig tilstand ved journalføring av klagevedtak. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}")
                     }.getOrElse { return@forEach }
 
-                    log.info { "Vedtaksbrev generert for klagevedtak ${vedtak.id}, type: ${vedtak.resultat.name}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
+                    log.info { "Vedtaksbrev generert for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
                     val journalpostId = journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
                         klagevedtak = vedtak,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
                     )
-                    log.info { "Vedtaksbrev journalført for klagevedtak ${vedtak.id}, type: ${vedtak.resultat.name}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
+                    log.info { "Vedtaksbrev journalført for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
                     klagevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
-                    log.info { "Vedtaksbrev markert som journalført for klagevedtak ${vedtak.id}, type: ${vedtak.resultat.name}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
+                    log.info { "Vedtaksbrev markert som journalført for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
                     errorEveryNLogger.reset()
                 }.onLeft {
                     errorEveryNLogger.log(it) { "Feil ved journalføring av vedtaksbrev for vedtak ${vedtak.id}" }

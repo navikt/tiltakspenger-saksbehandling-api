@@ -16,7 +16,7 @@ class OppdaterKlagebehandlingFormkravService(
     private val sakService: SakService,
     private val clock: java.time.Clock,
     private val validerJournalpostService: ValiderJournalpostService,
-    private val klageRepo: KlagebehandlingRepo,
+    private val klagebehandlingRepo: KlagebehandlingRepo,
 ) {
     suspend fun oppdaterFormkrav(
         kommando: OppdaterKlagebehandlingFormkravKommando,
@@ -33,7 +33,7 @@ class OppdaterKlagebehandlingFormkravService(
             "Journalpost ${kommando.journalpostId} mangler datoOpprettet. sakId=${kommando.sakId}"
         }
         return sak.oppdaterKlagebehandlingFormkrav(kommando, journalpost.datoOpprettet, clock).onRight {
-            klageRepo.lagreKlagebehandling(it.second)
+            klagebehandlingRepo.lagreKlagebehandling(it.second)
         }
     }
 }
