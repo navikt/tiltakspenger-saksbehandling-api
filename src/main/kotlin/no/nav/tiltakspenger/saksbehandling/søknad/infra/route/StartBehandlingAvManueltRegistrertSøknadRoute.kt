@@ -44,8 +44,11 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
             tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, token)
 
             call.withBody<ManueltRegistrertSøknadBody> { body ->
-                val internTiltaksdeltakelsesId = body.svar.tiltak?.eksternDeltakelseId?.let {
-                    tiltaksdeltakerRepo.hentEllerLagre(it)
+                val internTiltaksdeltakelsesId = body.svar.tiltak?.let {
+                    tiltaksdeltakerRepo.hentEllerLagre(
+                        eksternId = it.eksternDeltakelseId,
+                        tiltakstype = it.typeKode.tilTiltakstype(),
+                    )
                 }
                 val (sak, søknad) = startBehandlingAvManueltRegistrertSøknadService.startBehandlingAvManueltRegistrertSøknad(
                     saksnummer = saksnummer,

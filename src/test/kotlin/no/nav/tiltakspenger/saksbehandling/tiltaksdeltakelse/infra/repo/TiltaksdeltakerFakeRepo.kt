@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
@@ -8,6 +9,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
 
     override fun hentEllerLagre(
         eksternId: String,
+        tiltakstype: TiltakResponsDTO.TiltakType,
         sessionContext: SessionContext?,
     ): TiltaksdeltakerId {
         data.get()[eksternId]?.let { return it }
@@ -16,6 +18,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
         lagre(
             id = id,
             eksternId = eksternId,
+            tiltakstype = tiltakstype,
         )
         return id
     }
@@ -28,7 +31,12 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
         return data.get().filter { it.value == id }.keys.first()
     }
 
-    override fun lagre(id: TiltaksdeltakerId, eksternId: String, sessionContext: SessionContext?) {
+    override fun lagre(
+        id: TiltaksdeltakerId,
+        eksternId: String,
+        tiltakstype: TiltakResponsDTO.TiltakType,
+        sessionContext: SessionContext?,
+    ) {
         data.get()[eksternId] = id
     }
 }

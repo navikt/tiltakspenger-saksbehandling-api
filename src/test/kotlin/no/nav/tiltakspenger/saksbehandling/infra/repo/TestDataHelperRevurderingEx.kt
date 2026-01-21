@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.navkontor
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterRevurderingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
@@ -71,7 +72,11 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     }.also {
         it.second.saksopplysninger.tiltaksdeltakelser.forEach { tiltaksdeltakelse ->
             if (tiltaksdeltakerRepo.hentInternId(tiltaksdeltakelse.eksternDeltakelseId) == null) {
-                tiltaksdeltakerRepo.lagre(tiltaksdeltakelse.internDeltakelseId, tiltaksdeltakelse.eksternDeltakelseId)
+                tiltaksdeltakerRepo.lagre(
+                    id = tiltaksdeltakelse.internDeltakelseId,
+                    eksternId = tiltaksdeltakelse.eksternDeltakelseId,
+                    tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+                )
             }
         }
         behandlingRepo.lagre(it.second)

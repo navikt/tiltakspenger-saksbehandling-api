@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
@@ -102,7 +103,10 @@ class HentSaksopplysingerService(
                 }
             }
         val tiltaksdeltakelser = aktuelleTiltaksdeltakelser.value.map {
-            val internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(it.eksternDeltakelseId)
+            val internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(
+                eksternId = it.eksternDeltakelseId,
+                tiltakstype = it.typeKode.tilTiltakstype(),
+            )
             it.toTiltaksdeltakelse(internDeltakelseId)
         }
         return Tiltaksdeltakelser(tiltaksdeltakelser)

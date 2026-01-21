@@ -72,7 +72,7 @@ class TiltaksdeltakerKafkaRepository(
                         "sist_oppdatert" to sistOppdatert,
                         "melding" to melding,
                         "oppgave_sist_sjekket" to tiltaksdeltakerKafkaDb.oppgaveSistSjekket,
-                        "tiltaksdeltaker_id" to tiltaksdeltakerKafkaDb.tiltaksdeltakerId?.toString(),
+                        "tiltaksdeltaker_id" to tiltaksdeltakerKafkaDb.tiltaksdeltakerId.toString(),
                     ),
                 ).asUpdate,
             )
@@ -119,22 +119,6 @@ class TiltaksdeltakerKafkaRepository(
         }
     }
 
-    fun lagreTiltaksdeltakerId(id: String, tiltaksdeltakerId: TiltaksdeltakerId) {
-        sessionFactory.withSession {
-            it.run(
-                queryOf(
-                    """
-                        update tiltaksdeltaker_kafka set tiltaksdeltaker_id = :tiltaksdeltaker_id where id = :id and tiltaksdeltaker_id is null
-                    """.trimIndent(),
-                    mapOf(
-                        "tiltaksdeltaker_id" to tiltaksdeltakerId.toString(),
-                        "id" to id,
-                    ),
-                ).asUpdate,
-            )
-        }
-    }
-
     private fun Row.toTiltaksdeltakerKafkaDb() =
         TiltaksdeltakerKafkaDb(
             id = string("id"),
@@ -146,7 +130,7 @@ class TiltaksdeltakerKafkaRepository(
             sakId = SakId.fromString(string("sak_id")),
             oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
             oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),
-            tiltaksdeltakerId = stringOrNull("tiltaksdeltaker_id")?.let { TiltaksdeltakerId.fromString(it) },
+            tiltaksdeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
         )
 
     @Language("SQL")

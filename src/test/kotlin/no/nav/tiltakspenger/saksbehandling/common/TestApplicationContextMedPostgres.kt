@@ -40,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
@@ -228,8 +229,9 @@ class TestApplicationContextMedPostgres(
         tilgangsmaskinFakeClient.leggTil(fnr, Tilgangsvurdering.Godkjent)
         if (tiltakContext.tiltaksdeltakerRepo.hentInternId(tiltaksdeltakelse.eksternDeltakelseId) == null) {
             tiltakContext.tiltaksdeltakerRepo.lagre(
-                tiltaksdeltakelse.internDeltakelseId,
-                tiltaksdeltakelse.eksternDeltakelseId,
+                id = tiltaksdeltakelse.internDeltakelseId,
+                eksternId = tiltaksdeltakelse.eksternDeltakelseId,
+                tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
             )
         }
     }

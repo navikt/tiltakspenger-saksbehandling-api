@@ -62,9 +62,8 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -101,9 +100,8 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -137,9 +135,8 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -198,9 +195,8 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -258,9 +254,8 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -312,9 +307,8 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -372,9 +366,8 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -485,9 +478,8 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val behandlingRepo = testDataHelper.behandlingRepo
-                    val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                     val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
                     val (sakMedFørstegangsvedtak, vedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
                         fnr = fnr,
@@ -528,9 +520,8 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val behandlingRepo = testDataHelper.behandlingRepo
-                    val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                     val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
                         fnr = fnr,
@@ -575,9 +566,8 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val behandlingRepo = testDataHelper.behandlingRepo
-                    val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                     val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, testDataHelper.clock)
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterRammevedtakAvslag(
                         sakId = sak.id,
                         fnr = fnr,
@@ -625,9 +615,8 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -686,9 +675,8 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, tiltaksdeltakerRepo, clock)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, clock)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)

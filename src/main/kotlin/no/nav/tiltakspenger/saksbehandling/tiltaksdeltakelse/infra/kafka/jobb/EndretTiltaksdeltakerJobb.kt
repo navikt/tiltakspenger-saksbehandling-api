@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import java.time.Clock
 
 class EndretTiltaksdeltakerJobb(
@@ -22,8 +21,6 @@ class EndretTiltaksdeltakerJobb(
     private val sakRepo: SakRepo,
     private val oppgaveKlient: OppgaveKlient,
     private val behandlingRepo: BehandlingRepo,
-    // tiltaksdeltakerRepo kan fjernes når alle lagrede meldinger inneholder intern id
-    private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
     private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
@@ -37,7 +34,7 @@ class EndretTiltaksdeltakerJobb(
             endredeDeltakere.forEach { deltaker ->
                 val deltakerId = deltaker.id
                 val sakId = deltaker.sakId
-                val internTiltaksdeltakerId = deltaker.tiltaksdeltakerId ?: tiltaksdeltakerRepo.hentEllerLagre(deltakerId)
+                val internTiltaksdeltakerId = deltaker.tiltaksdeltakerId
 
                 Either.catch {
                     val sak = sakRepo.hentForSakId(sakId)!!
@@ -57,7 +54,7 @@ class EndretTiltaksdeltakerJobb(
                         return@forEach
                     }
 
-                    val endringer = finnEndringer(apneManuelleBehandlinger, nyesteIverksatteBehandling, deltaker, internTiltaksdeltakerId)
+                    val endringer = finnEndringer(apneManuelleBehandlinger, nyesteIverksatteBehandling, deltaker)
                     if (endringer.isNotEmpty()) {
                         log.info { "Tiltaksdeltakelse $deltakerId er endret, oppretter oppgave" }
                         val oppgaveId =
@@ -98,12 +95,6 @@ class EndretTiltaksdeltakerJobb(
                         } else {
                             log.info { "Oppgave med id $oppgaveId er ikke ferdigstilt, oppdaterer sist sjekket for tiltaksdeltakelse $deltakerId" }
                             tiltaksdeltakerKafkaRepository.oppdaterOppgaveSistSjekket(deltakerId)
-                            if (it.tiltaksdeltakerId == null) {
-                                log.info { "Mangler intern tiltaksdeltakerId for ekstern id $deltakerId" }
-                                val internId = tiltaksdeltakerRepo.hentEllerLagre(deltakerId)
-                                tiltaksdeltakerKafkaRepository.lagreTiltaksdeltakerId(deltakerId, internId)
-                                log.info { "Lagret intern tiltaksdeltakerId $internId for ekstern id $deltakerId" }
-                            }
                         }
                     }
                 }.onLeft {
@@ -136,8 +127,8 @@ class EndretTiltaksdeltakerJobb(
             it.oppdaterVenterTil(
                 nyVenterTil = nå(clock).plusMinutes(15), // venter i 15 minutter i tilfelle det kommer flere endringer
                 clock = clock,
-            ).let {
-                behandlingRepo.lagre(it)
+            ).let { behandling ->
+                behandlingRepo.lagre(behandling)
             }
             log.info { "Har oppdatert venterTil for automatisk behandling med id ${it.id} pga endring på deltaker med id $tiltaksdeltakerId" }
         }
@@ -147,14 +138,13 @@ class EndretTiltaksdeltakerJobb(
         apneManuelleBehandlinger: List<Søknadsbehandling>,
         nyesteIverksatteBehandling: Rammebehandling?,
         deltaker: TiltaksdeltakerKafkaDb,
-        tiltaksdeltakerId: TiltaksdeltakerId,
     ): List<TiltaksdeltakerEndring> {
         val tidligstEndredeApneBehandling = apneManuelleBehandlinger.minByOrNull { it.sistEndret }
 
         return if (nyesteIverksatteBehandling != null) {
-            finnEndringerForBehandling(nyesteIverksatteBehandling, deltaker, tiltaksdeltakerId)
+            finnEndringerForBehandling(nyesteIverksatteBehandling, deltaker)
         } else if (tidligstEndredeApneBehandling != null) {
-            finnEndringerForBehandling(tidligstEndredeApneBehandling, deltaker, tiltaksdeltakerId)
+            finnEndringerForBehandling(tidligstEndredeApneBehandling, deltaker)
         } else {
             throw IllegalStateException("Skal ikke komme hit hvis det ikke finnes åpne eller iverksatte behandlinger")
         }
@@ -163,12 +153,11 @@ class EndretTiltaksdeltakerJobb(
     private fun finnEndringerForBehandling(
         behandling: Rammebehandling,
         deltaker: TiltaksdeltakerKafkaDb,
-        tiltaksdeltakerId: TiltaksdeltakerId,
     ): List<TiltaksdeltakerEndring> {
         log.info { "Fant behandling ${behandling.id} for sakId ${behandling.sakId} og deltakerId ${deltaker.id}" }
 
         val tiltaksdeltakelseFraBehandling = behandling.getTiltaksdeltakelse(
-            internDeltakelseId = deltaker.tiltaksdeltakerId ?: tiltaksdeltakerId,
+            internDeltakelseId = deltaker.tiltaksdeltakerId,
         ) ?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id} på behandling ${behandling.id}, skal ikke kunne skje")
         return deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling, clock = clock)
     }

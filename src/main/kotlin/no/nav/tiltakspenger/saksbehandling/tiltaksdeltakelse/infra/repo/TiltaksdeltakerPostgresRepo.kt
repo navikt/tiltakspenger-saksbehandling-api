@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 class TiltaksdeltakerPostgresRepo(
@@ -30,6 +31,7 @@ class TiltaksdeltakerPostgresRepo(
 
     override fun hentEllerLagre(
         eksternId: String,
+        tiltakstype: TiltakResponsDTO.TiltakType,
         sessionContext: SessionContext?,
     ): TiltaksdeltakerId {
         return sessionFactory.withSessionContext(sessionContext) { sessionContext ->
@@ -44,14 +46,17 @@ class TiltaksdeltakerPostgresRepo(
                             """
                             insert into tiltaksdeltaker (
                                 id,
-                                ekstern_id
+                                ekstern_id,
+                                tiltakstype
                             ) values (
                                 :id,
-                                :ekstern_id
+                                :ekstern_id,
+                                :tiltakstype
                             )
                             """.trimIndent(),
                             "id" to id.toString(),
                             "ekstern_id" to eksternId,
+                            "tiltakstype" to tiltakstype.name,
                         ).asUpdate,
                     )
                     return@withSession id
@@ -66,7 +71,12 @@ class TiltaksdeltakerPostgresRepo(
         }
     }
 
-    override fun lagre(id: TiltaksdeltakerId, eksternId: String, sessionContext: SessionContext?) {
+    override fun lagre(
+        id: TiltaksdeltakerId,
+        eksternId: String,
+        tiltakstype: TiltakResponsDTO.TiltakType,
+        sessionContext: SessionContext?,
+    ) {
         sessionFactory.withSessionContext(sessionContext) { sessionContext ->
             sessionContext.withSession { session ->
                 session.run(
@@ -74,14 +84,17 @@ class TiltaksdeltakerPostgresRepo(
                         """
                             insert into tiltaksdeltaker (
                                 id,
-                                ekstern_id
+                                ekstern_id,
+                                tiltakstype
                             ) values (
                                 :id,
-                                :ekstern_id
+                                :ekstern_id,
+                                :tiltakstype
                             )
                         """.trimIndent(),
                         "id" to id.toString(),
                         "ekstern_id" to eksternId,
+                        "tiltakstype" to tiltakstype.name,
                     ).asUpdate,
                 )
             }

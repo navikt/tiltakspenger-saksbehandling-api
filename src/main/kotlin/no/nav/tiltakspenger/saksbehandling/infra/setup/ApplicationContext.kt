@@ -160,7 +160,6 @@ open class ApplicationContext(
             sakRepo = sakContext.sakRepo,
             oppgaveKlient = oppgaveKlient,
             behandlingRepo = behandlingContext.behandlingRepo,
-            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             clock = clock,
         )
     }
