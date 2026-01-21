@@ -24,7 +24,7 @@ interface TiltaksdeltakerRepo {
 
     fun hentEksternId(id: TiltaksdeltakerId): String
 
-    fun hentIdUtenTiltakstypeOgTiltakstypen(limit: Int = 25): List<TiltaksdeltakerIdOgTiltakstype>
+    fun hentIdUtenTiltakstypeOgTiltakstypen(limit: Int = 75): List<TiltaksdeltakerIdOgTiltakstype>
 
     fun lagreTiltakstype(tiltaksdeltakerIdOgTiltakstype: TiltaksdeltakerIdOgTiltakstype)
 }
