@@ -212,8 +212,20 @@ private fun TiltakstypeSomGirRett.mapStønadstype(): StønadTypeTiltakspenger =
         TiltakstypeSomGirRett.DIGITAL_JOBBKLUBB -> StønadTypeTiltakspenger.DIGITAL_JOBBKLUBB
         TiltakstypeSomGirRett.ENKELTPLASS_AMO -> StønadTypeTiltakspenger.ENKELTPLASS_AMO
         TiltakstypeSomGirRett.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG -> StønadTypeTiltakspenger.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG
-        TiltakstypeSomGirRett.GRUPPE_AMO -> StønadTypeTiltakspenger.GRUPPE_AMO
-        TiltakstypeSomGirRett.GRUPPE_VGS_OG_HØYERE_YRKESFAG -> StønadTypeTiltakspenger.GRUPPE_VGS_OG_HØYERE_YRKESFAG
+
+        // Vi venter på klassekoder for å kunne utbetale på de nye tiltakstypene og bruker den mindre spesifikke koden inntil de nye er på plass
+        // https://trello.com/c/Xcbb0swL/1865-bestille-nye-klassekoder-av-os-for-de-nye-tiltaksvariantene
+        TiltakstypeSomGirRett.GRUPPE_AMO,
+        TiltakstypeSomGirRett.ARBEIDSMARKEDSOPPLAERING,
+        TiltakstypeSomGirRett.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+        TiltakstypeSomGirRett.STUDIESPESIALISERING,
+        -> StønadTypeTiltakspenger.GRUPPE_AMO
+
+        TiltakstypeSomGirRett.GRUPPE_VGS_OG_HØYERE_YRKESFAG,
+        TiltakstypeSomGirRett.FAG_OG_YRKESOPPLAERING,
+        TiltakstypeSomGirRett.HOYERE_YRKESFAGLIG_UTDANNING,
+        -> StønadTypeTiltakspenger.GRUPPE_VGS_OG_HØYERE_YRKESFAG
+
         TiltakstypeSomGirRett.HØYERE_UTDANNING -> StønadTypeTiltakspenger.HØYERE_UTDANNING
         TiltakstypeSomGirRett.INDIVIDUELL_JOBBSTØTTE -> StønadTypeTiltakspenger.INDIVIDUELL_JOBBSTØTTE
         TiltakstypeSomGirRett.INDIVIDUELL_KARRIERESTØTTE_UNG -> StønadTypeTiltakspenger.INDIVIDUELL_KARRIERESTØTTE_UNG

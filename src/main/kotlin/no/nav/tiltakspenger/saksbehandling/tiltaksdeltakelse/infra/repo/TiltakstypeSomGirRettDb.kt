@@ -2,20 +2,25 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.ARBEIDSFORBEREDENDE_TRENING
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.ARBEIDSMARKEDSOPPLAERING
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.ARBEIDSRETTET_REHABILITERING
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.ARBEIDSTRENING
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.AVKLARING
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.DIGITAL_JOBBKLUBB
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.ENKELTPLASS_AMO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.FAG_OG_YRKESOPPLAERING
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.FORSØK_OPPLÆRING_LENGRE_VARIGHET
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.GRUPPE_AMO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.GRUPPE_VGS_OG_HØYERE_YRKESFAG
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.HOYERE_YRKESFAGLIG_UTDANNING
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.HØYERE_UTDANNING
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.INDIVIDUELL_JOBBSTØTTE
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.INDIVIDUELL_KARRIERESTØTTE_UNG
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.JOBBKLUBB
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.OPPFØLGING
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.STUDIESPESIALISERING
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.UTVIDET_OPPFØLGING_I_NAV
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltakstypeSomGirRettDb.UTVIDET_OPPFØLGING_I_OPPLÆRING
 
@@ -24,20 +29,25 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltakst
  */
 internal enum class TiltakstypeSomGirRettDb {
     ARBEIDSFORBEREDENDE_TRENING,
+    ARBEIDSMARKEDSOPPLAERING,
     ARBEIDSRETTET_REHABILITERING,
     ARBEIDSTRENING,
     AVKLARING,
     DIGITAL_JOBBKLUBB,
     ENKELTPLASS_AMO,
     ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG,
+    FAG_OG_YRKESOPPLAERING,
     FORSØK_OPPLÆRING_LENGRE_VARIGHET,
     GRUPPE_AMO,
     GRUPPE_VGS_OG_HØYERE_YRKESFAG,
+    HOYERE_YRKESFAGLIG_UTDANNING,
     HØYERE_UTDANNING,
     INDIVIDUELL_JOBBSTØTTE,
     INDIVIDUELL_KARRIERESTØTTE_UNG,
     JOBBKLUBB,
+    NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
     OPPFØLGING,
+    STUDIESPESIALISERING,
     UTVIDET_OPPFØLGING_I_NAV,
     UTVIDET_OPPFØLGING_I_OPPLÆRING,
     ;
@@ -61,6 +71,11 @@ internal enum class TiltakstypeSomGirRettDb {
             OPPFØLGING -> TiltakstypeSomGirRett.OPPFØLGING
             UTVIDET_OPPFØLGING_I_NAV -> TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_NAV
             UTVIDET_OPPFØLGING_I_OPPLÆRING -> TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_OPPLÆRING
+            ARBEIDSMARKEDSOPPLAERING -> TiltakstypeSomGirRett.ARBEIDSMARKEDSOPPLAERING
+            FAG_OG_YRKESOPPLAERING -> TiltakstypeSomGirRett.FAG_OG_YRKESOPPLAERING
+            HOYERE_YRKESFAGLIG_UTDANNING -> TiltakstypeSomGirRett.HOYERE_YRKESFAGLIG_UTDANNING
+            NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> TiltakstypeSomGirRett.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV
+            STUDIESPESIALISERING -> TiltakstypeSomGirRett.STUDIESPESIALISERING
         }
 }
 
@@ -83,6 +98,11 @@ internal fun TiltakstypeSomGirRett.toDb(): String =
         TiltakstypeSomGirRett.OPPFØLGING -> OPPFØLGING.name
         TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_NAV -> UTVIDET_OPPFØLGING_I_NAV.name
         TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_OPPLÆRING -> UTVIDET_OPPFØLGING_I_OPPLÆRING.name
+        TiltakstypeSomGirRett.ARBEIDSMARKEDSOPPLAERING -> ARBEIDSMARKEDSOPPLAERING.name
+        TiltakstypeSomGirRett.FAG_OG_YRKESOPPLAERING -> FAG_OG_YRKESOPPLAERING.name
+        TiltakstypeSomGirRett.HOYERE_YRKESFAGLIG_UTDANNING -> HOYERE_YRKESFAGLIG_UTDANNING.name
+        TiltakstypeSomGirRett.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV.name
+        TiltakstypeSomGirRett.STUDIESPESIALISERING -> STUDIESPESIALISERING.name
     }
 
 internal fun String.toTiltakstypeSomGirRett(): TiltakstypeSomGirRett = TiltakstypeSomGirRettDb.valueOf(this).toDomain()
