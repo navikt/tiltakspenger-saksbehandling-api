@@ -22,4 +22,12 @@ interface TiltaksdeltakerRepo {
     fun hentInternId(eksternId: String): TiltaksdeltakerId?
 
     fun hentEksternId(id: TiltaksdeltakerId): String
+
+    fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker?
+
+    // Denne skal kun brukes når tiltaksdeltakelser flyttes ut av Arena og får ny eksternId
+    fun oppdaterEksternIdForTiltaksdeltaker(
+        tiltaksdeltaker: Tiltaksdeltaker,
+        sessionContext: SessionContext? = null,
+    )
 }

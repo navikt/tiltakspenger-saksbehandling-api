@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 internal class SøknadPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -37,9 +38,9 @@ internal class SøknadPostgresRepo(
         }
     }
 
-    override fun finnSakIdForTiltaksdeltakelse(eksternId: String): SakId? =
+    override fun finnSakIdForTiltaksdeltakelse(tiltaksdeltakerId: TiltaksdeltakerId): SakId? =
         sessionFactory.withSession {
-            SøknadDAO.finnSakIdForTiltaksdeltakelse(eksternId, it)
+            SøknadDAO.finnSakIdForTiltaksdeltakelse(tiltaksdeltakerId, it)
         }
 
     override fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext?) {

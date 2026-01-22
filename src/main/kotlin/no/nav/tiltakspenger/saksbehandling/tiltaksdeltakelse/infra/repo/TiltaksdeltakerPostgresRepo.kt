@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
+import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
@@ -107,6 +108,42 @@ class TiltaksdeltakerPostgresRepo(
         }
     }
 
+    override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
+        return sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    "select * from tiltaksdeltaker where ekstern_id = ?",
+                    eksternId,
+                )
+                    .map { row -> row.tilTiltaksdeltaker() }
+                    .asSingle,
+            )
+        }
+    }
+
+    override fun oppdaterEksternIdForTiltaksdeltaker(
+        tiltaksdeltaker: Tiltaksdeltaker,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        """
+                            update tiltaksdeltaker 
+                            set ekstern_id = :ekstern_id,
+                                utdatert_ekstern_id = :utdatert_ekstern_id
+                            where id = :id
+                        """.trimIndent(),
+                        "id" to tiltaksdeltaker.id.toString(),
+                        "ekstern_id" to tiltaksdeltaker.eksternId,
+                        "utdatert_ekstern_id" to tiltaksdeltaker.utdatertEksternId,
+                    ).asUpdate,
+                )
+            }
+        }
+    }
+
     private fun hentForEksternId(
         eksternId: String,
         session: Session,
@@ -117,5 +154,12 @@ class TiltaksdeltakerPostgresRepo(
         )
             .map { row -> row.stringOrNull("id")?.let { TiltaksdeltakerId.fromString(it) } }
             .asSingle,
+    )
+
+    private fun Row.tilTiltaksdeltaker() = Tiltaksdeltaker(
+        id = TiltaksdeltakerId.fromString(string("id")),
+        eksternId = string("ekstern_id"),
+        tiltakstype = TiltakResponsDTO.TiltakType.valueOf(string("tiltakstype")),
+        utdatertEksternId = stringOrNull("utdatert_ekstern_id"),
     )
 }

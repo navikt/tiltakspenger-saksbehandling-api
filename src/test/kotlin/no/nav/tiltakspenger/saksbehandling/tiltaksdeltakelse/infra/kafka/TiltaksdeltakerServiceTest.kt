@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusType
+import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -74,6 +75,136 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
             tiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
             tiltaksdeltakerKafkaDb?.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+        }
+    }
+
+    @Test
+    fun `behandleMottattArenadeltaker - finnes sak, har eksternId - oppdaterer eksternId og lagrer`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val soknadRepo = testDataHelper.søknadRepo
+            val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
+            val tiltaksdeltakerService =
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+            val deltakerId = "123456789"
+            val id = "TA$deltakerId"
+            val nyEksternId = UUID.fromString("9bedf708-1aa2-4be0-a561-cbe60ff2e9f9")
+            val fnr = Fnr.random()
+            val sak = ObjectMother.nySak(fnr = fnr)
+            val soknadstiltak = ObjectMother.søknadstiltak(id = id)
+            val soknad = ObjectMother.nyInnvilgbarSøknad(
+                personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                søknadstiltak = soknadstiltak,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            )
+            testDataHelper.persisterSakOgSøknad(
+                fnr = fnr,
+                sak = sak,
+                søknad = soknad,
+            )
+
+            tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingMedEksternIdString())
+
+            tiltaksdeltakerRepo.hentTiltaksdeltaker(id) shouldBe null
+            val oppdatertTiltaksdeltaker = tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString())
+            oppdatertTiltaksdeltaker?.id shouldBe soknadstiltak.tiltaksdeltakerId
+            oppdatertTiltaksdeltaker?.eksternId shouldBe nyEksternId.toString()
+            oppdatertTiltaksdeltaker?.tiltakstype shouldBe soknadstiltak.typeKode
+            oppdatertTiltaksdeltaker?.utdatertEksternId shouldBe id
+
+            tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
+            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(nyEksternId.toString())
+            tiltaksdeltakerKafkaDb shouldNotBe null
+            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
+            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
+            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe 2.0F
+            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe 50.0F
+            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
+            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+            tiltaksdeltakerKafkaDb?.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+        }
+    }
+
+    @Test
+    fun `behandleMottattArenadeltaker - finnes sak, har eksternId, arbeidstrening - oppdaterer ikke eksternId, lagrer`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val soknadRepo = testDataHelper.søknadRepo
+            val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
+            val tiltaksdeltakerService =
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+            val deltakerId = "123456789"
+            val id = "TA$deltakerId"
+            val nyEksternId = UUID.fromString("9bedf708-1aa2-4be0-a561-cbe60ff2e9f9")
+            val fnr = Fnr.random()
+            val sak = ObjectMother.nySak(fnr = fnr)
+            val soknadstiltak = ObjectMother.søknadstiltak(id = id, typeKode = TiltakResponsDTO.TiltakType.ARBTREN)
+            val soknad = ObjectMother.nyInnvilgbarSøknad(
+                personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                søknadstiltak = soknadstiltak,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            )
+            testDataHelper.persisterSakOgSøknad(
+                fnr = fnr,
+                sak = sak,
+                søknad = soknad,
+            )
+
+            tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingMedEksternIdString())
+
+            tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString()) shouldBe null
+            tiltaksdeltakerRepo.hentTiltaksdeltaker(id) shouldNotBe null
+
+            tiltaksdeltakerKafkaRepository.hent(nyEksternId.toString()) shouldBe null
+            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
+            tiltaksdeltakerKafkaDb shouldNotBe null
+            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
+            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
+            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe 2.0F
+            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe 50.0F
+            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
+            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+            tiltaksdeltakerKafkaDb?.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+        }
+    }
+
+    @Test
+    fun `behandleMottattArenadeltaker - finnes sak for arena-eksternId - lagrer ikke`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val soknadRepo = testDataHelper.søknadRepo
+            val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
+            val tiltaksdeltakerService =
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+            val deltakerId = "123456789"
+            val id = "TA$deltakerId"
+            val nyEksternId = UUID.fromString("9bedf708-1aa2-4be0-a561-cbe60ff2e9f9")
+            val fnr = Fnr.random()
+            val sak = ObjectMother.nySak(fnr = fnr)
+            val soknadstiltak = ObjectMother.søknadstiltak(id = nyEksternId.toString())
+            val soknad = ObjectMother.nyInnvilgbarSøknad(
+                personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                søknadstiltak = soknadstiltak,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            )
+            testDataHelper.persisterSakOgSøknad(
+                fnr = fnr,
+                sak = sak,
+                søknad = soknad,
+            )
+
+            tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingMedEksternIdString())
+
+            tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString()) shouldNotBe null
+            tiltaksdeltakerRepo.hentTiltaksdeltaker(id) shouldBe null
+
+            tiltaksdeltakerKafkaRepository.hent(nyEksternId.toString()) shouldBe null
+            tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
         }
     }
 
@@ -263,7 +394,23 @@ class TiltaksdeltakerServiceTest {
                 "PROSENT_DELTID": 50.0,
                 "DELTAKERSTATUSKODE": "GJENN",
                 "DATO_FRA": "2024-10-14 00:00:00",
-                "DATO_TIL": "2025-08-10 00:00:00"
+                "DATO_TIL": "2025-08-10 00:00:00",
+                "EKSTERN_ID": null
+              }
+            } 
+        """.trimIndent()
+
+    private fun getArenaMeldingMedEksternIdString() =
+        """
+           {
+              "op_type": "U",
+              "after": {
+                "ANTALL_DAGER_PR_UKE": 2.0,
+                "PROSENT_DELTID": 50.0,
+                "DELTAKERSTATUSKODE": "GJENN",
+                "DATO_FRA": "2024-10-14 00:00:00",
+                "DATO_TIL": "2025-08-10 00:00:00",
+                "EKSTERN_ID": "9bedf708-1aa2-4be0-a561-cbe60ff2e9f9"
               }
             } 
         """.trimIndent()

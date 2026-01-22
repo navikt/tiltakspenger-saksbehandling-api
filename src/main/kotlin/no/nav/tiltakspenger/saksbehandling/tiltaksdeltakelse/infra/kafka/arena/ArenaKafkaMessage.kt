@@ -21,4 +21,5 @@ data class ArenaDeltakerKafka(
     val DATO_TIL: String?,
     val PROSENT_DELTID: Float?,
     val ANTALL_DAGER_PR_UKE: Float?,
+    val EKSTERN_ID: String?,
 )

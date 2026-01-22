@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 class SøknadFakeRepo(private val behandlingRepo: BehandlingFakeRepo) : SøknadRepo {
     private val data = Atomic(mutableMapOf<SøknadId, Søknad>())
@@ -32,7 +33,7 @@ class SøknadFakeRepo(private val behandlingRepo: BehandlingFakeRepo) : SøknadR
 
     override fun hentSøknaderForFnr(fnr: Fnr): List<Søknad> = data.get().values.filter { it.fnr == fnr }
 
-    override fun finnSakIdForTiltaksdeltakelse(eksternId: String): SakId? {
+    override fun finnSakIdForTiltaksdeltakelse(tiltaksdeltakerId: TiltaksdeltakerId): SakId? {
         return null
     }
 

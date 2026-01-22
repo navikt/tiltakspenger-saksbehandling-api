@@ -42,7 +42,7 @@ class EndretTiltaksdeltakerJobb(
                     val automatiskeBehandlingerPaVent =
                         apneBehandlingerForDeltakelse.filter { it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
 
-                    behandleAutomatiskeBehandlingerPaVentPaNytt(automatiskeBehandlingerPaVent, deltakerId)
+                    behandleAutomatiskeBehandlingerPaVentPaNytt(automatiskeBehandlingerPaVent, internTiltaksdeltakerId)
 
                     val apneManuelleBehandlinger =
                         apneBehandlingerForDeltakelse.filter { !it.erUnderAutomatiskBehandling }
@@ -121,7 +121,7 @@ class EndretTiltaksdeltakerJobb(
 
     private fun behandleAutomatiskeBehandlingerPaVentPaNytt(
         automatiskeBehandlingerPaVent: List<Søknadsbehandling>,
-        tiltaksdeltakerId: String,
+        tiltaksdeltakerId: TiltaksdeltakerId,
     ) {
         automatiskeBehandlingerPaVent.forEach {
             it.oppdaterVenterTil(
@@ -130,7 +130,7 @@ class EndretTiltaksdeltakerJobb(
             ).let { behandling ->
                 behandlingRepo.lagre(behandling)
             }
-            log.info { "Har oppdatert venterTil for automatisk behandling med id ${it.id} pga endring på deltaker med id $tiltaksdeltakerId" }
+            log.info { "Har oppdatert venterTil for automatisk behandling med id ${it.id} pga endring på deltaker med intern id $tiltaksdeltakerId" }
         }
     }
 
