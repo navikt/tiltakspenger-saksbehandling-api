@@ -112,7 +112,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:testcontainers-postgresql:$testContainersVersion")
     // need quarkus-junit-4-mock because of https://github.com/testcontainers/testcontainers-java/issues/970
-    testImplementation("io.quarkus:quarkus-junit4-mock:3.30.5")
+    testImplementation("io.quarkus:quarkus-junit4-mock:3.30.6")
     testImplementation("io.github.serpro69:kotlin-faker:1.16.0")
     testImplementation("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")
