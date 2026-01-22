@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingStansTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
@@ -45,7 +45,7 @@ class SendRevurderingTilBeslutningTest {
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
 
-            val responseBody = sendRevurderingStansTilBeslutningForBehandlingId(
+            val responseBody = sendRevurderingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
@@ -64,8 +64,8 @@ class SendRevurderingTilBeslutningTest {
 
             val (sak, _, rammevedtakSøknadsbehandling, jsonResponse) = sendRevurderingInnvilgelseTilBeslutning(
                 tac,
-                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
-                revurderingInnvilgelsesperiode = revurderingInnvilgelsesperiode,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingInnvilgelsesperiode),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelsesperiode),
             )
             val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
 

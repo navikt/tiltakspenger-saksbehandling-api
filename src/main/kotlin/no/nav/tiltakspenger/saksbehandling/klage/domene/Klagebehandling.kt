@@ -36,6 +36,8 @@ import java.time.LocalDateTime
 /**
  * Representerer registrering og vurdering av en klage på et vedtak om tiltakspenger.
  * En klagebehandling har ingen beslutter, da klager avgjøres av en saksbehandler alene. Hvis det fører til medhold, vil en beslutter måtte beslutte selve revurderingen.
+ * @param journalpostId Journalposten som inneholder klagen.
+ * @param journalpostOpprettet Tidspunktet [journalpostId] ble opprettet.
  */
 data class Klagebehandling(
     val id: KlagebehandlingId,

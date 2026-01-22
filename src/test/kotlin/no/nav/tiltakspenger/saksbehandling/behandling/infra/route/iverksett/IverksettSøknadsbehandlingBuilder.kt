@@ -6,18 +6,14 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.dato.april
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
@@ -33,32 +29,22 @@ interface IverksettSøknadsbehandlingBuilder {
      *
      * @param fnr ignoreres hvis sakId er satt
      * @param resultat Innvilgelse eller avslag.
-     * @param vedtaksperiode Avhengig av [resultat]. Vil være avslagsperiode dersom [SøknadsbehandlingType.AVSLAG], eller innvilgelsesperiode ved [SøknadsbehandlingType.INNVILGELSE]
      * */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandling(
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = ObjectMother.gyldigFnr(),
-        vedtaksperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = vedtaksperiode.fraOgMed,
-            tom = vedtaksperiode.tilOgMed,
-        ),
-        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(
-            periode = vedtaksperiode,
-            valgtTiltaksdeltakelse = tiltaksdeltakelse,
-            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-        ),
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperioder.totalPeriode),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
     ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(
             tac = tac,
             sakId = sakId,
             fnr = fnr,
-            vedtaksperiode = vedtaksperiode,
             resultat = resultat,
             innvilgelsesperioder = innvilgelsesperioder,
             barnetillegg = barnetillegg,
@@ -84,14 +70,14 @@ interface IverksettSøknadsbehandlingBuilder {
     suspend fun ApplicationTestBuilder.iverksettAutomatiskBehandletSøknadsbehandling(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        vedtaksperiode: Periode = 1.til(10.april(2025)),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
     ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(
             tac = tac,
             fnr = fnr,
-            vedtaksperiode = vedtaksperiode,
+            tiltaksdeltakelse = tiltaksdeltakelse,
         )
         taBehandling(tac, sak.id, søknadsbehandling.id, beslutter)
         val (oppdatertSak, rammevedtakSøknadsbehandling, jsonResponse) = iverksettForBehandlingId(

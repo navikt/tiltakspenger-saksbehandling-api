@@ -39,6 +39,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
@@ -121,6 +122,7 @@ interface BehandlingMother : MotherOfAllMothers {
         sak: Sak = ObjectMother.nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
         correlationId: CorrelationId = CorrelationId.generate(),
         automatiskBehandling: Boolean = false,
+        klagebehandling: Klagebehandling? = null,
     ): Søknadsbehandling {
         return runBlocking {
             Søknadsbehandling.opprett(
@@ -130,6 +132,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 hentSaksopplysninger = hentSaksopplysninger,
                 clock = clock,
                 correlationId = correlationId,
+                klagebehandling = klagebehandling,
             ).copy(id = id)
         }
     }

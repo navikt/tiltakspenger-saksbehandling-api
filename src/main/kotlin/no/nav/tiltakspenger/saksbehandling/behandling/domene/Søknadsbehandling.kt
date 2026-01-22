@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -61,6 +62,7 @@ data class Søknadsbehandling(
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
     override val utbetaling: BehandlingUtbetaling?,
+    override val klagebehandling: Klagebehandling?,
 ) : Rammebehandling {
 
     override val vedtaksperiode = resultat?.vedtaksperiode
@@ -216,6 +218,7 @@ data class Søknadsbehandling(
             saksbehandler: Saksbehandler,
             hentSaksopplysninger: HentSaksopplysninger,
             correlationId: CorrelationId,
+            klagebehandling: Klagebehandling?,
             clock: Clock,
         ): Søknadsbehandling {
             val opprettet = nå(clock)
@@ -263,6 +266,7 @@ data class Søknadsbehandling(
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,
+                klagebehandling = klagebehandling,
             )
         }
 
@@ -306,6 +310,7 @@ data class Søknadsbehandling(
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,
+                klagebehandling = null,
             )
         }
     }

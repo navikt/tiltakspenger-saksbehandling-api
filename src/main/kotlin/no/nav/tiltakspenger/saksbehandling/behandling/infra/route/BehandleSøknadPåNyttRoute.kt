@@ -39,6 +39,8 @@ fun Route.behandleSøknadPåNyttRoute(
                     søknadId = søknadId,
                     sakId = sakId,
                     saksbehandler = saksbehandler,
+                    // TODO klage jah: Legg til body så frontend kan sende inn dette.
+                    klagebehandlingId = null,
                     correlationId = correlationId,
                 )
                 auditService.logForSøknadId(

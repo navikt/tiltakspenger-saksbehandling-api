@@ -53,7 +53,9 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                   "erKlagenSignert": false,
                   "brevtekst": [],
                   "avbrutt": null,
-                  "kanIverksette": false
+                  "kanIverksette": false,
+                  "årsak": null,
+                  "begrunnelse": null
                 }
                 """.trimIndent(),
             )

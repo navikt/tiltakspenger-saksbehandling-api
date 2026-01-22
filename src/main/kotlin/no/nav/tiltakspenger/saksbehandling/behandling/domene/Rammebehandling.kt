@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -96,6 +97,8 @@ sealed interface Rammebehandling : Behandling {
     val omgjørRammevedtak: OmgjørRammevedtak
 
     val utbetaling: BehandlingUtbetaling?
+
+    val klagebehandling: Klagebehandling?
 
     fun inneholderSaksopplysningerInternDeltakelseId(internDeltakelseId: TiltaksdeltakerId): Boolean =
         saksopplysninger.tiltaksdeltakelser.find { it.internDeltakelseId == internDeltakelseId } != null

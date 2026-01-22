@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
@@ -126,6 +127,7 @@ interface SakMother {
         ),
         correlationId: CorrelationId = CorrelationId.generate(),
         automatiskSaksbehandlet: Boolean = false,
+        klagebehandling: Klagebehandling? = null,
     ): Pair<Sak, Søknadsbehandling> {
         val søknadsbehandling =
             runBlocking {
@@ -136,6 +138,7 @@ interface SakMother {
                     hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
                     clock = clock,
                     correlationId = correlationId,
+                    klagebehandling = klagebehandling,
                 )
 
                 behandling.oppdater(

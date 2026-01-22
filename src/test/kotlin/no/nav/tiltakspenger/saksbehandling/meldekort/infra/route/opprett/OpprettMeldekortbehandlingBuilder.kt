@@ -57,7 +57,6 @@ interface OpprettMeldekortbehandlingBuilder {
         val (sak, søknad, rammevedtak, _) = iverksettSøknadsbehandling(
             tac = tac,
             saksbehandler = saksbehandler,
-            vedtaksperiode = vedtaksperiode,
             tiltaksdeltakelse = tiltaksdeltakelse,
             innvilgelsesperioder = innvilgelsesperioder,
         )

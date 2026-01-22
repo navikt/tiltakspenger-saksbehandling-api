@@ -3,12 +3,12 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
-import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
@@ -18,7 +18,10 @@ class OpprettMeldekortbehandlingTest {
     @Test
     fun `kan opprette meldekortbehandling`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _) = this.iverksettSøknadsbehandling(tac)
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 10.april(2025)),
+            )
             val førsteMeldeperiode = sak.meldeperiodeKjeder.sisteMeldeperiodePerKjede.first()
             val (_, meldekortbehandling, jsonResponse) = opprettMeldekortbehandlingForSakId(
                 tac = tac,
@@ -34,7 +37,7 @@ class OpprettMeldekortbehandlingTest {
                       },
                       "avbrutteMeldekortBehandlinger": [],
                       "tiltaksnavn": [
-                        "Testnavn"
+                        "Arbeidsmarkedsoppfølging gruppe"
                       ],
                       "sisteBeregning": null,
                       "brukersMeldekort": [],
@@ -174,15 +177,16 @@ class OpprettMeldekortbehandlingTest {
         withTestApplicationContext { tac ->
             val innvilgelsesperiodeSøknadsbehandling: Periode = 1 til 31.januar(2025)
             val innvilgelsesperiodeOmgjøring: Periode = 1 til 1.januar(2025)
+
             val (sak, _, rammevedtakSøknadsbehandling, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = innvilgelsesperiodeSøknadsbehandling,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiodeSøknadsbehandling),
             )
             val (oppdatertSak) = this.iverksettRevurderingOmgjøring(
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = rammevedtakSøknadsbehandling.id,
-                innvilgelsesperiode = innvilgelsesperiodeOmgjøring,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiodeOmgjøring),
             )
             oppdatertSak.meldeperiodeKjeder.size shouldBe 3
             oppdatertSak.meldeperiodeKjeder[0].last().antallDagerSomGirRett shouldBe 1

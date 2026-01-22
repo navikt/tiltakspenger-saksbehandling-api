@@ -40,7 +40,9 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                     }
                   ],
                   "avbrutt": null,
-                  "kanIverksette": true
+                  "kanIverksette": true,
+                  "årsak": null,
+                  "begrunnelse": null
                 }
                 """.trimIndent(),
             )

@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 
 private const val PATH = "/sak/{sakId}/revurdering/start"
 
@@ -79,7 +80,7 @@ internal fun KunneIkkeStarteRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusC
     when (this) {
         is KunneIkkeStarteRevurdering.Omgjøring -> when (this.årsak) {
             KunneIkkeOppretteOmgjøring.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag -> Pair(
-                HttpStatusCode.Forbidden,
+                HttpStatusCode.BadRequest,
                 ErrorJson(
                     "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere.",
                     "kan_kun_starte_omgjøring_dersom_vi_kan_innvilge_minst_1_dag",
@@ -91,6 +92,7 @@ internal fun KunneIkkeStarteRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusC
 private data class StartRevurderingBody(
     val revurderingType: RammebehandlingResultatTypeDTO,
     val rammevedtakIdSomOmgjøres: String? = null,
+    val klagebehandlingId: KlagebehandlingId? = null,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -103,6 +105,7 @@ private data class StartRevurderingBody(
             saksbehandler = saksbehandler,
             revurderingType = revurderingType.tilRevurderingType(),
             vedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres?.let { VedtakId.fromString(it) },
+            klagebehandlingId = klagebehandlingId,
         )
     }
 }

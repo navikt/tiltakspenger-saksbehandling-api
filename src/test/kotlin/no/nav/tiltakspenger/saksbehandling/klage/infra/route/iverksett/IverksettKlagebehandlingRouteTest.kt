@@ -72,7 +72,9 @@ class IverksettKlagebehandlingRouteTest {
                       ],
                      "avbrutt": null,
                      "kanIverksette": false,
-                     "iverksattTidspunkt": "2025-01-01T01:02:09.456789"
+                     "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
+                     "årsak": null,
+                     "begrunnelse": null
                    }
                 """.trimIndent(),
             )

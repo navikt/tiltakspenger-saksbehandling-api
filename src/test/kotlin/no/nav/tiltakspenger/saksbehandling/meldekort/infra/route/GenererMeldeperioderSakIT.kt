@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
 import org.junit.jupiter.api.Test
@@ -34,8 +35,7 @@ class GenererMeldeperioderSakIT {
                  * 7 april - 20 april
                  * 21 april - 4 mai (genereres ikke før 2.mai)
                  */
-                vedtaksperiode = Periode(9.april(2025), 1.mai(2025)),
-                beslutter = ObjectMother.beslutter(),
+                innvilgelsesperioder = innvilgelsesperioder(Periode(9.april(2025), 1.mai(2025))),
             )
             sak.meldeperiodeKjeder.let {
                 it.size shouldBe 2
@@ -53,8 +53,8 @@ class GenererMeldeperioderSakIT {
 
             val (sak) = this.iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelse,
-                revurderingInnvilgelsesperiode = revurderingInnvilgelse,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingInnvilgelse),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelse),
             )
             sak.meldeperiodeKjeder.let {
                 it.size shouldBe 3
@@ -74,8 +74,8 @@ class GenererMeldeperioderSakIT {
 
             val (sak) = this.iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelse,
-                revurderingInnvilgelsesperiode = revurderingInnvilgelse,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingInnvilgelse),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelse),
             )
             sak.meldeperiodeKjeder.let {
                 it.size shouldBe 2
@@ -98,8 +98,8 @@ class GenererMeldeperioderSakIT {
 
             val (sak) = this.iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelse,
-                revurderingInnvilgelsesperiode = revurderingInnvilgelse,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingInnvilgelse),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelse),
             )
 
             sak.meldeperiodeKjeder.let {
@@ -137,7 +137,7 @@ class GenererMeldeperioderSakIT {
                 tac = tac,
                 fnr = fnr,
                 // To meldeperioder i denne perioden
-                vedtaksperiode = Periode(7.april(2025), 21.april(2025)),
+                innvilgelsesperioder = innvilgelsesperioder(Periode(7.april(2025), 21.april(2025))),
                 beslutter = ObjectMother.beslutter(),
             )
 
@@ -151,7 +151,7 @@ class GenererMeldeperioderSakIT {
                 tac = tac,
                 fnr = fnr,
                 // 4 meldeperioder i denne perioden (første fra 19.mai - 1.juni)
-                vedtaksperiode = Periode(1.juni(2025), 1.juli(2025)),
+                innvilgelsesperioder = innvilgelsesperioder(Periode(1.juni(2025), 1.juli(2025))),
                 beslutter = ObjectMother.beslutter(),
             )
 

@@ -43,7 +43,9 @@ class AvbrytKlagebehandlingRouteTest {
                           "avbruttTidspunkt": "2025-01-01T01:02:08.456789",
                           "begrunnelse": "oppdaterKlagebehandlingFormkravForSakId"
                      },
-                     "kanIverksette": false
+                     "kanIverksette": false,
+                     "årsak": null,
+                     "begrunnelse": null
                    }
                 """.trimIndent(),
             )

@@ -10,26 +10,19 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.dato.april
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterSøknadsbehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingAvslag
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadPåSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
@@ -46,24 +39,18 @@ interface StartSøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        tiltaksdeltakelsesperiode: Periode = 1.til(10.april(2025)),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = tiltaksdeltakelsesperiode.fraOgMed,
-            tom = tiltaksdeltakelsesperiode.tilOgMed,
-        ),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad) = if (sakId == null) {
             opprettSakOgSøknad(
                 tac = tac,
                 fnr = fnr,
-                deltakelsesperiode = tiltaksdeltakelsesperiode,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
         } else {
             opprettSøknadPåSakId(
                 tac = tac,
                 sakId = sakId,
-                deltakelsesperiode = tiltaksdeltakelsesperiode,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
         }
@@ -79,9 +66,9 @@ interface StartSøknadsbehandlingBuilder {
     suspend fun ApplicationTestBuilder.opprettAutomatiskBehandlingKlarTilBeslutning(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        vedtaksperiode: Periode = 1.til(10.april(2025)),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
-        val (sak, søknad) = opprettSakOgSøknad(tac, fnr, deltakelsesperiode = vedtaksperiode)
+        val (sak, søknad) = opprettSakOgSøknad(tac, fnr, tiltaksdeltakelse = tiltaksdeltakelse)
         søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
         val behandling = tac.behandlingContext.startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
             søknad,
@@ -99,11 +86,7 @@ interface StartSøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        tiltaksdeltakelsesperiode: Periode = 1.til(10.april(2025)),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = tiltaksdeltakelsesperiode.fraOgMed,
-            tom = tiltaksdeltakelsesperiode.tilOgMed,
-        ),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
         manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = emptyList(),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
@@ -111,7 +94,6 @@ interface StartSøknadsbehandlingBuilder {
             tac = tac,
             sakId = sakId,
             fnr = fnr,
-            tiltaksdeltakelsesperiode = tiltaksdeltakelse.periode!!,
             tiltaksdeltakelse = tiltaksdeltakelse,
         )
 
@@ -137,19 +119,14 @@ interface StartSøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        vedtaksperiode: Periode = 1.til(10.april(2025)),
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = vedtaksperiode.fraOgMed,
-            tom = vedtaksperiode.tilOgMed,
-        ),
+        saksbehandler: Saksbehandler = saksbehandler(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingKlarTilBehandling(
             tac = tac,
             sakId = sakId,
             fnr = fnr,
-            tiltaksdeltakelsesperiode = vedtaksperiode,
             tiltaksdeltakelse = tiltaksdeltakelse,
             clock = clock,
         )
@@ -169,43 +146,32 @@ interface StartSøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        vedtaksperiode: Periode = 1.til(10.april(2025)),
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = saksbehandler(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: Begrunnelse? = null,
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = vedtaksperiode.fraOgMed,
-            tom = vedtaksperiode.tilOgMed,
-        ),
-        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(
-            periode = vedtaksperiode,
-            valgtTiltaksdeltakelse = tiltaksdeltakelse,
-            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-        ),
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperioder.totalPeriode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandling(
             tac = tac,
             sakId = sakId,
             fnr = fnr,
-            vedtaksperiode = vedtaksperiode,
             saksbehandler = saksbehandler,
             tiltaksdeltakelse = tiltaksdeltakelse,
             clock = clock,
         )
 
-        val (oppdatertSak, oppdatertBehandling) = oppdaterBehandling(
+        val (oppdatertSak, oppdatertBehandling) = oppdaterSøknadsbehandlingInnvilgelse(
             tac = tac,
             sakId = sak.id,
             behandlingId = behandling.id,
             saksbehandler = saksbehandler,
-            oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Innvilgelse(
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
-                innvilgelsesperioder = innvilgelsesperioder.tilDTO(),
-                barnetillegg = barnetillegg.toBarnetilleggDTO(),
-            ),
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
+            innvilgelsesperioder = innvilgelsesperioder,
+            barnetillegg = barnetillegg,
         )
 
         return Triple(oppdatertSak, søknad, oppdatertBehandling as Søknadsbehandling)
@@ -215,8 +181,7 @@ interface StartSøknadsbehandlingBuilder {
     suspend fun ApplicationTestBuilder.opprettSøknadsbehandlingUnderBehandlingMedAvslag(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        tiltaksdeltakelsesperiode: Periode = 1.til(10.april(2025)),
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = saksbehandler(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: Begrunnelse? = null,
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag> = nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
@@ -225,21 +190,18 @@ interface StartSøknadsbehandlingBuilder {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandling(
             tac = tac,
             fnr = fnr,
-            vedtaksperiode = tiltaksdeltakelsesperiode,
             saksbehandler = saksbehandler,
             clock = clock,
         )
 
-        val (oppdatertSak, oppdatertBehandling) = oppdaterBehandling(
+        val (oppdatertSak, oppdatertBehandling) = oppdaterSøknadsbehandlingAvslag(
             tac = tac,
             sakId = sak.id,
             behandlingId = behandling.id,
             saksbehandler = saksbehandler,
-            oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Avslag(
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
-                avslagsgrunner = avslagsgrunner.toValgtHjemmelForAvslagDTO(),
-            ),
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
+            avslagsgrunner = avslagsgrunner,
         )
 
         return Triple(oppdatertSak, søknad, oppdatertBehandling as Søknadsbehandling)

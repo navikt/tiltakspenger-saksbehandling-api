@@ -14,23 +14,23 @@ import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.satser.Satser.Companion.sats
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioderDTO
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -59,22 +59,20 @@ class UtbetalingerIT {
                 type = RevurderingType.INNVILGELSE,
             )!!
 
-            oppdaterBehandling(
+            oppdaterRevurderingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
-                    fritekstTilVedtaksbrev = "lol",
-                    begrunnelseVilkårsvurdering = "what",
-                    innvilgelsesperioder = revurdering.innvilgelsesperioderDTO(vedtaksperiode),
-                    barnetillegg = barnetillegg(
-                        periode = vedtaksperiode,
-                        antallBarn = AntallBarn(2),
-                    ).toBarnetilleggDTO(),
+                fritekstTilVedtaksbrev = "lol",
+                begrunnelseVilkårsvurdering = "what",
+                innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode),
+                barnetillegg = barnetillegg(
+                    periode = vedtaksperiode,
+                    antallBarn = AntallBarn(2),
                 ),
             )
 
-            sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+            sendRevurderingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
@@ -111,21 +109,22 @@ class UtbetalingerIT {
         withTestApplicationContext(clock = clock) { tac ->
             val førsteSøknadsperiode = Periode(1.september(2025), 14.september(2025))
             val andreSøknadsperiode = Periode(7.september(2025), 28.september(2025))
+
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                førsteSøknadsperiode.fraOgMed til andreSøknadsperiode.tilOgMed,
+                internDeltakelseId = TiltaksdeltakerId.random(),
+            )
+
             val sak = tac.førsteMeldekortIverksatt(
                 innvilgelsesperiode = førsteSøknadsperiode,
                 fnr = Fnr.fromString("12345678911"),
             )
             val (oppdatertSak, _, _, _) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = andreSøknadsperiode,
+                tiltaksdeltakelse = tiltaksdeltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(andreSøknadsperiode, tiltaksdeltakelse),
                 sakId = sak.id,
                 barnetillegg = barnetillegg(periode = andreSøknadsperiode, antallBarn = AntallBarn(1)),
-                tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-                    eksternTiltaksdeltakelseId = "TA99999",
-                    fom = andreSøknadsperiode.fraOgMed,
-                    tom = andreSøknadsperiode.tilOgMed,
-                    internDeltakelseId = TiltaksdeltakerId.random(),
-                ),
             )
 
             oppdatertSak.utbetalinger shouldBe listOf(
@@ -177,7 +176,7 @@ class UtbetalingerIT {
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
 
-            sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+            sendRevurderingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
@@ -235,7 +234,7 @@ class UtbetalingerIT {
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
 
-            val bodyAsText = sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+            val bodyAsText = sendRevurderingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,

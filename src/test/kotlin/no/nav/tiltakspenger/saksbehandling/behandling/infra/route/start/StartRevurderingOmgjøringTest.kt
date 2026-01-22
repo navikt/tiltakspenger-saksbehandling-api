@@ -8,25 +8,22 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.til
-import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class StartRevurderingOmgjøringTest {
-    @Disabled("TODO jah: Midlertidig deaktivert fordi omgjøring av stans ikke fungerer atm.")
     @Test
     fun `kan omgjøre stans`() {
         withTestApplicationContext { tac ->
@@ -34,14 +31,14 @@ class StartRevurderingOmgjøringTest {
             val stansFraOgMedDato = 1.februar(2025)
             val (sak, _, _, rammevedtakRevurdering, _) = iverksettSøknadsbehandlingOgRevurderingStans(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperiode = førsteInnvilgelsesperiode,
+                innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode),
                 stansFraOgMed = stansFraOgMedDato,
             )
             iverksettRevurderingOmgjøring(
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = rammevedtakRevurdering.id,
-                innvilgelsesperiode = 1.februar(2025) til 31.mars(2025),
+                innvilgelsesperioder = innvilgelsesperioder(1.februar(2025) til 31.mars(2025)),
             )
         }
     }
@@ -60,7 +57,7 @@ class StartRevurderingOmgjøringTest {
             val (sak, _, rammevedtakSøknadsbehandling, _) = iverksettSøknadsbehandlingOgMeldekortbehandling(
                 tac = tac,
                 vedtaksperiode = førsteInnvilgelsesperiode,
-                tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+                tiltaksdeltakelse = tiltaksdeltakelse(
                     fom = omgjøringsperiode.fraOgMed,
                     tom = omgjøringsperiode.tilOgMed,
                 ),
@@ -69,7 +66,7 @@ class StartRevurderingOmgjøringTest {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = rammevedtakSøknadsbehandling.id,
-                innvilgelsesperiode = omgjøringsperiode,
+                innvilgelsesperioder = innvilgelsesperioder(omgjøringsperiode),
             )
             opprettOgIverksettMeldekortbehandling(
                 tac = tac,
@@ -80,7 +77,7 @@ class StartRevurderingOmgjøringTest {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = vedtakOmgjøring1.id,
-                innvilgelsesperiode = omgjøringsperiode,
+                innvilgelsesperioder = innvilgelsesperioder(omgjøringsperiode),
             )
 
             // TODO jah: Fullfør etter vi har tilstrekkelig route-builder/verktøy i meldekort
@@ -99,20 +96,20 @@ class StartRevurderingOmgjøringTest {
             val førsteInnvilgelsesperiode = 1.januar(2025) til 31.januar(2025)
             val andreInnvilgelsesperiode = 1.mars(2025) til 31.mars(2025)
             val revurderingsperiode = 1.januar(2025) til 31.mars(2025)
-            val saksbehandler = ObjectMother.saksbehandler()
+            val saksbehandler = saksbehandler()
             val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
                 fom = revurderingsperiode.fraOgMed,
                 tom = revurderingsperiode.tilOgMed,
             )
             val (sakMedFørsteSøknadsbehandling, _, _, _) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = førsteInnvilgelsesperiode,
+                innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode, tiltaksdeltakelse),
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
             val sakId = sakMedFørsteSøknadsbehandling.id
             val (sakMedAndreSøknadsbehandling, _, _, _) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = andreInnvilgelsesperiode,
+                innvilgelsesperioder = innvilgelsesperioder(andreInnvilgelsesperiode, tiltaksdeltakelse),
                 sakId = sakId,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
@@ -127,30 +124,16 @@ class StartRevurderingOmgjøringTest {
                 tac = tac,
                 sakId = sakId,
             )!!
-            oppdaterBehandling(
+            oppdaterRevurderingInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 behandlingId = opprettetRevurdering.id,
                 saksbehandler = saksbehandler,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
-                    fritekstTilVedtaksbrev = "fritekstTilVedtaksbrev",
-                    begrunnelseVilkårsvurdering = "begrunnelseVilkårsvurdering",
-                    innvilgelsesperioder = listOf(
-                        InnvilgelsesperiodeDTO(
-                            periode = revurderingsperiode.toDTO(),
-                            antallDagerPerMeldeperiode = 10,
-                            internDeltakelseId = tiltaksdeltakelse.internDeltakelseId.toString(),
-                        ),
-                    ),
-                    barnetillegg = BarnetilleggDTO(
-                        perioder = listOf(
-                            BarnetilleggPeriodeDTO(
-                                periode = revurderingsperiode.toDTO(),
-                                antallBarn = 0,
-                            ),
-                        ),
-                        begrunnelse = null,
-                    ),
+                fritekstTilVedtaksbrev = "fritekstTilVedtaksbrev",
+                begrunnelseVilkårsvurdering = "begrunnelseVilkårsvurdering",
+                innvilgelsesperioder = innvilgelsesperioder(
+                    periode = revurderingsperiode,
+                    valgtTiltaksdeltakelse = tiltaksdeltakelse,
                 ),
             )
         }
@@ -167,20 +150,20 @@ class StartRevurderingOmgjøringTest {
         withTestApplicationContext { tac ->
             val førsteInnvilgelsesperiode = 1.januar(2025) til 31.januar(2025)
             val andreInnvilgelsesperiode = 1.mars(2025) til 31.mars(2025)
-            val saksbehandler = ObjectMother.saksbehandler()
-            val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+            val saksbehandler = saksbehandler()
+            val tiltaksdeltakelse = tiltaksdeltakelse(
                 fom = førsteInnvilgelsesperiode.fraOgMed,
                 tom = andreInnvilgelsesperiode.tilOgMed,
             )
             val (sakMedFørsteSøknadsbehandling, _, _, _) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = førsteInnvilgelsesperiode,
+                innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode, tiltaksdeltakelse),
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
             val sakId = sakMedFørsteSøknadsbehandling.id
             val (sakMedAndreSøknadsbehandling, _, _, _) = iverksettSøknadsbehandling(
                 tac = tac,
-                vedtaksperiode = andreInnvilgelsesperiode,
+                innvilgelsesperioder = innvilgelsesperioder(andreInnvilgelsesperiode, tiltaksdeltakelse),
                 sakId = sakId,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
@@ -196,38 +179,21 @@ class StartRevurderingOmgjøringTest {
                 sakId = sakId,
             )!!
 
-            val (_, behandlingMedHull) = oppdaterBehandling(
+            val (_, behandlingMedHull) = oppdaterRevurderingInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 behandlingId = opprettetRevurdering.id,
                 saksbehandler = saksbehandler,
-                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
-                    fritekstTilVedtaksbrev = "fritekstTilVedtaksbrev",
-                    begrunnelseVilkårsvurdering = "begrunnelseVilkårsvurdering",
-                    innvilgelsesperioder = listOf(
-                        InnvilgelsesperiodeDTO(
-                            periode = førsteInnvilgelsesperiode.toDTO(),
-                            antallDagerPerMeldeperiode = 10,
-                            internDeltakelseId = tiltaksdeltakelse.internDeltakelseId.toString(),
-                        ),
-                        InnvilgelsesperiodeDTO(
-                            periode = andreInnvilgelsesperiode.toDTO(),
-                            antallDagerPerMeldeperiode = 10,
-                            internDeltakelseId = tiltaksdeltakelse.internDeltakelseId.toString(),
-                        ),
+                fritekstTilVedtaksbrev = "fritekstTilVedtaksbrev",
+                begrunnelseVilkårsvurdering = "begrunnelseVilkårsvurdering",
+                innvilgelsesperioder = innvilgelsesperioder(
+                    innvilgelsesperiode(
+                        periode = førsteInnvilgelsesperiode,
+                        valgtTiltaksdeltakelse = tiltaksdeltakelse,
                     ),
-                    barnetillegg = BarnetilleggDTO(
-                        perioder = listOf(
-                            BarnetilleggPeriodeDTO(
-                                periode = førsteInnvilgelsesperiode.toDTO(),
-                                antallBarn = 0,
-                            ),
-                            BarnetilleggPeriodeDTO(
-                                periode = andreInnvilgelsesperiode.toDTO(),
-                                antallBarn = 0,
-                            ),
-                        ),
-                        begrunnelse = null,
+                    innvilgelsesperiode(
+                        periode = andreInnvilgelsesperiode,
+                        valgtTiltaksdeltakelse = tiltaksdeltakelse,
                     ),
                 ),
             )

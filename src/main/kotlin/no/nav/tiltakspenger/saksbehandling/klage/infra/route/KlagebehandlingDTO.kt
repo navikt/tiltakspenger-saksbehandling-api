@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
 data class KlagebehandlingDTO(
     val id: String,
@@ -29,6 +31,8 @@ data class KlagebehandlingDTO(
     val brevtekst: List<TittelOgTekstDTO>,
     val avbrutt: AvbruttDTO?,
     val kanIverksette: Boolean,
+    val årsak: String?,
+    val begrunnelse: String?,
 ) {
     data class TittelOgTekstDTO(
         val tittel: String,
@@ -77,4 +81,6 @@ fun Klagebehandling.toDto() = KlagebehandlingDTO(
     } ?: emptyList(),
     avbrutt = this.avbrutt?.toAvbruttDTO(),
     kanIverksette = kanIverksette,
+    årsak = (resultat as? Klagebehandlingsresultat.Omgjør)?.årsak?.toString(),
+    begrunnelse = (resultat as? Klagebehandlingsresultat.Omgjør)?.begrunnelse?.verdi,
 )

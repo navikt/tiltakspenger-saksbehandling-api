@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettAutomatiskBehandletSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
@@ -67,7 +68,7 @@ class IverksettSøknadsbehandlingTest {
     fun `iverksett - verifiser avslag vedtak dto`() = runTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContext(clock = clock) { tac ->
-            val (sak, _, rammevedtakSøknadsbehandling) = this.iverksettSøknadsbehandling(
+            val (sak, søknad, rammevedtakSøknadsbehandling) = this.iverksettSøknadsbehandling(
                 tac,
                 resultat = SøknadsbehandlingType.AVSLAG,
             )
@@ -77,6 +78,8 @@ class IverksettSøknadsbehandlingTest {
             rammevedtakDTOJson.shouldBeEqualToRammevedtakDTOavslag(
                 id = sak.rammevedtaksliste.single().id.toString(),
                 behandlingId = søknadsbehandling.id.toString(),
+                opprettet = "2025-01-01T01:02:20.456789",
+                opprinneligVedtaksperiode = søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!,
             )
         }
     }
@@ -85,7 +88,7 @@ class IverksettSøknadsbehandlingTest {
     fun `iverksett - verifiser innvilgelse vedtak dto`() = runTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContext(clock = clock) { tac ->
-            val (sak, _, rammevedtakSøknadsbehandling) = this.iverksettSøknadsbehandling(
+            val (_, _, rammevedtakSøknadsbehandling) = this.iverksettSøknadsbehandling(
                 tac,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
             )
@@ -95,6 +98,8 @@ class IverksettSøknadsbehandlingTest {
             rammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
                 id = rammevedtakSøknadsbehandling.id.toString(),
                 behandlingId = søknadsbehandling.id.toString(),
+                opprettet = "2025-01-01T01:02:20.456789",
+                opprinneligVedtaksperiode = vedtaksperiode(),
             )
         }
     }

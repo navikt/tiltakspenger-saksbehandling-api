@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import org.junit.jupiter.api.Test
 
@@ -23,7 +24,7 @@ class ToBehandlingerIT {
                 val (sak) = this.iverksettSøknadsbehandling(
                     tac,
                     fnr = fnr,
-                    vedtaksperiode = førsteInnvilgelsesperiode,
+                    innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode),
                 )
 
                 sak.let {
@@ -35,7 +36,7 @@ class ToBehandlingerIT {
                 val (sakEtterAndreSøknadsbehandling) = this.iverksettSøknadsbehandling(
                     tac,
                     fnr = fnr,
-                    vedtaksperiode = andreInnvilgelsesperiode,
+                    innvilgelsesperioder = innvilgelsesperioder(andreInnvilgelsesperiode),
                 )
 
                 sakEtterAndreSøknadsbehandling.let {

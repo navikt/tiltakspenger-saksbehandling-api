@@ -17,18 +17,14 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedAvslag
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -42,26 +38,17 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        vedtaksperiode: Periode = 1.til(10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
-            fom = vedtaksperiode.fraOgMed,
-            tom = vedtaksperiode.tilOgMed,
-        ),
-        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(
-            periode = vedtaksperiode,
-            valgtTiltaksdeltakelse = tiltaksdeltakelse,
-            antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-        ),
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperioder.totalPeriode),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandling) = when (resultat) {
             SøknadsbehandlingType.INNVILGELSE -> opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 fnr = fnr,
-                vedtaksperiode = vedtaksperiode,
                 saksbehandler = saksbehandler,
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
@@ -71,7 +58,6 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             SøknadsbehandlingType.AVSLAG -> opprettSøknadsbehandlingUnderBehandlingMedAvslag(
                 tac,
                 fnr,
-                vedtaksperiode,
                 saksbehandler,
             )
         }

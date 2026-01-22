@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
@@ -18,6 +20,7 @@ suspend fun Sak.startRevurdering(
     clock: Clock,
     hentSaksopplysninger: HentSaksopplysninger,
 ): Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>> {
+    val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let { hentKlagebehandling(it) }
     val revurdering = when (kommando.revurderingType) {
         RevurderingType.STANS -> startRevurderingStans(
             saksbehandler = kommando.saksbehandler,
@@ -31,6 +34,7 @@ suspend fun Sak.startRevurdering(
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
             clock = clock,
+            klagebehandling = klagebehandling,
         )
 
         RevurderingType.OMGJØRING -> startRevurderingOmgjøring(
@@ -39,6 +43,7 @@ suspend fun Sak.startRevurdering(
             correlationId = kommando.correlationId,
             rammevedtakIdSomOmgjøres = kommando.vedtakIdSomOmgjøres!!,
             clock = clock,
+            klagebehandling = klagebehandling,
         ).getOrElse {
             return KunneIkkeStarteRevurdering.Omgjøring(it).left()
         }
@@ -84,6 +89,7 @@ private suspend fun Sak.startRevurderingInnvilgelse(
     hentSaksopplysninger: HentSaksopplysninger,
     correlationId: CorrelationId,
     clock: Clock,
+    klagebehandling: Klagebehandling?,
 ): Revurdering {
     require(harFørstegangsvedtak) {
         "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere"
@@ -103,6 +109,7 @@ private suspend fun Sak.startRevurderingInnvilgelse(
             false,
         ),
         clock = clock,
+        klagebehandling = klagebehandling,
     )
 }
 
@@ -111,12 +118,14 @@ private suspend fun Sak.startRevurderingOmgjøring(
     hentSaksopplysninger: HentSaksopplysninger,
     correlationId: CorrelationId,
     rammevedtakIdSomOmgjøres: VedtakId,
+    klagebehandling: Klagebehandling?,
     clock: Clock,
 ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
     require(this.erRammevedtakGjeldendeForHeleSinPeriode(rammevedtakIdSomOmgjøres)) {
         "I første versjon, kan man kun omgjøre et (delvis) innvilget rammevedtak som er gjeldende for hele sin periode."
     }
     val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
+
     return Revurdering.opprettOmgjøring(
         saksbehandler = saksbehandler,
         saksopplysninger = hentSaksopplysninger(
@@ -130,5 +139,6 @@ private suspend fun Sak.startRevurderingOmgjøring(
         ),
         clock = clock,
         omgjørRammevedtak = gjeldendeRammevedtak,
+        klagebehandling = klagebehandling,
     )
 }

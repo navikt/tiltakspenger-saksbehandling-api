@@ -95,6 +95,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
             hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
             correlationId = correlationId,
             clock = clock,
+            klagebehandling = null,
         )
 
         val opprettetBehandlingStatistikk = statistikkSakService.genererStatistikkForSøknadsbehandling(

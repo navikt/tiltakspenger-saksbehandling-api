@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -56,6 +57,7 @@ data class Revurdering(
     override val resultat: RevurderingResultat,
     override val begrunnelseVilkårsvurdering: Begrunnelse?,
     override val utbetaling: BehandlingUtbetaling?,
+    override val klagebehandling: Klagebehandling?,
 ) : Rammebehandling {
 
     override val vedtaksperiode: Periode? = resultat.vedtaksperiode
@@ -212,6 +214,7 @@ data class Revurdering(
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
                 resultat = Stans.empty,
+                klagebehandling = null,
             )
         }
 
@@ -222,6 +225,7 @@ data class Revurdering(
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
             clock: Clock,
+            klagebehandling: Klagebehandling?,
         ): Revurdering {
             return opprett(
                 sakId = sakId,
@@ -231,6 +235,7 @@ data class Revurdering(
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
                 resultat = Innvilgelse.empty,
+                klagebehandling = klagebehandling,
             )
         }
 
@@ -241,6 +246,7 @@ data class Revurdering(
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
             omgjørRammevedtak: Rammevedtak,
+            klagebehandling: Klagebehandling?,
             clock: Clock,
         ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
             return opprett(
@@ -253,6 +259,7 @@ data class Revurdering(
                 resultat = Omgjøring.create(omgjørRammevedtak, saksopplysninger).getOrElse {
                     return it.left()
                 },
+                klagebehandling = klagebehandling,
             ).right()
         }
 
@@ -264,6 +271,7 @@ data class Revurdering(
             saksopplysninger: Saksopplysninger,
             opprettet: LocalDateTime,
             resultat: RevurderingResultat,
+            klagebehandling: Klagebehandling?,
         ): Revurdering {
             return Revurdering(
                 id = BehandlingId.random(),
@@ -287,6 +295,7 @@ data class Revurdering(
                 venterTil = null,
                 begrunnelseVilkårsvurdering = null,
                 utbetaling = null,
+                klagebehandling = klagebehandling,
             )
         }
     }
