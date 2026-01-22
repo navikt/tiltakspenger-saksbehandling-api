@@ -49,7 +49,6 @@ data class ManueltRegistrertSøknadBody(
         val eksternDeltakelseId: String,
         val deltakelseFraOgMed: LocalDate,
         val deltakelseTilOgMed: LocalDate,
-        val arrangørNavn: String?,
         val typeKode: TiltakstypeSomGirRett,
         val typeNavn: String,
     )
