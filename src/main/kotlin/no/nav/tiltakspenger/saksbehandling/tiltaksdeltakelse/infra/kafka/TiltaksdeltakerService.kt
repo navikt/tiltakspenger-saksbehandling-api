@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.A
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.DeltakerV1Dto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import java.util.UUID
 
@@ -30,27 +31,21 @@ class TiltaksdeltakerService(
         if (tiltaksdeltaker != null && sakId != null) {
             log.info { "Fant sakId $sakId for arena-deltaker med id $eksternId" }
             val arenaKafkaMessage = objectMapper.readValue<ArenaKafkaMessage>(melding)
+            val oppdatertEksternId = oppdaterEksternId(
+                arenaEksternId = arenaKafkaMessage.after?.EKSTERN_ID,
+                arenaId = eksternId,
+                tiltaksdeltaker = tiltaksdeltaker,
+            )
 
-            val nyEksternId = arenaKafkaMessage.after?.EKSTERN_ID
-            if (nyEksternId != null && nyEksternId.isNotEmpty() && tiltaksdeltaker.tiltakstype != TiltakResponsDTO.TiltakType.ARBTREN) {
-                log.info { "Tiltaksdeltakelse med eksternId $eksternId og internId ${tiltaksdeltaker.id} er flyttet ut av Arena med id $nyEksternId" }
-                tiltaksdeltakerRepo.oppdaterEksternIdForTiltaksdeltaker(
-                    tiltaksdeltaker = tiltaksdeltaker.copy(
-                        eksternId = nyEksternId,
-                        utdatertEksternId = eksternId,
-                    ),
-                )
-                log.info { "Har oppdatert eksternId for tiltaksdeltakelse med internId ${tiltaksdeltaker.id} og ny eksternId $nyEksternId" }
-            }
             val tiltaksdeltakerKafkaDb = arenaDeltakerMapper.mapArenaDeltaker(
-                eksternId = nyEksternId ?: eksternId,
+                eksternId = oppdatertEksternId,
                 arenaKafkaMessage = arenaKafkaMessage,
                 sakId = sakId,
                 tiltaksdeltakerId = tiltaksdeltaker.id,
             )
             if (tiltaksdeltakerKafkaDb != null) {
                 lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, objectMapper.writeValueAsString(arenaKafkaMessage))
-                log.info { "Lagret melding for arenadeltaker med id ${nyEksternId ?: eksternId}" }
+                log.info { "Lagret melding for arenadeltaker med id $oppdatertEksternId" }
             }
         } else {
             log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $eksternId, lagrer ikke" }
@@ -69,6 +64,21 @@ class TiltaksdeltakerService(
         } else {
             log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }
         }
+    }
+
+    private fun oppdaterEksternId(arenaEksternId: String?, arenaId: String, tiltaksdeltaker: Tiltaksdeltaker): String {
+        if (arenaEksternId != null && arenaEksternId.isNotEmpty() && tiltaksdeltaker.tiltakstype != TiltakResponsDTO.TiltakType.ARBTREN) {
+            log.info { "Tiltaksdeltakelse med eksternId $arenaId og internId ${tiltaksdeltaker.id} er flyttet ut av Arena med id $arenaEksternId" }
+            tiltaksdeltakerRepo.oppdaterEksternIdForTiltaksdeltaker(
+                tiltaksdeltaker = tiltaksdeltaker.copy(
+                    eksternId = arenaEksternId,
+                    utdatertEksternId = arenaId,
+                ),
+            )
+            log.info { "Har oppdatert eksternId for tiltaksdeltakelse med internId ${tiltaksdeltaker.id} og ny eksternId $arenaEksternId" }
+            return arenaEksternId
+        }
+        return arenaId
     }
 
     private fun finnSakIdForTiltaksdeltaker(tiltaksdeltakerId: TiltaksdeltakerId): SakId? {
