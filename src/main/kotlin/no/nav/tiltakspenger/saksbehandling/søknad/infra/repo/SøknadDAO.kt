@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 private const val HAR_SOKT_PAA_TILTAK = "har_sokt_paa_tiltak"
 private const val HAR_SØKT_OM_BARNETILLEGG = "har_sokt_om_barnetillegg"
@@ -34,13 +35,13 @@ private const val ETTERLØNN_FELT = "etterlonn"
 
 internal object SøknadDAO {
     fun finnSakIdForTiltaksdeltakelse(
-        eksternId: String,
+        tiltaksdeltakerId: TiltaksdeltakerId,
         session: Session,
     ): SakId? =
         session.run(
             queryOf(
-                "select sak_id from søknad s join søknadstiltak st on st.søknad_id = s.id where st.ekstern_id = ?",
-                eksternId,
+                "select sak_id from søknad s join søknadstiltak st on st.søknad_id = s.id where st.tiltaksdeltaker_id = ?",
+                tiltaksdeltakerId.toString(),
             )
                 .map { row -> row.toSakId() }
                 .asList,

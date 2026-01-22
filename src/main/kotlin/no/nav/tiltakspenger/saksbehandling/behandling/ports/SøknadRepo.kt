@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
 interface SøknadRepo {
     fun lagre(
@@ -19,7 +20,7 @@ interface SøknadRepo {
 
     fun hentSøknaderForFnr(fnr: Fnr): List<Søknad>
 
-    fun finnSakIdForTiltaksdeltakelse(eksternId: String): SakId?
+    fun finnSakIdForTiltaksdeltakelse(tiltaksdeltakerId: TiltaksdeltakerId): SakId?
 
     fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext? = null)
 

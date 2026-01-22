@@ -31,6 +31,23 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
         return data.get().filter { it.value == id }.keys.first()
     }
 
+    override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
+        return data.get()[eksternId]?.let {
+            Tiltaksdeltaker(
+                id = it,
+                eksternId = eksternId,
+                tiltakstype = TiltakResponsDTO.TiltakType.GRUPPEAMO,
+                utdatertEksternId = null,
+            )
+        }
+    }
+
+    override fun oppdaterEksternIdForTiltaksdeltaker(
+        tiltaksdeltaker: Tiltaksdeltaker,
+        sessionContext: SessionContext?,
+    ) {
+    }
+
     override fun lagre(
         id: TiltaksdeltakerId,
         eksternId: String,
