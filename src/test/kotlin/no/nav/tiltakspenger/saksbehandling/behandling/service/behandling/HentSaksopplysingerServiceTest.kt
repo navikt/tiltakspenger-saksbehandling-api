@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toTiltaksdeltakelseFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
@@ -103,6 +104,14 @@ internal class HentSaksopplysingerServiceTest {
                 }
                 override fun hentEksternId(id: TiltaksdeltakerId): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
+                }
+                override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
+                    return null
+                }
+                override fun oppdaterEksternIdForTiltaksdeltaker(
+                    tiltaksdeltaker: Tiltaksdeltaker,
+                    sessionContext: SessionContext?,
+                ) {
                 }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
@@ -206,6 +215,14 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentEksternId(id: TiltaksdeltakerId): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
                 }
+                override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
+                    return null
+                }
+                override fun oppdaterEksternIdForTiltaksdeltaker(
+                    tiltaksdeltaker: Tiltaksdeltaker,
+                    sessionContext: SessionContext?,
+                ) {
+                }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
@@ -307,6 +324,14 @@ internal class HentSaksopplysingerServiceTest {
                 }
                 override fun hentEksternId(id: TiltaksdeltakerId): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
+                }
+                override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
+                    return null
+                }
+                override fun oppdaterEksternIdForTiltaksdeltaker(
+                    tiltaksdeltaker: Tiltaksdeltaker,
+                    sessionContext: SessionContext?,
+                ) {
                 }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
@@ -444,6 +469,14 @@ internal class HentSaksopplysingerServiceTest {
                         }
                     }
                 }
+                override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
+                    return null
+                }
+                override fun oppdaterEksternIdForTiltaksdeltaker(
+                    tiltaksdeltaker: Tiltaksdeltaker,
+                    sessionContext: SessionContext?,
+                ) {
+                }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
@@ -573,6 +606,14 @@ internal class HentSaksopplysingerServiceTest {
                             throw IllegalArgumentException("Ukjent eksternId")
                         }
                     }
+                }
+                override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
+                    return null
+                }
+                override fun oppdaterEksternIdForTiltaksdeltaker(
+                    tiltaksdeltaker: Tiltaksdeltaker,
+                    sessionContext: SessionContext?,
+                ) {
                 }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
