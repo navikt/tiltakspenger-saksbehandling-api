@@ -187,5 +187,10 @@ fun TiltakstypeSomGirRett.tilTiltakstype(): TiltakResponsDTO.TiltakType {
         TiltakstypeSomGirRett.OPPFØLGING -> TiltakResponsDTO.TiltakType.INDOPPFAG
         TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_NAV -> TiltakResponsDTO.TiltakType.UTVAOONAV
         TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_OPPLÆRING -> TiltakResponsDTO.TiltakType.UTVOPPFOPL
+        TiltakstypeSomGirRett.ARBEIDSMARKEDSOPPLAERING -> TiltakResponsDTO.TiltakType.ARBEIDSMARKEDSOPPLAERING
+        TiltakstypeSomGirRett.FAG_OG_YRKESOPPLAERING -> TiltakResponsDTO.TiltakType.FAG_OG_YRKESOPPLAERING
+        TiltakstypeSomGirRett.HOYERE_YRKESFAGLIG_UTDANNING -> TiltakResponsDTO.TiltakType.HOYERE_YRKESFAGLIG_UTDANNING
+        TiltakstypeSomGirRett.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> TiltakResponsDTO.TiltakType.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV
+        TiltakstypeSomGirRett.STUDIESPESIALISERING -> TiltakResponsDTO.TiltakType.STUDIESPESIALISERING
     }
 }
