@@ -12,7 +12,6 @@ import java.util.UUID
  */
 fun genererStønadsstatistikkForRammevedtak(
     vedtak: Rammevedtak,
-    tiltaksdeltakelseEksterneIder: List<String>?,
 ): StatistikkStønadDTO {
     val erSøknadsbehandling = vedtak.behandling is Søknadsbehandling
 
@@ -37,6 +36,7 @@ fun genererStønadsstatistikkForRammevedtak(
             null
         }
     } ?: emptyList()
+
     return StatistikkStønadDTO(
         id = UUID.randomUUID(),
         brukerId = vedtak.fnr.verdi,
@@ -54,6 +54,7 @@ fun genererStønadsstatistikkForRammevedtak(
         } else {
             null
         },
+        omgjørRammevedtak = vedtak.resultat.omgjørRammevedtak.rammevedtakIDer.map { it.toString() },
         ytelse = "IND",
 
         søknadId = søknad?.id?.toString(),
@@ -66,7 +67,6 @@ fun genererStønadsstatistikkForRammevedtak(
         // TODO post-mvp: Denne skal kanskje egentlig være datoen fra brevet. Ta en prat med statistikk.
         vedtakDato = vedtak.opprettet.toLocalDate(),
 
-        tiltaksdeltakelser = tiltaksdeltakelseEksterneIder ?: emptyList(),
         barnetillegg = barnetillegg,
         harBarnetillegg = barnetillegg.isNotEmpty(),
     )

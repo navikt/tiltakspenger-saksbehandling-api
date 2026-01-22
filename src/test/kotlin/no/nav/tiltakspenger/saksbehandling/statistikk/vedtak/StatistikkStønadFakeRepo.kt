@@ -30,7 +30,11 @@ class StatistikkStønadFakeRepo : StatistikkStønadRepo {
         }
     }
 
-    override fun hent(sakId: SakId): List<StatistikkStønadDTO> {
+    override fun hentForRammevedtak(sakId: SakId): List<StatistikkStønadDTO> {
         return stønadsdata.get()[sakId.toString()]?.let { listOf(it) } ?: emptyList()
+    }
+
+    override fun hentForUtbetalinger(sakId: SakId): List<StatistikkUtbetalingDTO> {
+        return utbetalingsdata.get()[sakId.toString()]?.let { listOf(it) } ?: emptyList()
     }
 }

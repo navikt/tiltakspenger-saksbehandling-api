@@ -80,11 +80,7 @@ class IverksettBehandlingService(
         val stønadStatistikk = if (vedtak.resultat is SøknadsbehandlingResultat.Avslag) {
             null
         } else {
-            val tiltaksdeltakelseEksterneIder =
-                vedtak.behandling.valgteTiltaksdeltakelser?.verdier?.map {
-                    tiltaksdeltakerRepo.hentEksternId(it.internDeltakelseId)
-                }
-            genererStønadsstatistikkForRammevedtak(vedtak, tiltaksdeltakelseEksterneIder)
+            genererStønadsstatistikkForRammevedtak(vedtak)
         }
 
         val doubleOppdatertSak = when (behandling) {

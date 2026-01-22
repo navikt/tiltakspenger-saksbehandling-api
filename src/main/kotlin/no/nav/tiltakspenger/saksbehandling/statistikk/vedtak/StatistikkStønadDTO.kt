@@ -29,7 +29,10 @@ data class StatistikkStønadDTO(
 
     // Lagt til 2025-10-20, vil være null for rader før dette. Kan vurdere migrere rader som mangler dette senere.
     // Dette vedtaket omgjør et tidligere rammevedtak i sin helhet.
+    // TODO: erstattes av [omgjørRammevedtak] - kan fjernes når DVH ikke bruker dette feltet lengre
     val omgjørRammevedtakId: String?,
+
+    val omgjørRammevedtak: List<String>,
 
     // IND
     val ytelse: String,
@@ -46,9 +49,6 @@ data class StatistikkStønadDTO(
 
     // Brukes av DVH for å identifisere vedtakssystem når de sammenstiller data
     val fagsystem: String = "TPSAK",
-
-    // TODO: dette er nå bakt inn i [Innvilgelsesperiode] og kan fjernes når DVH ikke bruker dette feltet lengre
-    val tiltaksdeltakelser: List<String>,
 
     val barnetillegg: List<BarnetilleggStatistikk>,
     val harBarnetillegg: Boolean,
