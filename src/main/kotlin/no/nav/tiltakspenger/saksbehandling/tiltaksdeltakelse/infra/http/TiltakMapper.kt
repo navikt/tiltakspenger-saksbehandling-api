@@ -68,10 +68,7 @@ internal fun mapTiltakMedArrangørnavn(
     return tiltakDTOListe
         .map { tiltakDto ->
             TiltaksdeltakelseMedArrangørnavn(
-                harAdressebeskyttelse = harAdressebeskyttelse,
-                arrangørnavnFørSensur = tiltakDto.gjennomforing.arrangornavn ?: "Ukjent",
                 eksternDeltakelseId = tiltakDto.id,
-                gjennomføringId = tiltakDto.gjennomforing.id,
                 typeNavn = tiltakDto.gjennomforing.typeNavn,
                 typeKode =
                 tiltakDto.gjennomforing.arenaKode.toTiltakstypeSomGirRett().getOrElse {
@@ -79,13 +76,8 @@ internal fun mapTiltakMedArrangørnavn(
                         "Inneholder tiltakstype som ikke gir rett (som vi ikke støtter i MVP): ${tiltakDto.gjennomforing.arenaKode}. Tiltaksid: ${tiltakDto.id}",
                     )
                 },
-                rettPåTiltakspenger = tiltakDto.gjennomforing.arenaKode.rettPåTiltakspenger,
                 deltakelseFraOgMed = tiltakDto.deltakelseFom,
                 deltakelseTilOgMed = tiltakDto.deltakelseTom,
-                deltakelseStatus = tiltakDto.deltakelseStatus.toDomain(),
-                antallDagerPerUke = tiltakDto.antallDagerPerUke,
-                deltakelseProsent = tiltakDto.deltakelseProsent,
-                kilde = tiltakDto.kilde.toTiltakskilde(tiltakDto.id),
                 visningsnavn = if (!harAdressebeskyttelse) {
                     tiltakDto.gjennomforing.visningsnavn
                 } else {
