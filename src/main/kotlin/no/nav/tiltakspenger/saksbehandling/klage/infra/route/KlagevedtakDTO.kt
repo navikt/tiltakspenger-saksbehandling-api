@@ -1,8 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
-import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
-import java.time.LocalDateTime
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto.Companion.toKlageresultatstypDto
 
 data class KlagevedtakDTO(
     val klagevedtakId: String,
@@ -14,6 +13,7 @@ data class KlagevedtakDTO(
     val distribusjonId: String?,
     val distribusjonstidspunkt: String?,
     val vedtaksdato: String?,
+    val resultat: KlageresultatstypeDto,
 )
 
 fun Klagevedtak.tilKlagevedtakDTO(): KlagevedtakDTO {
@@ -27,5 +27,6 @@ fun Klagevedtak.tilKlagevedtakDTO(): KlagevedtakDTO {
         distribusjonId = distribusjonId?.toString(),
         distribusjonstidspunkt = distribusjonstidspunkt?.toString(),
         vedtaksdato = vedtaksdato?.toString(),
+        resultat = this.resultat.toKlageresultatstypDto(),
     )
 }

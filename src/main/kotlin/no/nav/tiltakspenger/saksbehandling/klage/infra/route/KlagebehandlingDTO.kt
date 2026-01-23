@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto.Companion.toKlageresultatstypDto
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
@@ -21,7 +22,7 @@ data class KlagebehandlingDTO(
     val journalpostId: String,
     val journalpostOpprettet: String,
     val status: String,
-    val resultat: String?,
+    val resultat: KlageresultatstypeDto?,
     val vedtakDetKlagesPå: String?,
     val erKlagerPartISaken: Boolean,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
@@ -57,11 +58,7 @@ fun Klagebehandling.toDto() = KlagebehandlingDTO(
         Klagebehandlingsstatus.AVBRUTT -> "AVBRUTT"
         Klagebehandlingsstatus.IVERKSATT -> "IVERKSATT"
     },
-    resultat = when (resultat) {
-        null -> null
-        is Klagebehandlingsresultat.Avvist -> "AVVIST"
-        is Klagebehandlingsresultat.Omgjør -> "OMGJØR"
-    },
+    resultat = resultat?.toKlageresultatstypDto(),
     vedtakDetKlagesPå = formkrav.vedtakDetKlagesPå?.toString(),
     erKlagerPartISaken = formkrav.erKlagerPartISaken,
     klagesDetPåKonkreteElementerIVedtaket = formkrav.klagesDetPåKonkreteElementerIVedtaket,

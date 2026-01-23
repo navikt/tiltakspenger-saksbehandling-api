@@ -93,7 +93,8 @@ class IverksettKlagebehandlingRouteTest {
                       "sakId": "${sak.id}",
                       "klagevedtakId": "${klagevedtak.id}",
                       "vedtaksdato": "2025-01-01",
-                      "journalpostId": "1"
+                      "journalpostId": "1",
+                      "resultat": "AVVIST"
                     }
                         """.trimIndent(),
                     )
