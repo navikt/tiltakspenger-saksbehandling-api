@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.setup
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
@@ -18,7 +18,7 @@ import java.time.Clock
 
 open class SøknadContext(
     sessionFactory: SessionFactory,
-    behandlingRepo: BehandlingRepo,
+    rammebehandlingRepo: RammebehandlingRepo,
     hentSaksopplysingerService: HentSaksopplysingerService,
     sakService: SakService,
     personService: PersonService,
@@ -38,7 +38,7 @@ open class SøknadContext(
     val startBehandlingAvManueltRegistrertSøknadService: StartBehandlingAvManueltRegistrertSøknadService by lazy {
         StartBehandlingAvManueltRegistrertSøknadService(
             sessionFactory = sessionFactory,
-            behandlingRepo = behandlingRepo,
+            rammebehandlingRepo = rammebehandlingRepo,
             hentSaksopplysingerService = hentSaksopplysingerService,
             personService = personService,
             sakService = sakService,

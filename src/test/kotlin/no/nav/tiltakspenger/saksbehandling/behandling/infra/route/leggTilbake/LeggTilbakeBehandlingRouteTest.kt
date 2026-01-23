@@ -33,13 +33,13 @@ class LeggTilbakeBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
             val behandlingId = behandling.id
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe "Z12345"
             }
             leggTilbakeBehanding(tac, sak.id, behandlingId, ObjectMother.saksbehandler()).also { jsonBody ->
                 JSONObject(jsonBody).getString("saksbehandler") shouldBe "null"
-                tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                     it.saksbehandler shouldBe null
                 }
@@ -51,18 +51,18 @@ class LeggTilbakeBehandlingRouteTest {
     fun `beslutter kan legge tilbake behandling`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             }
             taBehandling(tac, sak.id, behandlingId, ObjectMother.beslutter()).also {
-                tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                     it.beslutter shouldBe "B12345"
                 }
             }
             leggTilbakeBehanding(tac, sak.id, behandlingId, ObjectMother.beslutter()).also { jsonBody ->
                 JSONObject(jsonBody).getString("beslutter") shouldBe "null"
-                tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                     it.beslutter shouldBe null
                 }

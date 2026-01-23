@@ -10,13 +10,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 class OppdaterSaksopplysningerService(
     private val sakService: SakService,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
 ) {
     suspend fun oppdaterSaksopplysninger(
@@ -44,7 +44,7 @@ class OppdaterSaksopplysningerService(
         return behandling.oppdaterSaksopplysninger(saksbehandler, oppdaterteSaksopplysninger).map {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
 
-            behandlingRepo.lagre(it)
+            rammebehandlingRepo.lagre(it)
 
             oppdatertSak to it
         }

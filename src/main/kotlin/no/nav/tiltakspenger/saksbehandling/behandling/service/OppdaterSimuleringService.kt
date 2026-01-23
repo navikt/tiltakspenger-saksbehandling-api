@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 
 class OppdaterSimuleringService(
     val sakService: SakService,
-    val behandlingRepo: BehandlingRepo,
+    val rammebehandlingRepo: RammebehandlingRepo,
     val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     val simulerService: SimulerService,
     val sessionFactory: SessionFactory,
@@ -86,8 +86,8 @@ class OppdaterSimuleringService(
         val oppdatertBehandling = behandling.oppdaterSimulering(simuleringMedMetadata.simulering)
         val oppdatertSak = this.oppdaterRammebehandling(oppdatertBehandling)
         sessionFactory.withTransactionContext { tx ->
-            behandlingRepo.lagre(oppdatertBehandling, tx)
-            behandlingRepo.oppdaterSimuleringMetadata(behandlingId, simuleringMedMetadata.originalResponseBody, tx)
+            rammebehandlingRepo.lagre(oppdatertBehandling, tx)
+            rammebehandlingRepo.oppdaterSimuleringMetadata(behandlingId, simuleringMedMetadata.originalResponseBody, tx)
         }
         return (oppdatertSak to oppdatertBehandling.left()).right()
     }

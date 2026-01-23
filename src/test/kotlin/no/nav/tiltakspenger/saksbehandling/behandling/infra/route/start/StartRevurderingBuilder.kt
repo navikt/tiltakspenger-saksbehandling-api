@@ -275,7 +275,7 @@ interface StartRevurderingBuilder {
                 val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
                 return Triple(
                     oppdatertSak,
-                    tac.behandlingContext.behandlingRepo.hent(revurderingId) as Revurdering,
+                    tac.behandlingContext.rammebehandlingRepo.hent(revurderingId) as Revurdering,
                     jsonObject,
                 )
             }

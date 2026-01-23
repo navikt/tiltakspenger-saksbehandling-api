@@ -54,6 +54,7 @@ fun Route.routes(
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             iverksettKlagebehandlingService = applicationContext.klagebehandlingContext.iverksettKlagebehandlingService,
             vurderKlagebehandlingService = applicationContext.klagebehandlingContext.vurderKlagebehandlingService,
+            opprettRammebehandlingFraKlageService = applicationContext.klagebehandlingContext.opprettRammebehandlingFraKlageService,
             clock = applicationContext.clock,
         )
         hentBenkRoute(

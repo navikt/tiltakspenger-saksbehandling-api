@@ -111,7 +111,7 @@ class IverksettSøknadsbehandlingTest {
             val beslutter = ObjectMother.beslutter()
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac, saksbehandler = saksbehandler)
             val behandlingId = behandling.id
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
@@ -148,7 +148,7 @@ class IverksettSøknadsbehandlingTest {
             val beslutter = ObjectMother.beslutter()
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac, saksbehandler = saksbehandler)
             val behandlingId = behandling.id
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null

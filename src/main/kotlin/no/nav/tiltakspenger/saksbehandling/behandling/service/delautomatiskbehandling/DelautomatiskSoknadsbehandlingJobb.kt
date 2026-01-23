@@ -4,14 +4,14 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
 
 class DelautomatiskSoknadsbehandlingJobb(
     private val søknadRepo: SøknadRepo,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val startSøknadsbehandlingService: StartSøknadsbehandlingService,
     private val delautomatiskBehandlingService: DelautomatiskBehandlingService,
     private val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
@@ -34,7 +34,7 @@ class DelautomatiskSoknadsbehandlingJobb(
     }
 
     suspend fun behandleSoknaderAutomatisk() {
-        val automatiskeBehandlinger = behandlingRepo.hentAlleAutomatiskeSoknadsbehandlinger(limit = 10)
+        val automatiskeBehandlinger = rammebehandlingRepo.hentAlleAutomatiskeSoknadsbehandlinger(limit = 10)
         log.debug { "Fant ${automatiskeBehandlinger.size} åpne automatiske søknadsbehandlinger" }
         automatiskeBehandlinger.forEach { behandling ->
             val correlationId = CorrelationId.generate()

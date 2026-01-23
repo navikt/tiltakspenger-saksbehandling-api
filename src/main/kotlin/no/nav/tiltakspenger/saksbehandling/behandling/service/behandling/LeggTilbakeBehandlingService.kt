@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
@@ -15,7 +15,7 @@ import java.time.Clock
 
 class LeggTilbakeBehandlingService(
     private val behandlingService: BehandlingService,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
@@ -40,7 +40,7 @@ class LeggTilbakeBehandlingService(
             when (it.status) {
                 Rammebehandlingsstatus.KLAR_TIL_BEHANDLING -> {
                     sessionFactory.withTransactionContext { tx ->
-                        behandlingRepo.leggTilbakeBehandlingSaksbehandler(
+                        rammebehandlingRepo.leggTilbakeBehandlingSaksbehandler(
                             it.id,
                             saksbehandler,
                             it.status,
@@ -53,7 +53,7 @@ class LeggTilbakeBehandlingService(
 
                 Rammebehandlingsstatus.KLAR_TIL_BESLUTNING -> {
                     sessionFactory.withTransactionContext { tx ->
-                        behandlingRepo.leggTilbakeBehandlingBeslutter(
+                        rammebehandlingRepo.leggTilbakeBehandlingBeslutter(
                             it.id,
                             saksbehandler,
                             it.status,

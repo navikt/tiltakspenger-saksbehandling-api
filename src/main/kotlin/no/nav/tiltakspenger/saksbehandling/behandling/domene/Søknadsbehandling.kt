@@ -169,7 +169,11 @@ data class Søknadsbehandling(
         )
     }
 
-    override fun avbryt(avbruttAv: Saksbehandler, begrunnelse: NonBlankString, tidspunkt: LocalDateTime): Søknadsbehandling {
+    override fun avbryt(
+        avbruttAv: Saksbehandler,
+        begrunnelse: NonBlankString,
+        tidspunkt: LocalDateTime,
+    ): Søknadsbehandling {
         if (this.status == AVBRUTT || avbrutt != null) {
             throw IllegalArgumentException("Behandlingen er allerede avbrutt")
         }
@@ -220,7 +224,7 @@ data class Søknadsbehandling(
             correlationId: CorrelationId,
             klagebehandling: Klagebehandling?,
             clock: Clock,
-        ): Søknadsbehandling {
+        ): Pair<Sak, Søknadsbehandling> {
             val opprettet = nå(clock)
 
             val saksopplysninger = when (søknad) {
@@ -267,7 +271,9 @@ data class Søknadsbehandling(
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,
                 klagebehandling = klagebehandling,
-            )
+            ).let {
+                Pair(sak.leggTilSøknadsbehandling(it), it)
+            }
         }
 
         suspend fun opprettAutomatiskBehandling(

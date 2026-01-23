@@ -1,6 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.Either
+import arrow.core.getOrElse
+import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeStarteRevurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.StartSøknadsbehandlingPåNyttKommando
 import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
@@ -11,7 +20,11 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdater
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettRammebehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettRevurderingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettSøknadsbehandlingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KanIkkeVurdereKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDateTime
@@ -74,7 +87,7 @@ suspend fun Sak.forhåndsvisKlagebrev(
     )
 }
 
-suspend fun Sak.iverksettKlagebehandling(
+fun Sak.iverksettKlagebehandling(
     kommando: IverksettKlagebehandlingKommando,
     clock: Clock,
 ): Either<KanIkkeIverksetteKlagebehandling, Pair<Sak, Klagevedtak>> {
@@ -92,7 +105,7 @@ suspend fun Sak.iverksettKlagebehandling(
 }
 
 fun Sak.vurderKlagebehandling(
-    kommando: no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando,
+    kommando: VurderKlagebehandlingKommando,
     clock: Clock,
 ): Either<KanIkkeVurdereKlagebehandling, Pair<Sak, Klagebehandling>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId)
@@ -101,4 +114,83 @@ fun Sak.vurderKlagebehandling(
             val oppdatertSak = this.oppdaterKlagebehandling(it)
             Pair(oppdatertSak, it)
         }
+}
+
+suspend fun Sak.opprettRammebehandlingFraKlage(
+    kommando: OpprettRammebehandlingFraKlageKommando,
+    clock: Clock,
+    opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando) -> Pair<Sak, Søknadsbehandling>,
+    opprettRevurdering: suspend (StartRevurderingKommando) -> Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>>,
+): Triple<Sak, Klagebehandling, Rammebehandling> {
+    val klagebehandling: Klagebehandling = this.hentKlagebehandling(kommando.klagebehandlingId)
+    val nå = nå(clock)
+    require(
+        this.åpneRammebehandlingerMedKlagebehandlingId(klagebehandling.id).all { nå > it.opprettet.plusSeconds(10) },
+    ) {
+        "Vent litt før du oppretter ny rammebehandling fra klagebehandling ${klagebehandling.id} på sak ${this.id}"
+    }
+    return when (kommando) {
+        is OpprettSøknadsbehandlingFraKlageKommando -> opprettSøknadsbehandlingFraKlage(
+            kommando = kommando,
+            klagebehandling = klagebehandling,
+            opprettSøknadsbehandling = opprettSøknadsbehandling,
+        )
+
+        is OpprettRevurderingFraKlageKommando -> opprettRevurderingFraKlage(
+            kommando = kommando,
+            klagebehandling = klagebehandling,
+            opprettRevurdering = opprettRevurdering,
+        )
+    }
+}
+
+private suspend fun opprettSøknadsbehandlingFraKlage(
+    kommando: OpprettSøknadsbehandlingFraKlageKommando,
+    klagebehandling: Klagebehandling,
+    opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando) -> Pair<Sak, Søknadsbehandling>,
+): Triple<Sak, Klagebehandling, Søknadsbehandling> {
+    return opprettSøknadsbehandling(
+        StartSøknadsbehandlingPåNyttKommando(
+            sakId = kommando.sakId,
+            søknadId = kommando.søknadId,
+            klagebehandlingId = kommando.klagebehandlingId,
+            saksbehandler = kommando.saksbehandler,
+            correlationId = kommando.correlationId,
+        ),
+    ).let {
+        Triple(it.first, klagebehandling, it.second)
+    }
+}
+
+private suspend fun opprettRevurderingFraKlage(
+    kommando: OpprettRevurderingFraKlageKommando,
+    klagebehandling: Klagebehandling,
+    opprettRevurdering: suspend (StartRevurderingKommando) -> Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>>,
+): Triple<Sak, Klagebehandling, Rammebehandling> {
+    val sakId = kommando.sakId
+    return opprettRevurdering(
+        StartRevurderingKommando(
+            sakId = sakId,
+            correlationId = kommando.correlationId,
+            saksbehandler = kommando.saksbehandler,
+            revurderingType = when (kommando.type) {
+                OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> RevurderingType.INNVILGELSE
+                OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> RevurderingType.OMGJØRING
+            },
+            vedtakIdSomOmgjøres = when (kommando.type) {
+                OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> null
+                OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> kommando.vedtakIdSomOmgjøres!!
+            },
+            klagebehandlingId = kommando.klagebehandlingId,
+        ),
+    ).map {
+        Triple(it.first, klagebehandling, it.second)
+    }.getOrElse {
+        // TODO jah - bedre feilbehandling
+        throw IllegalStateException("Kunne ikke opprette revurdering fra klagebehandling ${klagebehandling.id} på sak $sakId: $it")
+    }
+}
+
+fun Sak.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
+    return this.behandlinger.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId)
 }

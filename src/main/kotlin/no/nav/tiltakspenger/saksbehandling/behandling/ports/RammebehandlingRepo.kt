@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import java.time.LocalDateTime
 
-interface BehandlingRepo {
+interface RammebehandlingRepo {
     fun lagre(
         behandling: Rammebehandling,
         transactionContext: TransactionContext? = null,

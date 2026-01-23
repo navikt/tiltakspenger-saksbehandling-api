@@ -34,7 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraBehandling
@@ -62,10 +62,10 @@ import java.time.LocalDateTime
 
 private val log = KotlinLogging.logger {}
 
-class BehandlingPostgresRepo(
+class RammebehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val clock: Clock,
-) : BehandlingRepo {
+) : RammebehandlingRepo {
 
     override fun hent(
         behandlingId: BehandlingId,

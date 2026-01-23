@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionConte
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
@@ -380,7 +380,7 @@ class SakPostgresRepo(
         fun Row.toSak(sessionContext: SessionContext): Sak {
             val id: SakId = SakId.fromString(string("id"))
             return sessionContext.withSession { session ->
-                val rammebehandlinger = BehandlingPostgresRepo.hentForSakId(id, session)
+                val rammebehandlinger = RammebehandlingPostgresRepo.hentForSakId(id, session)
                 val meldekortbehandlinger = MeldekortBehandlingPostgresRepo.hentForSakId(id, session)
                     ?: Meldekortbehandlinger.empty()
                 val klagebehandlinger = KlagebehandlingPostgresRepo.hentForSakId(id, session)

@@ -93,7 +93,7 @@ data class RevurderingDTO(
     override val type = RammebehandlingstypeDTO.REVURDERING
 }
 
-fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): RammebehandlingDTO {
+fun Sak.tilRammebehandlingDTO(behandlingId: BehandlingId): RammebehandlingDTO {
     val behandling = rammebehandlinger.hentBehandling(behandlingId)
 
     requireNotNull(behandling) {
@@ -118,7 +118,7 @@ fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): RammebehandlingDTO {
 }
 
 fun Sak.tilBehandlingerDTO(): List<RammebehandlingDTO> {
-    return this.rammebehandlinger.map { this.tilBehandlingDTO(it.id) }
+    return this.rammebehandlinger.map { this.tilRammebehandlingDTO(it.id) }
 }
 
 fun Søknadsbehandling.tilSøknadsbehandlingDTO(

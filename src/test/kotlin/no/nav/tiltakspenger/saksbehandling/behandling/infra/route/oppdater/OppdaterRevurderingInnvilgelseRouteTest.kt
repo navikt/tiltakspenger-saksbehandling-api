@@ -46,7 +46,7 @@ class OppdaterRevurderingInnvilgelseRouteTest {
                 barnetillegg = barnetillegg,
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(revurdering.id)
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
 
             oppdatertBehandling.resultat.shouldBeInstanceOf<RevurderingResultat.Innvilgelse>()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"

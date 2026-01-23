@@ -11,19 +11,16 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeStarteRevu
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
-/**
- * Erstattes på sikt av [StartOmgjøringService]
- */
 class StartRevurderingService(
     private val sakService: SakService,
-    private val behandlingRepo: BehandlingRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
@@ -49,7 +46,7 @@ class StartRevurderingService(
         val statistikk = statistikkSakService.genererStatistikkForRevurdering(revurdering)
 
         sessionFactory.withTransactionContext { tx ->
-            behandlingRepo.lagre(revurdering, tx)
+            rammebehandlingRepo.lagre(revurdering, tx)
             statistikkSakRepo.lagre(statistikk, tx)
         }
         return Pair(oppdatertSak, revurdering).right()

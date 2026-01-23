@@ -270,6 +270,8 @@ class LocalApplicationContext(
             genererKlagebrevKlient = dokumentContext.genererKlagebrevKlient,
             journalførKlagevedtaksbrevKlient = dokumentContext.journalførKlagevedtaksbrevKlient,
             dokumentdistribusjonsklient = dokumentdistribusjonsklientFakeKlient,
+            behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
+            startRevurderingService = behandlingContext.startRevurderingService,
         ) {}
     }
 

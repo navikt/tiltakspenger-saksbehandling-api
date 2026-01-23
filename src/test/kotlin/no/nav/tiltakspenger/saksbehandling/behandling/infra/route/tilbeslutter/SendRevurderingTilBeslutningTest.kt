@@ -73,7 +73,7 @@ class SendRevurderingTilBeslutningTest {
             JSONObject(jsonResponse).getString("resultat") shouldBe RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE.name
 
             val revurdering =
-                tac.behandlingContext.behandlingRepo.hent(BehandlingId.fromString(JSONObject(jsonResponse).getString("id")))
+                tac.behandlingContext.rammebehandlingRepo.hent(BehandlingId.fromString(JSONObject(jsonResponse).getString("id")))
 
             revurdering.shouldBeInstanceOf<Revurdering>()
             val søknadsbehandlingsvedtak = sak.rammevedtaksliste.single()

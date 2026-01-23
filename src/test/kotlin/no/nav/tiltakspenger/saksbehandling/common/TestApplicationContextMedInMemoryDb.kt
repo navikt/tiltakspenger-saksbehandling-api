@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
@@ -94,7 +94,7 @@ class TestApplicationContextMedInMemoryDb(
     private val meldekortBehandlingFakeRepo = MeldekortBehandlingFakeRepo()
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
-    private val behandlingFakeRepo = BehandlingFakeRepo()
+    private val behandlingFakeRepo = RammebehandlingFakeRepo()
     private val klagebehandlingFakeRepo = KlagebehandlingFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
     private val tiltaksdeltakelseFakeKlient = TiltaksdeltakelseFakeKlient { søknadFakeRepo }
@@ -195,7 +195,7 @@ class TestApplicationContextMedInMemoryDb(
     override val søknadContext by lazy {
         object : SøknadContext(
             sessionFactory = sessionFactory,
-            behandlingRepo = behandlingContext.behandlingRepo,
+            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
             sakService = sakContext.sakService,
             personService = personContext.personService,
@@ -291,7 +291,7 @@ class TestApplicationContextMedInMemoryDb(
             tiltaksdeltakerRepo = tiltaksdeltakerFakeRepo,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
-            override val behandlingRepo = behandlingFakeRepo
+            override val rammebehandlingRepo = behandlingFakeRepo
         }
     }
 
@@ -306,6 +306,8 @@ class TestApplicationContextMedInMemoryDb(
             genererKlagebrevKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
             journalførKlagevedtaksbrevKlient = journalførFakeKlagevedtaksbrevKlient,
             dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
+            behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
+            startRevurderingService = behandlingContext.startRevurderingService,
         ) {
             override val klagebehandlingRepo = klagebehandlingFakeRepo
             override val klagevedtakRepo = klagevedtakFakeRepo

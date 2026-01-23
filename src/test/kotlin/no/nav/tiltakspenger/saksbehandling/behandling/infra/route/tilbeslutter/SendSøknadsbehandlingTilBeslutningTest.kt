@@ -31,7 +31,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
             )
             val behandlingId = behandling.id
 
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
@@ -44,7 +44,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 saksbehandler,
             )
 
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.shouldBeInstanceOf<Søknadsbehandling>()
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                 it.saksbehandler shouldBe saksbehandler.navIdent
@@ -66,7 +66,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 saksbehandler = saksbehandler,
             )
             val behandlingId = behandling.id
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
@@ -107,7 +107,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 begrunnelseVilkårsvurdering = "ny begrunnelse",
             )
 
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.resultat.shouldBeNull()
             }
 
@@ -120,7 +120,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 it.status shouldBe HttpStatusCode.InternalServerError
             }
 
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
             }
         }

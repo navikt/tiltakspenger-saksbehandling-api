@@ -36,7 +36,7 @@ internal class TestDataHelper(
     val sessionFactory = PostgresSessionFactory(dataSource, sessionCounter)
     val søknadRepo = SøknadPostgresRepo(sessionFactory)
     val behandlingRepo =
-        no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo(sessionFactory, clock)
+        no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo(sessionFactory, clock)
     val vedtakRepo = RammevedtakPostgresRepo(sessionFactory)
     val sakRepo = SakPostgresRepo(sessionFactory, saksnummerGenerator, clock)
     val statistikkSakRepo = StatistikkSakPostgresRepo(sessionFactory)

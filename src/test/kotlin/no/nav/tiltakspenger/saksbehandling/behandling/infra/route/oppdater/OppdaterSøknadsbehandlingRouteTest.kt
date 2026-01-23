@@ -46,7 +46,7 @@ class OppdaterSøknadsbehandlingRouteTest {
                 begrunnelseVilkårsvurdering = "ny begrunnelse",
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id)
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
 
             oppdatertBehandling.resultat.shouldBeNull()
             oppdatertBehandling.vedtaksperiode.shouldBeNull()
@@ -86,7 +86,7 @@ class OppdaterSøknadsbehandlingRouteTest {
                 barnetillegg = barnetillegg,
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id)
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
 
             oppdatertBehandling.resultat.shouldBeInstanceOf<SøknadsbehandlingResultat.Innvilgelse>()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
@@ -112,7 +112,7 @@ class OppdaterSøknadsbehandlingRouteTest {
                 avslagsgrunner = setOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id)
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
 
             oppdatertBehandling.resultat.shouldBeInstanceOf<Avslag>()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
@@ -131,7 +131,7 @@ class OppdaterSøknadsbehandlingRouteTest {
             )
             val behandlingId = behandling.id
 
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
@@ -153,7 +153,7 @@ class OppdaterSøknadsbehandlingRouteTest {
                 forventetStatus = HttpStatusCode.InternalServerError,
             )
 
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
@@ -206,7 +206,7 @@ class OppdaterSøknadsbehandlingRouteTest {
 
             JSONObject(responseJson).getString("kode") shouldBe "kan_ikke_opphøre"
 
-            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.innvilgelsesperioder shouldBe innvilgelsesperioder
             }
         }

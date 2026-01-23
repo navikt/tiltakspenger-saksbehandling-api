@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimuleringService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -86,7 +86,7 @@ fun Route.oppdaterSimuleringRoute(
                                 contextMessage = "Saksbehandler har oppdatert simuleringen på en rammebehandling under behandling",
                                 correlationId = correlationId,
                             )
-                            call.respondJson(value = sak.tilBehandlingDTO(it.id))
+                            call.respondJson(value = sak.tilRammebehandlingDTO(it.id))
                         },
                         ifRight = {
                             auditService.logMedMeldekortId(

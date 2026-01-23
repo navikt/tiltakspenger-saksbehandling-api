@@ -251,7 +251,7 @@ class UtbetalingerIT {
 
             bodyAsText shouldEqualJson expected
 
-            tac.behandlingContext.behandlingRepo.hent(revurdering.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+            tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
         }
     }
 }

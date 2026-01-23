@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.StartSøknadsbehandlingPåNyttKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
@@ -36,12 +37,13 @@ fun Route.behandleSøknadPåNyttRoute(
                 krevSaksbehandlerRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                 val (sak, søknadsbehandling) = behandleSøknadPåNyttService.startSøknadsbehandlingPåNytt(
-                    søknadId = søknadId,
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                    // TODO klage jah: Legg til body så frontend kan sende inn dette.
-                    klagebehandlingId = null,
-                    correlationId = correlationId,
+                    StartSøknadsbehandlingPåNyttKommando(
+                        søknadId = søknadId,
+                        sakId = sakId,
+                        saksbehandler = saksbehandler,
+                        klagebehandlingId = null,
+                        correlationId = correlationId,
+                    ),
                 )
                 auditService.logForSøknadId(
                     søknadId = søknadId,
