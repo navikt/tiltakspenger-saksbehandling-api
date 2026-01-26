@@ -139,7 +139,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
             saksopplysninger: Saksopplysninger,
         ): Omgjøring {
             val innvilgelsesperioderMedTiltaksdeltakelse =
-                oppdatertInnvilgelsesperioder.krympTilTiltaksdeltakelsesperioder(saksopplysninger.tiltaksdeltakelser)
+                oppdatertInnvilgelsesperioder.oppdaterTiltaksdeltakelser(saksopplysninger.tiltaksdeltakelser)
 
             requireNotNull(innvilgelsesperioderMedTiltaksdeltakelse) {
                 // Dersom denne kaster og vi savner mer sakskontekst, bør denne returnere Either, slik at callee kan håndtere feilen.
@@ -165,7 +165,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
             oppdaterteSaksopplysninger: Saksopplysninger,
         ): Either<KunneIkkeOppdatereSaksopplysninger, Omgjøring> {
             val innvilgelsesperioder =
-                innvilgelsesperioder?.krympTilTiltaksdeltakelsesperioder(oppdaterteSaksopplysninger.tiltaksdeltakelser)
+                innvilgelsesperioder?.oppdaterTiltaksdeltakelser(oppdaterteSaksopplysninger.tiltaksdeltakelser)
 
             val barnetillegg =
                 innvilgelsesperioder?.let { barnetillegg?.krympTilPerioder(innvilgelsesperioder.perioder) }
@@ -205,7 +205,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
 
                 val innvilgelsesperioder = omgjørRammevedtak.innvilgelsesperioder
                     ?.krymp(perioderSomKanInnvilges)
-                    ?.krympTilTiltaksdeltakelsesperioder(saksopplysninger.tiltaksdeltakelser)
+                    ?.oppdaterTiltaksdeltakelser(saksopplysninger.tiltaksdeltakelser)
 
                 val barnetillegg = innvilgelsesperioder?.let {
                     omgjørRammevedtak.barnetillegg!!.krympTilPerioder(it.perioder)
