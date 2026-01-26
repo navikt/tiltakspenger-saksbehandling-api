@@ -10,5 +10,6 @@ interface StatistikkStønadRepo {
     fun lagre(dto: StatistikkStønadDTO, context: TransactionContext? = null)
     fun lagre(dto: StatistikkUtbetalingDTO, context: TransactionContext? = null)
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
-    fun hent(sakId: SakId): List<StatistikkStønadDTO>
+    fun hentForRammevedtak(sakId: SakId): List<StatistikkStønadDTO>
+    fun hentForUtbetalinger(sakId: SakId): List<StatistikkUtbetalingDTO>
 }

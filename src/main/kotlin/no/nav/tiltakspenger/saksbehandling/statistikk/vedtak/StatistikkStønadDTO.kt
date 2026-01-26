@@ -3,6 +3,12 @@ package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
+import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO.OmgjørRammevedtakStatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO.OmgjøringsgradStatistikk
 import java.time.LocalDate
 import java.util.UUID
 
@@ -19,7 +25,7 @@ data class StatistikkStønadDTO(
     val resultat: VedtakStatistikkResultat,
     val sakDato: LocalDate,
 
-    // For søknadsbehandling+forlengelse (ren innvilgese), vil de tilsvare innvilgelsesperiode. For omgjøring, vil de tilsvare omgjøringsperioden (innvilgelse + implisitt opphør/ikke rett). For stans vil de tilsvare stansperiode. For opphør vil de tilsvare opphørsperiode.
+    // For søknadsbehandling+forlengelse (ren innvilgelse), vil de tilsvare innvilgelsesperiode. For omgjøring, vil de tilsvare omgjøringsperioden (innvilgelse + implisitt opphør/ikke rett). For stans vil de tilsvare stansperiode. For opphør vil de tilsvare opphørsperiode.
     // Selv om det på lang sikt kan tenkes at vi støtter omgjøringer av vedtak med hull (forskjellige ikke-overlappende tiltak o.l), så innfører vi ikke denne om til en liste den 2025-10-20.
     val vedtaksperiodeFraOgMed: LocalDate,
     val vedtaksperiodeTilOgMed: LocalDate,
@@ -27,9 +33,10 @@ data class StatistikkStønadDTO(
     // Listen er tom for stans og avslag
     val innvilgelsesperioder: List<InnvilgelsesperiodeStatistikk>,
 
-    // Lagt til 2025-10-20, vil være null for rader før dette. Kan vurdere migrere rader som mangler dette senere.
-    // Dette vedtaket omgjør et tidligere rammevedtak i sin helhet.
+    // TODO: erstattes av [omgjørRammevedtak] - kan fjernes når DVH ikke bruker dette feltet lengre
     val omgjørRammevedtakId: String?,
+
+    val omgjørRammevedtak: List<OmgjørRammevedtakStatistikk>,
 
     // IND
     val ytelse: String,
@@ -47,9 +54,6 @@ data class StatistikkStønadDTO(
     // Brukes av DVH for å identifisere vedtakssystem når de sammenstiller data
     val fagsystem: String = "TPSAK",
 
-    // TODO: dette er nå bakt inn i [Innvilgelsesperiode] og kan fjernes når DVH ikke bruker dette feltet lengre
-    val tiltaksdeltakelser: List<String>,
-
     val barnetillegg: List<BarnetilleggStatistikk>,
     val harBarnetillegg: Boolean,
 ) {
@@ -64,6 +68,17 @@ data class StatistikkStønadDTO(
         val tilOgMed: LocalDate,
         val tiltaksdeltakelse: String,
     )
+
+    data class OmgjørRammevedtakStatistikk(
+        val vedtakId: String,
+        val omgjøringsgrad: OmgjøringsgradStatistikk,
+        val periode: PeriodeDbJson,
+    )
+
+    enum class OmgjøringsgradStatistikk {
+        HELT,
+        DELVIS,
+    }
 }
 
 enum class VedtakStatistikkResultat {
@@ -77,5 +92,18 @@ enum class VedtakStatistikkResultat {
             is RevurderingResultat.Stans -> Stans
             is SøknadsbehandlingResultat.Avslag -> throw IllegalStateException("Skal ikke opprette vedtaksstatistikk for avslag")
         }
+    }
+}
+
+fun OmgjørRammevedtak.tilStatistikk(): List<OmgjørRammevedtakStatistikk> {
+    return this.omgjøringsperioder.map {
+        OmgjørRammevedtakStatistikk(
+            vedtakId = it.rammevedtakId.toString(),
+            omgjøringsgrad = when (it.omgjøringsgrad) {
+                Omgjøringsgrad.HELT -> OmgjøringsgradStatistikk.HELT
+                Omgjøringsgrad.DELVIS -> OmgjøringsgradStatistikk.DELVIS
+            },
+            periode = it.periode.toDbJson(),
+        )
     }
 }

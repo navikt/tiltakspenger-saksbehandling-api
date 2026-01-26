@@ -9,11 +9,12 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
 import java.time.Clock
-import java.time.LocalDateTime
+import java.util.UUID
 
 class StatistikkStønadPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -34,7 +35,7 @@ class StatistikkStønadPostgresRepo(
     ) {
         tx.run(
             queryOf(
-                lagreSql,
+                lagreStonadSql,
                 mapOf(
                     "id" to dto.id.toString(),
                     "brukerId" to dto.brukerId,
@@ -55,11 +56,11 @@ class StatistikkStønadPostgresRepo(
                     "fagsystem" to dto.fagsystem,
                     "sistEndret" to nå(clock),
                     "opprettet" to nå(clock),
-                    "tiltaksdeltakelser" to toPGObject(dto.tiltaksdeltakelser),
                     "barnetillegg" to toPGObject(dto.barnetillegg),
                     "harBarnetillegg" to dto.harBarnetillegg,
                     "innvilgelsesperioder" to toPGObject(dto.innvilgelsesperioder),
                     "omgjorRammevedtakId" to dto.omgjørRammevedtakId,
+                    "omgjorRammevedtak" to toPGObject(dto.omgjørRammevedtak),
                 ),
             ).asUpdate,
         )
@@ -152,24 +153,37 @@ class StatistikkStønadPostgresRepo(
     }
 
     // Denne brukes kun for tester
-    override fun hent(sakId: SakId): List<StatistikkStønadDTO> = sessionFactory.withSession {
+    override fun hentForRammevedtak(sakId: SakId): List<StatistikkStønadDTO> = sessionFactory.withSession {
         it.run(
-            queryOf(
+            sqlQuery(
                 """
                     select *
                     from statistikk_stonad
                     where sak_id = :sak_id
                 """.trimIndent(),
-                mapOf(
-                    "sak_id" to sakId.toString(),
-                ),
+                "sak_id" to sakId.toString(),
             ).map { row -> row.toStatistikkStonadDTO() }
                 .asList,
         )
     }
 
+    // Denne brukes kun for tester
+    override fun hentForUtbetalinger(sakId: SakId): List<StatistikkUtbetalingDTO> = sessionFactory.withSession {
+        it.run(
+            sqlQuery(
+                """
+                    select *
+                    from statistikk_utbetaling
+                    where sak_id = :sak_id
+                """.trimIndent(),
+                "sak_id" to sakId.toString(),
+            ).map { row -> row.toStatistikkUtbetalingDTO() }
+                .asList,
+        )
+    }
+
     @Language("SQL")
-    private val lagreSql =
+    private val lagreStonadSql =
         """
         insert into statistikk_stonad (
         id,
@@ -191,11 +205,11 @@ class StatistikkStønadPostgresRepo(
         fagsystem,
         sist_endret,
         opprettet,
-        tiltaksdeltakelser,
         barnetillegg,
         har_barnetillegg,
         innvilgelsesperioder,
-        omgjor_rammevedtak_id
+        omgjor_rammevedtak_id,
+        omgjor_rammevedtak
         ) values (
         :id,
         :brukerId,
@@ -216,11 +230,11 @@ class StatistikkStønadPostgresRepo(
         :fagsystem,
         :sistEndret,
         :opprettet,
-        :tiltaksdeltakelser,
         :barnetillegg,
         :harBarnetillegg,
         :innvilgelsesperioder,
-        :omgjorRammevedtakId
+        :omgjorRammevedtakId,
+        :omgjorRammevedtak
         )
         """.trimIndent()
 
@@ -264,7 +278,7 @@ class StatistikkStønadPostgresRepo(
 
     private fun Row.toStatistikkStonadDTO() =
         StatistikkStønadDTO(
-            id = uuid("id"),
+            id = UUID.fromString(string("id")),
             brukerId = string("bruker_id"),
             sakId = string("sak_id"),
             saksnummer = string("saksnummer"),
@@ -281,10 +295,29 @@ class StatistikkStønadPostgresRepo(
             vedtaksperiodeFraOgMed = localDate("vedtaksperiode_fra_og_med"),
             vedtaksperiodeTilOgMed = localDate("vedtaksperiode_til_og_med"),
             fagsystem = string("fagsystem"),
-            tiltaksdeltakelser = deserialize(string("tiltaksdeltakelser")),
             barnetillegg = deserialize(string("barnetillegg")),
             harBarnetillegg = boolean("har_barnetillegg"),
             innvilgelsesperioder = deserialize(string("innvilgelsesperioder")),
             omgjørRammevedtakId = stringOrNull("omgjor_rammevedtak_id"),
+            omgjørRammevedtak = deserialize(string("omgjor_rammevedtak")),
+        )
+
+    private fun Row.toStatistikkUtbetalingDTO() =
+        StatistikkUtbetalingDTO(
+            id = string("id"),
+            sakId = string("sak_id"),
+            saksnummer = string("saksnummer"),
+            totalBeløp = int("belop"),
+            ordinærBeløp = int("ordinar_belop"),
+            barnetilleggBeløp = int("barnetillegg_belop"),
+            posteringDato = localDate("posteringsdato"),
+            gyldigFraDatoPostering = localDate("gyldig_fra_dato"),
+            gyldigTilDatoPostering = localDate("gyldig_til_dato"),
+            utbetalingId = string("utbetaling_id"),
+            vedtakId = stringOrNull("vedtak_id")?.let { deserialize(it) },
+            opprettet = localDateTimeOrNull("opprettet"),
+            sistEndret = localDateTimeOrNull("sist_endret"),
+            brukerId = string("bruker_id"),
+            meldeperioder = deserialize(string("meldeperioder")),
         )
 }

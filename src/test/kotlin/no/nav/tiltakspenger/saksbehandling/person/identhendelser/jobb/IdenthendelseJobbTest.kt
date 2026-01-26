@@ -101,10 +101,7 @@ class IdenthendelseJobbTest {
                     ),
                 )
                 statistikkStønadRepo.lagre(
-                    genererStønadsstatistikkForRammevedtak(
-                        vedtak,
-                        vedtak.behandling.valgteTiltaksdeltakelser?.verdier?.map { it.eksternDeltakelseId },
-                    ),
+                    genererStønadsstatistikkForRammevedtak(vedtak),
                 )
                 val identhendelseDb = IdenthendelseDb(
                     id = UUID.randomUUID(),
@@ -195,10 +192,7 @@ class IdenthendelseJobbTest {
                     ),
                 )
                 statistikkStønadRepo.lagre(
-                    genererStønadsstatistikkForRammevedtak(
-                        vedtak,
-                        vedtak.behandling.valgteTiltaksdeltakelser?.verdier?.map { it.eksternDeltakelseId },
-                    ),
+                    genererStønadsstatistikkForRammevedtak(vedtak),
                 )
                 val identhendelseDb = IdenthendelseDb(
                     id = UUID.randomUUID(),

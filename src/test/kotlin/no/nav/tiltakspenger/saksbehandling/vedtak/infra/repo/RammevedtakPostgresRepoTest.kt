@@ -35,12 +35,12 @@ class RammevedtakPostgresRepoTest {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val clock = TikkendeKlokke()
             val (sak) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(clock = clock)
-            val innvilgesesperiode = Periode(sak.førsteDagSomGirRett!!, sak.sisteDagSomGirRett!!)
+            val innvilgelsesperiode = Periode(sak.førsteDagSomGirRett!!, sak.sisteDagSomGirRett!!)
 
             val (oppdatertSak, revurdering) = testDataHelper.persisterRevurderingInnvilgelseIverksatt(
                 sak = sak,
                 barnetillegg = barnetillegg(
-                    periode = innvilgesesperiode,
+                    periode = innvilgelsesperiode,
                     antallBarn = AntallBarn(2),
                 ),
                 clock = clock,
