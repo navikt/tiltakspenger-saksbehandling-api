@@ -121,9 +121,6 @@ private suspend fun Sak.startRevurderingOmgjøring(
     klagebehandling: Klagebehandling?,
     clock: Clock,
 ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
-    require(this.erRammevedtakGjeldendeForHeleSinPeriode(rammevedtakIdSomOmgjøres)) {
-        "I første versjon, kan man kun omgjøre et (delvis) innvilget rammevedtak som er gjeldende for hele sin periode."
-    }
     val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
 
     return Revurdering.opprettOmgjøring(

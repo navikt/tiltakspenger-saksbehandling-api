@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.libs.periodisering.leggSammen
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -119,6 +120,12 @@ data class Rammevedtak(
             listOf(periode)
         } else {
             this.periode.trekkFra(omgjortAvRammevedtak.perioder)
+        }
+    }
+
+    val gjeldendeTotalPeriode: Periode? by lazy {
+        gjeldendePerioder.toNonEmptyListOrNull()?.let {
+            it.first().fraOgMed til it.last().tilOgMed
         }
     }
 

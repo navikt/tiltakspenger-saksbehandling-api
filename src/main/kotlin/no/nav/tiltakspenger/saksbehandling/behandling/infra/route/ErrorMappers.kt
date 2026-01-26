@@ -30,4 +30,9 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
         "Denne behandlingstypen støtter ikke opphør",
         "kan_ikke_opphøre",
     )
+
+    KanIkkeOppdatereBehandling.KanIkkeOmgjøreFlereVedtak -> HttpStatusCode.BadRequest to ErrorJson(
+        "En omgjøring kan kun omgjøre ett tidligere vedtak",
+        "kan_ikke_omgjøre_flere_vedtak",
+    )
 }

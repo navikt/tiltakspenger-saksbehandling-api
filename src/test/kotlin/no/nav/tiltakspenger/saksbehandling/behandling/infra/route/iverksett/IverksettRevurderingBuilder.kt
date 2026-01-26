@@ -24,7 +24,9 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -241,6 +243,115 @@ interface IverksettRevurderingBuilder {
         )!!
 
         oppdaterRevurderingOmgjøring(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = revurdering.id,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+            innvilgelsesperioder = innvilgelsesperioder,
+            barnetillegg = barnetilleggRevurdering,
+            saksbehandler = saksbehandler,
+        )
+
+        sendRevurderingTilBeslutningForBehandlingId(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = revurdering.id,
+        )
+
+        taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
+
+        val (oppdatertSak, rammevedtak, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = revurdering.id,
+            beslutter = beslutter,
+        )!!
+
+        return Triple(
+            oppdatertSak,
+            rammevedtak,
+            jsonResponseForIverksettRevurdering,
+        )
+    }
+
+    /**
+     * Oppretter en revurdering til stans og iverksetter den.
+     * Merk: Denne oppretter ikke sak, søknad eller søknadsbehandlingen.
+     */
+    suspend fun ApplicationTestBuilder.iverksettRevurderingStans(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        saksbehandler: Saksbehandler = saksbehandler(),
+        beslutter: Saksbehandler = beslutter(),
+        fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
+        begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
+        stansFraOgMed: LocalDate? = null,
+        harValgtStansFraFørsteDagSomGirRett: Boolean = stansFraOgMed == null,
+        valgteHjemler: Set<ValgtHjemmelForStans> = setOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+    ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
+        val (sak, revurdering, _) = startRevurderingStans(
+            tac = tac,
+            sakId = sakId,
+            saksbehandler = saksbehandler,
+        )!!
+
+        oppdaterRevurderingStans(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = revurdering.id,
+            saksbehandler = saksbehandler,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+            stansFraOgMed = stansFraOgMed,
+            harValgtStansFraFørsteDagSomGirRett = harValgtStansFraFørsteDagSomGirRett,
+            valgteHjemler = valgteHjemler,
+        )
+
+        sendRevurderingTilBeslutningForBehandlingId(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = revurdering.id,
+            saksbehandler = saksbehandler,
+        )
+
+        taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter)
+
+        val (oppdatertSak, rammevedtak, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = revurdering.id,
+            beslutter = beslutter,
+        )!!
+
+        return Triple(
+            oppdatertSak,
+            rammevedtak,
+            jsonResponseForIverksettRevurdering,
+        )
+    }
+
+    /**
+     * Oppretter en revurdering til omgjøring og iverksetter den.
+     * Merk: Denne oppretter ikke sak, søknad eller søknadsbehandlingen.
+     */
+    suspend fun ApplicationTestBuilder.iverksettRevurderingInnvilgelse(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        saksbehandler: Saksbehandler = saksbehandler(),
+        beslutter: Saksbehandler = beslutter(),
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
+        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
+        begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
+    ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
+        val (sak, revurdering, _) = startRevurderingInnvilgelse(
+            tac = tac,
+            sakId = sakId,
+            saksbehandler = saksbehandler,
+        )!!
+
+        oppdaterRevurderingInnvilgelse(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,

@@ -52,7 +52,30 @@ data class Innvilgelsesperioder(
     }
 
     /**
-     * @return [Innvilgelsesperioder] med oppdaterte perioder som overlapper med [tiltaksdeltakelser]
+     * @return [Innvilgelsesperioder] med oppdaterte perioder som overlapper med [perioder]
+     * eller null dersom ingen overlapper
+     * */
+    fun krymp(perioder: List<Periode>): Innvilgelsesperioder? {
+        val nyeInnvilgelsesperioder = periodisering.perioderMedVerdi.toList().flatMap {
+            it.periode.overlappendePerioder(perioder).map { periode ->
+                PeriodeMedVerdi(
+                    verdi = it.verdi,
+                    periode = periode,
+                )
+            }
+        }
+
+        if (nyeInnvilgelsesperioder.isEmpty()) {
+            return null
+        }
+
+        return Innvilgelsesperioder(
+            nyeInnvilgelsesperioder.tilIkkeTomPeriodisering(),
+        )
+    }
+
+    /**
+     * @return [Innvilgelsesperioder] med oppdaterte perioder som overlapper med perioder fra [tiltaksdeltakelser]
      * eller null dersom ingen overlapper
      * */
     fun krympTilTiltaksdeltakelsesperioder(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilgelsesperioder? {

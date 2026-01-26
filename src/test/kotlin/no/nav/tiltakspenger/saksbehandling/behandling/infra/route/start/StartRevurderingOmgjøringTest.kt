@@ -1,26 +1,37 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
+import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 
 class StartRevurderingOmgjøringTest {
@@ -204,6 +215,133 @@ class StartRevurderingOmgjøringTest {
                 førsteInnvilgelsesperiode,
                 andreInnvilgelsesperiode,
             )
+        }
+    }
+
+    @Test
+    fun `kan omgjøre et delvis omgjort vedtak`() {
+        withTestApplicationContext { tac ->
+            val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val stansFraOgMed = 1.mars(2025)
+
+            val omgjøringInnvilgelsesperioder = innvilgelsesperioder(1.januar(2025) til 28.februar(2025))
+
+            val (sakMedSøknadsbehandling, _, søknadsbehandlingVedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode),
+            )
+
+            val sakId = sakMedSøknadsbehandling.id
+
+            iverksettRevurderingStans(
+                tac = tac,
+                sakId = sakId,
+                stansFraOgMed = stansFraOgMed,
+            )
+
+            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettRevurderingOmgjøring(
+                tac = tac,
+                sakId = sakId,
+                innvilgelsesperioder = omgjøringInnvilgelsesperioder,
+                rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
+            )
+
+            sakMedOmgjøring.rammevedtaksliste.innvilgelsesperioder.perioder shouldBe omgjøringInnvilgelsesperioder.perioder
+
+            omgjøringsvedtak.omgjørRammevedtak shouldBe OmgjørRammevedtak(
+                Omgjøringsperiode(
+                    rammevedtakId = søknadsbehandlingVedtak.id,
+                    periode = 1.januar(2025) til 28.februar(2025),
+                    omgjøringsgrad = Omgjøringsgrad.DELVIS,
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke omgjøre et vedtak med hull`() {
+        withTestApplicationContext { tac ->
+            val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+
+            val innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode)
+
+            val (sakMedSøknadsbehandling, _, søknadsbehandlingVedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder,
+            )
+
+            val sakId = sakMedSøknadsbehandling.id
+
+            iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sakId,
+                innvilgelsesperioder = innvilgelsesperioder(
+                    1.februar(2025) til 28.februar(2025),
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(2),
+                ),
+            )
+
+            startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sakId,
+                rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = """
+                    {
+                      "melding": "Kan foreløpig ikke omgjøre vedtak som ikke har en sammenhengede gjeldende periode",
+                      "kode": "perioder_som_omgjøres_må_være_sammenhengende"
+                    }             
+                """.trimIndent(),
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke omgjøre over flere vedtak`() {
+        withTestApplicationContext { tac ->
+            val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val stansFraOgMed = 1.mars(2025)
+
+            val innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode)
+
+            val (sakMedSøknadsbehandling, _, søknadsbehandlingVedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder,
+            )
+
+            val sakId = sakMedSøknadsbehandling.id
+
+            iverksettRevurderingStans(
+                tac = tac,
+                sakId = sakId,
+                stansFraOgMed = stansFraOgMed,
+            )
+
+            val (_, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sakId,
+                rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
+            )!!
+
+            oppdaterRevurderingOmgjøring(
+                tac = tac,
+                sakId = sakId,
+                innvilgelsesperioder = innvilgelsesperioder,
+                behandlingId = omgjøring.id,
+                forventetStatus = HttpStatusCode.BadRequest,
+            ).also {
+                it.second.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadsbehandlingVedtak.id
+
+                @Language("JSON")
+                val expectedResponse = """
+                    {
+                        "melding": "En omgjøring kan kun omgjøre ett tidligere vedtak",
+                        "kode":"kan_ikke_omgjøre_flere_vedtak"
+                    }
+                """.trimIndent()
+
+                it.third.shouldEqualJson(expectedResponse)
+            }
         }
     }
 }

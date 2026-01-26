@@ -7,4 +7,5 @@ sealed interface KanIkkeOppdatereBehandling {
     data object MåVæreUnderBehandling : KanIkkeOppdatereBehandling
     data object ErPaVent : KanIkkeOppdatereBehandling
     data object KanIkkeOpphøre : KanIkkeOppdatereBehandling
+    data object KanIkkeOmgjøreFlereVedtak : KanIkkeOppdatereBehandling
 }

@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.overlappendePerioder
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
@@ -124,7 +125,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
         // Tanken med dette feltet er de tilfellene man har spesifikt valgt å omgjøre et spesifikt vedtak i sin helhet.
         // TODO jah: Anders, hva gjør vi? Legger tilbake omgjørVedtakId? Det føles forvirrende. Skal vi heller sperre for at den kan omgjøre flere vedtak?
         val omgjortVedtak: Omgjøringsperiode by lazy {
-            omgjørRammevedtak.single { it.omgjøringsgrad == Omgjøringsgrad.HELT }
+            omgjørRammevedtak.single()
         }
 
         // Kommentar jah: Avventer med å extende BehandlingResultat.Innvilgelse inntil vi har på plass periodisering av innvilgelsesperioden.
@@ -136,6 +137,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
         fun oppdater(
             oppdatertInnvilgelsesperioder: Innvilgelsesperioder,
             oppdatertBarnetillegg: Barnetillegg,
+            omgjørRammevedtak: OmgjørRammevedtak,
             saksopplysninger: Saksopplysninger,
         ): Omgjøring {
             val innvilgelsesperioderMedTiltaksdeltakelse =
@@ -149,10 +151,11 @@ sealed interface RevurderingResultat : BehandlingResultat {
             return this.copy(
                 vedtaksperiode = utledNyVedtaksperiode(
                     omgjortVedtak.periode,
-                    oppdatertInnvilgelsesperioder,
+                    oppdatertInnvilgelsesperioder.totalPeriode,
                 ),
                 innvilgelsesperioder = innvilgelsesperioderMedTiltaksdeltakelse,
                 barnetillegg = oppdatertBarnetillegg,
+                omgjørRammevedtak = omgjørRammevedtak,
             )
         }
 
@@ -175,7 +178,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 } else {
                     utledNyVedtaksperiode(
                         omgjortVedtak.periode,
-                        innvilgelsesperioder,
+                        innvilgelsesperioder.totalPeriode,
                     )
                 },
                 innvilgelsesperioder = innvilgelsesperioder,
@@ -189,16 +192,22 @@ sealed interface RevurderingResultat : BehandlingResultat {
                 omgjørRammevedtak: Rammevedtak,
                 saksopplysninger: Saksopplysninger,
             ): Either<KunneIkkeOppretteOmgjøring, Omgjøring> {
-                val perioderSomKanInnvilges =
-                    omgjørRammevedtak.gjeldendePerioder.overlappendePerioder(saksopplysninger.tiltaksdeltakelser.perioder)
+                // TODO abn: tillater foreløpig ikke å omgjøre vedtak med hull (dvs vedtaket har allerede blitt omgjort "i midten")
+                // Når vi har gitt saksbehandler mulighet til å velge vedtaksperiode kan denne restriksjonen fjernes/flyttes til oppdatering
+                if (omgjørRammevedtak.gjeldendePerioder.size > 1) {
+                    return KunneIkkeOppretteOmgjøring.PerioderSomOmgjøresMåVæreSammenhengede.left()
+                }
+
+                val perioderSomKanInnvilges = omgjørRammevedtak.gjeldendePerioder
+                    .overlappendePerioder(saksopplysninger.tiltaksdeltakelser.perioder)
 
                 if (perioderSomKanInnvilges.isEmpty()) {
                     return KunneIkkeOppretteOmgjøring.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag.left()
                 }
 
-                // Denne bør oppdateres til kun å hente gjeldende innvilgelsesperioder når vi skal tillate å omgjøre delvis gjeldende vedtak
-                val innvilgelsesperioder =
-                    omgjørRammevedtak.innvilgelsesperioder?.krympTilTiltaksdeltakelsesperioder(saksopplysninger.tiltaksdeltakelser)
+                val innvilgelsesperioder = omgjørRammevedtak.innvilgelsesperioder
+                    ?.krymp(perioderSomKanInnvilges)
+                    ?.krympTilTiltaksdeltakelsesperioder(saksopplysninger.tiltaksdeltakelser)
 
                 val barnetillegg = innvilgelsesperioder?.let {
                     omgjørRammevedtak.barnetillegg!!.krympTilPerioder(it.perioder)
@@ -206,7 +215,9 @@ sealed interface RevurderingResultat : BehandlingResultat {
 
                 return Omgjøring(
                     // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.
-                    vedtaksperiode = omgjørRammevedtak.periode,
+                    vedtaksperiode = omgjørRammevedtak.gjeldendePerioder.let {
+                        it.first().fraOgMed til it.last().tilOgMed
+                    },
                     // Hvis vedtaket vi omgjør er en delvis innvilgelse, så bruker vi denne.
                     innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = barnetillegg,
@@ -217,11 +228,11 @@ sealed interface RevurderingResultat : BehandlingResultat {
             // Ny vedtaksperiode må alltid inneholde hele perioden for vedtaket som omgjøres
             fun utledNyVedtaksperiode(
                 omgjortVedtaksperiode: Periode,
-                nyeInnvilgelsesperioder: Innvilgelsesperioder,
+                nyInnvilgelsesperiode: Periode,
             ): Periode {
                 return Periode(
-                    fraOgMed = minOf(omgjortVedtaksperiode.fraOgMed, nyeInnvilgelsesperioder.fraOgMed),
-                    tilOgMed = maxOf(omgjortVedtaksperiode.tilOgMed, nyeInnvilgelsesperioder.tilOgMed),
+                    fraOgMed = minOf(omgjortVedtaksperiode.fraOgMed, nyInnvilgelsesperiode.fraOgMed),
+                    tilOgMed = maxOf(omgjortVedtaksperiode.tilOgMed, nyInnvilgelsesperiode.tilOgMed),
                 )
             }
         }
@@ -233,9 +244,6 @@ sealed interface RevurderingResultat : BehandlingResultat {
 
             require(omgjørRammevedtak.size >= 1) {
                 "En omgjøring må omgjøre minst ett vedtak"
-            }
-            require(omgjørRammevedtak.any { it.omgjøringsgrad == Omgjøringsgrad.HELT }) {
-                "Minst ett vedtak må være omgjort i sin helhet"
             }
 
             if (innvilgelsesperioder != null) {
