@@ -48,7 +48,7 @@ const val DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
  * Dette gjelder både søknadsbehandling (innvilgelse og avslag) og revurdering (endring og omgjøring, inkl. stans/opphør, innvilgelse/forlengelse)
  * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling] for behandling av meldekort innenfor et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak].
  */
-sealed interface Rammebehandling : Behandling {
+sealed interface Rammebehandling : AttesterbarBehandling {
     override val id: BehandlingId
     val status: Rammebehandlingsstatus
     override val opprettet: LocalDateTime

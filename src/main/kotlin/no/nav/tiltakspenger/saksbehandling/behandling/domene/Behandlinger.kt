@@ -16,9 +16,11 @@ data class Behandlinger(
     val rammebehandlinger: Rammebehandlinger,
     val meldekortbehandlinger: Meldekortbehandlinger,
     val klagebehandlinger: Klagebehandlinger,
-) : List<Behandling> by slåSammenBehandlingene(rammebehandlinger, meldekortbehandlinger) {
+) {
 
-    val slåttSammen: List<Behandling> by lazy { slåSammenBehandlingene(rammebehandlinger, meldekortbehandlinger) }
+    val slåttSammen: List<Behandling> by lazy {
+        (rammebehandlinger + meldekortbehandlinger + klagebehandlinger).sortedBy { it.opprettet }
+    }
 
     val fnr: Fnr? by lazy { slåttSammen.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow() }
     val sakId: SakId? by lazy { slåttSammen.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow() }
@@ -78,6 +80,7 @@ data class Behandlinger(
             "Behandlingene må ha unike IDer."
         }
     }
+
     companion object {
         fun empty() = Behandlinger(
             rammebehandlinger = Rammebehandlinger.empty(),
@@ -85,11 +88,4 @@ data class Behandlinger(
             klagebehandlinger = Klagebehandlinger.empty(),
         )
     }
-}
-
-private fun slåSammenBehandlingene(
-    rammebehandlinger: Rammebehandlinger,
-    meldekortbehandlinger: Meldekortbehandlinger,
-): List<Behandling> {
-    return (rammebehandlinger + meldekortbehandlinger).sortedBy { it.opprettet }
 }

@@ -25,6 +25,7 @@ suspend fun Sak.startSøknadsbehandlingPåNytt(
     val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let { this.hentKlagebehandling(it) }
     return Søknadsbehandling.opprett(
         sak = this,
+        søknadsbehandlingId = kommando.søknadsbehandlingId,
         søknad = søknad,
         saksbehandler = kommando.saksbehandler,
         hentSaksopplysninger = hentSaksopplysninger,

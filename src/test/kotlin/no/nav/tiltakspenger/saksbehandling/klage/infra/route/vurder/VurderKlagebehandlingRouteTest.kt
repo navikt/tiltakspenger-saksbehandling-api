@@ -41,7 +41,8 @@ class VurderKlagebehandlingRouteTest {
                   "avbrutt": null,
                   "kanIverksette": true,
                   "årsak": "PROSESSUELL_FEIL",
-                  "begrunnelse": "Begrunnelse for omgjøring"
+                  "begrunnelse": "Begrunnelse for omgjøring",
+                  "rammebehandlingId": null
                 }
                 """.trimIndent(),
             )

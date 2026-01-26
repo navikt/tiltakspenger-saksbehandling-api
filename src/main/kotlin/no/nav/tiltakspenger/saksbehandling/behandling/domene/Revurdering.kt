@@ -203,6 +203,7 @@ data class Revurdering(
     companion object {
         fun opprettStans(
             sakId: SakId,
+            revurderingId: BehandlingId = BehandlingId.random(),
             saksnummer: Saksnummer,
             fnr: Fnr,
             saksbehandler: Saksbehandler,
@@ -210,6 +211,7 @@ data class Revurdering(
             clock: Clock,
         ): Revurdering {
             return opprett(
+                revurderingId = revurderingId,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -229,8 +231,10 @@ data class Revurdering(
             saksopplysninger: Saksopplysninger,
             clock: Clock,
             klagebehandling: Klagebehandling?,
+            revurderingId: BehandlingId = BehandlingId.random(),
         ): Revurdering {
             return opprett(
+                revurderingId = revurderingId,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -251,8 +255,10 @@ data class Revurdering(
             omgjørRammevedtak: Rammevedtak,
             klagebehandling: Klagebehandling?,
             clock: Clock,
+            revurderingId: BehandlingId = BehandlingId.random(),
         ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
             return opprett(
+                revurderingId = revurderingId,
                 sakId = omgjørRammevedtak.sakId,
                 saksnummer = omgjørRammevedtak.saksnummer,
                 fnr = omgjørRammevedtak.fnr,
@@ -268,6 +274,7 @@ data class Revurdering(
 
         private fun opprett(
             sakId: SakId,
+            revurderingId: BehandlingId = BehandlingId.random(),
             saksnummer: Saksnummer,
             fnr: Fnr,
             saksbehandler: Saksbehandler,
@@ -277,7 +284,7 @@ data class Revurdering(
             klagebehandling: Klagebehandling?,
         ): Revurdering {
             return Revurdering(
-                id = BehandlingId.random(),
+                id = revurderingId,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,

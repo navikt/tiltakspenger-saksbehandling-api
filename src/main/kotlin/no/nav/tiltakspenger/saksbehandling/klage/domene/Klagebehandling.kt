@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
@@ -40,28 +41,27 @@ import java.time.LocalDateTime
  * @param journalpostOpprettet Tidspunktet [journalpostId] ble opprettet.
  */
 data class Klagebehandling(
-    val id: KlagebehandlingId,
-    val sakId: SakId,
-    val saksnummer: Saksnummer,
-    val fnr: Fnr,
-    val opprettet: LocalDateTime,
+    override val id: KlagebehandlingId,
+    override val sakId: SakId,
+    override val saksnummer: Saksnummer,
+    override val fnr: Fnr,
+    override val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime,
-    val iverksattTidspunkt: LocalDateTime?,
-    val saksbehandler: String?,
+    override val iverksattTidspunkt: LocalDateTime?,
+    override val saksbehandler: String?,
     val journalpostId: JournalpostId,
     val journalpostOpprettet: LocalDateTime,
     val status: Klagebehandlingsstatus,
     val resultat: Klagebehandlingsresultat?,
     val formkrav: KlageFormkrav,
-
     val avbrutt: Avbrutt?,
-) {
+) : Behandling {
     val brevtekst: Brevtekster? = resultat?.brevtekst
     val erUnderBehandling = status == UNDER_BEHANDLING
     val erKlarTilBehandling = status == KLAR_TIL_BEHANDLING
-    val erAvbrutt = status == AVBRUTT
+    override val erAvbrutt = status == AVBRUTT
     val erIverksatt = status == IVERKSATT
-    val erAvsluttet = erAvbrutt || erIverksatt
+    override val erAvsluttet = erAvbrutt || erIverksatt
     val erÅpen = !erAvsluttet
     val erAvvisning = resultat is Klagebehandlingsresultat.Avvist
     val erOmgjøring = resultat is Klagebehandlingsresultat.Omgjør

@@ -44,7 +44,8 @@ class OpprettKlagebehandlingRouteTest {
                      "avbrutt": null,
                      "kanIverksette": false,
                      "årsak": null,
-                     "begrunnelse": null
+                     "begrunnelse": null,
+                     "rammebehandlingId": null
                    }
                 """.trimIndent(),
             )

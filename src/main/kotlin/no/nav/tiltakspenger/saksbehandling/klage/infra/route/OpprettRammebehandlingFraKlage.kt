@@ -70,7 +70,10 @@ private data class OpprettRammebehandlingFraKlage(
                         Type.REVURDERING_OMGJØRING -> OpprettRevurderingFraKlageKommando.Type.OMGJØRING
                     },
                     correlationId = correlationId,
-                    vedtakIdSomOmgjøres = VedtakId.fromString(vedtakIdSomOmgjøres!!),
+                    vedtakIdSomOmgjøres = when (type) {
+                        Type.REVURDERING_INNVILGELSE -> null
+                        Type.REVURDERING_OMGJØRING -> VedtakId.fromString(vedtakIdSomOmgjøres!!)
+                    },
                 )
             }
         }

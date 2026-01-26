@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
@@ -39,10 +40,12 @@ sealed interface Klagebehandlingsresultat {
 
     /**
      * Grunnen til at dette er et imperativ verb, er at selve klagebehandlingen utfører ikke omgjøringen; det er den følgende rammebehandlingen som gjør.
+     * @param rammebehandlingId Genereres av systemet når klagen omgjøres til en rammebehandling. Vil være null ved f.eks. medhold på klage om tilbakekreving.
      */
     data class Omgjør(
         val årsak: KlageOmgjøringsårsak,
         val begrunnelse: Begrunnelse,
+        val rammebehandlingId: BehandlingId?,
     ) : Klagebehandlingsresultat {
         override val brevtekst = null
         override val kanIverksette: Boolean = true

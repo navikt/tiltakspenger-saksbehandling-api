@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -35,7 +34,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.OpprettRammebehandlingFraKlage]
@@ -62,7 +60,7 @@ interface OpprettRammebehandlingForKlageBuilder {
         type: String = "SØKNADSBEHANDLING_INNVILGELSE",
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Tuple5<Sak, Søknad, Søknadsbehandling, Klagebehandling, KlagebehandlingDTOJson>? {
+    ): Tuple5<Sak, Søknad, Rammebehandling, Klagebehandling, KlagebehandlingDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, klagebehandling, _) = this.iverksettSøknadsbehandlingOgVurderKlagebehandling(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
@@ -76,18 +74,18 @@ interface OpprettRammebehandlingForKlageBuilder {
         ) ?: return null
         val søknadId = søknad.id
         val vedtakIdSomOmgjøres = rammevedtakSøknadsbehandling.id.toString()
-        val (oppdatertSak, søknadsbehandling, oppdatertKlagebehandling, json) = opprettRammebehandlingForKlage(
+        val (oppdatertSak, rammebehandling, oppdatertKlagebehandling, json) = opprettRammebehandlingForKlage(
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandlerKlagebehandling,
-            søknadId = søknadId,
-            vedtakIdSomOmgjøres = vedtakIdSomOmgjøres,
+            søknadId = if (type == "SØKNADSBEHANDLING_INNVILGELSE") søknadId else null,
+            vedtakIdSomOmgjøres = if (type == "REVURDERING_OMGJØRING") vedtakIdSomOmgjøres else null,
             type = type,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
-        return Tuple5(oppdatertSak, søknad, søknadsbehandling as Søknadsbehandling, oppdatertKlagebehandling, json)
+        return Tuple5(oppdatertSak, søknad, rammebehandling, oppdatertKlagebehandling, json)
     }
 
     /**

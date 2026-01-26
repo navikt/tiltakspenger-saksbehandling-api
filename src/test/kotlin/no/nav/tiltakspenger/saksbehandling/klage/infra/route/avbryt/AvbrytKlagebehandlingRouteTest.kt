@@ -45,7 +45,8 @@ class AvbrytKlagebehandlingRouteTest {
                      },
                      "kanIverksette": false,
                      "årsak": null,
-                     "begrunnelse": null
+                     "begrunnelse": null,
+                     "rammebehandlingId": null
                    }
                 """.trimIndent(),
             )
