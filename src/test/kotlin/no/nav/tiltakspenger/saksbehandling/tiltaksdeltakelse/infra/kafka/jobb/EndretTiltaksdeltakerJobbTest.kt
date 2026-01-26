@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
+import arrow.core.right
+import io.kotest.matchers.doubles.exactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearMocks
@@ -15,9 +17,11 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurderingStans
@@ -40,12 +44,13 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class EndretTiltaksdeltakerJobbTest {
+    private val startRevurderingService = mockk<StartRevurderingService>()
     private val oppgaveKlient = mockk<OppgaveKlient>()
     private val oppgaveId = OppgaveId("50")
 
     @BeforeEach
     fun clearMockData() {
-        clearMocks(oppgaveKlient)
+        clearMocks(oppgaveKlient, startRevurderingService)
         coEvery {
             oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                 any(),
@@ -53,6 +58,10 @@ class EndretTiltaksdeltakerJobbTest {
                 any(),
             )
         } returns oppgaveId
+        coEvery { startRevurderingService.startRevurdering(any()) } returns Pair(
+            ObjectMother.nySak(),
+            ObjectMother.nyOpprettetRevurderingStans(),
+        ).right()
     }
 
     @Test
@@ -62,8 +71,14 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                    sakRepo = sakRepo,
+                    oppgaveKlient = oppgaveKlient,
+                    rammebehandlingRepo = behandlingRepo,
+                    clock = testDataHelper.clock,
+                    startRevurderingService = startRevurderingService,
+                )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -89,6 +104,7 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
 
                 coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
+                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
             }
         }
     }
@@ -100,8 +116,14 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                    sakRepo = sakRepo,
+                    oppgaveKlient = oppgaveKlient,
+                    rammebehandlingRepo = behandlingRepo,
+                    clock = testDataHelper.clock,
+                    startRevurderingService = startRevurderingService,
+                )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -123,20 +145,27 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
                 coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
+                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
             }
         }
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - åpen behandling for endret deltaker - oppretter oppgave`() {
+    fun `opprettOppgaveForEndredeDeltakere - åpen behandling for endret deltaker - oppretter oppgave, ikke revurdering`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val clock = TikkendeKlokke()
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                    sakRepo = sakRepo,
+                    oppgaveKlient = oppgaveKlient,
+                    rammebehandlingRepo = behandlingRepo,
+                    clock = testDataHelper.clock,
+                    startRevurderingService = startRevurderingService,
+                )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -183,6 +212,7 @@ class EndretTiltaksdeltakerJobbTest {
                         "Deltakelsen er ikke aktuell.",
                     )
                 }
+                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
             }
         }
     }
@@ -195,8 +225,14 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                    sakRepo = sakRepo,
+                    oppgaveKlient = oppgaveKlient,
+                    rammebehandlingRepo = behandlingRepo,
+                    clock = testDataHelper.clock,
+                    startRevurderingService = startRevurderingService,
+                )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -242,6 +278,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
                 coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
+                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
                 behandlingRepo.hent(behandling.id).venterTil?.toLocalDate() shouldBe 1.januar(2025)
             }
         }
@@ -254,8 +291,14 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                    sakRepo = sakRepo,
+                    oppgaveKlient = oppgaveKlient,
+                    rammebehandlingRepo = behandlingRepo,
+                    clock = testDataHelper.clock,
+                    startRevurderingService = startRevurderingService,
+                )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -296,6 +339,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
                 coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
+                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
             }
         }
     }
@@ -307,8 +351,14 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                    sakRepo = sakRepo,
+                    oppgaveKlient = oppgaveKlient,
+                    rammebehandlingRepo = behandlingRepo,
+                    clock = testDataHelper.clock,
+                    startRevurderingService = startRevurderingService,
+                )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -355,19 +405,26 @@ class EndretTiltaksdeltakerJobbTest {
                             "- Deltakelsen har blitt forlenget",
                     )
                 }
+                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
             }
         }
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, avbrutt - oppretter oppgave`() {
+    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, avbrutt - oppretter oppgave og revurdering`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                    sakRepo = sakRepo,
+                    oppgaveKlient = oppgaveKlient,
+                    rammebehandlingRepo = behandlingRepo,
+                    clock = testDataHelper.clock,
+                    startRevurderingService = startRevurderingService,
+                )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -408,6 +465,7 @@ class EndretTiltaksdeltakerJobbTest {
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
                 coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
+                coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == RevurderingType.STANS }) }
             }
         }
     }
@@ -478,8 +536,14 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val behandlingRepo = testDataHelper.behandlingRepo
-                    val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                    val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                        tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                        sakRepo = sakRepo,
+                        oppgaveKlient = oppgaveKlient,
+                        rammebehandlingRepo = behandlingRepo,
+                        clock = testDataHelper.clock,
+                        startRevurderingService = startRevurderingService,
+                    )
                     val (sakMedFørstegangsvedtak, vedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
                         fnr = fnr,
@@ -509,6 +573,7 @@ class EndretTiltaksdeltakerJobbTest {
                         tiltaksdeltakerKafkaRepository.hent(førsteSøknad.id.toString())
                     oppdatertTiltaksdeltakerKafkaDb shouldBe null
                     coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
+                    coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
                 }
             }
         }
@@ -520,8 +585,14 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val behandlingRepo = testDataHelper.behandlingRepo
-                    val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                    val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                        tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                        sakRepo = sakRepo,
+                        oppgaveKlient = oppgaveKlient,
+                        rammebehandlingRepo = behandlingRepo,
+                        clock = testDataHelper.clock,
+                        startRevurderingService = startRevurderingService,
+                    )
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
                         fnr = fnr,
@@ -555,6 +626,7 @@ class EndretTiltaksdeltakerJobbTest {
                     andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
 
                     coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
+                    coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == RevurderingType.STANS }) }
                 }
             }
         }
@@ -566,8 +638,14 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val behandlingRepo = testDataHelper.behandlingRepo
-                    val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, testDataHelper.clock)
+                    val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                        tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                        sakRepo = sakRepo,
+                        oppgaveKlient = oppgaveKlient,
+                        rammebehandlingRepo = behandlingRepo,
+                        clock = testDataHelper.clock,
+                        startRevurderingService = startRevurderingService,
+                    )
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterRammevedtakAvslag(
                         sakId = sak.id,
                         fnr = fnr,
@@ -601,6 +679,7 @@ class EndretTiltaksdeltakerJobbTest {
                     andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
 
                     coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
+                    coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == RevurderingType.STANS }) }
                 }
             }
         }
@@ -615,8 +694,14 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, clock)
+                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                    sakRepo = sakRepo,
+                    oppgaveKlient = oppgaveKlient,
+                    rammebehandlingRepo = behandlingRepo,
+                    clock = testDataHelper.clock,
+                    startRevurderingService = startRevurderingService,
+                )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -675,8 +760,14 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient, behandlingRepo, clock)
+                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
+                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+                    sakRepo = sakRepo,
+                    oppgaveKlient = oppgaveKlient,
+                    rammebehandlingRepo = behandlingRepo,
+                    clock = testDataHelper.clock,
+                    startRevurderingService = startRevurderingService,
+                )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
