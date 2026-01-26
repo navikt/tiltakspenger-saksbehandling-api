@@ -147,6 +147,7 @@ data class Revurdering(
                 oppdatertBarnetillegg = kommando.barnetillegg,
                 saksopplysninger = saksopplysninger,
                 omgjørRammevedtak = omgjørRammevedtak,
+                nyVedtaksperiode = kommando.vedtaksperiode,
             ),
             utbetaling = utbetaling,
         ).right()

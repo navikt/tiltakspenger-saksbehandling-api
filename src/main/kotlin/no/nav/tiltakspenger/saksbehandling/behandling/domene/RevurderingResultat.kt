@@ -135,6 +135,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
         fun oppdater(
             oppdatertInnvilgelsesperioder: Innvilgelsesperioder,
             oppdatertBarnetillegg: Barnetillegg,
+            nyVedtaksperiode: Periode?,
             omgjørRammevedtak: OmgjørRammevedtak,
             saksopplysninger: Saksopplysninger,
         ): Omgjøring {
@@ -147,7 +148,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
             }
 
             return this.copy(
-                vedtaksperiode = utledNyVedtaksperiode(
+                vedtaksperiode = nyVedtaksperiode ?: utledNyVedtaksperiode(
                     omgjortVedtak.periode,
                     oppdatertInnvilgelsesperioder.totalPeriode,
                 ),

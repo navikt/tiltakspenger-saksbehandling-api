@@ -82,6 +82,9 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse
 
+    /**
+     *  [vedtaksperiode] Hvis null skal hele den gjeldende vedtaksperioden omgjøres
+     * */
     data class Omgjøring(
         override val sakId: SakId,
         override val behandlingId: BehandlingId,
@@ -91,6 +94,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
         override val barnetillegg: Barnetillegg,
+        val vedtaksperiode: Periode?,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse
 }

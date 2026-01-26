@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
@@ -58,8 +59,18 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val begrunnelseVilkårsvurdering: String?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
         val barnetillegg: BarnetilleggDTO,
+        val skalOmgjøreHeleVedtaket: Boolean,
+        val vedtaksperiode: PeriodeDTO?,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
+
+        init {
+            if (skalOmgjøreHeleVedtaket) {
+                require(vedtaksperiode == null) { "vedtaksperiode må være null når skalOmgjøreHeleVedtaket er true" }
+            } else {
+                requireNotNull(vedtaksperiode) { "vedtaksperiode kan ikke være null når skalOmgjøreHeleVedtaket er false" }
+            }
+        }
 
         override fun tilDomene(
             sakId: SakId,
@@ -78,6 +89,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
+                vedtaksperiode = vedtaksperiode?.toDomain(),
             )
         }
     }
@@ -92,8 +104,11 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.STANS
 
         init {
-            if (harValgtStansFraFørsteDagSomGirRett) require(stansFraOgMed == null) { "stansFraOgMed må være null når harValgtStansFraFørsteDagSomGirRett er true" }
-            if (!harValgtStansFraFørsteDagSomGirRett) requireNotNull(stansFraOgMed) { "stansFraOgMed kan ikke være null når harValgtStansFraFørsteDagSomGirRett er false" }
+            if (harValgtStansFraFørsteDagSomGirRett) {
+                require(stansFraOgMed == null) { "stansFraOgMed må være null når harValgtStansFraFørsteDagSomGirRett er true" }
+            } else {
+                requireNotNull(stansFraOgMed) { "stansFraOgMed kan ikke være null når harValgtStansFraFørsteDagSomGirRett er false" }
+            }
         }
 
         override fun tilDomene(

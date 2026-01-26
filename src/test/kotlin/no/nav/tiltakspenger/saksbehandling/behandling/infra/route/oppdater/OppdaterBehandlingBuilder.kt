@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -173,11 +174,14 @@ interface OppdaterBehandlingBuilder {
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        vedtaksperiode: Periode? = null,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
             {
               "resultat": "OMGJØRING",
+              "vedtaksperiode": ${vedtaksperiode?.let {serialize(it)}},
+              "skalOmgjøreHeleVedtaket": ${vedtaksperiode == null},
               ${
             innvilgelseJson(
                 innvilgelsesperioder,
