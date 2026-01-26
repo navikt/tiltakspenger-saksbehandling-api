@@ -52,10 +52,33 @@ data class Innvilgelsesperioder(
     }
 
     /**
-     * @return [Innvilgelsesperioder] med oppdaterte perioder som overlapper med [tiltaksdeltakelser]
+     * @return [Innvilgelsesperioder] med oppdaterte perioder som overlapper med [perioder]
      * eller null dersom ingen overlapper
      * */
-    fun krympTilTiltaksdeltakelsesperioder(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilgelsesperioder? {
+    fun krymp(perioder: List<Periode>): Innvilgelsesperioder? {
+        val nyeInnvilgelsesperioder = periodisering.perioderMedVerdi.toList().flatMap {
+            it.periode.overlappendePerioder(perioder).map { periode ->
+                PeriodeMedVerdi(
+                    verdi = it.verdi,
+                    periode = periode,
+                )
+            }
+        }
+
+        if (nyeInnvilgelsesperioder.isEmpty()) {
+            return null
+        }
+
+        return Innvilgelsesperioder(
+            nyeInnvilgelsesperioder.tilIkkeTomPeriodisering(),
+        )
+    }
+
+    /**
+     * @return [Innvilgelsesperioder] med oppdaterte tiltaksdeltakelser, for innvilgelsesperioder som overlapper med perioder fra [tiltaksdeltakelser]
+     * eller null dersom ingen overlapper
+     * */
+    fun oppdaterTiltaksdeltakelser(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilgelsesperioder? {
         val nyeInnvilgelsesperioder = periodisering.perioderMedVerdi.mapNotNull {
             val oppdatertTiltaksdeltakelse =
                 tiltaksdeltakelser.getTiltaksdeltakelse(it.verdi.valgtTiltaksdeltakelse.internDeltakelseId)

@@ -37,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import org.intellij.lang.annotations.Language
 import org.json.JSONObject
 
 interface StartRevurderingBuilder {
@@ -218,6 +219,7 @@ interface StartRevurderingBuilder {
         rammevedtakIdSomOmgjøres: VedtakId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        @Language("JSON") forventetJsonBody: String? = null,
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
         return startRevurderingForSakId(
             tac = tac,
@@ -226,6 +228,7 @@ interface StartRevurderingBuilder {
             rammevedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres,
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
         )
     }
 

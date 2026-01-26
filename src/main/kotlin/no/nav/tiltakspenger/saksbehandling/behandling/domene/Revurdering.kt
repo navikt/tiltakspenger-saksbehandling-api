@@ -131,6 +131,7 @@ data class Revurdering(
     fun oppdaterOmgjøring(
         kommando: OppdaterRevurderingKommando.Omgjøring,
         utbetaling: BehandlingUtbetaling?,
+        omgjørRammevedtak: OmgjørRammevedtak,
         clock: Clock,
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
@@ -145,6 +146,7 @@ data class Revurdering(
                 oppdatertInnvilgelsesperioder = kommando.tilInnvilgelseperioder(this),
                 oppdatertBarnetillegg = kommando.barnetillegg,
                 saksopplysninger = saksopplysninger,
+                omgjørRammevedtak = omgjørRammevedtak,
             ),
             utbetaling = utbetaling,
         ).right()

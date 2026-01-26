@@ -80,7 +80,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         gjeldendeInnvilgetPerioder = this.gjeldendeInnvilgetPerioder.map { it.toDTO() },
         erGjeldende = this.erGjeldende,
         gyldigeKommandoer = this.gyldigeKommandoer.toDTO(),
-        omgjortGrad = this.omgjortAvRammevedtak.omgjøringsgrad?.tilDTO(),
+        omgjortGrad = this.omgjortGrad?.tilDTO(),
     )
 }
 

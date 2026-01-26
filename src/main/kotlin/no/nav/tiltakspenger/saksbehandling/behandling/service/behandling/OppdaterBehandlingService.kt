@@ -99,7 +99,7 @@ class OppdaterBehandlingService(
                     behandlingId = kommando.behandlingId,
                     vedtaksperiode = RevurderingResultat.Omgjøring.utledNyVedtaksperiode(
                         (behandling.resultat as RevurderingResultat.Omgjøring).vedtaksperiode,
-                        innvilgelsesperioder,
+                        innvilgelsesperioder.totalPeriode,
                     ),
                     innvilgelsesperioder = innvilgelsesperioder,
                     barnetilleggsperioder = kommando.barnetillegg.periodisering,
@@ -169,10 +169,22 @@ class OppdaterBehandlingService(
 
         return when (kommando) {
             is OppdaterRevurderingKommando.Omgjøring -> {
+                val nyVedtaksperiode = RevurderingResultat.Omgjøring.utledNyVedtaksperiode(
+                    revurdering.omgjørRammevedtak.totalPeriode!!,
+                    kommando.innvilgelsesperioder.totalPeriode,
+                )
+
+                val rammevedtakSomOmgjøres = this.vedtaksliste.finnRammevedtakSomOmgjøres(nyVedtaksperiode)
+
+                if (rammevedtakSomOmgjøres.rammevedtakIDer.size > 1) {
+                    return KanIkkeOppdatereBehandling.KanIkkeOmgjøreFlereVedtak.left()
+                }
+
                 revurdering.oppdaterOmgjøring(
                     kommando = kommando,
                     utbetaling = utbetaling,
                     clock = clock,
+                    omgjørRammevedtak = this.vedtaksliste.finnRammevedtakSomOmgjøres(nyVedtaksperiode),
                 )
             }
 
@@ -218,7 +230,8 @@ class OppdaterBehandlingService(
             is OppdaterRevurderingKommando.Innvilgelse,
             is OppdaterSøknadsbehandlingKommando.Innvilgelse,
             -> {
-                val eksisterendeInnvilgetPerioder = innvilgetTidslinje.krymp(kommando.innvilgelsesperioder.totalPeriode).perioder
+                val eksisterendeInnvilgetPerioder =
+                    innvilgetTidslinje.krymp(kommando.innvilgelsesperioder.totalPeriode).perioder
 
                 val perioderSomOpphøres = eksisterendeInnvilgetPerioder.trekkFra(kommando.innvilgelsesperioder.perioder)
 

@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.libs.periodisering.leggSammen
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -71,6 +72,14 @@ data class Rammevedtak(
 
     val resultat: BehandlingResultat = behandling.resultat!!
 
+    val omgjortGrad: Omgjøringsgrad? by lazy {
+        if (omgjortAvRammevedtak.isEmpty()) {
+            return@lazy null
+        }
+
+        if (periode.trekkFra(omgjortAvRammevedtak.perioder).isEmpty()) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS
+    }
+
     val omgjørRammevedtak: OmgjørRammevedtak by lazy { behandling.resultat!!.omgjørRammevedtak }
 
     /** Er dette en omgjøringsbehandling? */
@@ -122,6 +131,12 @@ data class Rammevedtak(
         }
     }
 
+    val gjeldendeTotalPeriode: Periode? by lazy {
+        gjeldendePerioder.toNonEmptyListOrNull()?.let {
+            it.first().fraOgMed til it.last().tilOgMed
+        }
+    }
+
     /** Merk at et vedtak fremdeles er gjeldende dersom det er delvis omgjort. Avslag anses ikke som gjeldende. */
     val erGjeldende: Boolean by lazy {
         gjeldendePerioder.isNotEmpty()
@@ -153,13 +168,18 @@ data class Rammevedtak(
     }
 
     /**
-     * Krever at vedtaket er gjeldende i sin helhet.
-     * Kan kun omgjøres helt, ikke delvis.
+     * Krever at vedtaket har en sammenhengende gjeldende periode
      */
     val gyldigOmgjøringskommando: Rammevedtakskommando.Omgjør? by lazy {
-        if (omgjortAvRammevedtak.isNotEmpty()) return@lazy null
-        if (erAvslag) return@lazy null
-        Rammevedtakskommando.Omgjør(tvungenOmgjøringsperiode = periode)
+        if (gjeldendePerioder.size != 1) {
+            return@lazy null
+        }
+
+        if (erAvslag) {
+            return@lazy null
+        }
+
+        Rammevedtakskommando.Omgjør(tvungenOmgjøringsperiode = gjeldendePerioder.single())
     }
 
     /**

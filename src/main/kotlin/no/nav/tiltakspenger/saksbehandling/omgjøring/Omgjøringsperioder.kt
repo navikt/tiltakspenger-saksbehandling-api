@@ -18,12 +18,18 @@ data class Omgjøringsperioder(
         val empty: Omgjøringsperioder = Omgjøringsperioder(emptyList())
 
         fun create(omgjørRammevedtak: Rammevedtak): Omgjøringsperioder {
+            val periodeSomOmgjøres = omgjørRammevedtak.gjeldendeTotalPeriode
+
+            requireNotNull(periodeSomOmgjøres) {
+                "Vedtaket som omgjøres må ha en gjeldende periode - ${omgjørRammevedtak.id}"
+            }
+
             return Omgjøringsperioder(
                 listOf(
                     Omgjøringsperiode(
                         rammevedtakId = omgjørRammevedtak.id,
-                        periode = omgjørRammevedtak.periode,
-                        omgjøringsgrad = Omgjøringsgrad.HELT,
+                        periode = periodeSomOmgjøres,
+                        omgjøringsgrad = if (periodeSomOmgjøres == omgjørRammevedtak.periode) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS,
                     ),
                 ),
             )

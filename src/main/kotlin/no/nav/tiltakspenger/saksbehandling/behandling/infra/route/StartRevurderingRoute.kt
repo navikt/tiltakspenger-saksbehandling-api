@@ -86,6 +86,14 @@ internal fun KunneIkkeStarteRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusC
                     "kan_kun_starte_omgjøring_dersom_vi_kan_innvilge_minst_1_dag",
                 ),
             )
+
+            KunneIkkeOppretteOmgjøring.PerioderSomOmgjøresMåVæreSammenhengede -> Pair(
+                HttpStatusCode.BadRequest,
+                ErrorJson(
+                    "Kan foreløpig ikke omgjøre vedtak som ikke har en sammenhengede gjeldende periode",
+                    "perioder_som_omgjøres_må_være_sammenhengende",
+                ),
+            )
         }
     }
 

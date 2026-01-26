@@ -53,7 +53,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
     """.trimIndent(),
     vedtaksdato: String? = null,
     omgjortGrad: String? = null,
-    omgjøringskommando: String? = if (gjeldendeVedtaksperioder.size != 1 || opprinneligVedtaksperiode != gjeldendeVedtaksperioder.single()) {
+    omgjøringskommando: String? = if (gjeldendeVedtaksperioder.size != 1) {
         null
     } else {
         """"OMGJØR": {
