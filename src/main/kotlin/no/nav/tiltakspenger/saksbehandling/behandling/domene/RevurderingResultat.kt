@@ -6,11 +6,9 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.overlappendePerioder
-import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
-import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
@@ -194,7 +192,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
             ): Either<KunneIkkeOppretteOmgjøring, Omgjøring> {
                 // TODO abn: tillater foreløpig ikke å omgjøre vedtak med hull (dvs vedtaket har allerede blitt omgjort "i midten")
                 // Når vi har gitt saksbehandler mulighet til å velge vedtaksperiode kan denne restriksjonen fjernes/flyttes til oppdatering
-                if (omgjørRammevedtak.gjeldendePerioder.size > 1) {
+                if (omgjørRammevedtak.gjeldendePerioder.size != 1) {
                     return KunneIkkeOppretteOmgjøring.PerioderSomOmgjøresMåVæreSammenhengede.left()
                 }
 
@@ -215,9 +213,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
 
                 return Omgjøring(
                     // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.
-                    vedtaksperiode = omgjørRammevedtak.gjeldendePerioder.let {
-                        it.first().fraOgMed til it.last().tilOgMed
-                    },
+                    vedtaksperiode = omgjørRammevedtak.gjeldendePerioder.single(),
                     // Hvis vedtaket vi omgjør er en delvis innvilgelse, så bruker vi denne.
                     innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = barnetillegg,
