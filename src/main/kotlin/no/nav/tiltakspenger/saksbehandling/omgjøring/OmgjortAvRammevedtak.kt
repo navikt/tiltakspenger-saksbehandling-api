@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.omgjøring
 
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import java.time.LocalDate
 
 data class OmgjortAvRammevedtak(
@@ -26,9 +25,6 @@ data class OmgjortAvRammevedtak(
     val fraOgMed: LocalDate? = omgjøringsperioder.fraOgMed
     val tilOgMed: LocalDate? = omgjøringsperioder.tilOgMed
     val totalPeriode: Periode? = omgjøringsperioder.totalPeriode
-
-    // Alle omgjøringsperioder skal ha samme omgjøringsgrad
-    val omgjøringsgrad: Omgjøringsgrad? = omgjøringsperioder.firstOrNull()?.omgjøringsgrad
 
     fun leggTil(omgjøringsperioder: List<Omgjøringsperiode>): OmgjortAvRammevedtak {
         return OmgjortAvRammevedtak(

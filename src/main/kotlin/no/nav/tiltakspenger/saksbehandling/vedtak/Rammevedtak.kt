@@ -72,6 +72,14 @@ data class Rammevedtak(
 
     val resultat: BehandlingResultat = behandling.resultat!!
 
+    val omgjortGrad: Omgjøringsgrad? by lazy {
+        if (omgjortAvRammevedtak.isEmpty()) {
+            return@lazy null
+        }
+
+        if (periode.trekkFra(omgjortAvRammevedtak.perioder).isEmpty()) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS
+    }
+
     val omgjørRammevedtak: OmgjørRammevedtak by lazy { behandling.resultat!!.omgjørRammevedtak }
 
     /** Er dette en omgjøringsbehandling? */
@@ -160,13 +168,18 @@ data class Rammevedtak(
     }
 
     /**
-     * Krever at vedtaket er gjeldende i sin helhet.
-     * Kan kun omgjøres helt, ikke delvis.
+     * Krever at vedtaket har en sammenhengende gjeldende periode
      */
     val gyldigOmgjøringskommando: Rammevedtakskommando.Omgjør? by lazy {
-        if (omgjortAvRammevedtak.isNotEmpty()) return@lazy null
-        if (erAvslag) return@lazy null
-        Rammevedtakskommando.Omgjør(tvungenOmgjøringsperiode = periode)
+        if (gjeldendePerioder.size != 1) {
+            return@lazy null
+        }
+
+        if (erAvslag) {
+            return@lazy null
+        }
+
+        Rammevedtakskommando.Omgjør(tvungenOmgjøringsperiode = gjeldendePerioder.single())
     }
 
     /**
