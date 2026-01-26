@@ -161,6 +161,7 @@ open class ApplicationContext(
             oppgaveKlient = oppgaveKlient,
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             clock = clock,
+            startRevurderingService = behandlingContext.startRevurderingService,
         )
     }
 

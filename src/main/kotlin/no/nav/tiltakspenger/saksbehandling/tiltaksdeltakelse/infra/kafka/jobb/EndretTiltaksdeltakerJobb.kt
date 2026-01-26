@@ -1,15 +1,22 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
@@ -22,6 +29,7 @@ class EndretTiltaksdeltakerJobb(
     private val oppgaveKlient: OppgaveKlient,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
+    private val startRevurderingService: StartRevurderingService,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -56,6 +64,11 @@ class EndretTiltaksdeltakerJobb(
 
                     val endringer = finnEndringer(apneManuelleBehandlinger, nyesteIverksatteBehandling, deltaker)
                     if (endringer.isNotEmpty()) {
+                        log.info { "Tiltaksdeltakelse $deltakerId er endret" }
+                        if (skalOppretteRevurderingStans(apneManuelleBehandlinger.isNotEmpty(), endringer)) {
+                            log.info { "Skal opprette revurdering stans for tiltaksdeltakelse $deltakerId, sakId $sakId" }
+                            startRevurdering(sakId)
+                        }
                         log.info { "Tiltaksdeltakelse $deltakerId er endret, oppretter oppgave" }
                         val oppgaveId =
                             oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
@@ -160,5 +173,28 @@ class EndretTiltaksdeltakerJobb(
             internDeltakelseId = deltaker.tiltaksdeltakerId,
         ) ?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id} på behandling ${behandling.id}, skal ikke kunne skje")
         return deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling, clock = clock)
+    }
+
+    private fun skalOppretteRevurderingStans(harApneBehandlinger: Boolean, endringer: List<TiltaksdeltakerEndring>): Boolean {
+        if (harApneBehandlinger) {
+            return false
+        }
+        return endringer.any { it == TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE }
+    }
+
+    private suspend fun startRevurdering(sakId: SakId) {
+        val kommando = StartRevurderingKommando(
+            sakId = sakId,
+            correlationId = CorrelationId.generate(),
+            saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+            revurderingType = RevurderingType.STANS,
+            vedtakIdSomOmgjøres = null,
+            klagebehandlingId = null,
+        )
+        val (_, revurdering) = startRevurderingService.startRevurdering(kommando).getOrElse {
+            log.error { "Kunne ikke opprette revurdering for sakId $sakId" }
+            throw RuntimeException("Kunne ikke opprette revurdering")
+        }
+        log.info { "Opprettet revurdering med id ${revurdering.id}" }
     }
 }

@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkOversiktPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
@@ -35,8 +36,7 @@ internal class TestDataHelper(
     private val sessionCounter = SessionCounter(log)
     val sessionFactory = PostgresSessionFactory(dataSource, sessionCounter)
     val søknadRepo = SøknadPostgresRepo(sessionFactory)
-    val behandlingRepo =
-        no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo(sessionFactory, clock)
+    val behandlingRepo = RammebehandlingPostgresRepo(sessionFactory, clock)
     val vedtakRepo = RammevedtakPostgresRepo(sessionFactory)
     val sakRepo = SakPostgresRepo(sessionFactory, saksnummerGenerator, clock)
     val statistikkSakRepo = StatistikkSakPostgresRepo(sessionFactory)
