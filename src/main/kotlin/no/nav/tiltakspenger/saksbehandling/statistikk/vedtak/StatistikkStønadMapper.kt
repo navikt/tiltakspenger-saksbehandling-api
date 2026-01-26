@@ -54,7 +54,7 @@ fun genererStønadsstatistikkForRammevedtak(
         } else {
             null
         },
-        omgjørRammevedtak = vedtak.resultat.omgjørRammevedtak.rammevedtakIDer.map { it.toString() },
+        omgjørRammevedtak = vedtak.resultat.omgjørRammevedtak.tilStatistikk(),
         ytelse = "IND",
 
         søknadId = søknad?.id?.toString(),
