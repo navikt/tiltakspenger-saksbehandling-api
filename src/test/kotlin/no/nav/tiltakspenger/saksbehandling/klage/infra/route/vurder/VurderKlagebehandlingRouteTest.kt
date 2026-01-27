@@ -39,7 +39,7 @@ class VurderKlagebehandlingRouteTest {
                   "erKlagenSignert": true,
                   "brevtekst": [],
                   "avbrutt": null,
-                  "kanIverksette": true,
+                  "kanIverksette": false,
                   "årsak": "PROSESSUELL_FEIL",
                   "begrunnelse": "Begrunnelse for omgjøring",
                   "rammebehandlingId": null

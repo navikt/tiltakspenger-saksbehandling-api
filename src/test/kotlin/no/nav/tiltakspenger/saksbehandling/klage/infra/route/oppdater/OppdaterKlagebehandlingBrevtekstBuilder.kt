@@ -41,7 +41,7 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
     suspend fun ApplicationTestBuilder.opprettSakOgOppdaterKlagebehandlingBrevtekst(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         brevtekst: List<TittelOgTekst> = listOf(
             TittelOgTekst(
                 tittel = NonBlankString.create("Avvisning av klage"),
@@ -73,7 +73,7 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         brevtekst: List<TittelOgTekst> = listOf(
             TittelOgTekst(
                 tittel = NonBlankString.create("Avvisning av klage"),

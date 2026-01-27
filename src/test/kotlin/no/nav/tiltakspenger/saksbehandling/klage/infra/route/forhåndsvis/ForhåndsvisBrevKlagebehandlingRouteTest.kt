@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 
 class ForhåndsvisBrevKlagebehandlingRouteTest {
     @Test
-    fun `kan oppdatere klagebehandling - formkrav`() {
+    fun `kan forhåndsvise klagebehandling til avvisning `() {
         withTestApplicationContext { tac ->
             opprettSakOgForhåndsvisKlagebehandlingsbrev(
                 tac = tac,

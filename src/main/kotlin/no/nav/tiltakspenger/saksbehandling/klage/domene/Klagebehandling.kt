@@ -252,10 +252,14 @@ data class Klagebehandling(
         kommando: IverksettKlagebehandlingKommando,
         clock: Clock,
     ): Either<KanIkkeIverksetteKlagebehandling, Klagebehandling> {
-        require(kanIverksette) {
-            "Klagebehandling kan ikke iverksettes: $kanIkkeIverksetteGrunner. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+        if (!erUnderBehandling) {
+            return KanIkkeIverksetteKlagebehandling.MåHaStatusUnderBehandling(status.toString()).left()
         }
-        if (saksbehandler != kommando.saksbehandler.navIdent) {
+        if (!erAvvisning) return KanIkkeIverksetteKlagebehandling.MåHaResultatAvvisning(resultat.toString()).left()
+        if (!(resultat as Klagebehandlingsresultat.Avvist).kanIverksette) {
+            return KanIkkeIverksetteKlagebehandling.AndreGrunner(kanIkkeIverksetteGrunner).left()
+        }
+        if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
             return KanIkkeIverksetteKlagebehandling.SaksbehandlerMismatch(
                 forventetSaksbehandler = this.saksbehandler!!,
                 faktiskSaksbehandler = kommando.saksbehandler.navIdent,

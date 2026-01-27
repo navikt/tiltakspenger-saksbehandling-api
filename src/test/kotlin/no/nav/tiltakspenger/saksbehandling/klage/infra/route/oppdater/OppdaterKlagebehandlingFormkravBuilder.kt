@@ -38,7 +38,7 @@ interface OppdaterKlagebehandlingFormkravBuilder {
     suspend fun ApplicationTestBuilder.opprettSakOgOppdaterKlagebehandlingFormkrav(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         journalpostId: JournalpostId = JournalpostId("12345"),
         vedtakDetKlagesPå: VedtakId? = null,
         erKlagerPartISaken: Boolean = true,
@@ -77,7 +77,7 @@ interface OppdaterKlagebehandlingFormkravBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         journalpostId: JournalpostId = JournalpostId("12345"),
         vedtakDetKlagesPå: VedtakId? = null,
         erKlagerPartISaken: Boolean = true,

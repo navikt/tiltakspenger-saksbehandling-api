@@ -83,6 +83,28 @@ private fun KanIkkeIverksetteKlagebehandling.toStatusAndErrorJson(): Pair<HttpSt
                 this.forventetSaksbehandler,
             ),
         )
+
+        is KanIkkeIverksetteKlagebehandling.AndreGrunner -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Kan ikke iverksette behandling på grunn av: ${this.årsak.joinToString(", ")}",
+                "kan_ikke_iverksette_behandling",
+            ),
+        )
+        is KanIkkeIverksetteKlagebehandling.MåHaResultatAvvisning -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Kan kun iverksette klagebehandling med resultat AVVIST",
+                "må_ha_resultat_avvisning",
+            ),
+        )
+        is KanIkkeIverksetteKlagebehandling.MåHaStatusUnderBehandling -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Kan kun iverksette klagebehandling med status UNDER_BEHANDLING",
+                "må_ha_status_under_behandling",
+            ),
+        )
     }
 }
 

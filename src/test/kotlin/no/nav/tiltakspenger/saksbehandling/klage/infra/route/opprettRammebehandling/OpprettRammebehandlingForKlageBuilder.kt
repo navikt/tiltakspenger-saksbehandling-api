@@ -98,7 +98,7 @@ interface OpprettRammebehandlingForKlageBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         søknadId: SøknadId? = null,
         vedtakIdSomOmgjøres: String?,
         type: String,

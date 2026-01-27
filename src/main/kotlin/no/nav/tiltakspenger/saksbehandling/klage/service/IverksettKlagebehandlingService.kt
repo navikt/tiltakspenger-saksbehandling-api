@@ -21,6 +21,10 @@ class IverksettKlagebehandlingService(
     private val klagevedtakRepo: KlagevedtakRepo,
     private val sessionFactory: SessionFactory,
 ) {
+    /**
+     * Skal i utgangspunktet kun iverksette avviste klager.
+     * Når vi skal iverksette en rammebehandling fra klage, så må vi vurdere om vi skal lage et vedtak eller om vi kun skal ferdigstille klagebehandlingen uten vedtak.
+     */
     suspend fun iverksett(
         kommando: IverksettKlagebehandlingKommando,
     ): Either<KanIkkeIverksetteKlagebehandling, Pair<Sak, Klagevedtak>> {

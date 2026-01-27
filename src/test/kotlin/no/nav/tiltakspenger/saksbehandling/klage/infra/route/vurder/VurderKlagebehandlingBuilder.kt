@@ -14,13 +14,10 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -29,7 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OmgjørKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandling
@@ -43,7 +39,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 interface VurderKlagebehandlingBuilder {
     /** 1. Oppretter ny sak
      *  2. Starter klagebehandling med godkjente formkrav
-     *  3. Oppdaterer formkrav
+     *  3. Vurderer klagebehandling (default til omgjøring)
      */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling(
         tac: TestApplicationContext,
@@ -89,7 +85,7 @@ interface VurderKlagebehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         begrunnelse: Begrunnelse,
         årsak: KlageOmgjøringsårsak,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,

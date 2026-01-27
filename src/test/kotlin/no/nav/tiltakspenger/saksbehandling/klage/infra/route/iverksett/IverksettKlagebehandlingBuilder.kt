@@ -38,7 +38,7 @@ interface IverksettKlagebehandlingBuilder {
     suspend fun ApplicationTestBuilder.opprettSakOgIverksettKlagebehandling(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagevedtak, KlagebehandlingDTOJson>? {
@@ -65,7 +65,7 @@ interface IverksettKlagebehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagevedtak, KlagebehandlingDTOJson>? {

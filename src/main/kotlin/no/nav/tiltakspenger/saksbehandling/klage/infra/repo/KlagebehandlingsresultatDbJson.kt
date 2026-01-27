@@ -34,7 +34,7 @@ private data class KlagebehandlingsresultatDbJson(
             KlagebehandlingsresultatDbEnum.OMGJØR -> Omgjør(
                 årsak = omgjørÅrsak!!.toDomain(),
                 begrunnelse = Begrunnelse.create(omgjørBegrunnelse!!)!!,
-                rammebehandlingId = BehandlingId.fromString(rammebehandlingId!!),
+                rammebehandlingId = rammebehandlingId?.let { BehandlingId.fromString(it) },
             )
         }
     }

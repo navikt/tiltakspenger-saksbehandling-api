@@ -32,12 +32,12 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 interface ForhåndsvisBrevKlagebehandlingBuilder {
     /** 1. Oppretter ny sak
      *  2. Starter klagebehandling til avvisning
-     *  3. Oppdaterer formkrav
+     *  3. Genererer vedtaksbrev for forhåndsvisning
      */
     suspend fun ApplicationTestBuilder.opprettSakOgForhåndsvisKlagebehandlingsbrev(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetPdf: PdfA? = null,
     ): Triple<Sak, Klagebehandling, PdfA>? {
@@ -65,7 +65,7 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         tekstTilVedtaksbrev: List<TittelOgTekst> = listOf(
             TittelOgTekst(
                 tittel = NonBlankString.create("Avvisning av klage"),

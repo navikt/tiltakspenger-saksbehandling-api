@@ -33,7 +33,7 @@ class KlagebehandlingPostgresRepoTest {
                 status = Klagebehandlingsstatus.UNDER_BEHANDLING,
                 journalpostId = JournalpostId("12345"),
                 journalpostOpprettet = klagebehandling.journalpostOpprettet,
-                saksbehandler = "Z12345",
+                saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = Klagebehandlingsresultat.Avvist(
                     Brevtekster(
                         listOf(

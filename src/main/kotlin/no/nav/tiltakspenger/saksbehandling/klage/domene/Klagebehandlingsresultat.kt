@@ -51,7 +51,9 @@ sealed interface Klagebehandlingsresultat {
         val rammebehandlingId: BehandlingId?,
     ) : Klagebehandlingsresultat {
         override val brevtekst = null
-        override val kanIverksette: Boolean = true
+
+        /** */
+        override val kanIverksette: Boolean = false
         override val kanIkkeIverksetteGrunner: List<String> = emptyList()
 
         override val erKnyttetTilRammebehandling = rammebehandlingId != null

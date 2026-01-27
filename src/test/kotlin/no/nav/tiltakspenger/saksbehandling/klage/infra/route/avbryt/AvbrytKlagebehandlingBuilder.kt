@@ -36,7 +36,7 @@ interface AvbrytKlagebehandlingBuilder {
     suspend fun ApplicationTestBuilder.opprettSakOgAvbrytKlagebehandling(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
