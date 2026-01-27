@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -47,9 +48,13 @@ class BehandleSøknadPåNyttService(
                 skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
-            tx.onSuccess {
-                MetricRegister.STARTET_BEHANDLING.inc()
-                MetricRegister.SØKNAD_BEHANDLET_PÅ_NYTT.inc()
+            // TODO jah: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
+            @Suppress("RunBlockingInSuspendFunction")
+            runBlocking {
+                tx.onSuccess {
+                    MetricRegister.STARTET_BEHANDLING.inc()
+                    MetricRegister.SØKNAD_BEHANDLET_PÅ_NYTT.inc()
+                }
             }
         }
         return (oppdatertSak to søknadsbehandling)

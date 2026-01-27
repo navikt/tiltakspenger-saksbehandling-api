@@ -11,8 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
-import org.testcontainers.containers.PostgreSQLContainer
-import java.time.Clock
+import org.testcontainers.postgresql.PostgreSQLContainer
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.sql.DataSource
@@ -23,8 +22,8 @@ internal class TestDatabaseManager {
 
     private val log = KotlinLogging.logger {}
 
-    private val postgres: PostgreSQLContainer<Nothing> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        PostgreSQLContainer<Nothing>("postgres:17-alpine").apply {
+    private val postgres: PostgreSQLContainer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        PostgreSQLContainer("postgres:17-alpine").apply {
             withCommand("postgres", "-c", "wal_level=logical")
             start()
         }

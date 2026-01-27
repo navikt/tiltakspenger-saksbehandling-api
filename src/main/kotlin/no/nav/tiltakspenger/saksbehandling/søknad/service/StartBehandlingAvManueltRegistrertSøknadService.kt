@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -111,9 +112,13 @@ class StartBehandlingAvManueltRegistrertSøknadService(
                 skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
-            tx.onSuccess {
-                MetricRegister.STARTET_BEHANDLING.inc()
-                MetricRegister.MOTTATT_MANUELT_REGISTRERT_SOKNAD.inc()
+            // TODO jah: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
+            @Suppress("RunBlockingInSuspendFunction")
+            runBlocking {
+                tx.onSuccess {
+                    MetricRegister.STARTET_BEHANDLING.inc()
+                    MetricRegister.MOTTATT_MANUELT_REGISTRERT_SOKNAD.inc()
+                }
             }
         }
         return (oppdatertSak to søknadsbehandling)

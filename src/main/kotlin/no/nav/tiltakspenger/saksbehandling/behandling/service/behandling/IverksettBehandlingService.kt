@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -123,7 +124,10 @@ class IverksettBehandlingService(
                     )
                     rammevedtakRepo.lagre(vedtak, tx)
                     statistikkSakRepo.lagre(sakStatistikk, tx)
-                    tx.onSuccess { MetricRegister.IVERKSATT_BEHANDLING.inc() }
+                    // TODO jah: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
+                    runBlocking {
+                        tx.onSuccess { MetricRegister.IVERKSATT_BEHANDLING.inc() }
+                    }
                 }
                 this
             }
@@ -179,7 +183,10 @@ class IverksettBehandlingService(
                     tx,
                 )
             }
-            tx.onSuccess { MetricRegister.IVERKSATT_BEHANDLING.inc() }
+            // TODO jah: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
+            runBlocking {
+                tx.onSuccess { MetricRegister.IVERKSATT_BEHANDLING.inc() }
+            }
         }
         return sakOppdatertMedMeldekortbehandlinger
     }
