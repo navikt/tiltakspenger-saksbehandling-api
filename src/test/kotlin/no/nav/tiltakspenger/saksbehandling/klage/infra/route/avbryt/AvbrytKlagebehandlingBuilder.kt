@@ -28,11 +28,12 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 interface AvbrytKlagebehandlingBuilder {
-    /** 1. Oppretter ny sak
-     *  2. Starter klagebehandling til avvisning
-     *  3. Avbryter
+    /**
+     * 1. Oppretter ny sak
+     * 2. Starter klagebehandling til avvisning
+     * 3. Avbryter
      */
-    suspend fun ApplicationTestBuilder.opprettSakOgavbrytKlagebehandling(
+    suspend fun ApplicationTestBuilder.opprettSakOgAvbrytKlagebehandling(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
@@ -44,7 +45,7 @@ interface AvbrytKlagebehandlingBuilder {
             saksbehandler = saksbehandler,
             fnr = fnr,
         ) ?: return null
-        return oppdaterKlagebehandlingFormkravForSakId(
+        return avbrytKlagebehandling(
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
@@ -54,12 +55,16 @@ interface AvbrytKlagebehandlingBuilder {
         )
     }
 
-    /** Forventer at det allerede finnes en sak. */
-    suspend fun ApplicationTestBuilder.oppdaterKlagebehandlingFormkravForSakId(
+    /**
+     * Forventer at det allerede finnes en sak og en åpen klagebehandling.
+     * Merk at klagen ikke må være tilknyttet en åpen rammebehandling, da må den avbrytes først.
+     */
+    suspend fun ApplicationTestBuilder.avbrytKlagebehandling(
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        begrunnelse: String = "begrunnelse for avbryt klagebehandling",
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
@@ -73,7 +78,7 @@ interface AvbrytKlagebehandlingBuilder {
             },
             jwt = jwt,
         ) {
-            setBody("""{"begrunnelse": "oppdaterKlagebehandlingFormkravForSakId"}""")
+            setBody("""{"begrunnelse": "$begrunnelse"}""")
         }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(
@@ -86,9 +91,9 @@ interface AvbrytKlagebehandlingBuilder {
                 bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
-            val sakJSon = objectMapper.readTree(bodyAsText)
+            val sakJson = objectMapper.readTree(bodyAsText)
 
-            val klagebehandling = sakJSon.get("klageBehandlinger").single {
+            val klagebehandling: KlagebehandlingDTOJson = sakJson.get("klageBehandlinger").single {
                 it.get("id").asText() == klagebehandlingId.toString()
             }
 

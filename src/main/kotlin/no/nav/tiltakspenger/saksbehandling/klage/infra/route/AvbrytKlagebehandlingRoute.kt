@@ -6,6 +6,7 @@ import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.tiltakspenger.libs.common.NonBlankString
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -65,6 +66,14 @@ fun Route.avbrytKlagebehandlingRoute(
                                         HttpStatusCode.BadRequest,
                                         behandlingenEiesAvAnnenSaksbehandler(
                                             it.forventetSaksbehandler,
+                                        ),
+                                    )
+
+                                    is KanIkkeAvbryteKlagebehandling.KnyttetTilIkkeAvbruttRammebehandling -> Pair(
+                                        HttpStatusCode.BadRequest,
+                                        ErrorJson(
+                                            "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: ${it.rammebehandlingId}",
+                                            "knyttet_til_ikke_avbrutt_rammebehandling",
                                         ),
                                     )
                                 },

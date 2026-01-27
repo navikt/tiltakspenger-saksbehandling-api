@@ -11,6 +11,8 @@ sealed interface Klagebehandlingsresultat {
     val kanIverksette: Boolean
     val kanIkkeIverksetteGrunner: List<String>
 
+    val erKnyttetTilRammebehandling: Boolean
+
     /**
      * Merk at en avvisning ikke er det samme som et avslag.
      * Det er et vedtak som kan klages på.
@@ -24,6 +26,7 @@ sealed interface Klagebehandlingsresultat {
             if (brevtekst.isNullOrEmpty()) grunner.add("Må ha minst et element i brevtekst")
             grunner
         }
+        override val erKnyttetTilRammebehandling = false
 
         fun oppdaterBrevtekst(
             brevtekst: Brevtekster,
@@ -50,5 +53,13 @@ sealed interface Klagebehandlingsresultat {
         override val brevtekst = null
         override val kanIverksette: Boolean = true
         override val kanIkkeIverksetteGrunner: List<String> = emptyList()
+
+        override val erKnyttetTilRammebehandling = rammebehandlingId != null
+
+        fun oppdaterRammebehandlingId(
+            rammebehandlingId: BehandlingId,
+        ): Omgjør = this.copy(rammebehandlingId = rammebehandlingId)
+
+        fun fjernRammebehandlingId(): Omgjør = this.copy(rammebehandlingId = null)
     }
 }

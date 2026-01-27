@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -66,6 +67,17 @@ data class Klagebehandling(
     val erAvvisning = resultat is Klagebehandlingsresultat.Avvist
     val erOmgjøring = resultat is Klagebehandlingsresultat.Omgjør
 
+    /**
+     * Hvis resultatet er [Klagebehandlingsresultat.Omgjør] og [Klagebehandlingsresultat.Omgjør.rammebehandlingId] er satt.
+     * Merk at dersom rammebehandlingen avbrytes vil denne verdien settes til null.
+     */
+    val erKnyttetTilRammebehandling: Boolean = resultat?.erKnyttetTilRammebehandling == true
+    val rammebehandlingId: BehandlingId? = when (val res = resultat) {
+        is Klagebehandlingsresultat.Omgjør -> res.rammebehandlingId
+        is Klagebehandlingsresultat.Avvist, null -> null
+    }
+
+    /** Merk at dette resultatet må iverksettes samtidig som rammebehandlingen iverksettes. */
     val kanIverksette: Boolean = erUnderBehandling && resultat != null && resultat.kanIverksette
 
     val kanIkkeIverksetteGrunner: List<String> by lazy {
@@ -216,7 +228,10 @@ data class Klagebehandling(
         require(!erAvsluttet) {
             "Klagebehandling er allerede avsluttet og kan ikke avbrytes. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
         }
-        if (saksbehandler != kommando.saksbehandler.navIdent) {
+        if (erKnyttetTilRammebehandling) {
+            return KanIkkeAvbryteKlagebehandling.KnyttetTilIkkeAvbruttRammebehandling(rammebehandlingId!!).left()
+        }
+        if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
             return KanIkkeAvbryteKlagebehandling.SaksbehandlerMismatch(
                 forventetSaksbehandler = this.saksbehandler!!,
                 faktiskSaksbehandler = kommando.saksbehandler.navIdent,
