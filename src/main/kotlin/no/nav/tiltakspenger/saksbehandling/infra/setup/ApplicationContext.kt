@@ -162,6 +162,7 @@ open class ApplicationContext(
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             clock = clock,
             startRevurderingService = behandlingContext.startRevurderingService,
+            leggTilbakeBehandlingService = behandlingContext.leggTilbakeBehandlingService,
         )
     }
 
