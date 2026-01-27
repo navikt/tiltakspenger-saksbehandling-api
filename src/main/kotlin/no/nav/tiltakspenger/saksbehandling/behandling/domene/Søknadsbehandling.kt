@@ -173,14 +173,15 @@ data class Søknadsbehandling(
         avbruttAv: Saksbehandler,
         begrunnelse: NonBlankString,
         tidspunkt: LocalDateTime,
+        skalAvbryteSøknad: Boolean,
     ): Søknadsbehandling {
-        if (this.status == AVBRUTT || avbrutt != null) {
-            throw IllegalArgumentException("Behandlingen er allerede avbrutt")
+        when (status) {
+            UNDER_AUTOMATISK_BEHANDLING, KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> Unit
+            VEDTATT, AVBRUTT -> throw IllegalArgumentException("Kan ikke avbryte en søknadsbehandling i tilstanden $status")
         }
-
         return this.copy(
             status = AVBRUTT,
-            søknad = this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt),
+            søknad = if (skalAvbryteSøknad) this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt) else this.søknad,
             avbrutt = Avbrutt(
                 tidspunkt = tidspunkt,
                 saksbehandler = avbruttAv.navIdent,

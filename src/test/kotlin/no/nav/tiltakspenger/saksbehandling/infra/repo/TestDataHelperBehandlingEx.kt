@@ -459,9 +459,10 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
         sakMedSøknadsbehandling.rammebehandlinger.filter { it is Søknadsbehandling && it.søknad.id == id }
             .singleOrNullOrThrow()!!
     val avbruttBehandling = søknadsbehandling.avbryt(
-        saksbehandler,
-        "begrunnelse".toNonBlankString(),
-        avbruttTidspunkt,
+        avbruttAv = saksbehandler,
+        begrunnelse = "begrunnelse".toNonBlankString(),
+        tidspunkt = avbruttTidspunkt,
+        skalAvbryteSøknad = true,
     )
     behandlingRepo.lagre(avbruttBehandling)
     return sakRepo.hentForSakId(sakMedSøknadsbehandling.id)!! to avbruttBehandling

@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
-import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
@@ -38,28 +38,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class SakTest {
-    @Test
-    fun `avbryter søknad`() {
-        val søknad = ObjectMother.nyInnvilgbarSøknad()
-        val sak = ObjectMother.nySak(søknader = listOf(søknad))
-
-        val (sakMedAvbruttsøknad, avbruttSøknad, behandling) = sak.avbrytSøknadOgBehandling(
-            AvbrytSøknadOgBehandlingCommand(
-                saksnummer = sak.saksnummer,
-                søknadId = søknad.id,
-                behandlingId = null,
-                avsluttetAv = ObjectMother.saksbehandler(),
-                correlationId = CorrelationId.generate(),
-                begrunnelse = "begrunnelse".toNonBlankString(),
-            ),
-            avbruttTidspunkt = førsteNovember24,
-        )
-
-        avbruttSøknad?.avbrutt shouldNotBe null
-        behandling shouldBe null
-        sakMedAvbruttsøknad.søknader.size shouldBe 1
-        sakMedAvbruttsøknad.rammebehandlinger.size shouldBe 0
-    }
 
     @Test
     fun `avbryter behandling`() {
@@ -67,9 +45,8 @@ class SakTest {
         val sak = ObjectMother.nySak(behandlinger = Rammebehandlinger(behandling), søknader = listOf(behandling.søknad))
 
         val (sakMedAvbruttsøknad, avbruttSøknad, avbruttBehandling) = sak.avbrytSøknadOgBehandling(
-            AvbrytSøknadOgBehandlingCommand(
+            AvbrytRammebehandlingKommando(
                 saksnummer = sak.saksnummer,
-                søknadId = null,
                 behandlingId = behandling.id,
                 avsluttetAv = ObjectMother.saksbehandler(),
                 correlationId = CorrelationId.generate(),

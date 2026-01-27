@@ -525,6 +525,7 @@ interface BehandlingMother : MotherOfAllMothers {
             avbruttAv = avbruttAv,
             begrunnelse = begrunnelse.toNonBlankString(),
             tidspunkt = tidspunkt,
+            skalAvbryteSøknad = true,
         )
     }
 }

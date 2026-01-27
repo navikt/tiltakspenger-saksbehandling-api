@@ -9,13 +9,12 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniterBeholdNewline
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -63,19 +62,17 @@ fun Route.avbrytSøknadOgBehandling(
 }
 
 data class AvsluttSøknadOgBehandlingBody(
-    val søknadId: String?,
-    val behandlingId: String?,
+    val behandlingId: String,
     val begrunnelse: String,
 ) {
     fun tilKommando(
         saksnummer: Saksnummer,
         avsluttetAv: Saksbehandler,
         correlationId: CorrelationId,
-    ): AvbrytSøknadOgBehandlingCommand {
-        return AvbrytSøknadOgBehandlingCommand(
+    ): AvbrytRammebehandlingKommando {
+        return AvbrytRammebehandlingKommando(
             saksnummer = saksnummer,
-            søknadId = søknadId?.let { SøknadId.fromString(it) },
-            behandlingId = behandlingId?.let { BehandlingId.fromString(it) },
+            behandlingId = BehandlingId.fromString(behandlingId),
             avsluttetAv = avsluttetAv,
             correlationId = correlationId,
             begrunnelse = saniterBeholdNewline(begrunnelse).toNonBlankString(),

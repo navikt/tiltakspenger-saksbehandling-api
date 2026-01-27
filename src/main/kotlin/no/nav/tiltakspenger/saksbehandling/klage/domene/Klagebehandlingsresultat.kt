@@ -62,6 +62,11 @@ sealed interface Klagebehandlingsresultat {
             rammebehandlingId: BehandlingId,
         ): Omgjør = this.copy(rammebehandlingId = rammebehandlingId)
 
-        fun fjernRammebehandlingId(): Omgjør = this.copy(rammebehandlingId = null)
+        fun fjernRammebehandlingId(rammmebehandlingId: BehandlingId): Omgjør {
+            require(this.rammebehandlingId == rammmebehandlingId) {
+                "Kan kun fjerne rammebehandlingId hvis den matcher eksisterende verdi"
+            }
+            return this.copy(rammebehandlingId = null)
+        }
     }
 }

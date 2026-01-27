@@ -106,7 +106,12 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse? =
         saksopplysninger.getTiltaksdeltakelse(internDeltakelseId)
 
-    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: NonBlankString, tidspunkt: LocalDateTime): Rammebehandling
+    fun avbryt(
+        avbruttAv: Saksbehandler,
+        begrunnelse: NonBlankString,
+        tidspunkt: LocalDateTime,
+        skalAvbryteSøknad: Boolean,
+    ): Rammebehandling
 
     fun erFerdigutfylt(): Boolean
 

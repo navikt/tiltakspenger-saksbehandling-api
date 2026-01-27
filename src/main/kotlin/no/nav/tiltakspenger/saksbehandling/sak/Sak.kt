@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
-import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
@@ -121,50 +121,32 @@ data class Sak(
     }
 
     fun avbrytSøknadOgBehandling(
-        command: AvbrytSøknadOgBehandlingCommand,
-        avbruttTidspunkt: LocalDateTime,
-    ): Triple<Sak, Søknad?, Rammebehandling?> {
-        if (command.søknadId != null && command.behandlingId != null) {
-            return avbrytBehandling(command, avbruttTidspunkt)
-        }
-        if (command.søknadId != null) {
-            val (oppdatertSak, avbruttSøknad) = avbrytSøknad(command, avbruttTidspunkt)
-            return Triple(oppdatertSak, avbruttSøknad, null)
-        }
-
-        return avbrytBehandling(command, avbruttTidspunkt)
-    }
-
-    private fun avbrytBehandling(
-        command: AvbrytSøknadOgBehandlingCommand,
+        command: AvbrytRammebehandlingKommando,
         avbruttTidspunkt: LocalDateTime,
     ): Triple<Sak, Søknad?, Rammebehandling> {
-        val behandling: Rammebehandling = this.hentRammebehandling(command.behandlingId!!)!!
-        val avbruttBehandling = behandling.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
-        val avbruttSøknad = if (behandling is Søknadsbehandling) {
-            behandling.søknad.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
-        } else {
-            null
-        }
+        val behandling: Rammebehandling = this.hentRammebehandling(command.behandlingId)!!
+        val skalAvbryteSøknad =
+            behandling is Søknadsbehandling && this.rammebehandlinger.filter { it.id != behandling.id }.none { it is Søknadsbehandling && it.søknad.id == behandling.søknad.id && !it.erAvbrutt }
+        val avbruttBehandling = behandling.avbryt(
+            avbruttAv = command.avsluttetAv,
+            begrunnelse = command.begrunnelse,
+            tidspunkt = avbruttTidspunkt,
+            skalAvbryteSøknad = skalAvbryteSøknad,
+        )
+        val avbruttSøknad = if (skalAvbryteSøknad) (avbruttBehandling as Søknadsbehandling).søknad else null
 
         val oppdatertSak = this.copy(
-            søknader = if (avbruttSøknad != null) this.søknader.map { if (it.id == command.søknadId) avbruttSøknad else it } else this.søknader,
+            søknader = if (avbruttSøknad != null) oppdaterSøknad(avbruttSøknad) else this.søknader,
             behandlinger = this.behandlinger.oppdaterRammebehandling(avbruttBehandling),
         )
-
         return Triple(oppdatertSak, avbruttSøknad, avbruttBehandling)
     }
 
-    private fun avbrytSøknad(
-        command: AvbrytSøknadOgBehandlingCommand,
-        avbruttTidspunkt: LocalDateTime,
-    ): Pair<Sak, Søknad> {
-        val søknad = this.søknader.single { it.id == command.søknadId }
-        val avbruttSøknad = søknad.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
-        val oppdatertSak = this.copy(
-            søknader = this.søknader.map { if (it.id == command.søknadId) avbruttSøknad else it },
-        )
-        return Pair(oppdatertSak, avbruttSøknad)
+    fun oppdaterSøknad(søknad: Søknad): List<Søknad> {
+        require(this.søknader.count { it.id == søknad.id } == 1) { "Søknad med id ${søknad.id} finnes ikke på saken og kan derfor ikke oppdateres." }
+        return this.søknader.map {
+            if (it.id == søknad.id) søknad else it
+        }
     }
 
     fun genererMeldeperioder(clock: Clock): Pair<Sak, List<Meldeperiode>> {

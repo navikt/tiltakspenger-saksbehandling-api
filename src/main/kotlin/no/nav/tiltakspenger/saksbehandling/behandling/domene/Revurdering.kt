@@ -179,11 +179,16 @@ data class Revurdering(
         ).right()
     }
 
-    override fun avbryt(avbruttAv: Saksbehandler, begrunnelse: NonBlankString, tidspunkt: LocalDateTime): Revurdering {
-        if (this.status == AVBRUTT || avbrutt != null) {
-            throw IllegalArgumentException("Behandlingen er allerede avbrutt")
+    override fun avbryt(
+        avbruttAv: Saksbehandler,
+        begrunnelse: NonBlankString,
+        tidspunkt: LocalDateTime,
+        skalAvbryteSøknad: Boolean,
+    ): Revurdering {
+        when (status) {
+            UNDER_AUTOMATISK_BEHANDLING, KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> Unit
+            VEDTATT, AVBRUTT -> throw IllegalArgumentException("Kan ikke avbryte en revurdering i tilstanden $status")
         }
-
         return this.copy(
             status = AVBRUTT,
             avbrutt = Avbrutt(

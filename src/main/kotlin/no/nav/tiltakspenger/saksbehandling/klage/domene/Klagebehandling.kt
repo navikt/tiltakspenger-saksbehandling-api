@@ -273,6 +273,26 @@ data class Klagebehandling(
         ).right()
     }
 
+    fun fjernRammebehandlingId(
+        saksbehandler: Saksbehandler,
+        rammmebehandlingId: BehandlingId,
+    ): Klagebehandling {
+        require(erKnyttetTilRammebehandling) {
+            "Klagebehandling er ikke knyttet til en rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+        }
+        require(this.status == KLAR_TIL_BEHANDLING || this.status == UNDER_BEHANDLING) {
+            "Klagebehandling må være i status KLAR_TIL_BEHANDLING eller UNDER_BEHANDLING for at man kan disassosiere rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+        }
+        require(erSaksbehandlerPåBehandlingen(saksbehandler))
+        return when (val res = resultat) {
+            is Klagebehandlingsresultat.Omgjør -> this.copy(resultat = res.fjernRammebehandlingId(rammmebehandlingId))
+
+            is Klagebehandlingsresultat.Avvist, null -> throw IllegalStateException(
+                "Klagebehandling er ikke knyttet til en rammebehandling. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id",
+            )
+        }
+    }
+
     companion object {
         fun opprett(
             id: KlagebehandlingId = KlagebehandlingId.random(),

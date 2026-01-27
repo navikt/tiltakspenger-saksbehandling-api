@@ -31,6 +31,7 @@ class RammebehandlingTest {
             avbruttAv = ObjectMother.saksbehandler(),
             begrunnelse = "begrunnelse".toNonBlankString(),
             tidspunkt = førsteNovember24,
+            skalAvbryteSøknad = true,
         )
 
         avbruttBehandling.erAvsluttet shouldBe true
@@ -52,6 +53,7 @@ class RammebehandlingTest {
             avbruttAv = ObjectMother.saksbehandler(),
             begrunnelse = "begrunnelse".toNonBlankString(),
             tidspunkt = førsteNovember24,
+            skalAvbryteSøknad = true,
         )
 
         avbruttBehandling.erAvsluttet shouldBe true
@@ -79,6 +81,7 @@ class RammebehandlingTest {
                 avbruttAv = ObjectMother.saksbehandler(),
                 begrunnelse = "begrunnelse".toNonBlankString(),
                 tidspunkt = førsteNovember24,
+                skalAvbryteSøknad = true,
             )
         }
     }

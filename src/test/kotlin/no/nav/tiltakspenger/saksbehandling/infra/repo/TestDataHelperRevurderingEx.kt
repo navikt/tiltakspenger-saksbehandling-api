@@ -224,6 +224,7 @@ internal fun TestDataHelper.persisterAvbruttRevurdering(
         avbruttAv = avbruttAv,
         begrunnelse = begrunnelse.toNonBlankString(),
         tidspunkt = LocalDateTime.now(clock),
+        skalAvbryteSøknad = false,
     )
 
     behandlingRepo.lagre(avbruttRevurdering)

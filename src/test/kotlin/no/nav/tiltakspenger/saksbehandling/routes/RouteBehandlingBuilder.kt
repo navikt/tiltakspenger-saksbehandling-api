@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.routes
 
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.avbryt.AvbrytRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlePåNytt.BehandleSøknadPåNyttBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.ForhåndsvisVedtaksbrevTestbuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettRammebehandlingBuilder
@@ -63,6 +64,7 @@ object RouteBehandlingBuilder :
     BehandleSøknadPåNyttBuilder,
     ForhåndsvisVedtaksbrevTestbuilder,
     OppdaterBehandlingBuilder,
+    AvbrytRammebehandlingBuilder,
     OpprettMeldekortbehandlingBuilder,
     AvbrytMeldekortbehandlingBuilder,
     LeggTilbakeMeldekortbehandlingBuilder,

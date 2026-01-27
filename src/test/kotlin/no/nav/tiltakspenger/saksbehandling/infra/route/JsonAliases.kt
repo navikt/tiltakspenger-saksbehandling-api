@@ -6,7 +6,7 @@ import org.json.JSONObject
 /**
  * Se også [no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SakDTO]
  */
-typealias SakDTOJson = JSONObject
+typealias SakDTOJson = JsonNode
 
 /**
  * Se også [no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingDTO]

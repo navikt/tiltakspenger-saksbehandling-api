@@ -421,6 +421,7 @@ open class ApplicationContext(
             statistikkSakService = statistikkContext.statistikkSakService,
             sessionFactory = sessionFactory,
             clock = clock,
+            klagebehandlingRepo = klagebehandlingContext.klagebehandlingRepo,
         )
     }
 }
