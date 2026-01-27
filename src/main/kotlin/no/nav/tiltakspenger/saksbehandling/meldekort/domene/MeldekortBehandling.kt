@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -37,7 +37,7 @@ import java.time.LocalDateTime
  * TODO: splitt denne i separate hierarkier for 1. alle states av manuell behandling og 2. automatisk behandling
  * */
 
-sealed interface MeldekortBehandling : Behandling {
+sealed interface MeldekortBehandling : AttesterbarBehandling {
     override val id: MeldekortId
     override val sakId: SakId
     override val saksnummer: Saksnummer

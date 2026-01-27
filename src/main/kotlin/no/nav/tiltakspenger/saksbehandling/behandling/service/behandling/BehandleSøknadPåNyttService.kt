@@ -28,9 +28,10 @@ class BehandleSøknadPåNyttService(
 
     suspend fun startSøknadsbehandlingPåNytt(
         kommando: StartSøknadsbehandlingPåNyttKommando,
+        sak: Sak = sakService.hentForSakId(kommando.sakId),
+        transactionContext: TransactionContext? = null,
     ): Pair<Sak, Søknadsbehandling> {
-        val sakId: SakId = kommando.sakId
-        val sak: Sak = sakService.hentForSakId(sakId)
+        require(kommando.sakId == sak.id) { "SakId i kommando (${kommando.sakId}) må være lik SakId til hentet sak (${sak.id})" }
         val (oppdatertSak, søknadsbehandling, statistikk) = sak.startSøknadsbehandlingPåNytt(
             kommando = kommando,
             clock = clock,
@@ -38,11 +39,11 @@ class BehandleSøknadPåNyttService(
             genererStatistikkForSøknadSomBehandlesPåNytt = statistikkSakService::genererStatistikkForSøknadSomBehandlesPåNytt,
             hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
         )
-        sessionFactory.withTransactionContext { tx ->
+        sessionFactory.withTransactionContext(transactionContext) { tx ->
             rammebehandlingRepo.lagre(søknadsbehandling, tx)
             statistikk.forEach { statistikkSakRepo.lagre(it, tx) }
             sakService.oppdaterSkalSendesTilMeldekortApi(
-                sakId = sakId,
+                sakId = sak.id,
                 skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )

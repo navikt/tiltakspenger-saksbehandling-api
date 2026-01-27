@@ -42,7 +42,8 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                   "avbrutt": null,
                   "kanIverksette": true,
                   "årsak": null,
-                  "begrunnelse": null
+                  "begrunnelse": null,
+                     "rammebehandlingId": null
                 }
                 """.trimIndent(),
             )

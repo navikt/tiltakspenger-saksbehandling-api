@@ -218,6 +218,7 @@ data class Søknadsbehandling(
     companion object {
         suspend fun opprett(
             sak: Sak,
+            søknadsbehandlingId: BehandlingId = BehandlingId.random(),
             søknad: Søknad,
             saksbehandler: Saksbehandler,
             hentSaksopplysninger: HentSaksopplysninger,
@@ -246,7 +247,7 @@ data class Søknadsbehandling(
             }
 
             return Søknadsbehandling(
-                id = BehandlingId.random(),
+                id = søknadsbehandlingId,
                 saksnummer = sak.saksnummer,
                 sakId = sak.id,
                 fnr = sak.fnr,

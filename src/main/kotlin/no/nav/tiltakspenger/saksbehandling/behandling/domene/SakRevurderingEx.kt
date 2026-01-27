@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -23,6 +24,7 @@ suspend fun Sak.startRevurdering(
     val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let { hentKlagebehandling(it) }
     val revurdering = when (kommando.revurderingType) {
         RevurderingType.STANS -> startRevurderingStans(
+            revurderingId = kommando.revurderingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
@@ -30,6 +32,7 @@ suspend fun Sak.startRevurdering(
         )
 
         RevurderingType.INNVILGELSE -> startRevurderingInnvilgelse(
+            revurderingId = kommando.revurderingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
@@ -38,6 +41,7 @@ suspend fun Sak.startRevurdering(
         )
 
         RevurderingType.OMGJØRING -> startRevurderingOmgjøring(
+            revurderingId = kommando.revurderingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
@@ -59,12 +63,14 @@ sealed interface KunneIkkeStarteRevurdering {
 }
 
 private suspend fun Sak.startRevurderingStans(
+    revurderingId: BehandlingId = BehandlingId.random(),
     saksbehandler: Saksbehandler,
     hentSaksopplysninger: HentSaksopplysninger,
     correlationId: CorrelationId,
     clock: Clock,
 ): Revurdering {
     return Revurdering.opprettStans(
+        revurderingId = revurderingId,
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
@@ -90,11 +96,13 @@ private suspend fun Sak.startRevurderingInnvilgelse(
     correlationId: CorrelationId,
     clock: Clock,
     klagebehandling: Klagebehandling?,
+    revurderingId: BehandlingId = BehandlingId.random(),
 ): Revurdering {
     require(harFørstegangsvedtak) {
         "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere"
     }
     return Revurdering.opprettInnvilgelse(
+        revurderingId = revurderingId,
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
@@ -120,10 +128,12 @@ private suspend fun Sak.startRevurderingOmgjøring(
     rammevedtakIdSomOmgjøres: VedtakId,
     klagebehandling: Klagebehandling?,
     clock: Clock,
+    revurderingId: BehandlingId = BehandlingId.random(),
 ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
     val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
 
     return Revurdering.opprettOmgjøring(
+        revurderingId = revurderingId,
         saksbehandler = saksbehandler,
         saksopplysninger = hentSaksopplysninger(
             fnr,

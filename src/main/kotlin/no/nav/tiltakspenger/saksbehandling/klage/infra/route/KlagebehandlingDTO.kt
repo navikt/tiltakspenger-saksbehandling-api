@@ -32,6 +32,7 @@ data class KlagebehandlingDTO(
     val kanIverksette: Boolean,
     val årsak: String?,
     val begrunnelse: String?,
+    val rammebehandlingId: String?,
 ) {
     data class TittelOgTekstDTO(
         val tittel: String,
@@ -78,4 +79,5 @@ fun Klagebehandling.toDto() = KlagebehandlingDTO(
     kanIverksette = kanIverksette,
     årsak = (resultat as? Klagebehandlingsresultat.Omgjør)?.årsak?.toString(),
     begrunnelse = (resultat as? Klagebehandlingsresultat.Omgjør)?.begrunnelse?.verdi,
+    rammebehandlingId = (resultat as? Klagebehandlingsresultat.Omgjør)?.rammebehandlingId?.toString(),
 )
