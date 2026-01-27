@@ -9,6 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjederDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.RammevedtakDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.TidslinjeDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.tilRammevedtakDTO
@@ -39,6 +41,7 @@ data class SakDTO(
     val alleKlagevedtak: List<KlagevedtakDTO>,
     val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
     val kanSendeInnHelgForMeldekort: Boolean,
+    val søknader: List<SøknadDTO>,
 )
 
 fun Sak.toSakDTO(clock: Clock) = SakDTO(
@@ -57,4 +60,5 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     alleKlagevedtak = klagevedtaksliste.map { it.tilKlagevedtakDTO() },
     utbetalingstidslinje = this.tilUtbetalingstidslinjeMeldeperiodeDTO(),
     kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
+    søknader = this.søknader.map { it.toSøknadDTO() },
 )
