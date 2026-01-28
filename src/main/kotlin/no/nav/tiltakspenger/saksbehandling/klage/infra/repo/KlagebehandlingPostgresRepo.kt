@@ -108,7 +108,7 @@ class KlagebehandlingPostgresRepo(
                       s.saksnummer
                     from klagebehandling k
                     join sak s on s.id = k.sak_id
-                    where k.rammebehandling_id = :rammebehandlingId
+                    where k.resultat->>'rammebehandlingId' = :rammebehandlingId
                     """,
                     "rammebehandlingId" to rammebehandlingId.toString(),
                 ).map { fromRow(it) }.asSingle,
