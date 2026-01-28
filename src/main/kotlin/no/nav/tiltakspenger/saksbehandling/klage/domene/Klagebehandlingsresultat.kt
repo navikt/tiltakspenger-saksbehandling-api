@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OmgjørKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
 sealed interface Klagebehandlingsresultat {
@@ -57,6 +58,14 @@ sealed interface Klagebehandlingsresultat {
         override val kanIkkeIverksetteGrunner: List<String> = emptyList()
 
         override val erKnyttetTilRammebehandling = rammebehandlingId != null
+
+        /** Kan oppdatere frem til rammebehandlingen er KLAR_TIL_BESLUTNING */
+        fun oppdater(kommando: OmgjørKlagebehandlingKommando): Omgjør {
+            return this.copy(
+                årsak = kommando.årsak,
+                begrunnelse = kommando.begrunnelse,
+            )
+        }
 
         fun oppdaterRammebehandlingId(
             rammebehandlingId: BehandlingId,

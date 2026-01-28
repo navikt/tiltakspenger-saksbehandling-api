@@ -86,14 +86,14 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-05-01T01:02:38.456789"
+                "oppslagstidspunkt": "2025-05-01T01:02:36.456789"
               },
               "attesteringer": [],
               "vedtaksperiode": null,
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
-              "sistEndret": "2025-05-01T01:02:37.456789",
+              "sistEndret": "2025-05-01T01:02:35.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
@@ -251,14 +251,14 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-05-01T01:02:37.456789"
+                "oppslagstidspunkt": "2025-05-01T01:02:35.456789"
               },
               "attesteringer": [],
               "vedtaksperiode": null,
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
-              "sistEndret": "2025-05-01T01:02:41.456789",
+              "sistEndret": "2025-05-01T01:02:39.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
@@ -341,7 +341,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-05-01T01:02:37.456789"
+                "oppslagstidspunkt": "2025-05-01T01:02:35.456789"
               },
               "attesteringer": [],
               "vedtaksperiode": {
@@ -351,7 +351,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
-              "sistEndret": "2025-05-01T01:02:41.456789",
+              "sistEndret": "2025-05-01T01:02:39.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
 import arrow.core.right
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -135,40 +136,14 @@ suspend fun Sak.opprettRammebehandlingFraKlage(
     lagreKlagebehandling: suspend (Klagebehandling, SessionContext) -> Unit,
 ): Either<KanIkkeOppretteRammebehandlingFraKlage, Triple<Sak, Klagebehandling, Rammebehandling>> {
     val klagebehandling: Klagebehandling = this.hentKlagebehandling(kommando.klagebehandlingId)
-    val nå = nå(clock)
     this.åpneRammebehandlingerMedKlagebehandlingId(klagebehandling.id).also {
         if (it.isNotEmpty()) {
-            return Either.Left(
-                KanIkkeOppretteRammebehandlingFraKlage.FinnesÅpenRammebehandling(
-                    rammebehandlingId = it.first().id,
-                ),
-            )
+            return KanIkkeOppretteRammebehandlingFraKlage.FinnesÅpenRammebehandling(it.first().id).left()
         }
     }
-
-    require(
-        this.åpneRammebehandlingerMedKlagebehandlingId(klagebehandling.id).all { nå > it.opprettet.plusSeconds(10) },
-    ) {
-        "Vent litt før du oppretter ny rammebehandling fra klagebehandling ${klagebehandling.id} på sak ${this.id}"
-    }
-    val sakId = kommando.sakId
-    val resultat = klagebehandling.resultat as Klagebehandlingsresultat.Omgjør
     val rammebehandlingId = BehandlingId.random()
-    val (sakMedOppdatertKlagebehandling, oppdatertKlagebehandling) = this.vurderKlagebehandling(
-        OmgjørKlagebehandlingKommando(
-            sakId = sakId,
-            klagebehandlingId = kommando.klagebehandlingId,
-            saksbehandler = kommando.saksbehandler,
-            correlationId = kommando.correlationId,
-            årsak = resultat.årsak,
-            begrunnelse = resultat.begrunnelse,
-            rammebehandlingId = rammebehandlingId,
-        ),
-        clock = clock,
-    ).getOrElse {
-        // TODO jah - bedre feilbehandling
-        throw IllegalStateException("Kunne ikke oppdatere klagebehandling ${klagebehandling.id} på sak ${this.id} før opprettelse av revurdering: $it")
-    }
+    val oppdatertKlagebehandling = klagebehandling.oppdaterRammebehandlingId(rammebehandlingId)
+    val sakMedOppdatertKlagebehandling = this.oppdaterKlagebehandling(oppdatertKlagebehandling)
     return when (kommando) {
         is OpprettSøknadsbehandlingFraKlageKommando -> sakMedOppdatertKlagebehandling.opprettSøknadsbehandlingFraKlage(
             kommando = kommando,

@@ -59,7 +59,6 @@ private data class VurderKlagebehandlingBody(
                 "ANNET" -> ANNET
                 else -> throw IllegalArgumentException("Ukjent omgjøringsårsak: $årsak")
             },
-            rammebehandlingId = null,
         )
     }
 }

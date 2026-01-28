@@ -52,7 +52,7 @@ class AvbrytSøknadOgBehandlingService(
                 behandlingService.lagreMedStatistikk(it.first, it.second, tx)
             }
             if (klagebehandling != null) {
-                klagebehandlingRepo.lagreKlagebehandling(klagebehandling)
+                klagebehandlingRepo.lagreKlagebehandling(klagebehandling, tx)
             }
             sakService.oppdaterSkalSendesTilMeldekortApi(
                 sakId = sak.id,

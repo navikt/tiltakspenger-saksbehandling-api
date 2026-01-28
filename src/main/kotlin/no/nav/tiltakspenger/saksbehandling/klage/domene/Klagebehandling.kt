@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Omgjør
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.IVERKSATT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
@@ -158,7 +159,10 @@ data class Klagebehandling(
         }
         return this.copy(
             sistEndret = nå(clock),
-            resultat = kommando.toResultat(),
+            resultat = resultat?.let {
+                it as Klagebehandlingsresultat.Omgjør
+                it.oppdater(kommando)
+            } ?: kommando.tilResultatUtenRammebehandlingId(),
         ).right()
     }
 
@@ -271,6 +275,17 @@ data class Klagebehandling(
             iverksattTidspunkt = nå,
             status = IVERKSATT,
         ).right()
+    }
+
+    fun oppdaterRammebehandlingId(
+        rammebehandlingId: BehandlingId,
+    ): Klagebehandling {
+        require(resultat is Klagebehandlingsresultat.Omgjør) {
+            "Resultatet må være Omgjør, men var $resultat. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+        }
+        return this.copy(
+            resultat = resultat.oppdaterRammebehandlingId(rammebehandlingId),
+        )
     }
 
     fun fjernRammebehandlingId(

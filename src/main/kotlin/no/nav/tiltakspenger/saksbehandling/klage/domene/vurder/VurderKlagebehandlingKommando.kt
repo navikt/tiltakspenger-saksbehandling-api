@@ -1,12 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.vurder
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
 sealed interface VurderKlagebehandlingKommando {
@@ -17,7 +15,7 @@ sealed interface VurderKlagebehandlingKommando {
 }
 
 /**
- * @param rammebehandlingId Genereres av systemet når klagen omgjøres til en rammebehandling.
+ * rammebehandlingId genereres av systemet når klagen omgjøres til en rammebehandling.
  */
 data class OmgjørKlagebehandlingKommando(
     override val sakId: SakId,
@@ -26,13 +24,15 @@ data class OmgjørKlagebehandlingKommando(
     override val correlationId: CorrelationId,
     val årsak: KlageOmgjøringsårsak,
     val begrunnelse: Begrunnelse,
-    val rammebehandlingId: BehandlingId?,
 ) : VurderKlagebehandlingKommando {
-    fun toResultat(): Klagebehandlingsresultat.Omgjør {
+    /**
+     * Brukes bare initielt.
+     */
+    fun tilResultatUtenRammebehandlingId(): Klagebehandlingsresultat.Omgjør {
         return Klagebehandlingsresultat.Omgjør(
             årsak = årsak,
             begrunnelse = begrunnelse,
-            rammebehandlingId = rammebehandlingId,
+            rammebehandlingId = null,
         )
     }
 }

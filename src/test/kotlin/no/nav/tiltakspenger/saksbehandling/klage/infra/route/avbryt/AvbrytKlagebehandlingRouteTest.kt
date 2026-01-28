@@ -137,7 +137,7 @@ class AvbrytKlagebehandlingRouteTest {
                      "saksnummer": "${sak.saksnummer}",
                      "fnr": "12345678911",
                      "opprettet": "2025-05-01T01:02:33.456789",
-                     "sistEndret": "2025-05-01T01:03:00.456789",
+                     "sistEndret": "2025-05-01T01:02:58.456789",
                      "iverksattTidspunkt": null,
                      "saksbehandler": "Z12345",
                      "journalpostId": "12345",
@@ -153,7 +153,7 @@ class AvbrytKlagebehandlingRouteTest {
                      "brevtekst": [],
                      "avbrutt": {
                           "avbruttAv": "Z12345",
-                          "avbruttTidspunkt": "2025-05-01T01:03:01.456789",
+                          "avbruttTidspunkt": "2025-05-01T01:02:59.456789",
                           "begrunnelse": "begrunnelse for avbryt klagebehandling"
                      },
                      "kanIverksette": false,
