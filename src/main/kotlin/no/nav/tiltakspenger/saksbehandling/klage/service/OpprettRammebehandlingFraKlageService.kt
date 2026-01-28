@@ -36,6 +36,6 @@ class OpprettRammebehandlingFraKlageService(
             // Har ansvar for å lagre revurdering + sideeffekter som statistikk og metrikker.
             opprettRevurdering = startRevurderingService::startRevurdering,
             lagreKlagebehandling = klagebehandlingRepo::lagreKlagebehandling,
-        ).right()
+        )
     }
 }

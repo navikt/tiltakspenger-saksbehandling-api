@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.right
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -27,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdater
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.KanIkkeOppretteRammebehandlingFraKlage
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettRammebehandlingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettRevurderingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettSøknadsbehandlingFraKlageKommando
@@ -131,9 +133,19 @@ suspend fun Sak.opprettRammebehandlingFraKlage(
     opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando, Sak, TransactionContext) -> Pair<Sak, Søknadsbehandling>,
     opprettRevurdering: suspend (StartRevurderingKommando, Sak, TransactionContext) -> Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>>,
     lagreKlagebehandling: suspend (Klagebehandling, SessionContext) -> Unit,
-): Triple<Sak, Klagebehandling, Rammebehandling> {
+): Either<KanIkkeOppretteRammebehandlingFraKlage, Triple<Sak, Klagebehandling, Rammebehandling>> {
     val klagebehandling: Klagebehandling = this.hentKlagebehandling(kommando.klagebehandlingId)
     val nå = nå(clock)
+    this.åpneRammebehandlingerMedKlagebehandlingId(klagebehandling.id).also {
+        if (it.isNotEmpty()) {
+            return Either.Left(
+                KanIkkeOppretteRammebehandlingFraKlage.FinnesÅpenRammebehandling(
+                    rammebehandlingId = it.first().id,
+                ),
+            )
+        }
+    }
+
     require(
         this.åpneRammebehandlingerMedKlagebehandlingId(klagebehandling.id).all { nå > it.opprettet.plusSeconds(10) },
     ) {
@@ -175,7 +187,7 @@ suspend fun Sak.opprettRammebehandlingFraKlage(
             opprettRevurdering = opprettRevurdering,
             lagreKlagebehandling = lagreKlagebehandling,
         )
-    }
+    }.right()
 }
 
 private suspend fun Sak.opprettSøknadsbehandlingFraKlage(

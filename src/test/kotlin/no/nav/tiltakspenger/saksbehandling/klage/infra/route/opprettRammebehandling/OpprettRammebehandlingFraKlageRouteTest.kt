@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehand
 
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettRammebehandlingForKlage
 import org.junit.jupiter.api.Test
 
 class OpprettRammebehandlingFraKlageRouteTest {
@@ -380,6 +382,32 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "type": "REVURDERING"
               }
                 """.trimIndent(),
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke ha 2 åpne rammebehandlinger knyttet til samme klagebehandling`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, søknad, søknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+            )!!
+            opprettRammebehandlingForKlage(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                søknadId = søknad.id,
+                vedtakIdSomOmgjøres = null,
+                type = "SØKNADSBEHANDLING_INNVILGELSE",
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    """
+                        {
+                          "melding": "Det finnes allerede en åpen rammebehandling ${søknadsbehandling.id} for denne klagebehandlingen.",
+                          "kode": "finnes_åpen_rammebehandling"
+                        }
+                    """.trimIndent()
+                },
             )
         }
     }

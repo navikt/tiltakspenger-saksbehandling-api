@@ -140,5 +140,15 @@ fun KanIkkeOppretteRammebehandlingFraKlage.toStatusAndErrorJson(): Pair<HttpStat
                 ),
             )
         }
+
+        is KanIkkeOppretteRammebehandlingFraKlage.FinnesÅpenRammebehandling -> {
+            Pair(
+                HttpStatusCode.BadRequest,
+                ErrorJson(
+                    "Det finnes allerede en åpen rammebehandling ${this.rammebehandlingId} for denne klagebehandlingen.",
+                    "finnes_åpen_rammebehandling",
+                ),
+            )
+        }
     }
 }
