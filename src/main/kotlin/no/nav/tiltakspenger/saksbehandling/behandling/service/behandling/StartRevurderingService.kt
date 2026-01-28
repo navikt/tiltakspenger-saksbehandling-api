@@ -45,7 +45,16 @@ class StartRevurderingService(
         val (oppdatertSak, revurdering) = sak.startRevurdering(
             kommando = kommando,
             clock = clock,
-            hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
+            hentSaksopplysninger = { fnr, correlationId, tiltaksdeltakelserDetErSøktTiltakspengerFor, aktuelleTiltaksdeltakelserForBehandlingen, inkluderOverlappendeTiltaksdeltakelserDetErSøktOm ->
+                hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
+                    fnr = fnr,
+                    correlationId = correlationId,
+                    tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
+                    aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
+                    inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
+                    sessionContext = transactionContext,
+                )
+            },
         ).getOrElse {
             return it.left()
         }

@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
@@ -114,7 +113,7 @@ class IverksettKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke iverksette omgjøring`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, _, _, klagebehandling) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!
@@ -137,7 +136,7 @@ class IverksettKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke iverksette avbrutt klagebehandling`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, klagebehandling, _) = opprettSakOgAvbrytKlagebehandling(
                 tac = tac,
             )!!
@@ -160,7 +159,7 @@ class IverksettKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke iverksette allerede iverksatt klagebehandling`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, klagevedtak, _) = opprettSakOgIverksettKlagebehandling(
                 tac = tac,
             )!!
@@ -184,7 +183,7 @@ class IverksettKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke iverksette - feil saksbehandler`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, klagebehandling, _) = opprettSakOgOppdaterKlagebehandlingBrevtekst(
                 tac = tac,
             )!!
@@ -208,7 +207,7 @@ class IverksettKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke iverksette uten brevtekst`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, klagebehandling, _) = opprettSakOgKlagebehandlingTilAvvisning(
                 tac = tac,
             )!!

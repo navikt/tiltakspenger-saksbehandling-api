@@ -4,7 +4,7 @@ import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan opprette søknadsbehandling for klagebehandling`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, _, søknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!
@@ -84,14 +84,14 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-05-01T01:02:35.456789"
+                "oppslagstidspunkt": "2025-05-01T01:02:38.456789"
               },
               "attesteringer": [],
               "vedtaksperiode": null,
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
-              "sistEndret": "2025-05-01T01:02:34.456789",
+              "sistEndret": "2025-05-01T01:02:37.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
@@ -182,7 +182,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
 
     @Test
     fun `kan opprette revurdering innvilgelse for klagebehandling`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, _, revurdering, klagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
                 type = "REVURDERING_INNVILGELSE",
@@ -249,14 +249,14 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-05-01T01:02:34.456789"
+                "oppslagstidspunkt": "2025-05-01T01:02:37.456789"
               },
               "attesteringer": [],
               "vedtaksperiode": null,
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
-              "sistEndret": "2025-05-01T01:02:38.456789",
+              "sistEndret": "2025-05-01T01:02:41.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
@@ -272,7 +272,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
 
     @Test
     fun `kan opprette omgjøring for klagebehandling`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, _, revurdering, klagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
@@ -339,7 +339,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 },
                 "ytelser": [],
                 "tiltakspengevedtakFraArena": [],
-                "oppslagstidspunkt": "2025-05-01T01:02:34.456789"
+                "oppslagstidspunkt": "2025-05-01T01:02:37.456789"
               },
               "attesteringer": [],
               "vedtaksperiode": {
@@ -349,7 +349,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
-              "sistEndret": "2025-05-01T01:02:38.456789",
+              "sistEndret": "2025-05-01T01:02:41.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,

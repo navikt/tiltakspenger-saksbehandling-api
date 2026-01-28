@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
 import org.junit.jupiter.api.Test
@@ -12,7 +12,7 @@ class VurderKlagebehandlingRouteTest {
     @Test
     fun `kan vurdere klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContext(clock = clock) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!
@@ -23,12 +23,12 @@ class VurderKlagebehandlingRouteTest {
                   "sakId": "${sak.id}",
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678911",
-                  "opprettet": "2025-01-01T01:02:30.456789",
-                  "sistEndret": "2025-01-01T01:02:31.456789",
+                  "opprettet": "2025-01-01T01:02:33.456789",
+                  "sistEndret": "2025-01-01T01:02:34.456789",
                   "iverksattTidspunkt": null,
                   "saksbehandler": "saksbehandlerKlagebehandling",
                   "journalpostId": "12345",
-                  "journalpostOpprettet": "2025-01-01T01:02:29.456789",
+                  "journalpostOpprettet": "2025-01-01T01:02:32.456789",
                   "status": "UNDER_BEHANDLING",
                   "resultat": "OMGJØR",
                   "vedtakDetKlagesPå": "${rammevedtakSøknadsbehandling.id}",

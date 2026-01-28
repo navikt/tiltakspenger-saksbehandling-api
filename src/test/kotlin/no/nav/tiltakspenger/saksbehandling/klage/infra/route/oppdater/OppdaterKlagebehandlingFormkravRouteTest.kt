@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
@@ -16,7 +16,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
     @Test
     fun `kan oppdatere klagebehandling - formkrav`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContext(clock = clock) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val fnr = Fnr.fromString("12345678912")
             val (sak, klagebehandling, json) =
                 opprettSakOgOppdaterKlagebehandlingFormkrav(
@@ -37,12 +37,12 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                   "sakId": "${sak.id}",
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678912",
-                  "opprettet": "2025-01-01T01:02:06.456789",
-                  "sistEndret": "2025-01-01T01:02:08.456789",
+                  "opprettet": "2025-01-01T01:02:07.456789",
+                  "sistEndret": "2025-01-01T01:02:09.456789",
                   "iverksattTidspunkt": null,
                   "saksbehandler": "saksbehandlerKlagebehandling",
                   "journalpostId": "123456",
-                  "journalpostOpprettet": "2025-01-01T01:02:07.456789",
+                  "journalpostOpprettet": "2025-01-01T01:02:08.456789",
                   "status": "UNDER_BEHANDLING",
                   "resultat": "AVVIST",
                   "vedtakDetKlagesPå": "vedtak_01KEYFMDNGXAFAYW1CD1X47CND",
