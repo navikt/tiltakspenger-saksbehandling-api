@@ -15,8 +15,7 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
         "behandlingen_er_ikke_i_status_under_behandling",
     )
 
-    KanIkkeOppdatereBehandling.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode,
-    -> HttpStatusCode.BadRequest to ErrorJson(
+    KanIkkeOppdatereBehandling.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode -> HttpStatusCode.BadRequest to ErrorJson(
         "Innvilgelsesperioden overlapper med en eller flere utbetalingsperioder",
         "innvilgelsesperioden_overlapper_med_utbetalingsperiode",
     )
@@ -34,5 +33,20 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
     KanIkkeOppdatereBehandling.KanIkkeOmgjøreFlereVedtak -> HttpStatusCode.BadRequest to ErrorJson(
         "En omgjøring kan kun omgjøre ett tidligere vedtak",
         "kan_ikke_omgjøre_flere_vedtak",
+    )
+
+    KanIkkeOppdatereBehandling.PerioderSomOmgjøresMåVæreSammenhengede -> HttpStatusCode.BadRequest to ErrorJson(
+        "Kan foreløpig ikke omgjøre vedtak som ikke har en sammenhengede gjeldende periode",
+        "perioder_som_omgjøres_må_være_sammenhengende",
+    )
+
+    KanIkkeOppdatereBehandling.MåOmgjøreAngittVedtak -> HttpStatusCode.BadRequest to ErrorJson(
+        "Må omgjøre angitt vedtak",
+        "må_omgjøre_angitt_vedtak",
+    )
+
+    KanIkkeOppdatereBehandling.MåOmgjøreMinstEttVedtak -> HttpStatusCode.BadRequest to ErrorJson(
+        "Må omgjøre minst ett vedtak",
+        "må_omgjøre_minst_ett_vedtak",
     )
 }

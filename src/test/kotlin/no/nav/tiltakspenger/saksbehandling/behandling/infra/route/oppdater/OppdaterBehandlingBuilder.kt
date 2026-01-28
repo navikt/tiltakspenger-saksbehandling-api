@@ -172,9 +172,9 @@ interface OppdaterBehandlingBuilder {
         fritekstTilVedtaksbrev: String? = null,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         vedtaksperiode: Periode? = null,
+        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """

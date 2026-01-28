@@ -94,6 +94,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
         override val barnetillegg: Barnetillegg,
+        val harValgtSkalOmgjøreHeleVedtaksperioden: Boolean,
         val vedtaksperiode: Periode?,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse

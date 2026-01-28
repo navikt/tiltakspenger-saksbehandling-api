@@ -488,6 +488,7 @@ class RammebehandlingPostgresRepo(
                                 innvilgelsesperioder = innvilgelsesperioder,
                                 barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                                 omgjørRammevedtak = omgjørRammevedtak,
+                                harValgtSkalOmgjøreHeleVedtaksperioden = boolean("har_valgt_skal_omgjøre_hele_vedtaksperioden"),
                             )
                         }
                     }
@@ -588,7 +589,8 @@ class RammebehandlingPostgresRepo(
                 har_valgt_stans_til_siste_dag_som_gir_rett,
                 innvilgelsesperioder,
                 omgjør_rammevedtak,
-                klagebehandling_id
+                klagebehandling_id,
+                har_valgt_skal_omgjøre_hele_vedtaksperioden
             ) values (
                 :id,
                 :sak_id,
@@ -626,7 +628,8 @@ class RammebehandlingPostgresRepo(
                 :har_valgt_stans_til_siste_dag_som_gir_rett,
                 to_jsonb(:innvilgelsesperioder::jsonb),
                 to_jsonb(:omgjoer_rammevedtak::jsonb),
-                :klagebehandling_id
+                :klagebehandling_id,
+                :har_valgt_skal_omgjore_hele_vedtaksperioden
             )
             """.trimIndent()
 
@@ -667,7 +670,8 @@ class RammebehandlingPostgresRepo(
                 har_valgt_stans_til_siste_dag_som_gir_rett = :har_valgt_stans_til_siste_dag_som_gir_rett,
                 innvilgelsesperioder = to_jsonb(:innvilgelsesperioder::jsonb),
                 omgjør_rammevedtak = to_jsonb(:omgjoer_rammevedtak::jsonb),
-                klagebehandling_id = :klagebehandling_id
+                klagebehandling_id = :klagebehandling_id,
+                har_valgt_skal_omgjøre_hele_vedtaksperioden = :har_valgt_skal_omgjore_hele_vedtaksperioden
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -819,6 +823,7 @@ private fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> =
         "innvilgelsesperioder" to this.innvilgelsesperioder?.tilInnvilgelsesperioderDbJson(),
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
+        "har_valgt_skal_omgjore_hele_vedtaksperioden" to this.harValgtSkalOmgjøreHeleVedtaksperioden,
     )
 
     is Revurderingsresultat.Innvilgelse -> arrayOf(

@@ -8,4 +8,7 @@ sealed interface KanIkkeOppdatereBehandling {
     data object ErPaVent : KanIkkeOppdatereBehandling
     data object KanIkkeOpphøre : KanIkkeOppdatereBehandling
     data object KanIkkeOmgjøreFlereVedtak : KanIkkeOppdatereBehandling
+    data object MåOmgjøreMinstEttVedtak : KanIkkeOppdatereBehandling
+    data object MåOmgjøreAngittVedtak : KanIkkeOppdatereBehandling
+    data object PerioderSomOmgjøresMåVæreSammenhengede : KanIkkeOppdatereBehandling
 }
