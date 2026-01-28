@@ -131,24 +131,53 @@ data class Revurdering(
     fun oppdaterOmgjøring(
         kommando: OppdaterRevurderingKommando.Omgjøring,
         utbetaling: BehandlingUtbetaling?,
-        omgjørRammevedtak: OmgjørRammevedtak,
+        finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
         clock: Clock,
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
+        require(this.resultat is Omgjøring)
+
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
 
-        require(this.resultat is Omgjøring)
+        val nyVedtaksperiode = utledNyVedtaksperiode(
+            kommando.vedtaksperiode ?: omgjørRammevedtak.totalPeriode!!,
+            kommando.innvilgelsesperioder.totalPeriode,
+        )
+
+        val rammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres(nyVedtaksperiode)
+
+        if (rammevedtakSomOmgjøres.rammevedtakIDer.size > 1) {
+            return KanIkkeOppdatereBehandling.KanIkkeOmgjøreFlereVedtak.left()
+        }
+
+        if (rammevedtakSomOmgjøres.rammevedtakIDer.size == 0) {
+            return KanIkkeOppdatereBehandling.MåOmgjøreMinstEttVedtak.left()
+        }
+
+        if (rammevedtakSomOmgjøres.rammevedtakIDer.single() != omgjørRammevedtak.rammevedtakIDer.single()) {
+            return KanIkkeOppdatereBehandling.MåOmgjøreAngittVedtak.left()
+        }
+
+        val innvilgelsesperioderMedTiltaksdeltakelse = kommando
+            .tilInnvilgelseperioder(this)
+            .oppdaterTiltaksdeltakelser(saksopplysninger.tiltaksdeltakelser)
+
+        requireNotNull(innvilgelsesperioderMedTiltaksdeltakelse) {
+            // Dersom denne kaster og vi savner mer sakskontekst, bør denne returnere Either, slik at callee kan håndtere feilen.
+            "Valgte innvilgelsesperioder har ingen overlapp med tiltaksdeltakelser fra saksopplysningene"
+        }
+
+        val resultat = resultat.oppdater(
+            oppdatertInnvilgelsesperioder = innvilgelsesperioderMedTiltaksdeltakelse,
+            oppdatertBarnetillegg = kommando.barnetillegg,
+            omgjørRammevedtak = rammevedtakSomOmgjøres,
+            nyVedtaksperiode = nyVedtaksperiode,
+        ).getOrElse { return it.left() }
 
         return this.copy(
             sistEndret = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            resultat = resultat.oppdater(
-                oppdatertInnvilgelsesperioder = kommando.tilInnvilgelseperioder(this),
-                oppdatertBarnetillegg = kommando.barnetillegg,
-                saksopplysninger = saksopplysninger,
-                omgjørRammevedtak = omgjørRammevedtak,
-                nyVedtaksperiode = kommando.vedtaksperiode,
-            ),
+            resultat = resultat,
             utbetaling = utbetaling,
         ).right()
     }

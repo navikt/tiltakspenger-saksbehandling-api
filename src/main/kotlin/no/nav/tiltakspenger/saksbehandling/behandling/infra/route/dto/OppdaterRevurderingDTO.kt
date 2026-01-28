@@ -90,6 +90,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
                 vedtaksperiode = vedtaksperiode?.toDomain(),
+                harValgtSkalOmgjøreHeleVedtaksperioden = skalOmgjøreHeleVedtaket,
             )
         }
     }

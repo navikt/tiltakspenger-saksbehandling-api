@@ -259,9 +259,10 @@ class StartRevurderingOmgjøringTest {
     }
 
     @Test
-    fun `kan ikke omgjøre et vedtak med hull`() {
+    fun `kan ikke omgjøre over hull i vedtaksperioden til et vedtak`() {
         withTestApplicationContext { tac ->
             val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val revurdertPeriode = 1.februar(2025) til 28.februar(2025)
 
             val innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode)
 
@@ -276,23 +277,100 @@ class StartRevurderingOmgjøringTest {
                 tac = tac,
                 sakId = sakId,
                 innvilgelsesperioder = innvilgelsesperioder(
-                    1.februar(2025) til 28.februar(2025),
+                    revurdertPeriode,
                     antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(2),
                 ),
             )
 
-            startRevurderingOmgjøring(
+            val (_, nyOmgjøring) = startRevurderingOmgjøring(
                 tac = tac,
                 sakId = sakId,
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
+            )!!
+
+            val (_, _, responseBody) = oppdaterRevurderingOmgjøring(
+                tac = tac,
+                sakId = sakId,
+                behandlingId = nyOmgjøring.id,
+                innvilgelsesperioder = innvilgelsesperioder(revurdertPeriode),
+                vedtaksperiode = revurdertPeriode,
                 forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = """
-                    {
-                      "melding": "Kan foreløpig ikke omgjøre vedtak som ikke har en sammenhengede gjeldende periode",
-                      "kode": "perioder_som_omgjøres_må_være_sammenhengende"
-                    }             
+            )
+
+            responseBody.shouldEqualJson(
+                """
+                {
+                  "melding": "Må omgjøre angitt vedtak",
+                  "kode": "må_omgjøre_angitt_vedtak"
+                }
                 """.trimIndent(),
             )
+        }
+    }
+
+    @Test
+    fun `kan omgjøre deler av vedtaksperioden`() {
+        withTestApplicationContext { tac ->
+            val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val omgjortPeriode = 1.februar(2025) til 28.februar(2025)
+
+            val innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode)
+
+            val (sakMedSøknadsbehandling, _, søknadsbehandlingVedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder,
+            )
+
+            val sakId = sakMedSøknadsbehandling.id
+
+            val (_, nyOmgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sakId,
+                rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
+            )!!
+
+            val (_, oppdatertOmgjøring) = oppdaterRevurderingOmgjøring(
+                tac = tac,
+                sakId = sakId,
+                behandlingId = nyOmgjøring.id,
+                innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode),
+                vedtaksperiode = omgjortPeriode,
+            )
+
+            oppdatertOmgjøring.vedtaksperiode shouldBe omgjortPeriode
+        }
+    }
+
+    @Test
+    fun `kan omgjøre deler av vedtaksperioden 2`() {
+        withTestApplicationContext { tac ->
+            val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val omgjortPeriode = 1.februar(2025) til 28.februar(2025)
+
+            val innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode)
+
+            val (sakMedSøknadsbehandling, _, søknadsbehandlingVedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder,
+            )
+
+            val sakId = sakMedSøknadsbehandling.id
+
+            val (_, nyOmgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sakId,
+                rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
+            )!!
+
+            val (_, oppdatertOmgjøring) = oppdaterRevurderingOmgjøring(
+                tac = tac,
+                sakId = sakId,
+                behandlingId = nyOmgjøring.id,
+                innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode),
+                vedtaksperiode = omgjortPeriode,
+            )
+
+            oppdatertOmgjøring.vedtaksperiode shouldBe omgjortPeriode
         }
     }
 

@@ -169,22 +169,11 @@ class OppdaterBehandlingService(
 
         return when (kommando) {
             is OppdaterRevurderingKommando.Omgjøring -> {
-                val nyVedtaksperiode = Revurderingsresultat.Omgjøring.utledNyVedtaksperiode(
-                    revurdering.omgjørRammevedtak.totalPeriode!!,
-                    kommando.innvilgelsesperioder.totalPeriode,
-                )
-
-                val rammevedtakSomOmgjøres = this.vedtaksliste.finnRammevedtakSomOmgjøres(nyVedtaksperiode)
-
-                if (rammevedtakSomOmgjøres.rammevedtakIDer.size > 1) {
-                    return KanIkkeOppdatereBehandling.KanIkkeOmgjøreFlereVedtak.left()
-                }
-
                 revurdering.oppdaterOmgjøring(
                     kommando = kommando,
                     utbetaling = utbetaling,
                     clock = clock,
-                    omgjørRammevedtak = this.vedtaksliste.finnRammevedtakSomOmgjøres(nyVedtaksperiode),
+                    finnRammevedtakSomOmgjøres = { this.vedtaksliste.finnRammevedtakSomOmgjøres(it) },
                 )
             }
 
