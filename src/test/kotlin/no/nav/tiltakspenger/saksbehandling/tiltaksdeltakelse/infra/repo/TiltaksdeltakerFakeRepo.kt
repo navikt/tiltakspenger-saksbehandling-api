@@ -27,7 +27,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
         return data.get()[eksternId]
     }
 
-    override fun hentEksternId(id: TiltaksdeltakerId): String {
+    override fun hentEksternId(id: TiltaksdeltakerId, sessionContext: SessionContext?): String {
         return data.get().filter { it.value == id }.keys.first()
     }
 

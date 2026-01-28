@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 
+@Suppress("UNCHECKED_CAST")
 val AUTOMATISK_SAKSBEHANDLER = Saksbehandler(
     navIdent = AUTOMATISK_SAKSBEHANDLER_ID,
     brukernavn = AUTOMATISK_SAKSBEHANDLER_ID,

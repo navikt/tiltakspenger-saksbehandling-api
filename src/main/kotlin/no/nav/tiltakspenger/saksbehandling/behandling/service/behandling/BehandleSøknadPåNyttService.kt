@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -38,7 +37,16 @@ class BehandleSøknadPåNyttService(
             clock = clock,
             genererStatistikkForSøknadsbehandling = statistikkSakService::genererStatistikkForSøknadsbehandling,
             genererStatistikkForSøknadSomBehandlesPåNytt = statistikkSakService::genererStatistikkForSøknadSomBehandlesPåNytt,
-            hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
+            hentSaksopplysninger = { fnr, correlationId, tiltaksdeltakelserDetErSøktTiltakspengerFor, aktuelleTiltaksdeltakelserForBehandlingen, inkluderOverlappendeTiltaksdeltakelserDetErSøktOm ->
+                hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
+                    fnr = fnr,
+                    correlationId = correlationId,
+                    tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
+                    aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
+                    inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
+                    sessionContext = transactionContext,
+                )
+            },
         )
         sessionFactory.withTransactionContext(transactionContext) { tx ->
             rammebehandlingRepo.lagre(søknadsbehandling, tx)

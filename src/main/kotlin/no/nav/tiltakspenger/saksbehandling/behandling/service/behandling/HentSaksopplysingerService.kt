@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
@@ -45,6 +47,7 @@ class HentSaksopplysingerService(
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         aktuelleTiltaksdeltakelserForBehandlingen: List<TiltaksdeltakerId>,
         inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
+        sessionContext: SessionContext? = null,
     ): Saksopplysninger {
         val oppslagstidspunkt = LocalDateTime.now(clock)
 
@@ -54,6 +57,7 @@ class HentSaksopplysingerService(
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
             aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
             inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
+            sessionContext = sessionContext,
         )
         // TODO jah: På sikt bør vi hente per periode i listen og ikke den totale perioden. Dette er mest aktuelt ved revurdering av to eller flere tiltaksdeltakelser som ikke overlapper.
         //  TODO 2 jah + Bente: Vi bør nok også krympe perioden basert på kravtidspunktet, slik at vi ikke henter for langt tilbake i tid.
@@ -79,6 +83,7 @@ class HentSaksopplysingerService(
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         aktuelleTiltaksdeltakelserForBehandlingen: List<TiltaksdeltakerId>,
         inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
+        sessionContext: SessionContext? = null,
     ): Tiltaksdeltakelser {
         val tiltaksdeltakelserSomKanGiRettTilTiltakspenger = tiltaksdeltakelseKlient.hentTiltaksdeltakelser(
             fnr = fnr,
@@ -91,7 +96,7 @@ class HentSaksopplysingerService(
                 tiltaksdeltakelserDetErSøktTiltakspengerFor.eksterneIder,
             )
         val aktuelleEksterneTiltaksdeltakelseIderForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen.map {
-            tiltaksdeltakerRepo.hentEksternId(it)
+            tiltaksdeltakerRepo.hentEksternId(id = it, sessionContext = sessionContext)
         }
         val aktuelleTiltaksdeltakelser = tiltaksdeltakelserDetErSøktPå
             .filtrerPåTiltaksdeltakelsesIDer(aktuelleEksterneTiltaksdeltakelseIderForBehandlingen)
@@ -106,6 +111,7 @@ class HentSaksopplysingerService(
             val internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(
                 eksternId = it.eksternDeltakelseId,
                 tiltakstype = it.typeKode.tilTiltakstype(),
+                sessionContext = sessionContext,
             )
             it.toTiltaksdeltakelse(internDeltakelseId)
         }

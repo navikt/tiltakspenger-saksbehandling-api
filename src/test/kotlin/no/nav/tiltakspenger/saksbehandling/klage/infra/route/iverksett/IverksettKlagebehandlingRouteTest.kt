@@ -28,7 +28,8 @@ class IverksettKlagebehandlingRouteTest {
     @Test
     fun `kan iverksette klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock) { tac ->
+        // TODO jah: Fjern runIsolated når vi har fikset at databasetester kan kjøre parallelt (tiltaksdeltakelse og fnr må være garantert unik per test)
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val (sak, klagevedtak, json) = opprettSakOgIverksettKlagebehandling(
                 tac = tac,
             )!!

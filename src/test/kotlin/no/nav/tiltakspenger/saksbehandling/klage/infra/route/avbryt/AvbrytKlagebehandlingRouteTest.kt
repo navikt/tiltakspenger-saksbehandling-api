@@ -4,6 +4,7 @@ import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytRammebehandling
@@ -12,10 +13,13 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgAvbrytKlagebehandling
 import org.junit.jupiter.api.Test
 
+/**
+ * TODO jah: Disse kjører isolert, pga. statisk fnr (kreves for helved sin fnr validator) og statisk tiltaksdeltakelse (gjørejobb). Vi trenger genereringstyper for dette på samme nivå som no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
+ */
 class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `oppretter klage og deretter avbryter`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, klagebehandling, json) = opprettSakOgAvbrytKlagebehandling(
                 tac = tac,
             )!!
@@ -26,12 +30,12 @@ class AvbrytKlagebehandlingRouteTest {
                      "sakId": "${sak.id}",
                      "saksnummer": "${sak.saksnummer}",
                      "fnr": "12345678911",
-                     "opprettet": "2025-05-01T01:02:06.456789",
-                     "sistEndret": "2025-05-01T01:02:07.456789",
+                     "opprettet": "2025-05-01T01:02:07.456789",
+                     "sistEndret": "2025-05-01T01:02:08.456789",
                      "iverksattTidspunkt": null,
                      "saksbehandler": "saksbehandlerKlagebehandling",
                      "journalpostId": "12345",
-                     "journalpostOpprettet": "2025-05-01T01:02:05.456789",
+                     "journalpostOpprettet": "2025-05-01T01:02:06.456789",
                      "status": "AVBRUTT",
                      "resultat": "AVVIST",
                      "vedtakDetKlagesPå": null,
@@ -43,7 +47,7 @@ class AvbrytKlagebehandlingRouteTest {
                      "brevtekst": [],
                      "avbrutt": {
                           "avbruttAv": "saksbehandlerKlagebehandling",
-                          "avbruttTidspunkt": "2025-05-01T01:02:08.456789",
+                          "avbruttTidspunkt": "2025-05-01T01:02:09.456789",
                           "begrunnelse": "begrunnelse for avbryt klagebehandling"
                      },
                      "kanIverksette": false,
@@ -58,7 +62,7 @@ class AvbrytKlagebehandlingRouteTest {
 
     @Test
     fun `kan avbryte hvis vi ikke har knyttet den til en klagebehandling enda`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, _, rammevedtak, klagebehandling, _) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!
@@ -74,12 +78,12 @@ class AvbrytKlagebehandlingRouteTest {
                      "sakId": "${sak.id}",
                      "saksnummer": "${sak.saksnummer}",
                      "fnr": "12345678911",
-                     "opprettet": "2025-05-01T01:02:30.456789",
-                     "sistEndret": "2025-05-01T01:02:32.456789",
+                     "opprettet": "2025-05-01T01:02:33.456789",
+                     "sistEndret": "2025-05-01T01:02:35.456789",
                      "iverksattTidspunkt": null,
                      "saksbehandler": "saksbehandlerKlagebehandling",
                      "journalpostId": "12345",
-                     "journalpostOpprettet": "2025-05-01T01:02:29.456789",
+                     "journalpostOpprettet": "2025-05-01T01:02:32.456789",
                      "status": "AVBRUTT",
                      "resultat": "OMGJØR",
                      "vedtakDetKlagesPå": "${rammevedtak.id}",
@@ -91,7 +95,7 @@ class AvbrytKlagebehandlingRouteTest {
                      "brevtekst": [],
                      "avbrutt": {
                           "avbruttAv": "saksbehandlerKlagebehandling",
-                          "avbruttTidspunkt": "2025-05-01T01:02:33.456789",
+                          "avbruttTidspunkt": "2025-05-01T01:02:36.456789",
                           "begrunnelse": "begrunnelse for avbryt klagebehandling"
                      },
                      "kanIverksette": false,
@@ -107,7 +111,7 @@ class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `kan avbryte klagebehandling hvis vi har opprettet og avbrutt tilknyttet rammebehandling`() {
         val saksbehandler = ObjectMother.saksbehandler()
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, _, rammebehandling, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
                 saksbehandlerSøknadsbehandling = saksbehandler,
@@ -133,12 +137,12 @@ class AvbrytKlagebehandlingRouteTest {
                      "sakId": "${sak.id}",
                      "saksnummer": "${sak.saksnummer}",
                      "fnr": "12345678911",
-                     "opprettet": "2025-05-01T01:02:30.456789",
-                     "sistEndret": "2025-05-01T01:02:57.456789",
+                     "opprettet": "2025-05-01T01:02:33.456789",
+                     "sistEndret": "2025-05-01T01:03:00.456789",
                      "iverksattTidspunkt": null,
                      "saksbehandler": "Z12345",
                      "journalpostId": "12345",
-                     "journalpostOpprettet": "2025-05-01T01:02:29.456789",
+                     "journalpostOpprettet": "2025-05-01T01:02:32.456789",
                      "status": "AVBRUTT",
                      "resultat": "OMGJØR",
                      "vedtakDetKlagesPå": "${sak.rammevedtaksliste.single().id}",
@@ -150,7 +154,7 @@ class AvbrytKlagebehandlingRouteTest {
                      "brevtekst": [],
                      "avbrutt": {
                           "avbruttAv": "Z12345",
-                          "avbruttTidspunkt": "2025-05-01T01:02:58.456789",
+                          "avbruttTidspunkt": "2025-05-01T01:03:01.456789",
                           "begrunnelse": "begrunnelse for avbryt klagebehandling"
                      },
                      "kanIverksette": false,
@@ -165,7 +169,7 @@ class AvbrytKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke avbryte hvis åpen tilknyttet rammebehandling`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, _, _, klagebehandling) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!

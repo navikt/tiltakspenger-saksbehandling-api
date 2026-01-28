@@ -102,7 +102,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
-                override fun hentEksternId(id: TiltaksdeltakerId): String {
+                override fun hentEksternId(id: TiltaksdeltakerId, sessionContext: SessionContext?): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
                 }
                 override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
@@ -212,7 +212,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
-                override fun hentEksternId(id: TiltaksdeltakerId): String {
+                override fun hentEksternId(id: TiltaksdeltakerId, sessionContext: SessionContext?): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
                 }
                 override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
@@ -322,7 +322,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
-                override fun hentEksternId(id: TiltaksdeltakerId): String {
+                override fun hentEksternId(id: TiltaksdeltakerId, sessionContext: SessionContext?): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
                 }
                 override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
@@ -456,7 +456,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
-                override fun hentEksternId(id: TiltaksdeltakerId): String {
+                override fun hentEksternId(id: TiltaksdeltakerId, sessionContext: SessionContext?): String {
                     return when (id) {
                         tiltak1.first.internDeltakelseId -> {
                             tiltak1.first.eksternDeltakelseId
@@ -594,7 +594,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
-                override fun hentEksternId(id: TiltaksdeltakerId): String {
+                override fun hentEksternId(id: TiltaksdeltakerId, sessionContext: SessionContext?): String {
                     return when (id) {
                         tiltak1.first.internDeltakelseId -> {
                             tiltak1.first.eksternDeltakelseId
