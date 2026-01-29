@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknad
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto.Companion.toKlageresultatstypDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeStatusDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldeperiodeKjedeStatusDTO
@@ -111,7 +113,7 @@ sealed interface ÅpenBehandlingDTO {
         override val opprettet: LocalDateTime,
         val status: String,
         val saksbehandler: String?,
-        val resultat: String?,
+        val resultat: KlageresultatstypeDto?,
     ) : ÅpenBehandlingDTO {
         override val type = ÅpenBehandlingTypeDTO.KLAGE
     }
@@ -150,7 +152,7 @@ private fun List<Klagebehandling>.toÅpenKlagebehandlingDTO(): List<ÅpenBehandl
             Klagebehandlingsstatus.IVERKSATT -> "IVERKSATT"
         },
         saksbehandler = it.saksbehandler,
-        resultat = it.resultat?.toString(),
+        resultat = it.resultat?.toKlageresultatstypDto(),
     )
 }
 
