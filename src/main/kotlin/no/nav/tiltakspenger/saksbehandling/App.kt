@@ -86,8 +86,6 @@ internal fun start(
         tasks = listOf<suspend () -> Any>(
             { applicationContext.delautomatiskSoknadsbehandlingJobb.opprettBehandlingForNyeSoknader() },
             { applicationContext.delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk() },
-            { applicationContext.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved() },
-            { applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus() },
             { applicationContext.utbetalingContext.journalførMeldekortvedtakService.journalfør() },
             { applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør() },
             { applicationContext.klagebehandlingContext.journalførKlagevedtakService.journalfør() },
@@ -96,19 +94,33 @@ internal fun start(
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },
             { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock) },
         ).let {
-            if (Configuration.isNais()) {
-                it.plus(
-                    listOf(
-                        { applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere() },
-                        { applicationContext.endretTiltaksdeltakerJobb.opprydning() },
-                        { applicationContext.sendTilDatadelingService.send() },
-                        { applicationContext.personhendelseJobb.opprettOppgaveForPersonhendelser() },
-                        { applicationContext.personhendelseJobb.opprydning() },
-                        { applicationContext.identhendelseJobb.behandleIdenthendelser() },
-                    ),
-                )
-            } else {
-                it
+            (
+                if (Configuration.isNais()) {
+                    it.plus(
+                        listOf(
+                            { applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere() },
+                            { applicationContext.endretTiltaksdeltakerJobb.opprydning() },
+                            { applicationContext.sendTilDatadelingService.send() },
+                            { applicationContext.personhendelseJobb.opprettOppgaveForPersonhendelser() },
+                            { applicationContext.personhendelseJobb.opprydning() },
+                            { applicationContext.identhendelseJobb.behandleIdenthendelser() },
+                        ),
+                    )
+                } else {
+                    it
+                }
+                ).let {
+                if (Configuration.isProd()) {
+                    // De holder på med datalast i OS/UR i Q2, så vi kjører ikke disse i Q1 mens de holder på. Så kan vi tømme basen når de er ferdig. Gjenopprette Dolly-brukere og så starte denne igjen.
+                    it.plus(
+                        listOf(
+                            { applicationContext.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved() },
+                            { applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus() },
+                        ),
+                    )
+                } else {
+                    it
+                }
             }
         },
     )
