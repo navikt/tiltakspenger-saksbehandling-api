@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.kanIkkeOppdatereBehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KanIkkeVurdereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.ANNET
@@ -124,10 +125,37 @@ fun KanIkkeVurdereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, E
         }
 
         is KanIkkeVurdereKlagebehandling.KanIkkeOppdateres -> {
-            Pair(
-                HttpStatusCode.BadRequest,
-                kanIkkeOppdatereBehandling(),
-            )
+            when (val u = this.underliggende) {
+                is Klagebehandling.KanIkkeOppdateres.FeilKlagebehandlingsstatus -> {
+                    Pair(
+                        HttpStatusCode.BadRequest,
+                        ErrorJson(
+                            "Feil klagebehandlingsstatus. Forventet: ${u.forventetStatus}, faktisk: ${u.faktiskStatus}",
+                            "feil_klagebehandlingsstatus",
+                        ),
+                    )
+                }
+
+                is Klagebehandling.KanIkkeOppdateres.FeilRammebehandlingssstatus -> {
+                    Pair(
+                        HttpStatusCode.BadRequest,
+                        ErrorJson(
+                            "Feil rammebehandlingsstatus. Forventet: ${u.forventetStatus}, faktisk: ${u.faktiskStatus}",
+                            "feil_rammebehandlingsstatus",
+                        ),
+                    )
+                }
+
+                is Klagebehandling.KanIkkeOppdateres.FeilResultat -> {
+                    Pair(
+                        HttpStatusCode.BadRequest,
+                        ErrorJson(
+                            "Klagebehandling har feil resultat. Forventet: ${u.forventetResultat}, faktisk: ${u.faktiskResultat}",
+                            "feil_resultat",
+                        ),
+                    )
+                }
+            }
         }
     }
 }

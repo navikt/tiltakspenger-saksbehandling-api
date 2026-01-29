@@ -9,12 +9,12 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Omgjør
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.IVERKSATT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
@@ -60,6 +60,8 @@ data class Klagebehandling(
 ) : Behandling {
     val brevtekst: Brevtekster? = resultat?.brevtekst
     val erUnderBehandling = status == UNDER_BEHANDLING
+
+    @Suppress("unused")
     val erKlarTilBehandling = status == KLAR_TIL_BEHANDLING
     override val erAvbrutt = status == AVBRUTT
     val erIverksatt = status == IVERKSATT
@@ -142,14 +144,23 @@ data class Klagebehandling(
 
     fun vurder(
         kommando: VurderKlagebehandlingKommando,
+        rammebehandlingsstatus: Rammebehandlingsstatus?,
         clock: Clock,
     ): Either<KanIkkeVurdereKlagebehandling, Klagebehandling> {
         require(kommando is OmgjørKlagebehandlingKommando)
-        if (!erUnderBehandling) {
-            return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres.left()
+        kanOppdatereIDenneStatusen(rammebehandlingsstatus).onLeft {
+            return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres(
+                it,
+            ).left()
         }
+        // TODO jah: Denne må nok gjøres om litt når vi legger til opprettholdelse
         if (resultat != null && !erOmgjøring) {
-            return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres.left()
+            return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres(
+                KanIkkeOppdateres.FeilResultat(
+                    forventetResultat = Klagebehandlingsresultat.Omgjør::class.simpleName!!,
+                    faktiskResultat = resultat::class.simpleName!!,
+                ),
+            ).left()
         }
         if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
             return KanIkkeVurdereKlagebehandling.SaksbehandlerMismatch(
@@ -334,6 +345,50 @@ data class Klagebehandling(
                 iverksattTidspunkt = null,
                 avbrutt = null,
             )
+        }
+    }
+
+    sealed interface KanIkkeOppdateres {
+        data class FeilKlagebehandlingsstatus(
+            val forventetStatus: Klagebehandlingsstatus,
+            val faktiskStatus: Klagebehandlingsstatus,
+        ) : KanIkkeOppdateres
+
+        data class FeilRammebehandlingssstatus(
+            val forventetStatus: Rammebehandlingsstatus,
+            val faktiskStatus: Rammebehandlingsstatus,
+        ) : KanIkkeOppdateres
+
+        data class FeilResultat(
+            val forventetResultat: String,
+            val faktiskResultat: String?,
+        ) : KanIkkeOppdateres
+    }
+
+    /**
+     * Sjekker både [Klagebehandlingsresultat] og [Rammebehandlingsstatus] hvis den er satt.
+     */
+    fun kanOppdatereIDenneStatusen(rammebehandlingsstatus: Rammebehandlingsstatus?): Either<KanIkkeOppdateres, Unit> {
+        return when (this.status) {
+            KLAR_TIL_BEHANDLING, AVBRUTT, IVERKSATT -> {
+                KanIkkeOppdateres.FeilKlagebehandlingsstatus(UNDER_BEHANDLING, this.status).left()
+            }
+
+            UNDER_BEHANDLING -> {
+                when (rammebehandlingsstatus) {
+                    Rammebehandlingsstatus.UNDER_BEHANDLING, null -> Unit.right()
+                    Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
+                    Rammebehandlingsstatus.AVBRUTT,
+                    Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
+                    Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
+                    Rammebehandlingsstatus.UNDER_BESLUTNING,
+                    Rammebehandlingsstatus.VEDTATT,
+                    -> KanIkkeOppdateres.FeilRammebehandlingssstatus(
+                        Rammebehandlingsstatus.UNDER_BEHANDLING,
+                        rammebehandlingsstatus,
+                    ).left()
+                }
+            }
         }
     }
 

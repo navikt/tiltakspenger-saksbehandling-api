@@ -8,7 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -34,7 +33,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettRammebeha
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettRevurderingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettSøknadsbehandlingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KanIkkeVurdereKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OmgjørKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
@@ -119,12 +117,15 @@ fun Sak.vurderKlagebehandling(
     kommando: VurderKlagebehandlingKommando,
     clock: Clock,
 ): Either<KanIkkeVurdereKlagebehandling, Pair<Sak, Klagebehandling>> {
-    return this.hentKlagebehandling(kommando.klagebehandlingId)
-        .vurder(kommando, clock)
-        .map {
-            val oppdatertSak = this.oppdaterKlagebehandling(it)
-            Pair(oppdatertSak, it)
-        }
+    return this.hentKlagebehandling(kommando.klagebehandlingId).let {
+        // TODO jah: Vurder å lage et domeneobjekt som wrapper klagebehandling med rammebehandling.
+        val rammebehandlingsstatus = it.rammebehandlingId?.let { this.hentRammebehandling(it) }?.status
+        it.vurder(kommando, rammebehandlingsstatus, clock)
+            .map {
+                val oppdatertSak = this.oppdaterKlagebehandling(it)
+                Pair(oppdatertSak, it)
+            }
+    }
 }
 
 suspend fun Sak.opprettRammebehandlingFraKlage(

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder
 
 import io.kotest.assertions.json.shouldEqualJson
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -9,8 +10,14 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
 import org.junit.jupiter.api.Test
 
@@ -56,7 +63,7 @@ class VurderKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `kan endre årsak og begrunnelse ved åpen rammebehandling`() {
+    fun `kan endre årsak og begrunnelse ved rammebehandling under behandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val (sak, _, søknadsbehandlingOpprettetFraKlage, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
@@ -101,6 +108,146 @@ class VurderKlagebehandlingRouteTest {
                   "rammebehandlingId": "${søknadsbehandlingOpprettetFraKlage.id}"
                 }
                 """.trimIndent(),
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke vurdere klage når rammebehandling er klar til beslutning`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, _, søknadsbehandlingOpprettetFraKlage, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+            )!!
+            val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
+            oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = saksbehandler,
+            )
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = saksbehandler,
+            )
+            vurderKlagebehandling(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksbehandler = saksbehandler,
+                begrunnelse = Begrunnelse.createOrThrow("oppdatert begrunnelse for omgjøring"),
+                årsak = KlageOmgjøringsårsak.ANNET,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    """
+                      {
+                         "melding": "Feil rammebehandlingsstatus. Forventet: UNDER_BEHANDLING, faktisk: KLAR_TIL_BESLUTNING",
+                         "kode": "feil_rammebehandlingsstatus"
+                      }
+                    """.trimIndent()
+                },
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke vurdere klage når rammebehandling er under beslutning`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, _, søknadsbehandlingOpprettetFraKlage, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+            )!!
+            val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
+            oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = saksbehandler,
+            )
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = saksbehandler,
+            )
+            val beslutter = ObjectMother.beslutter()
+            taBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = beslutter,
+            )
+            vurderKlagebehandling(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksbehandler = saksbehandler,
+                begrunnelse = Begrunnelse.createOrThrow("oppdatert begrunnelse for omgjøring"),
+                årsak = KlageOmgjøringsårsak.ANNET,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    """
+                      {
+                         "melding": "Feil rammebehandlingsstatus. Forventet: UNDER_BEHANDLING, faktisk: UNDER_BESLUTNING",
+                         "kode": "feil_rammebehandlingsstatus"
+                      }
+                    """.trimIndent()
+                },
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke vurdere klage når rammebehandling er iverksatt`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, _, søknadsbehandlingOpprettetFraKlage, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+            )!!
+            val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
+            oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = saksbehandler,
+            )
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = saksbehandler,
+            )
+            val beslutter = ObjectMother.beslutter()
+            taBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = beslutter,
+            )
+            iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                beslutter = beslutter,
+            )
+            vurderKlagebehandling(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksbehandler = saksbehandler,
+                begrunnelse = Begrunnelse.createOrThrow("oppdatert begrunnelse for omgjøring"),
+                årsak = KlageOmgjøringsårsak.ANNET,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    """
+                      {
+                         "melding": "Feil rammebehandlingsstatus. Forventet: UNDER_BEHANDLING, faktisk: VEDTATT",
+                         "kode": "feil_rammebehandlingsstatus"
+                      }
+                    """.trimIndent()
+                },
             )
         }
     }
