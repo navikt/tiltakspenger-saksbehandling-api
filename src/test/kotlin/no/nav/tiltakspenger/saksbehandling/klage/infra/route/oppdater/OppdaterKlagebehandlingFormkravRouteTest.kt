@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
 import io.kotest.assertions.json.shouldEqualJson
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -11,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterKlagebehandlingFormkravForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingFormkrav
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
@@ -134,6 +136,30 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                     """.trimIndent()
                 },
             )!!
+        }
+    }
+
+    @Test
+    fun `kan ikke oppdatere formkrav til avvist dersom klage er omgjøring med rammebehandling`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, _, _, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+                type = "REVURDERING_INNVILGELSE",
+            )!!
+
+            oppdaterKlagebehandlingFormkravForSakId(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                vedtakDetKlagesPå = null,
+                erKlagerPartISaken = true,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erKlagefristenOverholdt = true,
+                erUnntakForKlagefrist = null,
+                erKlagenSignert = true,
+                forventetStatus = HttpStatusCode.BadRequest,
+            )
         }
     }
 }

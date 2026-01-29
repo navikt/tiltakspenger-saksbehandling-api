@@ -108,6 +108,12 @@ data class Klagebehandling(
         }
         val oppdaterteFormkrav = kommando.toKlageFormkrav()
         val tidligereResultat = this.resultat
+        val harTilknyttetRammebehandling =
+            this.resultat is Klagebehandlingsresultat.Omgjør && this.resultat.rammebehandlingId != null
+
+        if (oppdaterteFormkrav.erAvvisning && harTilknyttetRammebehandling) {
+            return KanIkkeOppdatereKlagebehandling.KanIkkeEndreTilAvvisningNårTilknyttetRammebehandling.left()
+        }
 
         return this.copy(
             sistEndret = nå(clock),

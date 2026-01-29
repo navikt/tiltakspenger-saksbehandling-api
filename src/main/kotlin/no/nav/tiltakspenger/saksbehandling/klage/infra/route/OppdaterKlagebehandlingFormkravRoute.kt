@@ -101,5 +101,13 @@ fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode,
                 kanIkkeOppdatereBehandling(),
             )
         }
+
+        KanIkkeOppdatereKlagebehandling.KanIkkeEndreTilAvvisningNårTilknyttetRammebehandling -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Kan ikke endre klagebehandling til avvist når den er tilknyttet en rammebehandling",
+                "kan_ikke_endre_klagebehandling_til_avvist_nar_tilknyttet_rammebehandling",
+            ),
+        )
     }
 }

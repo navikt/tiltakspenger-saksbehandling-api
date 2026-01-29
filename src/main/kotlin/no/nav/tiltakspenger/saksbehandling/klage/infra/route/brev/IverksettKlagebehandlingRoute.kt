@@ -15,18 +15,13 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.kanIkkeOppdatereBehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.OppdaterKlagebehandlingFormkravBody
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toDto
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 
 private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/iverksett"
 
@@ -104,30 +99,6 @@ private fun KanIkkeIverksetteKlagebehandling.toStatusAndErrorJson(): Pair<HttpSt
                 "Kan kun iverksette klagebehandling med status UNDER_BEHANDLING",
                 "må_ha_status_under_behandling",
             ),
-        )
-    }
-}
-
-fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
-    return when (this) {
-        is KanIkkeOppdatereKlagebehandling.FantIkkeJournalpost -> Pair(
-            HttpStatusCode.BadRequest,
-            ErrorJson(
-                "Fant ikke journalpost",
-                "fant_ikke_journalpost",
-            ),
-        )
-
-        is KanIkkeOppdatereKlagebehandling.SaksbehandlerMismatch -> Pair(
-            HttpStatusCode.BadRequest,
-            behandlingenEiesAvAnnenSaksbehandler(
-                this.forventetSaksbehandler,
-            ),
-        )
-
-        is KanIkkeOppdatereKlagebehandling.KanIkkeOppdateres -> Pair(
-            HttpStatusCode.BadRequest,
-            kanIkkeOppdatereBehandling(),
         )
     }
 }
