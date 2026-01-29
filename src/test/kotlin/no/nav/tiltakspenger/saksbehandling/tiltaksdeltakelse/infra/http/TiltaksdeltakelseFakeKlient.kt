@@ -25,7 +25,13 @@ class TiltaksdeltakelseFakeKlient(
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
     ): TiltaksdeltakelserFraRegister {
-        return data.get()[fnr] ?: if (defaultTiltaksdeltakelserTilSøknadHvisDenMangler) hentTiltaksdeltakelseFraSøknad(fnr) else TiltaksdeltakelserFraRegister.empty()
+        return data.get()[fnr] ?: if (defaultTiltaksdeltakelserTilSøknadHvisDenMangler) {
+            hentTiltaksdeltakelseFraSøknad(
+                fnr,
+            )
+        } else {
+            TiltaksdeltakelserFraRegister.empty()
+        }
     }
 
     override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
@@ -67,7 +73,7 @@ class TiltaksdeltakelseFakeKlient(
 
     private suspend fun hentTiltaksdeltakelseFraSøknad(fnr: Fnr): TiltaksdeltakelserFraRegister {
         val søknadRepo = søknadRepoProvider()!!
-        val søknader = søknadRepo.hentSøknaderForFnr(fnr)
+        val søknader = søknadRepo.hentSøknaderForFnr(fnr, disableSessionCounter = true)
         val tiltak = søknader.mapNotNull { it.tiltak?.toTiltak() }.distinctBy { it.eksternDeltakelseId }
             .map { it.toTiltaksdeltakelseFraRegister() }
 

@@ -18,7 +18,7 @@ interface SøknadRepo {
 
     fun hentSakIdForSoknad(søknadId: SøknadId): SakId?
 
-    fun hentSøknaderForFnr(fnr: Fnr): List<Søknad>
+    fun hentSøknaderForFnr(fnr: Fnr, disableSessionCounter: Boolean = false): List<Søknad>
 
     fun finnSakIdForTiltaksdeltakelse(tiltaksdeltakerId: TiltaksdeltakerId): SakId?
 

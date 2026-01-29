@@ -32,8 +32,8 @@ internal class SøknadPostgresRepo(
             SøknadDAO.finnSakId(søknadId, it)
         }
 
-    override fun hentSøknaderForFnr(fnr: Fnr): List<Søknad> {
-        return sessionFactory.withSession {
+    override fun hentSøknaderForFnr(fnr: Fnr, disableSessionCounter: Boolean): List<Søknad> {
+        return sessionFactory.withSession(disableSessionCounter) {
             SøknadDAO.hentForFnr(fnr, it)
         }
     }
