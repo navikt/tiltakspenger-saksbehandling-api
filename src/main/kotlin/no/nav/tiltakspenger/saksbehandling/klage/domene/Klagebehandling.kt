@@ -117,7 +117,7 @@ data class Klagebehandling(
             resultat = when {
                 oppdaterteFormkrav.erAvvisning && tidligereResultat is Klagebehandlingsresultat.Avvist -> tidligereResultat
                 oppdaterteFormkrav.erAvvisning -> Klagebehandlingsresultat.Avvist.empty
-                resultat is Omgjør && oppdaterteFormkrav.erOppfyllt -> this.resultat
+                resultat is Klagebehandlingsresultat.Omgjør && oppdaterteFormkrav.erOppfyllt -> this.resultat
                 else -> null
             },
         ).right()
