@@ -108,6 +108,7 @@ data class Klagebehandling(
         }
         val oppdaterteFormkrav = kommando.toKlageFormkrav()
         val tidligereResultat = this.resultat
+
         return this.copy(
             sistEndret = nå(clock),
             formkrav = oppdaterteFormkrav,
@@ -116,6 +117,7 @@ data class Klagebehandling(
             resultat = when {
                 oppdaterteFormkrav.erAvvisning && tidligereResultat is Klagebehandlingsresultat.Avvist -> tidligereResultat
                 oppdaterteFormkrav.erAvvisning -> Klagebehandlingsresultat.Avvist.empty
+                resultat is Omgjør && oppdaterteFormkrav.erOppfyllt -> this.resultat
                 else -> null
             },
         ).right()

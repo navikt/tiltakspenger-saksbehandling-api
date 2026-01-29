@@ -21,6 +21,11 @@ data class KlageFormkrav(
         if (!erKlagefristenOverholdt && (erUnntakForKlagefrist!! == KlagefristUnntakSvarord.NEI)) return@lazy true
         false
     }
+
+    val erOppfyllt: Boolean by lazy {
+        !erAvvisning
+    }
+
     init {
         if (erKlagefristenOverholdt) {
             require(erUnntakForKlagefrist == null) {

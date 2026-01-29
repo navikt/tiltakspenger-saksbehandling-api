@@ -9,7 +9,11 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterKlagebehandlingFormkravForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingFormkrav
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
 import org.junit.jupiter.api.Test
 
 class OppdaterKlagebehandlingFormkravRouteTest {
@@ -60,6 +64,76 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 }
                 """.trimIndent(),
             )
+        }
+    }
+
+    @Test
+    fun `oppdatering av formkrav endrer ikke resultatet hvis resultat er omgjøring, og oppdatering er omgjøring`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val fnr = Fnr.fromString("12345678912")
+            val (sak, klagebehandling, json) = opprettSakOgOppdaterKlagebehandlingFormkrav(
+                tac = tac,
+                fnr = fnr,
+                erKlagerPartISaken = true,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erKlagefristenOverholdt = true,
+                erKlagenSignert = true,
+                erUnntakForKlagefrist = null,
+                journalpostId = JournalpostId("123456"),
+                vedtakDetKlagesPå = VedtakId.fromString("vedtak_01KEYFMDNGXAFAYW1CD1X47CND"),
+            )!!
+
+            vurderKlagebehandling(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
+                årsak = KlageOmgjøringsårsak.FEIL_LOVANVENDELSE,
+            )!!
+
+            oppdaterKlagebehandlingFormkravForSakId(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                erKlagerPartISaken = true,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erKlagefristenOverholdt = false,
+                erKlagenSignert = true,
+                erUnntakForKlagefrist = KlagefristUnntakSvarord.JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN,
+                journalpostId = JournalpostId("123456"),
+                vedtakDetKlagesPå = VedtakId.fromString("vedtak_01KEYFMDNGXAFAYW1CD1X47CND"),
+                forventetJsonBody = {
+                    //language=json
+                    """{
+                  "id": "${klagebehandling.id}",
+                  "sakId": "${sak.id}",
+                  "saksnummer": "${sak.saksnummer}",
+                  "fnr": "12345678912",
+                  "opprettet": "2025-01-01T01:02:07.456789",
+                  "sistEndret": "2025-01-01T01:02:12.456789",
+                  "iverksattTidspunkt": null,
+                  "saksbehandler": "saksbehandlerKlagebehandling",
+                  "journalpostId": "123456",
+                  "journalpostOpprettet": "2025-01-01T01:02:11.456789",
+                  "status": "UNDER_BEHANDLING",
+                  "resultat": "OMGJØR",
+                  "vedtakDetKlagesPå": "vedtak_01KEYFMDNGXAFAYW1CD1X47CND",
+                  "erKlagerPartISaken": true,
+                  "klagesDetPåKonkreteElementerIVedtaket": true,
+                  "erKlagefristenOverholdt": false,
+                  "erUnntakForKlagefrist": "JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN",
+                  "erKlagenSignert": true,
+                  "brevtekst": [],
+                  "avbrutt": null,
+                  "kanIverksette": false,
+                  "årsak": "FEIL_LOVANVENDELSE",
+                  "begrunnelse": "Begrunnelse for omgjøring",
+                  "rammebehandlingId": null
+                }
+                    """.trimIndent()
+                },
+            )!!
         }
     }
 }
