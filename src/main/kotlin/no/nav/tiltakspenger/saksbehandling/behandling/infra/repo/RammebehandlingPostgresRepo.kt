@@ -96,13 +96,19 @@ class RammebehandlingPostgresRepo(
         behandling: Rammebehandling,
         transactionContext: TransactionContext?,
     ) {
-        sessionFactory.withTransaction(transactionContext) { tx ->
-            val sistEndret = hentSistEndret(behandling.id, tx)
+        sessionFactory.withTransaction(transactionContext) { transactionalSession ->
+            val sistEndret = hentSistEndret(behandling.id, transactionalSession)
 
             if (sistEndret == null) {
-                opprettBehandling(behandling, tx)
+                opprettRammebehandling(behandling, transactionalSession)
             } else {
-                oppdaterBehandling(sistEndret, behandling, tx)
+                oppdaterRammebehandling(sistEndret, behandling, transactionalSession)
+            }
+            if (behandling.klagebehandling != null) {
+                KlagebehandlingPostgresRepo.lagreKlagebehandling(
+                    klagebehandling = behandling.klagebehandling!!,
+                    session = transactionalSession,
+                )
             }
         }
     }
@@ -301,7 +307,7 @@ class RammebehandlingPostgresRepo(
                 )
                 .let { Rammebehandlinger(it) }
 
-        private fun oppdaterBehandling(
+        private fun oppdaterRammebehandling(
             sistEndret: LocalDateTime,
             behandling: Rammebehandling,
             session: Session,
@@ -321,7 +327,7 @@ class RammebehandlingPostgresRepo(
             }
         }
 
-        private fun opprettBehandling(
+        private fun opprettRammebehandling(
             behandling: Rammebehandling,
             session: Session,
         ) {
@@ -681,7 +687,7 @@ class RammebehandlingPostgresRepo(
             """.trimIndent()
     }
 
-/** Siden dette er på tvers av saker, gir det ikke mening og bruke [Rammebehandlinger] */
+    /** Siden dette er på tvers av saker, gir det ikke mening og bruke [Rammebehandlinger] */
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
         return sessionFactory.withSession { session ->
             session.run(

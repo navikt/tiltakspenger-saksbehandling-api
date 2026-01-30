@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.setup
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -127,7 +126,6 @@ open class KlagebehandlingContext(
     open val opprettRammebehandlingFraKlageService by lazy {
         OpprettRammebehandlingFraKlageService(
             sakService = sakService,
-            clock = clock,
             behandleSøknadPåNyttService = behandleSøknadPåNyttService,
             startRevurderingService = startRevurderingService,
             sessionFactory = sessionFactory,

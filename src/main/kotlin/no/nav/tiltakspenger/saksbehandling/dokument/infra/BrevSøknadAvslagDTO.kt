@@ -78,7 +78,7 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
     hentSaksbehandlersNavn: suspend (String) -> String,
     datoForUtsending: LocalDate,
 ): String {
-    require(behandling is Søknadsbehandling && behandling.resultat is Søknadsbehandlingsresultat.Avslag) {
+    require(rammebehandling is Søknadsbehandling && rammebehandling.resultat is Søknadsbehandlingsresultat.Avslag) {
         "Behandlingen må være et avslag for å generere avslagbrev"
     }
 
@@ -86,7 +86,7 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
     val saksbehandlersNavn = hentSaksbehandlersNavn(this.saksbehandler)
     val besluttersNavn = hentSaksbehandlersNavn(this.beslutter)
 
-    val harSøktBarnetillegg = behandling.søknad.barnetillegg.isNotEmpty()
+    val harSøktBarnetillegg = rammebehandling.søknad.barnetillegg.isNotEmpty()
     return BrevSøknadAvslagDTO(
         personalia = BrevPersonaliaDTO(
             ident = fnr.verdi,
@@ -94,11 +94,11 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
             etternavn = brukersNavn.mellomnavnOgEtternavn,
         ),
         saksnummer = saksnummer.verdi,
-        tilleggstekst = this.behandling.fritekstTilVedtaksbrev?.verdi,
+        tilleggstekst = this.rammebehandling.fritekstTilVedtaksbrev?.verdi,
         forhandsvisning = false,
-        avslagsgrunner = this.behandling.resultat.avslagsgrunner.toAvslagsgrunnerBrevDto(),
-        hjemlerTekst = if (this.behandling.resultat.avslagsgrunner.size > 1) {
-            this.behandling.resultat.avslagsgrunner.createBrevForskrifter(
+        avslagsgrunner = this.rammebehandling.resultat.avslagsgrunner.toAvslagsgrunnerBrevDto(),
+        hjemlerTekst = if (this.rammebehandling.resultat.avslagsgrunner.size > 1) {
+            this.rammebehandling.resultat.avslagsgrunner.createBrevForskrifter(
                 harSøktBarnetillegg,
             )
         } else {
@@ -107,7 +107,7 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
         harSøktMedBarn = harSøktBarnetillegg,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        avslagsgrunnerSize = this.behandling.resultat.avslagsgrunner.size,
+        avslagsgrunnerSize = this.rammebehandling.resultat.avslagsgrunner.size,
         avslagFraOgMed = this.periode.fraOgMed.format(norskDatoFormatter),
         avslagTilOgMed = this.periode.tilOgMed.format(norskDatoFormatter),
         datoForUtsending = datoForUtsending.format(norskDatoFormatter),

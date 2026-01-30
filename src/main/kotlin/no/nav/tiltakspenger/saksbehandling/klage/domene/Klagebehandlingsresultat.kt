@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 sealed interface Klagebehandlingsresultat {
 
     val brevtekst: Brevtekster?
-    val kanIverksette: Boolean
+    val kanIverksette: Boolean?
     val kanIkkeIverksetteGrunner: List<String>
 
     val erKnyttetTilRammebehandling: Boolean
@@ -53,9 +53,13 @@ sealed interface Klagebehandlingsresultat {
     ) : Klagebehandlingsresultat {
         override val brevtekst = null
 
-        /** */
-        override val kanIverksette: Boolean = false
-        override val kanIkkeIverksetteGrunner: List<String> = emptyList()
+        /** Denne tar ikke stilling til rammebehandlingens tilstand, så helheten kan kun avgjøres av iverksettelse av rammebehandlingen. */
+        override val kanIverksette: Boolean = rammebehandlingId != null
+        override val kanIkkeIverksetteGrunner: List<String> = if (rammebehandlingId == null) {
+            listOf("Må ha en rammebehandlingId for å kunne iverksette omgjøring")
+        } else {
+            emptyList()
+        }
 
         override val erKnyttetTilRammebehandling = rammebehandlingId != null
 

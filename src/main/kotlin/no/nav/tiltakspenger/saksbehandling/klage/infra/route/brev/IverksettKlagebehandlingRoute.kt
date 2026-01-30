@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -22,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlage
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toDto
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
+import java.time.Clock
 
 private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/iverksett"
 
@@ -29,6 +31,7 @@ fun Route.iverksettKlagebehandlingRoute(
     iverksettKlagebehandlingService: IverksettKlagebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -47,6 +50,8 @@ fun Route.iverksettKlagebehandlingRoute(
                         saksbehandler = saksbehandler,
                         correlationId = correlationId,
                         klagebehandlingId = klagebehandlingId,
+                        iverksattTidspunkt = nå(clock),
+                        iverksettFraRammebehandling = false,
                     ),
                 ).fold(
                     ifLeft = {
@@ -86,18 +91,28 @@ private fun KanIkkeIverksetteKlagebehandling.toStatusAndErrorJson(): Pair<HttpSt
                 "kan_ikke_iverksette_behandling",
             ),
         )
-        is KanIkkeIverksetteKlagebehandling.MåHaResultatAvvisning -> Pair(
+
+        is KanIkkeIverksetteKlagebehandling.FeilResultat -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
                 "Kan kun iverksette klagebehandling med resultat AVVIST",
                 "må_ha_resultat_avvisning",
             ),
         )
+
         is KanIkkeIverksetteKlagebehandling.MåHaStatusUnderBehandling -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
                 "Kan kun iverksette klagebehandling med status UNDER_BEHANDLING",
                 "må_ha_status_under_behandling",
+            ),
+        )
+
+        is KanIkkeIverksetteKlagebehandling.FeilInngang -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Feil inngang brukt for å iverksette klagebehandling. forventet: ${this.forventetInngang}, faktisk: ${this.faktiskInngang}",
+                "feil_inngang_ved_iverksetting",
             ),
         )
     }

@@ -228,6 +228,6 @@ class BenkOversiktFakeRepo(
         Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatus.KLAR_TIL_BEHANDLING
         Klagebehandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
         Klagebehandlingsstatus.AVBRUTT -> throw IllegalStateException("Avbrutte behandlinger skal ikke være åpne")
-        Klagebehandlingsstatus.IVERKSATT -> throw IllegalStateException("Iverksatte behandlinger skal ikke være åpne")
+        Klagebehandlingsstatus.VEDTATT -> throw IllegalStateException("Vedtatte/iverksatte behandlinger skal ikke være åpne")
     }
 }

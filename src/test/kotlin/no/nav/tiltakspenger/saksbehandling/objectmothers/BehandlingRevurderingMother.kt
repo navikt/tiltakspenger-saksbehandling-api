@@ -153,6 +153,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         førsteDagSomGirRett: LocalDate,
         sisteDagSomGirRett: LocalDate,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
+        correlationId: CorrelationId = CorrelationId.generate(),
     ): Revurdering {
         return nyRevurderingStansKlarTilBeslutning(
             id = id,
@@ -174,6 +175,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         ).taBehandling(beslutter, clock).iverksett(
             utøvendeBeslutter = beslutter,
             attestering = attestering,
+            correlationId = correlationId,
             clock = clock,
         ) as Revurdering
     }
@@ -317,6 +319,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             ),
         ),
         beregning: Beregning? = null,
+        correlationId: CorrelationId = CorrelationId.generate(),
     ): Revurdering {
         return nyRevurderingInnvilgelseKlarTilBeslutning(
             id = id,
@@ -336,6 +339,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         ).taBehandling(beslutter, clock).iverksett(
             utøvendeBeslutter = beslutter,
             attestering = attestering,
+            correlationId = correlationId,
             clock = clock,
         ) as Revurdering
     }
@@ -438,6 +442,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         beslutter: Saksbehandler = beslutter(),
         søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
         omgjøringInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
+        correlationId: CorrelationId = CorrelationId.generate(),
         omgjørBehandling: Rammebehandling = nyVedtattSøknadsbehandling(
             sakId = sakId,
             saksnummer = saksnummer,
@@ -471,6 +476,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     ).iverksett(
         utøvendeBeslutter = iverksettendeBeslutter,
         attestering = attestering,
+        correlationId = correlationId,
         clock = clock,
     )
 }

@@ -55,7 +55,7 @@ class SakTest {
             avbruttTidspunkt = førsteNovember24,
         )
         avbruttSøknad?.avbrutt shouldNotBe null
-        avbruttBehandling?.avbrutt shouldNotBe null
+        avbruttBehandling.avbrutt shouldNotBe null
         sakMedAvbruttsøknad.søknader.size shouldBe 1
         sakMedAvbruttsøknad.rammebehandlinger.size shouldBe 1
     }
@@ -163,7 +163,7 @@ class SakTest {
             journalpostId = null,
             journalføringstidspunkt = null,
             utbetaling = null,
-            behandling = ObjectMother.nyVedtattSøknadsbehandling(
+            rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
                 sakId = sakId,
                 fnr = fnr,
                 saksopplysningsperiode = vedtaksperiode,
@@ -202,7 +202,7 @@ class SakTest {
             journalpostId = null,
             journalføringstidspunkt = null,
             utbetaling = null,
-            behandling = ObjectMother.nyVedtattRevurderingInnvilgelse(
+            rammebehandling = ObjectMother.nyVedtattRevurderingInnvilgelse(
                 sakId = sakId,
                 fnr = fnr,
                 saksopplysningsperiode = andreVedtaksPeriode,

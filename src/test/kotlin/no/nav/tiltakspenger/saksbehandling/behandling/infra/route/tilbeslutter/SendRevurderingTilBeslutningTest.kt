@@ -67,7 +67,7 @@ class SendRevurderingTilBeslutningTest {
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingInnvilgelsesperiode),
                 revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelsesperiode),
             )
-            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
+            val søknadsbehandling = rammevedtakSøknadsbehandling.rammebehandling as Søknadsbehandling
 
             JSONObject(jsonResponse).getString("status") shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING.name
             JSONObject(jsonResponse).getString("resultat") shouldBe RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE.name

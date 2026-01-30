@@ -66,10 +66,10 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
 
     return RammevedtakDTO(
         id = id.toString(),
-        behandlingId = behandling.id.toString(),
+        behandlingId = rammebehandling.id.toString(),
         opprettet = opprettet,
         vedtaksdato = vedtaksdato,
-        resultat = resultat.tilRammebehandlingResultatTypeDTO(),
+        resultat = rammebehandlingsresultat.tilRammebehandlingResultatTypeDTO(),
         gjeldendeVedtaksperioder = this.gjeldendePerioder.map { it.toDTO() },
         saksbehandler = saksbehandler,
         beslutter = beslutter,
@@ -104,7 +104,7 @@ data class TidslinjeDTO(
 )
 
 fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<TidslinjeElementDTO> {
-    return when (this.resultat) {
+    return when (this.rammebehandlingsresultat) {
         is Revurderingsresultat.Omgjøring -> {
             // TODO: må støtte flere perioder
             val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperioder!!.totalPeriode)
@@ -167,7 +167,7 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
                         barnetillegg = this.barnetillegg?.tilKrympetBarnetilleggDTO(tidslinjeperiode),
                     ),
                     periode = tidslinjeperiode.toDTO(),
-                    tidslinjeResultat = when (this.resultat) {
+                    tidslinjeResultat = when (this.rammebehandlingsresultat) {
                         is Revurderingsresultat.Omgjøring -> throw IllegalStateException("Omgjøring skal bli håndtert spesielt")
                         is Søknadsbehandlingsresultat.Avslag -> throw IllegalStateException("Avslag kan ikke forekomme i tidslinje")
 

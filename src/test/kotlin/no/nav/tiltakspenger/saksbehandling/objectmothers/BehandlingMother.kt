@@ -468,6 +468,7 @@ interface BehandlingMother : MotherOfAllMothers {
         clock: Clock = fixedClock,
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
+        correlationId: CorrelationId = CorrelationId.generate(),
     ): Søknadsbehandling {
         return nySøknadsbehandlingUnderBeslutning(
             id = id,
@@ -492,6 +493,7 @@ interface BehandlingMother : MotherOfAllMothers {
         ).iverksett(
             utøvendeBeslutter = beslutter,
             attestering = godkjentAttestering(beslutter, clock),
+            correlationId = correlationId,
             clock = clock,
         ) as Søknadsbehandling
     }
@@ -772,6 +774,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
     ),
     barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+    correlationId: CorrelationId = CorrelationId.generate(),
 ): Pair<Sak, Søknadsbehandling> {
     val tac = this
     val underBeslutning = søknadsbehandlingUnderBeslutning(
@@ -787,6 +790,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
     val behandling = tac.behandlingContext.iverksettRammebehandlingService.iverksettRammebehandling(
         rammebehandlingId = underBeslutning.rammebehandlinger.singleOrNullOrThrow()!!.id,
         beslutter = beslutter,
+        correlationId = correlationId,
         sakId = underBeslutning.id,
     ).getOrFail().second
 

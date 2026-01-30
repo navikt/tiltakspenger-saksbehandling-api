@@ -149,7 +149,8 @@ private fun List<Klagebehandling>.toÅpenKlagebehandlingDTO(): List<ÅpenBehandl
             Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> "KLAR_TIL_BEHANDLING"
             Klagebehandlingsstatus.UNDER_BEHANDLING -> "UNDER_BEHANDLING"
             Klagebehandlingsstatus.AVBRUTT -> "AVBRUTT"
-            Klagebehandlingsstatus.IVERKSATT -> "IVERKSATT"
+            // TODO jah: Endre til VEDTATT her og frontend samtidig.
+            Klagebehandlingsstatus.VEDTATT -> "IVERKSATT"
         },
         saksbehandler = it.saksbehandler,
         resultat = it.resultat?.toKlageresultatstypDto(),

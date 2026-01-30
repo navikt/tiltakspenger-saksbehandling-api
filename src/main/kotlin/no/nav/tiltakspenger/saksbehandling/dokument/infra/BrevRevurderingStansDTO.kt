@@ -31,7 +31,7 @@ suspend fun Rammevedtak.toRevurderingStans(
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
 ): String {
-    require(behandling is Revurdering && behandling.resultat is Revurderingsresultat.Stans)
+    require(rammebehandling is Revurdering && rammebehandling.resultat is Revurderingsresultat.Stans)
 
     return genererStansbrev(
         hentBrukersNavn = hentBrukersNavn,
@@ -43,8 +43,8 @@ suspend fun Rammevedtak.toRevurderingStans(
         stansperiode = this.periode,
         saksnummer = saksnummer,
         forhåndsvisning = false,
-        valgteHjemler = behandling.resultat.valgtHjemmel!!,
-        tilleggstekst = behandling.fritekstTilVedtaksbrev,
+        valgteHjemler = rammebehandling.resultat.valgtHjemmel!!,
+        tilleggstekst = rammebehandling.fritekstTilVedtaksbrev,
     )
 }
 

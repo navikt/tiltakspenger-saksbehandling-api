@@ -36,7 +36,7 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
     }
 
     override fun hentForFnr(fnr: Fnr): List<Rammevedtak> =
-        data.get().values.filter { it.behandling.fnr == fnr }.sortedBy { it.opprettet }
+        data.get().values.filter { it.rammebehandling.fnr == fnr }.sortedBy { it.opprettet }
 
     override fun hentRammevedtakSomSkalJournalføres(limit: Int): List<Rammevedtak> {
         return data.get().values.filter { it.journalpostId == null }.sortedBy { it.opprettet }.take(limit)
@@ -79,7 +79,7 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
     }
 
     fun hentForSakId(sakId: SakId): Rammevedtaksliste =
-        data.get().values.filter { it.behandling.sakId == sakId }.sortedBy { it.opprettet }.let {
+        data.get().values.filter { it.rammebehandling.sakId == sakId }.sortedBy { it.opprettet }.let {
             Rammevedtaksliste(it)
         }
 }

@@ -47,7 +47,7 @@ interface IverksettKlagebehandlingBuilder {
             saksbehandler = saksbehandler,
             fnr = fnr,
         ) ?: return null
-        return iverksettKlagebehandlinForSakId(
+        return iverksettKlagebehandlingForSakId(
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
@@ -61,7 +61,7 @@ interface IverksettKlagebehandlingBuilder {
      * Forventer at det allerede finnes en sak.
      * Emulerer journalføring av vedtaksbrev.
      */
-    suspend fun ApplicationTestBuilder.iverksettKlagebehandlinForSakId(
+    suspend fun ApplicationTestBuilder.iverksettKlagebehandlingForSakId(
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,

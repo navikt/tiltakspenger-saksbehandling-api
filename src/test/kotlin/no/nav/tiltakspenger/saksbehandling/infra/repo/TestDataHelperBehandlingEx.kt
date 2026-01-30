@@ -40,7 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -545,11 +545,11 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
         clock = clock,
     )
 
-    val oppdatertBehandling = søknadsbehandling
+    val oppdatertRammebehandling = søknadsbehandling
         .taBehandling(beslutter, clock)
-        .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
-    behandlingRepo.lagre(oppdatertBehandling)
-    val vedtak = sak.opprettVedtak(oppdatertBehandling, clock).second
+        .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), correlationId, clock)
+    behandlingRepo.lagre(oppdatertRammebehandling)
+    val vedtak = sak.opprettRammevedtak(oppdatertRammebehandling, clock).second
     vedtakRepo.lagre(vedtak)
     sakRepo.oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
         sakId = vedtak.sakId,
@@ -559,7 +559,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
     val (_, meldeperioder) = oppdatertSak.genererMeldeperioder(clock)
     meldeperiodeRepo.lagre(meldeperioder)
-    return Triple(sakRepo.hentForSakId(sakId)!!, vedtak, oppdatertBehandling)
+    return Triple(sakRepo.hentForSakId(sakId)!!, vedtak, oppdatertRammebehandling)
 }
 
 internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
@@ -616,9 +616,9 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
 
     val oppdatertSøknadsbehandling =
         søknadsbehandling.taBehandling(beslutter, clock)
-            .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
+            .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), correlationId, clock)
     behandlingRepo.lagre(oppdatertSøknadsbehandling)
-    val (sakMedVedtak, vedtak) = sak.opprettVedtak(oppdatertSøknadsbehandling, clock)
+    val (sakMedVedtak, vedtak) = sak.opprettRammevedtak(oppdatertSøknadsbehandling, clock)
     vedtakRepo.lagre(vedtak)
     return Triple(sakMedVedtak, vedtak, oppdatertSøknadsbehandling)
 }

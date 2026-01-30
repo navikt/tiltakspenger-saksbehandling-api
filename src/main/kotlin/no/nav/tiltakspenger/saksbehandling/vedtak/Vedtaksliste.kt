@@ -37,7 +37,7 @@ data class Vedtaksliste(
 
     val avslagsvedtak: List<Rammevedtak> by lazy { rammevedtaksliste.avslagsvedtak }
     val avslåtteBehandlinger: List<Søknadsbehandling> by lazy {
-        avslagsvedtak.map { it.behandling as Søknadsbehandling }
+        avslagsvedtak.map { it.rammebehandling as Søknadsbehandling }
     }
 
     val meldeperiodeBeregninger: MeldeperiodeBeregningerVedtatt by lazy {

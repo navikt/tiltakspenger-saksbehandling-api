@@ -37,7 +37,7 @@ data class Rammevedtaksliste(
 
     /** Et førstegangsvedtak defineres som den første søknadsbehandlingen som førte til innvilgelse. */
     val harFørstegangsvedtak: Boolean by lazy {
-        verdi.any { it.behandling is Søknadsbehandling && it.resultat is Rammebehandlingsresultat.Innvilgelse }
+        verdi.any { it.rammebehandling is Søknadsbehandling && it.rammebehandlingsresultat is Rammebehandlingsresultat.Innvilgelse }
     }
 
     val utbetalinger: List<VedtattUtbetaling> by lazy {
@@ -45,12 +45,12 @@ data class Rammevedtaksliste(
     }
 
     val avslagsvedtak: List<Rammevedtak> by lazy {
-        verdi.filter { it.resultat is Søknadsbehandlingsresultat.Avslag }
+        verdi.filter { it.rammebehandlingsresultat is Søknadsbehandlingsresultat.Avslag }
     }
 
     val vedtakUtenAvslag: List<Rammevedtak> by lazy {
         verdi.filter {
-            when (it.resultat) {
+            when (it.rammebehandlingsresultat) {
                 is Rammebehandlingsresultat.Innvilgelse,
                 is Revurderingsresultat.Stans,
                 -> true
@@ -78,7 +78,7 @@ data class Rammevedtaksliste(
     /** Nåtilstand. De periodene som gir rett til tiltakspenger. Kan ha hull. */
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
         tidslinje.filter {
-            it.verdi.resultat is Rammebehandlingsresultat.Innvilgelse
+            it.verdi.rammebehandlingsresultat is Rammebehandlingsresultat.Innvilgelse
         }.perioderMedVerdi.flatMap { (vedtak, gjeldendePeriode) ->
             gjeldendePeriode.overlappendePerioder(vedtak.innvilgelsesperioder!!.perioder).map { overlappendePeriode ->
                 PeriodeMedVerdi(
@@ -99,17 +99,17 @@ data class Rammevedtaksliste(
      * Tar utgangspunkt i [innvilgetTidslinje]
      */
     val innvilgelsesperioder: Periodisering<InnvilgelsesperiodeVerdi> by lazy {
-        innvilgetTidslinje.flatMapPeriodisering { it.verdi.behandling.innvilgelsesperioder!!.periodisering }
+        innvilgetTidslinje.flatMapPeriodisering { it.verdi.rammebehandling.innvilgelsesperioder!!.periodisering }
     }
 
     val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> by lazy {
-        innvilgetTidslinje.flatMapPeriodisering { it.verdi.behandling.antallDagerPerMeldeperiode!! }
+        innvilgetTidslinje.flatMapPeriodisering { it.verdi.rammebehandling.antallDagerPerMeldeperiode!! }
     }
 
     fun antallDagerForMeldeperiode(periode: Periode): AntallDagerForMeldeperiode? {
         return innvilgetTidslinje
             .overlappendePeriode(periode)
-            .mapNotNull { it.verdi.behandling.antallDagerPerMeldeperiode?.finnAntallDagerForMeldeperiode(periode) }
+            .mapNotNull { it.verdi.rammebehandling.antallDagerPerMeldeperiode?.finnAntallDagerForMeldeperiode(periode) }
             .maxOfOrNull { it }
     }
 
@@ -118,7 +118,7 @@ data class Rammevedtaksliste(
     }
 
     val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltakelse> by lazy {
-        innvilgetTidslinje.flatMapPeriodisering { it.verdi.behandling.valgteTiltaksdeltakelser!! }
+        innvilgetTidslinje.flatMapPeriodisering { it.verdi.rammebehandling.valgteTiltaksdeltakelser!! }
     }
 
     fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltakelse> {
@@ -154,7 +154,7 @@ data class Rammevedtaksliste(
      * Legger til et rammevedtak i vedtaklisten og oppdaterer omgjortAvRammevedtak per vedtak
      */
     fun leggTil(vedtak: Rammevedtak): Rammevedtaksliste {
-        if (vedtak.resultat is Søknadsbehandlingsresultat.Avslag) {
+        if (vedtak.rammebehandlingsresultat is Søknadsbehandlingsresultat.Avslag) {
             // Avslag omgjør aldri noe
             return copy(verdi = this.verdi.plus(vedtak))
         }
@@ -170,7 +170,7 @@ data class Rammevedtaksliste(
     }
 
     fun finnRammevedtakForBehandling(id: BehandlingId): Rammevedtak? {
-        return this.singleOrNullOrThrow { vedtak -> vedtak.behandling.id == id }
+        return this.singleOrNullOrThrow { vedtak -> vedtak.rammebehandling.id == id }
     }
 
     /**
@@ -190,7 +190,7 @@ data class Rammevedtaksliste(
 
     init {
         if (verdi.isNotEmpty()) {
-            (this.map { it.id.toString() } + this.map { it.behandling.id.toString() }).also {
+            (this.map { it.id.toString() } + this.map { it.rammebehandling.id.toString() }).also {
                 require(it.size == it.distinct().size) { "Klagebehandlingene og klagevedtakene kan ikke ha overlapp i IDer. sakId=$sakId, saksnummer=$saksnummer" }
             }
             verdi.zipWithNext().forEach {
@@ -260,6 +260,6 @@ data class Rammevedtaksliste(
     }
 
     fun hentVedtakForBehandlingId(behandlingId: BehandlingId): Rammevedtak {
-        return this.single { it.behandling.id == behandlingId }
+        return this.single { it.rammebehandling.id == behandlingId }
     }
 }

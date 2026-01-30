@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
@@ -32,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -507,9 +509,13 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         }.right()
     }
 
+    /**
+     * @return Oppdatert [Rammebehandling] som eventuelt også har en oppdatert [Klagebehandling] dersom det finnes en slik knyttet til behandlingen.
+     */
     fun iverksett(
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
+        correlationId: CorrelationId,
         clock: Clock,
     ): Rammebehandling {
         require(vedtaksperiode != null) { "vedtaksperiode må være satt ved iverksetting" }
@@ -525,13 +531,27 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
                 val attesteringer = attesteringer.leggTil(attestering)
                 val iverksattTidspunkt = nå(clock)
-
+                val oppdatertKlagebehandling: Klagebehandling? = klagebehandling?.iverksett(
+                    IverksettKlagebehandlingKommando(
+                        sakId = sakId,
+                        klagebehandlingId = klagebehandling!!.id,
+                        // Har andre sjekker på at saksbehandler må være lik mellom rammebehandling og klagebehandling ved iverksetting.
+                        // Klagebehandlingen har ikke beslutter per say, så vi sender inn null her.
+                        saksbehandler = null,
+                        correlationId = correlationId,
+                        iverksattTidspunkt = iverksattTidspunkt,
+                        iverksettFraRammebehandling = true,
+                    ),
+                    // TODO jah: Endre til left eller custom exception for å propagere feil bedre?
+                )
+                    ?.getOrElse { throw IllegalStateException("Feil ved iverksetting av rammebehandling $id knyttet til klagebehandling ${klagebehandling!!.id}. Underliggende feil: $it, sakId: $sakId, saksnummer: $saksnummer") }
                 when (this) {
                     is Søknadsbehandling -> this.copy(
                         status = VEDTATT,
                         attesteringer = attesteringer,
                         iverksattTidspunkt = iverksattTidspunkt,
                         sistEndret = iverksattTidspunkt,
+                        klagebehandling = oppdatertKlagebehandling,
                     )
 
                     is Revurdering -> this.copy(
@@ -539,6 +559,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         attesteringer = attesteringer,
                         iverksattTidspunkt = iverksattTidspunkt,
                         sistEndret = iverksattTidspunkt,
+                        klagebehandling = oppdatertKlagebehandling,
                     )
                 }
             }
@@ -652,7 +673,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     fun validerKanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<KanIkkeSendeRammebehandlingTilBeslutter, Unit> {
         if (this.saksbehandler != null && this.saksbehandler != saksbehandler.navIdent) {
-            return KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler!!).left()
+            return KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler!!)
+                .left()
         }
         if (status != UNDER_BEHANDLING && status != UNDER_AUTOMATISK_BEHANDLING) {
             return KanIkkeSendeRammebehandlingTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk.left()

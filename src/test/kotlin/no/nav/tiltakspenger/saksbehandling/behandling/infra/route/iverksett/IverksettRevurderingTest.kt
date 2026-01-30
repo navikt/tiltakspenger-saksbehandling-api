@@ -52,7 +52,7 @@ internal class IverksettRevurderingTest {
                 begrunnelseVilkårsvurdering = null,
                 fritekstTilVedtaksbrev = null,
                 valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
-                stansFraOgMed = rammevedtakSøknadsbehandling.behandling.vedtaksperiode!!.fraOgMed,
+                stansFraOgMed = rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode!!.fraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
 
@@ -156,7 +156,7 @@ internal class IverksettRevurderingTest {
                 begrunnelseVilkårsvurdering = null,
                 fritekstTilVedtaksbrev = null,
                 valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
-                stansFraOgMed = rammevedtakSøknadsbehandling.behandling.vedtaksperiode!!.fraOgMed,
+                stansFraOgMed = rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode!!.fraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
 
@@ -185,8 +185,8 @@ internal class IverksettRevurderingTest {
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(1.til(10.april(2025))),
                 revurderingInnvilgelsesperioder = innvilgelsesperioder(9.til(11.april(2025))),
             )
-            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
-            val revurdering = rammevedtakRevurdering.behandling as Revurdering
+            val søknadsbehandling = rammevedtakSøknadsbehandling.rammebehandling as Søknadsbehandling
+            val revurdering = rammevedtakRevurdering.rammebehandling as Revurdering
             val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, sak.saksnummer)!!
             val søknadsbehandlingvedtakDTOJson: RammevedtakDTOJson =
                 sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(0)
@@ -275,8 +275,8 @@ internal class IverksettRevurderingTest {
                 tac = tac,
                 stansFraOgMed = 5.januar(2023),
             )
-            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
-            val revurdering = rammevedtakRevurdering.behandling as Revurdering
+            val søknadsbehandling = rammevedtakSøknadsbehandling.rammebehandling as Søknadsbehandling
+            val revurdering = rammevedtakRevurdering.rammebehandling as Revurdering
             val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, sak.saksnummer)!!
             val søknadsbehandlingvedtakDTOJson: RammevedtakDTOJson =
                 sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(0)
@@ -330,8 +330,8 @@ internal class IverksettRevurderingTest {
                 tac,
             )!!
             val innvilgelsesperiode = vedtaksperiode()
-            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
-            val revurdering = rammevedtakRevurdering.behandling as Revurdering
+            val søknadsbehandling = rammevedtakSøknadsbehandling.rammebehandling as Søknadsbehandling
+            val revurdering = rammevedtakRevurdering.rammebehandling as Revurdering
             val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, sak.saksnummer)!!
             val søknadsbehandlingvedtakDTOJson: RammevedtakDTOJson =
                 sakDTOJson.getJSONArray("alleRammevedtak").getJSONObject(0)

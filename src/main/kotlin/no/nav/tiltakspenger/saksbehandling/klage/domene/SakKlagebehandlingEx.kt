@@ -96,14 +96,15 @@ suspend fun Sak.forhåndsvisKlagebrev(
     )
 }
 
+/**
+ * Reservert for iverksetting av avviste klager.
+ * For medhold/omgjøring, se [no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService]
+ */
 fun Sak.iverksettKlagebehandling(
     kommando: IverksettKlagebehandlingKommando,
     clock: Clock,
 ): Either<KanIkkeIverksetteKlagebehandling, Pair<Sak, Klagevedtak>> {
-    return this.hentKlagebehandling(kommando.klagebehandlingId).iverksett(
-        kommando = kommando,
-        clock = clock,
-    ).map {
+    return this.hentKlagebehandling(kommando.klagebehandlingId).iverksett(kommando = kommando).map {
         val klagevedtak = Klagevedtak.createFromKlagebehandling(
             clock = clock,
             klagebehandling = it,
@@ -130,7 +131,6 @@ fun Sak.vurderKlagebehandling(
 
 suspend fun Sak.opprettRammebehandlingFraKlage(
     kommando: OpprettRammebehandlingFraKlageKommando,
-    clock: Clock,
     sessionFactory: SessionFactory,
     opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando, Sak, TransactionContext) -> Pair<Sak, Søknadsbehandling>,
     opprettRevurdering: suspend (StartRevurderingKommando, Sak, TransactionContext) -> Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>>,

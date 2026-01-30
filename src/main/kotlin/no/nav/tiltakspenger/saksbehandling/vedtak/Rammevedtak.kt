@@ -23,6 +23,9 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
@@ -54,7 +57,7 @@ data class Rammevedtak(
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
     override val utbetaling: VedtattUtbetaling?,
-    val behandling: Rammebehandling,
+    val rammebehandling: Rammebehandling,
     val vedtaksdato: LocalDate?,
     val distribusjonId: DistribusjonId?,
     val distribusjonstidspunkt: LocalDateTime?,
@@ -63,14 +66,17 @@ data class Rammevedtak(
     val omgjortAvRammevedtak: OmgjortAvRammevedtak,
 ) : Vedtak,
     Periodiserbar {
-    override val fnr: Fnr = behandling.fnr
-    override val saksnummer: Saksnummer = behandling.saksnummer
-    override val saksbehandler: String = behandling.saksbehandler!!
-    override val beslutter: String = behandling.beslutter!!
+    override val fnr: Fnr = rammebehandling.fnr
+    override val saksnummer: Saksnummer = rammebehandling.saksnummer
+    override val saksbehandler: String = rammebehandling.saksbehandler!!
+    override val beslutter: String = rammebehandling.beslutter!!
 
-    override val beregning: Beregning? = behandling.utbetaling?.beregning
+    override val beregning: Beregning? = rammebehandling.utbetaling?.beregning
 
-    val resultat: Rammebehandlingsresultat = behandling.resultat!!
+    val rammebehandlingsresultat: Rammebehandlingsresultat = rammebehandling.resultat!!
+
+    val klagebehandling: Klagebehandling? = rammebehandling.klagebehandling
+    val klagebehandlingsresultat: Klagebehandlingsresultat? = klagebehandling?.resultat
 
     val omgjortGrad: Omgjøringsgrad? by lazy {
         if (omgjortAvRammevedtak.isEmpty()) {
@@ -80,31 +86,31 @@ data class Rammevedtak(
         if (periode.trekkFra(omgjortAvRammevedtak.perioder).isEmpty()) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS
     }
 
-    val omgjørRammevedtak: OmgjørRammevedtak by lazy { behandling.resultat!!.omgjørRammevedtak }
+    val omgjørRammevedtak: OmgjørRammevedtak by lazy { rammebehandling.resultat!!.omgjørRammevedtak }
 
     /** Er dette en omgjøringsbehandling? */
     val erOmgjøringsbehandling: Boolean by lazy {
-        behandling.resultat is Revurderingsresultat.Omgjøring
+        rammebehandling.resultat is Revurderingsresultat.Omgjøring
     }
 
     val erAvslag: Boolean by lazy {
-        behandling.resultat is Søknadsbehandlingsresultat.Avslag
+        rammebehandling.resultat is Søknadsbehandlingsresultat.Avslag
     }
 
     val erStans: Boolean by lazy {
-        behandling.resultat is Revurderingsresultat.Stans
+        rammebehandling.resultat is Revurderingsresultat.Stans
     }
 
     /** Vil være null for stans, avslag eller dersom bruker ikke har rett på barnetillegg  */
-    val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
+    val barnetillegg: Barnetillegg? by lazy { rammebehandling.barnetillegg }
 
     /** Vil være null for stans og avslag */
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>? =
-        behandling.antallDagerPerMeldeperiode
+        rammebehandling.antallDagerPerMeldeperiode
 
-    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<Tiltaksdeltakelse>? = behandling.valgteTiltaksdeltakelser
+    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<Tiltaksdeltakelse>? = rammebehandling.valgteTiltaksdeltakelser
 
-    val innvilgelsesperioder: Innvilgelsesperioder? = behandling.innvilgelsesperioder
+    val innvilgelsesperioder: Innvilgelsesperioder? = rammebehandling.innvilgelsesperioder
 
     val opprinneligInnvilgetPerioder: List<Periode> by lazy {
         innvilgelsesperioder?.perioder?.leggSammen() ?: emptyList()
@@ -230,9 +236,9 @@ data class Rammevedtak(
     }
 
     init {
-        require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
-        require(sakId == behandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${behandling.id}" }
-        require(this@Rammevedtak.periode == behandling.vedtaksperiode) { "Periode i vedtak (${this@Rammevedtak.periode}) og behandlingens vedtaksperiode (${behandling.vedtaksperiode}) må være lik. SakId: $sakId, Saksnummer: ${behandling.saksnummer} BehandlingId: ${behandling.id}" }
+        require(rammebehandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${rammebehandling.id}" }
+        require(sakId == rammebehandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${rammebehandling.id}" }
+        require(this@Rammevedtak.periode == rammebehandling.vedtaksperiode) { "Periode i vedtak (${this@Rammevedtak.periode}) og behandlingens vedtaksperiode (${rammebehandling.vedtaksperiode}) må være lik. SakId: $sakId, Saksnummer: ${rammebehandling.saksnummer} BehandlingId: ${rammebehandling.id}" }
         require(id !in omgjørRammevedtak.rammevedtakIDer)
         require(id !in omgjortAvRammevedtak.rammevedtakIDer)
 
@@ -243,7 +249,7 @@ data class Rammevedtak(
             require(opprettet == it.opprettet)
             require(saksbehandler == it.saksbehandler)
             require(beslutter == it.beslutter)
-            require(behandling.id == it.beregningKilde.id)
+            require(rammebehandling.id == it.beregningKilde.id)
         }
         if (erAvslag) {
             require(utbetaling == null) { "Vedtak som er avslag kan ikke ha utbetaling. VedtakId: $id" }
@@ -257,16 +263,24 @@ data class Rammevedtak(
     }
 }
 
-fun Sak.opprettVedtak(
-    behandling: Rammebehandling,
+fun Sak.opprettRammevedtak(
+    rammebehandling: Rammebehandling,
+
     clock: Clock,
 ): Pair<Sak, Rammevedtak> {
-    require(behandling.status == Rammebehandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
+    val klagebehandling: Klagebehandling? = rammebehandling.klagebehandling
+    require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
+    if (klagebehandling != null) {
+        require(klagebehandling.status == Klagebehandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
+        require(klagebehandling.rammebehandlingId == rammebehandling.id) {
+            "Klagebehandling må være knyttet til rammebehandlingen når vi skal opprette et vedtak."
+        }
+    }
 
     val vedtakId = VedtakId.random()
     val opprettet = nå(clock)
 
-    val utbetaling: VedtattUtbetaling? = behandling.utbetaling?.let {
+    val utbetaling: VedtattUtbetaling? = rammebehandling.utbetaling?.let {
         VedtattUtbetaling(
             id = UtbetalingId.random(),
             vedtakId = vedtakId,
@@ -275,8 +289,8 @@ fun Sak.opprettVedtak(
             fnr = this.fnr,
             brukerNavkontor = it.navkontor,
             opprettet = opprettet,
-            saksbehandler = behandling.saksbehandler!!,
-            beslutter = behandling.beslutter!!,
+            saksbehandler = rammebehandling.saksbehandler!!,
+            beslutter = rammebehandling.beslutter!!,
             beregning = it.beregning,
             forrigeUtbetalingId = this.utbetalinger.lastOrNull()?.id,
             statusMetadata = Forsøkshistorikk.opprett(clock = clock),
@@ -290,8 +304,8 @@ fun Sak.opprettVedtak(
         id = vedtakId,
         opprettet = opprettet,
         sakId = this.id,
-        behandling = behandling,
-        periode = behandling.vedtaksperiode!!,
+        rammebehandling = rammebehandling,
+        periode = rammebehandling.vedtaksperiode!!,
         omgjortAvRammevedtak = OmgjortAvRammevedtak.empty,
         utbetaling = utbetaling,
         vedtaksdato = null,

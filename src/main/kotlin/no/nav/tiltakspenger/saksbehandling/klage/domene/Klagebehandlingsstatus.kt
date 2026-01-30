@@ -8,5 +8,7 @@ enum class Klagebehandlingsstatus {
     UNDER_BEHANDLING,
 
     AVBRUTT,
-    IVERKSATT,
+
+    /** Andre ord som iverksatt og ferdigstilt brukes også. Kan brukes både ved avvisning og medhold. */
+    VEDTATT,
 }

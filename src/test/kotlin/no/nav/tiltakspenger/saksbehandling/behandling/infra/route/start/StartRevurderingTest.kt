@@ -73,8 +73,8 @@ internal class StartRevurderingTest {
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
             )!!
             val søknadsvedtakResultat =
-                rammevedtakSøknadsbehandling.behandling.resultat as `Søknadsbehandlingsresultat`.Innvilgelse
-            val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
+                rammevedtakSøknadsbehandling.rammebehandling.resultat as `Søknadsbehandlingsresultat`.Innvilgelse
+            val søknadsbehandling = rammevedtakSøknadsbehandling.rammebehandling as Søknadsbehandling
             revurdering.shouldBeInstanceOf<Revurdering>()
             revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
             revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -121,9 +121,9 @@ internal class StartRevurderingTest {
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(1 til 10.april(2025)),
                 oppdatertTiltaksdeltakelse = tiltaksdeltakelse(2 til 9.april(2025)),
             )!!
-            rammevedtakSøknadsbehandling.behandling.vedtaksperiode shouldBe (1 til 10.april(2025))
-            rammevedtakSøknadsbehandling.behandling.innvilgelsesperioder!!.totalPeriode shouldBe (1 til 10.april(2025))
-            rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (
+            rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode shouldBe (1 til 10.april(2025))
+            rammevedtakSøknadsbehandling.rammebehandling.innvilgelsesperioder!!.totalPeriode shouldBe (1 til 10.april(2025))
+            rammevedtakSøknadsbehandling.rammebehandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (
                 1 til 10.april(
                     2025,
                 )
@@ -136,7 +136,7 @@ internal class StartRevurderingTest {
                     rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
                     (2 til 9.april(2025)),
                 ),
-                begrunnelse = rammevedtakSøknadsbehandling.behandling.barnetillegg!!.begrunnelse,
+                begrunnelse = rammevedtakSøknadsbehandling.rammebehandling.barnetillegg!!.begrunnelse,
             )
             omgjøring.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
@@ -163,9 +163,9 @@ internal class StartRevurderingTest {
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(2 til 9.april(2025)),
                 oppdatertTiltaksdeltakelse = tiltaksdeltakelse(1 til 10.april(2025)),
             )!!
-            rammevedtakSøknadsbehandling.behandling.vedtaksperiode shouldBe (2 til 9.april(2025))
-            rammevedtakSøknadsbehandling.behandling.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
-            rammevedtakSøknadsbehandling.behandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (
+            rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode shouldBe (2 til 9.april(2025))
+            rammevedtakSøknadsbehandling.rammebehandling.innvilgelsesperioder!!.totalPeriode shouldBe (2 til 9.april(2025))
+            rammevedtakSøknadsbehandling.rammebehandling.saksopplysninger.tiltaksdeltakelser.single().periode shouldBe (
                 2 til 9.april(
                     2025,
                 )
@@ -178,7 +178,7 @@ internal class StartRevurderingTest {
                     rammevedtakSøknadsbehandling.barnetillegg!!.periodisering.verdier.single(),
                     (2 til 9.april(2025)),
                 ),
-                begrunnelse = rammevedtakSøknadsbehandling.behandling.barnetillegg!!.begrunnelse,
+                begrunnelse = rammevedtakSøknadsbehandling.rammebehandling.barnetillegg!!.begrunnelse,
             )
             omgjøring.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(

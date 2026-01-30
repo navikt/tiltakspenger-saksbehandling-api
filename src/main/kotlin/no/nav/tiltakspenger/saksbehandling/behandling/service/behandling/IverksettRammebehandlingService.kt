@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -32,7 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakSe
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import java.time.Clock
 
 class IverksettRammebehandlingService(
@@ -51,12 +52,13 @@ class IverksettRammebehandlingService(
         rammebehandlingId: BehandlingId,
         beslutter: Saksbehandler,
         sakId: SakId,
+        correlationId: CorrelationId,
     ): Either<KanIkkeIverksetteBehandling, Pair<Sak, Rammebehandling>> {
-        val sak = sakService.hentForSakId(sakId)
-        val behandling = sak.hentRammebehandling(rammebehandlingId)!!
+        val sak: Sak = sakService.hentForSakId(sakId)
+        // TODO jah: Mye som kan flyttes ut av service her
+        val behandling: Rammebehandling = sak.hentRammebehandling(rammebehandlingId)!!
 
         if (behandling.beslutter != beslutter.navIdent) {
-            // TODO jah: Fjern denne feilen? Skal vel mye til at denne skjer i praksis?
             return KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter(
                 eiesAvBeslutter = behandling.beslutter,
             ).left()
@@ -69,44 +71,47 @@ class IverksettRammebehandlingService(
             tidspunkt = nå(clock),
         )
         // Denne validerer saksbehandler
-        val iverksattBehandling = behandling.iverksett(beslutter, attestering, clock)
-
-        val (oppdatertSak, vedtak) = sak.opprettVedtak(iverksattBehandling, clock)
+        val iverksattRammebehandling = behandling.iverksett(
+            `utøvendeBeslutter` = beslutter,
+            attestering = attestering,
+            correlationId = correlationId,
+            clock = clock,
+        )
+        val (oppdatertSak, vedtak) = sak.opprettRammevedtak(iverksattRammebehandling, clock)
 
         val sakStatistikk = statistikkSakService.genererStatistikkForRammevedtak(
             rammevedtak = vedtak,
         )
-        val stønadStatistikk = if (vedtak.resultat is Søknadsbehandlingsresultat.Avslag) {
+        val stønadStatistikk = if (vedtak.rammebehandlingsresultat is Søknadsbehandlingsresultat.Avslag) {
             null
         } else {
             genererStønadsstatistikkForRammevedtak(vedtak)
         }
-
         val doubleOppdatertSak = when (behandling) {
             is Revurdering -> oppdatertSak.iverksettRammebehandling(
-                vedtak = vedtak,
+                rammevedtak = vedtak,
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk!!,
             )
 
             is Søknadsbehandling -> oppdatertSak.iverksettSøknadsbehandling(
-                vedtak = vedtak,
+                rammevedtak = vedtak,
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
             )
         }
 
-        return (doubleOppdatertSak to iverksattBehandling).right()
+        return (doubleOppdatertSak to iverksattRammebehandling).right()
     }
 
     private fun Sak.iverksettSøknadsbehandling(
-        vedtak: Rammevedtak,
+        rammevedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO?,
     ): Sak {
-        return when (vedtak.resultat) {
+        return when (rammevedtak.rammebehandlingsresultat) {
             is Rammebehandlingsresultat.Innvilgelse -> this.iverksettRammebehandling(
-                vedtak,
+                rammevedtak,
                 sakStatistikk,
                 stønadStatistikk!!,
             )
@@ -114,13 +119,14 @@ class IverksettRammebehandlingService(
             is Søknadsbehandlingsresultat.Avslag -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
                 sessionFactory.withTransactionContext { tx ->
-                    rammebehandlingRepo.lagre(vedtak.behandling, tx)
+                    /** Obs: Dersom du endrer eller legger til noe her som angår klage, merk at du må gjøre tilsvarende i [no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService] */
+                    rammebehandlingRepo.lagre(rammevedtak.rammebehandling, tx)
                     sakService.oppdaterSkalSendesTilMeldekortApi(
                         sakId = this.id,
                         skalSendesTilMeldekortApi = true,
                         sessionContext = tx,
                     )
-                    rammevedtakRepo.lagre(vedtak, tx)
+                    rammevedtakRepo.lagre(rammevedtak, tx)
                     statistikkSakRepo.lagre(sakStatistikk, tx)
                     // TODO jah: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
                     runBlocking {
@@ -135,16 +141,16 @@ class IverksettRammebehandlingService(
     }
 
     private fun Sak.iverksettRammebehandling(
-        vedtak: Rammevedtak,
+        rammevedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        require(vedtak.resultat is Rammebehandlingsresultat.Innvilgelse || vedtak.resultat is Revurderingsresultat.Stans) {
+        require(rammevedtak.rammebehandlingsresultat is Rammebehandlingsresultat.Innvilgelse || rammevedtak.rammebehandlingsresultat is Revurderingsresultat.Stans) {
             "Kan kun iverksette innvilgelse eller stans"
         }
 
-        require(this.rammevedtaksliste.last().id == vedtak.id) {
-            "Vedtaket som iverksettes må være siste vedtak på saken (forventet at ${vedtak.id} skal være siste vedtak på ${this.id})"
+        require(this.rammevedtaksliste.last().id == rammevedtak.id) {
+            "Vedtaket som iverksettes må være siste vedtak på saken (forventet at ${rammevedtak.id} skal være siste vedtak på ${this.id})"
         }
 
         val (sakOppdatertMedMeldeperioder, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
@@ -160,14 +166,15 @@ class IverksettRammebehandlingService(
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
-            rammebehandlingRepo.lagre(vedtak.behandling, tx)
+            /** Obs: Dersom du endrer eller legger til noe her som angår klage, merk at du må gjøre tilsvarende i [no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService] */
+            rammebehandlingRepo.lagre(rammevedtak.rammebehandling, tx)
             sakService.oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
                 sakId = sakOppdatertMedMeldeperioder.id,
                 skalSendesTilMeldekortApi = true,
                 skalSendeMeldeperioderTilDatadeling = true,
                 sessionContext = tx,
             )
-            rammevedtakRepo.lagre(vedtak, tx)
+            rammevedtakRepo.lagre(rammevedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
             meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)

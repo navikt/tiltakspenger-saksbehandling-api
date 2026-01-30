@@ -74,8 +74,8 @@ class OppdaterRevurderingOmgjøringRouteTest {
                     nyOmgjøringsperiodeEtterOppdatering,
                 ),
             ).tilIkkeTomPeriodisering()
-            oppdatertRevurdering.vedtaksperiode shouldBe rammevedtakSøknadsbehandling.behandling.vedtaksperiode
-            resultat.vedtaksperiode shouldBe rammevedtakSøknadsbehandling.behandling.vedtaksperiode
+            oppdatertRevurdering.vedtaksperiode shouldBe rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode
+            resultat.vedtaksperiode shouldBe rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode
             resultat.innvilgelsesperioder!!.totalPeriode shouldBe nyOmgjøringsperiodeEtterOppdatering
             oppdatertRevurdering.utbetaling shouldBe null
 

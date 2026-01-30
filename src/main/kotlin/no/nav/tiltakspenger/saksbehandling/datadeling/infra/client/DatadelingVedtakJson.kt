@@ -75,7 +75,7 @@ fun Rammevedtak.toDatadelingJson(): String {
         omgjørRammevedtakId = if (this.erOmgjøringsbehandling) this.omgjørRammevedtak.single().rammevedtakId.toString() else null,
         // Kommentar jah: Hvis vi skulle beholdt dagens logikk her, måtte vi sjekket om rammevedtaket som omgjorde dette vedtaket var en omgjøringsbehandling. Istedenfor å gjøre det, deler vi det vedtaket som har omgjort dette vedtaket helt.
         omgjortAvRammevedtakId = if (this.omgjortAvRammevedtak.size == 1 && this.omgjortAvRammevedtak.first().omgjøringsgrad == Omgjøringsgrad.HELT) this.omgjortAvRammevedtak.first().rammevedtakId.toString() else null,
-        rettighet = when (this.resultat) {
+        rettighet = when (this.rammebehandlingsresultat) {
             is Rammebehandlingsresultat.Innvilgelse -> {
                 if (barnetillegg?.harBarnetillegg == true) {
                     "TILTAKSPENGER_OG_BARNETILLEGG"
@@ -110,10 +110,10 @@ private fun Barnetillegg.toDatadelingBarnetillegg(): DatadelingVedtakJson.Barnet
 }
 
 private fun Rammevedtak.toValgteHjemlerHarIkkeRettighetListe(): List<String>? {
-    return when (this.resultat) {
+    return when (this.rammebehandlingsresultat) {
         is Rammebehandlingsresultat.Innvilgelse -> null
-        is Revurderingsresultat.Stans -> (this.behandling as Revurdering).toValgteHjemlerHarIkkeRettighetListe()
-        is Søknadsbehandlingsresultat.Avslag -> (this.behandling as Søknadsbehandling).toValgteHjemlerHarIkkeRettighetListe()
+        is Revurderingsresultat.Stans -> (this.rammebehandling as Revurdering).toValgteHjemlerHarIkkeRettighetListe()
+        is Søknadsbehandlingsresultat.Avslag -> (this.rammebehandling as Søknadsbehandling).toValgteHjemlerHarIkkeRettighetListe()
     }
 }
 

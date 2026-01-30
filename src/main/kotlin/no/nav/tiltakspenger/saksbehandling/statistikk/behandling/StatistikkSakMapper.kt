@@ -19,13 +19,13 @@ fun genererSaksstatistikkForRammevedtak(
     versjon: String,
     clock: Clock,
 ): StatistikkSakDTO {
-    val behandling = vedtak.behandling
+    val behandling = vedtak.rammebehandling
     val erSøknadsbehandling = behandling is Søknadsbehandling
 
     return StatistikkSakDTO(
         sakId = behandling.sakId.toString(),
         saksnummer = behandling.saksnummer.toString(),
-        behandlingId = vedtak.behandling.id.toString(),
+        behandlingId = vedtak.rammebehandling.id.toString(),
         // TODO jah: Denne vil vel kunne være en liste? Vi kan legge den på senere.
         relatertBehandlingId = null,
         fnr = behandling.fnr.verdi,
@@ -42,7 +42,7 @@ fun genererSaksstatistikkForRammevedtak(
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         // TODO jah: I følge confluence-dokken så finner jeg ikke dette feltet. Burde det heller vært AVSLUTTET?
         behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,
-        behandlingResultat = when (vedtak.resultat) {
+        behandlingResultat = when (vedtak.rammebehandlingsresultat) {
             // I førsteomgang mapper vi bare delvis til innvilgelse.
             is Rammebehandlingsresultat.Innvilgelse -> StatistikkBehandlingResultat.INNVILGET
             is Revurderingsresultat.Stans -> StatistikkBehandlingResultat.STANS

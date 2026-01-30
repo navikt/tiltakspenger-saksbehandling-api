@@ -102,7 +102,7 @@ class VurderKlagebehandlingRouteTest {
                   "erKlagenSignert": true,
                   "brevtekst": [],
                   "avbrutt": null,
-                  "kanIverksette": false,
+                  "kanIverksette": true,
                   "årsak": "ANNET",
                   "begrunnelse": "oppdatert begrunnelse for omgjøring",
                   "rammebehandlingId": "${søknadsbehandlingOpprettetFraKlage.id}"
@@ -243,8 +243,8 @@ class VurderKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                       {
-                         "melding": "Feil rammebehandlingsstatus. Forventet: UNDER_BEHANDLING, faktisk: VEDTATT",
-                         "kode": "feil_rammebehandlingsstatus"
+                        "melding": "Feil klagebehandlingsstatus. Forventet: UNDER_BEHANDLING, faktisk: VEDTATT",
+                        "kode": "feil_klagebehandlingsstatus"
                       }
                     """.trimIndent()
                 },

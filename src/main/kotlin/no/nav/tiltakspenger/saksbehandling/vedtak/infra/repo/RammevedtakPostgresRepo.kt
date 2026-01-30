@@ -302,7 +302,7 @@ class RammevedtakPostgresRepo(
                     """,
                     "id" to vedtak.id.toString(),
                     "sak_id" to vedtak.sakId.toString(),
-                    "behandling_id" to vedtak.behandling.id.toString(),
+                    "behandling_id" to vedtak.rammebehandling.id.toString(),
                     "utbetaling_id" to vedtak.utbetaling?.id?.toString(),
                     "vedtaksdato" to vedtak.vedtaksdato,
                     "fra_og_med" to vedtak.periode.fraOgMed,
@@ -322,7 +322,7 @@ class RammevedtakPostgresRepo(
             return Rammevedtak(
                 id = VedtakId.fromString(string("id")),
                 sakId = SakId.fromString(string("sak_id")),
-                behandling =
+                rammebehandling =
                 RammebehandlingPostgresRepo.hentOrNull(
                     BehandlingId.fromString(string("behandling_id")),
                     session,

@@ -33,7 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -171,6 +171,7 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
     stansFraOgMed: LocalDate = ObjectMother.revurderingVedtaksperiode().fraOgMed,
     valgteHjemler: NonEmptySet<ValgtHjemmelForStans> = nonEmptySetOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
+    correlationId: CorrelationId = CorrelationId.generate(),
     genererSak: (Sak?) -> Pair<Sak, Rammebehandling> = { s ->
         this.persisterRevurderingStansUnderBeslutning(
             sak = s,
@@ -186,12 +187,15 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
     val (sakMedRevurderingTilBeslutning, revurderingTilBeslutning) = genererSak(sak)
 
     val iverksattRevurdering =
-        revurderingTilBeslutning.iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
+        revurderingTilBeslutning.iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), correlationId, clock)
 
     val stansVedtak = sessionFactory.withTransactionContext { tx ->
         behandlingRepo.lagre(iverksattRevurdering, tx)
 
-        val (sakMedNyttVedtak, stansVedtak) = sakMedRevurderingTilBeslutning.opprettVedtak(iverksattRevurdering, clock)
+        val (sakMedNyttVedtak, stansVedtak) = sakMedRevurderingTilBeslutning.opprettRammevedtak(
+            iverksattRevurdering,
+            clock,
+        )
         vedtakRepo.lagre(stansVedtak, tx)
         sakMedNyttVedtak.rammevedtaksliste.dropLast(1).forEach {
             vedtakRepo.oppdaterOmgjortAv(it.id, it.omgjortAvRammevedtak, tx)
@@ -240,6 +244,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
     innvilgelsesperiode: Periode? = null,
     barnetillegg: Barnetillegg? = null,
     clock: Clock = this.clock,
+    correlationId: CorrelationId = CorrelationId.generate(),
     genererSak: (Sak?) -> Pair<Sak, Revurdering> = { s ->
         this.persisterOpprettetRevurdering(
             sak = s,
@@ -302,6 +307,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
             beslutter = beslutter.navIdent,
             tidspunkt = nå(clock),
         ),
+        correlationId = correlationId,
         clock = clock,
     ).let {
         behandlingRepo.lagre(it)
@@ -312,7 +318,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
 internal fun TestDataHelper.persisterOpprettetOmgjøring(
     genererSak: Triple<Sak, Rammevedtak, Rammebehandling> = persisterIverksattSøknadsbehandling(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> genererSak.second.behandling.saksopplysninger },
+    hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> genererSak.second.rammebehandling.saksopplysninger },
     clock: Clock = this.clock,
 ): Pair<Sak, Revurdering> {
     val (sakMedVedtak, _, _) = genererSak

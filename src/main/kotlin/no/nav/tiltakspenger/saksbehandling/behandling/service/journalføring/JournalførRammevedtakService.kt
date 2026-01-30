@@ -38,14 +38,14 @@ class JournalførRammevedtakService(
         Either.catch {
             rammevedtakRepo.hentRammevedtakSomSkalJournalføres().forEach { vedtak ->
                 val correlationId = CorrelationId.generate()
-                log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.resultat.tilRammebehandlingResultatTypeDTO()}" }
+                log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.rammebehandlingsresultat.tilRammebehandlingResultatTypeDTO()}" }
                 Either.catch {
                     val vedtaksdato = LocalDate.now(clock)
-                    val pdfOgJson = when (vedtak.resultat) {
+                    val pdfOgJson = when (vedtak.rammebehandlingsresultat) {
                         is Rammebehandlingsresultat.Innvilgelse -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgetVedtakBrev(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
-                            tilleggstekst = vedtak.behandling.fritekstTilVedtaksbrev,
+                            tilleggstekst = vedtak.rammebehandling.fritekstTilVedtaksbrev,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         )

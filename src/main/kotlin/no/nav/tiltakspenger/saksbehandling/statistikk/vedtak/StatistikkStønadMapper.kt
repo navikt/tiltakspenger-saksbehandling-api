@@ -13,9 +13,9 @@ import java.util.UUID
 fun genererStønadsstatistikkForRammevedtak(
     vedtak: Rammevedtak,
 ): StatistikkStønadDTO {
-    val erSøknadsbehandling = vedtak.behandling is Søknadsbehandling
+    val erSøknadsbehandling = vedtak.rammebehandling is Søknadsbehandling
 
-    val søknad = if (erSøknadsbehandling) vedtak.behandling.søknad else null
+    val søknad = if (erSøknadsbehandling) vedtak.rammebehandling.søknad else null
 
     val innvilgelsesperioder = vedtak.innvilgelsesperioder?.periodisering?.perioderMedVerdi?.map {
         StatistikkStønadDTO.InnvilgelsesperiodeStatistikk(
@@ -44,17 +44,17 @@ fun genererStønadsstatistikkForRammevedtak(
         sakId = vedtak.sakId.toString(),
         saksnummer = vedtak.saksnummer.toString(),
         // vår sak har ikke resultat, så bruker vedtak sin resultat
-        resultat = vedtak.resultat.toVedtakStatistikkResultat(),
+        resultat = vedtak.rammebehandlingsresultat.toVedtakStatistikkResultat(),
         sakDato = vedtak.saksnummer.dato,
         vedtaksperiodeFraOgMed = vedtak.periode.fraOgMed,
         vedtaksperiodeTilOgMed = vedtak.periode.tilOgMed,
         innvilgelsesperioder = innvilgelsesperioder ?: emptyList(),
-        omgjørRammevedtakId = if (vedtak.resultat is Revurderingsresultat.Omgjøring) {
-            vedtak.resultat.omgjørRammevedtak.single().rammevedtakId.toString()
+        omgjørRammevedtakId = if (vedtak.rammebehandlingsresultat is Revurderingsresultat.Omgjøring) {
+            vedtak.rammebehandlingsresultat.omgjørRammevedtak.single().rammevedtakId.toString()
         } else {
             null
         },
-        omgjørRammevedtak = vedtak.resultat.omgjørRammevedtak.tilStatistikk(),
+        omgjørRammevedtak = vedtak.rammebehandlingsresultat.omgjørRammevedtak.tilStatistikk(),
         ytelse = "IND",
 
         søknadId = søknad?.id?.toString(),

@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettKlagebehandlinForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettKlagebehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgAvbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgIverksettKlagebehandling
@@ -112,12 +112,12 @@ class IverksettKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `kan ikke iverksette omgjøring`() {
+    fun `kan ikke iverksette omgjøring fra klageroute`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, _, _, klagebehandling) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!
-            iverksettKlagebehandlinForSakId(
+            iverksettKlagebehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -125,8 +125,8 @@ class IverksettKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                      {
-                        "melding": "Kan kun iverksette klagebehandling med resultat AVVIST",
-                        "kode": "må_ha_resultat_avvisning"
+                        "melding": "Feil inngang brukt for å iverksette klagebehandling. forventet: Iverksett klagebehandling fra rammebehandling, faktisk: Iverksett klagebehandling utenom rammebehandling",
+                        "kode": "feil_inngang_ved_iverksetting"
                      }
                     """.trimIndent()
                 },
@@ -140,7 +140,7 @@ class IverksettKlagebehandlingRouteTest {
             val (sak, klagebehandling, _) = opprettSakOgAvbrytKlagebehandling(
                 tac = tac,
             )!!
-            iverksettKlagebehandlinForSakId(
+            iverksettKlagebehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -164,7 +164,7 @@ class IverksettKlagebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = klagevedtak.behandling
-            iverksettKlagebehandlinForSakId(
+            iverksettKlagebehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -187,7 +187,7 @@ class IverksettKlagebehandlingRouteTest {
             val (sak, klagebehandling, _) = opprettSakOgOppdaterKlagebehandlingBrevtekst(
                 tac = tac,
             )!!
-            iverksettKlagebehandlinForSakId(
+            iverksettKlagebehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 saksbehandler = ObjectMother.saksbehandler("annenSaksbehandler"),
@@ -211,7 +211,7 @@ class IverksettKlagebehandlingRouteTest {
             val (sak, klagebehandling, _) = opprettSakOgKlagebehandlingTilAvvisning(
                 tac = tac,
             )!!
-            iverksettKlagebehandlinForSakId(
+            iverksettKlagebehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,

@@ -47,7 +47,7 @@ interface SendRevurderingTilBeslutningBuilder {
         val sakId = sak.id
         val revurderingId = revurdering.id
 
-        val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
+        val søknadsbehandling = rammevedtakSøknadsbehandling.rammebehandling as Søknadsbehandling
         taBehandling(tac, sak.id, revurderingId, saksbehandler)
 
         oppdaterRevurderingStans(

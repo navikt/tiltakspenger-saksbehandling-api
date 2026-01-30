@@ -12,4 +12,11 @@ data class TittelOgTekst(
             tekst = NonBlankString.create(tekst),
         )
     }
+
+    /**
+     * Skjuler sensitive data i loggmeldinger.
+     */
+    override fun toString(): String {
+        return "TittelOgTekst(tittel='*****', tekst='*****')"
+    }
 }

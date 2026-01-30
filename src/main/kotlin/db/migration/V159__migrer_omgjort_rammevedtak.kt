@@ -49,7 +49,7 @@ class V159__migrer_omgjort_rammevedtak : BaseJavaMigration() {
                                 )
                             },
                         )
-                        persisterOmgjørRammevedtak(vedtak.behandling.id, omgjør, session)
+                        persisterOmgjørRammevedtak(vedtak.rammebehandling.id, omgjør, session)
 
                         val omgjortAvRammevedtak =
                             sortertUtenAvslag.drop(index + 1)

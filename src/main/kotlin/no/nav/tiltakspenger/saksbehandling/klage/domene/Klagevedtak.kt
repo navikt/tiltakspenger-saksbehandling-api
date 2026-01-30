@@ -66,5 +66,8 @@ data class Klagevedtak(
         require(opprettet >= behandling.opprettet) {
             "Klagevedtakets opprettet-tidspunkt må være etter eller lik klagebehandlingens opprettet-tidspunkt. sakId=$sakId, saksnummer=$saksnummer, vedtakId=$id, behandlingId=${behandling.id}."
         }
+        require(behandling.resultat is Klagebehandlingsresultat.Avvist) {
+            "Klagevedtak kan kun opprettes for klagebehandlinger med resultat Avvist, men var ${behandling.resultat}. Ved medhold/omgjøring eies klagebehandlingen av rammevedtaket. sakId=$sakId, saksnummer=$saksnummer, vedtakId=$id, behandlingId=${behandling.id}, resultat=${behandling.resultat}."
+        }
     }
 }

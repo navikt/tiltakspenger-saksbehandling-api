@@ -59,6 +59,7 @@ fun Route.klagebehandlingRoutes(
         iverksettKlagebehandlingService = iverksettKlagebehandlingService,
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
+        clock = clock,
     )
     vurderKlagebehandlingRoute(
         vurderKlagebehandlingService = vurderKlagebehandlingService,

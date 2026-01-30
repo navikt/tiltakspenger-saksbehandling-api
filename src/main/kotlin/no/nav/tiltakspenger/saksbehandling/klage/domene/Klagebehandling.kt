@@ -16,9 +16,9 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.IVERKSATT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
@@ -64,8 +64,8 @@ data class Klagebehandling(
     @Suppress("unused")
     val erKlarTilBehandling = status == KLAR_TIL_BEHANDLING
     override val erAvbrutt = status == AVBRUTT
-    val erIverksatt = status == IVERKSATT
-    override val erAvsluttet = erAvbrutt || erIverksatt
+    val erVedtatt = status == VEDTATT
+    override val erAvsluttet = erAvbrutt || erVedtatt
     val erÅpen = !erAvsluttet
     val erAvvisning = resultat is Klagebehandlingsresultat.Avvist
     val erOmgjøring = resultat is Klagebehandlingsresultat.Omgjør
@@ -80,8 +80,14 @@ data class Klagebehandling(
         is Klagebehandlingsresultat.Avvist, null -> null
     }
 
-    /** Merk at dette resultatet må iverksettes samtidig som rammebehandlingen iverksettes. */
-    val kanIverksette: Boolean = erUnderBehandling && resultat != null && resultat.kanIverksette
+    /** Dette flagget gir ikke så mye mening dersom resultatet er medhold/omgjøring, siden man må spørre Rammebehandlingen om man kanIverksette */
+    val kanIverksette: Boolean? by lazy {
+        when {
+            !erUnderBehandling -> false
+            resultat == null -> false
+            else -> resultat.kanIverksette
+        }
+    }
 
     val kanIkkeIverksetteGrunner: List<String> by lazy {
         val grunner = mutableListOf<String>()
@@ -196,13 +202,13 @@ data class Klagebehandling(
         require(resultat is Klagebehandlingsresultat.Avvist) {
             "Kan kun generere klagebrev for avvisning når formkrav er avvisning.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
         }
-        if (erIverksatt) return genererBrev(genererAvvisningsbrev)
+        if (erVedtatt) return genererBrev(genererAvvisningsbrev)
         val brevtekst = resultat.brevtekst
         val saksbehandler: String = when (status) {
             KLAR_TIL_BEHANDLING -> "-"
             UNDER_BEHANDLING -> this.saksbehandler!!
             AVBRUTT -> this.saksbehandler ?: "-"
-            IVERKSATT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
+            VEDTATT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
         }
         val erSaksbehandlerPåBehandlingen = this.erSaksbehandlerPåBehandlingen(kommando.saksbehandler)
         val tilleggstekst: Brevtekster = when (status) {
@@ -214,7 +220,7 @@ data class Klagebehandling(
             }
 
             AVBRUTT -> brevtekst ?: Brevtekster.empty
-            IVERKSATT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
+            VEDTATT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
         }
         return genererAvvisningsbrev(
             saksnummer,
@@ -232,7 +238,7 @@ data class Klagebehandling(
     suspend fun genererBrev(
         genererAvvisningsbrev: GenererKlageAvvisningsbrev,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        require(erIverksatt) {
+        require(erVedtatt) {
             "Kan kun generere klagebrev for avvisning når klagebehandling er iverksatt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
         }
         return genererAvvisningsbrev(
@@ -271,28 +277,57 @@ data class Klagebehandling(
         ).right()
     }
 
+    /**
+     * Ved medhold/omgjøring må rammebehandlingId være satt, rammebehandlingen må være i riktig tilstand og skal kun kalles via [no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService]
+     */
     fun iverksett(
         kommando: IverksettKlagebehandlingKommando,
-        clock: Clock,
     ): Either<KanIkkeIverksetteKlagebehandling, Klagebehandling> {
         if (!erUnderBehandling) {
             return KanIkkeIverksetteKlagebehandling.MåHaStatusUnderBehandling(status.toString()).left()
         }
-        if (!erAvvisning) return KanIkkeIverksetteKlagebehandling.MåHaResultatAvvisning(resultat.toString()).left()
-        if (!(resultat as Klagebehandlingsresultat.Avvist).kanIverksette) {
-            return KanIkkeIverksetteKlagebehandling.AndreGrunner(kanIkkeIverksetteGrunner).left()
-        }
-        if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
+        if (kommando.saksbehandler != null && !erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
             return KanIkkeIverksetteKlagebehandling.SaksbehandlerMismatch(
                 forventetSaksbehandler = this.saksbehandler!!,
                 faktiskSaksbehandler = kommando.saksbehandler.navIdent,
             ).left()
         }
-        val nå = nå(clock)
+        when (resultat) {
+            is Klagebehandlingsresultat.Avvist, is Klagebehandlingsresultat.Omgjør -> {
+                when (resultat) {
+                    is Klagebehandlingsresultat.Avvist -> {
+                        if (kommando.iverksettFraRammebehandling) {
+                            return KanIkkeIverksetteKlagebehandling.FeilInngang(
+                                forventetInngang = "Iverksett klagebehandling utenom rammebehandling",
+                                faktiskInngang = "Iverksett klagebehandling fra rammebehandling",
+                            ).left()
+                        }
+                    }
+
+                    is Klagebehandlingsresultat.Omgjør -> {
+                        if (!kommando.iverksettFraRammebehandling) {
+                            return KanIkkeIverksetteKlagebehandling.FeilInngang(
+                                forventetInngang = "Iverksett klagebehandling fra rammebehandling",
+                                faktiskInngang = "Iverksett klagebehandling utenom rammebehandling",
+                            ).left()
+                        }
+                    }
+                }
+                if (kanIverksette == false) {
+                    return KanIkkeIverksetteKlagebehandling.AndreGrunner(kanIkkeIverksetteGrunner).left()
+                }
+            }
+
+            null -> return KanIkkeIverksetteKlagebehandling.FeilResultat(
+                forventetResultat = Klagebehandlingsresultat.Avvist::class.simpleName!!,
+                faktiskResultat = null,
+            ).left()
+        }
+
         return this.copy(
-            sistEndret = nå,
-            iverksattTidspunkt = nå,
-            status = IVERKSATT,
+            sistEndret = kommando.iverksattTidspunkt,
+            iverksattTidspunkt = kommando.iverksattTidspunkt,
+            status = VEDTATT,
         ).right()
     }
 
@@ -378,7 +413,7 @@ data class Klagebehandling(
      */
     fun kanOppdatereIDenneStatusen(rammebehandlingsstatus: Rammebehandlingsstatus?): Either<KanIkkeOppdateres, Unit> {
         return when (this.status) {
-            KLAR_TIL_BEHANDLING, AVBRUTT, IVERKSATT -> {
+            KLAR_TIL_BEHANDLING, AVBRUTT, VEDTATT -> {
                 KanIkkeOppdateres.FeilKlagebehandlingsstatus(UNDER_BEHANDLING, this.status).left()
             }
 
@@ -426,7 +461,7 @@ data class Klagebehandling(
                 }
             }
 
-            IVERKSATT -> {
+            VEDTATT -> {
                 require(saksbehandler != null) {
                     "Klagebehandling som er $status må ha saksbehandler satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
                 }
@@ -437,7 +472,9 @@ data class Klagebehandling(
                     "Klagebehandling som er $status må ha resultat satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
                 }
                 when (resultat) {
-                    is Klagebehandlingsresultat.Omgjør -> {}
+                    is Klagebehandlingsresultat.Omgjør -> require(resultat.rammebehandlingId != null) {
+                        "Klagebehandling som er $status med omgjøring må ha rammebehandlingId satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+                    }
 
                     is Klagebehandlingsresultat.Avvist -> require(!resultat.brevtekst.isNullOrEmpty()) {
                         "Klagebehandling som er $status må ha brevtekst satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"

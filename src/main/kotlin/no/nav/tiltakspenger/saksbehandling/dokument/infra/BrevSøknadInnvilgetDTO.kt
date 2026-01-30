@@ -45,8 +45,8 @@ suspend fun Rammevedtak.tilInnvilgetSøknadsbrev(
         beslutterNavIdent = beslutter,
         saksnummer = saksnummer,
         forhåndsvisning = false,
-        innvilgelsesperioder = this.behandling.innvilgelsesperioder!!,
-        barnetillegg = this.behandling.barnetillegg!!.periodisering,
+        innvilgelsesperioder = this.rammebehandling.innvilgelsesperioder!!,
+        barnetillegg = this.rammebehandling.barnetillegg!!.periodisering,
     )
 }
 

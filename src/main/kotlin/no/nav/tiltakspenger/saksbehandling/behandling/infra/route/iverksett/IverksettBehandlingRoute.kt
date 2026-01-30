@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 
-fun Route.iverksettBehandlingRoute(
+fun Route.iverksettRammebehandlingRoute(
     iverksettRammebehandlingService: IverksettRammebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
@@ -36,7 +36,12 @@ fun Route.iverksettBehandlingRoute(
                 val correlationId = call.correlationId()
                 krevBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                iverksettRammebehandlingService.iverksettRammebehandling(behandlingId, saksbehandler, sakId).fold(
+                iverksettRammebehandlingService.iverksettRammebehandling(
+                    rammebehandlingId = behandlingId,
+                    beslutter = saksbehandler,
+                    sakId = sakId,
+                    correlationId = correlationId,
+                ).fold(
                     {
                         when (it) {
                             is KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter -> call.respond400BadRequest(

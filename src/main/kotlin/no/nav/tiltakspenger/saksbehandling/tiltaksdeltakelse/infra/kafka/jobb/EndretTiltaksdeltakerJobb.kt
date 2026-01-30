@@ -128,8 +128,8 @@ class EndretTiltaksdeltakerJobb(
     private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: TiltaksdeltakerId): Rammebehandling? {
         val iverksatteBehandlingerForDeltakelse: Periodisering<Rammebehandling> =
             sak.rammevedtaksliste.innvilgetTidslinje
-                .filter { it.verdi.behandling.inneholderSaksopplysningerInternDeltakelseId(tiltaksdeltakerId) }
-                .map { it.verdi.behandling }
+                .filter { it.verdi.rammebehandling.inneholderSaksopplysningerInternDeltakelseId(tiltaksdeltakerId) }
+                .map { it.verdi.rammebehandling }
 
         return iverksatteBehandlingerForDeltakelse.verdier.maxByOrNull { it.iverksattTidspunkt!! }
     }

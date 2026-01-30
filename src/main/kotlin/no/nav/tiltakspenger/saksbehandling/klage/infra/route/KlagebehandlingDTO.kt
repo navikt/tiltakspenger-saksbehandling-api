@@ -29,7 +29,7 @@ data class KlagebehandlingDTO(
     val erKlagenSignert: Boolean,
     val brevtekst: List<TittelOgTekstDTO>,
     val avbrutt: AvbruttDTO?,
-    val kanIverksette: Boolean,
+    val kanIverksette: Boolean?,
     val årsak: String?,
     val begrunnelse: String?,
     val rammebehandlingId: String?,
@@ -55,7 +55,8 @@ fun Klagebehandling.toDto() = KlagebehandlingDTO(
         Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> "KLAR_TIL_BEHANDLING"
         Klagebehandlingsstatus.UNDER_BEHANDLING -> "UNDER_BEHANDLING"
         Klagebehandlingsstatus.AVBRUTT -> "AVBRUTT"
-        Klagebehandlingsstatus.IVERKSATT -> "IVERKSATT"
+        // TODO jah: Endre til VEDTATT her og frontend samtidig.
+        Klagebehandlingsstatus.VEDTATT -> "IVERKSATT"
     },
     resultat = resultat?.toKlageresultatstypDto(),
     vedtakDetKlagesPå = formkrav.vedtakDetKlagesPå?.toString(),

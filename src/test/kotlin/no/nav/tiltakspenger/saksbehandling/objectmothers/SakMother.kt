@@ -43,7 +43,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
-import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import java.time.Clock
 import java.time.LocalDate
 import kotlin.Pair
@@ -269,6 +269,7 @@ interface SakMother {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(vedtaksperiode),
         kanSendeInnHelgForMeldekort: Boolean = false,
+        correlationId: CorrelationId = CorrelationId.generate(),
     ): Triple<Sak, Vedtak, Rammebehandling> {
         val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(
             sakId = sakId,
@@ -303,11 +304,12 @@ interface SakMother {
             .iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),
+                correlationId = correlationId,
                 clock = clock,
             )
 
         val sakMedIverksattBehandling = sak.oppdaterRammebehandling(iverksattBehandling)
-        val sakMedVedtak = sakMedIverksattBehandling.opprettVedtak(iverksattBehandling, clock)
+        val sakMedVedtak = sakMedIverksattBehandling.opprettRammevedtak(iverksattBehandling, clock)
 
         return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)
     }
@@ -321,6 +323,7 @@ interface SakMother {
         avslagsperiode: Periode = vedtaksperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         kanSendeInnHelgForMeldekort: Boolean = false,
+        correlationId: CorrelationId = CorrelationId.generate(),
     ): Triple<Sak, Rammevedtak, Rammebehandling> {
         val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(
             sakId = sakId,
@@ -349,11 +352,12 @@ interface SakMother {
             .iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),
+                correlationId = correlationId,
                 clock = clock,
             )
 
         val sakMedIverksattBehandling = sak.oppdaterRammebehandling(iverksattBehandling)
-        val sakMedVedtak = sakMedIverksattBehandling.opprettVedtak(iverksattBehandling, clock)
+        val sakMedVedtak = sakMedIverksattBehandling.opprettRammevedtak(iverksattBehandling, clock)
 
         return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)
     }

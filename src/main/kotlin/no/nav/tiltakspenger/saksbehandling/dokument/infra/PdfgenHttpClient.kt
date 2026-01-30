@@ -88,7 +88,7 @@ internal class PdfgenHttpClient(
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
-                when (vedtak.behandling) {
+                when (vedtak.rammebehandling) {
                     is Revurdering -> vedtak.tilRevurderingInnvilgetBrev(
                         hentBrukersNavn = hentBrukersNavn,
                         hentSaksbehandlersNavn = hentSaksbehandlersNavn,
@@ -105,7 +105,7 @@ internal class PdfgenHttpClient(
                 }
             },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
-            uri = when (vedtak.behandling) {
+            uri = when (vedtak.rammebehandling) {
                 is Revurdering -> revurderingInnvilgelseUri
                 is Søknadsbehandling -> vedtakInnvilgelseUri
             },

@@ -24,14 +24,84 @@ class KlagebehandlingPostgresRepo(
     /**
      * Oppretter eller oppdaterer en klagebehandling i databasen.
      *
-     * @param sessionContext vi gjør bare en insert i dette leddet og trenger derfor ikke transaksjonskontekst, selvom det støttes og sende den inn.
+     * @param sessionContext vi gjør bare én insert i dette leddet og trenger derfor ikke transaksjonskontekst, selvom det støttes og sende den inn.
      */
     override fun lagreKlagebehandling(
         klagebehandling: Klagebehandling,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { sx ->
-            sx.run(
+            lagreKlagebehandling(klagebehandling, sx)
+        }
+    }
+
+    override fun hentForRammebehandlingId(rammebehandlingId: BehandlingId): Klagebehandling? {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select
+                      k.*,
+                      s.fnr,
+                      s.saksnummer
+                    from klagebehandling k
+                    join sak s on s.id = k.sak_id
+                    where k.resultat->>'rammebehandlingId' = :rammebehandlingId
+                    """,
+                    "rammebehandlingId" to rammebehandlingId.toString(),
+                ).map { fromRow(it) }.asSingle,
+            )
+        }
+    }
+
+    companion object {
+
+        fun hentOrNull(
+            klagebehandlingId: KlagebehandlingId,
+            session: Session,
+        ): Klagebehandling? {
+            return session.run(
+                queryOf(
+                    """
+                    select
+                      k.*,
+                      s.fnr,
+                      s.saksnummer
+                    from klagebehandling k
+                    join sak s on s.id = k.sak_id
+                    where k.id = :id
+                    order by k.opprettet
+                    """,
+                    mapOf(
+                        "id" to klagebehandlingId.toString(),
+                    ),
+                ).map { fromRow(it) }.asSingle,
+            )
+        }
+
+        fun hentForSakId(sakId: SakId, session: Session): Klagebehandlinger {
+            return session.run(
+                sqlQuery(
+                    """
+                    select
+                      k.*,
+                      s.fnr,
+                      s.saksnummer
+                    from klagebehandling k
+                    join sak s on s.id = k.sak_id
+                    where s.id = :sakId
+                    order by k.opprettet
+                    """,
+                    "sakId" to sakId.toString(),
+                ).map { fromRow(it) }.asList,
+            ).let { Klagebehandlinger(it) }
+        }
+
+        fun lagreKlagebehandling(
+            klagebehandling: Klagebehandling,
+            session: Session,
+        ): Int {
+            return session.run(
                 queryOf(
                     //language=SQL
                     """
@@ -94,68 +164,6 @@ class KlagebehandlingPostgresRepo(
                     ),
                 ).asUpdate,
             )
-        }
-    }
-
-    override fun hentForRammebehandlingId(rammebehandlingId: BehandlingId): Klagebehandling? {
-        return sessionFactory.withSession { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    select
-                      k.*,
-                      s.fnr,
-                      s.saksnummer
-                    from klagebehandling k
-                    join sak s on s.id = k.sak_id
-                    where k.resultat->>'rammebehandlingId' = :rammebehandlingId
-                    """,
-                    "rammebehandlingId" to rammebehandlingId.toString(),
-                ).map { fromRow(it) }.asSingle,
-            )
-        }
-    }
-
-    companion object {
-        fun hentOrNull(
-            klagebehandlingId: KlagebehandlingId,
-            session: Session,
-        ): Klagebehandling? {
-            return session.run(
-                queryOf(
-                    """
-                    select
-                      k.*,
-                      s.fnr,
-                      s.saksnummer
-                    from klagebehandling k
-                    join sak s on s.id = k.sak_id
-                    where k.id = :id
-                    order by k.opprettet
-                    """,
-                    mapOf(
-                        "id" to klagebehandlingId.toString(),
-                    ),
-                ).map { fromRow(it) }.asSingle,
-            )
-        }
-
-        fun hentForSakId(sakId: SakId, session: Session): Klagebehandlinger {
-            return session.run(
-                sqlQuery(
-                    """
-                    select
-                      k.*,
-                      s.fnr,
-                      s.saksnummer
-                    from klagebehandling k
-                    join sak s on s.id = k.sak_id
-                    where s.id = :sakId
-                    order by k.opprettet
-                    """,
-                    "sakId" to sakId.toString(),
-                ).map { fromRow(it) }.asList,
-            ).let { Klagebehandlinger(it) }
         }
 
         private fun fromRow(

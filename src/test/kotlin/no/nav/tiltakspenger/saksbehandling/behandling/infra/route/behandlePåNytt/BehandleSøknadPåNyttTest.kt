@@ -27,7 +27,7 @@ internal class BehandleSøknadPåNyttTest {
                 tac = tac,
                 resultat = SøknadsbehandlingType.AVSLAG,
             )
-            val behandling = rammevedtak.behandling as Søknadsbehandling
+            val behandling = rammevedtak.rammebehandling as Søknadsbehandling
             behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
             behandling.resultat is `Søknadsbehandlingsresultat`.Avslag
@@ -55,7 +55,7 @@ internal class BehandleSøknadPåNyttTest {
                 tac = tac,
                 resultat = SøknadsbehandlingType.AVSLAG,
             )
-            val behandling = rammevedtak.behandling as Søknadsbehandling
+            val behandling = rammevedtak.rammebehandling as Søknadsbehandling
             behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
             behandling.resultat is `Søknadsbehandlingsresultat`.Avslag
@@ -78,7 +78,7 @@ internal class BehandleSøknadPåNyttTest {
                 tac = tac,
                 resultat = SøknadsbehandlingType.AVSLAG,
             )
-            val behandling = rammevedtak.behandling as Søknadsbehandling
+            val behandling = rammevedtak.rammebehandling as Søknadsbehandling
             behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
             behandling.resultat is `Søknadsbehandlingsresultat`.Avslag

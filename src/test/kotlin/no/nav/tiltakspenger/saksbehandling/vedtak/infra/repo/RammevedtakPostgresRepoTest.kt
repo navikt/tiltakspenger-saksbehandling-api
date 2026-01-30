@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingInnvil
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
-import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import org.junit.jupiter.api.Test
 
 class RammevedtakPostgresRepoTest {
@@ -46,10 +46,10 @@ class RammevedtakPostgresRepoTest {
                 clock = clock,
             )
 
-            val (sakMedNyttVedtak, vedtak) = oppdatertSak.opprettVedtak(revurdering, clock)
+            val (sakMedNyttVedtak, vedtak) = oppdatertSak.opprettRammevedtak(revurdering, clock)
 
             testDataHelper.sessionFactory.withTransactionContext { tx ->
-                testDataHelper.behandlingRepo.lagre(vedtak.behandling, tx)
+                testDataHelper.behandlingRepo.lagre(vedtak.rammebehandling, tx)
                 testDataHelper.vedtakRepo.lagre(vedtak, tx)
                 sakMedNyttVedtak.rammevedtaksliste.dropLast(1).forEach {
                     testDataHelper.vedtakRepo.oppdaterOmgjortAv(it.id, it.omgjortAvRammevedtak, tx)
