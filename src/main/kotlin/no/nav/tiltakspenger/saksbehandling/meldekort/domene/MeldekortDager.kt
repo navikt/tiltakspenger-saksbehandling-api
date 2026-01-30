@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periode.Periode
 import java.time.DayOfWeek
 import java.time.LocalDate
 

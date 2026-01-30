@@ -2,8 +2,8 @@
 
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
+import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
+import no.nav.tiltakspenger.libs.periode.Periode
 
 sealed interface BrevRammevedtakBaseDTO {
     val personalia: BrevPersonaliaDTO

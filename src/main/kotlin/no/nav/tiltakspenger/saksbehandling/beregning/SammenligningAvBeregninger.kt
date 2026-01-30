@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger.DagSammenligning
 import java.time.LocalDate
 

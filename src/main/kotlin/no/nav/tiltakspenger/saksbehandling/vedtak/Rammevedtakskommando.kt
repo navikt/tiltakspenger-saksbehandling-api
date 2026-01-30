@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
 import arrow.core.NonEmptyList
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periode.Periode
 import java.time.LocalDate
 
 /**
