@@ -5,6 +5,7 @@ import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
@@ -41,24 +42,29 @@ class PersonhendelseService(
             }
             personhendelse.personidenter.forEach { ident ->
                 val fnr = Fnr.tryFromString(ident) ?: return@forEach
-                val saker = sakRepo.hentForFnr(fnr)
-                if (saker.saker.isNotEmpty()) {
-                    val sak = saker.saker.single()
-                    val lagredeHendelser = personhendelseRepository.hent(fnr)
-                    if (lagredeHendelser.find { it.opplysningstype.name == personhendelse.opplysningstype } != null) {
-                        log.info { "Har allerede lagret hendelse av samme type for fnr, hendelsesId ${personhendelse.hendelseId}, ignorerer" }
-                        return
-                    }
-                    if (personhendelse.opplysningstype == Opplysningstype.ADRESSEBESKYTTELSE_V1.name) {
-                        log.info { "Håndterer hendelse om adressebeskyttelse med hendelsesId ${personhendelse.hendelseId}" }
-                        if (!harKode6(fnr)) {
-                            log.info { "Har ikke kode 6, hendelsesId ${personhendelse.hendelseId}, ignorerer" }
+                try {
+                    val saker = sakRepo.hentForFnr(fnr)
+                    if (saker.saker.isNotEmpty()) {
+                        val sak = saker.saker.single()
+                        val lagredeHendelser = personhendelseRepository.hent(fnr)
+                        if (lagredeHendelser.find { it.opplysningstype.name == personhendelse.opplysningstype } != null) {
+                            log.info { "Har allerede lagret hendelse av samme type for fnr, hendelsesId ${personhendelse.hendelseId}, ignorerer" }
                             return
                         }
-                        oppdaterStatistikk(sak.id, personhendelse)
+                        if (personhendelse.opplysningstype == Opplysningstype.ADRESSEBESKYTTELSE_V1.name) {
+                            log.info { "Håndterer hendelse om adressebeskyttelse med hendelsesId ${personhendelse.hendelseId}" }
+                            if (!harKode6(fnr)) {
+                                log.info { "Har ikke kode 6, hendelsesId ${personhendelse.hendelseId}, ignorerer" }
+                                return
+                            }
+                            oppdaterStatistikk(sak.id, personhendelse)
+                        }
+                        personhendelseRepository.lagre(personhendelse.toPersonhendelseDb(fnr, sak.id))
+                        log.info { "Lagret hendelse for hendelseId ${personhendelse.hendelseId}" }
                     }
-                    personhendelseRepository.lagre(personhendelse.toPersonhendelseDb(fnr, sak.id))
-                    log.info { "Lagret hendelse for hendelseId ${personhendelse.hendelseId}" }
+                } catch (e: Exception) {
+                    Sikkerlogg.error(e) { "Noe gikk galt ved behandling av personhendelse med ident ${fnr.verdi}" }
+                    throw e
                 }
             }
         } catch (e: Exception) {
