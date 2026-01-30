@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.ytelser.domene
 
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.route.YtelseDTO
 
 data class Ytelse(

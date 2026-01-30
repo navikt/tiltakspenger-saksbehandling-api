@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak

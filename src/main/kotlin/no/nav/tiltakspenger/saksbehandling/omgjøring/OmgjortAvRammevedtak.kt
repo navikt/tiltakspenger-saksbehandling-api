@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.omgjøring
 
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periode.Periode
 import java.time.LocalDate
 
 data class OmgjortAvRammevedtak(

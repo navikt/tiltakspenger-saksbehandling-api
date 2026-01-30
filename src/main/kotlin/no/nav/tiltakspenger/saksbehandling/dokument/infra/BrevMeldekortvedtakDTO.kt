@@ -2,10 +2,10 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
+import no.nav.tiltakspenger.libs.dato.norskTidspunktFormatter
+import no.nav.tiltakspenger.libs.dato.norskUkedagOgDatoUtenÅrFormatter
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
-import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
-import no.nav.tiltakspenger.libs.periodisering.norskUkedagOgDatoUtenÅrFormatter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag

@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
-import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING

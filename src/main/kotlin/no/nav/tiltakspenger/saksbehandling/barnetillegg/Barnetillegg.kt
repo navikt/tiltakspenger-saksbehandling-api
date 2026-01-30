@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.perioder
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
-import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import org.jetbrains.annotations.TestOnly
 

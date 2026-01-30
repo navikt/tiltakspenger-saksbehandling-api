@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http
 
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periode.Periode
 
 data class TiltaksdeltakelserFraRegister(
     val value: List<TiltaksdeltakelseFraRegister>,

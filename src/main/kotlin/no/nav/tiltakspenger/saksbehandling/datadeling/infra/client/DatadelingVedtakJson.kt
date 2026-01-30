@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.libs.periode.PeriodeDTO
+import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat

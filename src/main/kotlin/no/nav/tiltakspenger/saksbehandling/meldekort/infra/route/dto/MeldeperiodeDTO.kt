@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.libs.periode.PeriodeDTO
+import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import java.time.LocalDate
 import java.time.LocalDateTime

@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.beregning
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import java.time.DayOfWeek
 import java.time.LocalDate

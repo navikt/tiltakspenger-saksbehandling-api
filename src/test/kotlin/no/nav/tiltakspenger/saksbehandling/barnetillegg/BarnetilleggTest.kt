@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.barnetillegg
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.uke
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.beregning.infra.dto
 
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.libs.periode.PeriodeDTO
+import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import java.time.LocalDateTime
 

@@ -4,7 +4,7 @@ import io.kotest.assertions.json.FieldComparison
 import io.kotest.assertions.json.NumberFormat
 import io.kotest.assertions.json.PropertyOrder
 import io.kotest.assertions.json.shouldEqualJson
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.DEFAULT_TILTAK_DELTAKELSE_INTERN_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode

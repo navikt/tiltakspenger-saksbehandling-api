@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.NonEmptyList
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import java.time.LocalDate

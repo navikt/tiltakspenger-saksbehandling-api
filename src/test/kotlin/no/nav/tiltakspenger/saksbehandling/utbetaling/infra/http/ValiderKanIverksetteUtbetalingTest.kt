@@ -7,7 +7,7 @@ import arrow.core.toNonEmptyListOrThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.meldeperiode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling

@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import java.time.LocalDate
 import kotlin.collections.first

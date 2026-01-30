@@ -14,8 +14,8 @@ import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjede
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder

@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger
 
 import arrow.core.Nel
 import arrow.core.toNonEmptyListOrNull
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import java.time.LocalDateTime
 
