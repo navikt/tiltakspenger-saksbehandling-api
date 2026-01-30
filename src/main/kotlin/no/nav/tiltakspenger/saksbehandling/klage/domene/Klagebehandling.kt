@@ -254,8 +254,8 @@ data class Klagebehandling(
         kommando: AvbrytKlagebehandlingKommando,
         clock: Clock,
     ): Either<KanIkkeAvbryteKlagebehandling, Klagebehandling> {
-        require(!erAvsluttet) {
-            "Klagebehandling er allerede avsluttet og kan ikke avbrytes. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+        if (erAvsluttet) {
+            return KanIkkeAvbryteKlagebehandling.AlleredeAvsluttet(this.status).left()
         }
         if (erKnyttetTilRammebehandling) {
             return KanIkkeAvbryteKlagebehandling.KnyttetTilIkkeAvbruttRammebehandling(rammebehandlingId!!).left()

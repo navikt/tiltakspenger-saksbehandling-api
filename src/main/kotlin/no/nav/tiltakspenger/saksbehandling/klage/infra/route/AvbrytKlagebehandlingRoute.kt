@@ -76,6 +76,14 @@ fun Route.avbrytKlagebehandlingRoute(
                                             "knyttet_til_ikke_avbrutt_rammebehandling",
                                         ),
                                     )
+
+                                    is KanIkkeAvbryteKlagebehandling.AlleredeAvsluttet -> Pair(
+                                        HttpStatusCode.BadRequest,
+                                        ErrorJson(
+                                            "Klagebehandlingen er allerede avsluttet med status: ${it.status}",
+                                            "allerede_avsluttet",
+                                        ),
+                                    )
                                 },
                             )
                         },

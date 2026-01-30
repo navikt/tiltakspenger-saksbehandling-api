@@ -7,9 +7,14 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytRammebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgAvbrytKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgIverksettKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
 
 /**
@@ -183,6 +188,98 @@ class AvbrytKlagebehandlingRouteTest {
                      {
                         "melding": "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: $rammebehandlingId",
                         "kode": "knyttet_til_ikke_avbrutt_rammebehandling"
+                     }
+                    """.trimIndent()
+                },
+            ) shouldBe null
+        }
+    }
+
+    @Test
+    fun `kan ikke avbryte vedtatt avvist klage`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, klagevedtak, _) = opprettSakOgIverksettKlagebehandling(tac = tac)!!
+            val klagebehandling = klagevedtak.behandling
+            avbrytKlagebehandling(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    """
+                     {
+                      "melding": "Klagebehandlingen er allerede avsluttet med status: VEDTATT",
+                      "kode": "allerede_avsluttet"
+                     }
+                    """.trimIndent()
+                },
+            ) shouldBe null
+        }
+    }
+
+    @Test
+    fun `kan ikke avbryte avbrutt klage`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, klagebehandling, _) = opprettSakOgAvbrytKlagebehandling(tac = tac)!!
+            avbrytKlagebehandling(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    """
+                     {
+                      "melding": "Klagebehandlingen er allerede avsluttet med status: AVBRUTT",
+                      "kode": "allerede_avsluttet"
+                     }
+                    """.trimIndent()
+                },
+            ) shouldBe null
+        }
+    }
+
+    @Test
+    fun `kan ikke avbryte vedtatt omgjort klage`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, _, søknadsbehandlingOpprettetFraKlage, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+            )!!
+            val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
+            oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = saksbehandler,
+            )
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = saksbehandler,
+            )
+            val beslutter = ObjectMother.beslutter()
+            taBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = beslutter,
+            )
+            iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                beslutter = beslutter,
+            )
+            avbrytKlagebehandling(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    """
+                     {
+                      "melding": "Klagebehandlingen er allerede avsluttet med status: VEDTATT",
+                      "kode": "allerede_avsluttet"
                      }
                     """.trimIndent()
                 },

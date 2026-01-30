@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett
 
 import io.kotest.assertions.json.shouldEqualJson
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
@@ -9,23 +10,33 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettKlagebehandlingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgAvbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgIverksettKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingBrevtekst
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 class IverksettKlagebehandlingRouteTest {
     @Test
-    fun `kan iverksette klagebehandling`() {
+    fun `kan iverksette avvist klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         // TODO jah: Fjern runIsolated når vi har fikset at databasetester kan kjøre parallelt (tiltaksdeltakelse og fnr må være garantert unik per test)
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
@@ -158,7 +169,7 @@ class IverksettKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `kan ikke iverksette allerede iverksatt klagebehandling`() {
+    fun `kan ikke iverksette allerede iverksatt avvist klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, klagevedtak, _) = opprettSakOgIverksettKlagebehandling(
                 tac = tac,
@@ -206,7 +217,7 @@ class IverksettKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `kan ikke iverksette uten brevtekst`() {
+    fun `kan ikke iverksette avvist klagebehandling uten brevtekst`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, klagebehandling, _) = opprettSakOgKlagebehandlingTilAvvisning(
                 tac = tac,
@@ -225,6 +236,67 @@ class IverksettKlagebehandlingRouteTest {
                     """.trimIndent()
                 },
             ) shouldBe null
+        }
+    }
+
+    @Test
+    fun `kan iverksette klagebehandling til omgjøring`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, _, søknadsbehandlingOpprettetFraKlage, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+            )!!
+            val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
+            oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = saksbehandler,
+            )
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = saksbehandler,
+            )
+            val beslutter = ObjectMother.beslutter()
+            taBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                saksbehandler = beslutter,
+            )
+            val (_, rammevedtak, json) = iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                beslutter = beslutter,
+            )!!
+            rammevedtak.klagebehandling!!.also {
+                it.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:48.456789")
+                it.iverksattTidspunkt shouldBe LocalDateTime.parse("2025-01-01T01:02:48.456789")
+                it.status shouldBe Klagebehandlingsstatus.VEDTATT
+                it.kanIverksette shouldBe false
+                it.erVedtatt shouldBe true
+                it.erAvsluttet shouldBe true
+                it.erUnderBehandling shouldBe false
+                it.erÅpen shouldBe false
+                it.kanIkkeIverksetteGrunner shouldBe listOf("Klagebehandling er ikke under behandling")
+            }
+            rammevedtak.klagebehandling.shouldBeEqualToIgnoringFields(
+                klagebehandling,
+                Klagebehandling::sistEndret,
+                Klagebehandling::iverksattTidspunkt,
+                Klagebehandling::status,
+                Klagebehandling::kanIverksette,
+                Klagebehandling::erVedtatt,
+                Klagebehandling::erAvsluttet,
+                Klagebehandling::erUnderBehandling,
+                Klagebehandling::erÅpen,
+                Klagebehandling::kanIkkeIverksetteGrunner,
+            )
+            rammevedtak.klagebehandlingsresultat shouldBe klagebehandling.resultat
+            json.getString("klagebehandlingId") shouldBe klagebehandling.id.toString()
         }
     }
 }
