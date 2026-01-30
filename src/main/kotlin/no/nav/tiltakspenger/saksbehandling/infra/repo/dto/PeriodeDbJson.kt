@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo.dto
 
+import no.nav.tiltakspenger.libs.json.deserialize
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import java.time.LocalDate
 
@@ -14,3 +16,7 @@ data class PeriodeDbJson(
 }
 
 fun Periode.toDbJson(): PeriodeDbJson = PeriodeDbJson(fraOgMed.toString(), tilOgMed.toString())
+
+fun Periode.toDbJsonString(): String = serialize(toDbJson())
+
+fun String.tilPeriode(): Periode = deserialize<PeriodeDbJson>(this).toDomain()

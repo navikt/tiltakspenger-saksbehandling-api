@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat.Omgjøring
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat.Omgjøring.Companion.utledNyVedtaksperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -138,8 +139,11 @@ data class Revurdering(
 
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
 
+        val nyOmgjøringsperiode =
+            if (kommando.harValgtSkalOmgjøreHeleVedtaksperioden) omgjørRammevedtak.totalPeriode!! else kommando.omgjøringsperiode!!
+
         val nyVedtaksperiode = utledNyVedtaksperiode(
-            kommando.vedtaksperiode ?: omgjørRammevedtak.totalPeriode!!,
+            nyOmgjøringsperiode,
             kommando.innvilgelsesperioder.totalPeriode,
         )
 
@@ -171,6 +175,8 @@ data class Revurdering(
             oppdatertBarnetillegg = kommando.barnetillegg,
             omgjørRammevedtak = rammevedtakSomOmgjøres,
             nyVedtaksperiode = nyVedtaksperiode,
+            harValgtSkalOmgjøreHeleVedtaksperioden = kommando.harValgtSkalOmgjøreHeleVedtaksperioden,
+            valgtOmgjøringsperiode = kommando.omgjøringsperiode,
         ).getOrElse { return it.left() }
 
         return this.copy(

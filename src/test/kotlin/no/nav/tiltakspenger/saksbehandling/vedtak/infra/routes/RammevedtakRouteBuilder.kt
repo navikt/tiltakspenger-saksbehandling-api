@@ -4,7 +4,9 @@ import io.kotest.assertions.json.FieldComparison
 import io.kotest.assertions.json.NumberFormat
 import io.kotest.assertions.json.PropertyOrder
 import io.kotest.assertions.json.shouldEqualJson
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.DEFAULT_TILTAK_DELTAKELSE_INTERN_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
@@ -53,14 +55,13 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
     """.trimIndent(),
     vedtaksdato: String? = null,
     omgjortGrad: String? = null,
-    omgjøringskommando: String? = if (gjeldendeVedtaksperioder.size != 1) {
+    omgjøringskommando: String? = if (gjeldendeVedtaksperioder.isEmpty()) {
         null
     } else {
         """"OMGJØR": {
-              "tvungenOmgjøringsperiode": {
-                "fraOgMed": "${gjeldendeInnvilgetPerioder.single().fraOgMed}",
-                "tilOgMed": "${gjeldendeInnvilgetPerioder.single().tilOgMed}"
-              },
+              "perioderSomKanOmgjøres": [
+                    ${gjeldendeVedtaksperioder.joinToString(",") { serialize(it.toDTO()) }}
+              ],
               "type": "OMGJØR"
             }"""
     },

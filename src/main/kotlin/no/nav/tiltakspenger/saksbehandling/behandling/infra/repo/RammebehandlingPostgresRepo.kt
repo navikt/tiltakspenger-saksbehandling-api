@@ -41,8 +41,10 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeB
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilPeriode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJsonString
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
@@ -489,6 +491,7 @@ class RammebehandlingPostgresRepo(
                                 barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                                 omgjørRammevedtak = omgjørRammevedtak,
                                 harValgtSkalOmgjøreHeleVedtaksperioden = boolean("har_valgt_skal_omgjøre_hele_vedtaksperioden"),
+                                valgtOmgjøringsperiode = stringOrNull("valgt_omgjøringsperiode")?.tilPeriode(),
                             )
                         }
                     }
@@ -590,7 +593,8 @@ class RammebehandlingPostgresRepo(
                 innvilgelsesperioder,
                 omgjør_rammevedtak,
                 klagebehandling_id,
-                har_valgt_skal_omgjøre_hele_vedtaksperioden
+                har_valgt_skal_omgjøre_hele_vedtaksperioden,
+                valgt_omgjøringsperiode
             ) values (
                 :id,
                 :sak_id,
@@ -629,7 +633,8 @@ class RammebehandlingPostgresRepo(
                 to_jsonb(:innvilgelsesperioder::jsonb),
                 to_jsonb(:omgjoer_rammevedtak::jsonb),
                 :klagebehandling_id,
-                :har_valgt_skal_omgjore_hele_vedtaksperioden
+                :har_valgt_skal_omgjore_hele_vedtaksperioden,
+                to_jsonb(:valgt_omgjoringsperiode::jsonb)
             )
             """.trimIndent()
 
@@ -671,7 +676,8 @@ class RammebehandlingPostgresRepo(
                 innvilgelsesperioder = to_jsonb(:innvilgelsesperioder::jsonb),
                 omgjør_rammevedtak = to_jsonb(:omgjoer_rammevedtak::jsonb),
                 klagebehandling_id = :klagebehandling_id,
-                har_valgt_skal_omgjøre_hele_vedtaksperioden = :har_valgt_skal_omgjore_hele_vedtaksperioden
+                har_valgt_skal_omgjøre_hele_vedtaksperioden = :har_valgt_skal_omgjore_hele_vedtaksperioden,                
+                valgt_omgjøringsperiode = to_jsonb(:valgt_omgjoringsperiode::jsonb)
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -824,6 +830,7 @@ private fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> =
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
         "har_valgt_skal_omgjore_hele_vedtaksperioden" to this.harValgtSkalOmgjøreHeleVedtaksperioden,
+        "valgt_omgjoringsperiode" to this.valgtOmgjøringsperiode?.toDbJsonString(),
     )
 
     is Revurderingsresultat.Innvilgelse -> arrayOf(

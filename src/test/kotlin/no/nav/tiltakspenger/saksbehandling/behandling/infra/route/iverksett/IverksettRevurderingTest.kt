@@ -311,12 +311,14 @@ internal class IverksettRevurderingTest {
                 opphørskommando = null,
                 omgjøringskommando = """
                     "OMGJØR": {
-                      "tvungenOmgjøringsperiode": {
-                        "fraOgMed": "2023-01-05",
-                        "tilOgMed": "2023-03-31"
-                      },
+                      "perioderSomKanOmgjøres": [
+                        {
+                            "fraOgMed": "2023-01-05",
+                            "tilOgMed": "2023-03-31"
+                        }
+                      ],
                       "type": "OMGJØR"
-                    }
+                    } 
                 """.trimIndent(),
             )
         }
@@ -386,11 +388,11 @@ internal class IverksettRevurderingTest {
                 """.trimIndent(),
                 omgjortGrad = null,
                 omgjøringskommando = """
-                    "OMGJØR": {
-                      "tvungenOmgjøringsperiode": {
+                    "OMGJØR":{
+                      "perioderSomKanOmgjøres": [{
                         "fraOgMed": "2023-01-01",
                         "tilOgMed": "2023-03-31"
-                      },
+                      }],
                       "type": "OMGJØR"
                     }
                 """.trimIndent(),

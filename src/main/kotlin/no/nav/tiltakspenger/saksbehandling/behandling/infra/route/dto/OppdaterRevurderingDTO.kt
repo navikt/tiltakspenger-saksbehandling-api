@@ -60,15 +60,15 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
         val barnetillegg: BarnetilleggDTO,
         val skalOmgjøreHeleVedtaket: Boolean,
-        val vedtaksperiode: PeriodeDTO?,
+        val omgjøringsperiode: PeriodeDTO?,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
 
         init {
             if (skalOmgjøreHeleVedtaket) {
-                require(vedtaksperiode == null) { "vedtaksperiode må være null når skalOmgjøreHeleVedtaket er true" }
+                require(omgjøringsperiode == null) { "omgjøringsperiode må være null når skalOmgjøreHeleVedtaket er true" }
             } else {
-                requireNotNull(vedtaksperiode) { "vedtaksperiode kan ikke være null når skalOmgjøreHeleVedtaket er false" }
+                requireNotNull(omgjøringsperiode) { "omgjøringsperiode kan ikke være null når skalOmgjøreHeleVedtaket er false" }
             }
         }
 
@@ -89,7 +89,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
-                vedtaksperiode = vedtaksperiode?.toDomain(),
+                omgjøringsperiode = omgjøringsperiode?.toDomain(),
                 harValgtSkalOmgjøreHeleVedtaksperioden = skalOmgjøreHeleVedtaket,
             )
         }

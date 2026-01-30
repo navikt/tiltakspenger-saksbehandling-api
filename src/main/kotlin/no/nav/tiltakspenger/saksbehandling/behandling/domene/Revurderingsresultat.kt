@@ -115,6 +115,7 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
         override val barnetillegg: Barnetillegg?,
         override val omgjørRammevedtak: OmgjørRammevedtak,
         val harValgtSkalOmgjøreHeleVedtaksperioden: Boolean,
+        val valgtOmgjøringsperiode: Periode?,
     ) : Revurderingsresultat,
         Rammebehandlingsresultat.Innvilgelse {
         override val valgteTiltaksdeltakelser = innvilgelsesperioder?.valgteTiltaksdeltagelser
@@ -137,6 +138,8 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             oppdatertInnvilgelsesperioder: Innvilgelsesperioder,
             oppdatertBarnetillegg: Barnetillegg,
             nyVedtaksperiode: Periode,
+            harValgtSkalOmgjøreHeleVedtaksperioden: Boolean,
+            valgtOmgjøringsperiode: Periode?,
             omgjørRammevedtak: OmgjørRammevedtak,
         ): Either<KanIkkeOppdatereBehandling, Omgjøring> {
             require(nyVedtaksperiode.inneholderHele(oppdatertInnvilgelsesperioder.totalPeriode)) {
@@ -147,12 +150,23 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                 return KanIkkeOppdatereBehandling.PerioderSomOmgjøresMåVæreSammenhengede.left()
             }
 
+            if (harValgtSkalOmgjøreHeleVedtaksperioden) {
+                require(valgtOmgjøringsperiode == null) {
+                    "Dersom hele vedtaksperioden skal omgjøres, må ikke omgjøringsperiode være satt"
+                }
+            } else {
+                require(valgtOmgjøringsperiode != null) {
+                    "Dersom ikke hele vedtaksperioden skal omgjøres, må omgjøringsperiode være satt"
+                }
+            }
+
             return this.copy(
                 vedtaksperiode = nyVedtaksperiode,
                 innvilgelsesperioder = oppdatertInnvilgelsesperioder,
                 barnetillegg = oppdatertBarnetillegg,
                 omgjørRammevedtak = omgjørRammevedtak,
-                harValgtSkalOmgjøreHeleVedtaksperioden = nyVedtaksperiode != null,
+                valgtOmgjøringsperiode = valgtOmgjøringsperiode,
+                harValgtSkalOmgjøreHeleVedtaksperioden = harValgtSkalOmgjøreHeleVedtaksperioden,
             ).right()
         }
 
@@ -183,6 +197,20 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             ).right()
         }
 
+        override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
+            if (harValgtSkalOmgjøreHeleVedtaksperioden) {
+                if (valgtOmgjøringsperiode != null) {
+                    return false
+                }
+            } else {
+                if (valgtOmgjøringsperiode == null) {
+                    return false
+                }
+            }
+
+            return super.erFerdigutfylt(saksopplysninger)
+        }
+
         companion object {
             fun create(
                 omgjørRammevedtak: Rammevedtak,
@@ -203,6 +231,8 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                     omgjørRammevedtak.barnetillegg!!.krympTilPerioder(it.perioder)
                 }
 
+                val harFlereGjeldendePerioder = omgjørRammevedtak.gjeldendePerioder.size > 1
+
                 return Omgjøring(
                     // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.
                     vedtaksperiode = omgjørRammevedtak.gjeldendeTotalPeriode!!,
@@ -210,7 +240,9 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                     innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = barnetillegg,
                     omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
-                    harValgtSkalOmgjøreHeleVedtaksperioden = true,
+                    // Kan ikke omgjøre hele vedtaket dersom det er flere gjeldende perioder (dvs hull i vedtaksperioden)
+                    harValgtSkalOmgjøreHeleVedtaksperioden = !harFlereGjeldendePerioder,
+                    valgtOmgjøringsperiode = null,
                 ).right()
             }
 
