@@ -30,6 +30,7 @@ import java.time.LocalDateTime
 data class RammevedtakDTO(
     val id: String,
     val behandlingId: String,
+    val klagebehandlingId: String?,
     val opprettet: LocalDateTime,
     val vedtaksdato: LocalDate?,
     val resultat: RammebehandlingResultatTypeDTO,
@@ -67,6 +68,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
     return RammevedtakDTO(
         id = id.toString(),
         behandlingId = rammebehandling.id.toString(),
+        klagebehandlingId = rammebehandling.klagebehandling?.id?.toString(),
         opprettet = opprettet,
         vedtaksdato = vedtaksdato,
         resultat = rammebehandlingsresultat.tilRammebehandlingResultatTypeDTO(),

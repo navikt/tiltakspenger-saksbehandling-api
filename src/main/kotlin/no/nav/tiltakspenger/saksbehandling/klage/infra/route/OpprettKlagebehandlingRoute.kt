@@ -68,7 +68,7 @@ fun Route.opprettKlagebehandlingRoute(
                             correlationId = correlationId,
                             behandlingId = behandlingId,
                         )
-                        call.respondJson(value = behandling.toDto())
+                        call.respondJson(value = behandling.tilKlagebehandlingDTO())
                     },
                 )
             }

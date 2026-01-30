@@ -60,6 +60,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "sakId": "${sak.id}",
               "saksnummer": "202505011001",
               "rammevedtakId": "null",
+              "klagebehandlingId": "${klagebehandling.id}",
               "saksbehandler": "saksbehandlerKlagebehandling",
               "beslutter": null,
               "saksopplysninger": {
@@ -225,6 +226,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "sakId": "${sak.id}",
               "saksnummer": "202505011001",
               "rammevedtakId": "null",
+              "klagebehandlingId": "${klagebehandling.id}",
               "saksbehandler": "saksbehandlerKlagebehandling",
               "beslutter": null,
               "saksopplysninger": {
@@ -315,6 +317,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "sakId": "${sak.id}",
               "saksnummer": "202505011001",
               "rammevedtakId": "null",
+              "klagebehandlingId": "${klagebehandling.id}",
               "saksbehandler": "saksbehandlerKlagebehandling",
               "beslutter": null,
               "saksopplysninger": {

@@ -39,6 +39,7 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val iverksattTidspunkt: LocalDateTime?
     val ventestatus: VentestatusHendelseDTO?
     val utbetaling: BehandlingUtbetalingDTO?
+    val klagebehandlingId: String?
 }
 
 data class SøknadsbehandlingDTO(
@@ -59,11 +60,13 @@ data class SøknadsbehandlingDTO(
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
+    override val klagebehandlingId: String?,
     @param:JsonUnwrapped val resultatDTO: SøknadsbehandlingResultatDTO,
     val søknad: SøknadDTO,
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<String>,
     val kanInnvilges: Boolean,
+
 ) : RammebehandlingDTO,
     SøknadsbehandlingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.SØKNADSBEHANDLING
@@ -87,6 +90,7 @@ data class RevurderingDTO(
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
+    override val klagebehandlingId: String?,
     @param:JsonUnwrapped val resultatDTO: RevurderingResultatDTO,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
@@ -149,6 +153,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
         resultatDTO = this.resultat.tilSøknadsbehandlingResultatDTO(),
         kanInnvilges = this.kanInnvilges,
+        klagebehandlingId = this.klagebehandling?.id?.toString(),
     )
 }
 
@@ -176,5 +181,6 @@ fun Revurdering.tilRevurderingDTO(
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
         resultatDTO = this.resultat.tilRevurderingResultatDTO(),
+        klagebehandlingId = this.klagebehandling?.id?.toString(),
     )
 }

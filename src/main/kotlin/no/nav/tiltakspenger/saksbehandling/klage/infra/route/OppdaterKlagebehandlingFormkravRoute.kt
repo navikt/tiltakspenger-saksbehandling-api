@@ -65,7 +65,7 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
                                     correlationId = correlationId,
                                     behandlingId = behandlingId,
                                 )
-                                call.respondJson(value = behandling.toDto())
+                                call.respondJson(value = behandling.tilKlagebehandlingDTO())
                             },
                         )
                 }

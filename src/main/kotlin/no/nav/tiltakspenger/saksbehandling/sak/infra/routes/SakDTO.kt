@@ -4,8 +4,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Rammebehan
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingerDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagevedtakDTO
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagevedtakDTO
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjederDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -53,7 +53,7 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     førsteDagSomGirRett = førsteDagSomGirRett,
     sisteDagSomGirRett = sisteDagSomGirRett,
     behandlinger = this.tilBehandlingerDTO(),
-    klageBehandlinger = this.behandlinger.klagebehandlinger.map { it.toDto() },
+    klageBehandlinger = this.behandlinger.klagebehandlinger.map { it.tilKlagebehandlingDTO() },
     tidslinje = rammevedtaksliste.tilRammevedtakTidslinjeDTO(),
     innvilgetTidslinje = rammevedtaksliste.tilRammevedtakInnvilgetTidslinjeDTO(),
     alleRammevedtak = rammevedtaksliste.map { it.tilRammevedtakDTO() },

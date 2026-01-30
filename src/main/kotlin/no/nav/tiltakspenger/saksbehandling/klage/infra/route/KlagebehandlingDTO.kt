@@ -40,7 +40,7 @@ data class KlagebehandlingDTO(
     )
 }
 
-fun Klagebehandling.toDto() = KlagebehandlingDTO(
+fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     id = id.toString(),
     sakId = sakId.toString(),
     saksnummer = saksnummer.toString(),

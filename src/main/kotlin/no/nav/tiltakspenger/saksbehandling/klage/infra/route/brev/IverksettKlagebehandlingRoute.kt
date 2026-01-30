@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
 import java.time.Clock
 
@@ -67,7 +67,7 @@ fun Route.iverksettKlagebehandlingRoute(
                             correlationId = correlationId,
                             behandlingId = behandlingId,
                         )
-                        call.respondJson(value = vedtak.behandling.toDto())
+                        call.respondJson(value = vedtak.behandling.tilKlagebehandlingDTO())
                     },
                 )
             }

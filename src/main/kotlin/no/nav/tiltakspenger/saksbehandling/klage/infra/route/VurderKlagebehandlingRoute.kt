@@ -22,7 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.kanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KanIkkeVurdereKlagebehandling
@@ -104,7 +103,7 @@ fun Route.vurderKlagebehandlingRoute(
                                 correlationId = correlationId,
                                 behandlingId = behandlingId,
                             )
-                            call.respondJson(value = behandling.toDto())
+                            call.respondJson(value = behandling.tilKlagebehandlingDTO())
                         },
                     )
                 }

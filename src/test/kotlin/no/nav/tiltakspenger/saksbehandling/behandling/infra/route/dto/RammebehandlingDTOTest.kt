@@ -107,6 +107,7 @@ class RammebehandlingDTOTest {
           "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
           "saksnummer": "202510291001",
           "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
+          "klagebehandlingId": null,
           "saksbehandler": "Z12345",
           "beslutter": "B12345",
           "saksopplysninger": {
@@ -315,6 +316,7 @@ class RammebehandlingDTOTest {
               "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
               "saksnummer": "202510291001",
               "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
+              "klagebehandlingId": null,
               "saksbehandler": "Z12345",
               "beslutter": "B12345",
               "saksopplysninger": {
@@ -503,6 +505,7 @@ class RammebehandlingDTOTest {
               "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
               "saksnummer": "202510291001",
               "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
+              "klagebehandlingId": null,
               "saksbehandler": "Z12345",
               "beslutter": null,
               "saksopplysninger": {
@@ -668,6 +671,7 @@ class RammebehandlingDTOTest {
           "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
           "saksnummer": "202510291001",
           "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
+          "klagebehandlingId": null,
           "saksbehandler": "Z12345",
           "beslutter": "B12345",
           "saksopplysninger": {
@@ -791,6 +795,7 @@ class RammebehandlingDTOTest {
               "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
               "saksnummer": "202510291001",
               "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
+              "klagebehandlingId": null,
               "saksbehandler": "Z12345",
               "beslutter": "B12345",
               "saksopplysninger": {
@@ -940,6 +945,7 @@ class RammebehandlingDTOTest {
           "sakId": "sak_01K8QWMR1KZZB728K0F4RQG184",
           "saksnummer": "202510291001",
           "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S7",
+          "klagebehandlingId": null,
           "saksbehandler": "Z12345",
           "beslutter": null,
           "saksopplysninger": {

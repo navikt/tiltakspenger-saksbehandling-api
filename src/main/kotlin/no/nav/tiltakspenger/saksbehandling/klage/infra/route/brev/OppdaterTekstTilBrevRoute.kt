@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toStatusAndErrorJson
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 
@@ -60,7 +60,7 @@ fun Route.oppdaterTekstTilBrev(
                                 correlationId = correlationId,
                                 behandlingId = behandlingId,
                             )
-                            call.respondJson(value = behandling.toDto())
+                            call.respondJson(value = behandling.tilKlagebehandlingDTO())
                         },
                     )
                 }
