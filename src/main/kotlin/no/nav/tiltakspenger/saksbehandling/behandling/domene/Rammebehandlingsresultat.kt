@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
-sealed interface BehandlingResultat {
+sealed interface Rammebehandlingsresultat {
 
     /** Kan være null ved sære tilfeller av avslag, og når behandlingen er uferdig */
     val vedtaksperiode: Periode?
@@ -36,7 +36,7 @@ sealed interface BehandlingResultat {
     fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean
 
     /** Denne benyttes både i søknadsbehandlinger og revurderinger */
-    sealed interface Innvilgelse : BehandlingResultat {
+    sealed interface Innvilgelse : Rammebehandlingsresultat {
         /** Kan være null fram til resultatet er ferdigutfylt. */
         override val innvilgelsesperioder: Innvilgelsesperioder?
 
@@ -72,7 +72,7 @@ sealed interface BehandlingResultat {
         }
     }
 
-    fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, BehandlingResultat?>
+    fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandlingsresultat?>
 }
 
 sealed interface BehandlingResultatType

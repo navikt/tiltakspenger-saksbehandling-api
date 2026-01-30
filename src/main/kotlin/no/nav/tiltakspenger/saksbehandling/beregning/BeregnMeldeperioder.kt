@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
@@ -279,7 +279,7 @@ private fun MeldeperiodeBeregning.tilSkalBeregnes(
 fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode): Beregning? {
     val behandling = hentRammebehandling(behandlingId)
 
-    require(behandling is Revurdering && behandling.resultat is RevurderingResultat.Stans) {
+    require(behandling is Revurdering && behandling.resultat is Revurderingsresultat.Stans) {
         "Behandlingen på være en revurdering til stans"
     }
 

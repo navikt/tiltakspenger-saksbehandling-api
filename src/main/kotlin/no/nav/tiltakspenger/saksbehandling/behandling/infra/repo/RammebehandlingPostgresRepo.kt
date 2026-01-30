@@ -17,19 +17,19 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
@@ -398,13 +398,13 @@ class RammebehandlingPostgresRepo(
                     val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
 
                     val resultat = when (resultatType) {
-                        SøknadsbehandlingType.INNVILGELSE -> SøknadsbehandlingResultat.Innvilgelse(
+                        SøknadsbehandlingType.INNVILGELSE -> Søknadsbehandlingsresultat.Innvilgelse(
                             barnetillegg = string("barnetillegg").toBarnetillegg(),
                             innvilgelsesperioder = innvilgelsesperioder!!,
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
-                        SøknadsbehandlingType.AVSLAG -> SøknadsbehandlingResultat.Avslag(
+                        SøknadsbehandlingType.AVSLAG -> Søknadsbehandlingsresultat.Avslag(
                             avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag(),
                             avslagsperiode = vedtaksperiode,
                         )
@@ -462,7 +462,7 @@ class RammebehandlingPostgresRepo(
                     val resultatType = string("resultat").tilRevurderingResultatType()
 
                     val resultat = when (resultatType) {
-                        RevurderingType.STANS -> RevurderingResultat.Stans(
+                        RevurderingType.STANS -> Revurderingsresultat.Stans(
                             valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()
                                 ?.toNonEmptySetOrNull(),
                             harValgtStansFraFørsteDagSomGirRett = booleanOrNull("har_valgt_stans_fra_første_dag_som_gir_rett"),
@@ -470,14 +470,14 @@ class RammebehandlingPostgresRepo(
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
-                        RevurderingType.INNVILGELSE -> RevurderingResultat.Innvilgelse(
+                        RevurderingType.INNVILGELSE -> Revurderingsresultat.Innvilgelse(
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             innvilgelsesperioder = innvilgelsesperioder,
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
                         RevurderingType.OMGJØRING -> {
-                            RevurderingResultat.Omgjøring(
+                            Revurderingsresultat.Omgjøring(
                                 vedtaksperiode = vedtaksperiode!!,
                                 innvilgelsesperioder = innvilgelsesperioder,
                                 barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
@@ -797,31 +797,31 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
     )
 }
 
-private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when (this) {
-    is SøknadsbehandlingResultat.Avslag -> arrayOf(
+private fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> = when (this) {
+    is Søknadsbehandlingsresultat.Avslag -> arrayOf(
         "avslagsgrunner" to this.avslagsgrunner.toDb(),
         "omgjoer_rammevedtak" to null,
     )
 
-    is SøknadsbehandlingResultat.Innvilgelse -> arrayOf(
+    is Søknadsbehandlingsresultat.Innvilgelse -> arrayOf(
         "innvilgelsesperioder" to this.innvilgelsesperioder.tilInnvilgelsesperioderDbJson(),
         "barnetillegg" to this.barnetillegg.toDbJson(),
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 
-    is RevurderingResultat.Omgjøring -> arrayOf(
+    is Revurderingsresultat.Omgjøring -> arrayOf(
         "innvilgelsesperioder" to this.innvilgelsesperioder?.tilInnvilgelsesperioderDbJson(),
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 
-    is RevurderingResultat.Innvilgelse -> arrayOf(
+    is Revurderingsresultat.Innvilgelse -> arrayOf(
         "innvilgelsesperioder" to this.innvilgelsesperioder?.tilInnvilgelsesperioderDbJson(),
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 
-    is RevurderingResultat.Stans -> arrayOf(
+    is Revurderingsresultat.Stans -> arrayOf(
         "valgt_hjemmel_har_ikke_rettighet" to this.valgtHjemmel.toDbJson(),
         "har_valgt_stans_fra_forste_dag_som_gir_rett" to this.harValgtStansFraFørsteDagSomGirRett,
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),

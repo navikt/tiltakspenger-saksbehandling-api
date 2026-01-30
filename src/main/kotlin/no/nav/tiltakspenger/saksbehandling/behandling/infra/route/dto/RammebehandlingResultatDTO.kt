@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 
@@ -62,13 +62,13 @@ sealed interface RammebehandlingInnvilgelseResultatDTO {
     val barnetillegg: BarnetilleggDTO?
 }
 
-fun SøknadsbehandlingResultat?.tilSøknadsbehandlingResultatDTO(): SøknadsbehandlingResultatDTO {
+fun Søknadsbehandlingsresultat?.tilSøknadsbehandlingResultatDTO(): SøknadsbehandlingResultatDTO {
     return when (this) {
-        is SøknadsbehandlingResultat.Avslag -> SøknadsbehandlingResultatDTO.Avslag(
+        is Søknadsbehandlingsresultat.Avslag -> SøknadsbehandlingResultatDTO.Avslag(
             avslagsgrunner = avslagsgrunner.toValgtHjemmelForAvslagDTO(),
         )
 
-        is SøknadsbehandlingResultat.Innvilgelse -> SøknadsbehandlingResultatDTO.Innvilgelse(
+        is Søknadsbehandlingsresultat.Innvilgelse -> SøknadsbehandlingResultatDTO.Innvilgelse(
             innvilgelsesperioder = innvilgelsesperioder.tilDTO(),
             barnetillegg = barnetillegg.toBarnetilleggDTO(),
         )
@@ -77,19 +77,19 @@ fun SøknadsbehandlingResultat?.tilSøknadsbehandlingResultatDTO(): Søknadsbeha
     }
 }
 
-fun RevurderingResultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
+fun Revurderingsresultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
     return when (this) {
-        is RevurderingResultat.Innvilgelse -> RevurderingResultatDTO.Innvilgelse(
+        is Revurderingsresultat.Innvilgelse -> RevurderingResultatDTO.Innvilgelse(
             innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
         )
 
-        is RevurderingResultat.Stans -> RevurderingResultatDTO.Stans(
+        is Revurderingsresultat.Stans -> RevurderingResultatDTO.Stans(
             valgtHjemmelHarIkkeRettighet = valgtHjemmel?.tilValgtHjemmelForStansDTO() ?: emptyList(),
             harValgtStansFraFørsteDagSomGirRett = harValgtStansFraFørsteDagSomGirRett,
         )
 
-        is RevurderingResultat.Omgjøring -> RevurderingResultatDTO.Omgjøring(
+        is Revurderingsresultat.Omgjøring -> RevurderingResultatDTO.Omgjøring(
             innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
             omgjørVedtak = omgjortVedtak.rammevedtakId.toString(),

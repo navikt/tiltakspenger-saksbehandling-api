@@ -12,10 +12,9 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
@@ -23,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 
 fun Route.iverksettBehandlingRoute(
-    iverksettBehandlingService: IverksettBehandlingService,
+    iverksettRammebehandlingService: IverksettRammebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
 ) {
@@ -37,7 +36,7 @@ fun Route.iverksettBehandlingRoute(
                 val correlationId = call.correlationId()
                 krevBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                iverksettBehandlingService.iverksettRammebehandling(behandlingId, saksbehandler, sakId).fold(
+                iverksettRammebehandlingService.iverksettRammebehandling(behandlingId, saksbehandler, sakId).fold(
                     {
                         when (it) {
                             is KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter -> call.respond400BadRequest(

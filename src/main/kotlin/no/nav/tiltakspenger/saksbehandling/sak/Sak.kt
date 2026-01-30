@@ -102,8 +102,8 @@ data class Sak(
         return meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(kjedeId)
     }
 
-    fun hentRammebehandling(behandlingId: BehandlingId): Rammebehandling? =
-        rammebehandlinger.hentBehandling(behandlingId)
+    fun hentRammebehandling(rammebehandlingId: BehandlingId): Rammebehandling? =
+        rammebehandlinger.hentRammebehandling(rammebehandlingId)
 
     fun harSoknadUnderBehandling(): Boolean {
         val avsluttedeSoknadsbehandlinger = rammebehandlinger

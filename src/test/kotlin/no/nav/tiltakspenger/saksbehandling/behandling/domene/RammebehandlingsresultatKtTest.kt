@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-class BehandlingResultatKtTest {
+class RammebehandlingsresultatKtTest {
     @Nested
     inner class NullstilleResultatVedSaksopplysninger {
         val periode = Periode(1.januar(2023), 31.mars(2023))

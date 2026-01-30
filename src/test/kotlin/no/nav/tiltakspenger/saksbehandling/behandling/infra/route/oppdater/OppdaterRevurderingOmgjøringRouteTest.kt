@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
@@ -64,7 +64,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
             (oppdatertRevurdering as Revurdering).erFerdigutfylt() shouldBe true
             // Forventer at saksopplysningene er oppdatert, mens resultatet er ubesudlet.
             oppdatertRevurdering.saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltakelse
-            val resultat = oppdatertRevurdering.resultat as RevurderingResultat.Omgjøring
+            val resultat = oppdatertRevurdering.resultat as Revurderingsresultat.Omgjøring
             // Kommentar jah: Beklager for alt todomain-greiene. Her bør det expectes på eksplisitte verdier uten å bruke domenekode for mapping.
             resultat.barnetillegg shouldBe barnetillegg
             resultat.antallDagerPerMeldeperiode shouldBe innvilgelsesperioder.antallDagerPerMeldeperiode

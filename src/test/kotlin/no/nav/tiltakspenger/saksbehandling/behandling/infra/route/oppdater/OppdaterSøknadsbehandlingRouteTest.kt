@@ -16,8 +16,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat.Avslag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.`Søknadsbehandlingsresultat`
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.`Søknadsbehandlingsresultat`.Avslag
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
@@ -88,7 +88,7 @@ class OppdaterSøknadsbehandlingRouteTest {
 
             val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
 
-            oppdatertBehandling.resultat.shouldBeInstanceOf<SøknadsbehandlingResultat.Innvilgelse>()
+            oppdatertBehandling.resultat.shouldBeInstanceOf<`Søknadsbehandlingsresultat`.Innvilgelse>()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
             oppdatertBehandling.vedtaksperiode shouldBe nyInnvilgelsesperiode

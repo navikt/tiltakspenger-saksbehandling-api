@@ -9,13 +9,13 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
@@ -31,12 +31,11 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDT
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
 
-class IverksettBehandlingService(
+class IverksettRammebehandlingService(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val rammevedtakRepo: RammevedtakRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
@@ -47,15 +46,14 @@ class IverksettBehandlingService(
     private val sakService: SakService,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
-    private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
     suspend fun iverksettRammebehandling(
-        behandlingId: BehandlingId,
+        rammebehandlingId: BehandlingId,
         beslutter: Saksbehandler,
         sakId: SakId,
     ): Either<KanIkkeIverksetteBehandling, Pair<Sak, Rammebehandling>> {
         val sak = sakService.hentForSakId(sakId)
-        val behandling = sak.hentRammebehandling(behandlingId)!!
+        val behandling = sak.hentRammebehandling(rammebehandlingId)!!
 
         if (behandling.beslutter != beslutter.navIdent) {
             // TODO jah: Fjern denne feilen? Skal vel mye til at denne skjer i praksis?
@@ -78,7 +76,7 @@ class IverksettBehandlingService(
         val sakStatistikk = statistikkSakService.genererStatistikkForRammevedtak(
             rammevedtak = vedtak,
         )
-        val stønadStatistikk = if (vedtak.resultat is SøknadsbehandlingResultat.Avslag) {
+        val stønadStatistikk = if (vedtak.resultat is Søknadsbehandlingsresultat.Avslag) {
             null
         } else {
             genererStønadsstatistikkForRammevedtak(vedtak)
@@ -107,13 +105,13 @@ class IverksettBehandlingService(
         stønadStatistikk: StatistikkStønadDTO?,
     ): Sak {
         return when (vedtak.resultat) {
-            is BehandlingResultat.Innvilgelse -> this.iverksettRammebehandling(
+            is Rammebehandlingsresultat.Innvilgelse -> this.iverksettRammebehandling(
                 vedtak,
                 sakStatistikk,
                 stønadStatistikk!!,
             )
 
-            is SøknadsbehandlingResultat.Avslag -> {
+            is Søknadsbehandlingsresultat.Avslag -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
                 sessionFactory.withTransactionContext { tx ->
                     rammebehandlingRepo.lagre(vedtak.behandling, tx)
@@ -132,7 +130,7 @@ class IverksettBehandlingService(
                 this
             }
 
-            is RevurderingResultat.Stans -> throw IllegalArgumentException("Kan ikke iverksette stans-vedtak på en søknadsbehandling")
+            is Revurderingsresultat.Stans -> throw IllegalArgumentException("Kan ikke iverksette stans-vedtak på en søknadsbehandling")
         }
     }
 
@@ -141,7 +139,7 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        require(vedtak.resultat is BehandlingResultat.Innvilgelse || vedtak.resultat is RevurderingResultat.Stans) {
+        require(vedtak.resultat is Rammebehandlingsresultat.Innvilgelse || vedtak.resultat is Revurderingsresultat.Stans) {
             "Kan kun iverksette innvilgelse eller stans"
         }
 

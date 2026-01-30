@@ -8,9 +8,9 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 
-sealed interface SøknadsbehandlingResultat : BehandlingResultat {
+sealed interface Søknadsbehandlingsresultat : Rammebehandlingsresultat {
 
-    override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, SøknadsbehandlingResultat?>
+    override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Søknadsbehandlingsresultat?>
 
     /**
      * Vedtaksperioden og avslagsperioden vil være 1-1 ved denne revurderingstypen.
@@ -20,7 +20,7 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
     data class Avslag(
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
         val avslagsperiode: Periode?,
-    ) : SøknadsbehandlingResultat {
+    ) : Søknadsbehandlingsresultat {
         override val vedtaksperiode = avslagsperiode
         override val innvilgelsesperioder = null
         override val barnetillegg = null
@@ -47,8 +47,8 @@ sealed interface SøknadsbehandlingResultat : BehandlingResultat {
         override val innvilgelsesperioder: Innvilgelsesperioder,
         override val barnetillegg: Barnetillegg,
         override val omgjørRammevedtak: OmgjørRammevedtak,
-    ) : BehandlingResultat.Innvilgelse,
-        SøknadsbehandlingResultat {
+    ) : Rammebehandlingsresultat.Innvilgelse,
+        Søknadsbehandlingsresultat {
         override val vedtaksperiode = innvilgelsesperioder.totalPeriode
         override val valgteTiltaksdeltakelser = innvilgelsesperioder.valgteTiltaksdeltagelser
         override val antallDagerPerMeldeperiode = innvilgelsesperioder.antallDagerPerMeldeperiode

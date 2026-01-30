@@ -784,8 +784,8 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         barnetillegg = barnetillegg,
         avslagsgrunner = avslagsgrunner,
     )
-    val behandling = tac.behandlingContext.iverksettBehandlingService.iverksettRammebehandling(
-        behandlingId = underBeslutning.rammebehandlinger.singleOrNullOrThrow()!!.id,
+    val behandling = tac.behandlingContext.iverksettRammebehandlingService.iverksettRammebehandling(
+        rammebehandlingId = underBeslutning.rammebehandlinger.singleOrNullOrThrow()!!.id,
         beslutter = beslutter,
         sakId = underBeslutning.id,
     ).getOrFail().second

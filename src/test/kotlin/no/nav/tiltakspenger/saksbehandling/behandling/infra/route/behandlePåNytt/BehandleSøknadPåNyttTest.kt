@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilga
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.`Søknadsbehandlingsresultat`
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.behandleSøknadPåNytt
@@ -30,7 +30,7 @@ internal class BehandleSøknadPåNyttTest {
             val behandling = rammevedtak.behandling as Søknadsbehandling
             behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
-            behandling.resultat is SøknadsbehandlingResultat.Avslag
+            behandling.resultat is `Søknadsbehandlingsresultat`.Avslag
 
             val (_, _, nyBehandling, _) = this.behandleSøknadPåNytt(
                 tac = tac,
@@ -58,7 +58,7 @@ internal class BehandleSøknadPåNyttTest {
             val behandling = rammevedtak.behandling as Søknadsbehandling
             behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
-            behandling.resultat is SøknadsbehandlingResultat.Avslag
+            behandling.resultat is `Søknadsbehandlingsresultat`.Avslag
 
             val responskode = this.startBehandlingAvSøknadPåNyttForSøknadId(
                 tac = tac,
@@ -81,7 +81,7 @@ internal class BehandleSøknadPåNyttTest {
             val behandling = rammevedtak.behandling as Søknadsbehandling
             behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
-            behandling.resultat is SøknadsbehandlingResultat.Avslag
+            behandling.resultat is `Søknadsbehandlingsresultat`.Avslag
 
             tac.tilgangsmaskinFakeClient.leggTil(
                 sak.fnr,

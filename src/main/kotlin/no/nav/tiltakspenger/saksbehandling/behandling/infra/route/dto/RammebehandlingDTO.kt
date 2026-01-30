@@ -94,7 +94,7 @@ data class RevurderingDTO(
 }
 
 fun Sak.tilRammebehandlingDTO(behandlingId: BehandlingId): RammebehandlingDTO {
-    val behandling = rammebehandlinger.hentBehandling(behandlingId)
+    val behandling = rammebehandlinger.hentRammebehandling(behandlingId)
 
     requireNotNull(behandling) {
         "Fant ingen behandling med id $behandlingId"

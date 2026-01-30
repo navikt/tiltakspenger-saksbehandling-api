@@ -5,11 +5,11 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingVedtakJson.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
@@ -76,7 +76,7 @@ fun Rammevedtak.toDatadelingJson(): String {
         // Kommentar jah: Hvis vi skulle beholdt dagens logikk her, måtte vi sjekket om rammevedtaket som omgjorde dette vedtaket var en omgjøringsbehandling. Istedenfor å gjøre det, deler vi det vedtaket som har omgjort dette vedtaket helt.
         omgjortAvRammevedtakId = if (this.omgjortAvRammevedtak.size == 1 && this.omgjortAvRammevedtak.first().omgjøringsgrad == Omgjøringsgrad.HELT) this.omgjortAvRammevedtak.first().rammevedtakId.toString() else null,
         rettighet = when (this.resultat) {
-            is BehandlingResultat.Innvilgelse -> {
+            is Rammebehandlingsresultat.Innvilgelse -> {
                 if (barnetillegg?.harBarnetillegg == true) {
                     "TILTAKSPENGER_OG_BARNETILLEGG"
                 } else {
@@ -84,8 +84,8 @@ fun Rammevedtak.toDatadelingJson(): String {
                 }
             }
 
-            is RevurderingResultat.Stans -> "STANS"
-            is SøknadsbehandlingResultat.Avslag -> "AVSLAG"
+            is Revurderingsresultat.Stans -> "STANS"
+            is Søknadsbehandlingsresultat.Avslag -> "AVSLAG"
         },
         opprettet = opprettet.toString(),
         barnetillegg = barnetillegg?.toDatadelingBarnetillegg(),
@@ -111,17 +111,17 @@ private fun Barnetillegg.toDatadelingBarnetillegg(): DatadelingVedtakJson.Barnet
 
 private fun Rammevedtak.toValgteHjemlerHarIkkeRettighetListe(): List<String>? {
     return when (this.resultat) {
-        is BehandlingResultat.Innvilgelse -> null
-        is RevurderingResultat.Stans -> (this.behandling as Revurdering).toValgteHjemlerHarIkkeRettighetListe()
-        is SøknadsbehandlingResultat.Avslag -> (this.behandling as Søknadsbehandling).toValgteHjemlerHarIkkeRettighetListe()
+        is Rammebehandlingsresultat.Innvilgelse -> null
+        is Revurderingsresultat.Stans -> (this.behandling as Revurdering).toValgteHjemlerHarIkkeRettighetListe()
+        is Søknadsbehandlingsresultat.Avslag -> (this.behandling as Søknadsbehandling).toValgteHjemlerHarIkkeRettighetListe()
     }
 }
 
 private fun Revurdering.toValgteHjemlerHarIkkeRettighetListe() =
-    (this.resultat as RevurderingResultat.Stans).valgtHjemmel?.map { it.toValgtHjemmelHarIkkeRettighetString() } ?: emptyList()
+    (this.resultat as Revurderingsresultat.Stans).valgtHjemmel?.map { it.toValgtHjemmelHarIkkeRettighetString() } ?: emptyList()
 
 private fun Søknadsbehandling.toValgteHjemlerHarIkkeRettighetListe() =
-    (this.resultat as SøknadsbehandlingResultat.Avslag).avslagsgrunner.map { it.toValgtHjemmelHarIkkeRettighetString() }
+    (this.resultat as Søknadsbehandlingsresultat.Avslag).avslagsgrunner.map { it.toValgtHjemmelHarIkkeRettighetString() }
 
 private fun ValgtHjemmelForStans.toValgtHjemmelHarIkkeRettighetString() =
     when (this) {

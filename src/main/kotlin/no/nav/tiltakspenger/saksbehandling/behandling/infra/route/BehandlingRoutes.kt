@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimulering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
@@ -27,7 +27,7 @@ fun Route.behandlingRoutes(
     auditService: AuditService,
     behandleSøknadPåNyttService: BehandleSøknadPåNyttService,
     oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
-    iverksettBehandlingService: IverksettBehandlingService,
+    iverksettRammebehandlingService: IverksettRammebehandlingService,
     sendBehandlingTilBeslutningService: SendBehandlingTilBeslutningService,
     forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevService,
     startRevurderingService: StartRevurderingService,
@@ -44,7 +44,7 @@ fun Route.behandlingRoutes(
     hentBehandlingRoute(behandlingService, auditService, tilgangskontrollService)
     behandleSøknadPåNyttRoute(behandleSøknadPåNyttService, auditService, tilgangskontrollService)
     oppdaterSaksopplysningerRoute(auditService, oppdaterSaksopplysningerService, tilgangskontrollService)
-    iverksettBehandlingRoute(iverksettBehandlingService, auditService, tilgangskontrollService)
+    iverksettBehandlingRoute(iverksettRammebehandlingService, auditService, tilgangskontrollService)
     sendBehandlingTilBeslutningRoute(sendBehandlingTilBeslutningService, auditService, tilgangskontrollService)
     forhåndsvisVedtaksbrevRoute(auditService, forhåndsvisVedtaksbrevService, tilgangskontrollService)
     startRevurderingRoute(startRevurderingService, auditService, tilgangskontrollService)

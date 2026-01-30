@@ -17,8 +17,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat.Avslag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat.Innvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat.Avslag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -56,7 +56,7 @@ data class Søknadsbehandling(
     override val avbrutt: Avbrutt?,
     override val ventestatus: Ventestatus,
     override val venterTil: LocalDateTime?,
-    override val resultat: SøknadsbehandlingResultat?,
+    override val resultat: Søknadsbehandlingsresultat?,
     override val begrunnelseVilkårsvurdering: Begrunnelse?,
     val søknad: Søknad,
     val automatiskSaksbehandlet: Boolean,

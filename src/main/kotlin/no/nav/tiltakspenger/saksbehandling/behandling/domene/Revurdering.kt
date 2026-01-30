@@ -18,9 +18,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Omgjøring
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat.Innvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat.Omgjøring
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -54,7 +54,7 @@ data class Revurdering(
     override val avbrutt: Avbrutt?,
     override val ventestatus: Ventestatus,
     override val venterTil: LocalDateTime?,
-    override val resultat: RevurderingResultat,
+    override val resultat: Revurderingsresultat,
     override val begrunnelseVilkårsvurdering: Begrunnelse?,
     override val utbetaling: BehandlingUtbetaling?,
     override val klagebehandling: Klagebehandling?,
@@ -285,7 +285,7 @@ data class Revurdering(
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
             opprettet: LocalDateTime,
-            resultat: RevurderingResultat,
+            resultat: Revurderingsresultat,
             klagebehandling: Klagebehandling?,
         ): Revurdering {
             return Revurdering(

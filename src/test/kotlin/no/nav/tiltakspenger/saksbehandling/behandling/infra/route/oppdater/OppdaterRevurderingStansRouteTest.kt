@@ -6,7 +6,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.til
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder

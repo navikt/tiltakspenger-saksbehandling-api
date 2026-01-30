@@ -5,9 +5,9 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
@@ -42,7 +42,7 @@ class JournalførRammevedtakService(
                 Either.catch {
                     val vedtaksdato = LocalDate.now(clock)
                     val pdfOgJson = when (vedtak.resultat) {
-                        is BehandlingResultat.Innvilgelse -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgetVedtakBrev(
+                        is Rammebehandlingsresultat.Innvilgelse -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgetVedtakBrev(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
                             tilleggstekst = vedtak.behandling.fritekstTilVedtaksbrev,
@@ -50,14 +50,14 @@ class JournalførRammevedtakService(
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         )
 
-                        is RevurderingResultat.Stans -> genererVedtaksbrevForStansKlient.genererStansvedtak(
+                        is Revurderingsresultat.Stans -> genererVedtaksbrevForStansKlient.genererStansvedtak(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         )
 
-                        is SøknadsbehandlingResultat.Avslag -> genererVedtaksbrevForAvslagKlient.genererAvslagsvVedtaksbrev(
+                        is Søknadsbehandlingsresultat.Avslag -> genererVedtaksbrevForAvslagKlient.genererAvslagsvVedtaksbrev(
                             vedtak = vedtak,
                             datoForUtsending = vedtaksdato,
                             hentBrukersNavn = personService::hentNavn,

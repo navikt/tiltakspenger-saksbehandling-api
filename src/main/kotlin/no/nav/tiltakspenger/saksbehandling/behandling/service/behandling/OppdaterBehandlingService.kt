@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -97,8 +97,8 @@ class OppdaterBehandlingService(
 
                 this.beregnInnvilgelse(
                     behandlingId = kommando.behandlingId,
-                    vedtaksperiode = RevurderingResultat.Omgjøring.utledNyVedtaksperiode(
-                        (behandling.resultat as RevurderingResultat.Omgjøring).vedtaksperiode,
+                    vedtaksperiode = Revurderingsresultat.Omgjøring.utledNyVedtaksperiode(
+                        (behandling.resultat as Revurderingsresultat.Omgjøring).vedtaksperiode,
                         innvilgelsesperioder.totalPeriode,
                     ),
                     innvilgelsesperioder = innvilgelsesperioder,
@@ -169,7 +169,7 @@ class OppdaterBehandlingService(
 
         return when (kommando) {
             is OppdaterRevurderingKommando.Omgjøring -> {
-                val nyVedtaksperiode = RevurderingResultat.Omgjøring.utledNyVedtaksperiode(
+                val nyVedtaksperiode = Revurderingsresultat.Omgjøring.utledNyVedtaksperiode(
                     revurdering.omgjørRammevedtak.totalPeriode!!,
                     kommando.innvilgelsesperioder.totalPeriode,
                 )

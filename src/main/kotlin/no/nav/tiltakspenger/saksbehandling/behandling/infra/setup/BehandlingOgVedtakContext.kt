@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Behandl
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
@@ -48,9 +48,6 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgres
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import java.time.Clock
 
-/**
- * TODO jah: Splitt ut vedtak og behandling til egne contexter.
- */
 open class BehandlingOgVedtakContext(
     sessionFactory: SessionFactory,
     meldekortBehandlingRepo: MeldekortBehandlingRepo,
@@ -146,8 +143,8 @@ open class BehandlingOgVedtakContext(
             hentSaksopplysingerService = hentSaksopplysingerService,
         )
     }
-    val iverksettBehandlingService by lazy {
-        IverksettBehandlingService(
+    val iverksettRammebehandlingService by lazy {
+        IverksettRammebehandlingService(
             rammebehandlingRepo = rammebehandlingRepo,
             rammevedtakRepo = rammevedtakRepo,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
@@ -158,7 +155,6 @@ open class BehandlingOgVedtakContext(
             sakService = sakService,
             clock = clock,
             statistikkSakService = statistikkSakService,
-            tiltaksdeltakerRepo = tiltaksdeltakerRepo,
         )
     }
 

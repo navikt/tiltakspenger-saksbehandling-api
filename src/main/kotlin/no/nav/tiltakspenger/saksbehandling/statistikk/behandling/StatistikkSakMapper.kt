@@ -1,13 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -44,9 +44,9 @@ fun genererSaksstatistikkForRammevedtak(
         behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,
         behandlingResultat = when (vedtak.resultat) {
             // I førsteomgang mapper vi bare delvis til innvilgelse.
-            is BehandlingResultat.Innvilgelse -> StatistikkBehandlingResultat.INNVILGET
-            is RevurderingResultat.Stans -> StatistikkBehandlingResultat.STANS
-            is SøknadsbehandlingResultat.Avslag -> StatistikkBehandlingResultat.AVSLAG
+            is Rammebehandlingsresultat.Innvilgelse -> StatistikkBehandlingResultat.INNVILGET
+            is Revurderingsresultat.Stans -> StatistikkBehandlingResultat.STANS
+            is Søknadsbehandlingsresultat.Avslag -> StatistikkBehandlingResultat.AVSLAG
         },
         // TODO jah: Denne bør ikke være null.
         resultatBegrunnelse = null,
@@ -126,7 +126,7 @@ private fun Rammebehandling.getBehandlingAarsak(): StatistikkBehandlingAarsak? {
     if (this is Søknadsbehandling) {
         return StatistikkBehandlingAarsak.SOKNAD
     }
-    if (this is Revurdering && this.resultat is RevurderingResultat.Stans && !resultat.valgtHjemmel.isNullOrEmpty()) {
+    if (this is Revurdering && this.resultat is Revurderingsresultat.Stans && !resultat.valgtHjemmel.isNullOrEmpty()) {
         return resultat.valgtHjemmel.first().toBehandlingAarsak()
     }
     return null

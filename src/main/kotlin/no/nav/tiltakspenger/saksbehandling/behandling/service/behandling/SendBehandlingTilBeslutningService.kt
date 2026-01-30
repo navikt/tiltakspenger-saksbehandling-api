@@ -6,7 +6,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -27,7 +27,7 @@ class SendBehandlingTilBeslutningService(
 
     suspend fun sendTilBeslutning(
         kommando: SendBehandlingTilBeslutningKommando,
-    ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Rammebehandling>> {
+    ): Either<KanIkkeSendeRammebehandlingTilBeslutter, Pair<Sak, Rammebehandling>> {
         val sak = sakService.hentForSakId(
             sakId = kommando.sakId,
         )
@@ -41,12 +41,12 @@ class SendBehandlingTilBeslutningService(
         behandling.utbetaling?.also { utbetaling ->
             utbetaling.validerKanIverksetteUtbetaling().onLeft {
                 logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${kommando.behandlingId} / $it" }
-                return KanIkkeSendeTilBeslutter.UtbetalingStøttesIkke(it).left()
+                return KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingStøttesIkke(it).left()
             }
         }
 
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
-            return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler)
+            return KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler)
                 .left()
         }
 

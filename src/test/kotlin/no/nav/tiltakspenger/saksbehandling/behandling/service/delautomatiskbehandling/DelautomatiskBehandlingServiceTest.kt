@@ -16,8 +16,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -62,7 +62,7 @@ class DelautomatiskBehandlingServiceTest {
                 AntallDagerForMeldeperiode(10),
                 soknad.tiltaksdeltakelseperiodeDetErSøktOm(),
             )
-            oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
+            oppdatertBehandling.resultat!!.instanceOf(Rammebehandlingsresultat.Innvilgelse::class) shouldBe true
             oppdatertBehandling.vedtaksperiode shouldBe expectedVedtaksperiode
             oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(expectedVedtaksperiode)
             oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(
@@ -321,7 +321,7 @@ class DelautomatiskBehandlingServiceTest {
                 AntallDagerForMeldeperiode(10),
                 soknad.tiltaksdeltakelseperiodeDetErSøktOm(),
             )
-            oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
+            oppdatertBehandling.resultat!!.instanceOf(Rammebehandlingsresultat.Innvilgelse::class) shouldBe true
             oppdatertBehandling.vedtaksperiode shouldBe tiltaksdeltakelsesperiode
             oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(tiltaksdeltakelsesperiode)
             oppdatertBehandling.valgteTiltaksdeltakelser shouldBe listOf(

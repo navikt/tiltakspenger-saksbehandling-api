@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
@@ -74,7 +74,7 @@ internal class OppdaterSaksopplysningerTest {
             )
             // Forventer at saksopplysningene er oppdatert og at resultatet har resatt seg.
             (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltakelse
-            oppdatertRevurdering.resultat.right() shouldBe RevurderingResultat.Omgjøring.create(
+            oppdatertRevurdering.resultat.right() shouldBe Revurderingsresultat.Omgjøring.create(
                 omgjørRammevedtak = sak.rammevedtaksliste.single(),
                 saksopplysninger = oppdatertRevurdering.saksopplysninger,
             )

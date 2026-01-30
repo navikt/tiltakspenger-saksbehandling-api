@@ -13,9 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.`Søknadsbehandlingsresultat`
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
@@ -32,7 +32,7 @@ internal class StartRevurderingTest {
             revurdering.shouldBeInstanceOf<Revurdering>()
             revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
             revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
-            revurdering.resultat.shouldBeInstanceOf<RevurderingResultat.Stans>()
+            revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
             revurdering.sakId shouldBe sak.id
             revurdering.fritekstTilVedtaksbrev shouldBe null
             revurdering.begrunnelseVilkårsvurdering shouldBe null
@@ -51,7 +51,7 @@ internal class StartRevurderingTest {
             revurdering.shouldBeInstanceOf<Revurdering>()
             revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
             revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
-            revurdering.resultat.shouldBeInstanceOf<RevurderingResultat.Innvilgelse>()
+            revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
             revurdering.sakId shouldBe sak.id
             revurdering.fritekstTilVedtaksbrev shouldBe null
             revurdering.begrunnelseVilkårsvurdering shouldBe null
@@ -73,12 +73,12 @@ internal class StartRevurderingTest {
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
             )!!
             val søknadsvedtakResultat =
-                rammevedtakSøknadsbehandling.behandling.resultat as SøknadsbehandlingResultat.Innvilgelse
+                rammevedtakSøknadsbehandling.behandling.resultat as `Søknadsbehandlingsresultat`.Innvilgelse
             val søknadsbehandling = rammevedtakSøknadsbehandling.behandling as Søknadsbehandling
             revurdering.shouldBeInstanceOf<Revurdering>()
             revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
             revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
-            revurdering.resultat.shouldBeInstanceOf<RevurderingResultat.Omgjøring>()
+            revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Omgjøring>()
             revurdering.sakId shouldBe sak.id
             revurdering.fritekstTilVedtaksbrev shouldBe null
             revurdering.begrunnelseVilkårsvurdering shouldBe null

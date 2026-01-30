@@ -12,9 +12,9 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
-sealed interface RevurderingResultat : BehandlingResultat {
+sealed interface Revurderingsresultat : Rammebehandlingsresultat {
 
-    override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, RevurderingResultat>
+    override fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Revurderingsresultat>
 
     /**
      * Når man oppretter en revurdering til stans, lagres det før saksbehandler tar stilling til disse feltene.
@@ -29,7 +29,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
         val harValgtStansFraFørsteDagSomGirRett: Boolean?,
         val stansperiode: Periode?,
         override val omgjørRammevedtak: OmgjørRammevedtak,
-    ) : RevurderingResultat {
+    ) : Revurderingsresultat {
 
         override val vedtaksperiode = stansperiode
         override val innvilgelsesperioder = null
@@ -69,8 +69,8 @@ sealed interface RevurderingResultat : BehandlingResultat {
         override val innvilgelsesperioder: Innvilgelsesperioder?,
         override val barnetillegg: Barnetillegg?,
         override val omgjørRammevedtak: OmgjørRammevedtak,
-    ) : BehandlingResultat.Innvilgelse,
-        RevurderingResultat {
+    ) : Rammebehandlingsresultat.Innvilgelse,
+        Revurderingsresultat {
         override val vedtaksperiode = innvilgelsesperioder?.totalPeriode
         override val valgteTiltaksdeltakelser = innvilgelsesperioder?.valgteTiltaksdeltagelser
         override val antallDagerPerMeldeperiode = innvilgelsesperioder?.antallDagerPerMeldeperiode
@@ -114,8 +114,8 @@ sealed interface RevurderingResultat : BehandlingResultat {
         override val innvilgelsesperioder: Innvilgelsesperioder?,
         override val barnetillegg: Barnetillegg?,
         override val omgjørRammevedtak: OmgjørRammevedtak,
-    ) : RevurderingResultat,
-        BehandlingResultat.Innvilgelse {
+    ) : Revurderingsresultat,
+        Rammebehandlingsresultat.Innvilgelse {
         override val valgteTiltaksdeltakelser = innvilgelsesperioder?.valgteTiltaksdeltagelser
         override val antallDagerPerMeldeperiode = innvilgelsesperioder?.antallDagerPerMeldeperiode
 

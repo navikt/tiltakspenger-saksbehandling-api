@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
@@ -71,19 +71,19 @@ fun Route.sendBehandlingTilBeslutningRoute(
     }
 }
 
-private fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
-    is KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
+private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+    is KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
         this.eiesAvSaksbehandler,
     )
 
-    KanIkkeSendeTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk -> HttpStatusCode.BadRequest to ErrorJson(
+    KanIkkeSendeRammebehandlingTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk -> HttpStatusCode.BadRequest to ErrorJson(
         "Behandlingen må være under behandling eller automatisk for å kunne sendes til beslutning",
         "må_være_under_behandling_eller_automatisk",
     )
 
-    is KanIkkeSendeTilBeslutter.UtbetalingStøttesIkke -> this.feil.tilUtbetalingErrorJson()
+    is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingStøttesIkke -> this.feil.tilUtbetalingErrorJson()
 
-    KanIkkeSendeTilBeslutter.ErPaVent -> HttpStatusCode.BadRequest to ErrorJson(
+    KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent -> HttpStatusCode.BadRequest to ErrorJson(
         "Behandlingen er satt på vent",
         "behandlingen_er_pa_vent",
     )

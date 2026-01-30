@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -70,7 +70,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     val avbrutt: Avbrutt?
     val ventestatus: Ventestatus
     val venterTil: LocalDateTime?
-    val resultat: BehandlingResultat?
+    val resultat: Rammebehandlingsresultat?
     val vedtaksperiode: Periode?
     val innvilgelsesperioder: Innvilgelsesperioder?
     val begrunnelseVilkårsvurdering: Begrunnelse?
@@ -486,7 +486,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     fun tilBeslutning(
         kommando: SendBehandlingTilBeslutningKommando,
         clock: Clock,
-    ): Either<KanIkkeSendeTilBeslutter, Rammebehandling> {
+    ): Either<KanIkkeSendeRammebehandlingTilBeslutter, Rammebehandling> {
         validerKanSendeTilBeslutning(kommando.saksbehandler).onLeft { return it.left() }
 
         val status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING
@@ -650,15 +650,15 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         return Unit.right()
     }
 
-    fun validerKanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<KanIkkeSendeTilBeslutter, Unit> {
+    fun validerKanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<KanIkkeSendeRammebehandlingTilBeslutter, Unit> {
         if (this.saksbehandler != null && this.saksbehandler != saksbehandler.navIdent) {
-            return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler!!).left()
+            return KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler!!).left()
         }
         if (status != UNDER_BEHANDLING && status != UNDER_AUTOMATISK_BEHANDLING) {
-            return KanIkkeSendeTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk.left()
+            return KanIkkeSendeRammebehandlingTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk.left()
         }
         if (ventestatus.erSattPåVent) {
-            return KanIkkeSendeTilBeslutter.ErPaVent.left()
+            return KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent.left()
         }
 
         return Unit.right()

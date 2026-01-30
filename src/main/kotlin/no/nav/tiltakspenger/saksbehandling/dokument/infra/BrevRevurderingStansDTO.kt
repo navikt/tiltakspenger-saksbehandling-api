@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -31,7 +31,7 @@ suspend fun Rammevedtak.toRevurderingStans(
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
 ): String {
-    require(behandling is Revurdering && behandling.resultat is RevurderingResultat.Stans)
+    require(behandling is Revurdering && behandling.resultat is Revurderingsresultat.Stans)
 
     return genererStansbrev(
         hentBrukersNavn = hentBrukersNavn,

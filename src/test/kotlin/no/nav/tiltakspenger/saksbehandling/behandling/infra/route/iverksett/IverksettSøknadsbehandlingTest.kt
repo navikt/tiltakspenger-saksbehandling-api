@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.`Søknadsbehandlingsresultat`
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
@@ -60,7 +60,7 @@ class IverksettSøknadsbehandlingTest {
             val behandling = rammevedtak.behandling
             behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
-            behandling.resultat shouldBe instanceOf<SøknadsbehandlingResultat.Avslag>()
+            behandling.resultat shouldBe instanceOf<`Søknadsbehandlingsresultat`.Avslag>()
         }
     }
 

@@ -13,12 +13,12 @@ import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.libs.periodisering.trekkFra
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
@@ -70,7 +70,7 @@ data class Rammevedtak(
 
     override val beregning: Beregning? = behandling.utbetaling?.beregning
 
-    val resultat: BehandlingResultat = behandling.resultat!!
+    val resultat: Rammebehandlingsresultat = behandling.resultat!!
 
     val omgjortGrad: Omgjøringsgrad? by lazy {
         if (omgjortAvRammevedtak.isEmpty()) {
@@ -84,15 +84,15 @@ data class Rammevedtak(
 
     /** Er dette en omgjøringsbehandling? */
     val erOmgjøringsbehandling: Boolean by lazy {
-        behandling.resultat is RevurderingResultat.Omgjøring
+        behandling.resultat is Revurderingsresultat.Omgjøring
     }
 
     val erAvslag: Boolean by lazy {
-        behandling.resultat is SøknadsbehandlingResultat.Avslag
+        behandling.resultat is Søknadsbehandlingsresultat.Avslag
     }
 
     val erStans: Boolean by lazy {
-        behandling.resultat is RevurderingResultat.Stans
+        behandling.resultat is Revurderingsresultat.Stans
     }
 
     /** Vil være null for stans, avslag eller dersom bruker ikke har rett på barnetillegg  */

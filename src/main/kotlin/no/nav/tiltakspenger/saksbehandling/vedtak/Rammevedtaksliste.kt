@@ -11,11 +11,11 @@ import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
@@ -37,7 +37,7 @@ data class Rammevedtaksliste(
 
     /** Et førstegangsvedtak defineres som den første søknadsbehandlingen som førte til innvilgelse. */
     val harFørstegangsvedtak: Boolean by lazy {
-        verdi.any { it.behandling is Søknadsbehandling && it.resultat is BehandlingResultat.Innvilgelse }
+        verdi.any { it.behandling is Søknadsbehandling && it.resultat is Rammebehandlingsresultat.Innvilgelse }
     }
 
     val utbetalinger: List<VedtattUtbetaling> by lazy {
@@ -45,24 +45,24 @@ data class Rammevedtaksliste(
     }
 
     val avslagsvedtak: List<Rammevedtak> by lazy {
-        verdi.filter { it.resultat is SøknadsbehandlingResultat.Avslag }
+        verdi.filter { it.resultat is Søknadsbehandlingsresultat.Avslag }
     }
 
     val vedtakUtenAvslag: List<Rammevedtak> by lazy {
         verdi.filter {
             when (it.resultat) {
-                is BehandlingResultat.Innvilgelse,
-                is RevurderingResultat.Stans,
+                is Rammebehandlingsresultat.Innvilgelse,
+                is Revurderingsresultat.Stans,
                 -> true
 
-                is SøknadsbehandlingResultat.Avslag -> false
+                is Søknadsbehandlingsresultat.Avslag -> false
             }
         }
     }
 
     /**
-     * Vedtakstidslinjen tar kun for seg vedtak som kan påvirke en utbetaling ([BehandlingResultat.Innvilgelse] og [RevurderingResultat.Stans]) og skal aldri inkludere [SøknadsbehandlingResultat.Avslag].
-     * Dersom man ønsker å opphøre en tidligere innvilget periode, skal man bruke stans, aldri [SøknadsbehandlingResultat.Avslag].
+     * Vedtakstidslinjen tar kun for seg vedtak som kan påvirke en utbetaling ([Rammebehandlingsresultat.Innvilgelse] og [Revurderingsresultat.Stans]) og skal aldri inkludere [Søknadsbehandlingsresultat.Avslag].
+     * Dersom man ønsker å opphøre en tidligere innvilget periode, skal man bruke stans, aldri [Søknadsbehandlingsresultat.Avslag].
      *
      * Et tenkt eksempel: Bruker søker på 2 tiltak, som har lik periode. Det første gir rett til tiltakspenger, det andre ikke.
      * Dersom man innvilger tiltak 1 og avslår tiltak 2 i den rekkefølgen, hvis man inkluderte avslag i tidslinjen, ville avslaget opphørt innvilgelsen; som den absolutt ikke må gjøre i dette tilfellet.
@@ -78,7 +78,7 @@ data class Rammevedtaksliste(
     /** Nåtilstand. De periodene som gir rett til tiltakspenger. Kan ha hull. */
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
         tidslinje.filter {
-            it.verdi.resultat is BehandlingResultat.Innvilgelse
+            it.verdi.resultat is Rammebehandlingsresultat.Innvilgelse
         }.perioderMedVerdi.flatMap { (vedtak, gjeldendePeriode) ->
             gjeldendePeriode.overlappendePerioder(vedtak.innvilgelsesperioder!!.perioder).map { overlappendePeriode ->
                 PeriodeMedVerdi(
@@ -154,7 +154,7 @@ data class Rammevedtaksliste(
      * Legger til et rammevedtak i vedtaklisten og oppdaterer omgjortAvRammevedtak per vedtak
      */
     fun leggTil(vedtak: Rammevedtak): Rammevedtaksliste {
-        if (vedtak.resultat is SøknadsbehandlingResultat.Avslag) {
+        if (vedtak.resultat is Søknadsbehandlingsresultat.Avslag) {
             // Avslag omgjør aldri noe
             return copy(verdi = this.verdi.plus(vedtak))
         }

@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
@@ -78,7 +78,7 @@ class SendRevurderingTilBeslutningTest {
             revurdering.shouldBeInstanceOf<Revurdering>()
             val søknadsbehandlingsvedtak = sak.rammevedtaksliste.single()
 
-            revurdering.resultat shouldBe RevurderingResultat.Innvilgelse(
+            revurdering.resultat shouldBe Revurderingsresultat.Innvilgelse(
                 barnetillegg = Barnetillegg(
                     periodisering = søknadsbehandling.barnetillegg!!.periodisering.nyPeriode(
                         revurderingInnvilgelsesperiode,
