@@ -385,6 +385,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 "begrunnelse": null
               },
               "omgjørVedtak": "${sak.vedtaksliste.rammevedtaksliste.first().id}",
+              "harValgtSkalOmgjøreHeleVedtaksperioden": true,
+              "valgtOmgjøringsperiode": null,
               "resultat": "OMGJØRING",
               "type": "REVURDERING"
               }

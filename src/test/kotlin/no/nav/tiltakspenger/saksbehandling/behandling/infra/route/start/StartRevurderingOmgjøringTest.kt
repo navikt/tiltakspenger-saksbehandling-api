@@ -293,7 +293,7 @@ class StartRevurderingOmgjøringTest {
                 sakId = sakId,
                 behandlingId = nyOmgjøring.id,
                 innvilgelsesperioder = innvilgelsesperioder(revurdertPeriode),
-                vedtaksperiode = revurdertPeriode,
+                omgjøringsperiode = revurdertPeriode,
                 forventetStatus = HttpStatusCode.BadRequest,
             )
 
@@ -334,7 +334,7 @@ class StartRevurderingOmgjøringTest {
                 sakId = sakId,
                 behandlingId = nyOmgjøring.id,
                 innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode),
-                vedtaksperiode = omgjortPeriode,
+                omgjøringsperiode = omgjortPeriode,
             )
 
             oppdatertOmgjøring.vedtaksperiode shouldBe omgjortPeriode
@@ -367,7 +367,7 @@ class StartRevurderingOmgjøringTest {
                 sakId = sakId,
                 behandlingId = nyOmgjøring.id,
                 innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode),
-                vedtaksperiode = omgjortPeriode,
+                omgjøringsperiode = omgjortPeriode,
             )
 
             oppdatertOmgjøring.vedtaksperiode shouldBe omgjortPeriode

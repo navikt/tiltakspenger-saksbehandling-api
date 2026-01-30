@@ -18,7 +18,7 @@ sealed interface RammevedtakKommandoDTO {
     }
 
     data class Omgjør(
-        val tvungenOmgjøringsperiode: PeriodeDTO,
+        val perioderSomKanOmgjøres: List<PeriodeDTO>,
     ) : RammevedtakKommandoDTO {
         override val type = KommandoType.OMGJØR
     }
@@ -44,11 +44,13 @@ fun Rammevedtakskommandoer.toDTO(): Map<RammevedtakKommandoDTO.KommandoType, Ram
 fun Rammevedtakskommando.toDTO(): RammevedtakKommandoDTO {
     return when (this) {
         is Rammevedtakskommando.Omgjør -> RammevedtakKommandoDTO.Omgjør(
-            tvungenOmgjøringsperiode = this.tvungenOmgjøringsperiode.toDTO(),
+            perioderSomKanOmgjøres = this.perioderSomKanOmgjøres.map { it.toDTO() },
         )
+
         is Rammevedtakskommando.Opphør -> RammevedtakKommandoDTO.Opphør(
             innvilgelsesperioder = this.innvilgelsesperioder.map { it.toDTO() },
         )
+
         is Rammevedtakskommando.Stans -> RammevedtakKommandoDTO.Stans(
             tidligsteFraOgMedDato = this.tidligsteFraOgMedDato.toString(),
             tvungenStansTilOgMedDato = this.tvungenStansTilOgMedDato.toString(),
