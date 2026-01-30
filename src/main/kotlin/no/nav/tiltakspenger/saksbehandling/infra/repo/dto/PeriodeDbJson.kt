@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo.dto
 
+import kotliquery.Row
 import no.nav.tiltakspenger.libs.periode.Periode
+import org.postgresql.util.PGobject
 import java.time.LocalDate
 
 /**
@@ -14,3 +16,26 @@ data class PeriodeDbJson(
 }
 
 fun Periode.toDbJson(): PeriodeDbJson = PeriodeDbJson(fraOgMed.toString(), tilOgMed.toString())
+
+fun Periode.tilDbPeriode(): String {
+    return "(${this.fraOgMed},${this.tilOgMed})"
+}
+
+fun Row.periode(column: String): Periode {
+    val pgObject = underlying.getObject(column, PGobject::class.java)
+    val value = pgObject.value ?: throw NullPointerException("Periode verdi er null")
+    return parsePeriode(value)
+}
+
+fun Row.periodeOrNull(column: String): Periode? {
+    val pgObject = underlying.getObject(column, PGobject::class.java)
+    val value = pgObject?.value ?: return null
+    return parsePeriode(value)
+}
+
+private fun parsePeriode(value: String): Periode {
+    // Format: (2024-01-01,2024-01-31)
+    val trimmed = value.removeSurrounding("(", ")")
+    val (fraOgMed, tilOgMed) = trimmed.split(",")
+    return Periode(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
+}

@@ -28,7 +28,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 
 private const val PATH = "/sak/{sakId}/revurdering/start"
 
@@ -84,14 +83,6 @@ internal fun KunneIkkeStarteRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusC
                 ErrorJson(
                     "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere.",
                     "kan_kun_starte_omgjøring_dersom_vi_kan_innvilge_minst_1_dag",
-                ),
-            )
-
-            KunneIkkeOppretteOmgjøring.PerioderSomOmgjøresMåVæreSammenhengede -> Pair(
-                HttpStatusCode.BadRequest,
-                ErrorJson(
-                    "Kan foreløpig ikke omgjøre vedtak som ikke har en sammenhengede gjeldende periode",
-                    "perioder_som_omgjøres_må_være_sammenhengende",
                 ),
             )
         }

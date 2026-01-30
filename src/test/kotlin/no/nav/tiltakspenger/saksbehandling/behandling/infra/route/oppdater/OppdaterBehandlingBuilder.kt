@@ -172,16 +172,17 @@ interface OppdaterBehandlingBuilder {
         fritekstTilVedtaksbrev: String? = null,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        vedtaksperiode: Periode? = null,
+        omgjøringsperiode: Periode? = null,
+        skalOmgjøreHeleVedtaket: Boolean? = omgjøringsperiode == null,
+        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
             {
               "resultat": "OMGJØRING",
-              "vedtaksperiode": ${vedtaksperiode?.let {serialize(it)}},
-              "skalOmgjøreHeleVedtaket": ${vedtaksperiode == null},
+              "omgjøringsperiode": ${omgjøringsperiode?.let {serialize(it)}},
+              "skalOmgjøreHeleVedtaket": $skalOmgjøreHeleVedtaket,
               ${
             innvilgelseJson(
                 innvilgelsesperioder,

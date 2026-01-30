@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
 import arrow.core.toNonEmptyListOrNull
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -173,19 +174,12 @@ data class Rammevedtak(
         }
     }
 
-    /**
-     * Krever at vedtaket har en sammenhengende gjeldende periode
-     */
     val gyldigOmgjøringskommando: Rammevedtakskommando.Omgjør? by lazy {
-        if (gjeldendePerioder.size != 1) {
+        if (gjeldendePerioder.isEmpty() || erAvslag) {
             return@lazy null
         }
 
-        if (erAvslag) {
-            return@lazy null
-        }
-
-        Rammevedtakskommando.Omgjør(tvungenOmgjøringsperiode = gjeldendePerioder.single())
+        Rammevedtakskommando.Omgjør(perioderSomKanOmgjøres = gjeldendePerioder.toNonEmptyListOrThrow())
     }
 
     /**
