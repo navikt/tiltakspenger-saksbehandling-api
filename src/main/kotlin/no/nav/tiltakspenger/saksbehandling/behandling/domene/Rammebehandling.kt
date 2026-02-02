@@ -34,6 +34,10 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.OvertaKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.overta
+import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.TaKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.ta
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -145,12 +149,10 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     null
                 }
 
-                val oppdatertStatus = if (status == UNDER_BESLUTNING) {
-                    KLAR_TIL_BESLUTNING
-                } else if (status == UNDER_BEHANDLING) {
-                    KLAR_TIL_BEHANDLING
-                } else {
-                    status
+                val oppdatertStatus = when (status) {
+                    UNDER_BESLUTNING -> KLAR_TIL_BESLUTNING
+                    UNDER_BEHANDLING -> KLAR_TIL_BEHANDLING
+                    else -> status
                 }
 
                 return when (this) {
@@ -200,6 +202,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
      */
     suspend fun gjenoppta(
         endretAv: Saksbehandler,
+        correlationId: CorrelationId,
         clock: Clock,
         hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
     ): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandling> {
@@ -227,7 +230,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         // Vi må overta behandlingen før vi oppdaterer sistEndret og ventestatus
                         when (this) {
                             is Søknadsbehandling -> {
-                                val overtattBehandling = this.overta(endretAv, clock).getOrNull() as Søknadsbehandling
+                                val overtattBehandling =
+                                    this.overta(endretAv, correlationId, clock).getOrNull() as Søknadsbehandling
                                 overtattBehandling.copy(
                                     ventestatus = oppdatertVentestatus,
                                     venterTil = null,
@@ -236,7 +240,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                             }
 
                             is Revurdering -> {
-                                val overtattBehandling = this.overta(endretAv, clock).getOrNull() as Revurdering
+                                val overtattBehandling =
+                                    this.overta(endretAv, correlationId, clock).getOrNull() as Revurdering
                                 overtattBehandling.copy(
                                     ventestatus = oppdatertVentestatus,
                                     venterTil = null,
@@ -353,13 +358,20 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 krevSaksbehandlerRolle(saksbehandler)
 
                 require(this.saksbehandler == null) { "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
-
+                val oppdatertKlagebehandling = klagebehandling?.ta(
+                    kommando = TaKlagebehandlingKommando(sakId, klagebehandling!!.id, saksbehandler),
+                    rammebehandlingsstatus = this.status,
+                    clock = clock,
+                )?.getOrElse {
+                    throw IllegalStateException("Kunne ikke ta klagebehandling når rammebehandling tas: $it")
+                }
                 when (this) {
                     is Søknadsbehandling -> this.copy(
                         saksbehandler = saksbehandler.navIdent,
                         beslutter = if (saksbehandler.navIdent == beslutter) null else beslutter,
                         status = UNDER_BEHANDLING,
                         sistEndret = nå(clock),
+                        klagebehandling = oppdatertKlagebehandling,
                     )
 
                     is Revurdering -> this.copy(
@@ -367,6 +379,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         beslutter = if (saksbehandler.navIdent == beslutter) null else beslutter,
                         status = UNDER_BEHANDLING,
                         sistEndret = nå(clock),
+                        klagebehandling = oppdatertKlagebehandling,
                     )
                 }
             }
@@ -404,16 +417,18 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     }
 
     /** Saksbehandler/beslutter overtar behandlingen. */
-    fun overta(saksbehandler: Saksbehandler, clock: Clock): Either<KunneIkkeOvertaBehandling, Rammebehandling> {
-        val nåTidMinus1Minutt = LocalDateTime.now(clock).minusMinutes(1)
-        val erSistEndretMindreEnn1MinuttSiden = this.sistEndret.isAfter(nåTidMinus1Minutt)
+    fun overta(
+        saksbehandler: Saksbehandler,
+        correlationId: CorrelationId,
+        clock: Clock,
+    ): Either<KunneIkkeOvertaBehandling, Rammebehandling> {
+        val nå = nå(clock)
+        val nåMinusEttMinutt = nå.minusMinutes(1)
+        val erSistEndretMindreEnn1MinuttSiden = this.sistEndret.isAfter(nåMinusEttMinutt)
 
         if (erSistEndretMindreEnn1MinuttSiden) {
             return KunneIkkeOvertaBehandling.BehandlingenErUnderAktivBehandling.left()
         }
-
-        val oppdatertSistEndret = LocalDateTime.now(clock)
-
         return when (status) {
             UNDER_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
@@ -424,17 +439,32 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 // dersom det er beslutteren som overtar behandlingen, skal dem nulles ut som beslutter
                 val beslutter = if (this.beslutter == saksbehandler.navIdent) null else this.beslutter
 
+                val oppdatertKlagebehandling = klagebehandling?.overta(
+                    kommando = OvertaKlagebehandlingKommando(
+                        sakId = sakId,
+                        klagebehandlingId = klagebehandling!!.id,
+                        overtarFra = this.saksbehandler!!,
+                        saksbehandler = saksbehandler,
+                        correlationId = correlationId,
+                    ),
+                    rammebehandlingsstatus = this.status,
+                    clock = clock,
+                )?.getOrElse {
+                    return KunneIkkeOvertaBehandling.KanIkkeOvertaKlagebehandling(it).left()
+                }
                 when (this) {
                     is Søknadsbehandling -> this.copy(
                         saksbehandler = saksbehandler.navIdent,
                         beslutter = beslutter,
-                        sistEndret = oppdatertSistEndret,
+                        sistEndret = nå,
+                        klagebehandling = oppdatertKlagebehandling,
                     )
 
                     is Revurdering -> this.copy(
                         saksbehandler = saksbehandler.navIdent,
                         beslutter = beslutter,
-                        sistEndret = oppdatertSistEndret,
+                        sistEndret = nå,
+                        klagebehandling = oppdatertKlagebehandling,
                     )
                 }.right()
             }
@@ -451,12 +481,12 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 when (this) {
                     is Søknadsbehandling -> this.copy(
                         beslutter = saksbehandler.navIdent,
-                        sistEndret = oppdatertSistEndret,
+                        sistEndret = nå,
                     )
 
                     is Revurdering -> this.copy(
                         beslutter = saksbehandler.navIdent,
-                        sistEndret = oppdatertSistEndret,
+                        sistEndret = nå,
                     )
                 }.right()
             }
@@ -468,11 +498,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     return KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
                 }
                 krevSaksbehandlerRolle(saksbehandler)
-                return when (this) {
+                when (this) {
                     is Søknadsbehandling -> this.copy(
                         status = UNDER_BEHANDLING,
                         saksbehandler = saksbehandler.navIdent,
-                        sistEndret = oppdatertSistEndret,
+                        sistEndret = nå,
                     )
 
                     is Revurdering -> return KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()

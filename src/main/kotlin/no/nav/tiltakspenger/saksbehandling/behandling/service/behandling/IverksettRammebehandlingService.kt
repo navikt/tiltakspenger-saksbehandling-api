@@ -72,7 +72,7 @@ class IverksettRammebehandlingService(
         )
         // Denne validerer saksbehandler
         val iverksattRammebehandling = behandling.iverksett(
-            `utøvendeBeslutter` = beslutter,
+            utøvendeBeslutter = beslutter,
             attestering = attestering,
             correlationId = correlationId,
             clock = clock,

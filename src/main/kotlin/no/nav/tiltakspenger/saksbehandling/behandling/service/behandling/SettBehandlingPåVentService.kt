@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakSe
 import java.time.Clock
 
 class SettBehandlingPåVentService(
-    private val behandlingService: BehandlingService,
+    private val behandlingService: RammebehandlingService,
     private val statistikkSakService: StatistikkSakService,
     private val clock: Clock,
 ) {

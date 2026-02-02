@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
@@ -237,7 +236,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
 
     val tilBeslutning = behandlingRepo.hent(behandling.id).taBehandling(beslutter, clock)
 
-    behandlingRepo.taBehandlingBeslutter(tilBeslutning.id, beslutter, tilBeslutning.status, nå(clock))
+    behandlingRepo.taBehandlingBeslutter(tilBeslutning)
 
     return sakRepo.hentForSakId(sakId)!! to behandlingRepo.hent(behandling.id)
 }

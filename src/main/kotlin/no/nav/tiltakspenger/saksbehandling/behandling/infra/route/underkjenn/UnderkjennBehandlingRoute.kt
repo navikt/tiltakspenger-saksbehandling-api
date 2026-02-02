@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -30,7 +30,7 @@ private data class BegrunnelseDTO(
 
 fun Route.underkjennBehandlingRoute(
     auditService: AuditService,
-    behandlingService: BehandlingService,
+    behandlingService: RammebehandlingService,
     tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger {}

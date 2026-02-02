@@ -4,6 +4,7 @@ import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
@@ -23,6 +24,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 
 class RammebehandlingTest {
+    private val correlationId = CorrelationId.generate()
 
     @Test
     fun `kan avbryte en behandling`() {
@@ -118,7 +120,8 @@ class RammebehandlingTest {
         fun `en saksbehandler kan overta behandlingen`() {
             val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
             val nySaksbehandler = ObjectMother.saksbehandler("nyNavIdent")
-            val overtaBehandling = behandling.overta(saksbehandler = nySaksbehandler, clock = enUkeEtterFixedClock)
+            val overtaBehandling =
+                behandling.overta(saksbehandler = nySaksbehandler, correlationId, clock = enUkeEtterFixedClock)
 
             behandling.saksbehandler.shouldNotBe(nySaksbehandler.navIdent)
             overtaBehandling.getOrFail().saksbehandler shouldBe nySaksbehandler.navIdent
@@ -128,7 +131,8 @@ class RammebehandlingTest {
         fun `en beslutter kan overta behandlingen`() {
             val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
             val nyBeslutter = ObjectMother.beslutter("nyNavIdent")
-            val overtaBehandling = behandling.overta(saksbehandler = nyBeslutter, clock = enUkeEtterFixedClock)
+            val overtaBehandling =
+                behandling.overta(saksbehandler = nyBeslutter, correlationId, clock = enUkeEtterFixedClock)
 
             behandling.beslutter.shouldNotBe(nyBeslutter.navIdent)
             overtaBehandling.getOrFail().beslutter shouldBe nyBeslutter.navIdent
@@ -145,6 +149,7 @@ class RammebehandlingTest {
 
             behandling.overta(
                 annenSaksbehandler,
+                correlationId,
                 overtaClock,
             ) shouldBe KunneIkkeOvertaBehandling.BehandlingenErUnderAktivBehandling.left()
         }
@@ -158,7 +163,7 @@ class RammebehandlingTest {
             // 1:30 etter opprettelse av behandling
             val overtaClock = Clock.fixed(Instant.parse("2025-07-01T13:30:00Z"), ZoneOffset.UTC)
 
-            behandling.overta(annenSaksbehandler, overtaClock).isRight() shouldBe true
+            behandling.overta(annenSaksbehandler, correlationId, overtaClock).isRight() shouldBe true
         }
     }
 
@@ -277,7 +282,11 @@ class RammebehandlingTest {
                 behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
 
                 val gjenopptattBehandling =
-                    behandlingSattPåVent.gjenoppta(saksbehandler2, clock) { behandlingSattPåVent.saksopplysninger }
+                    behandlingSattPåVent.gjenoppta(
+                        saksbehandler2,
+                        correlationId,
+                        clock,
+                    ) { behandlingSattPåVent.saksopplysninger }
                         .getOrFail()
 
                 gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -301,7 +310,8 @@ class RammebehandlingTest {
                 behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
 
                 val gjenopptattBehandling =
-                    behandlingSattPåVent.gjenoppta(beslutter, clock) { behandling.saksopplysninger }.getOrFail()
+                    behandlingSattPåVent.gjenoppta(beslutter, correlationId, clock) { behandling.saksopplysninger }
+                        .getOrFail()
 
                 gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                 gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
@@ -330,7 +340,11 @@ class RammebehandlingTest {
                 behandlingSattPåVent.ventestatus.erSattPåVent shouldBe true
 
                 val gjenopptattBehandling =
-                    behandlingSattPåVent.gjenoppta(saksbehandler, gjenopptaClock) { behandling.saksopplysninger }
+                    behandlingSattPåVent.gjenoppta(
+                        saksbehandler,
+                        correlationId,
+                        gjenopptaClock,
+                    ) { behandling.saksopplysninger }
                         .getOrFail()
 
                 gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -353,7 +367,7 @@ class RammebehandlingTest {
                         clock,
                     )
 
-                    behandlingPåVent.gjenoppta(saksbehandler, clock) { behandling.saksopplysninger }
+                    behandlingPåVent.gjenoppta(saksbehandler, correlationId, clock) { behandling.saksopplysninger }
                 }
             }
         }
@@ -371,7 +385,7 @@ class RammebehandlingTest {
                         clock,
                     )
 
-                    behandlingPåVent.gjenoppta(saksbehandler, clock) { behandling.saksopplysninger }
+                    behandlingPåVent.gjenoppta(saksbehandler, correlationId, clock) { behandling.saksopplysninger }
                 }
             }
         }
@@ -384,7 +398,7 @@ class RammebehandlingTest {
                     ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
                 assertThrows<IllegalArgumentException> {
-                    behandling.gjenoppta(beslutter, clock) { behandling.saksopplysninger }
+                    behandling.gjenoppta(beslutter, correlationId, clock) { behandling.saksopplysninger }
                 }
             }
         }

@@ -35,7 +35,7 @@ fun Route.routes(
             forhåndsvisVedtaksbrevService = applicationContext.behandlingContext.forhåndsvisVedtaksbrevService,
             startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
             taBehandlingService = applicationContext.behandlingContext.taBehandlingService,
-            overtaBehandlingService = applicationContext.behandlingContext.overtaBehandlingService,
+            overtaBehandlingService = applicationContext.behandlingContext.overtaRammebehandlingService,
             leggTilbakeBehandlingService = applicationContext.behandlingContext.leggTilbakeBehandlingService,
             oppdaterBehandlingService = applicationContext.behandlingContext.oppdaterBehandlingService,
             settBehandlingPåVentService = applicationContext.behandlingContext.settBehandlingPåVentService,
@@ -55,6 +55,7 @@ fun Route.routes(
             iverksettKlagebehandlingService = applicationContext.klagebehandlingContext.iverksettKlagebehandlingService,
             vurderKlagebehandlingService = applicationContext.klagebehandlingContext.vurderKlagebehandlingService,
             opprettRammebehandlingFraKlageService = applicationContext.klagebehandlingContext.opprettRammebehandlingFraKlageService,
+            overtaKlagebehandlingService = applicationContext.klagebehandlingContext.overtaKlagebehandlingService,
             clock = applicationContext.clock,
         )
         hentBenkRoute(

@@ -7,9 +7,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -21,7 +20,7 @@ import java.time.LocalDateTime
 class AvbrytSøknadOgBehandlingService(
     private val sakService: SakService,
     private val søknadService: SøknadService,
-    private val behandlingService: BehandlingService,
+    private val behandlingService: RammebehandlingService,
     private val statistikkSakService: StatistikkSakService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,

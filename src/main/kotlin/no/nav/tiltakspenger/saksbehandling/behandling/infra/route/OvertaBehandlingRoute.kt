@@ -13,8 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.toStatusAndErrorJson
 
 internal const val OVERTA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/overta"
 
@@ -30,7 +31,7 @@ data class OvertaBehandlingBody(
 )
 
 fun Route.overtaBehandlingRoute(
-    overtaBehandlingService: OvertaBehandlingService,
+    overtaBehandlingService: OvertaRammebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
 ) {
@@ -46,7 +47,7 @@ fun Route.overtaBehandlingRoute(
                     krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                     overtaBehandlingService.overta(
-                        OvertaBehandlingKommando(
+                        OvertaRammebehandlingKommando(
                             sakId = sakId,
                             behandlingId = behandlingId,
                             saksbehandler = saksbehandler,
@@ -116,5 +117,7 @@ internal fun KunneIkkeOvertaBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCo
             "Behandlingen er under aktiv behandling og kan ikke overtas. Prøv igjen innen 1 time",
             "behandlingen_er_under_aktiv_behandling",
         )
+
+        is KunneIkkeOvertaBehandling.KanIkkeOvertaKlagebehandling -> this.underliggende.toStatusAndErrorJson()
     }
 }

@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDT
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
-class BehandlingService(
+class RammebehandlingService(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,

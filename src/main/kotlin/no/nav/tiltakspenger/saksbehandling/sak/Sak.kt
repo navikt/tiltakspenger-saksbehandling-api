@@ -180,6 +180,9 @@ data class Sak(
         return this.copy(behandlinger = this.behandlinger.oppdaterMeldekortbehandling(behandling))
     }
 
+    /**
+     * Oppdaterer også klagebehandlinger dersom rammebehandlingen har en koblet klagebehandling.
+     */
     fun oppdaterRammebehandling(behandling: Rammebehandling): Sak {
         return this.copy(behandlinger = this.behandlinger.oppdaterRammebehandling(behandling))
     }

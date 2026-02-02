@@ -8,22 +8,22 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.iver
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennBehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettBehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import java.time.Clock
 
 fun Route.behandlingRoutes(
-    behandlingService: BehandlingService,
+    behandlingService: RammebehandlingService,
     auditService: AuditService,
     behandleSøknadPåNyttService: BehandleSøknadPåNyttService,
     oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
@@ -32,7 +32,7 @@ fun Route.behandlingRoutes(
     forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevService,
     startRevurderingService: StartRevurderingService,
     taBehandlingService: TaBehandlingService,
-    overtaBehandlingService: OvertaBehandlingService,
+    overtaBehandlingService: OvertaRammebehandlingService,
     leggTilbakeBehandlingService: LeggTilbakeBehandlingService,
     oppdaterBehandlingService: OppdaterBehandlingService,
     settBehandlingPåVentService: SettBehandlingPåVentService,

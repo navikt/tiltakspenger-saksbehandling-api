@@ -68,12 +68,11 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
     }
 
     override fun taBehandlingSaksbehandler(
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler,
-        behandlingsstatus: Rammebehandlingsstatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
+        rammebehandling: Rammebehandling,
+        transactionContext: TransactionContext?,
     ): Boolean {
+        val behandlingId = rammebehandling.id
+
         val behandling = data.get()[behandlingId]
         requireNotNull(behandling) {
             "Behandling med id $behandlingId finnes ikke"
@@ -81,30 +80,15 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
         require(behandling.saksbehandler == null) {
             "Saksbehandler ${behandling.saksbehandler} er ikke null"
         }
-
-        data.get()[behandlingId] = when (behandling) {
-            is Revurdering -> behandling.copy(
-                saksbehandler = saksbehandler.navIdent,
-                status = behandlingsstatus,
-                sistEndret = sistEndret,
-            )
-
-            is Søknadsbehandling -> behandling.copy(
-                saksbehandler = saksbehandler.navIdent,
-                status = behandlingsstatus,
-                sistEndret = sistEndret,
-            )
-        }
+        data.get()[behandlingId] = rammebehandling
         return true
     }
 
     override fun taBehandlingBeslutter(
-        behandlingId: BehandlingId,
-        beslutter: Saksbehandler,
-        behandlingsstatus: Rammebehandlingsstatus,
-        sistEndret: LocalDateTime,
+        rammebehandling: Rammebehandling,
         sessionContext: SessionContext?,
     ): Boolean {
+        val behandlingId = rammebehandling.id
         val behandling = data.get()[behandlingId]
         requireNotNull(behandling) {
             "Behandling med id $behandlingId finnes ikke"
@@ -113,72 +97,36 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
             "Behandling ${behandling.saksbehandler} er ikke null"
         }
 
-        data.get()[behandlingId] = when (behandling) {
-            is Revurdering -> behandling.copy(
-                beslutter = beslutter.navIdent,
-                status = behandlingsstatus,
-                sistEndret = sistEndret,
-            )
-
-            is Søknadsbehandling -> behandling.copy(
-                beslutter = beslutter.navIdent,
-                status = behandlingsstatus,
-                sistEndret = sistEndret,
-            )
-        }
+        data.get()[behandlingId] = rammebehandling
 
         return true
     }
 
     override fun overtaSaksbehandler(
-        behandlingId: BehandlingId,
-        nySaksbehandler: Saksbehandler,
+        rammebehandling: Rammebehandling,
         nåværendeSaksbehandler: String,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
+        transactionContext: TransactionContext?,
     ): Boolean {
+        val behandlingId = rammebehandling.id
         val behandling = data.get()[behandlingId]
         require(behandling != null && behandling.saksbehandler == nåværendeSaksbehandler) {
             "Behandling med id $behandlingId finnes ikke eller har ikke saksbehandler $nåværendeSaksbehandler"
         }
-
-        data.get()[behandlingId] = when (behandling) {
-            is Revurdering -> behandling.copy(
-                saksbehandler = nySaksbehandler.navIdent,
-                sistEndret = sistEndret,
-            )
-
-            is Søknadsbehandling -> behandling.copy(
-                saksbehandler = nySaksbehandler.navIdent,
-                sistEndret = sistEndret,
-            )
-        }
+        data.get()[behandlingId] = rammebehandling
         return true
     }
 
     override fun overtaBeslutter(
-        behandlingId: BehandlingId,
-        nyBeslutter: Saksbehandler,
+        rammebehandling: Rammebehandling,
         nåværendeBeslutter: String,
-        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
+        val behandlingId = rammebehandling.id
         val behandling = data.get()[behandlingId]
         require(behandling != null && behandling.beslutter == nåværendeBeslutter) {
             "Behandling med id $behandlingId finnes ikke eller har ikke beslutter $nåværendeBeslutter"
         }
-
-        data.get()[behandlingId] = when (behandling) {
-            is Revurdering -> behandling.copy(
-                beslutter = nyBeslutter.navIdent,
-                sistEndret = sistEndret,
-            )
-
-            is Søknadsbehandling -> behandling.copy(
-                beslutter = nyBeslutter.navIdent,
-                sistEndret = sistEndret,
-            )
-        }
+        data.get()[behandlingId] = rammebehandling
         return true
     }
 

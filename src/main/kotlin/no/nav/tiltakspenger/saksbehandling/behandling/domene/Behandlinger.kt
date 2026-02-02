@@ -48,8 +48,17 @@ data class Behandlinger(
         return copy(meldekortbehandlinger = meldekortbehandlinger.leggTil(behandling))
     }
 
-    fun oppdaterRammebehandling(avbruttBehandling: Rammebehandling): Behandlinger {
-        return copy(rammebehandlinger = rammebehandlinger.oppdaterBehandling(avbruttBehandling))
+    fun oppdaterRammebehandling(oppdatertRammebehandling: Rammebehandling): Behandlinger {
+        return copy(
+            klagebehandlinger = if (oppdatertRammebehandling.klagebehandling != null) {
+                klagebehandlinger.oppdaterKlagebehandling(
+                    oppdatertRammebehandling.klagebehandling!!,
+                )
+            } else {
+                klagebehandlinger
+            },
+            rammebehandlinger = rammebehandlinger.oppdaterBehandling(oppdatertRammebehandling),
+        )
     }
 
     fun oppdaterMeldekortbehandling(behandling: MeldekortBehandling): Behandlinger {
@@ -68,7 +77,7 @@ data class Behandlinger(
         return klagebehandlinger.hentKlagebehandling(klagebehandlingId)
     }
 
-    fun åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
+    fun hentÅpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
         return rammebehandlinger.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId)
     }
 

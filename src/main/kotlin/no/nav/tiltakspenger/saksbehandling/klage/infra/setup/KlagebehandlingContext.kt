@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
@@ -22,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingFraKlageService
+import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.DistribuerKlagevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
@@ -39,6 +41,7 @@ open class KlagebehandlingContext(
     private val dokumentdistribusjonsklient: Dokumentdistribusjonsklient,
     private val behandleSøknadPåNyttService: BehandleSøknadPåNyttService,
     private val startRevurderingService: StartRevurderingService,
+    private val overtaRammebehandlingService: OvertaRammebehandlingService,
 ) {
 
     open val klagebehandlingRepo: KlagebehandlingRepo by lazy {
@@ -130,6 +133,14 @@ open class KlagebehandlingContext(
             startRevurderingService = startRevurderingService,
             sessionFactory = sessionFactory,
             klagebehandlingRepo = klagebehandlingRepo,
+        )
+    }
+    open val overtaKlagebehandlingService by lazy {
+        OvertaKlagebehandlingService(
+            sakService = sakService,
+            overtaRammebehandlingService = overtaRammebehandlingService,
+            klagebehandlingRepo = klagebehandlingRepo,
+            clock = clock,
         )
     }
 }

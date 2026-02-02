@@ -211,6 +211,7 @@ class TestApplicationContextMedPostgres(
             dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
             behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
             startRevurderingService = behandlingContext.startRevurderingService,
+            overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
         ) {}
     }
 

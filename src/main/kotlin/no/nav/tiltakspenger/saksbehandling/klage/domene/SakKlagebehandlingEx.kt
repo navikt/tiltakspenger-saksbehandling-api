@@ -241,5 +241,5 @@ private suspend fun Sak.opprettRevurderingFraKlage(
 }
 
 fun Sak.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
-    return this.behandlinger.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId)
+    return this.behandlinger.hentÅpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId)
 }

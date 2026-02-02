@@ -9,4 +9,5 @@ sealed interface KunneIkkeOvertaBehandling {
     data object BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta : KunneIkkeOvertaBehandling
     data object SaksbehandlerOgBeslutterKanIkkeVæreDenSamme : KunneIkkeOvertaBehandling
     data object BehandlingenErUnderAktivBehandling : KunneIkkeOvertaBehandling
+    data class KanIkkeOvertaKlagebehandling(val underliggende: no.nav.tiltakspenger.saksbehandling.klage.domene.overta.KanIkkeOvertaKlagebehandling) : KunneIkkeOvertaBehandling
 }

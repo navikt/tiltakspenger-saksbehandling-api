@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett.Iverksett
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater.OppdaterKlagebehandlingBrevtekstBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater.OppdaterKlagebehandlingFormkravBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling.OpprettRammebehandlingForKlageBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.OvertaKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.start.OpprettKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.VurderKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.avbryt.AvbrytMeldekortbehandlingBuilder
@@ -43,6 +44,7 @@ object RouteBehandlingBuilder :
     MottaSøknadRouteBuilder,
     StartSøknadsbehandlingBuilder,
     OpprettKlagebehandlingBuilder,
+    OvertaKlagebehandlingBuilder,
     OppdaterKlagebehandlingFormkravBuilder,
     VurderKlagebehandlingBuilder,
     OpprettRammebehandlingForKlageBuilder,

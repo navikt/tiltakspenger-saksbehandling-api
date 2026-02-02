@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -51,6 +52,34 @@ class KlagebehandlingPostgresRepo(
                     "rammebehandlingId" to rammebehandlingId.toString(),
                 ).map { fromRow(it) }.asSingle,
             )
+        }
+    }
+
+    /**
+     * Oppdaterer behandlingsstatus, og saksbehandler bare dersom den er null.
+     * Skal du endre saksbehandler bruk [overtaBehandling]
+     */
+    override fun taBehandling(
+        klagebehandling: Klagebehandling,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { session ->
+            taBehandling(klagebehandling, session)
+        }
+    }
+
+    /**
+     * En ny saksbehandler overtar for [nåværendeSaksbehandler].
+     * Dersom det ikke er en saksbehandler på behandlingen, bruk [taBehandling]
+     * @param nåværendeSaksbehandler For å unngå at to saksbehandlere kan overta samtidig.
+     */
+    override fun overtaBehandling(
+        klagebehandling: Klagebehandling,
+        nåværendeSaksbehandler: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { session ->
+            overtaBehandling(klagebehandling, nåværendeSaksbehandler, session)
         }
     }
 
@@ -164,6 +193,57 @@ class KlagebehandlingPostgresRepo(
                     ),
                 ).asUpdate,
             )
+        }
+
+        /**
+         * Oppdaterer behandlingsstatus, og saksbehandler bare dersom den er null.
+         * Skal du endre saksbehandler bruk [overtaBehandling]
+         */
+        fun taBehandling(
+            klagebehandling: Klagebehandling,
+            session: Session,
+        ): Boolean {
+            return session.run(
+                sqlQuery(
+                    """
+                    update klagebehandling set
+                        saksbehandler = :saksbehandler,
+                        status = :status,
+                        sist_endret = :sist_endret
+                    where id = :id and saksbehandler is null and status = 'KLAR_TIL_BEHANDLING'
+                    """,
+                    "id" to klagebehandling.id.toString(),
+                    "saksbehandler" to klagebehandling.saksbehandler,
+                    "status" to klagebehandling.status.toDbEnum(),
+                    "sist_endret" to klagebehandling.sistEndret,
+                ).asUpdate,
+            ) > 0
+        }
+
+        /**
+         * En ny saksbehandler overtar for [nåværendeSaksbehandler].
+         * Dersom det ikke er en saksbehandler på behandlingen, bruk [taBehandling]
+         * @param nåværendeSaksbehandler For å unngå at to saksbehandlere kan overta samtidig.
+         */
+        fun overtaBehandling(
+            klagebehandling: Klagebehandling,
+            nåværendeSaksbehandler: String,
+            session: Session,
+        ): Boolean {
+            return session.run(
+                sqlQuery(
+                    """
+                    update klagebehandling set
+                        saksbehandler = :nySaksbehandler,
+                        sist_endret = :sist_endret
+                    where id = :id and saksbehandler = :lagretSaksbehandler and status = 'UNDER_BEHANDLING'
+                    """,
+                    "id" to klagebehandling.id.toString(),
+                    "nySaksbehandler" to klagebehandling.saksbehandler,
+                    "lagretSaksbehandler" to nåværendeSaksbehandler,
+                    "sist_endret" to klagebehandling.sistEndret,
+                ).asUpdate,
+            ) > 0
         }
 
         private fun fromRow(
