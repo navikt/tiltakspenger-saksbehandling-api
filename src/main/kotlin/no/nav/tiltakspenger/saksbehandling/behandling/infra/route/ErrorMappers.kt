@@ -35,8 +35,8 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
         "kan_ikke_omgjøre_flere_vedtak",
     )
 
-    KanIkkeOppdatereBehandling.PerioderSomOmgjøresMåVæreSammenhengede -> HttpStatusCode.BadRequest to ErrorJson(
-        "Kan foreløpig ikke omgjøre vedtak som ikke har en sammenhengede gjeldende periode",
+    KanIkkeOppdatereBehandling.PerioderSomOmgjøresMåVæreSammenhengende -> HttpStatusCode.BadRequest to ErrorJson(
+        "Kan foreløpig ikke omgjøre vedtak som ikke har en sammenhengende gjeldende periode",
         "perioder_som_omgjøres_må_være_sammenhengende",
     )
 

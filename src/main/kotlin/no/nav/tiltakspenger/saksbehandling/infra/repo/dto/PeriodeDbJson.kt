@@ -22,9 +22,7 @@ fun Periode.tilDbPeriode(): String {
 }
 
 fun Row.periode(column: String): Periode {
-    val pgObject = underlying.getObject(column, PGobject::class.java)
-    val value = pgObject.value ?: throw NullPointerException("Periode verdi er null")
-    return parsePeriode(value)
+    return periodeOrNull(column)!!
 }
 
 fun Row.periodeOrNull(column: String): Periode? {

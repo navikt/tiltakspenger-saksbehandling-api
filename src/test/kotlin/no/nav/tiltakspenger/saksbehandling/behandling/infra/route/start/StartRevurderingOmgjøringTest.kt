@@ -309,43 +309,42 @@ class StartRevurderingOmgjøringTest {
     }
 
     @Test
-    fun `kan omgjøre deler av vedtaksperioden`() {
+    fun `kan omgjøre en del midt i vedtaksperioden`() {
         withTestApplicationContext { tac ->
             val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
             val omgjortPeriode = 1.februar(2025) til 28.februar(2025)
 
-            val innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode)
-
             val (sakMedSøknadsbehandling, _, søknadsbehandlingVedtak) = iverksettSøknadsbehandling(
                 tac = tac,
-                innvilgelsesperioder = innvilgelsesperioder,
+                innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode),
             )
 
             val sakId = sakMedSøknadsbehandling.id
 
-            val (_, nyOmgjøring) = startRevurderingOmgjøring(
+            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettRevurderingOmgjøring(
                 tac = tac,
                 sakId = sakId,
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
-            )!!
-
-            val (_, oppdatertOmgjøring) = oppdaterRevurderingOmgjøring(
-                tac = tac,
-                sakId = sakId,
-                behandlingId = nyOmgjøring.id,
                 innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode),
                 omgjøringsperiode = omgjortPeriode,
             )
 
-            oppdatertOmgjøring.vedtaksperiode shouldBe omgjortPeriode
+            omgjøringsvedtak.periode shouldBe omgjortPeriode
+
+            sakMedOmgjøring.rammevedtaksliste.vedtaksperioder shouldBe listOf(
+                1.januar(2025) til 31.januar(2025),
+                1.februar(2025) til 28.februar(2025),
+                1.mars(2025) til 31.mars(2025),
+            )
         }
     }
 
     @Test
-    fun `kan omgjøre deler av vedtaksperioden 2`() {
+    fun `kan omgjøre en periode av et vedtak med to gjeldende perioder`() {
         withTestApplicationContext { tac ->
             val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
-            val omgjortPeriode = 1.februar(2025) til 28.februar(2025)
+            val revurdertPeriode = 1.februar(2025) til 28.februar(2025)
+            val omgjortPeriode = 1.januar(2025) til 31.januar(2025)
 
             val innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode)
 
@@ -356,21 +355,30 @@ class StartRevurderingOmgjøringTest {
 
             val sakId = sakMedSøknadsbehandling.id
 
-            val (_, nyOmgjøring) = startRevurderingOmgjøring(
+            iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sakId,
+                innvilgelsesperioder = innvilgelsesperioder(
+                    revurdertPeriode,
+                    antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(2),
+                ),
+            )
+
+            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettRevurderingOmgjøring(
                 tac = tac,
                 sakId = sakId,
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
-            )!!
-
-            val (_, oppdatertOmgjøring) = oppdaterRevurderingOmgjøring(
-                tac = tac,
-                sakId = sakId,
-                behandlingId = nyOmgjøring.id,
                 innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode),
                 omgjøringsperiode = omgjortPeriode,
             )
 
-            oppdatertOmgjøring.vedtaksperiode shouldBe omgjortPeriode
+            omgjøringsvedtak.periode shouldBe omgjortPeriode
+
+            sakMedOmgjøring.rammevedtaksliste.vedtaksperioder shouldBe listOf(
+                1.januar(2025) til 31.januar(2025),
+                1.februar(2025) til 28.februar(2025),
+                1.mars(2025) til 31.mars(2025),
+            )
         }
     }
 

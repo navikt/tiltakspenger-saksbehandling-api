@@ -147,7 +147,7 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             }
 
             if (omgjørRammevedtak.perioder.size != 1) {
-                return KanIkkeOppdatereBehandling.PerioderSomOmgjøresMåVæreSammenhengede.left()
+                return KanIkkeOppdatereBehandling.PerioderSomOmgjøresMåVæreSammenhengende.left()
             }
 
             if (harValgtSkalOmgjøreHeleVedtaksperioden) {

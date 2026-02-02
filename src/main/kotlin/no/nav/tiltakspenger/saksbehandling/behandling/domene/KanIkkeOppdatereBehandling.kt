@@ -10,5 +10,5 @@ sealed interface KanIkkeOppdatereBehandling {
     data object KanIkkeOmgjøreFlereVedtak : KanIkkeOppdatereBehandling
     data object MåOmgjøreMinstEttVedtak : KanIkkeOppdatereBehandling
     data object MåOmgjøreAngittVedtak : KanIkkeOppdatereBehandling
-    data object PerioderSomOmgjøresMåVæreSammenhengede : KanIkkeOppdatereBehandling
+    data object PerioderSomOmgjøresMåVæreSammenhengende : KanIkkeOppdatereBehandling
 }

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
@@ -228,6 +229,8 @@ interface IverksettRevurderingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         rammevedtakIdSomOmgjøres: VedtakId,
+        omgjøringsperiode: Periode? = null,
+        skalOmgjøreHeleVedtaket: Boolean? = omgjøringsperiode == null,
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
@@ -251,6 +254,8 @@ interface IverksettRevurderingBuilder {
             innvilgelsesperioder = innvilgelsesperioder,
             barnetillegg = barnetilleggRevurdering,
             saksbehandler = saksbehandler,
+            omgjøringsperiode = omgjøringsperiode,
+            skalOmgjøreHeleVedtaket = skalOmgjøreHeleVedtaket,
         )
 
         sendRevurderingTilBeslutningForBehandlingId(
