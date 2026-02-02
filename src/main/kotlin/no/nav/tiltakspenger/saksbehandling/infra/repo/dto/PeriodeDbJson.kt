@@ -32,8 +32,11 @@ fun Row.periodeOrNull(column: String): Periode? {
 }
 
 private fun parsePeriode(value: String): Periode {
-    // Format: (2024-01-01,2024-01-31)
-    val trimmed = value.removeSurrounding("(", ")")
-    val (fraOgMed, tilOgMed) = trimmed.split(",")
-    return Periode(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
+    val (fraOgMed, tilOgMed) = value
+        .removeSurrounding("(", ")")
+        .split(",")
+    return Periode(
+        LocalDate.parse(fraOgMed),
+        LocalDate.parse(tilOgMed),
+    )
 }

@@ -150,15 +150,15 @@ data class Revurdering(
         val rammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres(nyVedtaksperiode)
 
         if (rammevedtakSomOmgjøres.rammevedtakIDer.size > 1) {
-            return KanIkkeOppdatereBehandling.KanIkkeOmgjøreFlereVedtak.left()
+            return KanIkkeOppdatereOmgjøring.KanIkkeOmgjøreFlereVedtak.left()
         }
 
         if (rammevedtakSomOmgjøres.rammevedtakIDer.size == 0) {
-            return KanIkkeOppdatereBehandling.MåOmgjøreMinstEttVedtak.left()
+            return KanIkkeOppdatereOmgjøring.MåOmgjøreMinstEttVedtak.left()
         }
 
         if (rammevedtakSomOmgjøres.rammevedtakIDer.single() != omgjørRammevedtak.rammevedtakIDer.single()) {
-            return KanIkkeOppdatereBehandling.MåOmgjøreAngittVedtak.left()
+            return KanIkkeOppdatereOmgjøring.MåOmgjøreAngittVedtak.left()
         }
 
         val innvilgelsesperioderMedTiltaksdeltakelse = kommando

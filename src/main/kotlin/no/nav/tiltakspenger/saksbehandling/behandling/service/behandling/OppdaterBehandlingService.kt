@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
@@ -224,7 +225,7 @@ class OppdaterBehandlingService(
 
                 val perioderSomOpphøres = eksisterendeInnvilgetPerioder.trekkFra(kommando.innvilgelsesperioder.perioder)
 
-                if (perioderSomOpphøres.isEmpty()) Unit.right() else KanIkkeOppdatereBehandling.KanIkkeOpphøre.left()
+                if (perioderSomOpphøres.isEmpty()) Unit.right() else KanIkkeOppdatereOmgjøring.KanIkkeOpphøre.left()
             }
         }
     }

@@ -141,13 +141,31 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             harValgtSkalOmgjøreHeleVedtaksperioden: Boolean,
             valgtOmgjøringsperiode: Periode?,
             omgjørRammevedtak: OmgjørRammevedtak,
-        ): Either<KanIkkeOppdatereBehandling, Omgjøring> {
-            require(nyVedtaksperiode.inneholderHele(oppdatertInnvilgelsesperioder.totalPeriode)) {
-                "Valgt vedtaksperiode ($nyVedtaksperiode) må inneholde alle innvilgelsesperiodene (${oppdatertInnvilgelsesperioder.totalPeriode})"
+        ): Either<KanIkkeOppdatereOmgjøring, Omgjøring> {
+            val innvilgelseTotalPeriode = oppdatertInnvilgelsesperioder.totalPeriode
+
+            require(nyVedtaksperiode.inneholderHele(innvilgelseTotalPeriode)) {
+                "Valgt vedtaksperiode ($nyVedtaksperiode) må inneholde alle innvilgelsesperiodene ($innvilgelseTotalPeriode)"
+            }
+
+            if (valgtOmgjøringsperiode != null) {
+                if (
+                    omgjørRammevedtak.fraOgMed != valgtOmgjøringsperiode.fraOgMed &&
+                    innvilgelseTotalPeriode.fraOgMed < valgtOmgjøringsperiode.fraOgMed
+                ) {
+                    return KanIkkeOppdatereOmgjøring.InnvilgelsesperioderOverlapperIkkeomgjortPeriode.left()
+                }
+
+                if (
+                    omgjørRammevedtak.tilOgMed != valgtOmgjøringsperiode.tilOgMed &&
+                    innvilgelseTotalPeriode.tilOgMed > valgtOmgjøringsperiode.tilOgMed
+                ) {
+                    return KanIkkeOppdatereOmgjøring.InnvilgelsesperioderOverlapperIkkeomgjortPeriode.left()
+                }
             }
 
             if (omgjørRammevedtak.perioder.size != 1) {
-                return KanIkkeOppdatereBehandling.PerioderSomOmgjøresMåVæreSammenhengende.left()
+                return KanIkkeOppdatereOmgjøring.PerioderSomOmgjøresMåVæreSammenhengende.left()
             }
 
             if (harValgtSkalOmgjøreHeleVedtaksperioden) {
@@ -265,6 +283,12 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
 
             require(omgjørRammevedtak.size >= 1) {
                 "En omgjøring må omgjøre minst ett vedtak"
+            }
+
+            if (valgtOmgjøringsperiode != null) {
+                require(omgjørRammevedtak.perioder.any { it.inneholderHele(valgtOmgjøringsperiode) }) {
+                    "Valgt omgjøringsperiode ($valgtOmgjøringsperiode) må være en delperiode av det omgjorte vedtaket sin(e) periode(r): ${omgjørRammevedtak.perioder}"
+                }
             }
 
             if (innvilgelsesperioder != null) {
