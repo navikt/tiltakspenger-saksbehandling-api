@@ -57,7 +57,7 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
     )
 
     KanIkkeOppdatereOmgjøring.InnvilgelsesperioderOverlapperIkkeomgjortPeriode -> HttpStatusCode.BadRequest to ErrorJson(
-        "Innvilgelsesperiodene kan ikke overlappe med perioder av den opprinnelige vedtaksperioden som ikke omgjøres",
+        "Innvilgelsesperiodene kan ikke overlappe med de deler av gjeldende vedtaksperioder som ikke omgjøres",
         "innvilgelsesperioder_overlapper_ikkeomgjort_periode",
     )
 }
