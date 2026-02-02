@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
@@ -32,7 +33,29 @@ fun Route.hentSakForSaksnummerRoute(
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get
         call.withSaksnummer { saksnummer ->
             krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-            tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, token)
+
+            val sak = try {
+                sakService.hentForSaksnummer(saksnummer)
+            } catch (e: Exception) {
+                when (e) {
+                    is IkkeFunnetException -> {
+                        logger.warn { "Fant ikke sak med saksnummer $saksnummer" }
+                        call.respond(
+                            HttpStatusCode.NotFound,
+                            "Fant ikke sak med saksnummer $saksnummer",
+                        )
+                        return@withSaksnummer
+                    }
+
+                    else -> {
+                        logger.error(e) { "Uventet feil ved henting av sak for saksnummer $saksnummer" }
+                        throw e
+                    }
+                }
+            }
+
+            tilgangskontrollService.harTilgangTilPerson(sak.fnr, token, saksbehandler)
+
             auditService.logMedSaksnummer(
                 saksnummer = saksnummer,
                 navIdent = saksbehandler.navIdent,
@@ -40,11 +63,8 @@ fun Route.hentSakForSaksnummerRoute(
                 contextMessage = "Henter hele saken til brukeren",
                 correlationId = call.correlationId(),
             )
-            sakService.hentForSaksnummer(
-                saksnummer = saksnummer,
-            ).also { sak ->
-                call.respondJson(value = sak.toSakDTO(clock))
-            }
+
+            call.respondJson(value = sak.toSakDTO(clock))
         }
     }
 }
