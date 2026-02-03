@@ -1,7 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import no.nav.tiltakspenger.libs.periode.PeriodeDTO
-import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
@@ -53,8 +51,6 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
         override val innvilgelsesperioder: InnvilgelsesperioderDTO?,
         override val barnetillegg: BarnetilleggDTO?,
         val omgjørVedtak: String,
-        val harValgtSkalOmgjøreHeleVedtaksperioden: Boolean,
-        val valgtOmgjøringsperiode: PeriodeDTO?,
     ) : RevurderingResultatDTO,
         RammebehandlingInnvilgelseResultatDTO {
         override val resultat = RammebehandlingResultatTypeDTO.OMGJØRING
@@ -97,8 +93,6 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
             innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
             omgjørVedtak = omgjortVedtak.rammevedtakId.toString(),
-            harValgtSkalOmgjøreHeleVedtaksperioden = harValgtSkalOmgjøreHeleVedtaksperioden,
-            valgtOmgjøringsperiode = valgtOmgjøringsperiode?.toDTO(),
         )
     }
 }

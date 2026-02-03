@@ -47,6 +47,7 @@ class IverksettRevurderingOmgjøringTest {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = rammevedtakSøknadsbehandling.id,
+                vedtaksperiode = omgjøringsperiode,
                 innvilgelsesperioder = innvilgelsesperioder(omgjøringsperiode),
             )
             opprettOgIverksettMeldekortbehandling(
@@ -58,6 +59,7 @@ class IverksettRevurderingOmgjøringTest {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = vedtakOmgjøring1.id,
+                vedtaksperiode = omgjøringsperiode,
                 innvilgelsesperioder = innvilgelsesperioder(omgjøringsperiode),
             )
 
@@ -71,7 +73,7 @@ class IverksettRevurderingOmgjøringTest {
             val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
             val stansFraOgMed = 1.mars(2025)
 
-            val omgjøringInnvilgelsesperioder = innvilgelsesperioder(1.januar(2025) til 28.februar(2025))
+            val omgjøringsperiode = 1.januar(2025) til 28.februar(2025)
 
             val (sakMedSøknadsbehandling, _, søknadsbehandlingVedtak) = iverksettSøknadsbehandling(
                 tac = tac,
@@ -89,11 +91,12 @@ class IverksettRevurderingOmgjøringTest {
             val (sakMedOmgjøring, omgjøringsvedtak) = iverksettRevurderingOmgjøring(
                 tac = tac,
                 sakId = sakId,
-                innvilgelsesperioder = omgjøringInnvilgelsesperioder,
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
+                vedtaksperiode = omgjøringsperiode,
+                innvilgelsesperioder = innvilgelsesperioder(omgjøringsperiode),
             )
 
-            sakMedOmgjøring.rammevedtaksliste.innvilgelsesperioder.perioder shouldBe omgjøringInnvilgelsesperioder.perioder
+            sakMedOmgjøring.rammevedtaksliste.innvilgelsesperioder.perioder shouldBe listOf(omgjøringsperiode)
 
             omgjøringsvedtak.omgjørRammevedtak shouldBe OmgjørRammevedtak(
                 Omgjøringsperiode(
@@ -123,7 +126,7 @@ class IverksettRevurderingOmgjøringTest {
                 sakId = sakId,
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
                 innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode),
-                omgjøringsperiode = omgjortPeriode,
+                vedtaksperiode = omgjortPeriode,
             )
 
             omgjøringsvedtak.periode shouldBe omgjortPeriode
@@ -166,7 +169,7 @@ class IverksettRevurderingOmgjøringTest {
                 sakId = sakId,
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
                 innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode),
-                omgjøringsperiode = omgjortPeriode,
+                vedtaksperiode = omgjortPeriode,
             )
 
             omgjøringsvedtak.periode shouldBe omgjortPeriode
@@ -209,7 +212,7 @@ class IverksettRevurderingOmgjøringTest {
                 sakId = sakId,
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
                 innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode),
-                omgjøringsperiode = omgjortPeriode,
+                vedtaksperiode = omgjortPeriode,
             )
 
             omgjøringsvedtak.periode shouldBe omgjortPeriode

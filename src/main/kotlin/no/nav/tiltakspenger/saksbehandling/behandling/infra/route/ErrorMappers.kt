@@ -36,7 +36,7 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
         "kan_ikke_omgjøre_flere_vedtak",
     )
 
-    KanIkkeOppdatereOmgjøring.PerioderSomOmgjøresMåVæreSammenhengende -> HttpStatusCode.BadRequest to ErrorJson(
+    KanIkkeOppdatereOmgjøring.MåOmgjøreEnSammenhengendePeriode -> HttpStatusCode.BadRequest to ErrorJson(
         "Kan foreløpig ikke omgjøre vedtak som ikke har en sammenhengende gjeldende periode",
         "perioder_som_omgjøres_må_være_sammenhengende",
     )
@@ -51,13 +51,8 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
         "må_omgjøre_minst_ett_vedtak",
     )
 
-    KanIkkeOppdatereOmgjøring.OmgjøringsperiodeMåVæreGjeldende -> HttpStatusCode.BadRequest to ErrorJson(
-        "Omgjøringsperioden må være gjeldende",
-        "omgjøringsperiode_må_være_gjeldende",
-    )
-
-    KanIkkeOppdatereOmgjøring.InnvilgelsesperioderOverlapperIkkeomgjortPeriode -> HttpStatusCode.BadRequest to ErrorJson(
-        "Innvilgelsesperiodene kan ikke overlappe med de deler av gjeldende vedtaksperioder som ikke omgjøres",
-        "innvilgelsesperioder_overlapper_ikkeomgjort_periode",
+    KanIkkeOppdatereOmgjøring.VedtaksperiodeMåInneholdeInnvilgelsesperiodene -> HttpStatusCode.BadRequest to ErrorJson(
+        "Vedtaksperioden må inneholde alle innvilgelsesperiodene",
+        "vedtaksperiode_må_inneholde_innvilgelsesperiodene",
     )
 }

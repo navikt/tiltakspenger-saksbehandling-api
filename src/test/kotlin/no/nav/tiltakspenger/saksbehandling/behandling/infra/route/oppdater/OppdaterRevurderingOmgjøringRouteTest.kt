@@ -49,7 +49,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
 
             val tiltaksdeltakelseVedOpprettelseAvRevurdering =
                 rammevedtakRevurdering.saksopplysninger.tiltaksdeltakelser.first()
-            val nyOmgjøringsperiodeEtterOppdatering = (3 til 9.april(2025))
+            val nyInnvilgelsesperiode = (3 til 9.april(2025))
             val avbruttTiltaksdeltakelse = tiltaksdeltakelseVedOpprettelseAvRevurdering.copy(
                 deltakelseFraOgMed = tiltaksdeltakelseVedOpprettelseAvRevurdering.deltakelseFraOgMed!!,
                 deltakelseTilOgMed = tiltaksdeltakelseVedOpprettelseAvRevurdering.deltakelseTilOgMed!!.minusDays(1),
@@ -65,7 +65,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
             (revurderingMedOppdatertSaksopplysninger as Revurdering).erFerdigutfylt() shouldBe true
             val barnetillegg = Barnetillegg.utenBarnetillegg((3 til 9.april(2025)))
             val innvilgelsesperioder = innvilgelsesperioder(
-                nyOmgjøringsperiodeEtterOppdatering,
+                nyInnvilgelsesperiode,
                 tiltaksdeltakelseVedOpprettelseAvRevurdering,
             )
 
@@ -75,10 +75,12 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 behandlingId = rammevedtakRevurdering.id,
                 fritekstTilVedtaksbrev = "asdf",
                 begrunnelseVilkårsvurdering = null,
+                vedtaksperiode = rammevedtakRevurdering.vedtaksperiode!!,
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
                 forventetStatus = HttpStatusCode.OK,
             )
+
             (oppdatertRevurdering as Revurdering).erFerdigutfylt() shouldBe true
             // Forventer at saksopplysningene er oppdatert, mens resultatet er ubesudlet.
             oppdatertRevurdering.saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltakelse
@@ -89,12 +91,12 @@ class OppdaterRevurderingOmgjøringRouteTest {
             resultat.valgteTiltaksdeltakelser shouldBe listOf(
                 PeriodeMedVerdi(
                     avbruttTiltaksdeltakelse,
-                    nyOmgjøringsperiodeEtterOppdatering,
+                    nyInnvilgelsesperiode,
                 ),
             ).tilIkkeTomPeriodisering()
             oppdatertRevurdering.vedtaksperiode shouldBe rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode
             resultat.vedtaksperiode shouldBe rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode
-            resultat.innvilgelsesperioder!!.totalPeriode shouldBe nyOmgjøringsperiodeEtterOppdatering
+            resultat.innvilgelsesperioder!!.totalPeriode shouldBe nyInnvilgelsesperiode
             oppdatertRevurdering.utbetaling shouldBe null
 
             // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
@@ -103,7 +105,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
     }
 
     @Test
-    fun `kan ikke innvilge utenfor valgt omgjøringsperiode innenfor et vedtak`() {
+    fun `kan ikke innvilge utenfor valgt vedtaksperioder for et vedtak`() {
         withTestApplicationContext { tac ->
             val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
             val omgjortPeriode = 1.februar(2025) til 28.februar(2025)
@@ -128,7 +130,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 sakId = sakId,
                 innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode.plusTilOgMed(1)),
                 behandlingId = omgjøring.id,
-                omgjøringsperiode = omgjortPeriode,
+                vedtaksperiode = omgjortPeriode,
                 forventetStatus = HttpStatusCode.BadRequest,
             ).also {
                 it.second.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadsbehandlingVedtak.id
@@ -136,8 +138,8 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 @Language("JSON")
                 val expectedResponse = """
                     {
-                        "melding": "Innvilgelsesperiodene kan ikke overlappe med de deler av gjeldende vedtaksperioder som ikke omgjøres",
-                        "kode":"innvilgelsesperioder_overlapper_ikkeomgjort_periode"
+                        "melding": "Vedtaksperioden må inneholde alle innvilgelsesperiodene",
+                        "kode":"vedtaksperiode_må_inneholde_innvilgelsesperiodene"
                     }
                 """.trimIndent()
 
@@ -176,6 +178,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
             oppdaterRevurderingOmgjøring(
                 tac = tac,
                 sakId = sakId,
+                vedtaksperiode = førsteInnvilgelsesperiode,
                 innvilgelsesperioder = innvilgelsesperioder,
                 behandlingId = omgjøring.id,
                 forventetStatus = HttpStatusCode.BadRequest,
@@ -230,7 +233,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 sakId = sakId,
                 behandlingId = nyOmgjøring.id,
                 innvilgelsesperioder = innvilgelsesperioder(revurdertPeriode),
-                omgjøringsperiode = revurdertPeriode,
+                vedtaksperiode = revurdertPeriode,
                 forventetStatus = HttpStatusCode.BadRequest,
             )
 

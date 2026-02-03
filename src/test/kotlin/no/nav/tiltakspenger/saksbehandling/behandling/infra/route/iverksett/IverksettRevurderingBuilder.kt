@@ -172,8 +172,9 @@ interface IverksettRevurderingBuilder {
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        revurderingInnvilgelsesperioder: Innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
-        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperioder.totalPeriode),
+        omgjøringInnvilgelsesperioder: Innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
+        omgjøringVedtaksperiode: Periode? = null,
+        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(omgjøringInnvilgelsesperioder.totalPeriode),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
     ): Tuple5<Sak, Søknad, Rammevedtak, Rammevedtak, RammebehandlingDTOJson>? {
@@ -192,9 +193,10 @@ interface IverksettRevurderingBuilder {
             behandlingId = revurdering.id,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-            innvilgelsesperioder = revurderingInnvilgelsesperioder,
+            innvilgelsesperioder = omgjøringInnvilgelsesperioder,
             barnetillegg = barnetilleggRevurdering,
             saksbehandler = saksbehandler,
+            vedtaksperiode = omgjøringVedtaksperiode ?: revurdering.vedtaksperiode!!,
         )
 
         sendRevurderingTilBeslutningForBehandlingId(
@@ -229,12 +231,11 @@ interface IverksettRevurderingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         rammevedtakIdSomOmgjøres: VedtakId,
-        omgjøringsperiode: Periode? = null,
-        skalOmgjøreHeleVedtaket: Boolean? = omgjøringsperiode == null,
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        vedtaksperiode: Periode? = null,
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
     ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
@@ -254,8 +255,7 @@ interface IverksettRevurderingBuilder {
             innvilgelsesperioder = innvilgelsesperioder,
             barnetillegg = barnetilleggRevurdering,
             saksbehandler = saksbehandler,
-            omgjøringsperiode = omgjøringsperiode,
-            skalOmgjøreHeleVedtaket = skalOmgjøreHeleVedtaket,
+            vedtaksperiode = vedtaksperiode ?: revurdering.vedtaksperiode!!,
         )
 
         sendRevurderingTilBeslutningForBehandlingId(

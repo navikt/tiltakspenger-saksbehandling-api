@@ -1009,8 +1009,6 @@ class RammebehandlingDTOTest {
             "begrunnelse": null
           },
           "omgjørVedtak": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",          
-          "harValgtSkalOmgjøreHeleVedtaksperioden": true,
-          "valgtOmgjøringsperiode": null,
           "resultat": "OMGJØRING",
           "type": "REVURDERING"
         }

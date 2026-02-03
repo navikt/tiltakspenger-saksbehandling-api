@@ -13,7 +13,6 @@ sealed interface KanIkkeOppdatereOmgjøring : KanIkkeOppdatereBehandling {
     data object KanIkkeOmgjøreFlereVedtak : KanIkkeOppdatereOmgjøring
     data object MåOmgjøreMinstEttVedtak : KanIkkeOppdatereOmgjøring
     data object MåOmgjøreAngittVedtak : KanIkkeOppdatereOmgjøring
-    data object PerioderSomOmgjøresMåVæreSammenhengende : KanIkkeOppdatereOmgjøring
-    data object OmgjøringsperiodeMåVæreGjeldende : KanIkkeOppdatereOmgjøring
-    data object InnvilgelsesperioderOverlapperIkkeomgjortPeriode : KanIkkeOppdatereOmgjøring
+    data object MåOmgjøreEnSammenhengendePeriode : KanIkkeOppdatereOmgjøring
+    data object VedtaksperiodeMåInneholdeInnvilgelsesperiodene : KanIkkeOppdatereOmgjøring
 }
