@@ -170,14 +170,6 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                 innvilgelsesperioder?.let { barnetillegg?.krympTilPerioder(innvilgelsesperioder.perioder) }
 
             return this.copy(
-                vedtaksperiode = if (innvilgelsesperioder == null) {
-                    omgjortVedtak.periode
-                } else {
-                    utledNyVedtaksperiode(
-                        omgjortVedtak.periode,
-                        innvilgelsesperioder.totalPeriode,
-                    )
-                },
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
             ).right()
@@ -211,17 +203,6 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                     barnetillegg = barnetillegg,
                     omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
                 ).right()
-            }
-
-            // Ny vedtaksperiode må alltid inneholde hele perioden for vedtaket som omgjøres
-            fun utledNyVedtaksperiode(
-                omgjortVedtaksperiode: Periode,
-                nyInnvilgelsesperiode: Periode,
-            ): Periode {
-                return Periode(
-                    fraOgMed = minOf(omgjortVedtaksperiode.fraOgMed, nyInnvilgelsesperiode.fraOgMed),
-                    tilOgMed = maxOf(omgjortVedtaksperiode.tilOgMed, nyInnvilgelsesperiode.tilOgMed),
-                )
             }
         }
 

@@ -131,19 +131,10 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode.plusTilOgMed(1)),
                 behandlingId = omgjøring.id,
                 vedtaksperiode = omgjortPeriode,
-                forventetStatus = HttpStatusCode.BadRequest,
+                // Vil feile på [Sak.beregnRammebehandling]. Vi sjekker også i oppdater-funksjonen for revurdering omgjøring.
+                forventetStatus = HttpStatusCode.InternalServerError,
             ).also {
                 it.second.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadsbehandlingVedtak.id
-
-                @Language("JSON")
-                val expectedResponse = """
-                    {
-                        "melding": "Vedtaksperioden må inneholde alle innvilgelsesperiodene",
-                        "kode":"vedtaksperiode_må_inneholde_innvilgelsesperiodene"
-                    }
-                """.trimIndent()
-
-                it.third.shouldEqualJson(expectedResponse)
             }
         }
     }
