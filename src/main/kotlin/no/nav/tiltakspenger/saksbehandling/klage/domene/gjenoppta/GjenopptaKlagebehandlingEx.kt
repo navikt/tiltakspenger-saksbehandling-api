@@ -11,7 +11,7 @@ import java.time.Clock
 /**
  * Gjelder kun saksbehandler. Dersom en beslutter vil legge tilbake over en klagebehandling til omgjøring, må dette gjøres fra omgjøringsbehandlingen.
  */
-fun Klagebehandling.gjenoppta(
+fun Klagebehandling.gjenopptaKlagebehandling(
     kommando: GjenopptaKlagebehandlingKommando,
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
