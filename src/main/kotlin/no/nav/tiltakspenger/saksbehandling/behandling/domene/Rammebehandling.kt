@@ -152,18 +152,18 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 val oppdatertStatus = when (status) {
                     UNDER_BESLUTNING -> KLAR_TIL_BESLUTNING
                     UNDER_BEHANDLING -> KLAR_TIL_BEHANDLING
-                    else -> status
+                    UNDER_AUTOMATISK_BEHANDLING -> UNDER_AUTOMATISK_BEHANDLING
+                    else -> throw IllegalStateException("Uventet status $status ved oppdatering til ventende status")
                 }
-
+                val oppdatertVentestatus = ventestatus.settPåVent(
+                    tidspunkt = nå(clock),
+                    endretAv = endretAv.navIdent,
+                    begrunnelse = begrunnelse,
+                    status = status.toString(),
+                )
                 return when (this) {
                     is Søknadsbehandling -> this.copy(
-                        ventestatus = ventestatus.leggTil(
-                            tidspunkt = nå(clock),
-                            endretAv = endretAv.navIdent,
-                            begrunnelse = begrunnelse,
-                            erSattPåVent = true,
-                            status = status.toString(),
-                        ),
+                        ventestatus = oppdatertVentestatus,
                         saksbehandler = oppdatertSaksbehandler,
                         beslutter = null,
                         status = oppdatertStatus,
@@ -171,20 +171,16 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         sistEndret = nå(clock),
                     )
 
-                    is Revurdering -> this.copy(
-                        ventestatus = ventestatus.leggTil(
-                            tidspunkt = nå(clock),
-                            endretAv = endretAv.navIdent,
-                            begrunnelse = begrunnelse,
-                            erSattPåVent = true,
-                            status = status.toString(),
-                        ),
-                        saksbehandler = oppdatertSaksbehandler,
-                        beslutter = null,
-                        status = oppdatertStatus,
-                        venterTil = venterTil,
-                        sistEndret = nå(clock),
-                    )
+                    is Revurdering -> {
+                        this.copy(
+                            ventestatus = oppdatertVentestatus,
+                            saksbehandler = oppdatertSaksbehandler,
+                            beslutter = null,
+                            status = oppdatertStatus,
+                            venterTil = venterTil,
+                            sistEndret = nå(clock),
+                        )
+                    }
                 }
             }
 
@@ -213,10 +209,9 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             overta: Boolean,
             hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
         ): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandling> {
-            val oppdatertVentestatus = ventestatus.leggTil(
+            val oppdatertVentestatus = ventestatus.gjenoppta(
                 tidspunkt = nå,
                 endretAv = endretAv.navIdent,
-                erSattPåVent = false,
                 status = status.toString(),
             )
             return when (this) {

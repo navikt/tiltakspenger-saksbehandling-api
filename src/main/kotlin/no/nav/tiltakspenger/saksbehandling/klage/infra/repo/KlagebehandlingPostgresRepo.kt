@@ -9,9 +9,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
@@ -266,6 +267,7 @@ class KlagebehandlingPostgresRepo(
                 ),
                 iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                 avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
+                ventestatus = row.stringOrNull("ventestatus")?.toVentestatus() ?: Ventestatus(),
             )
         }
     }

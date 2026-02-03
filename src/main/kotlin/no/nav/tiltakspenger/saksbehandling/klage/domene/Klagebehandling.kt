@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
@@ -24,7 +25,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKla
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
-import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettKlagebehandlingKommando
@@ -56,6 +56,7 @@ data class Klagebehandling(
     val resultat: Klagebehandlingsresultat?,
     val formkrav: KlageFormkrav,
     val avbrutt: Avbrutt?,
+    val ventestatus: Ventestatus,
 ) : Behandling {
     val brevtekst: Brevtekster? = resultat?.brevtekst
     val erUnderBehandling = status == UNDER_BEHANDLING
@@ -330,6 +331,7 @@ data class Klagebehandling(
                 resultat = if (formkrav.erAvvisning) Klagebehandlingsresultat.Avvist.empty else null,
                 iverksattTidspunkt = null,
                 avbrutt = null,
+                ventestatus = Ventestatus(),
             )
         }
     }
@@ -337,7 +339,7 @@ data class Klagebehandling(
     /**
      * Sjekker både [Klagebehandlingsresultat] og [Rammebehandlingsstatus] hvis den er satt.
      */
-    fun kanOppdatereIDenneStatusen(rammebehandlingsstatus: Rammebehandlingsstatus?): Either<no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebehandling, Unit> {
+    fun kanOppdatereIDenneStatusen(rammebehandlingsstatus: Rammebehandlingsstatus?): Either<KanIkkeOppdatereKlagebehandling, Unit> {
         return when (this.status) {
             KLAR_TIL_BEHANDLING, AVBRUTT, VEDTATT -> {
                 KanIkkeOppdatereKlagebehandling.FeilKlagebehandlingsstatus(UNDER_BEHANDLING, this.status).left()

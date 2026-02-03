@@ -25,8 +25,13 @@ fun Klagebehandling.gjenoppta(
             faktiskSaksbehandler = saksbehandler,
         ).left()
     }
+    val nå = nå(clock)
     return this.copy(
-        // TODO jah: Legg på [Ventestatus] her.
-        sistEndret = nå(clock),
+        sistEndret = nå,
+        ventestatus = ventestatus.gjenoppta(
+            tidspunkt = nå,
+            endretAv = kommando.saksbehandler.navIdent,
+            status = status.toString(),
+        ),
     ).right()
 }

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.infra.route
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -21,6 +22,7 @@ class BehandlingDTOTest {
 
         @Test
         fun `Den nyeste begrunnelsen blir med`() {
+            val clock = TikkendeKlokke()
             runTest {
                 val correlationId = CorrelationId.generate()
                 val beslutter = ObjectMother.beslutter(navIdent = "Z111111")

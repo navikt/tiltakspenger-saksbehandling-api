@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
@@ -270,6 +271,7 @@ class RammebehandlingTest {
 
         @Test
         fun `kan gjenoppta behandling (under behandling) som er satt på vent`() {
+            val clock = TikkendeKlokke()
             runTest {
                 val saksbehandler = ObjectMother.saksbehandler()
                 val saksbehandler2 = ObjectMother.saksbehandler(navIdent = "saksbehandler2")
@@ -298,6 +300,7 @@ class RammebehandlingTest {
 
         @Test
         fun `kan gjenoppta behandling (under beslutning) som er satt på vent`() {
+            val clock = TikkendeKlokke()
             runTest {
                 val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
                 val behandling =

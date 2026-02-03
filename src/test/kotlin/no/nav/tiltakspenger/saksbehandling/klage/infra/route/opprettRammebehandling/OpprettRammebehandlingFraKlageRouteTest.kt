@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -51,6 +52,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 ),
                 iverksattTidspunkt = null,
                 avbrutt = null,
+                ventestatus = Ventestatus(),
             )
             json.toString().shouldEqualJson(
                 """
@@ -217,6 +219,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 ),
                 iverksattTidspunkt = null,
                 avbrutt = null,
+                ventestatus = Ventestatus(),
             )
             json.toString().shouldEqualJson(
                 """
@@ -308,6 +311,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 ),
                 iverksattTidspunkt = null,
                 avbrutt = null,
+                ventestatus = Ventestatus(),
             )
             json.toString().shouldEqualJson(
                 """
@@ -392,7 +396,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan ikke ha 2 åpne rammebehandlinger knyttet til samme klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, søknad, søknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, søknad, søknadsbehandling, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!
             opprettRammebehandlingForKlage(

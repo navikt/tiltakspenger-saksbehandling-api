@@ -9,15 +9,19 @@ data class Ventestatus(
 
     init {
         require(
-            ventestatusHendelser.zipWithNext { a, b -> a.tidspunkt <= b.tidspunkt }.all { it },
+            ventestatusHendelser.zipWithNext { a, b -> a.tidspunkt < b.tidspunkt }.all { it },
         ) { "Hendelsene må være sortert etter tidspunkt" }
+        require(
+            ventestatusHendelser.withIndex().all { (index, hendelse) ->
+                hendelse.erSattPåVent == (index % 2 == 0)
+            },
+        ) { "erSattPåVent må alternere, og første hendelse må være sattPåVent=true" }
     }
 
-    fun leggTil(
+    fun settPåVent(
         tidspunkt: LocalDateTime,
         endretAv: String,
-        begrunnelse: String = "",
-        erSattPåVent: Boolean,
+        begrunnelse: String,
         status: String,
     ): Ventestatus {
         return copy(
@@ -25,7 +29,23 @@ data class Ventestatus(
                 tidspunkt = tidspunkt,
                 endretAv = endretAv,
                 begrunnelse = begrunnelse,
-                erSattPåVent = erSattPåVent,
+                erSattPåVent = true,
+                status = status,
+            ),
+        )
+    }
+
+    fun gjenoppta(
+        tidspunkt: LocalDateTime,
+        endretAv: String,
+        status: String,
+    ): Ventestatus {
+        return copy(
+            ventestatusHendelser = ventestatusHendelser + VentestatusHendelse(
+                tidspunkt = tidspunkt,
+                endretAv = endretAv,
+                begrunnelse = "",
+                erSattPåVent = false,
                 status = status,
             ),
         )
