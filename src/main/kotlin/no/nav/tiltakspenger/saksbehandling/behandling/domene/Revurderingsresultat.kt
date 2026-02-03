@@ -132,30 +132,6 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
         // Abn: extender Innvilgelse for nå, slik at Omgjøring mappes til innvilgelse ved exhaustive mappinger for vedtak, statistikk osv.
         // Fjernes når omgjøring ikke lengre alltid skal føre til innvilgelse. Må da ha en annen mekanisme for å avgjøre om omgjøringen er en innvilgelse
 
-        fun oppdater(
-            oppdatertInnvilgelsesperioder: Innvilgelsesperioder,
-            oppdatertBarnetillegg: Barnetillegg,
-            nyVedtaksperiode: Periode,
-            omgjørRammevedtak: OmgjørRammevedtak,
-        ): Either<KanIkkeOppdatereOmgjøring, Omgjøring> {
-            val innvilgelseTotalPeriode = oppdatertInnvilgelsesperioder.totalPeriode
-
-            require(nyVedtaksperiode.inneholderHele(innvilgelseTotalPeriode)) {
-                "Valgt vedtaksperiode ($nyVedtaksperiode) må inneholde alle innvilgelsesperiodene ($innvilgelseTotalPeriode)"
-            }
-
-            if (omgjørRammevedtak.perioder.size != 1) {
-                return KanIkkeOppdatereOmgjøring.MåOmgjøreEnSammenhengendePeriode.left()
-            }
-
-            return this.copy(
-                vedtaksperiode = nyVedtaksperiode,
-                innvilgelsesperioder = oppdatertInnvilgelsesperioder,
-                barnetillegg = oppdatertBarnetillegg,
-                omgjørRammevedtak = omgjørRammevedtak,
-            ).right()
-        }
-
         /**
          * Validerer [oppdaterteSaksopplysninger] opp mot resultatet.
          * Det finnes tenkte ugyldige tilstander, som f.eks. at den [valgteTiltaksdeltakelser] ikke lenger matcher tiltaksdeltakelsen i [oppdaterteSaksopplysninger].
@@ -198,7 +174,6 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                 return Omgjøring(
                     // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.
                     vedtaksperiode = omgjørRammevedtak.gjeldendeTotalPeriode!!,
-                    // Hvis vedtaket vi omgjør er en delvis innvilgelse, så bruker vi denne.
                     innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = barnetillegg,
                     omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),

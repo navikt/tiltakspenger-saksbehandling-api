@@ -154,31 +154,33 @@ data class Revurdering(
             return KanIkkeOppdatereOmgjøring.MåOmgjøreAngittVedtak.left()
         }
 
+        if (rammevedtakSomOmgjøres.perioder.size != 1) {
+            return KanIkkeOppdatereOmgjøring.MåOmgjøreEnSammenhengendePeriode.left()
+        }
+
         if (!nyVedtaksperiode.inneholderHele(kommando.innvilgelsesperioder.totalPeriode)) {
             return KanIkkeOppdatereOmgjøring.VedtaksperiodeMåInneholdeInnvilgelsesperiodene.left()
         }
 
-        val innvilgelsesperioderMedTiltaksdeltakelse = kommando
+        val oppdaterteInnvilgelsesperioder = kommando
             .tilInnvilgelseperioder(this)
             .oppdaterTiltaksdeltakelser(saksopplysninger.tiltaksdeltakelser)
 
-        requireNotNull(innvilgelsesperioderMedTiltaksdeltakelse) {
+        requireNotNull(oppdaterteInnvilgelsesperioder) {
             // Dersom denne kaster og vi savner mer sakskontekst, bør denne returnere Either, slik at callee kan håndtere feilen.
             "Valgte innvilgelsesperioder har ingen overlapp med tiltaksdeltakelser fra saksopplysningene"
         }
-
-        val resultat = resultat.oppdater(
-            oppdatertInnvilgelsesperioder = innvilgelsesperioderMedTiltaksdeltakelse,
-            oppdatertBarnetillegg = kommando.barnetillegg,
-            omgjørRammevedtak = rammevedtakSomOmgjøres,
-            nyVedtaksperiode = nyVedtaksperiode,
-        ).getOrElse { return it.left() }
 
         return this.copy(
             sistEndret = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            resultat = resultat,
+            resultat = this.resultat.copy(
+                vedtaksperiode = nyVedtaksperiode,
+                innvilgelsesperioder = oppdaterteInnvilgelsesperioder,
+                barnetillegg = kommando.barnetillegg,
+                omgjørRammevedtak = rammevedtakSomOmgjøres,
+            ),
             utbetaling = utbetaling,
         ).right()
     }
