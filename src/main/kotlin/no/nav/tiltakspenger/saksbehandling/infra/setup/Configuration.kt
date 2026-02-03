@@ -82,6 +82,7 @@ object Configuration {
                 "OPPGAVE_URL" to "http://host.docker.internal:8091",
                 "ARENA_TILTAKSDELTAKER_TOPIC" to "arena.tiltaksdeltaker",
                 "KOMET_TILTAKSDELTAKER_TOPIC" to "komet.tiltaksdeltaker",
+                "TEAM_TILTAK_TILTAKSDELTAKER_TOPIC" to "teamtiltak.tiltaksdeltaker",
                 "LEESAH_TOPIC" to "pdl.leesah",
                 "AKTOR_V2_TOPIC" to "pdl.aktor",
                 "IDENTHENDELSE_TOPIC" to "tpts.identhendelse",
@@ -131,6 +132,7 @@ object Configuration {
                 "OPPGAVE_URL" to "https://oppgave.dev-fss-pub.nais.io",
                 "ARENA_TILTAKSDELTAKER_TOPIC" to "teamarenanais.aapen-arena-tiltakdeltakerendret-v1-q2",
                 "KOMET_TILTAKSDELTAKER_TOPIC" to "amt.deltaker-v1",
+                "TEAM_TILTAK_TILTAKSDELTAKER_TOPIC" to "arbeidsgiver.tiltak-avtale-hendelse-compact",
                 "LEESAH_TOPIC" to "pdl.leesah-v1",
                 "AKTOR_V2_TOPIC" to "pdl.aktor-v2",
                 "IDENTHENDELSE_TOPIC" to "tpts.identhendelse-v1",
@@ -174,6 +176,7 @@ object Configuration {
                 "OPPGAVE_URL" to "https://oppgave.prod-fss-pub.nais.io",
                 "ARENA_TILTAKSDELTAKER_TOPIC" to "teamarenanais.aapen-arena-tiltakdeltakerendret-v1-p",
                 "KOMET_TILTAKSDELTAKER_TOPIC" to "amt.deltaker-v1",
+                "TEAM_TILTAK_TILTAKSDELTAKER_TOPIC" to "arbeidsgiver.tiltak-avtale-hendelse-compact",
                 "LEESAH_TOPIC" to "pdl.leesah-v1",
                 "AKTOR_V2_TOPIC" to "pdl.aktor-v2",
                 "IDENTHENDELSE_TOPIC" to "tpts.identhendelse-v1",
@@ -263,6 +266,7 @@ object Configuration {
 
     val arenaTiltaksdeltakerTopic: String by lazy { config()[Key("ARENA_TILTAKSDELTAKER_TOPIC", stringType)] }
     val kometTiltaksdeltakerTopic: String by lazy { config()[Key("KOMET_TILTAKSDELTAKER_TOPIC", stringType)] }
+    val teamTiltakTiltaksdeltakerTopic: String by lazy { config()[Key("TEAM_TILTAK_TILTAKSDELTAKER_TOPIC", stringType)] }
     val leesahTopic: String by lazy { config()[Key("LEESAH_TOPIC", stringType)] }
     val aktorV2Topic: String by lazy { config()[Key("AKTOR_V2_TOPIC", stringType)] }
     val identhendelseTopic: String by lazy { config()[Key("IDENTHENDELSE_TOPIC", stringType)] }

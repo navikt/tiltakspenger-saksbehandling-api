@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.A
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.DeltakerV1Dto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.AvtaleDto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import java.util.UUID
@@ -61,6 +62,20 @@ class TiltaksdeltakerService(
             val tiltaksdeltakerKafkaDb = deltakerV1Dto.toTiltaksdeltakerKafkaDb(sakId, tiltaksdeltakerId)
             lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, objectMapper.writeValueAsString(deltakerV1Dto))
             log.info { "Lagret melding for kometdeltaker med id $deltakerId" }
+        } else {
+            log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }
+        }
+    }
+
+    fun behandleMottattTeamTiltakdeltaker(deltakerId: String, melding: String) {
+        val tiltaksdeltakerId = tiltaksdeltakerRepo.hentInternId(deltakerId)
+        val sakId = tiltaksdeltakerId?.let { finnSakIdForTiltaksdeltaker(it) }
+        if (tiltaksdeltakerId != null && sakId != null) {
+            log.info { "Fant sakId $sakId for team tiltak-deltaker med id $deltakerId" }
+            val avtaleDto = objectMapper.readValue<AvtaleDto>(melding)
+            val tiltaksdeltakerKafkaDb = avtaleDto.toTiltaksdeltakerKafkaDb(sakId, tiltaksdeltakerId)
+            lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, objectMapper.writeValueAsString(avtaleDto))
+            log.info { "Lagret melding for team tiltak-deltaker med id $deltakerId" }
         } else {
             log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }
         }
