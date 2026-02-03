@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import java.time.Clock
 
 /**
- * Gjelder kun saksbehandler. Dersom en beslutter vil ta over en klagebehandling til omgjøring, må dette gjøres fra omgjøringsbehandlingen.
+ * Gjelder kun saksbehandler. Dersom en beslutter vil overta en klagebehandling til omgjøring, må dette gjøres fra omgjøringsbehandlingen.
  */
 fun Klagebehandling.overta(
     kommando: OvertaKlagebehandlingKommando,

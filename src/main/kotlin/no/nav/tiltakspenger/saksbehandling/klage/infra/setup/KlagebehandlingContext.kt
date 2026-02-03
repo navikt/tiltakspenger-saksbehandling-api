@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.GjenopptaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.JournalførKlagevedtakService
 import no.nav.tiltakspenger.saksbehandling.klage.service.LeggTilbakeKlagebehandlingService
@@ -25,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingFraKlageService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.DistribuerKlagevedtaksbrevService
@@ -154,6 +156,20 @@ open class KlagebehandlingContext(
     }
     open val leggTilbakeKlagebehandlingService by lazy {
         LeggTilbakeKlagebehandlingService(
+            sakService = sakService,
+            klagebehandlingRepo = klagebehandlingRepo,
+            clock = clock,
+        )
+    }
+    open val gjenopptaKlagebehandlingService by lazy {
+        GjenopptaKlagebehandlingService(
+            sakService = sakService,
+            klagebehandlingRepo = klagebehandlingRepo,
+            clock = clock,
+        )
+    }
+    open val settKlagebehandlingPåVentService by lazy {
+        SettKlagebehandlingPåVentService(
             sakService = sakService,
             klagebehandlingRepo = klagebehandlingRepo,
             clock = clock,
