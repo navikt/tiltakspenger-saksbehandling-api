@@ -1,7 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.infra.route
 
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingsstatusDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 
 data class VentestatusHendelseDTO(
@@ -9,7 +7,6 @@ data class VentestatusHendelseDTO(
     val tidspunkt: String,
     val begrunnelse: String,
     val erSattPåVent: Boolean,
-    val status: RammebehandlingsstatusDTO,
 )
 
 fun VentestatusHendelse.tilVentestatusHendelseDTO() = VentestatusHendelseDTO(
@@ -17,5 +14,4 @@ fun VentestatusHendelse.tilVentestatusHendelseDTO() = VentestatusHendelseDTO(
     tidspunkt = tidspunkt.toString(),
     begrunnelse = begrunnelse,
     erSattPåVent = erSattPåVent,
-    status = status.toBehandlingsstatusDTO(),
 )

@@ -5,13 +5,13 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import java.security.InvalidParameterException
 
-data class VentestatusJson(
-    val ventestatusHendelser: List<VentestatusHendelseJson>,
+private data class VentestatusDbJson(
+    val ventestatusHendelser: List<VentestatusHendelseDbJson>,
 )
 
 fun String.toVentestatus(): Ventestatus {
     val ventestatusJson = try {
-        deserialize<VentestatusJson>(this)
+        deserialize<VentestatusDbJson>(this)
     } catch (exception: Exception) {
         throw InvalidParameterException("Det oppstod en feil ved parsing av json: " + exception.message)
     }
@@ -21,7 +21,7 @@ fun String.toVentestatus(): Ventestatus {
 }
 
 fun Ventestatus.toDbJson(): String = serialize(
-    VentestatusJson(
+    VentestatusDbJson(
         ventestatusHendelser = ventestatusHendelser.map { it.toDbJson() },
     ),
 )

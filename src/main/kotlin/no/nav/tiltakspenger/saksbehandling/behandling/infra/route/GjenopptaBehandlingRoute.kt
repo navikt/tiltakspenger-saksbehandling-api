@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KunneIkkeGjenopptaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
@@ -23,14 +23,14 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
 private const val GJENNOPPTA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/gjenoppta"
 
-fun Route.gjenopptaBehandling(
+fun Route.gjenopptaRammebehandling(
     auditService: AuditService,
-    gjenopptaBehandlingService: GjenopptaBehandlingService,
+    gjenopptaBehandlingService: GjenopptaRammebehandlingService,
     tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger {}
     post(GJENNOPPTA_BEHANDLING_PATH) {
-        logger.debug { "Mottatt post-request på '$GJENNOPPTA_BEHANDLING_PATH' - Gjenopptar behandling." }
+        logger.debug { "Mottatt post-request på '$GJENNOPPTA_BEHANDLING_PATH' - Gjenopptar rammebehandling." }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->

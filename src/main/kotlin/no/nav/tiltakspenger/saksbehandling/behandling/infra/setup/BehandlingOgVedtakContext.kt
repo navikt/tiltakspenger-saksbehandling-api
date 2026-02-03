@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
@@ -266,7 +266,7 @@ open class BehandlingOgVedtakContext(
     }
 
     val gjenopptaBehandlingService by lazy {
-        GjenopptaBehandlingService(
+        GjenopptaRammebehandlingService(
             behandlingService = behandlingService,
             hentSaksopplysingerService = hentSaksopplysingerService,
             statistikkSakService = statistikkSakService,

@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
-class GjenopptaBehandlingService(
+class GjenopptaRammebehandlingService(
     private val behandlingService: RammebehandlingService,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val statistikkSakService: StatistikkSakService,

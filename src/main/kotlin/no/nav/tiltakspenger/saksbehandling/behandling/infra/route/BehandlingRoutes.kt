@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.iver
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennBehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBehandlingService
@@ -36,7 +36,7 @@ fun Route.behandlingRoutes(
     leggTilbakeBehandlingService: LeggTilbakeBehandlingService,
     oppdaterBehandlingService: OppdaterBehandlingService,
     settBehandlingPåVentService: SettBehandlingPåVentService,
-    gjenopptaBehandlingService: GjenopptaBehandlingService,
+    gjenopptaBehandlingService: GjenopptaRammebehandlingService,
     oppdaterSimuleringService: OppdaterSimuleringService,
     tilgangskontrollService: TilgangskontrollService,
     clock: Clock,
@@ -54,6 +54,6 @@ fun Route.behandlingRoutes(
     leggTilbakeBehandlingRoute(auditService, leggTilbakeBehandlingService, tilgangskontrollService)
     oppdaterBehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
     settBehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService)
-    gjenopptaBehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService)
+    gjenopptaRammebehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService)
     oppdaterSimuleringRoute(oppdaterSimuleringService, auditService, tilgangskontrollService, clock)
 }

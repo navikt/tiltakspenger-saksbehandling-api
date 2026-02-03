@@ -162,7 +162,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                             endretAv = endretAv.navIdent,
                             begrunnelse = begrunnelse,
                             erSattPåVent = true,
-                            status = status,
+                            status = status.toString(),
                         ),
                         saksbehandler = oppdatertSaksbehandler,
                         beslutter = null,
@@ -177,7 +177,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                             endretAv = endretAv.navIdent,
                             begrunnelse = begrunnelse,
                             erSattPåVent = true,
-                            status = status,
+                            status = status.toString(),
                         ),
                         saksbehandler = oppdatertSaksbehandler,
                         beslutter = null,
@@ -217,7 +217,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 tidspunkt = nå,
                 endretAv = endretAv.navIdent,
                 erSattPåVent = false,
-                status = status,
+                status = status.toString(),
             )
             return when (this) {
                 is Søknadsbehandling -> this.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
