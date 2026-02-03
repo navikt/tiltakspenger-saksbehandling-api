@@ -419,6 +419,7 @@ data class Klagebehandling(
 
             UNDER_BEHANDLING -> {
                 when (rammebehandlingsstatus) {
+                    // null betyr at det ikke er noen rammebehandling knyttet til klagen
                     Rammebehandlingsstatus.UNDER_BEHANDLING, null -> Unit.right()
                     Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
                     Rammebehandlingsstatus.AVBRUTT,

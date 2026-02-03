@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.forhåndsvisBrevKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.iverksettKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.oppdaterTekstTilBrev
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.overtaKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingFraKlageService
+import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
 import java.time.Clock
 
@@ -27,6 +29,7 @@ fun Route.klagebehandlingRoutes(
     tilgangskontrollService: TilgangskontrollService,
     vurderKlagebehandlingService: VurderKlagebehandlingService,
     opprettRammebehandlingFraKlageService: OpprettRammebehandlingFraKlageService,
+    overtaKlagebehandlingService: OvertaKlagebehandlingService,
     clock: Clock,
 ) {
     opprettKlagebehandlingRoute(
@@ -70,5 +73,11 @@ fun Route.klagebehandlingRoutes(
         opprettRammebehandlingFraKlageService = opprettRammebehandlingFraKlageService,
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
+    )
+    overtaKlagebehandlingRoute(
+        overtaKlagebehandlingService = overtaKlagebehandlingService,
+        auditService = auditService,
+        tilgangskontrollService = tilgangskontrollService,
+        clock = clock,
     )
 }

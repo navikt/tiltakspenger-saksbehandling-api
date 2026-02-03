@@ -34,34 +34,24 @@ interface RammebehandlingRepo {
     fun markerSendtTilDatadeling(id: BehandlingId, tidspunkt: LocalDateTime)
 
     fun taBehandlingSaksbehandler(
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler,
-        behandlingsstatus: Rammebehandlingsstatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext? = null,
+        rammebehandling: Rammebehandling,
+        transactionContext: TransactionContext? = null,
     ): Boolean
 
     fun taBehandlingBeslutter(
-        behandlingId: BehandlingId,
-        beslutter: Saksbehandler,
-        behandlingsstatus: Rammebehandlingsstatus,
-        sistEndret: LocalDateTime,
+        rammebehandling: Rammebehandling,
         sessionContext: SessionContext? = null,
     ): Boolean
 
     fun overtaSaksbehandler(
-        behandlingId: BehandlingId,
-        nySaksbehandler: Saksbehandler,
+        rammebehandling: Rammebehandling,
         nåværendeSaksbehandler: String,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext? = null,
+        transactionContext: TransactionContext? = null,
     ): Boolean
 
     fun overtaBeslutter(
-        behandlingId: BehandlingId,
-        nyBeslutter: Saksbehandler,
+        rammebehandling: Rammebehandling,
         nåværendeBeslutter: String,
-        sistEndret: LocalDateTime,
         sessionContext: SessionContext? = null,
     ): Boolean
 

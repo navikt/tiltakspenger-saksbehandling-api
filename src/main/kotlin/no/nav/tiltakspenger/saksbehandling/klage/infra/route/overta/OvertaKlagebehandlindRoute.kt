@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.klage.infra.route
+package no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
@@ -21,88 +21,75 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KanIkkeVurdereKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.ANNET
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.FEIL_ELLER_ENDRET_FAKTA
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.FEIL_LOVANVENDELSE
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.FEIL_REGELVERKSFORSTAAELSE
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.PROSESSUELL_FEIL
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OmgjørKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.KanIkkeOvertaKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.OvertaKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toStatusAndErrorJson
+import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
-private data class VurderKlagebehandlingBody(
-    val begrunnelse: String,
-    val årsak: String,
+private data class OvertaKlagebehandlingBody(
+    val overtarFra: String,
 ) {
     fun tilKommando(
         sakId: SakId,
         saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
         klagebehandlingId: KlagebehandlingId,
-    ): VurderKlagebehandlingKommando {
-        return OmgjørKlagebehandlingKommando(
+        correlationId: CorrelationId,
+    ): OvertaKlagebehandlingKommando {
+        return OvertaKlagebehandlingKommando(
             sakId = sakId,
             klagebehandlingId = klagebehandlingId,
             saksbehandler = saksbehandler,
+            overtarFra = overtarFra,
             correlationId = correlationId,
-            begrunnelse = Begrunnelse.create(begrunnelse)!!,
-            årsak = when (årsak) {
-                "FEIL_LOVANVENDELSE" -> FEIL_LOVANVENDELSE
-                "FEIL_REGELVERKSFORSTAAELSE" -> FEIL_REGELVERKSFORSTAAELSE
-                "FEIL_ELLER_ENDRET_FAKTA" -> FEIL_ELLER_ENDRET_FAKTA
-                "PROSESSUELL_FEIL" -> PROSESSUELL_FEIL
-                "ANNET" -> ANNET
-                else -> throw IllegalArgumentException("Ukjent omgjøringsårsak: $årsak")
-            },
         )
     }
 }
 
-private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/vurder"
+private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/overta"
 
-fun Route.vurderKlagebehandlingRoute(
-    vurderKlagebehandlingService: VurderKlagebehandlingService,
+fun Route.overtaKlagebehandlingRoute(
+    overtaKlagebehandlingService: OvertaKlagebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
 
     patch(PATH) {
-        logger.debug { "Mottatt patch-request på '$PATH' - Vurderer klagebehandling" }
+        logger.debug { "Mottatt patch-request på '$PATH' - Overta klagebehandling" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@patch
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@patch
         call.withSakId { sakId ->
             call.withKlagebehandlingId { klagebehandlingId ->
-                call.withBody<VurderKlagebehandlingBody> { body ->
+                call.withBody<OvertaKlagebehandlingBody> { body ->
                     val correlationId = call.correlationId()
                     krevSaksbehandlerRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                    vurderKlagebehandlingService.vurder(
+                    overtaKlagebehandlingService.overta(
                         kommando = body.tilKommando(
                             sakId = sakId,
                             saksbehandler = saksbehandler,
-                            correlationId = correlationId,
                             klagebehandlingId = klagebehandlingId,
+                            correlationId = correlationId,
                         ),
                     ).fold(
                         ifLeft = {
                             call.respondJson(it.toStatusAndErrorJson())
                         },
-                        ifRight = { (_, behandling) ->
+                        ifRight = { (sak, behandling) ->
                             val behandlingId = behandling.id
                             auditService.logMedSakId(
                                 sakId = sakId,
                                 navIdent = saksbehandler.navIdent,
                                 action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = "Vurderer klagebehandling på sak $sakId",
+                                contextMessage = "Overtar klagebehandling på sak $sakId",
                                 correlationId = correlationId,
                                 behandlingId = behandlingId,
                             )
-                            call.respondJson(value = behandling.tilKlagebehandlingDTO())
+                            call.respondJson(value = sak.toSakDTO(clock))
                         },
                     )
                 }
@@ -111,18 +98,9 @@ fun Route.vurderKlagebehandlingRoute(
     }
 }
 
-fun KanIkkeVurdereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+fun KanIkkeOvertaKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
-        is KanIkkeVurdereKlagebehandling.SaksbehandlerMismatch -> {
-            Pair(
-                HttpStatusCode.BadRequest,
-                behandlingenEiesAvAnnenSaksbehandler(
-                    this.forventetSaksbehandler,
-                ),
-            )
-        }
-
-        is KanIkkeVurdereKlagebehandling.KanIkkeOppdateres -> {
+        is KanIkkeOvertaKlagebehandling.KanIkkeOppdateres -> {
             this.underliggende.toStatusAndErrorJson()
         }
     }

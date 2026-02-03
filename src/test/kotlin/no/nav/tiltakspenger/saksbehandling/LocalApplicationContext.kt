@@ -272,6 +272,7 @@ class LocalApplicationContext(
             dokumentdistribusjonsklient = dokumentdistribusjonsklientFakeKlient,
             behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
             startRevurderingService = behandlingContext.startRevurderingService,
+            overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
         ) {}
     }
 

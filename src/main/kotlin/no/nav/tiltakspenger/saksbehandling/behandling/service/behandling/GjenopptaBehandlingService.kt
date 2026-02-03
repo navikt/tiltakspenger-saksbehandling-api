@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakSe
 import java.time.Clock
 
 class GjenopptaBehandlingService(
-    private val behandlingService: BehandlingService,
+    private val behandlingService: RammebehandlingService,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val statistikkSakService: StatistikkSakService,
     private val clock: Clock,
@@ -46,7 +46,7 @@ class GjenopptaBehandlingService(
             )
         }
 
-        return behandling.gjenoppta(saksbehandler, clock, hentSaksopplysninger).mapLeft {
+        return behandling.gjenoppta(saksbehandler, correlationId, clock, hentSaksopplysninger).mapLeft {
             KunneIkkeGjenopptaBehandling.FeilVedOppdateringAvSaksopplysninger(it)
         }.map {
             val oppdatertSak = sak.oppdaterRammebehandling(it)

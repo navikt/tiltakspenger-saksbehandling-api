@@ -139,14 +139,14 @@ class RammebehandlingPostgresRepo(
      * Oppdaterer behandlingsstatus, og saksbehandler bare dersom den er null. Skal du endre saksbehandler bruk [overtaSaksbehandler]
      */
     override fun taBehandlingSaksbehandler(
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler,
-        behandlingsstatus: Rammebehandlingsstatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
+        rammebehandling: Rammebehandling,
+        transactionContext: TransactionContext?,
     ): Boolean {
-        return sessionFactory.withSession(sessionContext) { sx ->
-            sx.run(
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            rammebehandling.klagebehandling?.also {
+                KlagebehandlingPostgresRepo.taBehandling(it, tx)
+            }
+            tx.run(
                 sqlQuery(
                     """
                     update behandling set
@@ -154,12 +154,12 @@ class RammebehandlingPostgresRepo(
                         status = :status,
                         beslutter = CASE WHEN beslutter = :saksbehandler THEN null ELSE beslutter END,
                         sist_endret = :sist_endret
-                    where id = :id and saksbehandler is null
+                    where id = :id and saksbehandler is null and status = 'KLAR_TIL_BEHANDLING'
                     """,
-                    "id" to behandlingId.toString(),
-                    "saksbehandler" to saksbehandler.navIdent,
-                    "status" to behandlingsstatus.toDb(),
-                    "sist_endret" to sistEndret,
+                    "id" to rammebehandling.id.toString(),
+                    "saksbehandler" to rammebehandling.saksbehandler,
+                    "status" to rammebehandling.status.toDb(),
+                    "sist_endret" to rammebehandling.sistEndret,
                 ).asUpdate,
             ) > 0
         }
@@ -169,72 +169,72 @@ class RammebehandlingPostgresRepo(
      * Oppdaterer behandlingsstatus, og beslutter bare dersom den er null. Skal du endre beslutter bruk [overtaSaksbehandler]
      */
     override fun taBehandlingBeslutter(
-        behandlingId: BehandlingId,
-        beslutter: Saksbehandler,
-        behandlingsstatus: Rammebehandlingsstatus,
-        sistEndret: LocalDateTime,
+        rammebehandling: Rammebehandling,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 sqlQuery(
-                    """update behandling set beslutter = :beslutter, status = :status, sist_endret = :sist_endret where id = :id and beslutter is null""",
-                    "id" to behandlingId.toString(),
-                    "beslutter" to beslutter.navIdent,
-                    "status" to behandlingsstatus.toDb(),
-                    "sist_endret" to sistEndret,
+                    """update behandling set beslutter = :beslutter, status = :status, sist_endret = :sist_endret where id = :id and beslutter is null and status = 'KLAR_TIL_BESLUTNING'""",
+                    "id" to rammebehandling.id.toString(),
+                    "beslutter" to rammebehandling.beslutter,
+                    "status" to rammebehandling.status.toDb(),
+                    "sist_endret" to rammebehandling.sistEndret,
                 ).asUpdate,
             ) > 0
         }
     }
 
     /**
-     * Oppdaterer saksbehandler på behandlingen. Skal du inserte saksbehandler bruk [taBehandlingSaksbehandler]
+     * En ny saksbehandler overtar for [nåværendeSaksbehandler].
+     * Dersom det ikke er en saksbehandler på behandlingen, bruk [taBehandlingSaksbehandler]
+     * @param nåværendeSaksbehandler For å unngå at to saksbehandlere kan overta samtidig.
      */
     override fun overtaSaksbehandler(
-        behandlingId: BehandlingId,
-        nySaksbehandler: Saksbehandler,
+        rammebehandling: Rammebehandling,
         nåværendeSaksbehandler: String,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
+        transactionContext: TransactionContext?,
     ): Boolean {
-        return sessionFactory.withSession(sessionContext) { sx ->
-            sx.run(
+        return sessionFactory.withSession(transactionContext) { tx ->
+            rammebehandling.klagebehandling?.also {
+                KlagebehandlingPostgresRepo.taBehandling(it, tx)
+            }
+            tx.run(
                 sqlQuery(
                     """
                     update behandling set
                         saksbehandler = :nySaksbehandler,
                         beslutter = CASE WHEN beslutter = :nySaksbehandler THEN null ELSE beslutter END,
                         sist_endret = :sist_endret
-                    where id = :id and saksbehandler = :lagretSaksbehandler
+                    where id = :id and saksbehandler = :lagretSaksbehandler and status = 'UNDER_BEHANDLING'
                     """,
-                    "id" to behandlingId.toString(),
-                    "nySaksbehandler" to nySaksbehandler.navIdent,
+                    "id" to rammebehandling.id.toString(),
+                    "nySaksbehandler" to rammebehandling.saksbehandler,
                     "lagretSaksbehandler" to nåværendeSaksbehandler,
-                    "sist_endret" to sistEndret,
+                    "sist_endret" to rammebehandling.sistEndret,
                 ).asUpdate,
             ) > 0
         }
     }
 
     /**
-     * Oppdaterer saksbehandler på behandlingen. Skal du inserte saksbehandler bruk [taBehandlingSaksbehandler]
+     * En ny beslutter overtar for [nåværendeBeslutter].
+     * Dersom det ikke er en beslutter på behandlingen, bruk [taBehandlingBeslutter]
+     * @param nåværendeBeslutter For å unngå at to besluttere kan overta samtidig.
      */
     override fun overtaBeslutter(
-        behandlingId: BehandlingId,
-        nyBeslutter: Saksbehandler,
+        rammebehandling: Rammebehandling,
         nåværendeBeslutter: String,
-        sistEndret: LocalDateTime,
         sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 sqlQuery(
-                    """update behandling set beslutter = :nyBeslutter, sist_endret = :sist_endret where id = :id and beslutter = :lagretBeslutter""",
-                    "id" to behandlingId.toString(),
-                    "nyBeslutter" to nyBeslutter.navIdent,
+                    """update behandling set beslutter = :nyBeslutter, sist_endret = :sist_endret where id = :id and beslutter = :lagretBeslutter and status = 'UNDER_BESLUTNING'""",
+                    "id" to rammebehandling.id.toString(),
+                    "nyBeslutter" to rammebehandling.beslutter!!,
                     "lagretBeslutter" to nåværendeBeslutter,
-                    "sist_endret" to sistEndret,
+                    "sist_endret" to rammebehandling.sistEndret,
                 ).asUpdate,
             ) > 0
         }

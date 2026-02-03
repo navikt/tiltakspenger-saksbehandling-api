@@ -369,6 +369,7 @@ open class ApplicationContext(
             dokumentdistribusjonsklient = dokumentContext.dokumentdistribusjonsklient,
             behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
             startRevurderingService = behandlingContext.startRevurderingService,
+            overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
         )
     }
 

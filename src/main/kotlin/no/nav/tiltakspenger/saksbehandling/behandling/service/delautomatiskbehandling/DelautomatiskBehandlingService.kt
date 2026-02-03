@@ -57,6 +57,7 @@ class DelautomatiskBehandlingService(
             log.info { "Gjenopptar behandling med id ${behandling.id}. CorrelationId: $correlationId" }
             val gjenopptattBehandling = behandling.gjenoppta(
                 endretAv = AUTOMATISK_SAKSBEHANDLER,
+                correlationId = correlationId,
                 // Den automatiske jobben oppdaterer saksopplysningene selv.
                 hentSaksopplysninger = null,
                 clock = clock,

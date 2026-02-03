@@ -6,13 +6,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
-class OvertaBehandlingService(
-    private val behandlingService: BehandlingService,
+class OvertaRammebehandlingService(
+    private val rammebehandlingService: RammebehandlingService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
@@ -20,15 +20,15 @@ class OvertaBehandlingService(
     private val sessionFactory: SessionFactory,
 ) {
 
-    suspend fun overta(kommando: OvertaBehandlingKommando): Either<KunneIkkeOvertaBehandling, Pair<Sak, Rammebehandling>> {
+    suspend fun overta(kommando: OvertaRammebehandlingKommando): Either<KunneIkkeOvertaBehandling, Pair<Sak, Rammebehandling>> {
         val (sakId, behandlingId, overtarFra, saksbehandler, _) = kommando
 
-        val (sak, behandling) = behandlingService.hentSakOgBehandling(
+        val (sak, behandling) = rammebehandlingService.hentSakOgBehandling(
             sakId = sakId,
             behandlingId = behandlingId,
         )
 
-        return behandling.overta(saksbehandler, clock).map {
+        return behandling.overta(saksbehandler, kommando.correlationId, clock).map {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
@@ -36,21 +36,17 @@ class OvertaBehandlingService(
                 when (it.status) {
                     Rammebehandlingsstatus.UNDER_BEHANDLING -> {
                         rammebehandlingRepo.overtaSaksbehandler(
-                            it.id,
-                            saksbehandler,
-                            overtarFra,
-                            it.sistEndret,
-                            tx,
+                            rammebehandling = it,
+                            nåværendeSaksbehandler = overtarFra,
+                            transactionContext = tx,
                         )
                     }
 
                     Rammebehandlingsstatus.UNDER_BESLUTNING -> {
                         rammebehandlingRepo.overtaBeslutter(
-                            it.id,
-                            saksbehandler,
-                            overtarFra,
-                            it.sistEndret,
-                            tx,
+                            rammebehandling = it,
+                            nåværendeBeslutter = overtarFra,
+                            sessionContext = tx,
                         )
                     }
 

@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakSe
 import java.time.Clock
 
 class TaBehandlingService(
-    private val behandlingService: BehandlingService,
+    private val behandlingService: RammebehandlingService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
@@ -41,21 +41,15 @@ class TaBehandlingService(
                 when (it.status) {
                     Rammebehandlingsstatus.UNDER_BEHANDLING -> {
                         rammebehandlingRepo.taBehandlingSaksbehandler(
-                            it.id,
-                            saksbehandler,
-                            it.status,
-                            it.sistEndret,
-                            tx,
+                            rammebehandling = it,
+                            transactionContext = tx,
                         )
                     }
 
                     Rammebehandlingsstatus.UNDER_BESLUTNING -> {
                         rammebehandlingRepo.taBehandlingBeslutter(
-                            it.id,
-                            saksbehandler,
-                            it.status,
-                            it.sistEndret,
-                            tx,
+                            rammebehandling = it,
+                            sessionContext = tx,
                         )
                     }
 
