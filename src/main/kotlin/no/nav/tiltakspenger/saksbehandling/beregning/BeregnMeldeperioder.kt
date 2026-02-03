@@ -63,7 +63,7 @@ private data class BeregnMeldeperioder(
     init {
         meldeperioderSomBeregnes.zipWithNext().forEach { (a, b) ->
             require(a.fraOgMed < b.fraOgMed) {
-                "Meldeperioder som skal beregnes må være sammenhengede uten overlapp - $a og $b oppfyller ikke kriteriene"
+                "Meldeperioder som skal beregnes må være sammenhengende uten overlapp - $a og $b oppfyller ikke kriteriene"
             }
         }
     }

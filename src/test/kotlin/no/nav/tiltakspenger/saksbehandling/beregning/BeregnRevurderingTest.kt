@@ -252,7 +252,7 @@ class BeregnRevurderingTest {
     }
 
     @Test
-    fun `Skal ha en sammenhengede beregningsperiode, selv om ikke alle meldeperioder har endringer`() {
+    fun `Skal ha en sammenhengende beregningsperiode, selv om ikke alle meldeperioder har endringer`() {
         val (sak, revurdering) = sakMedRevurdering()
 
         val førstePeriode = sak.meldeperiodeKjeder[0].periode

@@ -396,7 +396,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan ikke ha 2 åpne rammebehandlinger knyttet til samme klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, søknad, søknadsbehandling, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, søknad, søknadsbehandling, klagebehandling) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!
             opprettRammebehandlingForKlage(

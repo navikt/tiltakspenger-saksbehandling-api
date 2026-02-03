@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -168,20 +169,19 @@ interface OppdaterBehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,
+        vedtaksperiode: Periode,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
-        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        vedtaksperiode: Periode? = null,
+        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
             {
               "resultat": "OMGJØRING",
-              "vedtaksperiode": ${vedtaksperiode?.let {serialize(it)}},
-              "skalOmgjøreHeleVedtaket": ${vedtaksperiode == null},
+              "vedtaksperiode": ${serialize(vedtaksperiode.toDTO())},
               ${
             innvilgelseJson(
                 innvilgelsesperioder,

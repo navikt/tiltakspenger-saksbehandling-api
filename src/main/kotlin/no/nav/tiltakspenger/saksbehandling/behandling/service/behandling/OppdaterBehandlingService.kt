@@ -10,12 +10,12 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -93,15 +93,10 @@ class OppdaterBehandlingService(
 
             is OppdaterRevurderingKommando.Omgjøring,
             -> {
-                val innvilgelsesperioder = kommando.tilInnvilgelseperioder(behandling)
-
                 this.beregnInnvilgelse(
                     behandlingId = kommando.behandlingId,
-                    vedtaksperiode = Revurderingsresultat.Omgjøring.utledNyVedtaksperiode(
-                        (behandling.resultat as Revurderingsresultat.Omgjøring).vedtaksperiode,
-                        innvilgelsesperioder.totalPeriode,
-                    ),
-                    innvilgelsesperioder = innvilgelsesperioder,
+                    vedtaksperiode = kommando.vedtaksperiode,
+                    innvilgelsesperioder = kommando.tilInnvilgelseperioder(behandling),
                     barnetilleggsperioder = kommando.barnetillegg.periodisering,
                 )
             }
@@ -169,22 +164,11 @@ class OppdaterBehandlingService(
 
         return when (kommando) {
             is OppdaterRevurderingKommando.Omgjøring -> {
-                val nyVedtaksperiode = Revurderingsresultat.Omgjøring.utledNyVedtaksperiode(
-                    revurdering.omgjørRammevedtak.totalPeriode!!,
-                    kommando.innvilgelsesperioder.totalPeriode,
-                )
-
-                val rammevedtakSomOmgjøres = this.vedtaksliste.finnRammevedtakSomOmgjøres(nyVedtaksperiode)
-
-                if (rammevedtakSomOmgjøres.rammevedtakIDer.size > 1) {
-                    return KanIkkeOppdatereBehandling.KanIkkeOmgjøreFlereVedtak.left()
-                }
-
                 revurdering.oppdaterOmgjøring(
                     kommando = kommando,
                     utbetaling = utbetaling,
                     clock = clock,
-                    omgjørRammevedtak = this.vedtaksliste.finnRammevedtakSomOmgjøres(nyVedtaksperiode),
+                    finnRammevedtakSomOmgjøres = { this.vedtaksliste.finnRammevedtakSomOmgjøres(it) },
                 )
             }
 
@@ -235,7 +219,7 @@ class OppdaterBehandlingService(
 
                 val perioderSomOpphøres = eksisterendeInnvilgetPerioder.trekkFra(kommando.innvilgelsesperioder.perioder)
 
-                if (perioderSomOpphøres.isEmpty()) Unit.right() else KanIkkeOppdatereBehandling.KanIkkeOpphøre.left()
+                if (perioderSomOpphøres.isEmpty()) Unit.right() else KanIkkeOppdatereOmgjøring.KanIkkeOpphøre.left()
             }
         }
     }

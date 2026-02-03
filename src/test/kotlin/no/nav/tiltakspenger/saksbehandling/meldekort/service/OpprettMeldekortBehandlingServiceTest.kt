@@ -147,7 +147,7 @@ class OpprettMeldekortBehandlingServiceTest {
             val (sak) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioderTotal,
-                revurderingInnvilgelsesperioder = innvilgelsesperioder(andrePeriode),
+                omgjøringInnvilgelsesperioder = innvilgelsesperioder(andrePeriode),
             )!!
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
@@ -166,7 +166,7 @@ class OpprettMeldekortBehandlingServiceTest {
             val (sak) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioderTotal,
-                revurderingInnvilgelsesperioder = innvilgelsesperioder(andrePeriode),
+                omgjøringInnvilgelsesperioder = innvilgelsesperioder(andrePeriode),
             )!!
 
             tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(

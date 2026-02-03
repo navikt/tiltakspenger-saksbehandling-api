@@ -132,32 +132,6 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
         // Abn: extender Innvilgelse for nå, slik at Omgjøring mappes til innvilgelse ved exhaustive mappinger for vedtak, statistikk osv.
         // Fjernes når omgjøring ikke lengre alltid skal føre til innvilgelse. Må da ha en annen mekanisme for å avgjøre om omgjøringen er en innvilgelse
 
-        fun oppdater(
-            oppdatertInnvilgelsesperioder: Innvilgelsesperioder,
-            oppdatertBarnetillegg: Barnetillegg,
-            nyVedtaksperiode: Periode?,
-            omgjørRammevedtak: OmgjørRammevedtak,
-            saksopplysninger: Saksopplysninger,
-        ): Omgjøring {
-            val innvilgelsesperioderMedTiltaksdeltakelse =
-                oppdatertInnvilgelsesperioder.oppdaterTiltaksdeltakelser(saksopplysninger.tiltaksdeltakelser)
-
-            requireNotNull(innvilgelsesperioderMedTiltaksdeltakelse) {
-                // Dersom denne kaster og vi savner mer sakskontekst, bør denne returnere Either, slik at callee kan håndtere feilen.
-                "Valgte innvilgelsesperioder har ingen overlapp med tiltaksdeltakelser fra saksopplysningene"
-            }
-
-            return this.copy(
-                vedtaksperiode = nyVedtaksperiode ?: utledNyVedtaksperiode(
-                    omgjortVedtak.periode,
-                    oppdatertInnvilgelsesperioder.totalPeriode,
-                ),
-                innvilgelsesperioder = innvilgelsesperioderMedTiltaksdeltakelse,
-                barnetillegg = oppdatertBarnetillegg,
-                omgjørRammevedtak = omgjørRammevedtak,
-            )
-        }
-
         /**
          * Validerer [oppdaterteSaksopplysninger] opp mot resultatet.
          * Det finnes tenkte ugyldige tilstander, som f.eks. at den [valgteTiltaksdeltakelser] ikke lenger matcher tiltaksdeltakelsen i [oppdaterteSaksopplysninger].
@@ -171,18 +145,9 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
             val barnetillegg =
                 innvilgelsesperioder?.let { barnetillegg?.krympTilPerioder(innvilgelsesperioder.perioder) }
 
-            return Omgjøring(
-                vedtaksperiode = if (innvilgelsesperioder == null) {
-                    omgjortVedtak.periode
-                } else {
-                    utledNyVedtaksperiode(
-                        omgjortVedtak.periode,
-                        innvilgelsesperioder.totalPeriode,
-                    )
-                },
+            return this.copy(
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
-                omgjørRammevedtak = omgjørRammevedtak,
             ).right()
         }
 
@@ -191,12 +156,6 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
                 omgjørRammevedtak: Rammevedtak,
                 saksopplysninger: Saksopplysninger,
             ): Either<KunneIkkeOppretteOmgjøring, Omgjøring> {
-                // TODO abn: tillater foreløpig ikke å omgjøre vedtak med hull (dvs vedtaket har allerede blitt omgjort "i midten")
-                // Når vi har gitt saksbehandler mulighet til å velge vedtaksperiode kan denne restriksjonen fjernes/flyttes til oppdatering
-                if (omgjørRammevedtak.gjeldendePerioder.size != 1) {
-                    return KunneIkkeOppretteOmgjøring.PerioderSomOmgjøresMåVæreSammenhengede.left()
-                }
-
                 val perioderSomKanInnvilges = omgjørRammevedtak.gjeldendePerioder
                     .overlappendePerioder(saksopplysninger.tiltaksdeltakelser.perioder)
 
@@ -214,29 +173,17 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
 
                 return Omgjøring(
                     // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.
-                    vedtaksperiode = omgjørRammevedtak.gjeldendePerioder.single(),
-                    // Hvis vedtaket vi omgjør er en delvis innvilgelse, så bruker vi denne.
+                    vedtaksperiode = omgjørRammevedtak.gjeldendeTotalPeriode!!,
                     innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = barnetillegg,
                     omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
                 ).right()
             }
-
-            // Ny vedtaksperiode må alltid inneholde hele perioden for vedtaket som omgjøres
-            fun utledNyVedtaksperiode(
-                omgjortVedtaksperiode: Periode,
-                nyInnvilgelsesperiode: Periode,
-            ): Periode {
-                return Periode(
-                    fraOgMed = minOf(omgjortVedtaksperiode.fraOgMed, nyInnvilgelsesperiode.fraOgMed),
-                    tilOgMed = maxOf(omgjortVedtaksperiode.tilOgMed, nyInnvilgelsesperiode.tilOgMed),
-                )
-            }
         }
 
         init {
-            require(omgjørRammevedtak.perioder.all { vedtaksperiode.inneholderHele(it) }) {
-                "Vedtaksperioden ($vedtaksperiode) må være lik eller større enn omgjort rammevedtak sin(e) periode(r): ${omgjørRammevedtak.perioder}"
+            require(vedtaksperiode.overlapperMed(omgjørRammevedtak.perioder)) {
+                "Vedtaksperioden ($vedtaksperiode) må overlappe med omgjort rammevedtak sin(e) periode(r): ${omgjørRammevedtak.perioder}"
             }
 
             require(omgjørRammevedtak.size >= 1) {

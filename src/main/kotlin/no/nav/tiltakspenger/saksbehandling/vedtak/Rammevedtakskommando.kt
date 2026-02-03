@@ -11,11 +11,8 @@ import java.time.LocalDate
  */
 sealed interface Rammevedtakskommando {
 
-    /**
-     * Foreløpig støtter vi kun å omgjøre et rammevedtak i sin helhet.
-     */
     data class Omgjør(
-        val tvungenOmgjøringsperiode: Periode,
+        val perioderSomKanOmgjøres: NonEmptyList<Periode>,
     ) : Rammevedtakskommando
 
     /**
