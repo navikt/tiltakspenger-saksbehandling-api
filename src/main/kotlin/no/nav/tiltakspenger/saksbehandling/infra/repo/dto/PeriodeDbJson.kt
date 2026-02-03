@@ -17,6 +17,9 @@ data class PeriodeDbJson(
 
 fun Periode.toDbJson(): PeriodeDbJson = PeriodeDbJson(fraOgMed.toString(), tilOgMed.toString())
 
+/**
+ *  Serialize til sql type periode_datoer
+ * */
 fun Periode.tilDbPeriode(): String {
     return "(${this.fraOgMed},${this.tilOgMed})"
 }

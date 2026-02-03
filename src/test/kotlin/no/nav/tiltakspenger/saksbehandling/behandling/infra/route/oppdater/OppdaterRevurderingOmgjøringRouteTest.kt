@@ -136,7 +136,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 @Language("JSON")
                 val expectedResponse = """
                     {
-                        "melding": "Innvilgelsesperiodene kan ikke overlappe med perioder av den opprinnelige vedtaksperioden som ikke omgjøres",
+                        "melding": "Innvilgelsesperiodene kan ikke overlappe med de deler av gjeldende vedtaksperioder som ikke omgjøres",
                         "kode":"innvilgelsesperioder_overlapper_ikkeomgjort_periode"
                     }
                 """.trimIndent()
