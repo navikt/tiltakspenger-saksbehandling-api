@@ -19,11 +19,13 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingSe
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.JournalførKlagevedtakService
+import no.nav.tiltakspenger.saksbehandling.klage.service.LeggTilbakeKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingFraKlageService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.DistribuerKlagevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
@@ -139,6 +141,20 @@ open class KlagebehandlingContext(
         OvertaKlagebehandlingService(
             sakService = sakService,
             overtaRammebehandlingService = overtaRammebehandlingService,
+            klagebehandlingRepo = klagebehandlingRepo,
+            clock = clock,
+        )
+    }
+    open val taKlagebehandlingService by lazy {
+        TaKlagebehandlingService(
+            sakService = sakService,
+            klagebehandlingRepo = klagebehandlingRepo,
+            clock = clock,
+        )
+    }
+    open val leggTilbakeKlagebehandlingService by lazy {
+        LeggTilbakeKlagebehandlingService(
+            sakService = sakService,
             klagebehandlingRepo = klagebehandlingRepo,
             clock = clock,
         )
