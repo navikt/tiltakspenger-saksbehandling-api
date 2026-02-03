@@ -23,9 +23,12 @@ import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KanIkkeOppdatereBrevtekstPåKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.oppdaterBrevtekst
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereFormkravPåKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.oppdaterFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.KanIkkeOppretteRammebehandlingFraKlage
@@ -54,7 +57,7 @@ fun Sak.oppdaterKlagebehandlingFormkrav(
     kommando: OppdaterKlagebehandlingFormkravKommando,
     journalpostOpprettet: LocalDateTime,
     clock: Clock,
-): Either<KanIkkeOppdatereKlagebehandling, Pair<Sak, Klagebehandling>> {
+): Either<KanIkkeOppdatereFormkravPåKlagebehandling, Pair<Sak, Klagebehandling>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId)
         .oppdaterFormkrav(kommando, journalpostOpprettet, clock)
         .map {
@@ -66,7 +69,7 @@ fun Sak.oppdaterKlagebehandlingFormkrav(
 fun Sak.oppdaterKlagebehandlingBrevtekst(
     kommando: KlagebehandlingBrevKommando,
     clock: Clock,
-): Either<KanIkkeOppdatereKlagebehandling, Pair<Sak, Klagebehandling>> {
+): Either<KanIkkeOppdatereBrevtekstPåKlagebehandling, Pair<Sak, Klagebehandling>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId)
         .oppdaterBrevtekst(kommando, clock)
         .map {

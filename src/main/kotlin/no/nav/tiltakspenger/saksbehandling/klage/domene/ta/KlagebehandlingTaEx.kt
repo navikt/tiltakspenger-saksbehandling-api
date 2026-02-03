@@ -21,6 +21,7 @@ fun Klagebehandling.ta(
     }
     // Spesialtilfelle: Dersom saksbehandler forsøker å ta fra seg selv, så endres ikke behandlingen.
     if (saksbehandler == kommando.saksbehandler.navIdent) return this.right()
+    if (saksbehandler != null) return KanIkkeTaKlagebehandling.BrukOvertaIsteden.left()
     return this.copy(
         saksbehandler = kommando.saksbehandler.navIdent,
         sistEndret = nå(clock),

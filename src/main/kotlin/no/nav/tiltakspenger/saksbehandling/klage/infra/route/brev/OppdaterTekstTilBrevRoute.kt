@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -16,8 +18,10 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.kanIkkeOppdatereBehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KanIkkeOppdatereBrevtekstPåKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toStatusAndErrorJson
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 
 private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/brevtekst"
@@ -65,6 +69,26 @@ fun Route.oppdaterTekstTilBrev(
                     )
                 }
             }
+        }
+    }
+}
+
+private fun KanIkkeOppdatereBrevtekstPåKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+    return when (this) {
+        is KanIkkeOppdatereBrevtekstPåKlagebehandling.SaksbehandlerMismatch -> {
+            Pair(
+                HttpStatusCode.BadRequest,
+                behandlingenEiesAvAnnenSaksbehandler(
+                    this.forventetSaksbehandler,
+                ),
+            )
+        }
+
+        is KanIkkeOppdatereBrevtekstPåKlagebehandling.KanIkkeOppdateres -> {
+            Pair(
+                HttpStatusCode.BadRequest,
+                kanIkkeOppdatereBehandling(),
+            )
         }
     }
 }

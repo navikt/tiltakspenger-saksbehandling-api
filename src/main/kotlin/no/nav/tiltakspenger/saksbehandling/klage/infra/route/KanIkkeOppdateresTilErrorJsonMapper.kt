@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebehandling
 
-fun Klagebehandling.KanIkkeOppdateres.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (val u = this) {
-        is Klagebehandling.KanIkkeOppdateres.FeilKlagebehandlingsstatus -> {
+        is KanIkkeOppdatereKlagebehandling.FeilKlagebehandlingsstatus -> {
             Pair(
                 HttpStatusCode.BadRequest,
                 ErrorJson(
@@ -16,7 +16,7 @@ fun Klagebehandling.KanIkkeOppdateres.toStatusAndErrorJson(): Pair<HttpStatusCod
             )
         }
 
-        is Klagebehandling.KanIkkeOppdateres.FeilRammebehandlingssstatus -> {
+        is KanIkkeOppdatereKlagebehandling.FeilRammebehandlingssstatus -> {
             Pair(
                 HttpStatusCode.BadRequest,
                 ErrorJson(
@@ -26,7 +26,7 @@ fun Klagebehandling.KanIkkeOppdateres.toStatusAndErrorJson(): Pair<HttpStatusCod
             )
         }
 
-        is Klagebehandling.KanIkkeOppdateres.FeilResultat -> {
+        is KanIkkeOppdatereKlagebehandling.FeilResultat -> {
             Pair(
                 HttpStatusCode.BadRequest,
                 ErrorJson(

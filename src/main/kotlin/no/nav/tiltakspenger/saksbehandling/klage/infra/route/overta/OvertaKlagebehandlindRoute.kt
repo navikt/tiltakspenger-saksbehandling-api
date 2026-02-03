@@ -98,10 +98,21 @@ fun Route.overtaKlagebehandlingRoute(
     }
 }
 
+/**
+ * Brukes også av overta fra rammebehandling
+ */
 fun KanIkkeOvertaKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
         is KanIkkeOvertaKlagebehandling.KanIkkeOppdateres -> {
             this.underliggende.toStatusAndErrorJson()
         }
+
+        is KanIkkeOvertaKlagebehandling.BrukTaKlagebehandlingIsteden -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Kan ikke overta klagebehandling. Bruk ta klagebehandling isteden.",
+                "kan_ikke_overta_klagebehandling_bruk_ta_klagebehandling_isteden",
+            ),
+        )
     }
 }

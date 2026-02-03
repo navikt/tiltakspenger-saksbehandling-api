@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.service
 import arrow.core.Either
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KanIkkeOppdatereBrevtekstPåKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandlingBrevtekst
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -15,9 +15,9 @@ class OppdaterKlagebehandlingTekstTilBrevService(
     private val clock: Clock,
     private val klagebehandlingRepo: KlagebehandlingRepo,
 ) {
-    suspend fun oppdaterTekstTilBrev(
+    fun oppdaterTekstTilBrev(
         kommando: KlagebehandlingBrevKommando,
-    ): Either<KanIkkeOppdatereKlagebehandling, Pair<Sak, Klagebehandling>> {
+    ): Either<KanIkkeOppdatereBrevtekstPåKlagebehandling, Pair<Sak, Klagebehandling>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
 
         return sak.oppdaterKlagebehandlingBrevtekst(kommando, clock).onRight {

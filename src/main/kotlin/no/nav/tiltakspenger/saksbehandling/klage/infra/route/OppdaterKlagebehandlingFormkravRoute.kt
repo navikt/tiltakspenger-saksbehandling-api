@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.kanIkkeOppdatereBehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereFormkravPåKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 
 private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/formkrav"
@@ -74,9 +74,9 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
     }
 }
 
-fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+private fun KanIkkeOppdatereFormkravPåKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
-        is KanIkkeOppdatereKlagebehandling.FantIkkeJournalpost -> {
+        is KanIkkeOppdatereFormkravPåKlagebehandling.FantIkkeJournalpost -> {
             Pair(
                 HttpStatusCode.BadRequest,
                 ErrorJson(
@@ -86,7 +86,7 @@ fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode,
             )
         }
 
-        is KanIkkeOppdatereKlagebehandling.SaksbehandlerMismatch -> {
+        is KanIkkeOppdatereFormkravPåKlagebehandling.SaksbehandlerMismatch -> {
             Pair(
                 HttpStatusCode.BadRequest,
                 behandlingenEiesAvAnnenSaksbehandler(
@@ -95,14 +95,14 @@ fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode,
             )
         }
 
-        is KanIkkeOppdatereKlagebehandling.KanIkkeOppdateres -> {
+        is KanIkkeOppdatereFormkravPåKlagebehandling.KanIkkeOppdateres -> {
             Pair(
                 HttpStatusCode.BadRequest,
                 kanIkkeOppdatereBehandling(),
             )
         }
 
-        KanIkkeOppdatereKlagebehandling.KanIkkeEndreTilAvvisningNårTilknyttetRammebehandling -> Pair(
+        is KanIkkeOppdatereFormkravPåKlagebehandling.KanIkkeEndreTilAvvisningNårTilknyttetRammebehandling -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
                 "Kan ikke endre klagebehandling til avvist når den er tilknyttet en rammebehandling",

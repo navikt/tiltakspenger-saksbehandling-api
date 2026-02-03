@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehand
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
@@ -100,62 +99,6 @@ data class Klagebehandling(
         return this.saksbehandler == saksbehandler.navIdent
     }
 
-    fun oppdaterFormkrav(
-        kommando: OppdaterKlagebehandlingFormkravKommando,
-        journalpostOpprettet: LocalDateTime,
-        clock: Clock,
-    ): Either<KanIkkeOppdatereKlagebehandling, Klagebehandling> {
-        if (!erUnderBehandling) return KanIkkeOppdatereKlagebehandling.KanIkkeOppdateres.left()
-        if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
-            return KanIkkeOppdatereKlagebehandling.SaksbehandlerMismatch(
-                forventetSaksbehandler = this.saksbehandler!!,
-                faktiskSaksbehandler = kommando.saksbehandler.navIdent,
-            ).left()
-        }
-        val oppdaterteFormkrav = kommando.toKlageFormkrav()
-        val tidligereResultat = this.resultat
-        val harTilknyttetRammebehandling =
-            this.resultat is Klagebehandlingsresultat.Omgjør && this.resultat.rammebehandlingId != null
-
-        if (oppdaterteFormkrav.erAvvisning && harTilknyttetRammebehandling) {
-            return KanIkkeOppdatereKlagebehandling.KanIkkeEndreTilAvvisningNårTilknyttetRammebehandling.left()
-        }
-
-        return this.copy(
-            sistEndret = nå(clock),
-            formkrav = oppdaterteFormkrav,
-            journalpostId = kommando.journalpostId,
-            journalpostOpprettet = journalpostOpprettet,
-            resultat = when {
-                oppdaterteFormkrav.erAvvisning && tidligereResultat is Klagebehandlingsresultat.Avvist -> tidligereResultat
-                oppdaterteFormkrav.erAvvisning -> Klagebehandlingsresultat.Avvist.empty
-                resultat is Klagebehandlingsresultat.Omgjør && oppdaterteFormkrav.erOppfyllt -> this.resultat
-                else -> null
-            },
-        ).right()
-    }
-
-    fun oppdaterBrevtekst(
-        kommando: KlagebehandlingBrevKommando,
-        clock: Clock,
-    ): Either<KanIkkeOppdatereKlagebehandling, Klagebehandling> {
-        if (!erAvvisning || !erUnderBehandling) {
-            return KanIkkeOppdatereKlagebehandling.KanIkkeOppdateres.left()
-        }
-        if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
-            return KanIkkeOppdatereKlagebehandling.SaksbehandlerMismatch(
-                forventetSaksbehandler = this.saksbehandler!!,
-                faktiskSaksbehandler = kommando.saksbehandler.navIdent,
-            ).left()
-        }
-        return (resultat as Klagebehandlingsresultat.Avvist).oppdaterBrevtekst(kommando.brevtekster).let {
-            this.copy(
-                sistEndret = nå(clock),
-                resultat = it,
-            ).right()
-        }
-    }
-
     fun vurder(
         kommando: VurderKlagebehandlingKommando,
         rammebehandlingsstatus: Rammebehandlingsstatus?,
@@ -170,7 +113,7 @@ data class Klagebehandling(
         // TODO jah: Denne må nok gjøres om litt når vi legger til opprettholdelse
         if (resultat != null && !erOmgjøring) {
             return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres(
-                KanIkkeOppdateres.FeilResultat(
+                KanIkkeOppdatereKlagebehandling.FeilResultat(
                     forventetResultat = Klagebehandlingsresultat.Omgjør::class.simpleName!!,
                     faktiskResultat = resultat::class.simpleName!!,
                 ),
@@ -391,30 +334,13 @@ data class Klagebehandling(
         }
     }
 
-    sealed interface KanIkkeOppdateres {
-        data class FeilKlagebehandlingsstatus(
-            val forventetStatus: Klagebehandlingsstatus,
-            val faktiskStatus: Klagebehandlingsstatus,
-        ) : KanIkkeOppdateres
-
-        data class FeilRammebehandlingssstatus(
-            val forventetStatus: Rammebehandlingsstatus,
-            val faktiskStatus: Rammebehandlingsstatus,
-        ) : KanIkkeOppdateres
-
-        data class FeilResultat(
-            val forventetResultat: String,
-            val faktiskResultat: String?,
-        ) : KanIkkeOppdateres
-    }
-
     /**
      * Sjekker både [Klagebehandlingsresultat] og [Rammebehandlingsstatus] hvis den er satt.
      */
-    fun kanOppdatereIDenneStatusen(rammebehandlingsstatus: Rammebehandlingsstatus?): Either<KanIkkeOppdateres, Unit> {
+    fun kanOppdatereIDenneStatusen(rammebehandlingsstatus: Rammebehandlingsstatus?): Either<no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebehandling, Unit> {
         return when (this.status) {
             KLAR_TIL_BEHANDLING, AVBRUTT, VEDTATT -> {
-                KanIkkeOppdateres.FeilKlagebehandlingsstatus(UNDER_BEHANDLING, this.status).left()
+                KanIkkeOppdatereKlagebehandling.FeilKlagebehandlingsstatus(UNDER_BEHANDLING, this.status).left()
             }
 
             UNDER_BEHANDLING -> {
@@ -427,7 +353,7 @@ data class Klagebehandling(
                     Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
                     Rammebehandlingsstatus.UNDER_BESLUTNING,
                     Rammebehandlingsstatus.VEDTATT,
-                    -> KanIkkeOppdateres.FeilRammebehandlingssstatus(
+                    -> KanIkkeOppdatereKlagebehandling.FeilRammebehandlingssstatus(
                         Rammebehandlingsstatus.UNDER_BEHANDLING,
                         rammebehandlingsstatus,
                     ).left()

@@ -60,32 +60,7 @@ fun Route.avbrytKlagebehandlingRoute(
                         ),
                     ).fold(
                         ifLeft = {
-                            call.respondJson(
-                                when (it) {
-                                    is KanIkkeAvbryteKlagebehandling.SaksbehandlerMismatch -> Pair(
-                                        HttpStatusCode.BadRequest,
-                                        behandlingenEiesAvAnnenSaksbehandler(
-                                            it.forventetSaksbehandler,
-                                        ),
-                                    )
-
-                                    is KanIkkeAvbryteKlagebehandling.KnyttetTilIkkeAvbruttRammebehandling -> Pair(
-                                        HttpStatusCode.BadRequest,
-                                        ErrorJson(
-                                            "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: ${it.rammebehandlingId}",
-                                            "knyttet_til_ikke_avbrutt_rammebehandling",
-                                        ),
-                                    )
-
-                                    is KanIkkeAvbryteKlagebehandling.AlleredeAvsluttet -> Pair(
-                                        HttpStatusCode.BadRequest,
-                                        ErrorJson(
-                                            "Klagebehandlingen er allerede avsluttet med status: ${it.status}",
-                                            "allerede_avsluttet",
-                                        ),
-                                    )
-                                },
-                            )
+                            call.respondJson(it.toStatusAndErrorJson())
                         },
                         ifRight = { (sak, behandling) ->
                             val behandlingId = behandling.id
@@ -106,5 +81,32 @@ fun Route.avbrytKlagebehandlingRoute(
                 }
             }
         }
+    }
+}
+
+private fun KanIkkeAvbryteKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+    return when (this) {
+        is KanIkkeAvbryteKlagebehandling.SaksbehandlerMismatch -> Pair(
+            HttpStatusCode.BadRequest,
+            behandlingenEiesAvAnnenSaksbehandler(
+                this.forventetSaksbehandler,
+            ),
+        )
+
+        is KanIkkeAvbryteKlagebehandling.KnyttetTilIkkeAvbruttRammebehandling -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: ${this.rammebehandlingId}",
+                "knyttet_til_ikke_avbrutt_rammebehandling",
+            ),
+        )
+
+        is KanIkkeAvbryteKlagebehandling.AlleredeAvsluttet -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Klagebehandlingen er allerede avsluttet med status: ${this.status}",
+                "allerede_avsluttet",
+            ),
+        )
     }
 }
