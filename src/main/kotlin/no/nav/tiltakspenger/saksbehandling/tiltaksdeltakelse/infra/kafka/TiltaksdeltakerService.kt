@@ -82,7 +82,7 @@ class TiltaksdeltakerService(
     }
 
     private fun oppdaterEksternId(arenaEksternId: String?, arenaId: String, tiltaksdeltaker: Tiltaksdeltaker): String {
-        if (arenaEksternId != null && arenaEksternId.isNotEmpty() && tiltaksdeltaker.tiltakstype != TiltakResponsDTO.TiltakType.ARBTREN) {
+        if (arenaEksternId != null && arenaEksternId.isNotEmpty()) {
             log.info { "Tiltaksdeltakelse med eksternId $arenaId og internId ${tiltaksdeltaker.id} er flyttet ut av Arena med id $arenaEksternId" }
             tiltaksdeltakerRepo.oppdaterEksternIdForTiltaksdeltaker(
                 tiltaksdeltaker = tiltaksdeltaker.copy(
