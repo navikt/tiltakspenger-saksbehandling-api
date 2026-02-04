@@ -48,6 +48,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.engangsjobb.EngangsjobbArenaConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
@@ -183,6 +184,12 @@ open class ApplicationContext(
         TiltaksdeltakerTeamTiltakConsumer(
             tiltaksdeltakerService = tiltaksdeltakerService,
             topic = Configuration.teamTiltakTiltaksdeltakerTopic,
+        )
+    }
+    open val engangsjobbArenaConsumer by lazy {
+        EngangsjobbArenaConsumer(
+            tiltaksdeltakerService = tiltaksdeltakerService,
+            topic = Configuration.arenaTiltaksdeltakerTopic,
         )
     }
 

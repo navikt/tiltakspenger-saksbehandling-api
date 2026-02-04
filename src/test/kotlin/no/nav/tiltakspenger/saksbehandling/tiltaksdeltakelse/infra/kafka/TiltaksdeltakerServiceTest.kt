@@ -25,6 +25,101 @@ class TiltaksdeltakerServiceTest {
     private val arenaDeltakerMapper = ArenaDeltakerMapper()
 
     @Test
+    fun `behandleArenadeltakerForEngangsjobb - finnes ingen tiltaksdeltaker - ignorerer`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val soknadRepo = testDataHelper.søknadRepo
+            val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
+            val tiltaksdeltakerService =
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+            val deltakerId = "123456789"
+            val nyEksternId = "9bedf708-1aa2-4be0-a561-cbe60ff2e9f9"
+
+            tiltaksdeltakerService.behandleArenadeltakerForEngangsjobb(deltakerId, getArenaMeldingMedEksternIdString())
+
+            tiltaksdeltakerRepo.hentTiltaksdeltaker(deltakerId) shouldBe null
+            tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId) shouldBe null
+            tiltaksdeltakerKafkaRepository.hent(deltakerId) shouldBe null
+        }
+    }
+
+    @Test
+    fun `behandleArenadeltakerForEngangsjobb - finnes ARBTREN-deltaker, melding har eksternId - oppdaterer eksternId`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val soknadRepo = testDataHelper.søknadRepo
+            val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
+            val tiltaksdeltakerService =
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+            val deltakerId = "123456789"
+            val id = "TA$deltakerId"
+            val nyEksternId = UUID.fromString("9bedf708-1aa2-4be0-a561-cbe60ff2e9f9")
+            val fnr = Fnr.random()
+            val sak = ObjectMother.nySak(fnr = fnr)
+            val soknadstiltak = ObjectMother.søknadstiltak(id = id, typeKode = TiltakResponsDTO.TiltakType.ARBTREN)
+            val soknad = ObjectMother.nyInnvilgbarSøknad(
+                personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                søknadstiltak = soknadstiltak,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            )
+            testDataHelper.persisterSakOgSøknad(
+                fnr = fnr,
+                sak = sak,
+                søknad = soknad,
+            )
+
+            tiltaksdeltakerService.behandleArenadeltakerForEngangsjobb(deltakerId, getArenaMeldingMedEksternIdString())
+
+            tiltaksdeltakerRepo.hentTiltaksdeltaker(id) shouldBe null
+            val oppdatertTiltaksdeltaker = tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString())
+            oppdatertTiltaksdeltaker?.id shouldBe soknadstiltak.tiltaksdeltakerId
+            oppdatertTiltaksdeltaker?.eksternId shouldBe nyEksternId.toString()
+            oppdatertTiltaksdeltaker?.tiltakstype shouldBe soknadstiltak.typeKode
+            oppdatertTiltaksdeltaker?.utdatertEksternId shouldBe id
+
+            tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
+            tiltaksdeltakerKafkaRepository.hent(nyEksternId.toString()) shouldBe null
+        }
+    }
+
+    @Test
+    fun `behandleArenadeltakerForEngangsjobb - finnes ARBFORB-deltaker, melding har eksternId - oppdaterer ikke`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val soknadRepo = testDataHelper.søknadRepo
+            val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
+            val tiltaksdeltakerService =
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+            val deltakerId = "123456789"
+            val id = "TA$deltakerId"
+            val nyEksternId = UUID.fromString("9bedf708-1aa2-4be0-a561-cbe60ff2e9f9")
+            val fnr = Fnr.random()
+            val sak = ObjectMother.nySak(fnr = fnr)
+            val soknadstiltak = ObjectMother.søknadstiltak(id = id, typeKode = TiltakResponsDTO.TiltakType.ARBFORB)
+            val soknad = ObjectMother.nyInnvilgbarSøknad(
+                personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                søknadstiltak = soknadstiltak,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            )
+            testDataHelper.persisterSakOgSøknad(
+                fnr = fnr,
+                sak = sak,
+                søknad = soknad,
+            )
+
+            tiltaksdeltakerService.behandleArenadeltakerForEngangsjobb(deltakerId, getArenaMeldingMedEksternIdString())
+
+            tiltaksdeltakerRepo.hentTiltaksdeltaker(id) shouldNotBe null
+            tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString()) shouldBe null
+
+            tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
+            tiltaksdeltakerKafkaRepository.hent(nyEksternId.toString()) shouldBe null
+        }
+    }
+
+    @Test
     fun `behandleMottattArenadeltaker - finnes ingen sak - ignorerer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
@@ -116,51 +211,6 @@ class TiltaksdeltakerServiceTest {
 
             tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
             val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(nyEksternId.toString())
-            tiltaksdeltakerKafkaDb shouldNotBe null
-            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
-            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
-            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe 2.0F
-            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe 50.0F
-            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
-            tiltaksdeltakerKafkaDb?.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
-        }
-    }
-
-    @Test
-    fun `behandleMottattArenadeltaker - finnes sak, har eksternId, arbeidstrening - oppdaterer ikke eksternId, lagrer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-            val soknadRepo = testDataHelper.søknadRepo
-            val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
-            val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
-            val deltakerId = "123456789"
-            val id = "TA$deltakerId"
-            val nyEksternId = UUID.fromString("9bedf708-1aa2-4be0-a561-cbe60ff2e9f9")
-            val fnr = Fnr.random()
-            val sak = ObjectMother.nySak(fnr = fnr)
-            val soknadstiltak = ObjectMother.søknadstiltak(id = id, typeKode = TiltakResponsDTO.TiltakType.ARBTREN)
-            val soknad = ObjectMother.nyInnvilgbarSøknad(
-                personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                søknadstiltak = soknadstiltak,
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
-            )
-            testDataHelper.persisterSakOgSøknad(
-                fnr = fnr,
-                sak = sak,
-                søknad = soknad,
-            )
-
-            tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingMedEksternIdString())
-
-            tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString()) shouldBe null
-            tiltaksdeltakerRepo.hentTiltaksdeltaker(id) shouldNotBe null
-
-            tiltaksdeltakerKafkaRepository.hent(nyEksternId.toString()) shouldBe null
-            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
             tiltaksdeltakerKafkaDb shouldNotBe null
             tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
             tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
