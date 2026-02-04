@@ -45,7 +45,8 @@ class TaKlagebehandlingRouteTest {
                   "kanIverksette": false,
                   "årsak": null,
                   "begrunnelse": null,
-                  "rammebehandlingId": null
+                  "rammebehandlingId": null,
+                  "ventestatus": null
                 }
                 """.trimIndent(),
             )
@@ -53,14 +54,14 @@ class TaKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `idempotent og overta klagebehandling fra seg selv`() {
+    fun `idempotent og ta klagebehandling fra seg selv`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertar")
-            val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgOvertaKlagebehandling(
+            val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgTaKlagebehandling(
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
-                saksbehandlerSomOvertar = saksbehandler,
+                saksbehandlerSomTar = saksbehandler,
             )!!
             json.get("klageBehandlinger").first().toString().shouldEqualJson(
                 """
@@ -70,7 +71,7 @@ class TaKlagebehandlingRouteTest {
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678911",
                   "opprettet": "2025-01-01T01:02:33.456789",
-                  "sistEndret": "2025-01-01T01:02:33.456789",
+                  "sistEndret": "2025-01-01T01:02:49.456789",
                   "iverksattTidspunkt": null,
                   "saksbehandler": "saksbehandlerSomOvertar",
                   "journalpostId": "12345",
@@ -88,7 +89,8 @@ class TaKlagebehandlingRouteTest {
                   "kanIverksette": false,
                   "årsak": null,
                   "begrunnelse": null,
-                  "rammebehandlingId": null
+                  "rammebehandlingId": null,
+                  "ventestatus": null
                 }
                 """.trimIndent(),
             )

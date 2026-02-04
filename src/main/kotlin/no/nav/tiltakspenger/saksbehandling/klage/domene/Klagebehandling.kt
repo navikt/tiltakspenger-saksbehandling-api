@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -339,29 +341,32 @@ data class Klagebehandling(
     /**
      * Sjekker både [Klagebehandlingsresultat] og [Rammebehandlingsstatus] hvis den er satt.
      */
-    fun kanOppdatereIDenneStatusen(rammebehandlingsstatus: Rammebehandlingsstatus?): Either<KanIkkeOppdatereKlagebehandling, Unit> {
-        return when (this.status) {
-            KLAR_TIL_BEHANDLING, AVBRUTT, VEDTATT -> {
-                KanIkkeOppdatereKlagebehandling.FeilKlagebehandlingsstatus(UNDER_BEHANDLING, this.status).left()
-            }
-
-            UNDER_BEHANDLING -> {
-                when (rammebehandlingsstatus) {
-                    // null betyr at det ikke er noen rammebehandling knyttet til klagen
-                    Rammebehandlingsstatus.UNDER_BEHANDLING, null -> Unit.right()
-                    Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
-                    Rammebehandlingsstatus.AVBRUTT,
-                    Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
-                    Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
-                    Rammebehandlingsstatus.UNDER_BESLUTNING,
-                    Rammebehandlingsstatus.VEDTATT,
-                    -> KanIkkeOppdatereKlagebehandling.FeilRammebehandlingssstatus(
-                        Rammebehandlingsstatus.UNDER_BEHANDLING,
-                        rammebehandlingsstatus,
-                    ).left()
-                }
-            }
+    fun kanOppdatereIDenneStatusen(
+        rammebehandlingsstatus: Rammebehandlingsstatus?,
+        kanVæreUnderBehandling: Boolean = true,
+        kanVæreKlarTilBehandling: Boolean = false,
+    ): Either<KanIkkeOppdatereKlagebehandling, Unit> {
+        val forventetKlagebehandlingsstatuser = listOfNotNull(
+            if (kanVæreUnderBehandling) UNDER_BEHANDLING else null,
+            if (kanVæreKlarTilBehandling) KLAR_TIL_BEHANDLING else null,
+        ).toNonEmptyListOrThrow()
+        val forventetRammebehandlingstatuser = listOfNotNull(
+            if (kanVæreUnderBehandling) Rammebehandlingsstatus.UNDER_BEHANDLING else null,
+            if (kanVæreKlarTilBehandling) Rammebehandlingsstatus.KLAR_TIL_BEHANDLING else null,
+        ).toNonEmptyListOrThrow()
+        if (!forventetKlagebehandlingsstatuser.contains(this.status)) {
+            return KanIkkeOppdatereKlagebehandling.FeilKlagebehandlingsstatus(
+                forventetStatus = forventetKlagebehandlingsstatuser,
+                faktiskStatus = this.status,
+            ).left()
         }
+        if (rammebehandlingsstatus != null && !forventetRammebehandlingstatuser.contains(rammebehandlingsstatus)) {
+            return KanIkkeOppdatereKlagebehandling.FeilRammebehandlingssstatus(
+                forventetStatus = forventetRammebehandlingstatuser,
+                faktiskStatus = rammebehandlingsstatus,
+            ).left()
+        }
+        return Unit.right()
     }
 
     init {

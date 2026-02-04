@@ -148,7 +148,8 @@ class KlagebehandlingPostgresRepo(
                         resultat,
                         brevtekst,
                         iverksatt_tidspunkt,
-                        avbrutt
+                        avbrutt,
+                        ventestatus
                     ) values (
                         :id,
                         :sak_id,
@@ -162,7 +163,8 @@ class KlagebehandlingPostgresRepo(
                         to_jsonb(:resultat::jsonb),
                         to_jsonb(:brevtekst::jsonb),
                         :iverksatt_tidspunkt,
-                        to_jsonb(:avbrutt::jsonb)
+                        to_jsonb(:avbrutt::jsonb),
+                        to_jsonb(:ventestatus::jsonb)
                     ) on conflict (id) do update set
                         sak_id = :sak_id,
                         opprettet = :opprettet,
@@ -175,7 +177,8 @@ class KlagebehandlingPostgresRepo(
                         resultat = to_jsonb(:resultat::jsonb),
                         brevtekst = to_jsonb(:brevtekst::jsonb),
                         iverksatt_tidspunkt = :iverksatt_tidspunkt,
-                        avbrutt = to_jsonb(:avbrutt::jsonb)
+                        avbrutt = to_jsonb(:avbrutt::jsonb),
+                        ventestatus = to_jsonb(:ventestatus::jsonb)
                     """.trimIndent(),
                     mapOf(
                         "id" to klagebehandling.id.toString(),
@@ -191,6 +194,7 @@ class KlagebehandlingPostgresRepo(
                         "brevtekst" to klagebehandling.brevtekst?.toDbJson(),
                         "iverksatt_tidspunkt" to klagebehandling.iverksattTidspunkt,
                         "avbrutt" to klagebehandling.avbrutt?.toDbJson(),
+                        "ventestatus" to klagebehandling.ventestatus.toDbJson(),
                     ),
                 ).asUpdate,
             )

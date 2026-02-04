@@ -44,7 +44,13 @@ class SettKlagebehandlingPåVentRouteTest {
                   "kanIverksette": false,
                   "årsak": null,
                   "begrunnelse": null,
-                  "rammebehandlingId": null
+                  "rammebehandlingId": null,
+                  "ventestatus": {
+                    "sattPåVentAv": "saksbehandlerKlagebehandling",
+                    "tidspunkt": "2025-01-01T01:02:34.456789",
+                    "begrunnelse": "begrunnelse for å sette klage på vent",
+                    "erSattPåVent": true
+                  }
                 }
                 """.trimIndent(),
             )

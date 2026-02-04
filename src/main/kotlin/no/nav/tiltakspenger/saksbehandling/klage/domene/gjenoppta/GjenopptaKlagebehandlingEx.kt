@@ -6,24 +6,27 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import java.time.Clock
 
 /**
  * Gjelder kun saksbehandler. Dersom en beslutter vil legge tilbake over en klagebehandling til omgjøring, må dette gjøres fra omgjøringsbehandlingen.
+ * Har samme logikk som for rammebehandling og meldekortbehandling, som er at du kan gjenoppta fra en annen saksbehandler uten og tildele den til deg selv først.
  */
 fun Klagebehandling.gjenopptaKlagebehandling(
     kommando: GjenopptaKlagebehandlingKommando,
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeGjenopptaKlagebehandling, Klagebehandling> {
-    kanOppdatereIDenneStatusen(rammebehandlingsstatus).onLeft {
+    kanOppdatereIDenneStatusen(
+        rammebehandlingsstatus = rammebehandlingsstatus,
+        kanVæreUnderBehandling = true,
+        kanVæreKlarTilBehandling = true,
+    ).onLeft {
         return KanIkkeGjenopptaKlagebehandling.KanIkkeOppdateres(it).left()
     }
-    if (saksbehandler != kommando.saksbehandler.navIdent) {
-        return KanIkkeGjenopptaKlagebehandling.SaksbehandlerMismatch(
-            forventetSaksbehandler = kommando.saksbehandler.navIdent,
-            faktiskSaksbehandler = saksbehandler,
-        ).left()
+    if (!ventestatus.erSattPåVent) {
+        return KanIkkeGjenopptaKlagebehandling.MåVæreSattPåVent.left()
     }
     val nå = nå(clock)
     return this.copy(
@@ -33,5 +36,7 @@ fun Klagebehandling.gjenopptaKlagebehandling(
             endretAv = kommando.saksbehandler.navIdent,
             status = status.toString(),
         ),
+        saksbehandler = kommando.saksbehandler.navIdent,
+        status = UNDER_BEHANDLING,
     ).right()
 }

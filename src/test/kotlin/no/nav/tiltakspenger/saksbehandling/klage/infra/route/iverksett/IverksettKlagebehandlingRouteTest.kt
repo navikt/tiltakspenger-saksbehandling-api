@@ -94,7 +94,8 @@ class IverksettKlagebehandlingRouteTest {
                      "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
                      "årsak": null,
                      "begrunnelse": null,
-                     "rammebehandlingId": null
+                     "rammebehandlingId": null,
+                     "ventestatus": null
                    }
                 """.trimIndent(),
             )

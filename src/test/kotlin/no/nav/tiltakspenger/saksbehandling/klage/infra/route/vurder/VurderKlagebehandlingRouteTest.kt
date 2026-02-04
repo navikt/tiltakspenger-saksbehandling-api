@@ -55,7 +55,8 @@ class VurderKlagebehandlingRouteTest {
                   "kanIverksette": false,
                   "årsak": "PROSESSUELL_FEIL",
                   "begrunnelse": "Begrunnelse for omgjøring",
-                  "rammebehandlingId": null
+                  "rammebehandlingId": null,
+                  "ventestatus": null
                 }
                 """.trimIndent(),
             )
@@ -105,7 +106,8 @@ class VurderKlagebehandlingRouteTest {
                   "kanIverksette": true,
                   "årsak": "ANNET",
                   "begrunnelse": "oppdatert begrunnelse for omgjøring",
-                  "rammebehandlingId": "${søknadsbehandlingOpprettetFraKlage.id}"
+                  "rammebehandlingId": "${søknadsbehandlingOpprettetFraKlage.id}",
+                  "ventestatus": null
                 }
                 """.trimIndent(),
             )
@@ -143,7 +145,7 @@ class VurderKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                       {
-                         "melding": "Feil rammebehandlingsstatus. Forventet: UNDER_BEHANDLING, faktisk: KLAR_TIL_BESLUTNING",
+                         "melding": "Feil rammebehandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: KLAR_TIL_BESLUTNING",
                          "kode": "feil_rammebehandlingsstatus"
                       }
                     """.trimIndent()
@@ -190,7 +192,7 @@ class VurderKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                       {
-                         "melding": "Feil rammebehandlingsstatus. Forventet: UNDER_BEHANDLING, faktisk: UNDER_BESLUTNING",
+                         "melding": "Feil rammebehandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: UNDER_BESLUTNING",
                          "kode": "feil_rammebehandlingsstatus"
                       }
                     """.trimIndent()
@@ -243,7 +245,7 @@ class VurderKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                       {
-                        "melding": "Feil klagebehandlingsstatus. Forventet: UNDER_BEHANDLING, faktisk: VEDTATT",
+                        "melding": "Feil klagebehandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: VEDTATT",
                         "kode": "feil_klagebehandlingsstatus"
                       }
                     """.trimIndent()

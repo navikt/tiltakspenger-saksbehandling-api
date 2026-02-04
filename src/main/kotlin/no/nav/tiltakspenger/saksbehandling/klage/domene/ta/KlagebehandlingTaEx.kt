@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebeh
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.KanIkkeGjenopptaKlagebehandling
 import java.time.Clock
 
 /**
@@ -19,21 +20,12 @@ fun Klagebehandling.ta(
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeTaKlagebehandling, Klagebehandling> {
-    if (status != KLAR_TIL_BEHANDLING) {
-        return KanIkkeTaKlagebehandling.KanIkkeOppdateres(
-            KanIkkeOppdatereKlagebehandling.FeilKlagebehandlingsstatus(
-                forventetStatus = KLAR_TIL_BEHANDLING,
-                faktiskStatus = status,
-            ),
-        ).left()
-    }
-    if (rammebehandlingsstatus !in listOf(null, Rammebehandlingsstatus.KLAR_TIL_BEHANDLING)) {
-        return KanIkkeTaKlagebehandling.KanIkkeOppdateres(
-            KanIkkeOppdatereKlagebehandling.FeilRammebehandlingssstatus(
-                forventetStatus = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
-                faktiskStatus = rammebehandlingsstatus,
-            ),
-        ).left()
+    kanOppdatereIDenneStatusen(
+        rammebehandlingsstatus = rammebehandlingsstatus,
+        kanVæreUnderBehandling = false,
+        kanVæreKlarTilBehandling = true,
+    ).onLeft {
+        return KanIkkeTaKlagebehandling.KanIkkeOppdateres(it).left()
     }
     // Spesialtilfelle: Dersom saksbehandler forsøker å ta fra seg selv, så endres ikke behandlingen.
     if (saksbehandler == kommando.saksbehandler.navIdent) return this.right()

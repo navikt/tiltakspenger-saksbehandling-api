@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilVentestatusHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -33,6 +35,7 @@ data class KlagebehandlingDTO(
     val årsak: String?,
     val begrunnelse: String?,
     val rammebehandlingId: String?,
+    val ventestatus: VentestatusHendelseDTO?,
 ) {
     data class TittelOgTekstDTO(
         val tittel: String,
@@ -81,4 +84,5 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     årsak = (resultat as? Klagebehandlingsresultat.Omgjør)?.årsak?.toString(),
     begrunnelse = (resultat as? Klagebehandlingsresultat.Omgjør)?.begrunnelse?.verdi,
     rammebehandlingId = (resultat as? Klagebehandlingsresultat.Omgjør)?.rammebehandlingId?.toString(),
+    ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
 )

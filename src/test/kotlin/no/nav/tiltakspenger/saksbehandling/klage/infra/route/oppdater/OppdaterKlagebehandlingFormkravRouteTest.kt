@@ -62,7 +62,8 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                   "kanIverksette": false,
                   "årsak": null,
                   "begrunnelse": null,
-                  "rammebehandlingId": null
+                  "rammebehandlingId": null,
+                     "ventestatus": null
                 }
                 """.trimIndent(),
             )
@@ -131,7 +132,8 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                   "kanIverksette": false,
                   "årsak": "FEIL_LOVANVENDELSE",
                   "begrunnelse": "Begrunnelse for omgjøring",
-                  "rammebehandlingId": null
+                  "rammebehandlingId": null,
+                  "ventestatus": null
                 }
                     """.trimIndent()
                 },

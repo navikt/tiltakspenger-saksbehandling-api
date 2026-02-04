@@ -17,14 +17,10 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.GjenopptaKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.KanIkkeGjenopptaKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.KanIkkeLeggeTilbakeKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.LeggTilbakeKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toStatusAndErrorJson
 import no.nav.tiltakspenger.saksbehandling.klage.service.GjenopptaKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.klage.service.LeggTilbakeKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
 
@@ -84,10 +80,11 @@ fun KanIkkeGjenopptaKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode,
             this.underliggende.toStatusAndErrorJson()
         }
 
-        is KanIkkeGjenopptaKlagebehandling.SaksbehandlerMismatch -> Pair(
+        KanIkkeGjenopptaKlagebehandling.MåVæreSattPåVent -> Pair(
             HttpStatusCode.BadRequest,
-            behandlingenEiesAvAnnenSaksbehandler(
-                this.forventetSaksbehandler,
+            ErrorJson(
+                "Klagebehandlingen må være satt på vent for å kunne gjenopptas.",
+                "klagebehandling_må_være_satt_på_vent",
             ),
         )
     }

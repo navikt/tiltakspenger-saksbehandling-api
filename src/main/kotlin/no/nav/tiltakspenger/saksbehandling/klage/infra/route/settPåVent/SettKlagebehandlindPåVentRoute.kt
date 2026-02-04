@@ -57,7 +57,7 @@ fun Route.settKlagebehandlingPåVentRoute(
     val logger = KotlinLogging.logger {}
 
     patch(PATH) {
-        logger.debug { "Mottatt patch-request på '$PATH' - Overta klagebehandling" }
+        logger.debug { "Mottatt patch-request på '$PATH' - Sett klagebehandling på vent" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@patch
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@patch
         call.withSakId { sakId ->
