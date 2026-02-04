@@ -54,7 +54,7 @@ internal fun mapTiltak(
                 deltakelseStatus = tiltakDto.deltakelseStatus.toDomain(),
                 antallDagerPerUke = tiltakDto.antallDagerPerUke,
                 deltakelseProsent = tiltakDto.deltakelseProsent,
-                kilde = tiltakDto.kilde.toTiltakskilde(tiltakDto.id),
+                kilde = tiltakDto.kilde.toTiltakskilde(),
                 deltidsprosentGjennomforing = tiltakDto.gjennomforing.deltidsprosent,
 
             )
@@ -87,14 +87,11 @@ internal fun mapTiltakMedArrangørnavn(
         }
 }
 
-fun TiltakshistorikkDTO.Kilde.toTiltakskilde(tiltaksId: String): Tiltakskilde {
+fun TiltakshistorikkDTO.Kilde.toTiltakskilde(): Tiltakskilde {
     return when (this) {
         TiltakshistorikkDTO.Kilde.KOMET -> Tiltakskilde.Komet
         TiltakshistorikkDTO.Kilde.ARENA -> Tiltakskilde.Arena
-
-        else -> throw IllegalStateException(
-            "Kunne ikke parse tiltak fra tiltakspenger-tiltak. Ukjent kilde: $this. Forventet Arena eller Komet. Tiltaksid: $tiltaksId",
-        )
+        TiltakshistorikkDTO.Kilde.TEAM_TILTAK -> Tiltakskilde.TeamTiltak
     }
 }
 

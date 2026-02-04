@@ -554,8 +554,8 @@ class TiltaksdeltakerServiceTest {
             avtaleStatus = AvtaleDto.AvtaleStatus.GJENNOMFØRES,
             startDato = LocalDate.of(2024, 10, 14),
             sluttDato = LocalDate.of(2025, 8, 10),
-            stillingprosent = 80,
-            antallDagerPerUke = 4,
+            stillingprosent = 80.0,
+            antallDagerPerUke = 4.0,
             feilregistrert = false,
         )
 }
