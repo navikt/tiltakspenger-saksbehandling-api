@@ -18,9 +18,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat.Innvilgelse
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat.Omgjøring
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat.Stans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Innvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -134,7 +135,7 @@ data class Revurdering(
         finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
         clock: Clock,
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
-        require(this.resultat is Omgjøring)
+        require(this.resultat is OmgjøringInnvilgelse)
 
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
 
@@ -302,7 +303,7 @@ data class Revurdering(
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
-                resultat = Omgjøring.create(omgjørRammevedtak, saksopplysninger).getOrElse {
+                resultat = OmgjøringInnvilgelse.create(omgjørRammevedtak, saksopplysninger).getOrElse {
                     return it.left()
                 },
                 klagebehandling = klagebehandling,

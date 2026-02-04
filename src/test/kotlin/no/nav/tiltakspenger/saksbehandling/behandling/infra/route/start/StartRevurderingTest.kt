@@ -13,9 +13,10 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.`Søknadsbehandlingsresultat`
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
@@ -78,7 +79,7 @@ internal class StartRevurderingTest {
             revurdering.shouldBeInstanceOf<Revurdering>()
             revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
             revurdering.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
-            revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Omgjøring>()
+            revurdering.resultat.shouldBeInstanceOf<OmgjøringInnvilgelse>()
             revurdering.sakId shouldBe sak.id
             revurdering.fritekstTilVedtaksbrev shouldBe null
             revurdering.begrunnelseVilkårsvurdering shouldBe null

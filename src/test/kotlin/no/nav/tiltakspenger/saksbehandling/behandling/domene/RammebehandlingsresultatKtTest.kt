@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.skalNullstilleResultatVedNyeSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import org.junit.jupiter.api.Nested
@@ -32,8 +33,14 @@ class RammebehandlingsresultatKtTest {
                 valgteTiltaksdeltakelser,
                 ObjectMother.saksopplysninger(
                     tiltaksdeltakelse = listOf(
-                        ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = "annen-id", internDeltakelseId = annenInternDeltakelseId),
-                        ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = "annen-id2", internDeltakelseId = annenInternDeltakelseId2),
+                        ObjectMother.tiltaksdeltakelse(
+                            eksternTiltaksdeltakelseId = "annen-id",
+                            internDeltakelseId = annenInternDeltakelseId,
+                        ),
+                        ObjectMother.tiltaksdeltakelse(
+                            eksternTiltaksdeltakelseId = "annen-id2",
+                            internDeltakelseId = annenInternDeltakelseId2,
+                        ),
                     ),
                 ),
             )

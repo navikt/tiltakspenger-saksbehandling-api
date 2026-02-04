@@ -1,11 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultatType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.BehandlingResultatType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 
 enum class RammebehandlingResultatTypeDTO {
     INNVILGELSE,
@@ -35,7 +37,9 @@ fun Søknadsbehandlingsresultat?.tilSøknadsbehandlingResultatTypeDTO(): Rammebe
 fun Revurderingsresultat.tilRevurderingResultatTypeDTO(): RammebehandlingResultatTypeDTO = when (this) {
     is Revurderingsresultat.Stans -> RammebehandlingResultatTypeDTO.STANS
     is Revurderingsresultat.Innvilgelse -> RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
-    is Revurderingsresultat.Omgjøring -> RammebehandlingResultatTypeDTO.OMGJØRING
+    is OmgjøringInnvilgelse -> RammebehandlingResultatTypeDTO.OMGJØRING
+    is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+    is Omgjøringsresultat.OmgjøringOpphør -> TODO()
 }
 
 fun Rammebehandlingsresultat?.tilRammebehandlingResultatTypeDTO(): RammebehandlingResultatTypeDTO = when (this) {
@@ -43,8 +47,10 @@ fun Rammebehandlingsresultat?.tilRammebehandlingResultatTypeDTO(): Rammebehandli
     is Søknadsbehandlingsresultat.Avslag,
     -> this.tilSøknadsbehandlingResultatTypeDTO()
     is Revurderingsresultat.Innvilgelse,
-    is Revurderingsresultat.Omgjøring,
+    is OmgjøringInnvilgelse,
     is Revurderingsresultat.Stans,
     -> this.tilRevurderingResultatTypeDTO()
     null -> RammebehandlingResultatTypeDTO.IKKE_VALGT
+    is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+    is Omgjøringsresultat.OmgjøringOpphør -> TODO()
 }

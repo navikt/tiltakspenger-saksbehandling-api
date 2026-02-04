@@ -1,8 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
@@ -91,6 +92,8 @@ enum class VedtakStatistikkResultat {
             is Rammebehandlingsresultat.Innvilgelse -> Innvilgelse
             is Revurderingsresultat.Stans -> Stans
             is Søknadsbehandlingsresultat.Avslag -> throw IllegalStateException("Skal ikke opprette vedtaksstatistikk for avslag")
+            is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+            is Omgjøringsresultat.OmgjøringOpphør -> TODO()
         }
     }
 }

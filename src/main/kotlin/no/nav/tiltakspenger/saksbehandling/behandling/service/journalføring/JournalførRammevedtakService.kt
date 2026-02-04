@@ -5,9 +5,10 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
@@ -63,6 +64,9 @@ class JournalførRammevedtakService(
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         )
+
+                        is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+                        is Omgjøringsresultat.OmgjøringOpphør -> TODO()
                     }.getOrElse { return@forEach }
 
                     log.info { "Vedtaksbrev generert for vedtak ${vedtak.id}" }

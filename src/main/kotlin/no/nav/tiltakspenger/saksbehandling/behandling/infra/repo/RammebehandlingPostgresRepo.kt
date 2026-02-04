@@ -22,14 +22,16 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
@@ -483,7 +485,7 @@ class RammebehandlingPostgresRepo(
                         )
 
                         RevurderingType.OMGJØRING -> {
-                            Revurderingsresultat.Omgjøring(
+                            OmgjøringInnvilgelse(
                                 vedtaksperiode = vedtaksperiode!!,
                                 innvilgelsesperioder = innvilgelsesperioder,
                                 barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
@@ -815,7 +817,7 @@ private fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> =
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 
-    is Revurderingsresultat.Omgjøring -> arrayOf(
+    is OmgjøringInnvilgelse -> arrayOf(
         "innvilgelsesperioder" to this.innvilgelsesperioder?.tilInnvilgelsesperioderDbJson(),
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
@@ -834,4 +836,6 @@ private fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> =
     )
 
     null -> emptyArray()
+    is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+    is Omgjøringsresultat.OmgjøringOpphør -> TODO()
 }

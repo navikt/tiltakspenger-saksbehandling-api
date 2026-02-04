@@ -2,13 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
@@ -47,6 +48,8 @@ fun genererSaksstatistikkForRammevedtak(
             is Rammebehandlingsresultat.Innvilgelse -> StatistikkBehandlingResultat.INNVILGET
             is Revurderingsresultat.Stans -> StatistikkBehandlingResultat.STANS
             is Søknadsbehandlingsresultat.Avslag -> StatistikkBehandlingResultat.AVSLAG
+            is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+            is Omgjøringsresultat.OmgjøringOpphør -> TODO()
         },
         // TODO jah: Denne bør ikke være null.
         resultatBegrunnelse = null,

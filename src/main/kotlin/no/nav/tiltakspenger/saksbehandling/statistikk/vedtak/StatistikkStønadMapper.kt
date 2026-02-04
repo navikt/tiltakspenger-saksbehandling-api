@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.VedtakStatistikkResultat.Companion.toVedtakStatistikkResultat
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.util.UUID
@@ -49,7 +49,7 @@ fun genererStønadsstatistikkForRammevedtak(
         vedtaksperiodeFraOgMed = vedtak.periode.fraOgMed,
         vedtaksperiodeTilOgMed = vedtak.periode.tilOgMed,
         innvilgelsesperioder = innvilgelsesperioder ?: emptyList(),
-        omgjørRammevedtakId = if (vedtak.rammebehandlingsresultat is Revurderingsresultat.Omgjøring) {
+        omgjørRammevedtakId = if (vedtak.rammebehandlingsresultat is OmgjøringInnvilgelse) {
             vedtak.rammebehandlingsresultat.omgjørRammevedtak.single().rammevedtakId.toString()
         } else {
             null

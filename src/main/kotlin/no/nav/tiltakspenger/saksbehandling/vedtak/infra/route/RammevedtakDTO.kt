@@ -4,8 +4,10 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
@@ -107,7 +109,7 @@ data class TidslinjeDTO(
 
 fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<TidslinjeElementDTO> {
     return when (this.rammebehandlingsresultat) {
-        is Revurderingsresultat.Omgjøring -> {
+        is OmgjøringInnvilgelse -> {
             // TODO: må støtte flere perioder
             val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperioder!!.totalPeriode)
                 ?: return listOf(
@@ -170,7 +172,7 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
                     ),
                     periode = tidslinjeperiode.toDTO(),
                     tidslinjeResultat = when (this.rammebehandlingsresultat) {
-                        is Revurderingsresultat.Omgjøring -> throw IllegalStateException("Omgjøring skal bli håndtert spesielt")
+                        is Omgjøringsresultat -> throw IllegalStateException("Omgjøring skal bli håndtert spesielt")
                         is Søknadsbehandlingsresultat.Avslag -> throw IllegalStateException("Avslag kan ikke forekomme i tidslinje")
 
                         is Revurderingsresultat.Innvilgelse -> TidslinjeResultat.REVURDERING_INNVILGELSE
@@ -179,6 +181,9 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
                     },
                 ),
             )
+
+        is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+        is Omgjøringsresultat.OmgjøringOpphør -> TODO()
     }
 }
 

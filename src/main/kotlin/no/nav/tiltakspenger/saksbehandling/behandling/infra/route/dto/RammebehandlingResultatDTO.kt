@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 
@@ -89,10 +91,13 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
             harValgtStansFraFørsteDagSomGirRett = harValgtStansFraFørsteDagSomGirRett,
         )
 
-        is Revurderingsresultat.Omgjøring -> RevurderingResultatDTO.Omgjøring(
+        is OmgjøringInnvilgelse -> RevurderingResultatDTO.Omgjøring(
             innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
             barnetillegg = barnetillegg?.toBarnetilleggDTO(),
             omgjørVedtak = omgjortVedtak.rammevedtakId.toString(),
         )
+
+        is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+        is Omgjøringsresultat.OmgjøringOpphør -> TODO()
     }
 }

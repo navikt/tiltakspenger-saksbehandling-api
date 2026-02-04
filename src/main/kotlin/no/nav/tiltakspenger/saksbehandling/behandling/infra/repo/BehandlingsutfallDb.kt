@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 
 private enum class SøknadsbehandlingUtfallDb {
     INNVILGELSE,
@@ -31,7 +33,9 @@ fun String.tilRevurderingResultatType(): RevurderingType = when (RevurderingUtfa
 fun Rammebehandlingsresultat.toDb(): String = when (this) {
     is Revurderingsresultat.Stans -> RevurderingUtfallDb.STANS
     is Revurderingsresultat.Innvilgelse -> RevurderingUtfallDb.REVURDERING_INNVILGELSE
-    is Revurderingsresultat.Omgjøring -> RevurderingUtfallDb.OMGJØRING
+    is OmgjøringInnvilgelse -> RevurderingUtfallDb.OMGJØRING
     is Søknadsbehandlingsresultat.Avslag -> SøknadsbehandlingUtfallDb.AVSLAG
     is Søknadsbehandlingsresultat.Innvilgelse -> SøknadsbehandlingUtfallDb.INNVILGELSE
+    is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+    is Omgjøringsresultat.OmgjøringOpphør -> TODO()
 }.toString()

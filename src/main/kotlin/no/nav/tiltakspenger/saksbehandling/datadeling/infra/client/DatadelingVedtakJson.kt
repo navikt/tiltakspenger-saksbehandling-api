@@ -5,12 +5,13 @@ import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingVedtakJson.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -86,6 +87,8 @@ fun Rammevedtak.toDatadelingJson(): String {
 
             is Revurderingsresultat.Stans -> "STANS"
             is Søknadsbehandlingsresultat.Avslag -> "AVSLAG"
+            is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+            is Omgjøringsresultat.OmgjøringOpphør -> TODO()
         },
         opprettet = opprettet.toString(),
         barnetillegg = barnetillegg?.toDatadelingBarnetillegg(),
@@ -114,6 +117,8 @@ private fun Rammevedtak.toValgteHjemlerHarIkkeRettighetListe(): List<String>? {
         is Rammebehandlingsresultat.Innvilgelse -> null
         is Revurderingsresultat.Stans -> (this.rammebehandling as Revurdering).toValgteHjemlerHarIkkeRettighetListe()
         is Søknadsbehandlingsresultat.Avslag -> (this.rammebehandling as Søknadsbehandling).toValgteHjemlerHarIkkeRettighetListe()
+        is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+        is Omgjøringsresultat.OmgjøringOpphør -> TODO()
     }
 }
 
