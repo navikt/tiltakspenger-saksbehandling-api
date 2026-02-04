@@ -15,8 +15,8 @@ data class AvtaleDto(
     val avtaleStatus: AvtaleStatus,
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,
-    val stillingprosent: Int?,
-    val antallDagerPerUke: Int?,
+    val stillingprosent: Double?,
+    val antallDagerPerUke: Double?,
     val feilregistrert: Boolean,
 ) {
     enum class AvtaleStatus {
