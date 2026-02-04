@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
@@ -57,7 +58,7 @@ data class Behandlinger(
             } else {
                 klagebehandlinger
             },
-            rammebehandlinger = rammebehandlinger.oppdaterBehandling(oppdatertRammebehandling),
+            rammebehandlinger = rammebehandlinger.oppdaterRammebehandling(oppdatertRammebehandling),
         )
     }
 
@@ -70,7 +71,10 @@ data class Behandlinger(
     }
 
     fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Behandlinger {
-        return copy(klagebehandlinger = klagebehandlinger.oppdaterKlagebehandling(klagebehandling))
+        return copy(
+            klagebehandlinger = klagebehandlinger.oppdaterKlagebehandling(klagebehandling),
+            rammebehandlinger = rammebehandlinger.oppdaterKlagebehandling(klagebehandling),
+        )
     }
 
     fun hentKlagebehandling(klagebehandlingId: KlagebehandlingId): Klagebehandling {
@@ -88,6 +92,32 @@ data class Behandlinger(
         require(slåttSammen.distinctBy { it.id }.size == slåttSammen.size) {
             "Behandlingene må ha unike IDer."
         }
+        klagebehandlinger.filter { it.rammebehandlingId != null }.forEach { klagebehandling ->
+            val rammebehandling = rammebehandlinger.single { it.klagebehandling?.id == klagebehandling.id }
+            require(rammebehandling.klagebehandling == klagebehandling) {
+                "Klagebehandling ${klagebehandling.id} er tilknyttet rammebehandling ${rammebehandling.id}, men objektene er ikke identiske."
+            }
+            when (klagebehandling.status) {
+                Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> require(rammebehandling.status == Rammebehandlingsstatus.KLAR_TIL_BEHANDLING) {
+                    "Forventet at rammebehandling ${rammebehandling.id} er KLAR_TIL_BEHANDLING når klagebehandling ${klagebehandling.id} er KLAR_TIL_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
+                }
+
+                Klagebehandlingsstatus.UNDER_BEHANDLING -> require(
+                    rammebehandling.status in listOf(
+                        Rammebehandlingsstatus.UNDER_BEHANDLING,
+                        Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
+                        Rammebehandlingsstatus.UNDER_BESLUTNING,
+                    ),
+                ) {
+                    "Forventet at rammebehandling ${rammebehandling.id} er [UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING] når klagebehandling ${klagebehandling.id} er UNDER_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
+                }
+
+                Klagebehandlingsstatus.AVBRUTT -> throw IllegalStateException("En avbrutt klagebehandling skal ikke være tilknyttet en rammebehandling")
+
+                Klagebehandlingsstatus.VEDTATT -> require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT)
+            }
+        }
+        // Siden [Rammebehandling] er "eieren" av relasjonen til [Klagebehandling], sjekker vi statusen i initen til implementasjonene av [Rammebehandling].
     }
 
     companion object {

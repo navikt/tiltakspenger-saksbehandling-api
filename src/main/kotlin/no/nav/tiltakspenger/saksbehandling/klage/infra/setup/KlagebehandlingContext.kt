@@ -135,8 +135,6 @@ open class KlagebehandlingContext(
             sakService = sakService,
             behandleSøknadPåNyttService = behandleSøknadPåNyttService,
             startRevurderingService = startRevurderingService,
-            sessionFactory = sessionFactory,
-            klagebehandlingRepo = klagebehandlingRepo,
         )
     }
     open val overtaKlagebehandlingService by lazy {

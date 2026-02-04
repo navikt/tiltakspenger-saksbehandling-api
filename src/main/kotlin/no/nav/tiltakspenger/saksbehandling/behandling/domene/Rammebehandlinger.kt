@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
@@ -47,9 +48,20 @@ data class Rammebehandlinger(
         return behandlinger.singleOrNullOrThrow { it.id == rammebehandlingId }
     }
 
-    fun oppdaterBehandling(behandling: Rammebehandling): Rammebehandlinger {
+    fun oppdaterRammebehandling(behandling: Rammebehandling): Rammebehandlinger {
         behandlinger.single { it.id == behandling.id }
         val behandlinger = this.behandlinger.map { if (it.id == behandling.id) behandling else it }
+        return this.copy(behandlinger = behandlinger)
+    }
+
+    fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandlinger {
+        val behandlinger = this.behandlinger.map {
+            if (it.klagebehandling?.id == klagebehandling.id) {
+                it.oppdaterKlagebehandling(klagebehandling = klagebehandling)
+            } else {
+                it
+            }
+        }
         return this.copy(behandlinger = behandlinger)
     }
 

@@ -281,18 +281,26 @@ data class Klagebehandling(
 
     fun oppdaterRammebehandlingId(
         rammebehandlingId: BehandlingId,
+        saksbehandler: Saksbehandler,
+        sistEndret: LocalDateTime,
     ): Klagebehandling {
         require(resultat is Klagebehandlingsresultat.Omgjør) {
             "Resultatet må være Omgjør, men var $resultat. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
         }
+        require(status == UNDER_BEHANDLING) {
+            "Klagebehandling må være i status UNDER_BEHANDLING for at man kan knytte den til en rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+        }
+        require(erSaksbehandlerPåBehandlingen(saksbehandler))
         return this.copy(
             resultat = resultat.oppdaterRammebehandlingId(rammebehandlingId),
+            sistEndret = sistEndret,
         )
     }
 
     fun fjernRammebehandlingId(
+        rammebehandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
-        rammmebehandlingId: BehandlingId,
+        sistEndret: LocalDateTime,
     ): Klagebehandling {
         require(erKnyttetTilRammebehandling) {
             "Klagebehandling er ikke knyttet til en rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
@@ -302,7 +310,7 @@ data class Klagebehandling(
         }
         require(erSaksbehandlerPåBehandlingen(saksbehandler))
         return when (val res = resultat) {
-            is Klagebehandlingsresultat.Omgjør -> this.copy(resultat = res.fjernRammebehandlingId(rammmebehandlingId))
+            is Klagebehandlingsresultat.Omgjør -> this.copy(resultat = res.fjernRammebehandlingId(rammebehandlingId), sistEndret = sistEndret)
 
             is Klagebehandlingsresultat.Avvist, null -> throw IllegalStateException(
                 "Klagebehandling er ikke knyttet til en rammebehandling. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id",

@@ -189,6 +189,11 @@ data class Søknadsbehandling(
                 begrunnelse = begrunnelse,
             ),
             sistEndret = tidspunkt,
+            klagebehandling = klagebehandling?.fjernRammebehandlingId(
+                rammebehandlingId = id,
+                saksbehandler = avbruttAv,
+                sistEndret = tidspunkt,
+            ),
         )
     }
 
@@ -199,6 +204,11 @@ data class Søknadsbehandling(
     override fun oppdaterSimulering(nySimulering: Simulering?): Søknadsbehandling {
         require(this.erUnderBehandling) { "Forventet at behandlingen var under behandling, men var: ${this.status} for sakId: $sakId og behandlingId: $id" }
         return this.copy(utbetaling = utbetaling!!.oppdaterSimulering(nySimulering))
+    }
+
+    override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling {
+        require(this.klagebehandling!!.id == klagebehandling.id)
+        return this.copy(klagebehandling = klagebehandling)
     }
 
     fun oppdaterVenterTil(
@@ -273,7 +283,11 @@ data class Søknadsbehandling(
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,
-                klagebehandling = klagebehandling,
+                klagebehandling = klagebehandling?.oppdaterRammebehandlingId(
+                    rammebehandlingId = søknadsbehandlingId,
+                    saksbehandler = saksbehandler,
+                    sistEndret = opprettet,
+                ),
             ).let {
                 Pair(sak.leggTilSøknadsbehandling(it), it)
             }
