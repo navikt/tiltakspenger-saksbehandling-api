@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta
+package no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake
 
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
@@ -6,15 +6,16 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgLeggKlagebehandlingTilbake
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOvertaKlagebehandling
 import org.junit.jupiter.api.Test
 
-class OvertaKlagebehandlingRouteTest {
+class LeggKlagebehandlingTilbakeRouteTest {
     @Test
-    fun `kan overta klagebehandling`() {
+    fun `kan legge klagebehandlingen tilbake`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgOvertaKlagebehandling(
+            val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgLeggKlagebehandlingTilbake(
                 tac = tac,
             )!!
             json.get("klageBehandlinger").first().toString().shouldEqualJson(
@@ -27,10 +28,10 @@ class OvertaKlagebehandlingRouteTest {
                   "opprettet": "2025-01-01T01:02:33.456789",
                   "sistEndret": "2025-01-01T01:02:34.456789",
                   "iverksattTidspunkt": null,
-                  "saksbehandler": "saksbehandlerSomOvertar",
+                  "saksbehandler": null,
                   "journalpostId": "12345",
                   "journalpostOpprettet": "2025-01-01T01:02:32.456789",
-                  "status": "UNDER_BEHANDLING",
+                  "status": "KLAR_TIL_BEHANDLING",
                   "resultat": null,
                   "vedtakDetKlagesPå": "${rammevedtakSøknadsbehandling.id}",
                   "erKlagerPartISaken": true,

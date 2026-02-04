@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import java.time.Clock
 
 /**
@@ -26,7 +27,8 @@ fun Klagebehandling.leggTilbake(
         ).left()
     }
     return this.copy(
-        saksbehandler = kommando.saksbehandler.navIdent,
+        saksbehandler = null,
         sistEndret = nå(clock),
+        status = Klagebehandlingsstatus.KLAR_TIL_BEHANDLING,
     ).right()
 }
