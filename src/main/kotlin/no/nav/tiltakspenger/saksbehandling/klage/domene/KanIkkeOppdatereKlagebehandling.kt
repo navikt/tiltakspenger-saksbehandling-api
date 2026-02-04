@@ -10,7 +10,7 @@ sealed interface KanIkkeOppdatereKlagebehandling {
 
     data class FeilRammebehandlingssstatus(
         val forventetStatus: Rammebehandlingsstatus,
-        val faktiskStatus: Rammebehandlingsstatus,
+        val faktiskStatus: Rammebehandlingsstatus?,
     ) : KanIkkeOppdatereKlagebehandling
 
     data class FeilResultat(

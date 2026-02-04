@@ -5,7 +5,10 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
 import java.time.Clock
 
 /**
@@ -16,8 +19,21 @@ fun Klagebehandling.ta(
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeTaKlagebehandling, Klagebehandling> {
-    kanOppdatereIDenneStatusen(rammebehandlingsstatus).onLeft {
-        return KanIkkeTaKlagebehandling.KanIkkeOppdateres(it).left()
+    if (status != KLAR_TIL_BEHANDLING) {
+        return KanIkkeTaKlagebehandling.KanIkkeOppdateres(
+            KanIkkeOppdatereKlagebehandling.FeilKlagebehandlingsstatus(
+                forventetStatus = KLAR_TIL_BEHANDLING,
+                faktiskStatus = status,
+            ),
+        ).left()
+    }
+    if (rammebehandlingsstatus !in listOf(null, Rammebehandlingsstatus.KLAR_TIL_BEHANDLING)) {
+        return KanIkkeTaKlagebehandling.KanIkkeOppdateres(
+            KanIkkeOppdatereKlagebehandling.FeilRammebehandlingssstatus(
+                forventetStatus = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
+                faktiskStatus = rammebehandlingsstatus,
+            ),
+        ).left()
     }
     // Spesialtilfelle: Dersom saksbehandler forsøker å ta fra seg selv, så endres ikke behandlingen.
     if (saksbehandler == kommando.saksbehandler.navIdent) return this.right()
@@ -25,5 +41,6 @@ fun Klagebehandling.ta(
     return this.copy(
         saksbehandler = kommando.saksbehandler.navIdent,
         sistEndret = nå(clock),
+        status = Klagebehandlingsstatus.UNDER_BEHANDLING,
     ).right()
 }
