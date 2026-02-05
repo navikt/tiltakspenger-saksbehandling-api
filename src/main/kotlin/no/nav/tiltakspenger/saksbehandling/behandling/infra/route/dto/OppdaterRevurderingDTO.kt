@@ -145,4 +145,24 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
             )
         }
     }
+
+    data object OmgjøringIkkeValgt : OppdaterRevurderingDTO {
+        override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT
+        override val fritekstTilVedtaksbrev = null
+        override val begrunnelseVilkårsvurdering = null
+
+        override fun tilDomene(
+            sakId: SakId,
+            behandlingId: BehandlingId,
+            saksbehandler: Saksbehandler,
+            correlationId: CorrelationId,
+        ): OppdaterOmgjøringKommando.OmgjøringIkkeValgt {
+            return OppdaterOmgjøringKommando.OmgjøringIkkeValgt(
+                sakId = sakId,
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+            )
+        }
+    }
 }

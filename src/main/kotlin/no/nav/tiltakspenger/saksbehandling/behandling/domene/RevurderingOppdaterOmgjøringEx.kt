@@ -9,12 +9,14 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 
 fun Revurdering.oppdaterOmgjøring(
     kommando: OppdaterOmgjøringKommando,
     utbetaling: BehandlingUtbetaling?,
     finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
+    omgjortVedtak: Rammevedtak,
     clock: Clock,
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
     require(this.resultat is Omgjøringsresultat)
@@ -39,6 +41,7 @@ fun Revurdering.oppdaterOmgjøring(
         is OppdaterOmgjøringKommando.OmgjøringIkkeValgt -> oppdaterOmgjøringIkkeValgt(
             kommando = kommando,
             finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
+            omgjortVedtak = omgjortVedtak,
             clock = clock,
         )
     }
@@ -116,15 +119,11 @@ private fun Revurdering.oppdaterOmgjøringOpphør(
 private fun Revurdering.oppdaterOmgjøringIkkeValgt(
     kommando: OppdaterOmgjøringKommando.OmgjøringIkkeValgt,
     finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
+    omgjortVedtak: Rammevedtak,
     clock: Clock,
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
-    val rammevedtakSomOmgjøres = omgjørRammevedtak.totalPeriode
-        ?.let { finnRammevedtakSomOmgjøres(it) } ?: OmgjørRammevedtak.empty
-
-    validerRammevedtakSomOmgjøres(
-        rammevedtakSomOmgjøres,
-        omgjørRammevedtak.rammevedtakIDer.single(),
-    ).onLeft { return it.left() }
+    val rammevedtakSomOmgjøres =
+        omgjortVedtak.gjeldendeTotalPeriode?.let { finnRammevedtakSomOmgjøres(it) } ?: OmgjørRammevedtak.empty
 
     return this.copy(
         sistEndret = nå(clock),

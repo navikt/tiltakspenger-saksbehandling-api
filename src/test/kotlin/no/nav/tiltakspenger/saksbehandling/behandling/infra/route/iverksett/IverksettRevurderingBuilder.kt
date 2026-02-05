@@ -21,8 +21,8 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
@@ -187,7 +187,7 @@ interface IverksettRevurderingBuilder {
             sakId = sakId,
         )!!
 
-        oppdaterRevurderingOmgjøring(
+        oppdaterOmgjøringInnvilgelse(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
@@ -246,7 +246,7 @@ interface IverksettRevurderingBuilder {
             saksbehandler = saksbehandler,
         )!!
 
-        oppdaterRevurderingOmgjøring(
+        oppdaterOmgjøringInnvilgelse(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,

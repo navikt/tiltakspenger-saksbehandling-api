@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
@@ -103,6 +104,10 @@ data class Rammevedtak(
         rammebehandling.resultat is Revurderingsresultat.Stans
     }
 
+    val erOpphør: Boolean by lazy {
+        rammebehandling.resultat is Omgjøringsresultat.OmgjøringOpphør
+    }
+
     /** Vil være null for stans, avslag eller dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { rammebehandling.barnetillegg }
 
@@ -119,7 +124,7 @@ data class Rammevedtak(
     }
 
     val gjeldendeInnvilgetPerioder: List<Periode> by lazy {
-        if (erAvslag || erStans) return@lazy emptyList()
+        if (erAvslag || erStans || erOpphør) return@lazy emptyList()
         if (omgjortAvRammevedtak.isEmpty()) {
             innvilgelsesperioder?.perioder ?: emptyList()
         } else {
@@ -183,10 +188,6 @@ data class Rammevedtak(
         Rammevedtakskommando.Omgjør(perioderSomKanOmgjøres = gjeldendePerioder.toNonEmptyListOrThrow())
     }
 
-    /**
-     * Ikke implementert enda.
-     * Merk at man bare skal kunne opphøre en sammenhengende periode.
-     */
     val gyldigOpphørskommando: Rammevedtakskommando.Opphør? by lazy {
         if (gjeldendeInnvilgetPerioder.isEmpty()) return@lazy null
         Rammevedtakskommando.Opphør(gjeldendeInnvilgetPerioder.toNonEmptyListOrNull()!!)

@@ -216,6 +216,7 @@ interface StartRevurderingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         rammevedtakIdSomOmgjøres: VedtakId,
+        nyOmgjøring: Boolean = false,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         @Language("JSON") forventetJsonBody: String? = null,
@@ -225,6 +226,7 @@ interface StartRevurderingBuilder {
             sakId = sakId,
             type = RevurderingsresultatType.OMGJØRING_INNVILGELSE,
             rammevedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres,
+            nyOmgjøring = nyOmgjøring,
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
@@ -238,6 +240,7 @@ interface StartRevurderingBuilder {
         type: RevurderingsresultatType,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         rammevedtakIdSomOmgjøres: VedtakId? = null,
+        nyOmgjøring: Boolean = false,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
@@ -255,7 +258,8 @@ interface StartRevurderingBuilder {
                 """
                 {
                 "revurderingType": "${type.tilStartRevurderingTypeDTO()}", 
-                "rammevedtakIdSomOmgjøres": ${if (rammevedtakIdSomOmgjøres != null) """"$rammevedtakIdSomOmgjøres"""" else null}
+                "rammevedtakIdSomOmgjøres": ${if (rammevedtakIdSomOmgjøres != null) """"$rammevedtakIdSomOmgjøres"""" else null},
+                "nyOmgjøring": $nyOmgjøring
                 }
                 """.trimIndent(),
             )

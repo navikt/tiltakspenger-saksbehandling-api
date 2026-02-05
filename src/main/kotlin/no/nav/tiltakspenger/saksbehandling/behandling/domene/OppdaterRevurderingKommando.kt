@@ -114,9 +114,9 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         override val behandlingId: BehandlingId,
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
-        override val begrunnelseVilkårsvurdering: Begrunnelse?,
-        override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     ) : OppdaterOmgjøringKommando {
         override val vedtaksperiode = null
+        override val begrunnelseVilkårsvurdering = null
+        override val fritekstTilVedtaksbrev = null
     }
 }

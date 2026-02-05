@@ -165,7 +165,7 @@ interface OppdaterBehandlingBuilder {
         )
     }
 
-    suspend fun ApplicationTestBuilder.oppdaterRevurderingOmgjøring(
+    suspend fun ApplicationTestBuilder.oppdaterOmgjøringInnvilgelse(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,
@@ -190,6 +190,60 @@ interface OppdaterBehandlingBuilder {
                 fritekstTilVedtaksbrev,
             )
         }
+            }
+        """.trimIndent()
+
+        return oppdaterBehandling(
+            tac = tac,
+            sakId = sakId,
+            behandlingId = behandlingId,
+            body = body,
+            forventetStatus = forventetStatus,
+            saksbehandler = saksbehandler,
+        )
+    }
+
+    suspend fun ApplicationTestBuilder.oppdaterOmgjøringOpphør(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        behandlingId: BehandlingId,
+        vedtaksperiode: Periode,
+        begrunnelseVilkårsvurdering: String? = null,
+        fritekstTilVedtaksbrev: String? = null,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+    ): Triple<Sak, Rammebehandling, String> {
+        @Language("JSON")
+        val body = """
+            {
+              "resultat": "OMGJØRING_OPPHØR",
+              "vedtaksperiode": ${serialize(vedtaksperiode.toDTO())},
+              "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
+              "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()}
+            }
+        """.trimIndent()
+
+        return oppdaterBehandling(
+            tac = tac,
+            sakId = sakId,
+            behandlingId = behandlingId,
+            body = body,
+            forventetStatus = forventetStatus,
+            saksbehandler = saksbehandler,
+        )
+    }
+
+    suspend fun ApplicationTestBuilder.oppdaterOmgjøringIkkeValgt(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        behandlingId: BehandlingId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+    ): Triple<Sak, Rammebehandling, String> {
+        @Language("JSON")
+        val body = """
+            {
+              "resultat": "OMGJØRING_IKKE_VALGT"
             }
         """.trimIndent()
 

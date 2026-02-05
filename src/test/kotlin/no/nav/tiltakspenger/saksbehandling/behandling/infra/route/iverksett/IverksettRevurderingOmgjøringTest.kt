@@ -19,10 +19,30 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import org.junit.jupiter.api.Test
 
 class IverksettRevurderingOmgjøringTest {
+
+    @Test
+    fun `kan omgjøre stans`() {
+        withTestApplicationContext { tac ->
+            val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val stansFraOgMedDato = 1.februar(2025)
+            val (sak, _, _, rammevedtakRevurdering, _) = iverksettSøknadsbehandlingOgRevurderingStans(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode),
+                stansFraOgMed = stansFraOgMedDato,
+            )
+            iverksettRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = rammevedtakRevurdering.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.februar(2025) til 31.mars(2025)),
+            )
+        }
+    }
 
     @Test
     fun `kan omgjøre selv om det er hull i meldeperiodene`() {

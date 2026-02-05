@@ -26,8 +26,8 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
@@ -69,7 +69,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 tiltaksdeltakelseVedOpprettelseAvRevurdering,
             )
 
-            val (_, oppdatertRevurdering) = oppdaterRevurderingOmgjøring(
+            val (_, oppdatertRevurdering) = oppdaterOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammevedtakRevurdering.id,
@@ -125,7 +125,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
             )!!
 
-            oppdaterRevurderingOmgjøring(
+            oppdaterOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode.plusTilOgMed(1)),
@@ -166,7 +166,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
             )!!
 
-            oppdaterRevurderingOmgjøring(
+            oppdaterOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 vedtaksperiode = førsteInnvilgelsesperiode,
@@ -219,7 +219,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
             )!!
 
-            val (_, _, responseBody) = oppdaterRevurderingOmgjøring(
+            val (_, _, responseBody) = oppdaterOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 behandlingId = nyOmgjøring.id,

@@ -173,11 +173,15 @@ class OppdaterRammebehandlingService(
 
         return when (kommando) {
             is OppdaterOmgjøringKommando -> {
+                val omgjortVedtak =
+                    this.rammevedtaksliste.hentRammevedtakForId(revurdering.omgjørRammevedtak.single().rammevedtakId)
+
                 revurdering.oppdaterOmgjøring(
                     kommando = kommando,
                     utbetaling = utbetaling,
                     clock = clock,
                     finnRammevedtakSomOmgjøres = { this.vedtaksliste.finnRammevedtakSomOmgjøres(it) },
+                    omgjortVedtak = omgjortVedtak,
                 )
             }
 
