@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.setup
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -46,6 +47,7 @@ open class KlagebehandlingContext(
     private val behandleSøknadPåNyttService: BehandleSøknadPåNyttService,
     private val startRevurderingService: StartRevurderingService,
     private val overtaRammebehandlingService: OvertaRammebehandlingService,
+    private val leggTilbakeRammebehandlingService: LeggTilbakeRammebehandlingService,
 ) {
 
     open val klagebehandlingRepo: KlagebehandlingRepo by lazy {
@@ -156,6 +158,7 @@ open class KlagebehandlingContext(
         LeggTilbakeKlagebehandlingService(
             sakService = sakService,
             klagebehandlingRepo = klagebehandlingRepo,
+            leggTilbakeRammebehandlingService = leggTilbakeRammebehandlingService,
             clock = clock,
         )
     }

@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/oppdater"
 
 fun Route.oppdaterBehandlingRoute(
-    oppdaterBehandlingService: OppdaterBehandlingService,
+    oppdaterBehandlingService: OppdaterRammebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
 ) {

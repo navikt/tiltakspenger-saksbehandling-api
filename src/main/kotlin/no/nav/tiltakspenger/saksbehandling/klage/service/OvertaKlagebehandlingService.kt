@@ -22,7 +22,6 @@ class OvertaKlagebehandlingService(
         kommando: OvertaKlagebehandlingKommando,
     ): Either<KanIkkeOvertaKlagebehandling, Triple<Sak, Klagebehandling, Rammebehandling?>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
-
         return sak.overtaKlagebehandling(
             kommando = kommando,
             clock = clock,

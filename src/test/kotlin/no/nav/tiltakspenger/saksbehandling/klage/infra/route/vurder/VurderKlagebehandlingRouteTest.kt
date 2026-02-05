@@ -11,11 +11,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjørings�
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
@@ -67,10 +65,11 @@ class VurderKlagebehandlingRouteTest {
     fun `kan endre årsak og begrunnelse ved rammebehandling under behandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, _, søknadsbehandlingOpprettetFraKlage, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!
-            søknadsbehandlingOpprettetFraKlage as Søknadsbehandling
+            val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
+            rammebehandlingMedKlagebehandling as Søknadsbehandling
             val vedtakDetKlagesPå = sak.rammevedtaksliste.first()
             val (_, _, json) = vurderKlagebehandling(
                 tac = tac,
@@ -106,7 +105,7 @@ class VurderKlagebehandlingRouteTest {
                   "kanIverksette": true,
                   "årsak": "ANNET",
                   "begrunnelse": "oppdatert begrunnelse for omgjøring",
-                  "rammebehandlingId": "${søknadsbehandlingOpprettetFraKlage.id}",
+                  "rammebehandlingId": "${rammebehandlingMedKlagebehandling.id}",
                   "ventestatus": null
                 }
                 """.trimIndent(),
@@ -118,20 +117,21 @@ class VurderKlagebehandlingRouteTest {
     fun `kan ikke vurdere klage når rammebehandling er klar til beslutning`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, _, søknadsbehandlingOpprettetFraKlage, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!
+            val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
             oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
             sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
             vurderKlagebehandling(
@@ -158,27 +158,28 @@ class VurderKlagebehandlingRouteTest {
     fun `kan ikke vurdere klage når rammebehandling er under beslutning`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, _, søknadsbehandlingOpprettetFraKlage, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!
+            val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
             oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
             sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
             taBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = beslutter,
             )
             vurderKlagebehandling(
@@ -205,33 +206,34 @@ class VurderKlagebehandlingRouteTest {
     fun `kan ikke vurdere klage når rammebehandling er iverksatt`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, _, søknadsbehandlingOpprettetFraKlage, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandlingg, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!
+            val klagebehandling = rammebehandlingMedKlagebehandlingg.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
             oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandlingg.id,
                 saksbehandler = saksbehandler,
             )
             sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandlingg.id,
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
             taBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandlingg.id,
                 saksbehandler = beslutter,
             )
             iverksettForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandlingg.id,
                 beslutter = beslutter,
             )
             vurderKlagebehandling(

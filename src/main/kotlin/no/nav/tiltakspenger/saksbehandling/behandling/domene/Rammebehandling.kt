@@ -38,6 +38,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksett
+import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.LeggTilbakeKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.leggTilbake
 import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.OvertaKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.overta
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.TaKlagebehandlingKommando
@@ -297,7 +299,10 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         }
     }
 
-    fun leggTilbakeBehandling(saksbehandler: Saksbehandler, clock: Clock): Rammebehandling {
+    fun leggTilbakeBehandling(
+        saksbehandler: Saksbehandler,
+        clock: Clock,
+    ): Rammebehandling {
         return when (status) {
             UNDER_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
@@ -310,12 +315,34 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         saksbehandler = null,
                         status = KLAR_TIL_BEHANDLING,
                         sistEndret = nå(clock),
+                        klagebehandling = klagebehandling?.leggTilbake(
+                            LeggTilbakeKlagebehandlingKommando(
+                                sakId = sakId,
+                                klagebehandlingId = klagebehandling.id,
+                                saksbehandler = saksbehandler,
+                            ),
+                            rammebehandlingsstatus = this.status,
+                            clock = clock,
+                        )?.getOrElse {
+                            throw IllegalStateException("Kunne ikke legge tilbake klagebehandling når rammebehandling legges tilbake: $it")
+                        },
                     )
 
                     is Revurdering -> this.copy(
                         saksbehandler = null,
                         status = KLAR_TIL_BEHANDLING,
                         sistEndret = nå(clock),
+                        klagebehandling = klagebehandling?.leggTilbake(
+                            LeggTilbakeKlagebehandlingKommando(
+                                sakId = sakId,
+                                klagebehandlingId = klagebehandling.id,
+                                saksbehandler = saksbehandler,
+                            ),
+                            rammebehandlingsstatus = this.status,
+                            clock = clock,
+                        )?.getOrElse {
+                            throw IllegalStateException("Kunne ikke legge tilbake klagebehandling når rammebehandling legges tilbake: $it")
+                        },
                     )
                 }
             }

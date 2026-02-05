@@ -212,6 +212,7 @@ class TestApplicationContextMedPostgres(
             behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
             startRevurderingService = behandlingContext.startRevurderingService,
             overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
+            leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
         ) {}
     }
 

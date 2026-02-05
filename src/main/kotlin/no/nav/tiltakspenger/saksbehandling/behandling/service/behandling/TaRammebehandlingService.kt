@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
-class TaBehandlingService(
+class TaRammebehandlingService(
     private val behandlingService: RammebehandlingService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val statistikkSakRepo: StatistikkSakRepo,

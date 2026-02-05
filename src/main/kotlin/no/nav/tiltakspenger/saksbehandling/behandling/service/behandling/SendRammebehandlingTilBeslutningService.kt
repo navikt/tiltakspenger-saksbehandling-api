@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakSe
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import java.time.Clock
 
-class SendBehandlingTilBeslutningService(
+class SendRammebehandlingTilBeslutningService(
     private val sakService: SakService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,

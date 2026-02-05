@@ -60,7 +60,7 @@ interface OpprettRammebehandlingForKlageBuilder {
         type: String = "SØKNADSBEHANDLING_INNVILGELSE",
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Tuple5<Sak, Søknad, Rammebehandling, Klagebehandling, KlagebehandlingDTOJson>? {
+    ): Triple<Sak, Rammebehandling, KlagebehandlingDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, klagebehandling, _) = this.iverksettSøknadsbehandlingOgVurderKlagebehandling(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
@@ -74,7 +74,7 @@ interface OpprettRammebehandlingForKlageBuilder {
         ) ?: return null
         val søknadId = søknad.id
         val vedtakIdSomOmgjøres = rammevedtakSøknadsbehandling.id.toString()
-        val (oppdatertSak, rammebehandling, oppdatertKlagebehandling, json) = opprettRammebehandlingForKlage(
+        return opprettRammebehandlingForKlage(
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
@@ -84,8 +84,7 @@ interface OpprettRammebehandlingForKlageBuilder {
             type = type,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
-        ) ?: return null
-        return Tuple5(oppdatertSak, søknad, rammebehandling, oppdatertKlagebehandling, json)
+        )
     }
 
     /**
@@ -93,6 +92,8 @@ interface OpprettRammebehandlingForKlageBuilder {
      * @param type En av: [SØKNADSBEHANDLING_INNVILGELSE, REVURDERING_INNVILGELSE, REVURDERING_OMGJØRING]
      * @param søknadId Påkrevt ved [type] SØKNADSBEHANDLING_INNVILGELSE
      * @param vedtakIdSomOmgjøres Påkrevt ved [type] REVURDERING_OMGJØRING
+     *
+     * @return Merk at [Rammebehandling] inneholder [Klagebehandling]
      */
     suspend fun ApplicationTestBuilder.opprettRammebehandlingForKlage(
         tac: TestApplicationContext,
@@ -104,7 +105,7 @@ interface OpprettRammebehandlingForKlageBuilder {
         type: String,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Tuple4<Sak, Rammebehandling, Klagebehandling, KlagebehandlingDTOJson>? {
+    ): Triple<Sak, Rammebehandling, KlagebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
@@ -140,10 +141,9 @@ interface OpprettRammebehandlingForKlageBuilder {
             if (status != HttpStatusCode.OK) return null
             val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            return Tuple4(
+            return Triple(
                 oppdatertSak,
                 oppdatertSak.rammebehandlinger.last(),
-                oppdatertSak.hentKlagebehandling(klagebehandlingId),
                 jsonObject,
             )
         }

@@ -309,6 +309,7 @@ class TestApplicationContextMedInMemoryDb(
             behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
             startRevurderingService = behandlingContext.startRevurderingService,
             overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
+            leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
         ) {
             override val klagebehandlingRepo = klagebehandlingFakeRepo
             override val klagevedtakRepo = klagevedtakFakeRepo

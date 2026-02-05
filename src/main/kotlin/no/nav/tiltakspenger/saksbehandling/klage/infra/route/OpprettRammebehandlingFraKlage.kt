@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.KanIkkeOppretteRammebehandlingFraKlage
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettRammebehandlingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettRevurderingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.`OpprettSøknadsbehandlingFraKlageKommando`
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettSøknadsbehandlingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingFraKlageService
 
 private data class OpprettRammebehandlingFraKlage(

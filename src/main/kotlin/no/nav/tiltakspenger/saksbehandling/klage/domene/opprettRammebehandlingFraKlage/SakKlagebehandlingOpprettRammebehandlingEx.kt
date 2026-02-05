@@ -29,7 +29,7 @@ suspend fun Sak.opprettRammebehandlingFraKlage(
         }
     }
     return when (kommando) {
-        is `OpprettSøknadsbehandlingFraKlageKommando` -> this.opprettSøknadsbehandlingFraKlage(
+        is OpprettSøknadsbehandlingFraKlageKommando -> this.opprettSøknadsbehandlingFraKlage(
             kommando = kommando,
             opprettSøknadsbehandling = opprettSøknadsbehandling,
         )
@@ -42,7 +42,7 @@ suspend fun Sak.opprettRammebehandlingFraKlage(
 }
 
 private suspend fun Sak.opprettSøknadsbehandlingFraKlage(
-    kommando: `OpprettSøknadsbehandlingFraKlageKommando`,
+    kommando: OpprettSøknadsbehandlingFraKlageKommando,
     opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando, Sak) -> Pair<Sak, Søknadsbehandling>,
 ): Pair<Sak, Søknadsbehandling> {
     return opprettSøknadsbehandling(

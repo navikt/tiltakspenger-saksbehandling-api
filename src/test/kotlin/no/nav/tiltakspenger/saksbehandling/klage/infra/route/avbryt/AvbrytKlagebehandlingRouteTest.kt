@@ -118,16 +118,17 @@ class AvbrytKlagebehandlingRouteTest {
     fun `kan avbryte klagebehandling hvis vi har opprettet og avbrutt tilknyttet rammebehandling`() {
         val saksbehandler = ObjectMother.saksbehandler()
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, _, rammebehandling, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedklagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
                 saksbehandlerSøknadsbehandling = saksbehandler,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
+            val klagebehandling = rammebehandlingMedklagebehandling.klagebehandling!!
             val (_, _, _, _) = avbrytRammebehandling(
                 tac = tac,
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
-                rammebehandlingId = rammebehandling.id,
+                rammebehandlingId = rammebehandlingMedklagebehandling.id,
                 saksbehandler = saksbehandler,
             )!!
             val (_, oppdatertKlagebehandling, json) = avbrytKlagebehandling(
@@ -177,9 +178,10 @@ class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `kan ikke avbryte hvis åpen tilknyttet rammebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, _, _, klagebehandling) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!
+            val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val rammebehandlingId = sak.rammebehandlinger[1].id
             avbrytKlagebehandling(
                 tac = tac,
@@ -244,33 +246,34 @@ class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `kan ikke avbryte vedtatt omgjort klage`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, _, søknadsbehandlingOpprettetFraKlage, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!
+            val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
             oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
             sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
             taBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = beslutter,
             )
             iverksettForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = søknadsbehandlingOpprettetFraKlage.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id,
                 beslutter = beslutter,
             )
             avbrytKlagebehandling(

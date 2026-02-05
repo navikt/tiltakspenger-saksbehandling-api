@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.AvbrytKlageb
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.forhåndsvis.ForhåndsvisBrevKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.GjenopptaKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett.IverksettKlagebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.LeggKlagebehandlingMedRammebehandlingTilbakeBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.LeggKlagebehandlingTilbakeBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater.OppdaterKlagebehandlingBrevtekstBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater.OppdaterKlagebehandlingFormkravBuilder
@@ -51,6 +52,7 @@ object RouteBehandlingBuilder :
     OvertaKlagebehandlingBuilder,
     SettKlagebehandlingPåVentBuilder,
     LeggKlagebehandlingTilbakeBuilder,
+    LeggKlagebehandlingMedRammebehandlingTilbakeBuilder,
     TaKlagebehandlingBuilder,
     GjenopptaKlagebehandlingBuilder,
     OppdaterKlagebehandlingFormkravBuilder,

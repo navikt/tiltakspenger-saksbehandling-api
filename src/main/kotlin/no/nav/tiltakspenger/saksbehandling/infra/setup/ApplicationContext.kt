@@ -163,7 +163,7 @@ open class ApplicationContext(
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             clock = clock,
             startRevurderingService = behandlingContext.startRevurderingService,
-            leggTilbakeBehandlingService = behandlingContext.leggTilbakeBehandlingService,
+            leggTilbakeBehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
         )
     }
 
@@ -370,6 +370,7 @@ open class ApplicationContext(
             behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
             startRevurderingService = behandlingContext.startRevurderingService,
             overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
+            leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
         )
     }
 

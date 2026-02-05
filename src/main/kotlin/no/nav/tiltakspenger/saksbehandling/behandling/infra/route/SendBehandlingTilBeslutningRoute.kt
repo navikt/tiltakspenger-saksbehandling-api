@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendRammebehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilUtbetaling
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutning"
 
 fun Route.sendBehandlingTilBeslutningRoute(
-    sendBehandlingTilBeslutningService: SendBehandlingTilBeslutningService,
+    sendBehandlingTilBeslutningService: SendRammebehandlingTilBeslutningService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
 ) {

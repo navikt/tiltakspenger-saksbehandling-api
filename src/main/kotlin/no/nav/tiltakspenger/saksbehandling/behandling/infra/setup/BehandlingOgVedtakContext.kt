@@ -18,15 +18,15 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Behandl
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettBehandlingPåVentService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendRammebehandlingTilBeslutningService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettRammebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskBehandlingService
@@ -159,7 +159,7 @@ open class BehandlingOgVedtakContext(
     }
 
     val sendBehandlingTilBeslutningService by lazy {
-        SendBehandlingTilBeslutningService(
+        SendRammebehandlingTilBeslutningService(
             sakService = sakService,
             rammebehandlingRepo = rammebehandlingRepo,
             clock = clock,
@@ -214,7 +214,7 @@ open class BehandlingOgVedtakContext(
     }
 
     val taBehandlingService by lazy {
-        TaBehandlingService(
+        TaRammebehandlingService(
             behandlingService = behandlingService,
             rammebehandlingRepo = rammebehandlingRepo,
             statistikkSakService = statistikkSakService,
@@ -235,8 +235,8 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val leggTilbakeBehandlingService by lazy {
-        LeggTilbakeBehandlingService(
+    val leggTilbakeRammebehandlingService by lazy {
+        LeggTilbakeRammebehandlingService(
             behandlingService = behandlingService,
             rammebehandlingRepo = rammebehandlingRepo,
             statistikkSakService = statistikkSakService,
@@ -247,7 +247,7 @@ open class BehandlingOgVedtakContext(
     }
 
     val oppdaterBehandlingService by lazy {
-        OppdaterBehandlingService(
+        OppdaterRammebehandlingService(
             sakService = sakService,
             rammebehandlingRepo = rammebehandlingRepo,
             navkontorService = navkontorService,
@@ -258,7 +258,7 @@ open class BehandlingOgVedtakContext(
     }
 
     val settBehandlingPåVentService by lazy {
-        SettBehandlingPåVentService(
+        SettRammebehandlingPåVentService(
             behandlingService = behandlingService,
             statistikkSakService = statistikkSakService,
             clock = clock,

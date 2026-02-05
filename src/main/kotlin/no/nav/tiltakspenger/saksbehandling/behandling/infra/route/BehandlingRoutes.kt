@@ -10,14 +10,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimulering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettBehandlingPåVentService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendRammebehandlingTilBeslutningService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettRammebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import java.time.Clock
@@ -28,14 +28,14 @@ fun Route.behandlingRoutes(
     behandleSøknadPåNyttService: BehandleSøknadPåNyttService,
     oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
     iverksettRammebehandlingService: IverksettRammebehandlingService,
-    sendBehandlingTilBeslutningService: SendBehandlingTilBeslutningService,
+    sendBehandlingTilBeslutningService: SendRammebehandlingTilBeslutningService,
     forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevService,
     startRevurderingService: StartRevurderingService,
-    taBehandlingService: TaBehandlingService,
+    taBehandlingService: TaRammebehandlingService,
     overtaBehandlingService: OvertaRammebehandlingService,
-    leggTilbakeBehandlingService: LeggTilbakeBehandlingService,
-    oppdaterBehandlingService: OppdaterBehandlingService,
-    settBehandlingPåVentService: SettBehandlingPåVentService,
+    leggTilbakeBehandlingService: LeggTilbakeRammebehandlingService,
+    oppdaterBehandlingService: OppdaterRammebehandlingService,
+    settBehandlingPåVentService: SettRammebehandlingPåVentService,
     gjenopptaBehandlingService: GjenopptaRammebehandlingService,
     oppdaterSimuleringService: OppdaterSimuleringService,
     tilgangskontrollService: TilgangskontrollService,

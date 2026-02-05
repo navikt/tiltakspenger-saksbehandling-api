@@ -241,46 +241,6 @@ class RammebehandlingPostgresRepo(
         }
     }
 
-    override fun leggTilbakeBehandlingSaksbehandler(
-        behandlingId: BehandlingId,
-        nåværendeSaksbehandler: Saksbehandler,
-        behandlingsstatus: Rammebehandlingsstatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
-    ): Boolean {
-        return sessionFactory.withSession(sessionContext) { sx ->
-            sx.run(
-                sqlQuery(
-                    """update behandling set saksbehandler = null, status = :status, sist_endret = :sist_endret where id = :id and saksbehandler = :lagretSaksbehandler""",
-                    "id" to behandlingId.toString(),
-                    "lagretSaksbehandler" to nåværendeSaksbehandler.navIdent,
-                    "status" to behandlingsstatus.toDb(),
-                    "sist_endret" to sistEndret,
-                ).asUpdate,
-            ) > 0
-        }
-    }
-
-    override fun leggTilbakeBehandlingBeslutter(
-        behandlingId: BehandlingId,
-        nåværendeBeslutter: Saksbehandler,
-        behandlingsstatus: Rammebehandlingsstatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
-    ): Boolean {
-        return sessionFactory.withSession(sessionContext) { sx ->
-            sx.run(
-                sqlQuery(
-                    """update behandling set beslutter = null, status = :status, sist_endret = :sist_endret where id = :id and beslutter = :lagretBeslutter""",
-                    "id" to behandlingId.toString(),
-                    "lagretBeslutter" to nåværendeBeslutter.navIdent,
-                    "status" to behandlingsstatus.toDb(),
-                    "sist_endret" to sistEndret,
-                ).asUpdate,
-            ) > 0
-        }
-    }
-
     companion object {
         fun hentOrNull(
             behandlingId: BehandlingId,

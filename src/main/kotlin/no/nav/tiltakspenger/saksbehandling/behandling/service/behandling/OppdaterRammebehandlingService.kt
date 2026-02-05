@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import java.time.Clock
 
-class OppdaterBehandlingService(
+class OppdaterRammebehandlingService(
     private val sakService: SakService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val navkontorService: NavkontorService,

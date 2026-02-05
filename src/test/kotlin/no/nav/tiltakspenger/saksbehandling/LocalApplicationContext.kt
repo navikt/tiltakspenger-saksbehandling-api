@@ -273,6 +273,7 @@ class LocalApplicationContext(
             behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
             startRevurderingService = behandlingContext.startRevurderingService,
             overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
+            leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
         ) {}
     }
 

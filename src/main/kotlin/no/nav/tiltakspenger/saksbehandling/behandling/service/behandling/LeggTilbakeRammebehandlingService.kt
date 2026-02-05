@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
-class LeggTilbakeBehandlingService(
+class LeggTilbakeRammebehandlingService(
     private val behandlingService: RammebehandlingService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val statistikkSakService: StatistikkSakService,
@@ -38,28 +38,9 @@ class LeggTilbakeBehandlingService(
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
             when (it.status) {
-                Rammebehandlingsstatus.KLAR_TIL_BEHANDLING -> {
+                Rammebehandlingsstatus.KLAR_TIL_BEHANDLING, Rammebehandlingsstatus.KLAR_TIL_BESLUTNING -> {
                     sessionFactory.withTransactionContext { tx ->
-                        rammebehandlingRepo.leggTilbakeBehandlingSaksbehandler(
-                            it.id,
-                            saksbehandler,
-                            it.status,
-                            it.sistEndret,
-                            tx,
-                        )
-                        statistikkSakRepo.lagre(statistikk, tx)
-                    }
-                }
-
-                Rammebehandlingsstatus.KLAR_TIL_BESLUTNING -> {
-                    sessionFactory.withTransactionContext { tx ->
-                        rammebehandlingRepo.leggTilbakeBehandlingBeslutter(
-                            it.id,
-                            saksbehandler,
-                            it.status,
-                            it.sistEndret,
-                            tx,
-                        )
+                        rammebehandlingRepo.lagre(it, tx)
                         statistikkSakRepo.lagre(statistikk, tx)
                     }
                 }

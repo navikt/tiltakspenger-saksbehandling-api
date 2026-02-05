@@ -55,21 +55,5 @@ interface RammebehandlingRepo {
         sessionContext: SessionContext? = null,
     ): Boolean
 
-    fun leggTilbakeBehandlingSaksbehandler(
-        behandlingId: BehandlingId,
-        nåværendeSaksbehandler: Saksbehandler,
-        behandlingsstatus: Rammebehandlingsstatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext? = null,
-    ): Boolean
-
-    fun leggTilbakeBehandlingBeslutter(
-        behandlingId: BehandlingId,
-        nåværendeBeslutter: Saksbehandler,
-        behandlingsstatus: Rammebehandlingsstatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext? = null,
-    ): Boolean
-
     fun hentAlleAutomatiskeSoknadsbehandlinger(limit: Int): List<Søknadsbehandling>
 }

@@ -145,11 +145,12 @@ class OppdaterKlagebehandlingFormkravRouteTest {
     fun `kan ikke oppdatere formkrav til avvist dersom klage er omgjøring med rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, _, _, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
                 type = "REVURDERING_INNVILGELSE",
             )!!
 
+            val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             oppdaterKlagebehandlingFormkravForSakId(
                 tac = tac,
                 sakId = sak.id,

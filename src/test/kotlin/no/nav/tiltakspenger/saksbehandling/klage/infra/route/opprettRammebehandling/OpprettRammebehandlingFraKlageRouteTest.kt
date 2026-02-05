@@ -22,10 +22,11 @@ class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan opprette søknadsbehandling for klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, _, søknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!
-            søknadsbehandling as Søknadsbehandling
+            val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
+            rammebehandlingMedKlagebehandling as Søknadsbehandling
             klagebehandling shouldBe Klagebehandling(
                 id = klagebehandling.id,
                 sakId = sak.id,
@@ -40,7 +41,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = søknadsbehandling.id,
+                    rammebehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -57,7 +58,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
             json.toString().shouldEqualJson(
                 """
               {
-              "id": "${søknadsbehandling.id}",
+              "id": "${rammebehandlingMedKlagebehandling.id}",
               "status": "UNDER_BEHANDLING",
               "sakId": "${sak.id}",
               "saksnummer": "202505011001",
@@ -102,7 +103,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "utbetaling": null,
               "resultat": "IKKE_VALGT",
               "søknad": {
-                "id": "${søknadsbehandling.søknad.id}",
+                "id": "${rammebehandlingMedKlagebehandling.søknad.id}",
                 "journalpostId": "123456789",
                 "tiltak": {
                   "id": "61328250-7d5d-4961-b70e-5cb727a34371",
@@ -188,11 +189,12 @@ class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan opprette revurdering innvilgelse for klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, _, revurdering, klagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
                 type = "REVURDERING_INNVILGELSE",
             )!!
-            revurdering as Revurdering
+            val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
+            rammebehandlingMedKlagebehandling as Revurdering
             klagebehandling shouldBe Klagebehandling(
                 id = klagebehandling.id,
                 sakId = sak.id,
@@ -207,7 +209,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = revurdering.id,
+                    rammebehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -224,7 +226,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
             json.toString().shouldEqualJson(
                 """
               {
-              "id": "${revurdering.id}",
+              "id": "${rammebehandlingMedKlagebehandling.id}",
               "status": "UNDER_BEHANDLING",
               "sakId": "${sak.id}",
               "saksnummer": "202505011001",
@@ -280,11 +282,12 @@ class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan opprette omgjøring for klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, _, revurdering, klagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
             )!!
-            revurdering as Revurdering
+            val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
+            rammebehandlingMedKlagebehandling as Revurdering
             klagebehandling shouldBe Klagebehandling(
                 id = klagebehandling.id,
                 sakId = sak.id,
@@ -299,7 +302,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = revurdering.id,
+                    rammebehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -316,7 +319,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
             json.toString().shouldEqualJson(
                 """
               {
-              "id": "${revurdering.id}",
+              "id": "${rammebehandlingMedKlagebehandling.id}",
               "status": "UNDER_BEHANDLING",
               "sakId": "${sak.id}",
               "saksnummer": "202505011001",
@@ -396,9 +399,11 @@ class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan ikke ha 2 åpne rammebehandlinger knyttet til samme klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, søknad, søknadsbehandling, klagebehandling) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
             )!!
+            val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
+            val søknad = (rammebehandlingMedKlagebehandling as Søknadsbehandling).søknad
             opprettRammebehandlingForKlage(
                 tac = tac,
                 sakId = sak.id,
@@ -410,7 +415,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 forventetJsonBody = {
                     """
                         {
-                          "melding": "Det finnes allerede en åpen rammebehandling ${søknadsbehandling.id} for denne klagebehandlingen.",
+                          "melding": "Det finnes allerede en åpen rammebehandling ${rammebehandlingMedKlagebehandling.id} for denne klagebehandlingen.",
                           "kode": "finnes_åpen_rammebehandling"
                         }
                     """.trimIndent()

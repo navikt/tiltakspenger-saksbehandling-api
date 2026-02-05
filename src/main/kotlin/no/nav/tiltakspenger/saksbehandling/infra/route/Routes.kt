@@ -36,7 +36,7 @@ fun Route.routes(
             startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
             taBehandlingService = applicationContext.behandlingContext.taBehandlingService,
             overtaBehandlingService = applicationContext.behandlingContext.overtaRammebehandlingService,
-            leggTilbakeBehandlingService = applicationContext.behandlingContext.leggTilbakeBehandlingService,
+            leggTilbakeBehandlingService = applicationContext.behandlingContext.leggTilbakeRammebehandlingService,
             oppdaterBehandlingService = applicationContext.behandlingContext.oppdaterBehandlingService,
             settBehandlingPåVentService = applicationContext.behandlingContext.settBehandlingPåVentService,
             gjenopptaBehandlingService = applicationContext.behandlingContext.gjenopptaBehandlingService,

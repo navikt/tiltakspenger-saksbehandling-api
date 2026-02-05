@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -31,7 +31,7 @@ class EndretTiltaksdeltakerJobb(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
     private val startRevurderingService: StartRevurderingService,
-    private val leggTilbakeBehandlingService: LeggTilbakeBehandlingService,
+    private val leggTilbakeBehandlingService: LeggTilbakeRammebehandlingService,
 ) {
     private val log = KotlinLogging.logger {}
 
