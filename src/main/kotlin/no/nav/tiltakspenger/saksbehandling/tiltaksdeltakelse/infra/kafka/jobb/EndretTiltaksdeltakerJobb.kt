@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
@@ -56,7 +56,8 @@ class EndretTiltaksdeltakerJobb(
 
                     val apneManuelleBehandlinger =
                         apneBehandlingerForDeltakelse.filter { !it.erUnderAutomatiskBehandling }
-                    val nyesteIverksatteBehandling = finnNyesteIverksatteBehandlingForDeltakelse(sak, internTiltaksdeltakerId)
+                    val nyesteIverksatteBehandling =
+                        finnNyesteIverksatteBehandlingForDeltakelse(sak, internTiltaksdeltakerId)
 
                     if (nyesteIverksatteBehandling == null && apneManuelleBehandlinger.isEmpty()) {
                         log.info { "Fant ingen åpen manuell behandling eller iverksatt behandling for sakId $sakId og ekstern deltakerId $deltakerId, sletter deltakerinnslag" }
@@ -121,11 +122,17 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
-    private fun finnApneBehandlingerForDeltakelse(sak: Sak, tiltaksdeltakerId: TiltaksdeltakerId): List<Søknadsbehandling> {
+    private fun finnApneBehandlingerForDeltakelse(
+        sak: Sak,
+        tiltaksdeltakerId: TiltaksdeltakerId,
+    ): List<Søknadsbehandling> {
         return sak.apneSoknadsbehandlinger.filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId }
     }
 
-    private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: TiltaksdeltakerId): Rammebehandling? {
+    private fun finnNyesteIverksatteBehandlingForDeltakelse(
+        sak: Sak,
+        tiltaksdeltakerId: TiltaksdeltakerId,
+    ): Rammebehandling? {
         val iverksatteBehandlingerForDeltakelse: Periodisering<Rammebehandling> =
             sak.rammevedtaksliste.innvilgetTidslinje
                 .filter { it.verdi.rammebehandling.inneholderSaksopplysningerInternDeltakelseId(tiltaksdeltakerId) }
@@ -173,11 +180,15 @@ class EndretTiltaksdeltakerJobb(
 
         val tiltaksdeltakelseFraBehandling = behandling.getTiltaksdeltakelse(
             internDeltakelseId = deltaker.tiltaksdeltakerId,
-        ) ?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id} på behandling ${behandling.id}, skal ikke kunne skje")
+        )
+            ?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id} på behandling ${behandling.id}, skal ikke kunne skje")
         return deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling, clock = clock)
     }
 
-    private fun skalOppretteRevurderingStans(harApneBehandlinger: Boolean, endringer: List<TiltaksdeltakerEndring>): Boolean {
+    private fun skalOppretteRevurderingStans(
+        harApneBehandlinger: Boolean,
+        endringer: List<TiltaksdeltakerEndring>,
+    ): Boolean {
         if (harApneBehandlinger) {
             return false
         }
@@ -189,7 +200,7 @@ class EndretTiltaksdeltakerJobb(
             sakId = sakId,
             correlationId = CorrelationId.generate(),
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-            revurderingType = RevurderingType.STANS,
+            revurderingType = StartRevurderingType.STANS,
             vedtakIdSomOmgjøres = null,
             klagebehandlingId = null,
         )

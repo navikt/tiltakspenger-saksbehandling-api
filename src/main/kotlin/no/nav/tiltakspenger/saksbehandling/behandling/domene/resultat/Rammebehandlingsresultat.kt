@@ -38,8 +38,11 @@ sealed interface Rammebehandlingsresultat {
      */
     fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean
 
+    fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandlingsresultat?>
+
     /** Denne benyttes både i søknadsbehandlinger og revurderinger */
     sealed interface Innvilgelse : Rammebehandlingsresultat {
+
         /** Kan være null fram til resultatet er ferdigutfylt. */
         override val innvilgelsesperioder: Innvilgelsesperioder?
 
@@ -69,26 +72,32 @@ sealed interface Rammebehandlingsresultat {
             }
 
             // Alle barnetilleggsperiodene må overlappe fullstendig med innvilgelsesperiodene
-            val ikkeOverlappendePerioder = barnetillegg!!.periodisering.perioder.trekkFra(innvilgelsesperioder!!.perioder)
+            val ikkeOverlappendePerioder =
+                barnetillegg!!.periodisering.perioder.trekkFra(innvilgelsesperioder!!.perioder)
 
             return ikkeOverlappendePerioder.isEmpty()
         }
     }
 
-    fun oppdaterSaksopplysninger(oppdaterteSaksopplysninger: Saksopplysninger): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandlingsresultat?>
+    // TODO: bruk denne for ikke valgt søknadsbehandling også, istedenfor null
+    sealed interface IkkeValgt : Rammebehandlingsresultat {
+        fun vedtakError(): Nothing
+    }
 }
 
-sealed interface BehandlingResultatType
+sealed interface RammebehandlingsesultatType
 
-enum class SøknadsbehandlingType : BehandlingResultatType {
+enum class SøknadsbehandlingsresultatType : RammebehandlingsesultatType {
     INNVILGELSE,
     AVSLAG,
 }
 
-enum class RevurderingType : BehandlingResultatType {
+enum class RevurderingsresultatType : RammebehandlingsesultatType {
     STANS,
     INNVILGELSE,
-    OMGJØRING,
+    OMGJØRING_INNVILGELSE,
+    OMGJØRING_OPPHØR,
+    OMGJØRING_IKKE_VALGT,
 }
 
 /**

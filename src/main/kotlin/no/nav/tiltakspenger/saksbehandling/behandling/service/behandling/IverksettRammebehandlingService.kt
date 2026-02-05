@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
@@ -111,7 +110,7 @@ class IverksettRammebehandlingService(
         stønadStatistikk: StatistikkStønadDTO?,
     ): Sak {
         return when (rammevedtak.rammebehandlingsresultat) {
-            is Rammebehandlingsresultat.Innvilgelse -> this.iverksettRammebehandling(
+            is Søknadsbehandlingsresultat.Innvilgelse -> this.iverksettRammebehandling(
                 rammevedtak,
                 sakStatistikk,
                 stønadStatistikk!!,
@@ -137,11 +136,7 @@ class IverksettRammebehandlingService(
                 this
             }
 
-            is Revurderingsresultat.Stans -> throw IllegalArgumentException("Kan ikke iverksette stans-vedtak på en søknadsbehandling")
-
-            is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
-
-            is Omgjøringsresultat.OmgjøringOpphør -> TODO()
+            is Revurderingsresultat -> throw IllegalArgumentException("Kan ikke iverksette revurdering-resultat på en søknadsbehandling")
         }
     }
 

@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
 import java.time.LocalDate
@@ -122,21 +122,10 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
     }
 }
 
-fun RammebehandlingResultatTypeDTO.tilRevurderingType(): RevurderingType = when (this) {
-    RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
-
-    RammebehandlingResultatTypeDTO.STANS -> RevurderingType.STANS
-
-    RammebehandlingResultatTypeDTO.OMGJØRING -> RevurderingType.OMGJØRING
-
-    RammebehandlingResultatTypeDTO.AVSLAG,
-    RammebehandlingResultatTypeDTO.INNVILGELSE,
-    RammebehandlingResultatTypeDTO.IKKE_VALGT,
-    -> throw IllegalStateException("Ugyldig type for revurdering $this")
-}
-
-fun RevurderingType.tilDTO(): RammebehandlingResultatTypeDTO = when (this) {
-    RevurderingType.STANS -> RammebehandlingResultatTypeDTO.STANS
-    RevurderingType.INNVILGELSE -> RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
-    RevurderingType.OMGJØRING -> RammebehandlingResultatTypeDTO.OMGJØRING
+fun RevurderingsresultatType.tilDTO(): RammebehandlingResultatTypeDTO = when (this) {
+    RevurderingsresultatType.STANS -> RammebehandlingResultatTypeDTO.STANS
+    RevurderingsresultatType.INNVILGELSE -> RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
+    RevurderingsresultatType.OMGJØRING_INNVILGELSE -> RammebehandlingResultatTypeDTO.OMGJØRING
+    RevurderingsresultatType.OMGJØRING_OPPHØR -> RammebehandlingResultatTypeDTO.OMGJØRING_OPPHØR
+    RevurderingsresultatType.OMGJØRING_IKKE_VALGT -> RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT
 }

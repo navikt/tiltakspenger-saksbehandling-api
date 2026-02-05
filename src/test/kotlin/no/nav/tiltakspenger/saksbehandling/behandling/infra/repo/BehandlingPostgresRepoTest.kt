@@ -25,7 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
@@ -337,7 +337,7 @@ internal class BehandlingPostgresRepoTest {
             )
 
             val (sak, behandling) = testDataHelper.persisterOpprettetRevurdering(
-                revurderingType = RevurderingType.INNVILGELSE,
+                revurderingType = RevurderingsresultatType.INNVILGELSE,
                 hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
             )
 

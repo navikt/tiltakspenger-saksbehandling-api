@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppretteOmgjøring
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat.IkkeValgt
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
@@ -26,6 +27,11 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
  */
 sealed interface Omgjøringsresultat : Revurderingsresultat {
 
+    // Per 27. nov 2025 krever vi at en omgjøringsbehandling omgjør ett enkelt vedtak, men vi har ikke noen begrensning på å utvide omgjøringen, slik at den omgjør flere vedtak.
+    // Tanken med dette feltet er de tilfellene man har spesifikt valgt å omgjøre et spesifikt vedtak i sin helhet.
+    // TODO jah: Anders, hva gjør vi? Legger tilbake omgjørVedtakId? Det føles forvirrende. Skal vi heller sperre for at den kan omgjøre flere vedtak?
+    val omgjortVedtak: Omgjøringsperiode get() = omgjørRammevedtak.single()
+
     data class OmgjøringInnvilgelse(
         override val vedtaksperiode: Periode,
         override val innvilgelsesperioder: Innvilgelsesperioder?,
@@ -35,13 +41,6 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
         Rammebehandlingsresultat.Innvilgelse {
         override val valgteTiltaksdeltakelser = innvilgelsesperioder?.valgteTiltaksdeltagelser
         override val antallDagerPerMeldeperiode = innvilgelsesperioder?.antallDagerPerMeldeperiode
-
-        // Per 27. nov 2025 krever vi at en omgjøringsbehandling omgjør ett enkelt vedtak, men vi har ikke noen begrensning på å utvide omgjøringen, slik at den omgjør flere vedtak.
-        // Tanken med dette feltet er de tilfellene man har spesifikt valgt å omgjøre et spesifikt vedtak i sin helhet.
-        // TODO jah: Anders, hva gjør vi? Legger tilbake omgjørVedtakId? Det føles forvirrende. Skal vi heller sperre for at den kan omgjøre flere vedtak?
-        val omgjortVedtak: Omgjøringsperiode by lazy {
-            omgjørRammevedtak.single()
-        }
 
         /**
          * Validerer [oppdaterteSaksopplysninger] opp mot resultatet.
@@ -87,7 +86,7 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
                     vedtaksperiode = omgjørRammevedtak.gjeldendeTotalPeriode!!,
                     innvilgelsesperioder = innvilgelsesperioder,
                     barnetillegg = barnetillegg,
-                    omgjørRammevedtak = OmgjørRammevedtak.Companion.create(omgjørRammevedtak),
+                    omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
                 ).right()
             }
         }
@@ -137,16 +136,17 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
             return this.right()
         }
 
-        /** Dersom vi skal ha hjemler for opphør tilsvarende som stans, legg inn sjekk for det her */
+        /** Dersom vi skal ha hjemler for opphør tilsvarende som for stans, legg inn sjekk for det her */
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
             return true
         }
     }
 
     data class OmgjøringIkkeValgt(
-        override val vedtaksperiode: Periode,
         override val omgjørRammevedtak: OmgjørRammevedtak,
-    ) : Omgjøringsresultat {
+    ) : Omgjøringsresultat,
+        IkkeValgt {
+        override val vedtaksperiode = null
         override val innvilgelsesperioder = null
         override val barnetillegg = null
         override val valgteTiltaksdeltakelser = null
@@ -161,6 +161,10 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
         /** IkkeValgt er aldri en ferdig utfylling */
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
             return false
+        }
+
+        override fun vedtakError(): Nothing {
+            throw IllegalStateException("Omgjøring uten valgt resultat kan ikke vedtas")
         }
     }
 }

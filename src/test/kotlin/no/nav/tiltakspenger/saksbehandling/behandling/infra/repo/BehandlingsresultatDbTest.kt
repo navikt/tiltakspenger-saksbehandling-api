@@ -6,10 +6,10 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
@@ -47,8 +47,8 @@ class BehandlingsresultatDbTest {
 
     @Test
     fun `mapper til domene type`() {
-        "INNVILGELSE".tilSøknadsbehandlingResultatType() shouldBe SøknadsbehandlingType.INNVILGELSE
-        "AVSLAG".tilSøknadsbehandlingResultatType() shouldBe SøknadsbehandlingType.AVSLAG
-        "STANS".tilRevurderingResultatType() shouldBe RevurderingType.STANS
+        "INNVILGELSE".tilSøknadsbehandlingResultatType() shouldBe SøknadsbehandlingsresultatType.INNVILGELSE
+        "AVSLAG".tilSøknadsbehandlingResultatType() shouldBe SøknadsbehandlingsresultatType.AVSLAG
+        "STANS".tilRevurderingResultatType() shouldBe RevurderingsresultatType.STANS
     }
 }

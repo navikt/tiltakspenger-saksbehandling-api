@@ -51,9 +51,9 @@ fun genererSaksstatistikkForRammevedtak(
 
             is Søknadsbehandlingsresultat.Avslag -> StatistikkBehandlingResultat.AVSLAG
 
-            is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+            is Omgjøringsresultat.OmgjøringOpphør -> StatistikkBehandlingResultat.OPPHØRT
 
-            is Omgjøringsresultat.OmgjøringOpphør -> TODO()
+            is Rammebehandlingsresultat.IkkeValgt -> vedtak.rammebehandlingsresultat.vedtakError()
         },
         // TODO jah: Denne bør ikke være null.
         resultatBegrunnelse = null,

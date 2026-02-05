@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -130,7 +130,7 @@ interface RammevedtakMother : MotherOfAllMothers {
             saksopplysningsperiode = avslagsperiode,
             saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
             fnr = fnr,
-            resultat = SøknadsbehandlingType.AVSLAG,
+            resultat = SøknadsbehandlingsresultatType.AVSLAG,
             avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
         ),
         vedtaksdato: LocalDate = 2.januar(2023),

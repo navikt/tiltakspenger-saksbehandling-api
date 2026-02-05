@@ -76,19 +76,13 @@ enum class StatistikkFormat {
     ANNET,
 }
 
-enum class StatistikkResultat {
-    OPPFYLT,
-    IKKE_OPPFYLT,
-    IKKE_VURDERT,
-    UAVKLART,
-}
-
 enum class StatistikkBehandlingResultat {
     INNVILGET,
     AVSLAG,
     STANS,
     FORLENGELSE,
     AVBRUTT,
+    OPPHØRT,
 }
 
 enum class StatistikkBehandlingStatus {

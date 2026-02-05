@@ -17,8 +17,8 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
@@ -490,7 +490,7 @@ class EndretTiltaksdeltakerJobbTest {
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
                 coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
-                coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == RevurderingType.STANS }) }
+                coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS }) }
                 coVerify(exactly = 1) { leggTilbakeBehandlingService.leggTilbakeBehandling(sak.id, any(), AUTOMATISK_SAKSBEHANDLER) }
             }
         }
@@ -669,7 +669,7 @@ class EndretTiltaksdeltakerJobbTest {
                     andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
 
                     coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
-                    coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == RevurderingType.STANS }) }
+                    coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS }) }
                     coVerify(exactly = 1) { leggTilbakeBehandlingService.leggTilbakeBehandling(sak.id, any(), AUTOMATISK_SAKSBEHANDLER) }
                 }
             }
@@ -738,7 +738,7 @@ class EndretTiltaksdeltakerJobbTest {
                     andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
 
                     coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
-                    coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == RevurderingType.STANS }) }
+                    coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS }) }
                     coVerify(exactly = 1) { leggTilbakeBehandlingService.leggTilbakeBehandling(sak.id, any(), AUTOMATISK_SAKSBEHANDLER) }
                 }
             }

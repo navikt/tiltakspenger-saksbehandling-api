@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
@@ -218,7 +218,7 @@ interface BehandlingMother : MotherOfAllMothers {
             ),
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         clock: Clock = this.clock,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         automatiskBehandling: Boolean = false,
@@ -234,7 +234,7 @@ interface BehandlingMother : MotherOfAllMothers {
             clock = clock,
         ).oppdater(
             when (resultat) {
-                SøknadsbehandlingType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
+                SøknadsbehandlingsresultatType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     behandlingId = id,
@@ -245,7 +245,7 @@ interface BehandlingMother : MotherOfAllMothers {
                     automatiskSaksbehandlet = automatiskBehandling,
                 )
 
-                SøknadsbehandlingType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
+                SøknadsbehandlingsresultatType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     behandlingId = id,
@@ -285,7 +285,7 @@ interface BehandlingMother : MotherOfAllMothers {
             ),
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         clock: Clock = this.clock,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         automatiskBehandling: Boolean = false,
@@ -334,7 +334,7 @@ interface BehandlingMother : MotherOfAllMothers {
             tom = vedtaksperiode.tilOgMed,
         ),
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
-        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
                 innvilgelsesperiode = vedtaksperiode,
@@ -395,7 +395,7 @@ interface BehandlingMother : MotherOfAllMothers {
         ),
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         utdøvendeBeslutter: Saksbehandler = beslutter(),
-        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         clock: Clock = fixedClock,
     ): Søknadsbehandling {
@@ -451,7 +451,7 @@ interface BehandlingMother : MotherOfAllMothers {
             tom = saksopplysningsperiode.tilOgMed,
         ),
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
-        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
             innvilgelsesperiodeKommando(
                 innvilgelsesperiode = saksopplysningsperiode,
@@ -678,7 +678,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(innvilgelsesperiodeKommando(innvilgelsesperiode = periode)),
     barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
-    resultat: SøknadsbehandlingType,
+    resultat: SøknadsbehandlingsresultatType,
     automatiskBehandling: Boolean = false,
 ): Sak {
     val (sakMedSøknadsbehandling) = startSøknadsbehandling(
@@ -690,7 +690,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
 
     this.behandlingContext.oppdaterBehandlingService.oppdater(
         when (resultat) {
-            SøknadsbehandlingType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
+            SøknadsbehandlingsresultatType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
                 sakId = sakMedSøknadsbehandling.id,
                 behandlingId = behandling.id,
                 saksbehandler = saksbehandler,
@@ -702,7 +702,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
                 automatiskSaksbehandlet = automatiskBehandling,
             )
 
-            SøknadsbehandlingType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
+            SøknadsbehandlingsresultatType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
                 sakId = sakMedSøknadsbehandling.id,
                 behandlingId = behandling.id,
                 saksbehandler = saksbehandler,
@@ -733,7 +733,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
-    resultat: SøknadsbehandlingType,
+    resultat: SøknadsbehandlingsresultatType,
     barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
@@ -766,7 +766,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
-    resultat: SøknadsbehandlingType,
+    resultat: SøknadsbehandlingsresultatType,
     innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
         innvilgelsesperiodeKommando(
             innvilgelsesperiode = periode,
@@ -803,7 +803,7 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
     clock: Clock = fixedClock,
-    resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+    resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
     innvilgelsesperioder: List<InnvilgelsesperiodeKommando> = listOf(
         innvilgelsesperiodeKommando(
             innvilgelsesperiode = periode,
@@ -841,7 +841,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
-        resultat = SøknadsbehandlingType.INNVILGELSE,
+        resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
     )
     tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
         sakId = sak.id,

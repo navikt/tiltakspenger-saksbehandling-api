@@ -22,7 +22,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -479,4 +481,17 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         correlationId = correlationId,
         clock = clock,
     )
+
+    fun RevurderingsresultatType.tilStartRevurderingType(): StartRevurderingType {
+        return when (this) {
+            RevurderingsresultatType.STANS -> StartRevurderingType.STANS
+
+            RevurderingsresultatType.INNVILGELSE -> StartRevurderingType.INNVILGELSE
+
+            RevurderingsresultatType.OMGJØRING_INNVILGELSE,
+            RevurderingsresultatType.OMGJØRING_OPPHØR,
+            RevurderingsresultatType.OMGJØRING_IKKE_VALGT,
+            -> StartRevurderingType.OMGJØRING
+        }
+    }
 }

@@ -17,8 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
@@ -29,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.navkontor
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterRevurderingInnvilgelseKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tilStartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
@@ -52,7 +54,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     genererSak: (Sak?) -> Sak = { s ->
         s ?: this.persisterIverksattSøknadsbehandling().first
     },
-    revurderingType: RevurderingType = RevurderingType.STANS,
+    revurderingType: RevurderingsresultatType = RevurderingsresultatType.STANS,
     vedtakIdSomOmgjøres: VedtakId? = null,
 ): Pair<Sak, Revurdering> {
     val sakMedVedtak = genererSak(sak)
@@ -63,7 +65,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 sakId = sakMedVedtak.id,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
-                revurderingType = revurderingType,
+                revurderingType = revurderingType.tilStartRevurderingType(),
                 vedtakIdSomOmgjøres = vedtakIdSomOmgjøres,
                 klagebehandlingId = null,
             ),
@@ -248,7 +250,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
     genererSak: (Sak?) -> Pair<Sak, Revurdering> = { s ->
         this.persisterOpprettetRevurdering(
             sak = s,
-            revurderingType = RevurderingType.INNVILGELSE,
+            revurderingType = RevurderingsresultatType.INNVILGELSE,
         )
     },
 ): Pair<Sak, Revurdering> {
@@ -329,7 +331,7 @@ internal fun TestDataHelper.persisterOpprettetOmgjøring(
                 sakId = sakMedVedtak.id,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
-                revurderingType = RevurderingType.OMGJØRING,
+                revurderingType = StartRevurderingType.OMGJØRING,
                 vedtakIdSomOmgjøres = sakMedVedtak.rammevedtaksliste.single().id,
                 klagebehandlingId = null,
             ),

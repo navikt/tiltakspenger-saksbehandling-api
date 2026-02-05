@@ -161,7 +161,13 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
             }
         }
 
-        is Søknadsbehandlingsresultat.Avslag -> throw IllegalStateException("Avslag kan ikke forekomme i tidslinje")
+        is Omgjøringsresultat.OmgjøringOpphør -> listOf(
+            TidslinjeElementDTO(
+                rammevedtak = this.tilRammevedtakDTO(),
+                periode = tidslinjeperiode.toDTO(),
+                tidslinjeResultat = TidslinjeResultat.OMGJØRING_OPPHØR,
+            ),
+        )
 
         is Søknadsbehandlingsresultat.Innvilgelse,
         is Revurderingsresultat.Innvilgelse,
@@ -183,9 +189,9 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
                 ),
             )
 
-        is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
-
-        is Omgjøringsresultat.OmgjøringOpphør -> TODO()
+        is Søknadsbehandlingsresultat.Avslag,
+        is Omgjøringsresultat.OmgjøringIkkeValgt,
+        -> throw IllegalStateException("${this.rammebehandlingsresultat} kan ikke forekomme i tidslinje")
     }
 }
 
