@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -36,7 +36,7 @@ interface IverksettSøknadsbehandlingBuilder {
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperioder.totalPeriode),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
@@ -71,7 +71,7 @@ interface IverksettSøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
     ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(

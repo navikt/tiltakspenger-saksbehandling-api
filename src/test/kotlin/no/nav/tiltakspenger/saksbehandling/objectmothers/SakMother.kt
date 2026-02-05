@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
@@ -115,7 +115,7 @@ interface SakMother {
                 tiltaksdeltakelse = registrerteTiltak.first(),
             ),
         ),
-        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         clock: Clock = fixedClock,
         kanSendeInnHelgForMeldekort: Boolean = false,
         sak: Sak = ObjectMother.nySak(
@@ -143,7 +143,7 @@ interface SakMother {
 
                 behandling.oppdater(
                     when (resultat) {
-                        SøknadsbehandlingType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
+                        SøknadsbehandlingsresultatType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
                             sakId = sakId,
                             behandlingId = behandling.id,
                             correlationId = CorrelationId.generate(),
@@ -155,7 +155,7 @@ interface SakMother {
                             automatiskSaksbehandlet = automatiskSaksbehandlet,
                         )
 
-                        SøknadsbehandlingType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
+                        SøknadsbehandlingsresultatType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
                             sakId = sakId,
                             behandlingId = behandling.id,
                             correlationId = CorrelationId.generate(),

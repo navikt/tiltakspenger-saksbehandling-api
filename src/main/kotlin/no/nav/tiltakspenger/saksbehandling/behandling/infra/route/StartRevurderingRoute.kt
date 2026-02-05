@@ -18,9 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppretteOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -89,7 +88,7 @@ internal fun KunneIkkeStarteRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusC
     }
 
 private data class StartRevurderingBody(
-    val revurderingType: RammebehandlingResultatTypeDTO,
+    val revurderingType: StartRevurderingTypeDTO,
     val rammevedtakIdSomOmgjøres: String? = null,
 ) {
     fun tilKommando(
@@ -101,9 +100,22 @@ private data class StartRevurderingBody(
             sakId = sakId,
             correlationId = correlationId,
             saksbehandler = saksbehandler,
-            revurderingType = revurderingType.tilRevurderingType(),
+            revurderingType = revurderingType.tilKommando(),
             vedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres?.let { VedtakId.fromString(it) },
             klagebehandlingId = null,
         )
+    }
+
+    enum class StartRevurderingTypeDTO {
+        REVURDERING_INNVILGELSE,
+        STANS,
+        OMGJØRING,
+        ;
+
+        fun tilKommando(): StartRevurderingType = when (this) {
+            REVURDERING_INNVILGELSE -> StartRevurderingType.INNVILGELSE
+            STANS -> StartRevurderingType.STANS
+            OMGJØRING -> StartRevurderingType.OMGJØRING
+        }
     }
 }

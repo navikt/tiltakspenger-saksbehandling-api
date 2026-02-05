@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat.IkkeValgt
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
@@ -52,13 +53,13 @@ data class Rammevedtaksliste(
     val vedtakUtenAvslag: List<Rammevedtak> by lazy {
         verdi.filter {
             when (it.rammebehandlingsresultat) {
+                is Omgjøringsresultat.OmgjøringOpphør,
                 is Rammebehandlingsresultat.Innvilgelse,
                 is Revurderingsresultat.Stans,
                 -> true
 
                 is Søknadsbehandlingsresultat.Avslag -> false
-                is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
-                is Omgjøringsresultat.OmgjøringOpphør -> TODO()
+                is IkkeValgt -> it.rammebehandlingsresultat.vedtakError()
             }
         }
     }

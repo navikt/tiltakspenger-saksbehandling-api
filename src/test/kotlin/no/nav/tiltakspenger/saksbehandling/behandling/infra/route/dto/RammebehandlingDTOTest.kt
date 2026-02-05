@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
@@ -64,7 +64,7 @@ class RammebehandlingDTOTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            resultat = SøknadsbehandlingType.INNVILGELSE,
+            resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
             saksopplysningsperiode = vedtaksperiode,
             søknad = nyInnvilgbarSøknad(
                 id = søknadId,
@@ -272,7 +272,7 @@ class RammebehandlingDTOTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            resultat = SøknadsbehandlingType.AVSLAG,
+            resultat = SøknadsbehandlingsresultatType.AVSLAG,
             avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
             saksopplysningsperiode = vedtaksperiode,
             søknad = nyInnvilgbarSøknad(
@@ -865,7 +865,7 @@ class RammebehandlingDTOTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            resultat = SøknadsbehandlingType.INNVILGELSE,
+            resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
             saksopplysningsperiode = vedtaksperiode,
             søknad = nyInnvilgbarSøknad(
                 id = søknadId,

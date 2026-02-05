@@ -65,8 +65,9 @@ class JournalførRammevedtakService(
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         )
 
-                        is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
-                        is Omgjøringsresultat.OmgjøringOpphør -> TODO()
+                        is Omgjøringsresultat.OmgjøringOpphør -> throw NotImplementedError("Opphørsbrev er ikke implementert ennå")
+
+                        is Rammebehandlingsresultat.IkkeValgt -> vedtak.rammebehandlingsresultat.vedtakError()
                     }.getOrElse { return@forEach }
 
                     log.info { "Vedtaksbrev generert for vedtak ${vedtak.id}" }

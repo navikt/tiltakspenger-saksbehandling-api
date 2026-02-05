@@ -26,12 +26,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
@@ -406,13 +405,13 @@ class RammebehandlingPostgresRepo(
                     val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
 
                     val resultat = when (resultatType) {
-                        SøknadsbehandlingType.INNVILGELSE -> Søknadsbehandlingsresultat.Innvilgelse(
+                        SøknadsbehandlingsresultatType.INNVILGELSE -> Søknadsbehandlingsresultat.Innvilgelse(
                             barnetillegg = string("barnetillegg").toBarnetillegg(),
                             innvilgelsesperioder = innvilgelsesperioder!!,
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
-                        SøknadsbehandlingType.AVSLAG -> Søknadsbehandlingsresultat.Avslag(
+                        SøknadsbehandlingsresultatType.AVSLAG -> Søknadsbehandlingsresultat.Avslag(
                             avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag(),
                             avslagsperiode = vedtaksperiode,
                         )
@@ -470,7 +469,7 @@ class RammebehandlingPostgresRepo(
                     val resultatType = string("resultat").tilRevurderingResultatType()
 
                     val resultat = when (resultatType) {
-                        RevurderingType.STANS -> Revurderingsresultat.Stans(
+                        RevurderingsresultatType.STANS -> Revurderingsresultat.Stans(
                             valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()
                                 ?.toNonEmptySetOrNull(),
                             harValgtStansFraFørsteDagSomGirRett = booleanOrNull("har_valgt_stans_fra_første_dag_som_gir_rett"),
@@ -478,20 +477,29 @@ class RammebehandlingPostgresRepo(
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
-                        RevurderingType.INNVILGELSE -> Revurderingsresultat.Innvilgelse(
+                        RevurderingsresultatType.INNVILGELSE -> Revurderingsresultat.Innvilgelse(
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             innvilgelsesperioder = innvilgelsesperioder,
                             omgjørRammevedtak = omgjørRammevedtak,
                         )
 
-                        RevurderingType.OMGJØRING -> {
-                            OmgjøringInnvilgelse(
+                        RevurderingsresultatType.OMGJØRING_INNVILGELSE -> {
+                            Omgjøringsresultat.OmgjøringInnvilgelse(
                                 vedtaksperiode = vedtaksperiode!!,
                                 innvilgelsesperioder = innvilgelsesperioder,
                                 barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                                 omgjørRammevedtak = omgjørRammevedtak,
                             )
                         }
+
+                        RevurderingsresultatType.OMGJØRING_OPPHØR -> Omgjøringsresultat.OmgjøringOpphør(
+                            vedtaksperiode = vedtaksperiode!!,
+                            omgjørRammevedtak = omgjørRammevedtak,
+                        )
+
+                        RevurderingsresultatType.OMGJØRING_IKKE_VALGT -> Omgjøringsresultat.OmgjøringIkkeValgt(
+                            omgjørRammevedtak = omgjørRammevedtak,
+                        )
                     }
 
                     return Revurdering(
@@ -817,7 +825,7 @@ private fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> =
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 
-    is OmgjøringInnvilgelse -> arrayOf(
+    is Omgjøringsresultat.OmgjøringInnvilgelse -> arrayOf(
         "innvilgelsesperioder" to this.innvilgelsesperioder?.tilInnvilgelsesperioderDbJson(),
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
@@ -835,7 +843,8 @@ private fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> =
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 
-    null -> emptyArray()
-    is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
-    is Omgjøringsresultat.OmgjøringOpphør -> TODO()
+    is Omgjøringsresultat.OmgjøringIkkeValgt,
+    is Omgjøringsresultat.OmgjøringOpphør,
+    null,
+    -> emptyArray()
 }
