@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -24,7 +24,7 @@ internal class VedtakslisteTest {
             val tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperiode)
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                resultat = SøknadsbehandlingType.INNVILGELSE,
+                resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
                 tiltaksdeltakelse = tiltaksdeltakelse,
                 innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode, tiltaksdeltakelse(innvilgelsesperiode)),
             )
@@ -63,7 +63,7 @@ internal class VedtakslisteTest {
             )
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                resultat = SøknadsbehandlingType.INNVILGELSE,
+                resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
                 innvilgelsesperioder = innvilgelsesperioder,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
@@ -101,7 +101,7 @@ internal class VedtakslisteTest {
             )
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                resultat = SøknadsbehandlingType.INNVILGELSE,
+                resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
                 innvilgelsesperioder = innvilgelsesperioder,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
@@ -138,7 +138,7 @@ internal class VedtakslisteTest {
             )
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                resultat = SøknadsbehandlingType.INNVILGELSE,
+                resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
                 innvilgelsesperioder = innvilgelsesperioder,
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )

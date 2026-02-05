@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
@@ -24,7 +23,7 @@ suspend fun Sak.startRevurdering(
 ): Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>> {
     val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let { hentKlagebehandling(it) }
     val revurdering = when (kommando.revurderingType) {
-        RevurderingType.STANS -> startRevurderingStans(
+        StartRevurderingType.STANS -> startRevurderingStans(
             revurderingId = kommando.revurderingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
@@ -32,7 +31,7 @@ suspend fun Sak.startRevurdering(
             clock = clock,
         )
 
-        RevurderingType.INNVILGELSE -> startRevurderingInnvilgelse(
+        StartRevurderingType.INNVILGELSE -> startRevurderingInnvilgelse(
             revurderingId = kommando.revurderingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
@@ -41,7 +40,7 @@ suspend fun Sak.startRevurdering(
             klagebehandling = klagebehandling,
         )
 
-        RevurderingType.OMGJØRING -> startRevurderingOmgjøring(
+        StartRevurderingType.OMGJØRING -> startRevurderingOmgjøring(
             revurderingId = kommando.revurderingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
@@ -53,6 +52,7 @@ suspend fun Sak.startRevurdering(
             return KunneIkkeStarteRevurdering.Omgjøring(it).left()
         }
     }
+
     return Pair(
         this.leggTilRevurdering(revurdering),
         revurdering,

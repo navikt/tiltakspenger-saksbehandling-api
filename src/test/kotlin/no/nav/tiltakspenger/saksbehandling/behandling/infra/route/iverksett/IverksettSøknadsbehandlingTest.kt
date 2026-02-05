@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
@@ -55,7 +55,7 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext { tac ->
             val (_, _, rammevedtak) = this.iverksettSøknadsbehandling(
                 tac,
-                resultat = SøknadsbehandlingType.AVSLAG,
+                resultat = SøknadsbehandlingsresultatType.AVSLAG,
             )
             val behandling = rammevedtak.rammebehandling
             behandling.vedtaksperiode.shouldNotBeNull()
@@ -70,7 +70,7 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext(clock = clock) { tac ->
             val (sak, søknad, rammevedtakSøknadsbehandling) = this.iverksettSøknadsbehandling(
                 tac,
-                resultat = SøknadsbehandlingType.AVSLAG,
+                resultat = SøknadsbehandlingsresultatType.AVSLAG,
             )
             val søknadsbehandling = rammevedtakSøknadsbehandling.rammebehandling
             val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, søknadsbehandling.saksnummer)!!
@@ -90,7 +90,7 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext(clock = clock) { tac ->
             val (_, _, rammevedtakSøknadsbehandling) = this.iverksettSøknadsbehandling(
                 tac,
-                resultat = SøknadsbehandlingType.INNVILGELSE,
+                resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
             )
             val søknadsbehandling = rammevedtakSøknadsbehandling.rammebehandling
             val sakDTOJson: JSONObject = hentSakForSaksnummer(tac, søknadsbehandling.saksnummer)!!

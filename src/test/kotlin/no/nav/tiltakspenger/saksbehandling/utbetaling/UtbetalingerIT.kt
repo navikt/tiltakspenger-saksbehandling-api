@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.libs.satser.Satser.Companion.sats
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
@@ -56,7 +56,7 @@ class UtbetalingerIT {
             val (_, revurdering, _) = startRevurderingForSakId(
                 tac = tac,
                 sakId = sak.id,
-                type = RevurderingType.INNVILGELSE,
+                type = RevurderingsresultatType.INNVILGELSE,
             )!!
 
             oppdaterRevurderingInnvilgelse(
@@ -162,7 +162,7 @@ class UtbetalingerIT {
             val (_, revurdering, _) = startRevurderingForSakId(
                 tac = tac,
                 sakId = sak.id,
-                type = RevurderingType.STANS,
+                type = RevurderingsresultatType.STANS,
             )!!
 
             oppdaterRevurderingStans(
@@ -220,7 +220,7 @@ class UtbetalingerIT {
             val (_, revurdering, _) = startRevurderingForSakId(
                 tac = tac,
                 sakId = sak.id,
-                type = RevurderingType.STANS,
+                type = RevurderingsresultatType.STANS,
             )!!
 
             oppdaterRevurderingStans(

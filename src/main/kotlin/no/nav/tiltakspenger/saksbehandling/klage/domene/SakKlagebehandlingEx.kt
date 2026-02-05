@@ -15,8 +15,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeStarteRevu
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.StartSøknadsbehandlingPåNyttKommando
 import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
@@ -220,8 +220,8 @@ private suspend fun Sak.opprettRevurderingFraKlage(
                         correlationId = kommando.correlationId,
                         saksbehandler = kommando.saksbehandler,
                         revurderingType = when (kommando.type) {
-                            OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> RevurderingType.INNVILGELSE
-                            OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> RevurderingType.OMGJØRING
+                            OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> StartRevurderingType.INNVILGELSE
+                            OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> StartRevurderingType.OMGJØRING
                         },
                         vedtakIdSomOmgjøres = when (kommando.type) {
                             OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> null

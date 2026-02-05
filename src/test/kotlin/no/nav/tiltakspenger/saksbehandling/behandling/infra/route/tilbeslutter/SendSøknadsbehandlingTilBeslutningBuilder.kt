@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -39,13 +39,13 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperioder.totalPeriode),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandling) = when (resultat) {
-            SøknadsbehandlingType.INNVILGELSE -> opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+            SøknadsbehandlingsresultatType.INNVILGELSE -> opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 fnr = fnr,
@@ -55,7 +55,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
 
-            SøknadsbehandlingType.AVSLAG -> opprettSøknadsbehandlingUnderBehandlingMedAvslag(
+            SøknadsbehandlingsresultatType.AVSLAG -> opprettSøknadsbehandlingUnderBehandlingMedAvslag(
                 tac,
                 fnr,
                 saksbehandler,

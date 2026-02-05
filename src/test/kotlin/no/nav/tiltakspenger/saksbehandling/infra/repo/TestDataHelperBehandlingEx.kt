@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_T
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
@@ -282,7 +282,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         ),
     ),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-    resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+    resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
     /** Brukt for å styre meldeperiode generering */
     clock: Clock = this.clock,
     automatiskSaksbehandlet: Boolean = false,
@@ -305,7 +305,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         søknadsbehandling
             .oppdater(
                 when (resultat) {
-                    SøknadsbehandlingType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
+                    SøknadsbehandlingsresultatType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
                         sakId = sak.id,
                         saksbehandler = saksbehandler,
                         behandlingId = søknadsbehandling.id,
@@ -317,7 +317,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                         automatiskSaksbehandlet = automatiskSaksbehandlet,
                     )
 
-                    SøknadsbehandlingType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
+                    SøknadsbehandlingsresultatType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
                         sakId = sak.id,
                         saksbehandler = saksbehandler,
                         behandlingId = søknadsbehandling.id,
@@ -607,7 +607,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
         søknad = søknad,
         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-        resultat = SøknadsbehandlingType.AVSLAG,
+        resultat = SøknadsbehandlingsresultatType.AVSLAG,
         avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
         correlationId = correlationId,
         clock = clock,

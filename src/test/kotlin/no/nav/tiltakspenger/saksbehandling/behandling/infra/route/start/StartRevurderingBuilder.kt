@@ -23,8 +23,8 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
@@ -68,7 +68,7 @@ interface StartRevurderingBuilder {
         val (oppdatertSak, revurdering, jsonResponse) = startRevurderingForSakId(
             tac = tac,
             sakId = sak.id,
-            type = RevurderingType.STANS,
+            type = RevurderingsresultatType.STANS,
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
@@ -94,7 +94,7 @@ interface StartRevurderingBuilder {
         return startRevurderingForSakId(
             tac = tac,
             sakId = sakId,
-            type = RevurderingType.STANS,
+            type = RevurderingsresultatType.STANS,
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
@@ -115,7 +115,7 @@ interface StartRevurderingBuilder {
             tac,
             fnr = fnr,
             beslutter = beslutter,
-            resultat = SøknadsbehandlingType.INNVILGELSE,
+            resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
             sakId = sakId,
             innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
         )
@@ -130,7 +130,7 @@ interface StartRevurderingBuilder {
         val (oppdatertSak, revurdering, jsonResponse) = startRevurderingForSakId(
             tac,
             sak.id,
-            RevurderingType.INNVILGELSE,
+            RevurderingsresultatType.INNVILGELSE,
         )!!
 
         return Tuple5(
@@ -156,7 +156,7 @@ interface StartRevurderingBuilder {
         return startRevurderingForSakId(
             tac = tac,
             sakId = sakId,
-            type = RevurderingType.INNVILGELSE,
+            type = RevurderingsresultatType.INNVILGELSE,
             saksbehandler = saksbehandler,
             rammevedtakIdSomOmgjøres = null,
             forventetStatus = forventetStatus,
@@ -194,7 +194,7 @@ interface StartRevurderingBuilder {
         val (oppdatertSak, revurdering, jsonResponse) = startRevurderingForSakId(
             tac = tac,
             sakId = sak.id,
-            type = RevurderingType.OMGJØRING,
+            type = RevurderingsresultatType.OMGJØRING_INNVILGELSE,
             rammevedtakIdSomOmgjøres = sak.rammevedtaksliste.single().id,
             forventetStatus = forventetStatusForStartRevurdering,
             forventetJsonBody = forventetJsonBodyForStartRevurdering,
@@ -224,7 +224,7 @@ interface StartRevurderingBuilder {
         return startRevurderingForSakId(
             tac = tac,
             sakId = sakId,
-            type = RevurderingType.OMGJØRING,
+            type = RevurderingsresultatType.OMGJØRING_INNVILGELSE,
             rammevedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres,
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
@@ -236,7 +236,7 @@ interface StartRevurderingBuilder {
     suspend fun ApplicationTestBuilder.startRevurderingForSakId(
         tac: TestApplicationContext,
         sakId: SakId,
-        type: RevurderingType,
+        type: RevurderingsresultatType,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         rammevedtakIdSomOmgjøres: VedtakId? = null,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
