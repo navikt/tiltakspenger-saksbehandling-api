@@ -54,7 +54,7 @@ class BrukersMeldekortPostgresRepo(
                         :oppgave_id,
                         :behandles_automatisk,
                         :behandlet_automatisk_status,
-                        :behandlet_automatisk_metadata
+                        to_jsonb(:behandlet_automatisk_metadata::jsonb)
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
