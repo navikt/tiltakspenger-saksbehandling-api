@@ -28,10 +28,12 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdel
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
@@ -252,6 +254,51 @@ class UtbetalingerIT {
             bodyAsText shouldEqualJson expected
 
             tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+        }
+    }
+
+    // TODO: see above
+    @Test
+    fun `Behandling med feilutbetaling ved opphør over utbetalt periode skal ikke kunne sendes til beslutning`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.desember(2025)))
+        withTestApplicationContext(clock = clock) { tac ->
+            val sak = tac.førsteMeldekortIverksatt(
+                innvilgelsesperiode = vedtaksperiode,
+                fnr = Fnr.fromString("12345678911"),
+            )
+
+            val (_, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = sak.rammevedtaksliste.first().id,
+                nyOmgjøring = true,
+            )!!
+
+            oppdaterOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = vedtaksperiode,
+            )
+
+            val bodyAsText = sendRevurderingTilBeslutningForBehandlingId(
+                tac,
+                sak.id,
+                omgjøring.id,
+                forventetStatus = HttpStatusCode.BadRequest,
+            )
+
+            @Language("JSON")
+            val expected = """
+                {
+                  "melding": "Behandling med feilutbetaling støttes ikke på nåværende tidspunkt",
+                  "kode": "støtter_ikke_feilutbetaling"
+                }                
+            """.trimIndent()
+
+            bodyAsText shouldEqualJson expected
+
+            tac.behandlingContext.rammebehandlingRepo.hent(omgjøring.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
         }
     }
 }

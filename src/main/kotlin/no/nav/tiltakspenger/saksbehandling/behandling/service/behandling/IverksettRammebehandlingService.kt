@@ -14,9 +14,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
@@ -145,8 +147,17 @@ class IverksettRammebehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        require(rammevedtak.rammebehandlingsresultat is Rammebehandlingsresultat.Innvilgelse || rammevedtak.rammebehandlingsresultat is Revurderingsresultat.Stans) {
-            "Kan kun iverksette innvilgelse eller stans"
+        when (rammevedtak.rammebehandlingsresultat) {
+            is Omgjøringsresultat.OmgjøringIkkeValgt,
+            is Søknadsbehandlingsresultat.Avslag,
+            -> throw IllegalArgumentException("Kan ikke iverksette en behandling med resultat ${rammevedtak.rammebehandlingsresultat.tilRammebehandlingResultatTypeDTO()}")
+
+            is Omgjøringsresultat.OmgjøringInnvilgelse,
+            is Revurderingsresultat.Innvilgelse,
+            is Omgjøringsresultat.OmgjøringOpphør,
+            is Revurderingsresultat.Stans,
+            is Søknadsbehandlingsresultat.Innvilgelse,
+            -> Unit
         }
 
         require(this.rammevedtaksliste.last().id == rammevedtak.id) {

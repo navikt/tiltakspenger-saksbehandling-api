@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.periodisering.TomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -14,8 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdel
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
@@ -35,7 +37,7 @@ class IverksettRevurderingOmgjøringTest {
                 innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode),
                 stansFraOgMed = stansFraOgMedDato,
             )
-            iverksettRevurderingOmgjøring(
+            iverksettOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = rammevedtakRevurdering.id,
@@ -63,7 +65,7 @@ class IverksettRevurderingOmgjøringTest {
                     tom = omgjøringsperiode.tilOgMed,
                 ),
             )!!
-            val (_, vedtakOmgjøring1) = iverksettRevurderingOmgjøring(
+            val (_, vedtakOmgjøring1) = iverksettOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = rammevedtakSøknadsbehandling.id,
@@ -75,7 +77,7 @@ class IverksettRevurderingOmgjøringTest {
                 sakId = sak.id,
                 kjedeId = MeldeperiodeKjedeId.fraPeriode(30.desember(2024) til 12.januar(2025)),
             )
-            iverksettRevurderingOmgjøring(
+            iverksettOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = vedtakOmgjøring1.id,
@@ -108,7 +110,7 @@ class IverksettRevurderingOmgjøringTest {
                 stansFraOgMed = stansFraOgMed,
             )
 
-            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettRevurderingOmgjøring(
+            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
@@ -141,7 +143,7 @@ class IverksettRevurderingOmgjøringTest {
 
             val sakId = sakMedSøknadsbehandling.id
 
-            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettRevurderingOmgjøring(
+            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
@@ -184,7 +186,7 @@ class IverksettRevurderingOmgjøringTest {
                 ),
             )
 
-            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettRevurderingOmgjøring(
+            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
@@ -227,7 +229,7 @@ class IverksettRevurderingOmgjøringTest {
                 ),
             )
 
-            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettRevurderingOmgjøring(
+            val (sakMedOmgjøring, omgjøringsvedtak) = iverksettOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sakId,
                 rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
@@ -242,6 +244,110 @@ class IverksettRevurderingOmgjøringTest {
                 10.januar(2025) til 20.januar(2025),
                 21.januar(2025) til 31.januar(2025),
                 1.februar(2025) til 28.februar(2025),
+                1.mars(2025) til 31.mars(2025),
+            )
+        }
+    }
+
+    @Test
+    fun `kan opphøre et helt vedtak`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+
+            val (sak, _, søknadvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+
+            sak.rammevedtaksliste.innvilgetTidslinje.perioder shouldBe listOf(innvilgelsesperiode)
+
+            val (sakMedOpphør, opphørsvedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+                vedtaksperiode = innvilgelsesperiode,
+            )
+
+            opphørsvedtak.erOpphør shouldBe true
+
+            sakMedOpphør.rammevedtaksliste.innvilgetTidslinje shouldBe TomPeriodisering.instance()
+        }
+    }
+
+    @Test
+    fun `kan delvis opphøre starten av et vedtak`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val opphørsperiode = 1.januar(2025) til 31.januar(2025)
+
+            val (sak, _, søknadvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+
+            val (sakMedOpphør, opphørsvedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+                vedtaksperiode = opphørsperiode,
+            )
+
+            opphørsvedtak.erOpphør shouldBe true
+
+            sakMedOpphør.rammevedtaksliste.innvilgetTidslinje.perioder shouldBe listOf(1.februar(2025) til 31.mars(2025))
+        }
+    }
+
+    @Test
+    fun `kan delvis opphøre slutten av et vedtak`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val opphørsperiode = 1.mars(2025) til 31.mars(2025)
+
+            val (sak, _, søknadvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+
+            val (sakMedOpphør, opphørsvedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+                vedtaksperiode = opphørsperiode,
+            )
+
+            opphørsvedtak.erOpphør shouldBe true
+
+            sakMedOpphør.rammevedtaksliste.innvilgetTidslinje.perioder shouldBe listOf(
+                1.januar(2025) til 28.februar(
+                    2025,
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `kan delvis opphøre midt i et vedtak`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+            val opphørsperiode = 1.februar(2025) til 28.februar(2025)
+
+            val (sak, _, søknadvedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+
+            val (sakMedOpphør, opphørsvedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+                vedtaksperiode = opphørsperiode,
+            )
+
+            opphørsvedtak.erOpphør shouldBe true
+
+            sakMedOpphør.rammevedtaksliste.innvilgetTidslinje.perioder shouldBe listOf(
+                1.januar(2025) til 31.januar(2025),
                 1.mars(2025) til 31.mars(2025),
             )
         }

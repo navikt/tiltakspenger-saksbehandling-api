@@ -28,6 +28,7 @@ fun Revurdering.oppdaterOmgjøring(
             kommando = kommando,
             utbetaling = utbetaling,
             finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
+            omgjortVedtak = omgjortVedtak,
             clock = clock,
         )
 
@@ -35,6 +36,7 @@ fun Revurdering.oppdaterOmgjøring(
             kommando = kommando,
             utbetaling = utbetaling,
             finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
+            omgjortVedtak = omgjortVedtak,
             clock = clock,
         )
 
@@ -51,6 +53,7 @@ private fun Revurdering.oppdaterOmgjøringInnvilgelse(
     kommando: OppdaterOmgjøringKommando.OmgjøringInnvilgelse,
     utbetaling: BehandlingUtbetaling?,
     finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
+    omgjortVedtak: Rammevedtak,
     clock: Clock,
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
     val nyVedtaksperiode = kommando.vedtaksperiode
@@ -59,7 +62,7 @@ private fun Revurdering.oppdaterOmgjøringInnvilgelse(
 
     validerRammevedtakSomOmgjøres(
         rammevedtakSomOmgjøres,
-        omgjørRammevedtak.rammevedtakIDer.single(),
+        omgjortVedtak.id,
     ).onLeft { return it.left() }
 
     if (!nyVedtaksperiode.inneholderHele(kommando.innvilgelsesperioder.totalPeriode)) {
@@ -93,6 +96,7 @@ private fun Revurdering.oppdaterOmgjøringOpphør(
     kommando: OppdaterOmgjøringKommando.OmgjøringOpphør,
     utbetaling: BehandlingUtbetaling?,
     finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
+    omgjortVedtak: Rammevedtak,
     clock: Clock,
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
     val nyVedtaksperiode = kommando.vedtaksperiode
@@ -101,7 +105,7 @@ private fun Revurdering.oppdaterOmgjøringOpphør(
 
     validerRammevedtakSomOmgjøres(
         rammevedtakSomOmgjøres,
-        omgjørRammevedtak.rammevedtakIDer.single(),
+        omgjortVedtak.id,
     ).onLeft { return it.left() }
 
     return this.copy(

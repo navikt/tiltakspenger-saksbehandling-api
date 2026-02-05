@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeld
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingOmgjøring
 import org.junit.jupiter.api.Test
@@ -192,7 +192,7 @@ class OpprettMeldekortBehandlingServiceTest {
 
             tac.meldekortContext.brukersMeldekortRepo.lagre(brukersMeldekortMedRett)
 
-            iverksettRevurderingOmgjøring(
+            iverksettOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = vedtak.id,

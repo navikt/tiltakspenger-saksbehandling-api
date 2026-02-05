@@ -8,9 +8,11 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingsstatusDTO
@@ -19,10 +21,12 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgels
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
@@ -73,7 +77,13 @@ class SendRevurderingTilBeslutningTest {
             JSONObject(jsonResponse).getString("resultat") shouldBe RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE.name
 
             val revurdering =
-                tac.behandlingContext.rammebehandlingRepo.hent(BehandlingId.fromString(JSONObject(jsonResponse).getString("id")))
+                tac.behandlingContext.rammebehandlingRepo.hent(
+                    BehandlingId.fromString(
+                        JSONObject(jsonResponse).getString(
+                            "id",
+                        ),
+                    ),
+                )
 
             revurdering.shouldBeInstanceOf<Revurdering>()
             val søknadsbehandlingsvedtak = sak.rammevedtaksliste.single()
@@ -101,6 +111,34 @@ class SendRevurderingTilBeslutningTest {
             )
 
             revurdering.vedtaksperiode shouldBe revurderingInnvilgelsesperiode
+        }
+    }
+
+    @Test
+    fun `kan ikke sende omgjøring uten resultat til beslutning`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, søknadsvedtak) = iverksettSøknadsbehandling(
+                tac,
+            )
+
+            val (_, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadsvedtak.id,
+                nyOmgjøring = true,
+            )!!
+
+            sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                forventetStatus = HttpStatusCode.InternalServerError,
+            )
+
+            val behandling = tac.behandlingContext.rammebehandlingRepo.hent(omgjøring.id)
+
+            behandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+            behandling.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
         }
     }
 }

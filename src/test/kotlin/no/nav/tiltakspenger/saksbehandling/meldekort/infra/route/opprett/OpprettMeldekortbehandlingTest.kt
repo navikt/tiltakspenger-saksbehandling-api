@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
 import org.junit.jupiter.api.Test
@@ -182,7 +182,7 @@ class OpprettMeldekortbehandlingTest {
                 tac = tac,
                 innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiodeSøknadsbehandling),
             )
-            val (oppdatertSak) = this.iverksettRevurderingOmgjøring(
+            val (oppdatertSak) = this.iverksettOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = rammevedtakSøknadsbehandling.id,
