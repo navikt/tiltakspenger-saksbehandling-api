@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
 import java.time.LocalDate
@@ -120,12 +119,4 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
             )
         }
     }
-}
-
-fun RevurderingsresultatType.tilDTO(): RammebehandlingResultatTypeDTO = when (this) {
-    RevurderingsresultatType.STANS -> RammebehandlingResultatTypeDTO.STANS
-    RevurderingsresultatType.INNVILGELSE -> RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
-    RevurderingsresultatType.OMGJØRING_INNVILGELSE -> RammebehandlingResultatTypeDTO.OMGJØRING
-    RevurderingsresultatType.OMGJØRING_OPPHØR -> RammebehandlingResultatTypeDTO.OMGJØRING_OPPHØR
-    RevurderingsresultatType.OMGJØRING_IKKE_VALGT -> RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT
 }

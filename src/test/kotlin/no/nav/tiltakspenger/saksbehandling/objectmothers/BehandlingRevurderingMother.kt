@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingTyp
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.StartRevurderingTypeDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -492,6 +493,17 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             RevurderingsresultatType.OMGJØRING_OPPHØR,
             RevurderingsresultatType.OMGJØRING_IKKE_VALGT,
             -> StartRevurderingType.OMGJØRING
+        }
+    }
+
+    fun RevurderingsresultatType.tilStartRevurderingTypeDTO(): StartRevurderingTypeDTO {
+        return when (this) {
+            RevurderingsresultatType.STANS -> StartRevurderingTypeDTO.STANS
+            RevurderingsresultatType.INNVILGELSE -> StartRevurderingTypeDTO.REVURDERING_INNVILGELSE
+            RevurderingsresultatType.OMGJØRING_INNVILGELSE,
+            RevurderingsresultatType.OMGJØRING_OPPHØR,
+            RevurderingsresultatType.OMGJØRING_IKKE_VALGT,
+            -> StartRevurderingTypeDTO.OMGJØRING
         }
     }
 }

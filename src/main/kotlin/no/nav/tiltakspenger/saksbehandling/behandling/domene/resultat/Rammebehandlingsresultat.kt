@@ -85,14 +85,12 @@ sealed interface Rammebehandlingsresultat {
     }
 }
 
-sealed interface RammebehandlingsesultatType
-
-enum class SøknadsbehandlingsresultatType : RammebehandlingsesultatType {
+enum class SøknadsbehandlingsresultatType {
     INNVILGELSE,
     AVSLAG,
 }
 
-enum class RevurderingsresultatType : RammebehandlingsesultatType {
+enum class RevurderingsresultatType {
     STANS,
     INNVILGELSE,
     OMGJØRING_INNVILGELSE,

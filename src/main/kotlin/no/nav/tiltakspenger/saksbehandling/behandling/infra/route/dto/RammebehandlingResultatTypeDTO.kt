@@ -1,12 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RammebehandlingsesultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 
 enum class RammebehandlingResultatTypeDTO {
     INNVILGELSE,
@@ -19,18 +16,6 @@ enum class RammebehandlingResultatTypeDTO {
     OMGJØRING,
     OMGJØRING_OPPHØR,
     OMGJØRING_IKKE_VALGT,
-    ;
-
-    fun toDomain(): RammebehandlingsesultatType? = when (this) {
-        INNVILGELSE -> SøknadsbehandlingsresultatType.INNVILGELSE
-        AVSLAG -> SøknadsbehandlingsresultatType.AVSLAG
-        STANS -> RevurderingsresultatType.STANS
-        REVURDERING_INNVILGELSE -> RevurderingsresultatType.INNVILGELSE
-        OMGJØRING -> RevurderingsresultatType.OMGJØRING_INNVILGELSE
-        OMGJØRING_OPPHØR -> RevurderingsresultatType.OMGJØRING_OPPHØR
-        OMGJØRING_IKKE_VALGT -> RevurderingsresultatType.OMGJØRING_IKKE_VALGT
-        IKKE_VALGT -> null
-    }
 }
 
 fun Søknadsbehandlingsresultat?.tilSøknadsbehandlingResultatTypeDTO(): RammebehandlingResultatTypeDTO = when (this) {

@@ -5,10 +5,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -17,8 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppretteOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeStarteRevurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.StartRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
@@ -42,7 +37,7 @@ fun Route.startRevurderingRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
-            call.withBody<StartRevurderingBody> { body ->
+            call.withBody<StartRevurderingDTO> { body ->
                 val correlationId = call.correlationId()
                 krevSaksbehandlerRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
@@ -86,36 +81,3 @@ internal fun KunneIkkeStarteRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusC
             )
         }
     }
-
-private data class StartRevurderingBody(
-    val revurderingType: StartRevurderingTypeDTO,
-    val rammevedtakIdSomOmgjøres: String? = null,
-) {
-    fun tilKommando(
-        sakId: SakId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): StartRevurderingKommando {
-        return StartRevurderingKommando(
-            sakId = sakId,
-            correlationId = correlationId,
-            saksbehandler = saksbehandler,
-            revurderingType = revurderingType.tilKommando(),
-            vedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres?.let { VedtakId.fromString(it) },
-            klagebehandlingId = null,
-        )
-    }
-
-    enum class StartRevurderingTypeDTO {
-        REVURDERING_INNVILGELSE,
-        STANS,
-        OMGJØRING,
-        ;
-
-        fun tilKommando(): StartRevurderingType = when (this) {
-            REVURDERING_INNVILGELSE -> StartRevurderingType.INNVILGELSE
-            STANS -> StartRevurderingType.STANS
-            OMGJØRING -> StartRevurderingType.OMGJØRING
-        }
-    }
-}

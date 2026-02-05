@@ -25,11 +25,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tilStartRevurderingTypeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -254,7 +254,7 @@ interface StartRevurderingBuilder {
             setBody(
                 """
                 {
-                "revurderingType": "${type.tilDTO()}", 
+                "revurderingType": "${type.tilStartRevurderingTypeDTO()}", 
                 "rammevedtakIdSomOmgjøres": ${if (rammevedtakIdSomOmgjøres != null) """"$rammevedtakIdSomOmgjøres"""" else null}
                 }
                 """.trimIndent(),
