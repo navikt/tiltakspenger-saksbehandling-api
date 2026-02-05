@@ -843,8 +843,13 @@ private fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> =
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
 
-    is Omgjøringsresultat.OmgjøringIkkeValgt,
-    is Omgjøringsresultat.OmgjøringOpphør,
-    null,
-    -> emptyArray()
+    is Omgjøringsresultat.OmgjøringIkkeValgt -> arrayOf(
+        "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
+    )
+
+    is Omgjøringsresultat.OmgjøringOpphør -> arrayOf(
+        "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
+    )
+
+    null -> emptyArray()
 }
