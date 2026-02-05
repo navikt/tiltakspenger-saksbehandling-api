@@ -7,4 +7,4 @@ SET behandlet_automatisk_metadata = jsonb_build_object(
         'antallForsøk', 1,
         'nesteForsøk', now()::TIMESTAMP
                                     )
-WHERE behandlet_automatisk IS NOT NULL;
+WHERE behandlet_automatisk_metadata IS NULL;
