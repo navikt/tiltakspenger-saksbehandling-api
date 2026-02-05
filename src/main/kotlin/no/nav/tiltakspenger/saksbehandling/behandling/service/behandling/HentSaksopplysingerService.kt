@@ -4,7 +4,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
@@ -90,10 +89,13 @@ class HentSaksopplysingerService(
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
             correlationId = correlationId,
         )
+        val oppdaterteEksterneIderDetErSoktFor = tiltaksdeltakelserDetErSøktTiltakspengerFor.ider.map {
+            tiltaksdeltakerRepo.hentEksternId(id = it, sessionContext = sessionContext)
+        }
         // Henter oppdaterte tiltaksdeltakelser det er søkt på, ved forlengelse kan flere overlappe enn på søknadstidspunktet.
         val tiltaksdeltakelserDetErSøktPå: TiltaksdeltakelserFraRegister =
             tiltaksdeltakelserSomKanGiRettTilTiltakspenger.filtrerPåTiltaksdeltakelsesIDer(
-                tiltaksdeltakelserDetErSøktTiltakspengerFor.eksterneIder,
+                oppdaterteEksterneIderDetErSoktFor,
             )
         val aktuelleEksterneTiltaksdeltakelseIderForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen.map {
             tiltaksdeltakerRepo.hentEksternId(id = it, sessionContext = sessionContext)
