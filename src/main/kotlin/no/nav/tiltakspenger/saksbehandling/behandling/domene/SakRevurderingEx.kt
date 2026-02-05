@@ -58,6 +58,7 @@ suspend fun Sak.startRevurdering(
             rammevedtakIdSomOmgjøres = kommando.vedtakIdSomOmgjøres!!,
             opprettet = nå,
             klagebehandling = klagebehandling,
+            ny = kommando.nyOmgjøring,
         ).getOrElse {
             return KunneIkkeStarteRevurdering.Omgjøring(it).left()
         }
@@ -140,8 +141,28 @@ private suspend fun Sak.startRevurderingOmgjøring(
     klagebehandling: Klagebehandling?,
     opprettet: LocalDateTime,
     revurderingId: BehandlingId = BehandlingId.random(),
+    ny: Boolean,
 ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
     val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
+
+    if (ny) {
+        return Revurdering.opprettOmgjøringUtenValgtResultat(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            saksopplysninger = hentSaksopplysninger(
+                fnr,
+                correlationId,
+                this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
+                // TODO jah: På sikt er det mer presist at saksbehandler velger disse når hen starter en revurdering innvilgelse.
+                //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
+                this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
+                false,
+            ),
+            opprettet = opprettet,
+            omgjørRammevedtak = gjeldendeRammevedtak,
+            klagebehandling = klagebehandling,
+        )
+    }
 
     return Revurdering.opprettOmgjøring(
         revurderingId = revurderingId,

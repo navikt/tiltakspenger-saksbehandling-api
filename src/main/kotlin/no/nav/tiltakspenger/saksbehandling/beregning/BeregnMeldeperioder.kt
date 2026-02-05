@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
@@ -280,12 +281,26 @@ fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode
     val behandling = hentRammebehandling(behandlingId)
 
     require(behandling is Revurdering && behandling.resultat is Revurderingsresultat.Stans) {
-        "Behandlingen på være en revurdering til stans"
+        "Behandlingen ${behandling?.id} må være en revurdering til stans"
     }
 
     return beregnRammebehandling(
         behandlingId = behandlingId,
         vedtaksperiode = stansperiode,
+        innvilgelsesperioder = emptyList(),
+    )
+}
+
+fun Sak.beregnOpphør(behandlingId: BehandlingId, opphørsperiode: Periode): Beregning? {
+    val behandling = hentRammebehandling(behandlingId)
+
+    require(behandling is Revurdering && behandling.resultat is Omgjøringsresultat) {
+        "Behandlingen ${behandling?.id} må være en omgjøring"
+    }
+
+    return beregnRammebehandling(
+        behandlingId = behandlingId,
+        vedtaksperiode = opphørsperiode,
         innvilgelsesperioder = emptyList(),
     )
 }

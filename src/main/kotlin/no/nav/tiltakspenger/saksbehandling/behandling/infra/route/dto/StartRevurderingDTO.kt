@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingTyp
 data class StartRevurderingDTO(
     val revurderingType: StartRevurderingTypeDTO,
     val rammevedtakIdSomOmgjøres: String? = null,
+    val nyOmgjøring: Boolean = false,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -23,6 +24,7 @@ data class StartRevurderingDTO(
             revurderingType = revurderingType.tilKommando(),
             vedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres?.let { VedtakId.fromString(it) },
             klagebehandlingId = null,
+            nyOmgjøring = nyOmgjøring,
         )
     }
 }

@@ -81,8 +81,12 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val barnetillegg: Barnetillegg,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse
+}
 
-    data class Omgjøring(
+sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
+    val vedtaksperiode: Periode?
+
+    data class OmgjøringInnvilgelse(
         override val sakId: SakId,
         override val behandlingId: BehandlingId,
         override val saksbehandler: Saksbehandler,
@@ -91,7 +95,28 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
         override val barnetillegg: Barnetillegg,
-        val vedtaksperiode: Periode,
-    ) : OppdaterRevurderingKommando,
+        override val vedtaksperiode: Periode,
+    ) : OppdaterOmgjøringKommando,
         OppdaterBehandlingKommando.Innvilgelse
+
+    data class OmgjøringOpphør(
+        override val sakId: SakId,
+        override val behandlingId: BehandlingId,
+        override val saksbehandler: Saksbehandler,
+        override val correlationId: CorrelationId,
+        override val begrunnelseVilkårsvurdering: Begrunnelse?,
+        override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+        override val vedtaksperiode: Periode,
+    ) : OppdaterOmgjøringKommando
+
+    data class OmgjøringIkkeValgt(
+        override val sakId: SakId,
+        override val behandlingId: BehandlingId,
+        override val saksbehandler: Saksbehandler,
+        override val correlationId: CorrelationId,
+        override val begrunnelseVilkårsvurdering: Begrunnelse?,
+        override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    ) : OppdaterOmgjøringKommando {
+        override val vedtaksperiode = null
+    }
 }

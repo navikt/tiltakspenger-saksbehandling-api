@@ -12,14 +12,17 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBeh
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterOmgjøringKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdaterOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnOpphør
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -91,7 +94,7 @@ class OppdaterRammebehandlingService(
                 barnetilleggsperioder = kommando.barnetillegg.periodisering,
             )
 
-            is OppdaterRevurderingKommando.Omgjøring,
+            is OppdaterOmgjøringKommando.OmgjøringInnvilgelse,
             -> {
                 this.beregnInnvilgelse(
                     behandlingId = kommando.behandlingId,
@@ -107,8 +110,14 @@ class OppdaterRammebehandlingService(
                 stansperiode = kommando.utledStansperiode(this.førsteDagSomGirRett!!, this.sisteDagSomGirRett!!),
             )
 
+            is OppdaterOmgjøringKommando.OmgjøringOpphør -> this.beregnOpphør(
+                behandlingId = kommando.behandlingId,
+                opphørsperiode = kommando.vedtaksperiode,
+            )
+
             is OppdaterSøknadsbehandlingKommando.Avslag,
             is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat,
+            is OppdaterOmgjøringKommando.OmgjøringIkkeValgt,
             -> null
         }
 
@@ -163,7 +172,7 @@ class OppdaterRammebehandlingService(
         val revurdering: Revurdering = this.hentRammebehandling(kommando.behandlingId) as Revurdering
 
         return when (kommando) {
-            is OppdaterRevurderingKommando.Omgjøring -> {
+            is OppdaterOmgjøringKommando -> {
                 revurdering.oppdaterOmgjøring(
                     kommando = kommando,
                     utbetaling = utbetaling,
@@ -208,7 +217,9 @@ class OppdaterRammebehandlingService(
             is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat,
             is OppdaterSøknadsbehandlingKommando.Avslag,
             is OppdaterRevurderingKommando.Stans,
-            is OppdaterRevurderingKommando.Omgjøring,
+            is OppdaterOmgjøringKommando.OmgjøringInnvilgelse,
+            is OppdaterOmgjøringKommando.OmgjøringIkkeValgt,
+            is OppdaterOmgjøringKommando.OmgjøringOpphør,
             -> Unit.right()
 
             is OppdaterRevurderingKommando.Innvilgelse,

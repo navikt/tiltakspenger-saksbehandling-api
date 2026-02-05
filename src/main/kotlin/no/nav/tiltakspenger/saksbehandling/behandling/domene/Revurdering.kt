@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Innvilgelse
@@ -129,63 +130,6 @@ data class Revurdering(
         }.right()
     }
 
-    fun oppdaterOmgjøring(
-        kommando: OppdaterRevurderingKommando.Omgjøring,
-        utbetaling: BehandlingUtbetaling?,
-        finnRammevedtakSomOmgjøres: (vedtaksperiode: Periode) -> OmgjørRammevedtak,
-        clock: Clock,
-    ): Either<KanIkkeOppdatereBehandling, Revurdering> {
-        require(this.resultat is OmgjøringInnvilgelse)
-
-        validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
-
-        val nyVedtaksperiode = kommando.vedtaksperiode
-
-        val rammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres(nyVedtaksperiode)
-
-        if (rammevedtakSomOmgjøres.rammevedtakIDer.size > 1) {
-            return KanIkkeOppdatereOmgjøring.KanIkkeOmgjøreFlereVedtak.left()
-        }
-
-        if (rammevedtakSomOmgjøres.rammevedtakIDer.size == 0) {
-            return KanIkkeOppdatereOmgjøring.MåOmgjøreMinstEttVedtak.left()
-        }
-
-        if (rammevedtakSomOmgjøres.rammevedtakIDer.single() != omgjørRammevedtak.rammevedtakIDer.single()) {
-            return KanIkkeOppdatereOmgjøring.MåOmgjøreAngittVedtak.left()
-        }
-
-        if (rammevedtakSomOmgjøres.perioder.size != 1) {
-            return KanIkkeOppdatereOmgjøring.MåOmgjøreEnSammenhengendePeriode.left()
-        }
-
-        if (!nyVedtaksperiode.inneholderHele(kommando.innvilgelsesperioder.totalPeriode)) {
-            return KanIkkeOppdatereOmgjøring.VedtaksperiodeMåInneholdeInnvilgelsesperiodene.left()
-        }
-
-        val oppdaterteInnvilgelsesperioder = kommando
-            .tilInnvilgelseperioder(this)
-            .oppdaterTiltaksdeltakelser(saksopplysninger.tiltaksdeltakelser)
-
-        requireNotNull(oppdaterteInnvilgelsesperioder) {
-            // Dersom denne kaster og vi savner mer sakskontekst, bør denne returnere Either, slik at callee kan håndtere feilen.
-            "Valgte innvilgelsesperioder har ingen overlapp med tiltaksdeltakelser fra saksopplysningene"
-        }
-
-        return this.copy(
-            sistEndret = nå(clock),
-            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            resultat = this.resultat.copy(
-                vedtaksperiode = nyVedtaksperiode,
-                innvilgelsesperioder = oppdaterteInnvilgelsesperioder,
-                barnetillegg = kommando.barnetillegg,
-                omgjørRammevedtak = rammevedtakSomOmgjøres,
-            ),
-            utbetaling = utbetaling,
-        ).right()
-    }
-
     fun oppdaterStans(
         kommando: OppdaterRevurderingKommando.Stans,
         førsteDagSomGirRett: LocalDate,
@@ -290,7 +234,8 @@ data class Revurdering(
         }
 
         /**
-         * @param omgjørRammevedtak Rammevedtaket som erstattes i sin helhet.
+         * @param omgjørRammevedtak Rammevedtaket som erstattes helt eller delvis
+         * TODO abn: fjernes når frontend er oppdatert til å støtte opphør/ikke valgt tilstander
          */
         fun opprettOmgjøring(
             saksbehandler: Saksbehandler,
@@ -311,6 +256,32 @@ data class Revurdering(
                 resultat = OmgjøringInnvilgelse.create(omgjørRammevedtak, saksopplysninger).getOrElse {
                     return it.left()
                 },
+                klagebehandling = klagebehandling,
+            ).right()
+        }
+
+        /**
+         * @param omgjørRammevedtak Rammevedtaket som erstattes helt eller delvis
+         */
+        fun opprettOmgjøringUtenValgtResultat(
+            saksbehandler: Saksbehandler,
+            saksopplysninger: Saksopplysninger,
+            omgjørRammevedtak: Rammevedtak,
+            klagebehandling: Klagebehandling?,
+            opprettet: LocalDateTime,
+            revurderingId: BehandlingId = BehandlingId.random(),
+        ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
+            return opprett(
+                revurderingId = revurderingId,
+                sakId = omgjørRammevedtak.sakId,
+                saksnummer = omgjørRammevedtak.saksnummer,
+                fnr = omgjørRammevedtak.fnr,
+                saksbehandler = saksbehandler,
+                saksopplysninger = saksopplysninger,
+                opprettet = opprettet,
+                resultat = Omgjøringsresultat.OmgjøringIkkeValgt(
+                    omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
+                ),
                 klagebehandling = klagebehandling,
             ).right()
         }

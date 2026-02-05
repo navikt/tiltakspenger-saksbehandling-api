@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingK
     JsonSubTypes.Type(value = OppdaterSøknadsbehandlingDTO.IkkeValgtResultat::class, name = "IKKE_VALGT"),
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.Innvilgelse::class, name = "REVURDERING_INNVILGELSE"),
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.Stans::class, name = "STANS"),
-    JsonSubTypes.Type(value = OppdaterRevurderingDTO.Omgjøring::class, name = "OMGJØRING"),
+    JsonSubTypes.Type(value = OppdaterRevurderingDTO.OmgjøringInnvilgelse::class, name = "OMGJØRING"),
 )
 sealed interface OppdaterBehandlingDTO {
     val resultat: RammebehandlingResultatTypeDTO?
