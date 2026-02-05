@@ -124,10 +124,10 @@ data class Sak(
         command: AvbrytRammebehandlingKommando,
         avbruttTidspunkt: LocalDateTime,
     ): Triple<Sak, Søknad?, Rammebehandling> {
-        val behandling: Rammebehandling = this.hentRammebehandling(command.behandlingId)!!
+        val rammebehandling: Rammebehandling = this.hentRammebehandling(command.behandlingId)!!
         val skalAvbryteSøknad =
-            behandling is Søknadsbehandling && this.rammebehandlinger.filter { it.id != behandling.id }.none { it is Søknadsbehandling && it.søknad.id == behandling.søknad.id && !it.erAvbrutt }
-        val avbruttBehandling = behandling.avbryt(
+            rammebehandling is Søknadsbehandling && this.rammebehandlinger.filter { it.id != rammebehandling.id }.none { it is Søknadsbehandling && it.søknad.id == rammebehandling.søknad.id && !it.erAvbrutt }
+        val avbruttBehandling = rammebehandling.avbryt(
             avbruttAv = command.avsluttetAv,
             begrunnelse = command.begrunnelse,
             tidspunkt = avbruttTidspunkt,

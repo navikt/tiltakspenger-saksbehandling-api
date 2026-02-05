@@ -238,6 +238,11 @@ data class Revurdering(
         return this.copy(utbetaling = utbetaling!!.oppdaterSimulering(nySimulering))
     }
 
+    override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling {
+        require(this.klagebehandling!!.id == klagebehandling.id)
+        return this.copy(klagebehandling = klagebehandling)
+    }
+
     companion object {
         fun opprettStans(
             sakId: SakId,
@@ -246,7 +251,7 @@ data class Revurdering(
             fnr: Fnr,
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
-            clock: Clock,
+            opprettet: LocalDateTime,
         ): Revurdering {
             return opprett(
                 revurderingId = revurderingId,
@@ -255,7 +260,7 @@ data class Revurdering(
                 fnr = fnr,
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
-                opprettet = nå(clock),
+                opprettet = opprettet,
                 resultat = Stans.empty,
                 klagebehandling = null,
             )
@@ -267,7 +272,7 @@ data class Revurdering(
             fnr: Fnr,
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
-            clock: Clock,
+            opprettet: LocalDateTime,
             klagebehandling: Klagebehandling?,
             revurderingId: BehandlingId = BehandlingId.random(),
         ): Revurdering {
@@ -278,7 +283,7 @@ data class Revurdering(
                 fnr = fnr,
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
-                opprettet = nå(clock),
+                opprettet = opprettet,
                 resultat = Innvilgelse.empty,
                 klagebehandling = klagebehandling,
             )
@@ -292,7 +297,7 @@ data class Revurdering(
             saksopplysninger: Saksopplysninger,
             omgjørRammevedtak: Rammevedtak,
             klagebehandling: Klagebehandling?,
-            clock: Clock,
+            opprettet: LocalDateTime,
             revurderingId: BehandlingId = BehandlingId.random(),
         ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
             return opprett(
@@ -302,7 +307,7 @@ data class Revurdering(
                 fnr = omgjørRammevedtak.fnr,
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
-                opprettet = nå(clock),
+                opprettet = opprettet,
                 resultat = OmgjøringInnvilgelse.create(omgjørRammevedtak, saksopplysninger).getOrElse {
                     return it.left()
                 },

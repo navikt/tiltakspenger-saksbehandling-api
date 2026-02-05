@@ -8,12 +8,14 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
+import java.time.LocalDateTime
 
 /** Generell funksjon for å starte revurdering (stans, forlengelse, omgjøring og opphør) */
 suspend fun Sak.startRevurdering(
@@ -21,14 +23,21 @@ suspend fun Sak.startRevurdering(
     clock: Clock,
     hentSaksopplysninger: HentSaksopplysninger,
 ): Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>> {
-    val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let { hentKlagebehandling(it) }
+    val nå = nå(clock)
+    val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let {
+        hentKlagebehandling(it).oppdaterRammebehandlingId(
+            rammebehandlingId = kommando.revurderingId,
+            saksbehandler = kommando.saksbehandler,
+            sistEndret = nå,
+        )
+    }
     val revurdering = when (kommando.revurderingType) {
         StartRevurderingType.STANS -> startRevurderingStans(
             revurderingId = kommando.revurderingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
-            clock = clock,
+            opprettet = nå,
         )
 
         StartRevurderingType.INNVILGELSE -> startRevurderingInnvilgelse(
@@ -36,7 +45,7 @@ suspend fun Sak.startRevurdering(
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
-            clock = clock,
+            opprettet = nå,
             klagebehandling = klagebehandling,
         )
 
@@ -46,7 +55,7 @@ suspend fun Sak.startRevurdering(
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
             rammevedtakIdSomOmgjøres = kommando.vedtakIdSomOmgjøres!!,
-            clock = clock,
+            opprettet = nå,
             klagebehandling = klagebehandling,
         ).getOrElse {
             return KunneIkkeStarteRevurdering.Omgjøring(it).left()
@@ -68,7 +77,7 @@ private suspend fun Sak.startRevurderingStans(
     saksbehandler: Saksbehandler,
     hentSaksopplysninger: HentSaksopplysninger,
     correlationId: CorrelationId,
-    clock: Clock,
+    opprettet: LocalDateTime,
 ): Revurdering {
     return Revurdering.opprettStans(
         revurderingId = revurderingId,
@@ -86,7 +95,7 @@ private suspend fun Sak.startRevurderingStans(
             false,
         ),
 
-        clock = clock,
+        opprettet = opprettet,
     )
 }
 
@@ -95,7 +104,7 @@ private suspend fun Sak.startRevurderingInnvilgelse(
     saksbehandler: Saksbehandler,
     hentSaksopplysninger: HentSaksopplysninger,
     correlationId: CorrelationId,
-    clock: Clock,
+    opprettet: LocalDateTime,
     klagebehandling: Klagebehandling?,
     revurderingId: BehandlingId = BehandlingId.random(),
 ): Revurdering {
@@ -117,7 +126,7 @@ private suspend fun Sak.startRevurderingInnvilgelse(
             this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
             false,
         ),
-        clock = clock,
+        opprettet = opprettet,
         klagebehandling = klagebehandling,
     )
 }
@@ -128,7 +137,7 @@ private suspend fun Sak.startRevurderingOmgjøring(
     correlationId: CorrelationId,
     rammevedtakIdSomOmgjøres: VedtakId,
     klagebehandling: Klagebehandling?,
-    clock: Clock,
+    opprettet: LocalDateTime,
     revurderingId: BehandlingId = BehandlingId.random(),
 ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
     val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
@@ -145,7 +154,7 @@ private suspend fun Sak.startRevurderingOmgjøring(
             this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
             false,
         ),
-        clock = clock,
+        opprettet = opprettet,
         omgjørRammevedtak = gjeldendeRammevedtak,
         klagebehandling = klagebehandling,
     )

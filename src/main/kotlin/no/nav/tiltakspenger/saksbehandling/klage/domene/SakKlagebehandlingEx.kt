@@ -4,13 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -134,112 +128,67 @@ fun Sak.vurderKlagebehandling(
 
 suspend fun Sak.opprettRammebehandlingFraKlage(
     kommando: OpprettRammebehandlingFraKlageKommando,
-    sessionFactory: SessionFactory,
-    opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando, Sak, TransactionContext) -> Pair<Sak, Søknadsbehandling>,
-    opprettRevurdering: suspend (StartRevurderingKommando, Sak, TransactionContext) -> Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>>,
-    lagreKlagebehandling: suspend (Klagebehandling, SessionContext) -> Unit,
-): Either<KanIkkeOppretteRammebehandlingFraKlage, Triple<Sak, Klagebehandling, Rammebehandling>> {
+    opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando, Sak) -> Pair<Sak, Søknadsbehandling>,
+    opprettRevurdering: suspend (StartRevurderingKommando, Sak) -> Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>>,
+): Either<KanIkkeOppretteRammebehandlingFraKlage, Pair<Sak, Rammebehandling>> {
     val klagebehandling: Klagebehandling = this.hentKlagebehandling(kommando.klagebehandlingId)
     this.åpneRammebehandlingerMedKlagebehandlingId(klagebehandling.id).also {
         if (it.isNotEmpty()) {
             return KanIkkeOppretteRammebehandlingFraKlage.FinnesÅpenRammebehandling(it.first().id).left()
         }
     }
-    val rammebehandlingId = BehandlingId.random()
-    val oppdatertKlagebehandling = klagebehandling.oppdaterRammebehandlingId(rammebehandlingId)
-    val sakMedOppdatertKlagebehandling = this.oppdaterKlagebehandling(oppdatertKlagebehandling)
     return when (kommando) {
-        is OpprettSøknadsbehandlingFraKlageKommando -> sakMedOppdatertKlagebehandling.opprettSøknadsbehandlingFraKlage(
+        is OpprettSøknadsbehandlingFraKlageKommando -> this.opprettSøknadsbehandlingFraKlage(
             kommando = kommando,
-            klagebehandling = oppdatertKlagebehandling,
-            rammebehandlingId = rammebehandlingId,
-            sessionFactory = sessionFactory,
             opprettSøknadsbehandling = opprettSøknadsbehandling,
-            lagreKlagebehandling = lagreKlagebehandling,
         )
 
-        is OpprettRevurderingFraKlageKommando -> sakMedOppdatertKlagebehandling.opprettRevurderingFraKlage(
+        is OpprettRevurderingFraKlageKommando -> this.opprettRevurderingFraKlage(
             kommando = kommando,
-            klagebehandling = oppdatertKlagebehandling,
-            rammebehandlingId = rammebehandlingId,
-            sessionFactory = sessionFactory,
             opprettRevurdering = opprettRevurdering,
-            lagreKlagebehandling = lagreKlagebehandling,
         )
     }.right()
 }
 
 private suspend fun Sak.opprettSøknadsbehandlingFraKlage(
     kommando: OpprettSøknadsbehandlingFraKlageKommando,
-    klagebehandling: Klagebehandling,
-    sessionFactory: SessionFactory,
-    opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando, Sak, TransactionContext) -> Pair<Sak, Søknadsbehandling>,
-    lagreKlagebehandling: suspend (Klagebehandling, SessionContext) -> Unit,
-    rammebehandlingId: BehandlingId,
-): Triple<Sak, Klagebehandling, Søknadsbehandling> {
-    return withContext(Dispatchers.IO) {
-        sessionFactory.withTransactionContext { tx ->
-            // TODO jah: withTransactionContext bør være suspend, men det krever at vi skriver oss bort fra kotliquery først
-            runBlocking {
-                lagreKlagebehandling(klagebehandling, tx)
-                opprettSøknadsbehandling(
-                    StartSøknadsbehandlingPåNyttKommando(
-                        sakId = kommando.sakId,
-                        søknadId = kommando.søknadId,
-                        klagebehandlingId = kommando.klagebehandlingId,
-                        saksbehandler = kommando.saksbehandler,
-                        correlationId = kommando.correlationId,
-                        søknadsbehandlingId = rammebehandlingId,
-                    ),
-                    this@opprettSøknadsbehandlingFraKlage,
-                    tx,
-                ).let {
-                    Triple(it.first, klagebehandling, it.second)
-                }
-            }
-        }
-    }
+    opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando, Sak) -> Pair<Sak, Søknadsbehandling>,
+): Pair<Sak, Søknadsbehandling> {
+    return opprettSøknadsbehandling(
+        StartSøknadsbehandlingPåNyttKommando(
+            sakId = kommando.sakId,
+            søknadId = kommando.søknadId,
+            klagebehandlingId = kommando.klagebehandlingId,
+            saksbehandler = kommando.saksbehandler,
+            correlationId = kommando.correlationId,
+        ),
+        this,
+    )
 }
 
 private suspend fun Sak.opprettRevurderingFraKlage(
     kommando: OpprettRevurderingFraKlageKommando,
-    klagebehandling: Klagebehandling,
-    sessionFactory: SessionFactory,
-    opprettRevurdering: suspend (StartRevurderingKommando, Sak, TransactionContext) -> Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>>,
-    lagreKlagebehandling: suspend (Klagebehandling, SessionContext) -> Unit,
-    rammebehandlingId: BehandlingId,
-): Triple<Sak, Klagebehandling, Rammebehandling> {
-    return withContext(Dispatchers.IO) {
-        sessionFactory.withTransactionContext { tx ->
-            // TODO jah: withTransactionContext bør være suspend, men det krever at vi skriver oss bort fra kotliquery først
-            runBlocking {
-                lagreKlagebehandling(klagebehandling, tx)
-                opprettRevurdering(
-                    StartRevurderingKommando(
-                        sakId = kommando.sakId,
-                        correlationId = kommando.correlationId,
-                        saksbehandler = kommando.saksbehandler,
-                        revurderingType = when (kommando.type) {
-                            OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> StartRevurderingType.INNVILGELSE
-                            OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> StartRevurderingType.OMGJØRING
-                        },
-                        vedtakIdSomOmgjøres = when (kommando.type) {
-                            OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> null
-                            OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> kommando.vedtakIdSomOmgjøres!!
-                        },
-                        klagebehandlingId = kommando.klagebehandlingId,
-                        revurderingId = rammebehandlingId,
-                    ),
-                    this@opprettRevurderingFraKlage,
-                    tx,
-                ).map {
-                    Triple(it.first, klagebehandling, it.second)
-                }.getOrElse {
-                    // TODO jah - bedre feilbehandling
-                    throw IllegalStateException("Kunne ikke opprette revurdering fra klagebehandling ${klagebehandling.id} på sak ${kommando.sakId}: $it")
-                }
-            }
-        }
+    opprettRevurdering: suspend (StartRevurderingKommando, Sak) -> Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>>,
+): Pair<Sak, Rammebehandling> {
+    return opprettRevurdering(
+        StartRevurderingKommando(
+            sakId = kommando.sakId,
+            correlationId = kommando.correlationId,
+            saksbehandler = kommando.saksbehandler,
+            revurderingType = when (kommando.type) {
+                OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> StartRevurderingType.INNVILGELSE
+                OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> StartRevurderingType.OMGJØRING
+            },
+            vedtakIdSomOmgjøres = when (kommando.type) {
+                OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> null
+                OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> kommando.vedtakIdSomOmgjøres!!
+            },
+            klagebehandlingId = kommando.klagebehandlingId,
+        ),
+        this,
+    ).getOrElse {
+        // TODO jah - bedre feilbehandling
+        throw IllegalStateException("Kunne ikke opprette revurdering fra klagebehandling ${kommando.klagebehandlingId} på sak ${kommando.sakId}: $it")
     }
 }
 

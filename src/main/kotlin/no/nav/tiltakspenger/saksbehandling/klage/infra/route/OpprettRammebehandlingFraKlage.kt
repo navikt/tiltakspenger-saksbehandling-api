@@ -110,7 +110,8 @@ fun Route.opprettRammebehandlingFraKlage(
                         ifLeft = {
                             call.respondJson(it.toStatusAndErrorJson())
                         },
-                        ifRight = { (sak, klagebehandling, rammebehandling) ->
+                        ifRight = { (sak, rammebehandling) ->
+                            val klagebehandling = rammebehandling.klagebehandling!!
                             val klagebehandlingId = klagebehandling.id
                             val rammebehandlingId = rammebehandling.id
                             auditService.logMedSakId(

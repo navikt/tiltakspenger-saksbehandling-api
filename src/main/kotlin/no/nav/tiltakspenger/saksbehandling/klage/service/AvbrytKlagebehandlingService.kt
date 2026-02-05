@@ -14,7 +14,7 @@ class AvbrytKlagebehandlingService(
     private val clock: java.time.Clock,
     private val klagebehandlingRepo: KlagebehandlingRepo,
 ) {
-    suspend fun avbrytKlagebehandling(
+    fun avbrytKlagebehandling(
         kommando: AvbrytKlagebehandlingKommando,
     ): Either<KanIkkeAvbryteKlagebehandling, Pair<Sak, Klagebehandling>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
