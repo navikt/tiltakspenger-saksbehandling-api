@@ -37,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksett
 import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.OvertaKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.overta
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.TaKlagebehandlingKommando

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.KanIkkeOppretteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.opprett
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
