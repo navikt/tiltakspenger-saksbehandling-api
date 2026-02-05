@@ -3,8 +3,8 @@ ALTER TABLE meldekort_bruker
 
 UPDATE meldekort_bruker
 SET behandlet_automatisk_metadata = jsonb_build_object(
-        'forrigeForsøk', now()::TIMESTAMP,
-        'antallForsøk', 1,
+        null,
+        'antallForsøk', 0,
         'nesteForsøk', now()::TIMESTAMP
                                     )
 WHERE behandlet_automatisk_metadata IS NULL;
