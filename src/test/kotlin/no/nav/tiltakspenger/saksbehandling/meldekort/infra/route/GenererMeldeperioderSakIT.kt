@@ -30,10 +30,10 @@ class GenererMeldeperioderSakIT {
             val (sak) = this.iverksettSøknadsbehandling(
                 tac = tac,
                 fnr = fnr,
-                /**
-                 * Totalt skal dette føre til 2 meldeperioder
-                 * 7 april - 20 april
-                 * 21 april - 4 mai (genereres ikke før 2.mai)
+                /*
+                 Totalt skal dette føre til 2 meldeperioder
+                 7 april - 20 april
+                 21 april - 4 mai (genereres ikke før 2.mai)
                  */
                 innvilgelsesperioder = innvilgelsesperioder(Periode(9.april(2025), 1.mai(2025))),
             )

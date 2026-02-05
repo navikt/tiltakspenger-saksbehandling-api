@@ -65,6 +65,7 @@ object SøknadDTOMapper {
     fun PeriodeSpmDTO.tilDomene(): Søknad.PeriodeSpm =
         when (this.svar) {
             SpmSvarDTO.Nei -> Søknad.PeriodeSpm.Nei
+
             SpmSvarDTO.Ja -> {
                 Søknad.PeriodeSpm.Ja(
                     fraOgMed = this.fom,
@@ -76,6 +77,7 @@ object SøknadDTOMapper {
     fun FraOgMedDatoSpmDTO.tilDomene(): Søknad.FraOgMedDatoSpm {
         return when (this.svar) {
             SpmSvarDTO.Nei -> Søknad.FraOgMedDatoSpm.Nei
+
             SpmSvarDTO.Ja -> {
                 Søknad.FraOgMedDatoSpm.Ja(
                     fra = this.fom,

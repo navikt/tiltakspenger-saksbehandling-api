@@ -47,6 +47,7 @@ data class YtelserDbJson(
             )
 
             Type.IkkeBehandlingsgrunnlag -> Ytelser.IkkeBehandlingsgrunnlag
+
             Type.BehandletFørFeature -> Ytelser.BehandletFørFeature
         }
     }

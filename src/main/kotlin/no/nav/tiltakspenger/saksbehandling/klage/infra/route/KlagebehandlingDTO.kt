@@ -56,8 +56,11 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     journalpostOpprettet = journalpostOpprettet.toString(),
     status = when (status) {
         Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> "KLAR_TIL_BEHANDLING"
+
         Klagebehandlingsstatus.UNDER_BEHANDLING -> "UNDER_BEHANDLING"
+
         Klagebehandlingsstatus.AVBRUTT -> "AVBRUTT"
+
         // TODO jah: Endre til VEDTATT her og frontend samtidig.
         Klagebehandlingsstatus.VEDTATT -> "IVERKSATT"
     },

@@ -33,6 +33,7 @@ class TilgangskontrollService(
                 )
 
                 Tilgangsvurdering.Godkjent -> Unit
+
                 Tilgangsvurdering.GenerellFeilMotTilgangsmaskin -> throw RuntimeException("Klarte ikke gjøre tilgangskontroll for saksbehandler ${saksbehandler.navIdent} - Generell feil mot tilgangsmaskinen")
             }
         } catch (e: Exception) {

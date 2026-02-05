@@ -439,9 +439,11 @@ internal class HentSaksopplysingerServiceTest {
                         tiltak1.first.eksternDeltakelseId -> {
                             tiltak1.first.internDeltakelseId
                         }
+
                         tiltak2.first.eksternDeltakelseId -> {
                             tiltak2.first.internDeltakelseId
                         }
+
                         else -> {
                             throw IllegalArgumentException("Ukjent tiltak")
                         }
@@ -461,9 +463,11 @@ internal class HentSaksopplysingerServiceTest {
                         tiltak1.first.internDeltakelseId -> {
                             tiltak1.first.eksternDeltakelseId
                         }
+
                         tiltak2.first.internDeltakelseId -> {
                             tiltak2.first.eksternDeltakelseId
                         }
+
                         else -> {
                             throw IllegalArgumentException("Ukjent eksternId")
                         }
@@ -577,9 +581,11 @@ internal class HentSaksopplysingerServiceTest {
                         tiltak1.first.eksternDeltakelseId -> {
                             tiltak1.first.internDeltakelseId
                         }
+
                         tiltak2.first.eksternDeltakelseId -> {
                             tiltak2.first.internDeltakelseId
                         }
+
                         else -> {
                             throw IllegalArgumentException("Ukjent tiltak")
                         }
@@ -599,9 +605,11 @@ internal class HentSaksopplysingerServiceTest {
                         tiltak1.first.internDeltakelseId -> {
                             tiltak1.first.eksternDeltakelseId
                         }
+
                         tiltak2.first.internDeltakelseId -> {
                             tiltak2.first.eksternDeltakelseId
                         }
+
                         else -> {
                             throw IllegalArgumentException("Ukjent eksternId")
                         }

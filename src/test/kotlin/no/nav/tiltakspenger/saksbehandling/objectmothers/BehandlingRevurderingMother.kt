@@ -485,7 +485,9 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     fun RevurderingsresultatType.tilStartRevurderingType(): StartRevurderingType {
         return when (this) {
             RevurderingsresultatType.STANS -> StartRevurderingType.STANS
+
             RevurderingsresultatType.INNVILGELSE -> StartRevurderingType.INNVILGELSE
+
             RevurderingsresultatType.OMGJØRING_INNVILGELSE,
             RevurderingsresultatType.OMGJØRING_OPPHØR,
             RevurderingsresultatType.OMGJØRING_IKKE_VALGT,

@@ -119,7 +119,7 @@ class IverksettRammebehandlingService(
             is Søknadsbehandlingsresultat.Avslag -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
                 sessionFactory.withTransactionContext { tx ->
-                    /** Obs: Dersom du endrer eller legger til noe her som angår klage, merk at du må gjøre tilsvarende i [no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService] */
+                    // Obs: Dersom du endrer eller legger til noe her som angår klage, merk at du må gjøre tilsvarende i [no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService]
                     rammebehandlingRepo.lagre(rammevedtak.rammebehandling, tx)
                     sakService.oppdaterSkalSendesTilMeldekortApi(
                         sakId = this.id,
@@ -166,7 +166,7 @@ class IverksettRammebehandlingService(
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
-            /** Obs: Dersom du endrer eller legger til noe her som angår klage, merk at du må gjøre tilsvarende i [no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService] */
+            // Obs: Dersom du endrer eller legger til noe her som angår klage, merk at du må gjøre tilsvarende i [no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService]
             rammebehandlingRepo.lagre(rammevedtak.rammebehandling, tx)
             sakService.oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
                 sakId = sakOppdatertMedMeldeperioder.id,

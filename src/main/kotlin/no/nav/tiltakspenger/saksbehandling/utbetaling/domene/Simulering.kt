@@ -62,7 +62,7 @@ sealed interface Simulering {
                 }
             }
 
-            /** Abn: Disse skal være like, logger om denne antagelsen ikke stemmer! */
+            // Abn: Disse skal være like, logger om denne antagelsen ikke stemmer!
             if (totalFeilutbetaling != totalMotpostering) {
                 val sakId = meldeperioder.first().sakId
                 logger.info {

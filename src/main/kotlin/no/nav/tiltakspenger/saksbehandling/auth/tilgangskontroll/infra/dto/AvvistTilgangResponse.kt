@@ -11,11 +11,17 @@ data class AvvistTilgangResponse(
     fun tilAvvistTilgangsvurdering(): Tilgangsvurdering.Avvist {
         val årsak = when (title) {
             "AVVIST_STRENGT_FORTROLIG_ADRESSE" -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG
+
             "AVVIST_STRENGT_FORTROLIG_UTLAND" -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG_UTLAND
+
             "AVVIST_FORTROLIG_ADRESSE" -> TilgangsvurderingAvvistÅrsak.FORTROLIG
+
             "AVVIST_SKJERMING" -> TilgangsvurderingAvvistÅrsak.SKJERMET
+
             "AVVIST_HABILITET" -> TilgangsvurderingAvvistÅrsak.HABILITET
+
             "AVVIST_VERGE" -> TilgangsvurderingAvvistÅrsak.VERGE
+
             "AVVIST_MANGLENDE_DATA" -> {
                 throw IllegalStateException("Kan ikke avgjøre om tilgang er godkjent på grunn av manglende informasjon fra baksystemer ")
             }

@@ -59,6 +59,7 @@ data class Rammevedtaksliste(
                 -> true
 
                 is Søknadsbehandlingsresultat.Avslag -> false
+
                 is IkkeValgt -> it.rammebehandlingsresultat.vedtakError()
             }
         }

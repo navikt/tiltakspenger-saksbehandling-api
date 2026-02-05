@@ -188,8 +188,11 @@ private fun Ledd.toLeddTekst(): String = when (this.nummer) {
 
 private fun List<Ledd>.toLeddTekst(): String = when (this.size) {
     0 -> ""
+
     1 -> "${this[0].toLeddTekst()} ledd"
+
     2 -> "${this[0].toLeddTekst()} og ${this[1].toLeddTekst()} ledd"
+
     else -> {
         val alleUnntattSiste = this.dropLast(1).joinToString(", ") { it.toLeddTekst() }
         val siste = this.last().toLeddTekst()

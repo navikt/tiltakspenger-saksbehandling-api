@@ -95,8 +95,11 @@ fun Rammevedtak.toDatadelingJson(): String {
             }
 
             is Revurderingsresultat.Stans -> DatadelingRettighet.STANS
+
             is Søknadsbehandlingsresultat.Avslag -> DatadelingRettighet.AVSLAG
+
             is Omgjøringsresultat.OmgjøringOpphør -> DatadelingRettighet.OPPHØR
+
             is Rammebehandlingsresultat.IkkeValgt -> this.rammebehandlingsresultat.vedtakError()
         },
         opprettet = opprettet.toString(),

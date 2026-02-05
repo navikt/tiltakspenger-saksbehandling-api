@@ -27,6 +27,7 @@ fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbeta
         }
 
         is Simulering.IngenEndring -> Unit.right()
+
         null -> KanIkkeIverksetteUtbetaling.SimuleringMangler.left()
     }
 }
@@ -34,10 +35,10 @@ fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbeta
 // Vi har ikke lov til å justere utbetalinger på tvers av meldeperioder
 private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(): Boolean {
     return simuleringPerMeldeperiode.any { meldeperiode ->
-        /**
-         *  Dersom meldeperioden går over to måneder, må vi sjekke dagene på hver side av månedsskiftet separat
-         *  Dette ettersom oppdrag kun justerer innenfor samme kalendermåned. På tvers av måneder blir det
-         *  feilutbetaling + etterbetaling for hver måned istedenfor justering
+        /*
+          Dersom meldeperioden går over to måneder, må vi sjekke dagene på hver side av månedsskiftet separat
+          Dette ettersom oppdrag kun justerer innenfor samme kalendermåned. På tvers av måneder blir det
+          feilutbetaling + etterbetaling for hver måned istedenfor justering
          */
         meldeperiode.harJustering && meldeperiode.simuleringsdager
             .groupBy { it.dato.month }.values

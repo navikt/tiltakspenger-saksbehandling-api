@@ -375,7 +375,7 @@ fun Sak.opprettManuellMeldekortBehandling(
 
     val åpenMeldekortBehandling = this.meldekortbehandlinger.åpenMeldekortBehandling
 
-    /** [Sak.validerOpprettManuellMeldekortbehandling] sjekker om en evt åpen behandling kan gjenopprettes */
+    // [Sak.validerOpprettManuellMeldekortbehandling] sjekker om en evt åpen behandling kan gjenopprettes
     if (åpenMeldekortBehandling != null) {
         val oppdatertBehandling = (åpenMeldekortBehandling as MeldekortUnderBehandling).copy(
             saksbehandler = saksbehandler.navIdent,

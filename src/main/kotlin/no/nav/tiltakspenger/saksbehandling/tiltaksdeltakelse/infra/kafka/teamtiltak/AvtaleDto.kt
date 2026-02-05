@@ -108,11 +108,17 @@ fun AvtaleDto.toTiltakDeltakerStatus(): TiltakDeltakerstatus =
 
 fun AvtaleDto.AvtaleStatus.toDeltakerStatusDTO(feilregistrert: Boolean): DeltakerStatusDTO = when (this) {
     AvtaleDto.AvtaleStatus.PÅBEGYNT -> DeltakerStatusDTO.PABEGYNT_REGISTRERING
+
     AvtaleDto.AvtaleStatus.MANGLER_GODKJENNING -> DeltakerStatusDTO.SOKT_INN
+
     AvtaleDto.AvtaleStatus.KLAR_FOR_OPPSTART -> DeltakerStatusDTO.VENTER_PA_OPPSTART
+
     AvtaleDto.AvtaleStatus.GJENNOMFØRES -> DeltakerStatusDTO.DELTAR
+
     AvtaleDto.AvtaleStatus.AVSLUTTET -> DeltakerStatusDTO.HAR_SLUTTET
+
     AvtaleDto.AvtaleStatus.AVBRUTT -> DeltakerStatusDTO.AVBRUTT
+
     AvtaleDto.AvtaleStatus.ANNULLERT -> if (feilregistrert) {
         DeltakerStatusDTO.FEILREGISTRERT
     } else {

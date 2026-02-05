@@ -16,7 +16,9 @@ private enum class SatstypeDb {
 fun Satstype.tilDb(): String {
     return when (this) {
         Satstype.DAGLIG -> SatstypeDb.DAGLIG
+
         Satstype.DAGLIG_INKL_HELG -> SatstypeDb.DAGLIG_INKL_HELG
+
         Satstype.MÅNEDLIG,
         Satstype.ENGANGS,
         -> throw IllegalArgumentException("Vi bruker ikke satstypen $this")
