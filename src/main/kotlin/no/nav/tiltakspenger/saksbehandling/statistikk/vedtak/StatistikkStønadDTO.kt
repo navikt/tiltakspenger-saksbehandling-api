@@ -91,8 +91,11 @@ enum class VedtakStatistikkResultat {
     companion object {
         fun Rammebehandlingsresultat.toVedtakStatistikkResultat(): VedtakStatistikkResultat = when (this) {
             is Rammebehandlingsresultat.Innvilgelse -> Innvilgelse
+
             is Revurderingsresultat.Stans -> Stans
+
             is Omgjøringsresultat.OmgjøringOpphør -> Opphør
+
             is Omgjøringsresultat.OmgjøringIkkeValgt,
             is Søknadsbehandlingsresultat.Avslag,
             -> throw IllegalStateException("Skal ikke opprette vedtaksstatistikk for $this")
