@@ -118,7 +118,6 @@ internal fun start(
             applicationContext.tiltaksdeltakerArenaConsumer,
             applicationContext.tiltaksdeltakerKometConsumer,
             applicationContext.tiltaksdeltakerTeamTiltakConsumer,
-            applicationContext.engangsjobbArenaConsumer,
             applicationContext.leesahConsumer,
             applicationContext.aktorV2Consumer,
         )

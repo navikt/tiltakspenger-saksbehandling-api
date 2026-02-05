@@ -4,7 +4,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
@@ -24,22 +23,6 @@ class TiltaksdeltakerService(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
     private val log = KotlinLogging.logger { }
-
-    fun behandleArenadeltakerForEngangsjobb(deltakerId: String, melding: String) {
-        val eksternId = "TA$deltakerId"
-        val tiltaksdeltaker = tiltaksdeltakerRepo.hentTiltaksdeltaker(eksternId)
-        if (tiltaksdeltaker != null && tiltaksdeltaker.tiltakstype == TiltakResponsDTO.TiltakType.ARBTREN) {
-            log.info { "Fant lagret arbeidstrening-deltaker for arena-deltaker med id $eksternId" }
-            val arenaKafkaMessage = objectMapper.readValue<ArenaKafkaMessage>(melding)
-            oppdaterEksternId(
-                arenaEksternId = arenaKafkaMessage.after?.EKSTERN_ID,
-                arenaId = eksternId,
-                tiltaksdeltaker = tiltaksdeltaker,
-            )
-        } else {
-            log.info { "Fant ingen arbeidstrening-deltakelse knyttet til eksternId $eksternId, oppdaterer ikke" }
-        }
-    }
 
     fun behandleMottattArenadeltaker(deltakerId: String, melding: String) {
         val eksternId = "TA$deltakerId"
