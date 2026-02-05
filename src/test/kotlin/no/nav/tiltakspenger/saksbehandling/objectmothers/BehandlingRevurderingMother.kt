@@ -499,7 +499,9 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     fun RevurderingsresultatType.tilStartRevurderingTypeDTO(): StartRevurderingTypeDTO {
         return when (this) {
             RevurderingsresultatType.STANS -> StartRevurderingTypeDTO.STANS
+
             RevurderingsresultatType.INNVILGELSE -> StartRevurderingTypeDTO.REVURDERING_INNVILGELSE
+
             RevurderingsresultatType.OMGJØRING_INNVILGELSE,
             RevurderingsresultatType.OMGJØRING_OPPHØR,
             RevurderingsresultatType.OMGJØRING_IKKE_VALGT,
