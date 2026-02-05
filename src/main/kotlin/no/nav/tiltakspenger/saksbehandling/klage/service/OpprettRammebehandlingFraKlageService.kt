@@ -5,9 +5,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.KanIkkeOppretteRammebehandlingFraKlage
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettRammebehandlingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.KanIkkeOppretteRammebehandlingFraKlage
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettRammebehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.opprettRammebehandlingFraKlage
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 class OpprettRammebehandlingFraKlageService(

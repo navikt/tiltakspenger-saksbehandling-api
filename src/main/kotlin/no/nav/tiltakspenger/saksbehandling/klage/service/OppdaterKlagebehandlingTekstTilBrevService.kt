@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KanIkkeOppdatereBrevtekstPåKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandlingBrevtekst
+import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.oppdaterKlagebehandlingBrevtekst
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock

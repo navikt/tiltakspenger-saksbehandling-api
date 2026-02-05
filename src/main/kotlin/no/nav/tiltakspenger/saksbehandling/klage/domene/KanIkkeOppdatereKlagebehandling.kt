@@ -3,6 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene
 import arrow.core.Nel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 
+/**
+ * Brukes på tvers av alle oppdateringsoperasjoner på klagebehandling for å representere feil som kan oppstå ved oppdatering av klagebehandling.
+ */
 sealed interface KanIkkeOppdatereKlagebehandling {
     data class FeilKlagebehandlingsstatus(
         val forventetStatus: Nel<Klagebehandlingsstatus>,

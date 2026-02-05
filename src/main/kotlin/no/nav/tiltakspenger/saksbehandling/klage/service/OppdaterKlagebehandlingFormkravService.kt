@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.infra.route.ValiderJourna
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KanIkkeOppdatereFormkravPåKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandlingFormkrav
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.oppdaterKlagebehandlingFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 

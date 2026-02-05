@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.klage.domene.opprett
+package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
