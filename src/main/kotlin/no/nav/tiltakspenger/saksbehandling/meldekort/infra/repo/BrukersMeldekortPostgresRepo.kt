@@ -9,6 +9,9 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
@@ -37,7 +40,8 @@ class BrukersMeldekortPostgresRepo(
                         journalpost_id,
                         oppgave_id,
                         behandles_automatisk,
-                        behandlet_automatisk_status
+                        behandlet_automatisk_status,
+                        behandlet_automatisk_metadata
                     ) values (
                         :id,
                         :meldeperiode_id,
@@ -49,7 +53,8 @@ class BrukersMeldekortPostgresRepo(
                         :journalpost_id,
                         :oppgave_id,
                         :behandles_automatisk,
-                        :behandlet_automatisk_status
+                        :behandlet_automatisk_status,
+                        :behandlet_automatisk_metadata
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
@@ -61,6 +66,7 @@ class BrukersMeldekortPostgresRepo(
                     "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
                     "behandles_automatisk" to brukersMeldekort.behandlesAutomatisk,
                     "behandlet_automatisk_status" to brukersMeldekort.behandletAutomatiskStatus.tilDb(),
+                    "behandlet_automatisk_metadata" to brukersMeldekort.behandletAutomatiskForsøkshistorikk.toDbJson(),
                 ).asUpdate,
             )
         }
@@ -128,6 +134,7 @@ class BrukersMeldekortPostgresRepo(
         meldekortId: MeldekortId,
         status: MeldekortBehandletAutomatiskStatus,
         behandlesAutomatisk: Boolean,
+        metadata: Forsøkshistorikk,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -136,12 +143,14 @@ class BrukersMeldekortPostgresRepo(
                     """
                     update meldekort_bruker set
                         behandlet_automatisk_status = :behandlet_automatisk_status,
-                        behandles_automatisk = :behandles_automatisk
+                        behandles_automatisk = :behandles_automatisk,
+                        behandlet_automatisk_metadata = to_jsonb(:behandlet_automatisk_metadata::jsonb)
                     where id = :id
                     """,
                     "id" to meldekortId.toString(),
                     "behandlet_automatisk_status" to status.tilDb(),
                     "behandles_automatisk" to behandlesAutomatisk,
+                    "behandlet_automatisk_metadata" to metadata.toDbJson(),
                 ).asUpdate,
             )
         }
@@ -232,6 +241,8 @@ class BrukersMeldekortPostgresRepo(
                 behandlesAutomatisk = row.boolean("behandles_automatisk"),
                 behandletAutomatiskStatus = row.string("behandlet_automatisk_status")
                     .tilMeldekortBehandletAutomatiskStatus(),
+                behandletAutomatiskForsøkshistorikk = row.string("behandlet_automatisk_metadata")
+                    .toForsøkshistorikk(),
             )
         }
     }

@@ -420,6 +420,7 @@ open class ApplicationContext(
             brukersMeldekortRepo = meldekortContext.brukersMeldekortRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             sakService = sakContext.sakService,
+            clock = clock,
         )
     }
 

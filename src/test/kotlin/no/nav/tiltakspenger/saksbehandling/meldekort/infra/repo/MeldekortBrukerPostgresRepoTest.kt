@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
@@ -25,7 +27,7 @@ class MeldekortBrukerPostgresRepoTest {
             mottatt = meldeperiode.opprettet.plus(1, ChronoUnit.MILLIS),
             sakId = meldeperiode.sakId,
             periode = meldeperiode.periode,
-        ).tilBrukersMeldekort(meldeperiode, behandlesAutomatisk, behandlesAutomatiskStatus)
+        ).tilBrukersMeldekort(meldeperiode, behandlesAutomatisk, behandlesAutomatiskStatus, fixedClock)
     }
 
     @Test
@@ -57,6 +59,7 @@ class MeldekortBrukerPostgresRepoTest {
                     oppgaveId = nyttBrukersMeldekort.oppgaveId,
                     behandlesAutomatisk = false,
                     behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK,
+                    behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(clock = fixedClock),
                 ),
             )
         }

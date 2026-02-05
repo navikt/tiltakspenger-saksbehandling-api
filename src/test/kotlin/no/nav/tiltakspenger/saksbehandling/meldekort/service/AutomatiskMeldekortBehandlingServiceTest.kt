@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
@@ -18,9 +19,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAu
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNull
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 class AutomatiskMeldekortBehandlingServiceTest {
@@ -253,37 +254,57 @@ class AutomatiskMeldekortBehandlingServiceTest {
 
                 for (dagOffset in DayOfWeek.MONDAY.ordinal..DayOfWeek.FRIDAY.ordinal) {
                     val dag = mandag.plusDays(dagOffset.toLong())
+                    val klokken0559 = fixedClockAt(dag.atTime(5, 59))
+                    val klokken2100 = fixedClockAt(dag.atTime(21, 0))
+                    val klokken2101 = fixedClockAt(dag.atTime(21, 1))
 
-                    automatiskMeldekortBehandlingService.behandleBrukersMeldekort(
-                        fixedClockAt(
-                            dag.atTime(5, 59),
-                        ),
-                    )
-                    automatiskMeldekortBehandlingService.behandleBrukersMeldekort(
-                        fixedClockAt(
-                            dag.atTime(21, 0),
-                        ),
-                    )
-                    automatiskMeldekortBehandlingService.behandleBrukersMeldekort(
-                        fixedClockAt(
-                            dag.atTime(21, 1),
-                        ),
-                    )
+                    automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock = klokken0559)
+                    automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock = klokken2100)
+                    automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock = klokken2101)
                 }
 
                 for (dagOffset in DayOfWeek.SATURDAY.ordinal..DayOfWeek.SUNDAY.ordinal) {
                     val dag = mandag.plusDays(dagOffset.toLong())
-                    automatiskMeldekortBehandlingService.behandleBrukersMeldekort(
-                        fixedClockAt(
-                            dag.atTime(12, 0),
-                        ),
-                    )
+                    val klokken1200 = fixedClockAt(dag.atTime(12, 0))
+
+                    automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock = klokken1200)
                 }
 
-                assertNull(
-                    meldekortBehandlingRepo.hentForSakId(sak.id),
-                    "Forventet ingen meldekortbehandlinger for bruker",
+                meldekortBehandlingRepo.hentForSakId(sak.id) shouldBe null
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke behandle brukers meldekort som venter på neste forsøk`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortBehandlingRepo = tac.meldekortContext.meldekortBehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val automatiskMeldekortBehandlingService =
+                    tac.meldekortContext.automatiskMeldekortBehandlingService
+                val nå = LocalDateTime.now(clock)
+
+                val sak =
+                    tac.søknadsbehandlingIverksattMedMeldeperioder(
+                        periode = vedtaksperiode,
+                        clock = clock,
+                    )
+
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    behandlesAutomatisk = true,
+                    behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.UKJENT_FEIL_PRØVER_IGJEN,
+                    behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(clock = clock).inkrementer(clock),
                 )
+
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                val nesteDag = fixedClockAt(nå.plusDays(1))
+                automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock = nesteDag)
+
+                meldekortBehandlingRepo.hentForSakId(sak.id) shouldBe null
             }
         }
     }

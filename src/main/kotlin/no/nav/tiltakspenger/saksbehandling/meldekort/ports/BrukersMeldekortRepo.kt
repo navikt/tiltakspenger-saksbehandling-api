@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 
@@ -43,6 +44,7 @@ interface BrukersMeldekortRepo {
         meldekortId: MeldekortId,
         status: MeldekortBehandletAutomatiskStatus,
         behandlesAutomatisk: Boolean,
+        metadata: Forsøkshistorikk,
         sessionContext: SessionContext? = null,
     )
 }

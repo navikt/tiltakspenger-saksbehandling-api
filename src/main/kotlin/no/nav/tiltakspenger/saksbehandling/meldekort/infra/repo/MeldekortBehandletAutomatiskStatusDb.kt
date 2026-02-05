@@ -6,6 +6,7 @@ private enum class MeldekortBehandletAutomatiskStatusDb {
     VENTER_BEHANDLING,
     BEHANDLET,
     UKJENT_FEIL,
+    UKJENT_FEIL_PRØVER_IGJEN,
     HENTE_NAVKONTOR_FEILET,
     BEHANDLING_FEILET_PÅ_SAK,
     UTBETALING_FEILET_PÅ_SAK,
@@ -26,6 +27,7 @@ fun MeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
     MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatusDb.VENTER_BEHANDLING
     MeldekortBehandletAutomatiskStatus.BEHANDLET -> MeldekortBehandletAutomatiskStatusDb.BEHANDLET
     MeldekortBehandletAutomatiskStatus.UKJENT_FEIL -> MeldekortBehandletAutomatiskStatusDb.UKJENT_FEIL
+    MeldekortBehandletAutomatiskStatus.UKJENT_FEIL_PRØVER_IGJEN -> MeldekortBehandletAutomatiskStatusDb.UKJENT_FEIL_PRØVER_IGJEN
     MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET -> MeldekortBehandletAutomatiskStatusDb.HENTE_NAVKONTOR_FEILET
     MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDb.BEHANDLING_FEILET_PÅ_SAK
     MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDb.UTBETALING_FEILET_PÅ_SAK
@@ -47,6 +49,7 @@ fun String.tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatisk
         MeldekortBehandletAutomatiskStatusDb.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING
         MeldekortBehandletAutomatiskStatusDb.BEHANDLET -> MeldekortBehandletAutomatiskStatus.BEHANDLET
         MeldekortBehandletAutomatiskStatusDb.UKJENT_FEIL -> MeldekortBehandletAutomatiskStatus.UKJENT_FEIL
+        MeldekortBehandletAutomatiskStatusDb.UKJENT_FEIL_PRØVER_IGJEN -> MeldekortBehandletAutomatiskStatus.UKJENT_FEIL_PRØVER_IGJEN
         MeldekortBehandletAutomatiskStatusDb.HENTE_NAVKONTOR_FEILET -> MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET
         MeldekortBehandletAutomatiskStatusDb.BEHANDLING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK
         MeldekortBehandletAutomatiskStatusDb.UTBETALING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK

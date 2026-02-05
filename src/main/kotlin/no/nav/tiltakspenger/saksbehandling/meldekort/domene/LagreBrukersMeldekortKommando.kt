@@ -3,9 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
+import java.time.Clock
 import java.time.LocalDateTime
 
 /**
@@ -31,6 +33,7 @@ data class LagreBrukersMeldekortKommando(
         meldeperiode: Meldeperiode,
         behandlesAutomatisk: Boolean,
         behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus,
+        clock: Clock,
     ): BrukersMeldekort {
         require(meldeperiode.id == meldeperiodeId) {
             "Meldeperioden må matche meldekortets meldeperiodeId - Forventet ${meldeperiode.id} - fikk $meldeperiodeId"
@@ -46,6 +49,7 @@ data class LagreBrukersMeldekortKommando(
             oppgaveId = null,
             behandlesAutomatisk = behandlesAutomatisk,
             behandletAutomatiskStatus = behandletAutomatiskStatus,
+            behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
         )
     }
 
