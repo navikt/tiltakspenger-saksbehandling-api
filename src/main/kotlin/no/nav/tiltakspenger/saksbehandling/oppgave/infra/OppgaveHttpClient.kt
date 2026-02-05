@@ -89,10 +89,13 @@ class OppgaveHttpClient(
             )
 
             Oppgavebehov.FATT_BARN -> OpprettOppgaveRequest.opprettOppgaveRequestForFattBarn(fnr, clock = clock)
+
             Oppgavebehov.DOED -> OpprettOppgaveRequest.opprettOppgaveRequestForDoedsfall(fnr, clock = clock)
+
             Oppgavebehov.ADRESSEBESKYTTELSE -> OpprettOppgaveRequest.opprettOppgaveRequestForAdressebeskyttelse(fnr, clock = clock)
 
             Oppgavebehov.NYTT_MELDEKORT -> TODO()
+
             Oppgavebehov.NY_SOKNAD -> TODO()
         }
         return opprettOppgave(opprettOppgaveRequest, callId)

@@ -241,11 +241,11 @@ class OppdaterRevurderingOmgjøringRouteTest {
 
     @Test
     fun `kan revurdere med hull`() {
-        /**
-         * 1. Søknadsbehandling: innvilger januar 2025
-         * 2. Søknadsbehandling: innvilger mars 2025
-         * 3. Meldekort: beregner/utbetaler alle meldekort
-         * 4. Revurdering: innvilger jan-mars 2025
+        /*
+         1. Søknadsbehandling: innvilger januar 2025
+         2. Søknadsbehandling: innvilger mars 2025
+         3. Meldekort: beregner/utbetaler alle meldekort
+         4. Revurdering: innvilger jan-mars 2025
          */
         withTestApplicationContext { tac ->
             val førsteInnvilgelsesperiode = 1.januar(2025) til 31.januar(2025)
@@ -309,11 +309,11 @@ class OppdaterRevurderingOmgjøringRouteTest {
 
     @Test
     fun `kan revurdere over hull`() {
-        /**
-         * 1. Søknadsbehandling: innvilger januar 2025
-         * 2. Søknadsbehandling: innvilger mars 2025
-         * 3. Meldekort: beregner/utbetaler alle meldekort
-         * 4. Revurdering: innvilger jan-mars 2025
+        /*
+         1. Søknadsbehandling: innvilger januar 2025
+         2. Søknadsbehandling: innvilger mars 2025
+         3. Meldekort: beregner/utbetaler alle meldekort
+         4. Revurdering: innvilger jan-mars 2025
          */
         withTestApplicationContext { tac ->
             val førsteInnvilgelsesperiode = 1.januar(2025) til 31.januar(2025)

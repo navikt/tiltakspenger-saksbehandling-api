@@ -48,6 +48,7 @@ class JournalførMeldekortvedtakService(
                         ).getOrElse {
                             when (it) {
                                 MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenTidligereBeregninger -> null
+
                                 MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.IngenBeregningerForKjede,
                                 MeldeperiodeBeregningerVedtatt.ForrigeBeregningFinnesIkke.BeregningFinnesIkke,
                                 -> {

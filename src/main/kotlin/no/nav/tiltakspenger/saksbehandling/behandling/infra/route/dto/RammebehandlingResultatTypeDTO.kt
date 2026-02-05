@@ -46,11 +46,15 @@ fun Rammebehandlingsresultat?.tilRammebehandlingResultatTypeDTO(): Rammebehandli
     is Søknadsbehandlingsresultat.Innvilgelse,
     is Søknadsbehandlingsresultat.Avslag,
     -> this.tilSøknadsbehandlingResultatTypeDTO()
+
     is Revurderingsresultat.Innvilgelse,
     is OmgjøringInnvilgelse,
     is Revurderingsresultat.Stans,
     -> this.tilRevurderingResultatTypeDTO()
+
     null -> RammebehandlingResultatTypeDTO.IKKE_VALGT
+
     is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+
     is Omgjøringsresultat.OmgjøringOpphør -> TODO()
 }

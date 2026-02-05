@@ -260,6 +260,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
         return when (status) {
             VEDTATT, AVBRUTT -> throw IllegalStateException("Kan ikke gjenoppta behandling som har status ${status.name}")
+
             KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(endretAv)
                 gjenopptaBehandling(true, hentSaksopplysninger)
@@ -338,7 +339,9 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             }
 
             KLAR_TIL_BESLUTNING -> throw IllegalStateException("Kan ikke legge tilbake behandling som er klar til beslutning")
+
             KLAR_TIL_BEHANDLING -> throw IllegalStateException("Kan ikke legge tilbake behandling som ikke er påbegynt")
+
             VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> {
                 throw IllegalArgumentException(
                     "Kan ikke legge tilbake behandling når behandlingen er ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
@@ -403,7 +406,9 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             }
 
             UNDER_BEHANDLING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en saksbehandler fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
+
             UNDER_BESLUTNING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en beslutter fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
+
             VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> {
                 throw IllegalArgumentException(
                     "Kan ikke ta behandling når behandlingen har status $status. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
@@ -488,7 +493,9 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             }
 
             KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
+
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
+
             UNDER_AUTOMATISK_BEHANDLING -> {
                 if (this.saksbehandler != AUTOMATISK_SAKSBEHANDLER_ID || !ventestatus.erSattPåVent) {
                     return KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()

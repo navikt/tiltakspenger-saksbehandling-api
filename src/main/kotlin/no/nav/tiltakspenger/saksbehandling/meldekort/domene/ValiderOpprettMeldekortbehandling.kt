@@ -12,12 +12,12 @@ fun Sak.validerOpprettManuellMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): 
     val åpenBehandling = this.meldekortbehandlinger.åpenMeldekortBehandling
 
     if (åpenBehandling != null) {
-        /**
-         *  Det er et gyldig valg å gjenopprette en behandling som har blitt lagt tilbake på samme kjede.
-         *  Denne vil ha status KLAR_TIL_BEHANDLING
-         *
-         *  Vi tillater ikke å faktisk opprette en ny behandling dersom det finnes en åpen behandling.
-         *  */
+        /*
+          Det er et gyldig valg å gjenopprette en behandling som har blitt lagt tilbake på samme kjede.
+          Denne vil ha status KLAR_TIL_BEHANDLING
+
+          Vi tillater ikke å faktisk opprette en ny behandling dersom det finnes en åpen behandling.
+         */
         if (åpenBehandling.kjedeId != kjedeId || åpenBehandling.status != MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING) {
             return ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING.left()
         }
@@ -28,9 +28,9 @@ fun Sak.validerOpprettManuellMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): 
     if (meldeperiode.ingenDagerGirRett) {
         val harMottattMeldekortEtterSisteBehandling = this.kjedeHarUbehandletBrukersMeldekort(kjedeId)
 
-        /** Dersom det finnes et ubehandlet meldekort fra bruker må vi tillate å behandle/avbryte dette meldekortet
-         *  Kan skje dersom vi mottok meldekortet før en stans eller omgjøring fjernet retten til tiltakspenger for en meldeperiode
-         * */
+        /* Dersom det finnes et ubehandlet meldekort fra bruker må vi tillate å behandle/avbryte dette meldekortet
+          Kan skje dersom vi mottok meldekortet før en stans eller omgjøring fjernet retten til tiltakspenger for en meldeperiode
+         */
         if (harMottattMeldekortEtterSisteBehandling) {
             val forrigeKjede = this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
 

@@ -66,6 +66,7 @@ class JournalførRammevedtakService(
                         )
 
                         is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+
                         is Omgjøringsresultat.OmgjøringOpphør -> TODO()
                     }.getOrElse { return@forEach }
 

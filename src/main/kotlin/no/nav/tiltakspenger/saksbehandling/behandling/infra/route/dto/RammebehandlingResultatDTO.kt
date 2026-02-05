@@ -98,6 +98,7 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
         )
 
         is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+
         is Omgjøringsresultat.OmgjøringOpphør -> TODO()
     }
 }

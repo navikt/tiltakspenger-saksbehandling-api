@@ -31,6 +31,7 @@ data class OpprettRevurderingFraKlageKommando(
             Type.INNVILGELSE -> require(vedtakIdSomOmgjøres == null) {
                 "vedtakIdSomOmgjøres må være null for INNVILGELSE"
             }
+
             Type.OMGJØRING -> require(vedtakIdSomOmgjøres != null) {
                 "vedtakIdSomOmgjøres kan ikke være null for OMGJØRING"
             }

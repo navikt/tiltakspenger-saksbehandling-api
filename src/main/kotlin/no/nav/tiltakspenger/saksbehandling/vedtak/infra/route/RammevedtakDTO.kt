@@ -141,6 +141,7 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
 
             when (opphørtePeriode.size) {
                 0 -> listOf(innvilgelsesTidslinjeElement)
+
                 1 -> {
                     val singleOpphørsTidslinjeElement = opphørteTidslinjeElementer.single()
                     if (innvilgelseperiode.fraOgMed > tidslinjeperiode.fraOgMed) {
@@ -161,6 +162,7 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
         }
 
         is Søknadsbehandlingsresultat.Avslag -> throw IllegalStateException("Avslag kan ikke forekomme i tidslinje")
+
         is Søknadsbehandlingsresultat.Innvilgelse,
         is Revurderingsresultat.Innvilgelse,
         is Revurderingsresultat.Stans,
@@ -174,7 +176,6 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
                     tidslinjeResultat = when (this.rammebehandlingsresultat) {
                         is Omgjøringsresultat -> throw IllegalStateException("Omgjøring skal bli håndtert spesielt")
                         is Søknadsbehandlingsresultat.Avslag -> throw IllegalStateException("Avslag kan ikke forekomme i tidslinje")
-
                         is Revurderingsresultat.Innvilgelse -> TidslinjeResultat.REVURDERING_INNVILGELSE
                         is Søknadsbehandlingsresultat.Innvilgelse -> TidslinjeResultat.SØKNADSBEHANDLING_INNVILGELSE
                         is Revurderingsresultat.Stans -> TidslinjeResultat.STANS
@@ -183,6 +184,7 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
             )
 
         is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+
         is Omgjøringsresultat.OmgjøringOpphør -> TODO()
     }
 }

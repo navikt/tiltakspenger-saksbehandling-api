@@ -57,7 +57,9 @@ data class Rammevedtaksliste(
                 -> true
 
                 is Søknadsbehandlingsresultat.Avslag -> false
+
                 is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+
                 is Omgjøringsresultat.OmgjøringOpphør -> TODO()
             }
         }

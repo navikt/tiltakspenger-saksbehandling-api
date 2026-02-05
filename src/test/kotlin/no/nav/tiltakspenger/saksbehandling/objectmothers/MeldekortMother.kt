@@ -332,6 +332,7 @@ interface MeldekortMother : MotherOfAllMothers {
                             )
 
                             MeldekortDagStatus.FRAVÆR_SYK -> SykBruker.create(dato, reduksjon, tiltakstype, antallBarn)
+
                             MeldekortDagStatus.FRAVÆR_SYKT_BARN -> SyktBarn.create(
                                 dato,
                                 reduksjon,
@@ -346,8 +347,11 @@ interface MeldekortMother : MotherOfAllMothers {
                             )
 
                             MeldekortDagStatus.FRAVÆR_ANNET -> FraværAnnet.create(dato, tiltakstype, antallBarn)
+
                             MeldekortDagStatus.IKKE_BESVART -> IkkeBesvart.create(dato, tiltakstype, antallBarn)
+
                             MeldekortDagStatus.IKKE_TILTAKSDAG -> IkkeDeltatt.create(dato, tiltakstype, antallBarn)
+
                             MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> IkkeRettTilTiltakspenger(dato)
                         }
                     }.toNonEmptyListOrNull()!!,
@@ -897,13 +901,21 @@ fun MeldekortBehandling.tilOppdaterMeldekortKommando(
             dag = dag.dato,
             status = when (dag.status) {
                 MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> OppdaterMeldekortKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
+
                 MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+
                 MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
+
                 MeldekortDagStatus.IKKE_TILTAKSDAG -> OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
+
                 MeldekortDagStatus.FRAVÆR_SYK -> OppdaterMeldekortKommando.Status.FRAVÆR_SYK
+
                 MeldekortDagStatus.FRAVÆR_SYKT_BARN -> OppdaterMeldekortKommando.Status.FRAVÆR_SYKT_BARN
+
                 MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_GODKJENT_AV_NAV
+
                 MeldekortDagStatus.FRAVÆR_ANNET -> OppdaterMeldekortKommando.Status.FRAVÆR_ANNET
+
                 MeldekortDagStatus.IKKE_BESVART -> if (dag.dato.erHelg()) {
                     OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
                 } else {
@@ -929,13 +941,21 @@ fun MeldekortBehandling.tilSendMeldekortTilBeslutterKommando(
             dag = dag.dato,
             status = when (dag.status) {
                 MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> OppdaterMeldekortKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
+
                 MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+
                 MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
+
                 MeldekortDagStatus.IKKE_TILTAKSDAG -> OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
+
                 MeldekortDagStatus.FRAVÆR_SYK -> OppdaterMeldekortKommando.Status.FRAVÆR_SYK
+
                 MeldekortDagStatus.FRAVÆR_SYKT_BARN -> OppdaterMeldekortKommando.Status.FRAVÆR_SYKT_BARN
+
                 MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_GODKJENT_AV_NAV
+
                 MeldekortDagStatus.FRAVÆR_ANNET -> OppdaterMeldekortKommando.Status.FRAVÆR_ANNET
+
                 MeldekortDagStatus.IKKE_BESVART -> if (dag.dato.erHelg()) {
                     OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
                 } else {

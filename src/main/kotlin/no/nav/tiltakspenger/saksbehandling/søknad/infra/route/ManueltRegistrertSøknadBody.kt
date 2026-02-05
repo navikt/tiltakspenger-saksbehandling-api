@@ -100,7 +100,9 @@ data class ManueltRegistrertSøknadBody(
     fun PeriodeSpmDTO.tilDomene(): Søknad.PeriodeSpm =
         when (this.svar) {
             JaNeiSvar.IKKE_BESVART -> Søknad.PeriodeSpm.IkkeBesvart
+
             JaNeiSvar.NEI -> Søknad.PeriodeSpm.Nei
+
             JaNeiSvar.JA -> {
                 Søknad.PeriodeSpm.Ja(
                     fraOgMed = this.fraOgMed?.let { LocalDate.parse(it) }
@@ -114,7 +116,9 @@ data class ManueltRegistrertSøknadBody(
     fun FraOgMedDatoSpmDTO.tilDomene(): Søknad.FraOgMedDatoSpm {
         return when (this.svar) {
             JaNeiSvar.IKKE_BESVART -> Søknad.FraOgMedDatoSpm.IkkeBesvart
+
             JaNeiSvar.NEI -> Søknad.FraOgMedDatoSpm.Nei
+
             JaNeiSvar.JA -> {
                 Søknad.FraOgMedDatoSpm.Ja(
                     fra = this.fraOgMed,

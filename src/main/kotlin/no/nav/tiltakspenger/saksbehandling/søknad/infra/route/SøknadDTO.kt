@@ -201,6 +201,7 @@ fun PeriodeSpm.toDTO(): SøknadDTO.PeriodeSpmDTO {
         },
         periode = when (this) {
             is PeriodeSpm.Nei, PeriodeSpm.IkkeBesvart -> null
+
             is PeriodeSpm.Ja -> PeriodeDTO(
                 fraOgMed = this.fraOgMed?.toString() ?: "",
                 tilOgMed = this.tilOgMed?.toString() ?: "",

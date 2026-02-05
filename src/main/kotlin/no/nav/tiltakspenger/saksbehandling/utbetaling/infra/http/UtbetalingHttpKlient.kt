@@ -156,10 +156,15 @@ class UtbetalingHttpKlient(
                 Either.catch {
                     when (deserialize<IverksettStatus?>(httpResponseBody)) {
                         IverksettStatus.SENDT_TIL_OPPDRAG -> Utbetalingsstatus.SendtTilOppdrag.right()
+
                         IverksettStatus.FEILET_MOT_OPPDRAG -> Utbetalingsstatus.FeiletMotOppdrag.right()
+
                         IverksettStatus.OK -> Utbetalingsstatus.Ok.right()
+
                         IverksettStatus.IKKE_PÅBEGYNT -> Utbetalingsstatus.IkkePåbegynt.right()
+
                         IverksettStatus.OK_UTEN_UTBETALING -> Utbetalingsstatus.OkUtenUtbetaling.right()
+
                         null -> {
                             log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Respons fra statusapiet til helved var null. Dette forventer vi ikke. utbetalingId: $utbetalingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
                             KunneIkkeHenteUtbetalingsstatus.left()

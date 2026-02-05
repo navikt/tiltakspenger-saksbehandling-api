@@ -86,8 +86,11 @@ fun Rammevedtak.toDatadelingJson(): String {
             }
 
             is Revurderingsresultat.Stans -> "STANS"
+
             is Søknadsbehandlingsresultat.Avslag -> "AVSLAG"
+
             is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+
             is Omgjøringsresultat.OmgjøringOpphør -> TODO()
         },
         opprettet = opprettet.toString(),

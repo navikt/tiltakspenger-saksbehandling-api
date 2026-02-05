@@ -76,7 +76,9 @@ data class MeldekortBehandletManuelt(
         }
         when (status) {
             MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status KLAR_TIL_BEHANDLING")
+
             UNDER_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
+
             KLAR_TIL_BESLUTNING -> {
                 require(iverksattTidspunkt == null)
                 // Kommentar jah: Når vi legger til underkjenn, bør vi også legge til et atteserings objekt som for Behandling. beslutter vil da flyttes dit.
@@ -199,9 +201,13 @@ data class MeldekortBehandletManuelt(
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return when (this.status) {
             MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status KLAR_TIL_BEHANDLING")
+
             AVBRUTT -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status AVBRUTT")
+
             UNDER_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
+
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaMeldekortBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
+
             UNDER_BESLUTNING -> {
                 krevBeslutterRolle(saksbehandler)
                 if (this.beslutter == null) {

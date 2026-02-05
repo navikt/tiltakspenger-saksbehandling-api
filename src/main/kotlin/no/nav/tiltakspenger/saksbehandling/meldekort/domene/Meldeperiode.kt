@@ -44,9 +44,9 @@ data class Meldeperiode(
     }
 
     fun erLik(meldeperiode: Meldeperiode): Boolean {
-        /**
-         * Må oppdaters dersom det kommer nytt felt som vi har lyst å sammenligne på,
-         * men er bedre at det ikke opprettes nye meldeperioder
+        /*
+         Må oppdaters dersom det kommer nytt felt som vi har lyst å sammenligne på,
+         men er bedre at det ikke opprettes nye meldeperioder
          */
         return this.kjedeId == meldeperiode.kjedeId &&
             this.sakId == meldeperiode.sakId &&

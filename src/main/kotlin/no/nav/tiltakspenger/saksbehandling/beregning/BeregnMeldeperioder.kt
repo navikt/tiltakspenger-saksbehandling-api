@@ -78,7 +78,7 @@ private data class BeregnMeldeperioder(
         return meldeperiodeBeregninger.gjeldendeBeregninger
             .partition { it.fraOgMed < beregningsperiode.fraOgMed }
             .let { (beregningerFørBeregningsperioden, beregningerUnderOgEtterBeregningsperioden) ->
-                /** Kjør gjennom tidligere beregninger for å sette riktig state for sykedager før vi gjør nye beregninger */
+                // Kjør gjennom tidligere beregninger for å sette riktig state for sykedager før vi gjør nye beregninger
                 beregningerFørBeregningsperioden.forEach { beregnMeldeperiode(it.tilSkalBeregnes()) }
 
                 val beregningerForBeregningsperioden = meldeperioderSomBeregnes.map { beregnMeldeperiode(it) }
@@ -94,10 +94,10 @@ private data class BeregnMeldeperioder(
 
                         nyBeregning to harEndringer
                     }
-                    /** Beregninger etter beregningsperioden skal i utgangspunktet kun med dersom de har endringer,
-                     *  men vi ønsker ikke "hull" i beregningene på en behandling, så vi dropper kun de etter siste
-                     *  meldeperiode uten endring
-                     * */
+                    /*Beregninger etter beregningsperioden skal i utgangspunktet kun med dersom de har endringer,
+                     men vi ønsker ikke "hull" i beregningene på en behandling, så vi dropper kun de etter siste
+                     meldeperiode uten endring
+                     */
                     .dropLastWhile { (_, harEndringer) -> !harEndringer }
                     .map { it.first }
 

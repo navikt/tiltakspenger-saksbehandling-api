@@ -159,6 +159,7 @@ data class Klagebehandling(
         val erSaksbehandlerPåBehandlingen = this.erSaksbehandlerPåBehandlingen(kommando.saksbehandler)
         val tilleggstekst: Brevtekster = when (status) {
             KLAR_TIL_BEHANDLING -> brevtekst ?: Brevtekster.empty
+
             UNDER_BEHANDLING -> if (erSaksbehandlerPåBehandlingen) {
                 kommando.brevtekster
             } else {
@@ -166,6 +167,7 @@ data class Klagebehandling(
             }
 
             AVBRUTT -> brevtekst ?: Brevtekster.empty
+
             VEDTATT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
         }
         return genererAvvisningsbrev(

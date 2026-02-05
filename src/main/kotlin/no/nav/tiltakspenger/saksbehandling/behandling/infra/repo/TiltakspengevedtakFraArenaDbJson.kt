@@ -52,6 +52,7 @@ data class TiltakspengevedtakFraArenaDbJson(
             )
 
             Type.IkkeBehandlingsgrunnlag -> TiltakspengevedtakFraArena.IkkeBehandlingsgrunnlag
+
             Type.BehandletFørFeature -> TiltakspengevedtakFraArena.BehandletFørFeature
         }
     }

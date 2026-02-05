@@ -82,7 +82,6 @@ interface StartRevurderingBuilder {
         )
     }
 
-    @Suppress("unused")
     /** Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering. */
     suspend fun ApplicationTestBuilder.startRevurderingStans(
         tac: TestApplicationContext,

@@ -135,11 +135,13 @@ internal class DokarkivHttpClient(
                             log.warn(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot dokarkiv. status: $status." }
                             token.invaliderCache()
                         }
+
                         Conflict -> {
                             log.warn { "Har allerede blitt journalført (409 Conflict)" }
                             val response = throwable.response.call.body<DokarkivResponse>()
                             return JournalpostId(response.journalpostId.orEmpty())
                         }
+
                         else -> {
                             log.warn(throwable) { "Fikk klientside-feilkode fra dokarkiv: $status." }
                         }

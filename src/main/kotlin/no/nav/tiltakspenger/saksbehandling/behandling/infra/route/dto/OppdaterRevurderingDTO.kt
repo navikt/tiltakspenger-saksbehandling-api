@@ -124,7 +124,9 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
 
 fun RammebehandlingResultatTypeDTO.tilRevurderingType(): RevurderingType = when (this) {
     RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
+
     RammebehandlingResultatTypeDTO.STANS -> RevurderingType.STANS
+
     RammebehandlingResultatTypeDTO.OMGJØRING -> RevurderingType.OMGJØRING
 
     RammebehandlingResultatTypeDTO.AVSLAG,

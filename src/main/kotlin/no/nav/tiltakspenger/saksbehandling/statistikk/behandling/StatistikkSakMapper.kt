@@ -46,9 +46,13 @@ fun genererSaksstatistikkForRammevedtak(
         behandlingResultat = when (vedtak.rammebehandlingsresultat) {
             // I førsteomgang mapper vi bare delvis til innvilgelse.
             is Rammebehandlingsresultat.Innvilgelse -> StatistikkBehandlingResultat.INNVILGET
+
             is Revurderingsresultat.Stans -> StatistikkBehandlingResultat.STANS
+
             is Søknadsbehandlingsresultat.Avslag -> StatistikkBehandlingResultat.AVSLAG
+
             is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+
             is Omgjøringsresultat.OmgjøringOpphør -> TODO()
         },
         // TODO jah: Denne bør ikke være null.

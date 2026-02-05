@@ -20,8 +20,11 @@ fun Row.periodeSpm(navn: String): Søknad.PeriodeSpm {
         JA -> {
             Søknad.PeriodeSpm.Ja(fom, tom)
         }
+
         NEI -> Søknad.PeriodeSpm.Nei
+
         IKKE_BESVART -> Søknad.PeriodeSpm.IkkeBesvart
+
         else -> throw IllegalArgumentException("Ugyldig type $this")
     }
 }
@@ -33,8 +36,11 @@ fun Row.fraOgMedDatoSpm(navn: String): Søknad.FraOgMedDatoSpm {
         JA -> {
             Søknad.FraOgMedDatoSpm.Ja(fom)
         }
+
         NEI -> Søknad.FraOgMedDatoSpm.Nei
+
         IKKE_BESVART -> Søknad.FraOgMedDatoSpm.IkkeBesvart
+
         else -> throw IllegalArgumentException("Ugyldig type $this")
     }
 }

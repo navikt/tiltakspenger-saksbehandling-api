@@ -247,9 +247,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         return dager.map { dag ->
             when {
                 dag.status == IKKE_RETT_TIL_TILTAKSPENGER -> dag.dato to IKKE_RETT_TIL_TILTAKSPENGER
-
                 dag.dato in dagerMedDeltakelse -> dag.dato to DELTATT_UTEN_LØNN_I_TILTAKET
-
                 else -> dag.dato to IKKE_TILTAKSDAG
             }
         }

@@ -836,6 +836,8 @@ private fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> =
     )
 
     null -> emptyArray()
+
     is Omgjøringsresultat.OmgjøringIkkeValgt -> TODO()
+
     is Omgjøringsresultat.OmgjøringOpphør -> TODO()
 }
