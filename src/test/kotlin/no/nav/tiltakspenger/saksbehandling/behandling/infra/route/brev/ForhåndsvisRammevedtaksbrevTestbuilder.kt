@@ -30,7 +30,7 @@ import java.time.LocalDate
 /**
  * Gjelder for innvilgelse, avslag og stans.
  */
-interface ForhåndsvisVedtaksbrevTestbuilder {
+interface ForhåndsvisRammevedtaksbrevTestbuilder {
 
     /** Forventer at det allerede finnes en sak, søknad og behandling. */
     suspend fun ApplicationTestBuilder.forhåndsvisVedtaksbrevForBehandlingId(

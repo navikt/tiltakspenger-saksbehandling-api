@@ -308,6 +308,7 @@ class TestApplicationContextMedInMemoryDb(
             dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
             behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
             startRevurderingService = behandlingContext.startRevurderingService,
+            taRammebehandlingService = behandlingContext.taRammebehandlingService,
             overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
         ) {

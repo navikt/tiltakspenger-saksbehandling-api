@@ -2,19 +2,20 @@ package no.nav.tiltakspenger.saksbehandling.routes
 
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.avbryt.AvbrytRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlePåNytt.BehandleSøknadPåNyttBuilder
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.ForhåndsvisVedtaksbrevTestbuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.`ForhåndsvisRammevedtaksbrevTestbuilder`
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettRevurderingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettSøknadsbehandlingBuilder
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater.OppdaterBehandlingBuilder
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger.OppdaterSaksopplysningerBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.leggTilbake.LeggTilbakeRammebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater.OppdaterRammebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger.OppdaterRammebehandlingSaksopplysningerBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start.StartRevurderingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start.StartSøknadsbehandlingBuilder
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.OvertaBehandlingBuilder
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.TaBehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.OvertaRammebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.TaRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendRevurderingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendSøknadsbehandlingTilBeslutningBuilder
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.UnderkjennBehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.UnderkjennRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.AvbrytKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.forhåndsvis.ForhåndsvisBrevKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.GjenopptaKlagebehandlingBuilder
@@ -62,20 +63,21 @@ object RouteBehandlingBuilder :
     AvbrytKlagebehandlingBuilder,
     IverksettKlagebehandlingBuilder,
     ForhåndsvisBrevKlagebehandlingBuilder,
-    TaBehandlingBuilder,
+    TaRammebehandlingBuilder,
     SendSøknadsbehandlingTilBeslutningBuilder,
     SendRevurderingTilBeslutningBuilder,
-    UnderkjennBehandlingBuilder,
+    UnderkjennRammebehandlingBuilder,
     IverksettRammebehandlingBuilder,
     IverksettSøknadsbehandlingBuilder,
     IverksettRevurderingBuilder,
     StartRevurderingBuilder,
-    OppdaterSaksopplysningerBuilder,
-    OvertaBehandlingBuilder,
+    OppdaterRammebehandlingSaksopplysningerBuilder,
+    OvertaRammebehandlingBuilder,
     TaMeldekortbehandlingBuilder,
     BehandleSøknadPåNyttBuilder,
-    ForhåndsvisVedtaksbrevTestbuilder,
-    OppdaterBehandlingBuilder,
+    ForhåndsvisRammevedtaksbrevTestbuilder,
+    OppdaterRammebehandlingBuilder,
+    LeggTilbakeRammebehandlingBuilder,
     AvbrytRammebehandlingBuilder,
     OpprettMeldekortbehandlingBuilder,
     AvbrytMeldekortbehandlingBuilder,

@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import org.junit.jupiter.api.Test
 
-internal class OppdaterSaksopplysningerTest {
+internal class OppdaterRammebehandlingSaksopplysningerTest {
     @Test
     fun `søknadsbehandling - saksopplysninger blir oppdatert`() {
         withTestApplicationContext { tac ->

@@ -27,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettRam
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisRammevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerRammevedtaksbrevService
@@ -80,7 +80,7 @@ open class BehandlingOgVedtakContext(
             clock = clock,
         )
     }
-    val behandlingService: RammebehandlingService by lazy {
+    val rammebehandlingService: RammebehandlingService by lazy {
         RammebehandlingService(
             rammebehandlingRepo = rammebehandlingRepo,
             sessionFactory = sessionFactory,
@@ -158,7 +158,7 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val sendBehandlingTilBeslutningService by lazy {
+    val sendRammebehandlingTilBeslutningService by lazy {
         SendRammebehandlingTilBeslutningService(
             sakService = sakService,
             rammebehandlingRepo = rammebehandlingRepo,
@@ -180,7 +180,7 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val journalførVedtaksbrevService by lazy {
+    val journalførRammevedtaksbrevService by lazy {
         JournalførRammevedtakService(
             journalførRammevedtaksbrevKlient = journalførRammevedtaksbrevKlient,
             rammevedtakRepo = rammevedtakRepo,
@@ -201,8 +201,8 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val forhåndsvisVedtaksbrevService by lazy {
-        ForhåndsvisVedtaksbrevService(
+    val forhåndsvisRammevedtaksbrevService by lazy {
+        ForhåndsvisRammevedtaksbrevService(
             sakService = sakService,
             genererInnvilgelsesbrevClient = genererVedtaksbrevForInnvilgelseKlient,
             genererVedtaksbrevForAvslagKlient = genererVedtaksbrevForAvslagKlient,
@@ -213,9 +213,9 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val taBehandlingService by lazy {
+    val taRammebehandlingService by lazy {
         TaRammebehandlingService(
-            behandlingService = behandlingService,
+            behandlingService = rammebehandlingService,
             rammebehandlingRepo = rammebehandlingRepo,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
@@ -226,7 +226,7 @@ open class BehandlingOgVedtakContext(
 
     val overtaRammebehandlingService by lazy {
         OvertaRammebehandlingService(
-            rammebehandlingService = behandlingService,
+            rammebehandlingService = rammebehandlingService,
             rammebehandlingRepo = rammebehandlingRepo,
             clock = clock,
             statistikkSakService = statistikkSakService,
@@ -237,7 +237,7 @@ open class BehandlingOgVedtakContext(
 
     val leggTilbakeRammebehandlingService by lazy {
         LeggTilbakeRammebehandlingService(
-            behandlingService = behandlingService,
+            behandlingService = rammebehandlingService,
             rammebehandlingRepo = rammebehandlingRepo,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
@@ -246,7 +246,7 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val oppdaterBehandlingService by lazy {
+    val oppdaterRammebehandlingService by lazy {
         OppdaterRammebehandlingService(
             sakService = sakService,
             rammebehandlingRepo = rammebehandlingRepo,
@@ -257,17 +257,17 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val settBehandlingPåVentService by lazy {
+    val settRammebehandlingPåVentService by lazy {
         SettRammebehandlingPåVentService(
-            behandlingService = behandlingService,
+            behandlingService = rammebehandlingService,
             statistikkSakService = statistikkSakService,
             clock = clock,
         )
     }
 
-    val gjenopptaBehandlingService by lazy {
+    val gjenopptaRammebehandlingService by lazy {
         GjenopptaRammebehandlingService(
-            behandlingService = behandlingService,
+            behandlingService = rammebehandlingService,
             hentSaksopplysingerService = hentSaksopplysingerService,
             statistikkSakService = statistikkSakService,
             clock = clock,

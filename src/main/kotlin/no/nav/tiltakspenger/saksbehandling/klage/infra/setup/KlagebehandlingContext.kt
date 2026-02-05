@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -46,6 +47,7 @@ open class KlagebehandlingContext(
     private val dokumentdistribusjonsklient: Dokumentdistribusjonsklient,
     private val behandleSøknadPåNyttService: BehandleSøknadPåNyttService,
     private val startRevurderingService: StartRevurderingService,
+    private val taRammebehandlingService: TaRammebehandlingService,
     private val overtaRammebehandlingService: OvertaRammebehandlingService,
     private val leggTilbakeRammebehandlingService: LeggTilbakeRammebehandlingService,
 ) {
@@ -151,6 +153,7 @@ open class KlagebehandlingContext(
         TaKlagebehandlingService(
             sakService = sakService,
             klagebehandlingRepo = klagebehandlingRepo,
+            taRammebehandlingService = taRammebehandlingService,
             clock = clock,
         )
     }

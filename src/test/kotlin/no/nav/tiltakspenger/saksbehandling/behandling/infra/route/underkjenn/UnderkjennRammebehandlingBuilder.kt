@@ -27,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 /**
  * Gjelder for både søknadsbehandling og revurdering.
  */
-interface UnderkjennBehandlingBuilder {
+interface UnderkjennRammebehandlingBuilder {
 
     /**
      * Oppretter ny sak, søknad og behandling.

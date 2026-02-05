@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
@@ -14,29 +14,33 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
-interface TaBehandlingBuilder {
+/**
+ * Gjelder for både søknadsbehandling og revurdering.
+ */
+interface OppdaterRammebehandlingSaksopplysningerBuilder {
 
     /** Forventer at det allerede finnes en behandling. Denne fungerer både for saksbehandler og beslutter. */
-    suspend fun ApplicationTestBuilder.taBehandling(
+    suspend fun ApplicationTestBuilder.oppdaterSaksopplysningerForBehandlingId(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): Triple<Sak, AttesterbarBehandling, String> {
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+    ): Triple<Sak, Rammebehandling, String> {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
-            HttpMethod.Post,
+            HttpMethod.Patch,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/behandling/$behandlingId/ta")
+                path("/sak/$sakId/behandling/$behandlingId/saksopplysninger")
             },
             jwt = jwt,
         ).apply {
@@ -44,12 +48,10 @@ interface TaBehandlingBuilder {
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe forventetStatus
             }
-
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
-
             return Triple(sak, behandling, bodyAsText)
         }
     }

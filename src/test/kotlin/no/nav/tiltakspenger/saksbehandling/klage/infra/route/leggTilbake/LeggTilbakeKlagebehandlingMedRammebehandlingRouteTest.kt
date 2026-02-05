@@ -1,15 +1,17 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake
 
 import io.kotest.assertions.json.shouldEqualJson
+import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgLeggKlagebehandlingMedRammebehandlingTilbake
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgLeggKlagebehandlingTilbake
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOvertaKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeRammebehandling
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
@@ -52,6 +54,32 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
                 }
                 """.trimIndent(),
             )
+        }
+    }
+
+    @Test
+    fun `kan legge rammebehandling med klagebehandling tilbake`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
+            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+                saksbehandlerKlagebehandling = saksbehandler,
+            )!!
+            val (_, oppdatertRammebehandling, jsonString) = this.leggTilbakeRammebehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id,
+                saksbehandler = saksbehandler,
+            )
+            val json = JSONObject(jsonString)
+            val klagebehandling = oppdatertRammebehandling.klagebehandling!!
+            json.getString("klagebehandlingId")
+                .shouldBe(rammebehandlingMedKlagebehandling.klagebehandling!!.id.toString())
+            json.getString("status").shouldBe("KLAR_TIL_BEHANDLING")
+            json.getString("saksbehandler").shouldBe("null")
+            klagebehandling.status shouldBe Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+            klagebehandling.saksbehandler shouldBe null
         }
     }
 }

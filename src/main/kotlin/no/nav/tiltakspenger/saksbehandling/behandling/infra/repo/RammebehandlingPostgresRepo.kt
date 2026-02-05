@@ -58,6 +58,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFraDbJson
 import org.intellij.lang.annotations.Language
+import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -68,6 +69,7 @@ class RammebehandlingPostgresRepo(
     private val clock: Clock,
 ) : RammebehandlingRepo {
 
+    @TestOnly
     override fun hent(
         behandlingId: BehandlingId,
         sessionContext: SessionContext?,
@@ -178,7 +180,7 @@ class RammebehandlingPostgresRepo(
                 sqlQuery(
                     """update behandling set beslutter = :beslutter, status = :status, sist_endret = :sist_endret where id = :id and beslutter is null and status = 'KLAR_TIL_BESLUTNING'""",
                     "id" to rammebehandling.id.toString(),
-                    "beslutter" to rammebehandling.beslutter,
+                    "beslutter" to rammebehandling.beslutter!!,
                     "status" to rammebehandling.status.toDb(),
                     "sist_endret" to rammebehandling.sistEndret,
                 ).asUpdate,
@@ -196,9 +198,9 @@ class RammebehandlingPostgresRepo(
         nåværendeSaksbehandler: String,
         transactionContext: TransactionContext?,
     ): Boolean {
-        return sessionFactory.withSession(transactionContext) { tx ->
+        return sessionFactory.withTransaction(transactionContext) { tx ->
             rammebehandling.klagebehandling?.also {
-                KlagebehandlingPostgresRepo.taBehandling(it, tx)
+                KlagebehandlingPostgresRepo.overtaBehandling(it, nåværendeSaksbehandler, tx)
             }
             tx.run(
                 sqlQuery(

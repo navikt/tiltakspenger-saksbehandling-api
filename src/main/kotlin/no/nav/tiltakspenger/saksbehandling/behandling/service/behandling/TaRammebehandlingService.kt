@@ -28,45 +28,22 @@ class TaRammebehandlingService(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
     ): Pair<Sak, Rammebehandling> {
-        val (sak, behandling) = behandlingService.hentSakOgBehandling(
-            sakId = sakId,
-            behandlingId = behandlingId,
-        )
+        val (sak, behandling) = behandlingService.hentSakOgBehandling(sakId, behandlingId)
 
         return behandling.taBehandling(saksbehandler, clock).let {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
             sessionFactory.withTransactionContext { tx ->
-                when (it.status) {
-                    Rammebehandlingsstatus.UNDER_BEHANDLING -> {
-                        rammebehandlingRepo.taBehandlingSaksbehandler(
-                            rammebehandling = it,
-                            transactionContext = tx,
-                        )
-                    }
-
-                    Rammebehandlingsstatus.UNDER_BESLUTNING -> {
-                        rammebehandlingRepo.taBehandlingBeslutter(
-                            rammebehandling = it,
-                            sessionContext = tx,
-                        )
-                    }
-
-                    Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
-                    Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
-                    Rammebehandlingsstatus.VEDTATT,
-                    Rammebehandlingsstatus.AVBRUTT,
-                    Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
-                    -> throw IllegalStateException("Behandlingen er i en ugyldig status for å kunne ta behandling")
-                }.also { harOvertatt ->
-                    require(harOvertatt) {
-                        "Oppdatering av saksbehandler i db feilet ved ta behandling for $behandlingId"
-                    }
-                    statistikkSakRepo.lagre(statistikk, tx)
-                }
+                require(
+                    when (it.status) {
+                        Rammebehandlingsstatus.UNDER_BEHANDLING -> rammebehandlingRepo.taBehandlingSaksbehandler(it, tx)
+                        Rammebehandlingsstatus.UNDER_BESLUTNING -> rammebehandlingRepo.taBehandlingBeslutter(it, tx)
+                        else -> throw IllegalStateException("Vi havnet i en ugyldig tilstand etter vi tok behandlingen - behandlingId: ${it.id}, status: ${it.status}")
+                    },
+                ) { "Oppdatering av saksbehandler i db feilet ved ta behandling for $behandlingId" }
+                statistikkSakRepo.lagre(statistikk, tx)
             }
-
             oppdatertSak to it
         }
     }

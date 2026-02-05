@@ -688,7 +688,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     )
     val behandling = sakMedSøknadsbehandling.rammebehandlinger.singleOrNullOrThrow()!! as Søknadsbehandling
 
-    this.behandlingContext.oppdaterBehandlingService.oppdater(
+    this.behandlingContext.oppdaterRammebehandlingService.oppdater(
         when (resultat) {
             SøknadsbehandlingsresultatType.INNVILGELSE -> oppdaterSøknadsbehandlingInnvilgelseKommando(
                 sakId = sakMedSøknadsbehandling.id,
@@ -714,7 +714,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
         },
     ).getOrFail()
 
-    this.behandlingContext.sendBehandlingTilBeslutningService.sendTilBeslutning(
+    this.behandlingContext.sendRammebehandlingTilBeslutningService.sendTilBeslutning(
         kommando = SendBehandlingTilBeslutningKommando(
             sakId = sakMedSøknadsbehandling.id,
             behandlingId = behandling.id,
@@ -751,7 +751,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
         barnetillegg = barnetillegg,
         avslagsgrunner = avslagsgrunner,
     )
-    this.behandlingContext.taBehandlingService.taBehandling(
+    this.behandlingContext.taRammebehandlingService.taBehandling(
         vilkårsvurdert.id,
         vilkårsvurdert.rammebehandlinger.singleOrNullOrThrow()!!.id,
         beslutter,

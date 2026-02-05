@@ -1,7 +1,8 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -14,24 +15,22 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 /**
  * Gjelder for både søknadsbehandling og revurdering.
  */
-interface OppdaterSaksopplysningerBuilder {
+interface OvertaRammebehandlingBuilder {
 
     /** Forventer at det allerede finnes en behandling. Denne fungerer både for saksbehandler og beslutter. */
-    suspend fun ApplicationTestBuilder.oppdaterSaksopplysningerForBehandlingId(
+    suspend fun ApplicationTestBuilder.overtaBehanding(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,
+        overtarFra: String,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-    ): Triple<Sak, Rammebehandling, String> {
+    ): String {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
@@ -40,19 +39,19 @@ interface OppdaterSaksopplysningerBuilder {
             HttpMethod.Patch,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/behandling/$behandlingId/saksopplysninger")
+                path("/sak/$sakId/behandling/$behandlingId/overta")
             },
             jwt = jwt,
-        ).apply {
+        ) {
+            this.setBody("""{"overtarFra":"$overtarFra"}""")
+        }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
             ) {
-                status shouldBe forventetStatus
+                status shouldBe HttpStatusCode.OK
             }
-            val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
-            return Triple(sak, behandling, bodyAsText)
+            return bodyAsText
         }
     }
 }

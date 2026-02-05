@@ -33,7 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.intellij.lang.annotations.Language
 import java.time.LocalDate
 
-interface OppdaterBehandlingBuilder {
+interface OppdaterRammebehandlingBuilder {
 
     suspend fun ApplicationTestBuilder.oppdaterSøknadsbehandlingInnvilgelse(
         tac: TestApplicationContext,

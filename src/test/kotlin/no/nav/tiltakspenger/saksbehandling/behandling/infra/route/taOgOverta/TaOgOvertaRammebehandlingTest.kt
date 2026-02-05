@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehan
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
-internal class TaOgOvertaBehandlingTest {
+internal class TaOgOvertaRammebehandlingTest {
     @Test
     fun `saksbehandler kan overta behandling`() {
         withTestApplicationContext { tac ->

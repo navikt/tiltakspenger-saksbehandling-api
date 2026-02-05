@@ -36,7 +36,7 @@ class SendBehandlingTilBeslutningServiceTest {
                 correlationId = CorrelationId.generate(),
             )
 
-            val oppdatertBehandling = tac.behandlingContext.sendBehandlingTilBeslutningService.sendTilBeslutning(
+            val oppdatertBehandling = tac.behandlingContext.sendRammebehandlingTilBeslutningService.sendTilBeslutning(
                 kommando,
             ).getOrFail().second
 
@@ -80,7 +80,7 @@ class SendBehandlingTilBeslutningServiceTest {
                 correlationId = CorrelationId.generate(),
             )
 
-            val innvilgetBehandlingSendtTilBeslutning = tac.behandlingContext.sendBehandlingTilBeslutningService.sendTilBeslutning(
+            val innvilgetBehandlingSendtTilBeslutning = tac.behandlingContext.sendRammebehandlingTilBeslutningService.sendTilBeslutning(
                 kommando,
             ).getOrFail().second
 

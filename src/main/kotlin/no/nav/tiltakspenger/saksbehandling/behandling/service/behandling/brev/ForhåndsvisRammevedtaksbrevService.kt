@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.time.Clock
 import java.time.LocalDate
 
-class ForhåndsvisVedtaksbrevService(
+class ForhåndsvisRammevedtaksbrevService(
     private val sakService: SakService,
     private val genererInnvilgelsesbrevClient: GenererVedtaksbrevForInnvilgelseKlient,
     private val genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient,

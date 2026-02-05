@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkj
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjennAutomatiskSaksbehandletBehandling
 import org.junit.jupiter.api.Test
 
-class UnderkjennBehandlingTest {
+class UnderkjennRammebehandlingTest {
 
     @Test
     fun `sjekk at begrunnelse kan sendes inn`() {

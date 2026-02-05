@@ -369,6 +369,7 @@ open class ApplicationContext(
             dokumentdistribusjonsklient = dokumentContext.dokumentdistribusjonsklient,
             behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
             startRevurderingService = behandlingContext.startRevurderingService,
+            taRammebehandlingService = behandlingContext.taRammebehandlingService,
             overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
         )
@@ -426,7 +427,7 @@ open class ApplicationContext(
         AvbrytSøknadOgBehandlingContext(
             sakService = sakContext.sakService,
             søknadService = søknadContext.søknadService,
-            behandlingService = behandlingContext.behandlingService,
+            behandlingService = behandlingContext.rammebehandlingService,
             statistikkSakService = statistikkContext.statistikkSakService,
             sessionFactory = sessionFactory,
             clock = clock,

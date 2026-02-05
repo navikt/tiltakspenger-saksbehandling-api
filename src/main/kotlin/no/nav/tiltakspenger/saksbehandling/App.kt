@@ -89,7 +89,7 @@ internal fun start(
             { applicationContext.utbetalingContext.journalførMeldekortvedtakService.journalfør() },
             { applicationContext.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved() },
             { applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus() },
-            { applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør() },
+            { applicationContext.behandlingContext.journalførRammevedtaksbrevService.journalfør() },
             { applicationContext.klagebehandlingContext.journalførKlagevedtakService.journalfør() },
             { applicationContext.behandlingContext.distribuerRammevedtaksbrevService.distribuer() },
             { applicationContext.klagebehandlingContext.distribuerKlagevedtaksbrevService.distribuer() },

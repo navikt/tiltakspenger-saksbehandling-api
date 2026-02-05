@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendRam
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettRammebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisRammevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import java.time.Clock
 
@@ -29,7 +29,7 @@ fun Route.behandlingRoutes(
     oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
     iverksettRammebehandlingService: IverksettRammebehandlingService,
     sendBehandlingTilBeslutningService: SendRammebehandlingTilBeslutningService,
-    forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevService,
+    forhåndsvisVedtaksbrevService: ForhåndsvisRammevedtaksbrevService,
     startRevurderingService: StartRevurderingService,
     taBehandlingService: TaRammebehandlingService,
     overtaBehandlingService: OvertaRammebehandlingService,
