@@ -5,9 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
@@ -40,7 +38,6 @@ class StartRevurderingService(
     suspend fun startRevurdering(
         kommando: StartRevurderingKommando,
         sak: Sak,
-        transactionContext: TransactionContext? = null,
     ): Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>> {
         val (oppdatertSak, revurdering) = sak.startRevurdering(
             kommando = kommando,
@@ -52,19 +49,18 @@ class StartRevurderingService(
                     tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
                     aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
                     inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
-                    sessionContext = transactionContext,
                 )
             },
         ).getOrElse {
             return it.left()
         }
-
         val statistikk = statistikkSakService.genererStatistikkForRevurdering(revurdering)
-
-        sessionFactory.withTransactionContext(transactionContext) { tx ->
-            rammebehandlingRepo.lagre(revurdering, tx)
-            statistikkSakRepo.lagre(statistikk, tx)
+        return sessionFactory.withTransactionContext { transactionContext ->
+            sessionFactory.withTransactionContext(transactionContext) { tx ->
+                rammebehandlingRepo.lagre(revurdering, tx)
+                statistikkSakRepo.lagre(statistikk, tx)
+            }
+            Pair(oppdatertSak, revurdering).right()
         }
-        return Pair(oppdatertSak, revurdering).right()
     }
 }

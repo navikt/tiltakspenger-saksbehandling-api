@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
@@ -24,24 +23,19 @@ class AvbrytSøknadOgBehandlingService(
     private val statistikkSakService: StatistikkSakService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
-    private val klagebehandlingRepo: KlagebehandlingRepo,
 ) {
 
     suspend fun avbrytSøknadOgBehandling(command: AvbrytRammebehandlingKommando): Sak {
         val sak = sakService.hentForSaksnummer(command.saksnummer)
+        val avbruttTidspunkt = LocalDateTime.now(clock)
         val (oppdatertSak, avbruttSøknad, avbruttBehandling) = sak.avbrytSøknadOgBehandling(
             command = command,
-            avbruttTidspunkt = LocalDateTime.now(clock),
+            avbruttTidspunkt = avbruttTidspunkt,
         )
 
         val behandlingOgStatistikk: Pair<Rammebehandling, StatistikkSakDTO> = avbruttBehandling.let {
             it to statistikkSakService.genererStatistikkForAvsluttetBehandling(it)
         }
-        // Dersom denne rammebehandlingen er opprettet fra en klagebehandling til omgjøring, vil vi ha denne knytningen.
-        // Saksbehandler må få lov til å angre seg og avbryte rammebehandlingen, men kun når rammebehandlingen er klar til/under behandling.
-        val klagebehandling = klagebehandlingRepo
-            .hentForRammebehandlingId(avbruttBehandling.id)
-            ?.fjernRammebehandlingId(command.avsluttetAv, avbruttBehandling.id)
 
         sessionFactory.withTransactionContext { tx ->
             avbruttSøknad?.also {
@@ -49,9 +43,6 @@ class AvbrytSøknadOgBehandlingService(
             }
             behandlingOgStatistikk.also {
                 behandlingService.lagreMedStatistikk(it.first, it.second, tx)
-            }
-            if (klagebehandling != null) {
-                klagebehandlingRepo.lagreKlagebehandling(klagebehandling, tx)
             }
             sakService.oppdaterSkalSendesTilMeldekortApi(
                 sakId = sak.id,

@@ -34,6 +34,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.OvertaKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.overta
@@ -721,17 +723,22 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     fun init() {
         if (beslutter != null && saksbehandler != null) {
-            require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
+            require(beslutter != saksbehandler) {
+                "Saksbehandler og beslutter kan ikke være samme person. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+            }
         }
         when (status) {
             UNDER_AUTOMATISK_BEHANDLING -> {
                 require(saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID) {
-                    "Behandlingen må være tildelt $AUTOMATISK_SAKSBEHANDLER_ID når statusen er UNDER_AUTOMATISK_BEHANDLING"
+                    "Behandlingen må være tildelt $AUTOMATISK_SAKSBEHANDLER_ID når statusen er UNDER_AUTOMATISK_BEHANDLING. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                 }
                 require(iverksattTidspunkt == null)
                 require(beslutter == null)
                 require(this is Søknadsbehandling) {
-                    "Kun søknadsbehandlinger kan være under automatisk behandling"
+                    "Kun søknadsbehandlinger kan være under automatisk behandling. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                }
+                require(klagebehandling == null) {
+                    "Klagebehandling kan ikke være knyttet til en behandling som er under automatisk behandling. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                 }
             }
 
@@ -743,6 +750,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
                 if (this is Revurdering || (this is Søknadsbehandling && attesteringer.isEmpty())) {
                     require(beslutter == null) { "Beslutter kan ikke være tilknyttet behandlingen dersom det ikke er en underkjent automatisk behandlet søknadsbehandling" }
+                }
+                if (klagebehandling != null) {
+                    require(klagebehandling!!.status == Klagebehandlingsstatus.KLAR_TIL_BEHANDLING) {
+                        "Klagebehandling knyttet til en rammebehandling som er KLAR_TIL_BEHANDLING må ha status KLAR_TIL_BEHANDLING, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                    }
                 }
             }
 
@@ -756,6 +768,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     require(beslutter == null) { "Beslutter kan ikke være tilknyttet behandlingen dersom det ikke er gjort noen attesteringer" }
                 }
                 // Vi kan ikke kreve at resultatet er satt dersom den har vært underkjent, siden hentOpplysninger kan resette saksoplysninger og implisitt resultatet.
+                if (klagebehandling != null) {
+                    require(klagebehandling!!.status == Klagebehandlingsstatus.UNDER_BEHANDLING) {
+                        "Klagebehandling knyttet til en rammebehandling som er UNDER_BEHANDLING må ha status UNDER_BEHANDLING, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                    }
+                }
             }
 
             KLAR_TIL_BESLUTNING -> {
@@ -768,6 +785,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 require(vedtaksperiode != null) { "Vedtaksperiode må være satt for statusen KLAR_TIL_BESLUTNING" }
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen KLAR_TIL_BESLUTNING" }
                 require(erFerdigutfylt())
+                if (klagebehandling != null) {
+                    require(klagebehandling!!.status == Klagebehandlingsstatus.UNDER_BEHANDLING) {
+                        "Klagebehandling knyttet til en rammebehandling som er KLAR_TIL_BESLUTNING må ha status UNDER_BEHANDLING, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                    }
+                }
             }
 
             UNDER_BESLUTNING -> {
@@ -778,6 +800,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 require(vedtaksperiode != null) { "Vedtaksperiode må være satt for statusen UNDER_BESLUTNING" }
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen UNDER_BESLUTNING" }
                 require(erFerdigutfylt())
+                if (klagebehandling != null) {
+                    require(klagebehandling!!.status == Klagebehandlingsstatus.UNDER_BEHANDLING) {
+                        "Klagebehandling knyttet til en rammebehandling som er UNDER_BESLUTNING må ha status UNDER_BEHANDLING, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                    }
+                }
             }
 
             VEDTATT -> {
@@ -789,13 +816,45 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 require(vedtaksperiode != null) { "Vedtaksperiode må være satt for statusen VEDTATT" }
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen VEDTATT" }
                 require(erFerdigutfylt())
+                if (klagebehandling != null) {
+                    require(klagebehandling!!.status == Klagebehandlingsstatus.VEDTATT) {
+                        "Klagebehandling knyttet til en rammebehandling som er VEDTATT må ha status VEDTATT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                    }
+                }
             }
 
             AVBRUTT -> {
                 requireNotNull(avbrutt)
+                require(klagebehandling?.rammebehandlingId != id) {
+                    // Merk at vi beholder koblingen til klagebehandlingen ved avbrutt rammebehandling for historikkens skyld (men ikke omvendt). Hvis dette biter oss senere, kan vi fjerne koblingen.
+                    "En klagebehandling skal ikke peke på en avbrutt rammebehandling. I de tilfellene ønsker vi nok et annet resultat på klagebehandlingen, eller å knytte den til en ny rammebehandling. sakId: ${this.sakId}, saksnummer: ${this.saksnummer}, rammebehandlingId: ${this.id}, klagebehandlingId: ${this.klagebehandling?.id}"
+                }
+            }
+        }
+        if (klagebehandling != null) {
+            require(fnr == klagebehandling!!.fnr) {
+                "Klagebehandlingens fnr må være lik behandlingens fnr. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+            }
+            require(sakId == klagebehandling!!.sakId) {
+                "Klagebehandlingens sakId må være lik behandlingens sakId. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+            }
+            require(saksnummer == klagebehandling!!.saksnummer) {
+                "Klagebehandlingens saksnummer må være lik behandlingens saksnummer. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+            }
+        }
+        if (klagebehandling != null && !erAvbrutt) {
+            require(saksbehandler == klagebehandling!!.saksbehandler) {
+                "Klagebehandlingens saksbehandler må være lik behandlingens saksbehandler. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+            }
+            require(klagebehandling!!.resultat is Klagebehandlingsresultat.Omgjør) {
+                "Klagebehandlingens resultat må være Omgjør når den er knyttet til en rammebehandling som ikke er avbrutt. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+            }
+            require(klagebehandling!!.rammebehandlingId == this.id) {
+                "Klagebehandlingens rammebehandlingId må være lik behandlingens id. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
             }
         }
     }
 
     fun oppdaterSimulering(nySimulering: Simulering?): Rammebehandling
+    fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling
 }

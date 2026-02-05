@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
@@ -76,7 +77,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 fnr = fnr,
                 saksbehandler = saksbehandler,
                 saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
-                clock = clock,
+                opprettet = nå(clock),
             ).copy(id = id)
         }
     }
@@ -210,7 +211,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 fnr = fnr,
                 saksbehandler = saksbehandler,
                 saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
-                clock = clock,
+                opprettet = nå(clock),
                 klagebehandling = klagebehandling,
             ).copy(id = id)
         }
@@ -381,7 +382,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             saksopplysninger = hentSaksopplysninger(omgjøringInnvilgelsesperiode),
             omgjørRammevedtak = vedtattInnvilgetSøknadsbehandling,
-            clock = clock,
+            opprettet = nå(clock),
             klagebehandling = klagebehandling,
         ).getOrFail().copy(id = id)
     }
