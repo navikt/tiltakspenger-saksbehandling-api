@@ -31,7 +31,7 @@ interface GenererVedtaksbrevForAvslagKlient {
         datoForUtsending: LocalDate,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
-    suspend fun genererAvslagsvVedtaksbrev(
+    suspend fun genererAvslagsVedtaksbrev(
         vedtak: Rammevedtak,
         datoForUtsending: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,

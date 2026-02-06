@@ -333,7 +333,7 @@ internal class PdfgenHttpClient(
         )
     }
 
-    override suspend fun genererAvslagsvVedtaksbrev(
+    override suspend fun genererAvslagsVedtaksbrev(
         vedtak: Rammevedtak,
         datoForUtsending: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,

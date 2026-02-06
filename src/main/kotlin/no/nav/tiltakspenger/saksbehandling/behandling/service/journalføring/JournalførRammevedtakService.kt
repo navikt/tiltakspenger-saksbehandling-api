@@ -2,9 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.nonEmptySetOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
@@ -59,14 +61,14 @@ class JournalførRammevedtakService(
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         )
 
-                        is Søknadsbehandlingsresultat.Avslag -> genererVedtaksbrevForAvslagKlient.genererAvslagsvVedtaksbrev(
+                        is Søknadsbehandlingsresultat.Avslag -> genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
                             vedtak = vedtak,
                             datoForUtsending = vedtaksdato,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         )
 
-                        // TODO: brev for opphør
+                        // TODO: brev for opphør. Bruker stansbrev så lenge for testing
                         is Omgjøringsresultat.OmgjøringOpphør -> {
                             if (Configuration.isProd()) {
                                 throw NotImplementedError("Brev for opphør er ikke implementert enda, og kan ikke brukes i prod.")
@@ -74,9 +76,17 @@ class JournalførRammevedtakService(
 
                             genererVedtaksbrevForStansKlient.genererStansvedtak(
                                 vedtaksdato = vedtaksdato,
-                                vedtak = vedtak,
                                 hentBrukersNavn = personService::hentNavn,
                                 hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                                fnr = vedtak.fnr,
+                                saksbehandlerNavIdent = vedtak.saksbehandler,
+                                beslutterNavIdent = vedtak.beslutter,
+                                stansperiode = vedtak.periode,
+                                saksnummer = vedtak.saksnummer,
+                                sakId = vedtak.sakId,
+                                forhåndsvisning = false,
+                                tilleggstekst = vedtak.rammebehandling.fritekstTilVedtaksbrev,
+                                valgteHjemler = nonEmptySetOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
                             )
                         }
 
