@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -204,16 +203,16 @@ class EndretTiltaksdeltakerJobb(
             vedtakIdSomOmgjøres = null,
             klagebehandlingId = null,
         )
-        val (_, revurdering) = startRevurderingService.startRevurdering(kommando).getOrElse {
-            log.error { "Kunne ikke opprette revurdering for sakId $sakId" }
-            throw RuntimeException("Kunne ikke opprette revurdering")
-        }
+        val (_, revurdering) = startRevurderingService.startRevurdering(kommando)
+
         log.info { "Opprettet revurdering med id ${revurdering.id}" }
+
         leggTilbakeBehandlingService.leggTilbakeBehandling(
             sakId = sakId,
             behandlingId = revurdering.id,
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
         )
+
         log.info { "Fjerner automatisk saksbehandler fra revurdering med id ${revurdering.id}" }
     }
 }

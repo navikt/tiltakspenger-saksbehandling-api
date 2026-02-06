@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -71,7 +70,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             ),
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
-        ).getOrFail()
+        )
     }.also {
         it.second.saksopplysninger.tiltaksdeltakelser.forEach { tiltaksdeltakelse ->
             if (tiltaksdeltakerRepo.hentInternId(tiltaksdeltakelse.eksternDeltakelseId) == null) {
@@ -337,7 +336,7 @@ internal fun TestDataHelper.persisterOpprettetOmgjøring(
             ),
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
-        ).getOrFail()
+        )
     }.also {
         behandlingRepo.lagre(it.second)
     }

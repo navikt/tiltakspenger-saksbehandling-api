@@ -1,18 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppretteOmgjøring
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.StartRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
@@ -47,37 +43,19 @@ fun Route.startRevurderingRoute(
                         saksbehandler,
                         correlationId,
                     ),
-                ).fold(
-                    ifLeft = {
-                        call.respondJson(valueAndStatus = it.tilStatusOgErrorJson())
-                    },
-                    ifRight = { (sak, behandling) ->
-                        val behandlingId = behandling.id
-                        auditService.logMedSakId(
-                            sakId = sakId,
-                            navIdent = saksbehandler.navIdent,
-                            action = AuditLogEvent.Action.CREATE,
-                            contextMessage = "Oppretter revurdering på sak $sakId",
-                            correlationId = correlationId,
-                            behandlingId = behandlingId,
-                        )
-                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
-                    },
-                )
+                ).also { (sak, behandling) ->
+                    val behandlingId = behandling.id
+                    auditService.logMedSakId(
+                        sakId = sakId,
+                        navIdent = saksbehandler.navIdent,
+                        action = AuditLogEvent.Action.CREATE,
+                        contextMessage = "Oppretter revurdering på sak $sakId",
+                        correlationId = correlationId,
+                        behandlingId = behandlingId,
+                    )
+                    call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                }
             }
         }
     }
 }
-
-internal fun KunneIkkeStarteRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> =
-    when (this) {
-        is KunneIkkeStarteRevurdering.Omgjøring -> when (this.årsak) {
-            KunneIkkeOppretteOmgjøring.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag -> Pair(
-                HttpStatusCode.BadRequest,
-                ErrorJson(
-                    "Kan kun starte omgjøring dersom vi kan innvilge minst en dag. En ren opphørsomgjøring kommer senere.",
-                    "kan_kun_starte_omgjøring_dersom_vi_kan_innvilge_minst_1_dag",
-                ),
-            )
-        }
-    }

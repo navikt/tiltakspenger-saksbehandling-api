@@ -31,7 +31,6 @@ class OppdaterRevurderingOpphørRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = søknadVedtak.id,
-                nyOmgjøring = true,
             )!!
 
             val (_, oppdatertOmgjøring) = oppdaterOmgjøringOpphør(
@@ -61,7 +60,6 @@ class OppdaterRevurderingOpphørRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = søknadVedtak.id,
-                nyOmgjøring = true,
             )!!
 
             val (_, oppdatertOmgjøring) = oppdaterOmgjøringOpphør(
@@ -93,7 +91,6 @@ class OppdaterRevurderingOpphørRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = søknadVedtak.id,
-                nyOmgjøring = true,
             )!!
 
             oppdaterOmgjøringOpphør(

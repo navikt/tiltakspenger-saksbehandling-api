@@ -23,8 +23,8 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdel
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
@@ -328,7 +328,7 @@ internal class IverksettRevurderingTest {
     fun `verifiser vedtak dto ved revurdering til omgjøring`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContext(clock = clock) { tac ->
-            val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering, _) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
+            val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering, _) = iverksettSøknadsbehandlingOgOmgjøringInnvilgelse(
                 tac,
             )!!
             val innvilgelsesperiode = vedtaksperiode()

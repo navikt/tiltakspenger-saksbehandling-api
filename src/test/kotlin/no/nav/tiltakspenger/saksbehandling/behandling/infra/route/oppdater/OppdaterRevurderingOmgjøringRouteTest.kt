@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -42,27 +41,28 @@ class OppdaterRevurderingOmgjøringRouteTest {
     fun `revurdering til omgjøring - kan oppdatere behandlingen etter saksopplysninger har endret seg`() {
         withTestApplicationContext { tac ->
             // Omgjøringen starter med at tiltaksdeltakelsesperioden er endret siden søknadsvedtaket.
-            val (sak, _, rammevedtakSøknadsbehandling, rammevedtakRevurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
+            val (sak, _, rammevedtakSøknadsbehandling, nyOmgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder((1.april(2025) til 10.april(2025))),
             )!!
 
             val tiltaksdeltakelseVedOpprettelseAvRevurdering =
-                rammevedtakRevurdering.saksopplysninger.tiltaksdeltakelser.first()
+                nyOmgjøring.saksopplysninger.tiltaksdeltakelser.first()
             val nyInnvilgelsesperiode = (3 til 9.april(2025))
             val avbruttTiltaksdeltakelse = tiltaksdeltakelseVedOpprettelseAvRevurdering.copy(
                 deltakelseFraOgMed = tiltaksdeltakelseVedOpprettelseAvRevurdering.deltakelseFraOgMed!!,
                 deltakelseTilOgMed = tiltaksdeltakelseVedOpprettelseAvRevurdering.deltakelseTilOgMed!!.minusDays(1),
                 deltakelseStatus = TiltakDeltakerstatus.Avbrutt,
             )
+
             // Under behandlingen endrer tiltaksdeltakelsen seg igjen.
             tac.oppdaterTiltaksdeltakelse(fnr = sak.fnr, tiltaksdeltakelse = avbruttTiltaksdeltakelse)
-            val (_, revurderingMedOppdatertSaksopplysninger: Rammebehandling) = oppdaterSaksopplysningerForBehandlingId(
+            oppdaterSaksopplysningerForBehandlingId(
                 tac,
                 sak.id,
-                rammevedtakRevurdering.id,
+                nyOmgjøring.id,
             )
-            (revurderingMedOppdatertSaksopplysninger as Revurdering).erFerdigutfylt() shouldBe true
+
             val barnetillegg = Barnetillegg.utenBarnetillegg((3 til 9.april(2025)))
             val innvilgelsesperioder = innvilgelsesperioder(
                 nyInnvilgelsesperiode,
@@ -72,10 +72,10 @@ class OppdaterRevurderingOmgjøringRouteTest {
             val (_, oppdatertRevurdering) = oppdaterOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = rammevedtakRevurdering.id,
+                behandlingId = nyOmgjøring.id,
                 fritekstTilVedtaksbrev = "asdf",
                 begrunnelseVilkårsvurdering = null,
-                vedtaksperiode = rammevedtakRevurdering.vedtaksperiode!!,
+                vedtaksperiode = rammevedtakSøknadsbehandling.periode,
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
                 forventetStatus = HttpStatusCode.OK,
@@ -100,7 +100,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
             oppdatertRevurdering.utbetaling shouldBe null
 
             // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
-            tac.sakContext.sakService.hentForSakId(sakId = rammevedtakRevurdering.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering
+            tac.sakContext.sakService.hentForSakId(sakId = nyOmgjøring.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering
         }
     }
 

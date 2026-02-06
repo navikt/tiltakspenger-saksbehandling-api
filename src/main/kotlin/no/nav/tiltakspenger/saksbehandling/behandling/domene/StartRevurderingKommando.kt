@@ -15,7 +15,6 @@ data class StartRevurderingKommando(
     val vedtakIdSomOmgjøres: VedtakId?,
     val klagebehandlingId: KlagebehandlingId?,
     val revurderingId: BehandlingId = BehandlingId.random(),
-    val nyOmgjøring: Boolean = false,
 )
 
 enum class StartRevurderingType {

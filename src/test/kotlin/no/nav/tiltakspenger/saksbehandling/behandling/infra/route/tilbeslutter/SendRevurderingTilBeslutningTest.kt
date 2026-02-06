@@ -125,7 +125,6 @@ class SendRevurderingTilBeslutningTest {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = søknadsvedtak.id,
-                nyOmgjøring = true,
             )!!
 
             sendRevurderingTilBeslutningForBehandlingId(

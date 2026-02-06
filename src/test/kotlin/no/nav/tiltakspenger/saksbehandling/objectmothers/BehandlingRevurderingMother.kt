@@ -20,11 +20,13 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterOmgjøringKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdaterOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.StartRevurderingTypeDTO
@@ -356,7 +358,6 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
-        omgjøringInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
         hentSaksopplysninger: (Periode) -> Saksopplysninger = {
             saksopplysninger(
                 fom = it.fraOgMed,
@@ -369,7 +370,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksnummer = saksnummer,
             fnr = fnr,
             saksopplysningsperiode = søknadsbehandlingInnvilgelsesperiode,
-            saksopplysninger = hentSaksopplysninger(omgjøringInnvilgelsesperiode),
+            saksopplysninger = hentSaksopplysninger(søknadsbehandlingInnvilgelsesperiode),
         ),
         vedtattInnvilgetSøknadsbehandling: Rammevedtak = nyRammevedtakInnvilgelse(
             sakId = sakId,
@@ -380,11 +381,11 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     ): Revurdering {
         return Revurdering.opprettOmgjøring(
             saksbehandler = saksbehandler,
-            saksopplysninger = hentSaksopplysninger(omgjøringInnvilgelsesperiode),
+            saksopplysninger = hentSaksopplysninger(søknadsbehandlingInnvilgelsesperiode),
             omgjørRammevedtak = vedtattInnvilgetSøknadsbehandling,
             opprettet = nå(clock),
             klagebehandling = klagebehandling,
-        ).getOrFail().copy(id = id)
+        ).copy(id = id)
     }
 
     fun nyRevurderingOmgjøringUnderTilBeslutning(
@@ -424,11 +425,29 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             fnr = fnr,
             saksbehandler = saksbehandler,
             søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
-            omgjøringInnvilgelsesperiode = omgjøringInnvilgelsesperiode,
             innvilgetSøknadsbehandling = omgjørBehandling,
             vedtattInnvilgetSøknadsbehandling = omgjørRammevedtak,
             hentSaksopplysninger = hentSaksopplysninger,
-        ).tilBeslutning(
+        ).let {
+            // TODO abn: Dette er ikke veldig praktisk. Må skrive om en del her for å støtte alle typer omgjøring også.
+            it.oppdaterOmgjøring(
+                kommando = OppdaterOmgjøringKommando.OmgjøringInnvilgelse(
+                    sakId = sakId,
+                    behandlingId = it.id,
+                    saksbehandler = saksbehandler,
+                    correlationId = CorrelationId.generate(),
+                    begrunnelseVilkårsvurdering = null,
+                    fritekstTilVedtaksbrev = null,
+                    innvilgelsesperioder = listOf(innvilgelsesperiodeKommando(omgjøringInnvilgelsesperiode)).tilPeriodisering(),
+                    barnetillegg = Barnetillegg.utenBarnetillegg(omgjøringInnvilgelsesperiode),
+                    vedtaksperiode = omgjørRammevedtak.gjeldendeTotalPeriode!!,
+                ),
+                utbetaling = null,
+                finnRammevedtakSomOmgjøres = { OmgjørRammevedtak.create(omgjørRammevedtak) },
+                omgjortVedtak = omgjørRammevedtak,
+                clock = clock,
+            ).getOrFail()
+        }.tilBeslutning(
             saksbehandler = saksbehandler,
             correlationId = CorrelationId.generate(),
             clock = clock,

@@ -6,10 +6,10 @@ sealed interface KanIkkeOppdatereBehandling {
     data class BehandlingenEiesAvAnnenSaksbehandler(val eiesAvSaksbehandler: String?) : KanIkkeOppdatereBehandling
     data object MåVæreUnderBehandling : KanIkkeOppdatereBehandling
     data object ErPaVent : KanIkkeOppdatereBehandling
+    data object KanIkkeOpphøre : KanIkkeOppdatereBehandling
 }
 
 sealed interface KanIkkeOppdatereOmgjøring : KanIkkeOppdatereBehandling {
-    data object KanIkkeOpphøre : KanIkkeOppdatereOmgjøring
     data object KanIkkeOmgjøreFlereVedtak : KanIkkeOppdatereOmgjøring
     data object MåOmgjøreMinstEttVedtak : KanIkkeOppdatereOmgjøring
     data object MåOmgjøreAngittVedtak : KanIkkeOppdatereOmgjøring

@@ -1,9 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -23,8 +19,9 @@ suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
     clock: Clock,
     hentSaksopplysninger: HentSaksopplysninger,
-): Either<KunneIkkeStarteRevurdering, Pair<Sak, Revurdering>> {
+): Pair<Sak, Revurdering> {
     val nå = nå(clock)
+
     val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let {
         hentKlagebehandling(it).oppdaterRammebehandlingId(
             rammebehandlingId = kommando.revurderingId,
@@ -32,6 +29,7 @@ suspend fun Sak.startRevurdering(
             sistEndret = nå,
         )
     }
+
     val revurdering = when (kommando.revurderingType) {
         StartRevurderingType.STANS -> startRevurderingStans(
             revurderingId = kommando.revurderingId,
@@ -58,20 +56,13 @@ suspend fun Sak.startRevurdering(
             rammevedtakIdSomOmgjøres = kommando.vedtakIdSomOmgjøres!!,
             opprettet = nå,
             klagebehandling = klagebehandling,
-            ny = kommando.nyOmgjøring,
-        ).getOrElse {
-            return KunneIkkeStarteRevurdering.Omgjøring(it).left()
-        }
+        )
     }
 
     return Pair(
         this.leggTilRevurdering(revurdering),
         revurdering,
-    ).right()
-}
-
-sealed interface KunneIkkeStarteRevurdering {
-    data class Omgjøring(val årsak: KunneIkkeOppretteOmgjøring) : KunneIkkeStarteRevurdering
+    )
 }
 
 private suspend fun Sak.startRevurderingStans(
@@ -141,28 +132,8 @@ private suspend fun Sak.startRevurderingOmgjøring(
     klagebehandling: Klagebehandling?,
     opprettet: LocalDateTime,
     revurderingId: BehandlingId = BehandlingId.random(),
-    ny: Boolean,
-): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
+): Revurdering {
     val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
-
-    if (ny) {
-        return Revurdering.opprettOmgjøringUtenValgtResultat(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            saksopplysninger = hentSaksopplysninger(
-                fnr,
-                correlationId,
-                this.tiltaksdeltakelserDetErSøktTiltakspengerFor,
-                // TODO jah: På sikt er det mer presist at saksbehandler velger disse når hen starter en revurdering innvilgelse.
-                //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
-                this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
-                false,
-            ),
-            opprettet = opprettet,
-            omgjørRammevedtak = gjeldendeRammevedtak,
-            klagebehandling = klagebehandling,
-        )
-    }
 
     return Revurdering.opprettOmgjøring(
         revurderingId = revurderingId,

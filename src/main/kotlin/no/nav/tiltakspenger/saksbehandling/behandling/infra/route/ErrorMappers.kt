@@ -26,7 +26,7 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
         "behandlingen_er_pa_vent",
     )
 
-    KanIkkeOppdatereOmgjøring.KanIkkeOpphøre -> HttpStatusCode.BadRequest to ErrorJson(
+    KanIkkeOppdatereBehandling.KanIkkeOpphøre -> HttpStatusCode.BadRequest to ErrorJson(
         "Denne behandlingstypen støtter ikke opphør",
         "kan_ikke_opphøre",
     )

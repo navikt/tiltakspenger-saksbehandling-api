@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
-import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearMocks
@@ -469,7 +468,7 @@ class EndretTiltaksdeltakerJobbTest {
                 coEvery { startRevurderingService.startRevurdering(any()) } returns Pair(
                     sak,
                     revurdering,
-                ).right()
+                )
                 coEvery { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) } returns Pair(
                     sak,
                     revurdering.copy(saksbehandler = null, status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING),
@@ -649,7 +648,7 @@ class EndretTiltaksdeltakerJobbTest {
                     coEvery { startRevurderingService.startRevurdering(any()) } returns Pair(
                         sak,
                         revurdering,
-                    ).right()
+                    )
                     coEvery { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) } returns Pair(
                         sak,
                         revurdering.copy(saksbehandler = null, status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING),
@@ -718,7 +717,7 @@ class EndretTiltaksdeltakerJobbTest {
                     coEvery { startRevurderingService.startRevurdering(any()) } returns Pair(
                         sak,
                         revurdering,
-                    ).right()
+                    )
                     coEvery { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) } returns Pair(
                         sak,
                         revurdering.copy(saksbehandler = null, status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING),

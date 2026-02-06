@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -19,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Stans
@@ -235,7 +233,6 @@ data class Revurdering(
 
         /**
          * @param omgjørRammevedtak Rammevedtaket som erstattes helt eller delvis
-         * TODO abn: fjernes når frontend er oppdatert til å støtte opphør/ikke valgt tilstander
          */
         fun opprettOmgjøring(
             saksbehandler: Saksbehandler,
@@ -244,33 +241,7 @@ data class Revurdering(
             klagebehandling: Klagebehandling?,
             opprettet: LocalDateTime,
             revurderingId: BehandlingId = BehandlingId.random(),
-        ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
-            return opprett(
-                revurderingId = revurderingId,
-                sakId = omgjørRammevedtak.sakId,
-                saksnummer = omgjørRammevedtak.saksnummer,
-                fnr = omgjørRammevedtak.fnr,
-                saksbehandler = saksbehandler,
-                saksopplysninger = saksopplysninger,
-                opprettet = opprettet,
-                resultat = OmgjøringInnvilgelse.create(omgjørRammevedtak, saksopplysninger).getOrElse {
-                    return it.left()
-                },
-                klagebehandling = klagebehandling,
-            ).right()
-        }
-
-        /**
-         * @param omgjørRammevedtak Rammevedtaket som erstattes helt eller delvis
-         */
-        fun opprettOmgjøringUtenValgtResultat(
-            saksbehandler: Saksbehandler,
-            saksopplysninger: Saksopplysninger,
-            omgjørRammevedtak: Rammevedtak,
-            klagebehandling: Klagebehandling?,
-            opprettet: LocalDateTime,
-            revurderingId: BehandlingId = BehandlingId.random(),
-        ): Either<KunneIkkeOppretteOmgjøring, Revurdering> {
+        ): Revurdering {
             return opprett(
                 revurderingId = revurderingId,
                 sakId = omgjørRammevedtak.sakId,
@@ -283,7 +254,7 @@ data class Revurdering(
                     omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
                 ),
                 klagebehandling = klagebehandling,
-            ).right()
+            )
         }
 
         private fun opprett(

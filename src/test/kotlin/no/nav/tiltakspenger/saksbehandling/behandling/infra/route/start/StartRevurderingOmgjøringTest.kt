@@ -29,7 +29,6 @@ class StartRevurderingOmgjøringTest {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = søknadVedtak.id,
-                nyOmgjøring = true,
             )!!
 
             omgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()

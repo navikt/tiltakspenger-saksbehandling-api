@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgels
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOmgjøringInnvilgelse
 import org.junit.jupiter.api.Test
 
 class OpprettMeldekortBehandlingServiceTest {
@@ -144,7 +144,7 @@ class OpprettMeldekortBehandlingServiceTest {
     @Test
     fun `Skal kunne opprette behandling på andre kjede når første kjede ikke gir rett`() {
         withTestApplicationContext { tac ->
-            val (sak) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
+            val (sak) = iverksettSøknadsbehandlingOgOmgjøringInnvilgelse(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioderTotal,
                 omgjøringInnvilgelsesperioder = innvilgelsesperioder(andrePeriode),
@@ -163,7 +163,7 @@ class OpprettMeldekortBehandlingServiceTest {
     @Test
     fun `Skal ikke opprette behandling for meldeperiode uten rett`() {
         withTestApplicationContext { tac ->
-            val (sak) = iverksettSøknadsbehandlingOgRevurderingOmgjøring(
+            val (sak) = iverksettSøknadsbehandlingOgOmgjøringInnvilgelse(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioderTotal,
                 omgjøringInnvilgelsesperioder = innvilgelsesperioder(andrePeriode),

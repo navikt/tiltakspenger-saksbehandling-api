@@ -166,7 +166,7 @@ interface IverksettRevurderingBuilder {
      *
      * @param fnr ignoreres hvis sakId er satt
      * */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgRevurderingOmgjøring(
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOmgjøringInnvilgelse(
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
@@ -197,7 +197,7 @@ interface IverksettRevurderingBuilder {
             innvilgelsesperioder = omgjøringInnvilgelsesperioder,
             barnetillegg = barnetilleggRevurdering,
             saksbehandler = saksbehandler,
-            vedtaksperiode = omgjøringVedtaksperiode ?: revurdering.vedtaksperiode!!,
+            vedtaksperiode = omgjøringVedtaksperiode ?: søknadsbehandling.periode,
         )
 
         sendRevurderingTilBeslutningForBehandlingId(
@@ -236,7 +236,9 @@ interface IverksettRevurderingBuilder {
         beslutter: Saksbehandler = beslutter(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
-        vedtaksperiode: Periode? = null,
+        vedtaksperiode: Periode = tac.behandlingContext.rammevedtakRepo.hentForVedtakId(
+            rammevedtakIdSomOmgjøres,
+        )!!.gjeldendeTotalPeriode!!,
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
     ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
@@ -256,7 +258,7 @@ interface IverksettRevurderingBuilder {
             innvilgelsesperioder = innvilgelsesperioder,
             barnetillegg = barnetilleggRevurdering,
             saksbehandler = saksbehandler,
-            vedtaksperiode = vedtaksperiode ?: revurdering.vedtaksperiode!!,
+            vedtaksperiode = vedtaksperiode,
         )
 
         sendRevurderingTilBeslutningForBehandlingId(

@@ -1,19 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat
 
 import arrow.core.Either
-import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.periode.overlappendePerioder
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppretteOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat.IkkeValgt
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 /**
  * Omgjør det tidligere vedtaket helt eller delvis.
@@ -59,36 +55,6 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
             ).right()
-        }
-
-        companion object {
-            fun create(
-                omgjørRammevedtak: Rammevedtak,
-                saksopplysninger: Saksopplysninger,
-            ): Either<KunneIkkeOppretteOmgjøring, OmgjøringInnvilgelse> {
-                val perioderSomKanInnvilges = omgjørRammevedtak.gjeldendePerioder
-                    .overlappendePerioder(saksopplysninger.tiltaksdeltakelser.perioder)
-
-                if (perioderSomKanInnvilges.isEmpty()) {
-                    return KunneIkkeOppretteOmgjøring.KanKunStarteOmgjøringDersomViKanInnvilgeMinst1Dag.left()
-                }
-
-                val innvilgelsesperioder = omgjørRammevedtak.innvilgelsesperioder
-                    ?.krymp(perioderSomKanInnvilges)
-                    ?.oppdaterTiltaksdeltakelser(saksopplysninger.tiltaksdeltakelser)
-
-                val barnetillegg = innvilgelsesperioder?.let {
-                    omgjørRammevedtak.barnetillegg!!.krympTilPerioder(it.perioder)
-                }
-
-                return OmgjøringInnvilgelse(
-                    // Ved opprettelse defaulter vi bare til det gamle vedtaket. Dette kan endres av saksbehandler hvis det er perioden de skal endre.
-                    vedtaksperiode = omgjørRammevedtak.gjeldendeTotalPeriode!!,
-                    innvilgelsesperioder = innvilgelsesperioder,
-                    barnetillegg = barnetillegg,
-                    omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
-                ).right()
-            }
         }
 
         init {

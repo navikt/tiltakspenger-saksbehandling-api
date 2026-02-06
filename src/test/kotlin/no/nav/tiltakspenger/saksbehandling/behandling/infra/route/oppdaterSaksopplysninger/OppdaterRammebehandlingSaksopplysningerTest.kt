@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger
 
-import arrow.core.right
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.januar
@@ -11,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøring
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -59,25 +59,36 @@ internal class OppdaterRammebehandlingSaksopplysningerTest {
     @Test
     fun `revurdering til omgjøring - kan oppdatere saksopplysninger`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
+            val (sak, _, søknadsvedtak, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
+
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                vedtaksperiode = søknadsvedtak.periode,
+            )
+
             val forrigeTiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
             val avbruttTiltaksdeltakelse = forrigeTiltaksdeltakelse.copy(
                 deltakelseFraOgMed = forrigeTiltaksdeltakelse.deltakelseFraOgMed!!,
                 deltakelseTilOgMed = forrigeTiltaksdeltakelse.deltakelseTilOgMed!!.minusDays(1),
                 deltakelseStatus = TiltakDeltakerstatus.Avbrutt,
             )
+
             tac.oppdaterTiltaksdeltakelse(fnr = sak.fnr, tiltaksdeltakelse = avbruttTiltaksdeltakelse)
             val (_, oppdatertRevurdering: Rammebehandling) = oppdaterSaksopplysningerForBehandlingId(
                 tac,
                 sak.id,
                 revurdering.id,
             )
+
             // Forventer at saksopplysningene er oppdatert og at resultatet har resatt seg.
             (oppdatertRevurdering as Revurdering).saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltakelse
-            oppdatertRevurdering.resultat.right() shouldBe OmgjøringInnvilgelse.create(
-                omgjørRammevedtak = sak.rammevedtaksliste.single(),
-                saksopplysninger = oppdatertRevurdering.saksopplysninger,
-            )
+
+            (oppdatertRevurdering.resultat as OmgjøringInnvilgelse)
+                .innvilgelsesperioder!!.valgteTiltaksdeltagelser
+                .single().verdi shouldBe avbruttTiltaksdeltakelse
+
             oppdatertRevurdering.erFerdigutfylt() shouldBe true
             // Forsikrer oss om at vi ikke har brutt noen init-regler i Sak.kt.
             tac.sakContext.sakService.hentForSakId(sakId = revurdering.sakId).rammebehandlinger[1] shouldBe oppdatertRevurdering

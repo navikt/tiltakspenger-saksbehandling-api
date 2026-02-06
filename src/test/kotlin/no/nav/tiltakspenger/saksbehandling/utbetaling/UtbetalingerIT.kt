@@ -271,7 +271,6 @@ class UtbetalingerIT {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = sak.rammevedtaksliste.first().id,
-                nyOmgjøring = true,
             )!!
 
             oppdaterOmgjøringOpphør(
