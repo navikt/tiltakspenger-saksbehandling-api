@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -24,7 +25,7 @@ class TaKlagebehandlingService(
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
         return sak.taKlagebehandling(
             kommando = kommando,
-            clock = clock,
+            sistEndret = nå(clock),
             taRammebehandling = taRammebehandlingService::taBehandling,
             lagreKlagebehandling = klagebehandlingRepo::lagreKlagebehandling,
         )

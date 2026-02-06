@@ -58,7 +58,7 @@ interface OpprettKlagebehandlingBuilder {
         return Triple(oppdatertSak, klagebehandling, klagebehandlingJson)
     }
 
-    /** Oppretter ny sak, søknad og iverksetter søknadsbehandlingen; og starter klagebehandling  */
+    /** Oppretter ny sak, søknad og iverksetter søknadsbehandlingen; og starter klagebehandling med oppfylte formkrav  */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandling(
         tac: TestApplicationContext,
         saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),

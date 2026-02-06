@@ -382,6 +382,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     /** Saksbehandler/beslutter tar behandlingen. */
     fun taBehandling(saksbehandler: Saksbehandler, clock: Clock): Rammebehandling {
+        val nå = nå(clock)
         return when (status) {
             KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
@@ -390,7 +391,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 val oppdatertKlagebehandling = klagebehandling?.ta(
                     kommando = TaKlagebehandlingKommando(sakId, klagebehandling!!.id, saksbehandler),
                     rammebehandlingsstatus = this.status,
-                    clock = clock,
+                    sistEndret = nå,
                 )?.getOrElse {
                     throw IllegalStateException("Kunne ikke ta klagebehandling når rammebehandling tas: $it")
                 }
@@ -399,7 +400,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         saksbehandler = saksbehandler.navIdent,
                         beslutter = if (saksbehandler.navIdent == beslutter) null else beslutter,
                         status = UNDER_BEHANDLING,
-                        sistEndret = nå(clock),
+                        sistEndret = nå,
                         klagebehandling = oppdatertKlagebehandling,
                     )
 
@@ -407,7 +408,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         saksbehandler = saksbehandler.navIdent,
                         beslutter = if (saksbehandler.navIdent == beslutter) null else beslutter,
                         status = UNDER_BEHANDLING,
-                        sistEndret = nå(clock),
+                        sistEndret = nå,
                         klagebehandling = oppdatertKlagebehandling,
                     )
                 }
@@ -424,13 +425,13 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     is Søknadsbehandling -> this.copy(
                         beslutter = saksbehandler.navIdent,
                         status = UNDER_BESLUTNING,
-                        sistEndret = nå(clock),
+                        sistEndret = nå,
                     )
 
                     is Revurdering -> this.copy(
                         beslutter = saksbehandler.navIdent,
                         status = UNDER_BESLUTNING,
-                        sistEndret = nå(clock),
+                        sistEndret = nå,
                     )
                 }
             }

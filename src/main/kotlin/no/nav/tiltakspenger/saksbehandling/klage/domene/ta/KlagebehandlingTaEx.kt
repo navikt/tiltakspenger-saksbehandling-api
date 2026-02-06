@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.KanIkkeGjenopptaKlagebehandling
 import java.time.Clock
+import java.time.LocalDateTime
 
 /**
  * Gjelder kun saksbehandler. Dersom en beslutter vil ta over en klagebehandling til omgjøring, må dette gjøres fra omgjøringsbehandlingen.
@@ -18,7 +19,7 @@ import java.time.Clock
 fun Klagebehandling.ta(
     kommando: TaKlagebehandlingKommando,
     rammebehandlingsstatus: Rammebehandlingsstatus?,
-    clock: Clock,
+    sistEndret: LocalDateTime,
 ): Either<KanIkkeTaKlagebehandling, Klagebehandling> {
     kanOppdatereIDenneStatusen(
         rammebehandlingsstatus = rammebehandlingsstatus,
@@ -32,7 +33,7 @@ fun Klagebehandling.ta(
     if (saksbehandler != null) return KanIkkeTaKlagebehandling.BrukOvertaIsteden.left()
     return this.copy(
         saksbehandler = kommando.saksbehandler.navIdent,
-        sistEndret = nå(clock),
+        sistEndret = sistEndret,
         status = Klagebehandlingsstatus.UNDER_BEHANDLING,
     ).right()
 }

@@ -53,7 +53,7 @@ interface TaKlagebehandlingBuilder {
         saksbehandlerSomTar: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Tuple5<Sak, Søknad, Rammevedtak, Klagebehandling, KlagebehandlingDTOJson>? {
+    ): Tuple5<Sak, Søknad, Rammevedtak, Klagebehandling, SakDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, klagebehandling, _) = this.iverksettSøknadsbehandlingOgLeggKlagebehandlingTilbake(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
@@ -84,7 +84,7 @@ interface TaKlagebehandlingBuilder {
         saksbehandlerSomTar: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
+    ): Triple<Sak, Klagebehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandlerSomTar)
         tac.leggTilBruker(jwt, saksbehandlerSomTar)
         defaultRequest(
@@ -101,18 +101,16 @@ interface TaKlagebehandlingBuilder {
             ) {
                 if (forventetStatus != null) status shouldBe forventetStatus
             }
-
             if (forventetJsonBody != null) {
                 bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
-            val jsonObject: SakDTOJson = objectMapper.readTree(bodyAsText)
-            val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("klageBehandlinger").first().get("id").asText())
+            val sakDTOJson: SakDTOJson = objectMapper.readTree(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(
                 oppdatertSak,
                 oppdatertSak.hentKlagebehandling(klagebehandlingId),
-                jsonObject,
+                sakDTOJson,
             )
         }
     }
