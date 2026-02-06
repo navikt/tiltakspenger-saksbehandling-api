@@ -144,6 +144,8 @@ object Configuration {
                 "TILTAKSPENGER_ARENA_SCOPE" to "dev-fss:tpts:tiltakspenger-arena",
                 "SAF_URL" to "https://saf-q2.dev-fss-pub.nais.io",
                 "SAF_SCOPE" to "api://dev-fss.teamdokumenthandtering.saf/.default",
+                "KABAL_SCOPE" to "api://dev-gcp.klage.kabal-api/.default",
+                "KABAL_URL" to "https://kabal-api.intern.dev.nav.no",
             ),
         )
     private val prodProperties =
@@ -188,6 +190,8 @@ object Configuration {
                 "TILTAKSPENGER_ARENA_SCOPE" to "prod-fss:tpts:tiltakspenger-arena",
                 "SAF_URL" to "https://saf.prod-fss-pub.nais.io",
                 "SAF_SCOPE" to "api://prod-fss.teamdokumenthandtering.saf/.default",
+                "KABAL_SCOPE" to "api://prod-gcp.klage.kabal-api/.default",
+                "KABAL_URL" to "https://kabal-api.intern.nav.no",
             ),
         )
 
@@ -226,7 +230,14 @@ object Configuration {
 
     fun logbackConfigurationFile() = config()[Key("logback.configurationFile", stringType)]
 
-    val naisTokenIntrospectionEndpoint: String by lazy { config()[Key("NAIS_TOKEN_INTROSPECTION_ENDPOINT", stringType)] }
+    val naisTokenIntrospectionEndpoint: String by lazy {
+        config()[
+            Key(
+                "NAIS_TOKEN_INTROSPECTION_ENDPOINT",
+                stringType,
+            ),
+        ]
+    }
     val naisTokenEndpoint: String by lazy { config()[Key("NAIS_TOKEN_ENDPOINT", stringType)] }
     val tokenExchangeEndpoint: String by lazy { config()[Key("NAIS_TOKEN_EXCHANGE_ENDPOINT", stringType)] }
 
@@ -244,6 +255,7 @@ object Configuration {
     val sokosUtbetaldataScope: String by lazy { config()[Key("SOKOS_UTBETALDATA_SCOPE", stringType)] }
     val tiltakspengerArenaScope: String by lazy { config()[Key("TILTAKSPENGER_ARENA_SCOPE", stringType)] }
     val safScope: String by lazy { config()[Key("SAF_SCOPE", stringType)] }
+    val kabalScope: String by lazy { config()[Key("KABAL_SCOPE", stringType)] }
 
     val pdlUrl by lazy { config()[Key("PDL_ENDPOINT_URL", stringType)] }
     val skjermingUrl: String by lazy { config()[Key("SKJERMING_URL", stringType)] }
@@ -260,19 +272,29 @@ object Configuration {
     val sokosUtbetaldataUrl: String by lazy { config()[Key("SOKOS_UTBETALDATA_URL", stringType)] }
     val tiltakspengerArenaUrl: String by lazy { config()[Key("TILTAKSPENGER_ARENA_URL", stringType)] }
     val safUrl: String by lazy { config()[Key("SAF_URL", stringType)] }
+    val kabalUrl: String by lazy { config()[Key("KABAL_URL", stringType)] }
 
     val tilgangsmaskinenUrl: String by lazy { config()[Key("TILGANGSMASKINEN_URL", stringType)] }
     val tilgangsmaskinenScope: String by lazy { config()[Key("TILGANGSMASKINEN_SCOPE", stringType)] }
 
     val arenaTiltaksdeltakerTopic: String by lazy { config()[Key("ARENA_TILTAKSDELTAKER_TOPIC", stringType)] }
     val kometTiltaksdeltakerTopic: String by lazy { config()[Key("KOMET_TILTAKSDELTAKER_TOPIC", stringType)] }
-    val teamTiltakTiltaksdeltakerTopic: String by lazy { config()[Key("TEAM_TILTAK_TILTAKSDELTAKER_TOPIC", stringType)] }
+    val teamTiltakTiltaksdeltakerTopic: String by lazy {
+        config()[
+            Key(
+                "TEAM_TILTAK_TILTAKSDELTAKER_TOPIC",
+                stringType,
+            ),
+        ]
+    }
     val leesahTopic: String by lazy { config()[Key("LEESAH_TOPIC", stringType)] }
     val aktorV2Topic: String by lazy { config()[Key("AKTOR_V2_TOPIC", stringType)] }
     val identhendelseTopic: String by lazy { config()[Key("IDENTHENDELSE_TOPIC", stringType)] }
 
-    val brukFakeMeldekortApiLokalt: Boolean = config().getOrNull(Key("BRUK_FAKE_MELDEKORT_API", stringType))?.toBooleanStrictOrNull() ?: true
-    val brukFakeTexasClientLokalt: Boolean = config().getOrNull(Key("BRUK_FAKE_AUTH", stringType))?.toBooleanStrictOrNull() ?: true
+    val brukFakeMeldekortApiLokalt: Boolean =
+        config().getOrNull(Key("BRUK_FAKE_MELDEKORT_API", stringType))?.toBooleanStrictOrNull() ?: true
+    val brukFakeTexasClientLokalt: Boolean =
+        config().getOrNull(Key("BRUK_FAKE_AUTH", stringType))?.toBooleanStrictOrNull() ?: true
 
     fun httpPort() = config()[Key("application.httpPort", intType)]
 

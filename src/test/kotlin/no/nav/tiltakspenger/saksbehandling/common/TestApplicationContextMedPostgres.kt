@@ -214,7 +214,10 @@ class TestApplicationContextMedPostgres(
             taRammebehandlingService = behandlingContext.taRammebehandlingService,
             overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
-        ) {}
+            texasClient = texasClient,
+        ) {
+            override val kabalClient = kabalClientFake
+        }
     }
 
     override val benkOversiktContext by lazy {

@@ -28,7 +28,9 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.Journalfør
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostFakeClient
+import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalClientFake
 import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext
+import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
@@ -275,7 +277,10 @@ class LocalApplicationContext(
             taRammebehandlingService = behandlingContext.taRammebehandlingService,
             overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
-        ) {}
+            texasClient = texasClient,
+        ) {
+            override val kabalClient: KabalClient = KabalClientFake()
+        }
     }
 
     init {

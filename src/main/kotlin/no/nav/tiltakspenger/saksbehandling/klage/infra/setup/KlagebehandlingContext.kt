@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.setup
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.texas.IdentityProvider
+import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
@@ -10,11 +12,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
+import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
+import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
@@ -50,6 +55,7 @@ open class KlagebehandlingContext(
     private val taRammebehandlingService: TaRammebehandlingService,
     private val overtaRammebehandlingService: OvertaRammebehandlingService,
     private val leggTilbakeRammebehandlingService: LeggTilbakeRammebehandlingService,
+    private val texasClient: TexasClient,
 ) {
 
     open val klagebehandlingRepo: KlagebehandlingRepo by lazy {
@@ -58,6 +64,14 @@ open class KlagebehandlingContext(
     open val klagevedtakRepo: KlagevedtakRepo by lazy {
         KlagevedtakPostgresRepo(sessionFactory as PostgresSessionFactory)
     }
+
+    open val kabalClient: KabalClient by lazy {
+        KabalHttpClient(
+            baseUrl = Configuration.kabalUrl,
+            getToken = { texasClient.getSystemToken(Configuration.kabalScope, IdentityProvider.AZUREAD) },
+        )
+    }
+
     open val opprettKlagebehandlingService: OpprettKlagebehandlingService by lazy {
         OpprettKlagebehandlingService(
             sakService = sakService,

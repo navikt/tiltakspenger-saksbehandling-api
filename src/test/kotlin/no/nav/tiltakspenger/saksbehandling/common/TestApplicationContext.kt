@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
+import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalClientFake
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
@@ -21,6 +22,7 @@ abstract class TestApplicationContext(
         person: EnkelPerson,
         tiltaksdeltakelse: Tiltaksdeltakelse,
     )
+
     abstract val jwtGenerator: JwtGenerator
 
     abstract fun leggTilBruker(token: String, bruker: Bruker<*, *>)
@@ -28,4 +30,6 @@ abstract class TestApplicationContext(
     abstract fun oppdaterTiltaksdeltakelse(fnr: Fnr, tiltaksdeltakelse: Tiltaksdeltakelse?)
 
     abstract val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient
+
+    val kabalClientFake = KabalClientFake()
 }

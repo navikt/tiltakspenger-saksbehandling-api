@@ -311,9 +311,11 @@ class TestApplicationContextMedInMemoryDb(
             taRammebehandlingService = behandlingContext.taRammebehandlingService,
             overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
+            texasClient = texasClient,
         ) {
             override val klagebehandlingRepo = klagebehandlingFakeRepo
             override val klagevedtakRepo = klagevedtakFakeRepo
+            override val kabalClient = kabalClientFake
         }
     }
 
