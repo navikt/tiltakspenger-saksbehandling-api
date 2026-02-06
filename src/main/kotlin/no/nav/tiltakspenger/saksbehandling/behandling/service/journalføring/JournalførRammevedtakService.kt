@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedt
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.time.Clock
 import java.time.LocalDate
@@ -65,7 +66,19 @@ class JournalførRammevedtakService(
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         )
 
-                        is Omgjøringsresultat.OmgjøringOpphør -> throw NotImplementedError("Opphørsbrev er ikke implementert ennå")
+                        // TODO: brev for opphør
+                        is Omgjøringsresultat.OmgjøringOpphør -> {
+                            if (Configuration.isProd()) {
+                                throw NotImplementedError("Brev for opphør er ikke implementert enda, og kan ikke brukes i prod.")
+                            }
+
+                            genererVedtaksbrevForStansKlient.genererStansvedtak(
+                                vedtaksdato = vedtaksdato,
+                                vedtak = vedtak,
+                                hentBrukersNavn = personService::hentNavn,
+                                hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            )
+                        }
 
                         is Rammebehandlingsresultat.IkkeValgt -> vedtak.rammebehandlingsresultat.vedtakError()
                     }.getOrElse { return@forEach }
