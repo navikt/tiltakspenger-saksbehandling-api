@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandling
@@ -32,7 +33,7 @@ suspend fun Sak.overtaKlagebehandling(
                     saksbehandler = kommando.saksbehandler,
                     correlationId = kommando.correlationId,
                 ),
-            ).getOrNull()!!.let {
+            ).getOrThrow().let {
                 Triple(it.first, it.second.klagebehandling!!, it.second)
             }.right()
         }
