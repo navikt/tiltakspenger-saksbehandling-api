@@ -106,14 +106,14 @@ class AutomatiskMeldekortBehandlingService(
         return Either.catch {
             opprettMeldekortBehandling(meldekort, sak, clock)
                 .onLeft { status ->
-                    håndterOpprettBehandlingFeil(status, meldekort, sak)
+                    håndterOpprettBehandlingFeil(status, meldekort, sak, clock)
                 }
                 .onRight { behandling ->
                     logger.info { "Opprettet automatisk behandling ${behandling.id} for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId}" }
                 }
             return@catch
         }.onLeft { throwable ->
-            håndterUkjentFeil(throwable, meldekort, sak)
+            håndterUkjentFeil(throwable, meldekort, sak, clock)
         }
     }
 
@@ -121,6 +121,7 @@ class AutomatiskMeldekortBehandlingService(
         status: MeldekortBehandletAutomatiskStatus,
         meldekort: BrukersMeldekort,
         sak: Sak,
+        clock: Clock,
     ) {
         if (status.loggesSomError) {
             logger.error { "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Feil: $status" }
@@ -132,7 +133,7 @@ class AutomatiskMeldekortBehandlingService(
             meldekortId = meldekort.id,
             status = status,
             behandlesAutomatisk = false,
-            metadata = meldekort.behandletAutomatiskForsøkshistorikk,
+            metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(clock),
         )
     }
 
@@ -145,6 +146,7 @@ class AutomatiskMeldekortBehandlingService(
         throwable: Throwable,
         meldekort: BrukersMeldekort,
         sak: Sak,
+        clock: Clock,
     ) {
         logger.error(throwable) { "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${throwable.message}" }
         val oppgaveOpprettet = opprettOppgaveForAdressebeskyttetBruker(sak.fnr, meldekort.journalpostId)
@@ -155,14 +157,14 @@ class AutomatiskMeldekortBehandlingService(
                 meldekortId = meldekort.id,
                 status = MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
                 behandlesAutomatisk = false,
-                metadata = meldekort.behandletAutomatiskForsøkshistorikk,
+                metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(clock),
             )
         } else {
             brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                 meldekortId = meldekort.id,
                 status = MeldekortBehandletAutomatiskStatus.UKJENT_FEIL_PRØVER_IGJEN,
                 behandlesAutomatisk = true,
-                metadata = meldekort.behandletAutomatiskForsøkshistorikk,
+                metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(clock),
             )
         }
     }
