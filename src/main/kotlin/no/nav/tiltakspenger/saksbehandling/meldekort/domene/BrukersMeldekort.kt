@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
@@ -31,6 +32,7 @@ data class BrukersMeldekort(
     val oppgaveId: OppgaveId?,
     val behandlesAutomatisk: Boolean,
     val behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus,
+    val behandletAutomatiskForsøkshistorikk: Forsøkshistorikk,
 ) {
     val kjedeId: MeldeperiodeKjedeId = meldeperiode.kjedeId
     val meldeperiodeId: MeldeperiodeId = meldeperiode.id

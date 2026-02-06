@@ -22,6 +22,7 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
     VENTER_BEHANDLING,
     BEHANDLET,
     UKJENT_FEIL,
+    UKJENT_FEIL_PRØVER_IGJEN,
     HENTE_NAVKONTOR_FEILET,
     BEHANDLING_FEILET_PÅ_SAK,
     UTBETALING_FEILET_PÅ_SAK,
@@ -69,6 +70,7 @@ private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO()
         MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING -> MeldekortBehandletAutomatiskStatusDTO.VENTER_BEHANDLING
         MeldekortBehandletAutomatiskStatus.BEHANDLET -> MeldekortBehandletAutomatiskStatusDTO.BEHANDLET
         MeldekortBehandletAutomatiskStatus.UKJENT_FEIL -> MeldekortBehandletAutomatiskStatusDTO.UKJENT_FEIL
+        MeldekortBehandletAutomatiskStatus.UKJENT_FEIL_PRØVER_IGJEN -> MeldekortBehandletAutomatiskStatusDTO.UKJENT_FEIL_PRØVER_IGJEN
         MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET -> MeldekortBehandletAutomatiskStatusDTO.HENTE_NAVKONTOR_FEILET
         MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDTO.BEHANDLING_FEILET_PÅ_SAK
         MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK -> MeldekortBehandletAutomatiskStatusDTO.UTBETALING_FEILET_PÅ_SAK

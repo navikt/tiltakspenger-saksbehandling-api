@@ -154,7 +154,7 @@ suspend fun Sak.opprettAutomatiskMeldekortBehandling(
         behandlingSendtTilDatadeling = null,
     )
     return simuler(meldekortBehandletAutomatisk).mapLeft {
-        // Simuleringsklienten logger feil selv. I førsteomgang ønsker vi ikke stoppe den automatiske ubtbetalingen selvom simuleringen feiler.
+        // Simuleringsklienten logger feil selv. I førsteomgang ønsker vi ikke stoppe den automatiske utbetalingen selv om simuleringen feiler.
         return Pair(meldekortBehandletAutomatisk, null).right()
     }.map { Pair(meldekortBehandletAutomatisk.copy(simulering = it.simulering), it) }
 }

@@ -14,11 +14,13 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.time.Clock
 
 class MottaBrukerutfyltMeldekortService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val meldeperiodeRepo: MeldeperiodeRepo,
     private val sakService: SakService,
+    private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -44,6 +46,7 @@ class MottaBrukerutfyltMeldekortService(
                 ifLeft = { it },
                 ifRight = { MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING },
             ),
+            clock = clock,
         )
 
         Either.catch {

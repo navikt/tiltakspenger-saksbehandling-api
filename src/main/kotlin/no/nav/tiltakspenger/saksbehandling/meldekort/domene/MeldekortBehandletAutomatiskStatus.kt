@@ -13,6 +13,7 @@ enum class MeldekortBehandletAutomatiskStatus(val loggesSomError: Boolean) {
 
     INGEN_DAGER_GIR_RETT(true),
     UKJENT_FEIL(true),
+    UKJENT_FEIL_PRØVER_IGJEN(true),
     HENTE_NAVKONTOR_FEILET(true),
     BEHANDLING_FEILET_PÅ_SAK(true),
     UTBETALING_FEILET_PÅ_SAK(true),

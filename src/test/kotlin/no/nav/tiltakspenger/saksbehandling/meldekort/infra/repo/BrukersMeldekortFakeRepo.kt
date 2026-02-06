@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
@@ -28,6 +29,7 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
             oppgaveId = brukersMeldekort.oppgaveId,
             behandlesAutomatisk = brukersMeldekort.behandlesAutomatisk,
             behandletAutomatiskStatus = brukersMeldekort.behandletAutomatiskStatus,
+            behandletAutomatiskForsøkshistorikk = brukersMeldekort.behandletAutomatiskForsøkshistorikk,
         )
     }
 
@@ -66,11 +68,13 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
         meldekortId: MeldekortId,
         status: MeldekortBehandletAutomatiskStatus,
         behandlesAutomatisk: Boolean,
+        metadata: Forsøkshistorikk,
         sessionContext: SessionContext?,
     ) {
         data.get()[meldekortId] = data.get()[meldekortId]!!.copy(
             behandlesAutomatisk = behandlesAutomatisk,
             behandletAutomatiskStatus = status,
+            behandletAutomatiskForsøkshistorikk = metadata,
         )
     }
 }

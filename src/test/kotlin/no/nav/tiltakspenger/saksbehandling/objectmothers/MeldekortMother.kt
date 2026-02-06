@@ -43,6 +43,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Ik
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorSerial
@@ -813,6 +814,7 @@ interface MeldekortMother : MotherOfAllMothers {
             } else {
                 MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
             },
+        behandletAutomatiskForsøkshistorikk: Forsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
     ): BrukersMeldekort {
         return BrukersMeldekort(
             id = id,
@@ -824,6 +826,7 @@ interface MeldekortMother : MotherOfAllMothers {
             oppgaveId = null,
             behandlesAutomatisk = behandlesAutomatisk,
             behandletAutomatiskStatus = behandletAutomatiskStatus,
+            behandletAutomatiskForsøkshistorikk = behandletAutomatiskForsøkshistorikk,
         )
     }
 
