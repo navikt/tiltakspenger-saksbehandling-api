@@ -4,7 +4,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlingRoutes
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.rammebehandlingRoutes
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.hentBenkRoute
 import no.nav.tiltakspenger.saksbehandling.infra.repo.healthRoutes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
@@ -25,7 +25,7 @@ fun Route.routes(
     healthRoutes()
     authenticate(IdentityProvider.AZUREAD.value) {
         meRoute()
-        behandlingRoutes(
+        rammebehandlingRoutes(
             behandlingService = applicationContext.behandlingContext.rammebehandlingService,
             auditService = applicationContext.personContext.auditService,
             behandleSøknadPåNyttService = applicationContext.behandlingContext.behandleSøknadPåNyttService,

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta
+package no.nav.tiltakspenger.saksbehandling.behandling.domene.overta
 
 sealed interface KunneIkkeOvertaBehandling {
     data object BehandlingenKanIkkeVæreVedtattEllerAvbrutt : KunneIkkeOvertaBehandling

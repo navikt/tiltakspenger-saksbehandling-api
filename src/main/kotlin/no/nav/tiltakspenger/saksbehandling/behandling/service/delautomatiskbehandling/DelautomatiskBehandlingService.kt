@@ -19,10 +19,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbeh
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_BEHANDLES_MANUELT_GRUNN
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_BEHANDLET_DELVIS_AUTOMATISK
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_IKKE_BEHANDLET_AUTOMATISK
@@ -61,7 +64,7 @@ class DelautomatiskBehandlingService(
                 // Den automatiske jobben oppdaterer saksopplysningene selv.
                 hentSaksopplysninger = null,
                 clock = clock,
-            ).getOrNull()!!
+            ).getOrThrow()
             rammebehandlingRepo.lagre(gjenopptattBehandling)
             gjenopptattBehandling as Søknadsbehandling
         } else {
@@ -109,10 +112,14 @@ class DelautomatiskBehandlingService(
             log.info { "Har oppdatert venterTil for behandling med id ${behandling.id} som allerede var på vent. CorrelationId: $correlationId" }
         } else {
             behandling.settPåVent(
-                endretAv = AUTOMATISK_SAKSBEHANDLER,
-                begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                kommando = SettRammebehandlingPåVentKommando(
+                    sakId = behandling.sakId,
+                    rammebehandlingId = behandling.id,
+                    begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+                    venterTil = venterTil,
+                ),
                 clock = clock,
-                venterTil = venterTil,
             ).let {
                 rammebehandlingRepo.lagre(it)
             }

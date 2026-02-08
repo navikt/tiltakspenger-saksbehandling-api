@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/oppdater"
 
-fun Route.oppdaterBehandlingRoute(
+fun Route.oppdaterRammebehandlingRoute(
     oppdaterBehandlingService: OppdaterRammebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,

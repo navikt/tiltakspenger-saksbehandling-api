@@ -125,7 +125,7 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
             utbetaling = utbetaling,
             omgjørRammevedtak = sakMedRevurdering.vedtaksliste.finnRammevedtakSomOmgjøres(stansperiode),
         )
-    }.getOrNull()!!.tilBeslutning().let {
+    }.getOrFail().tilBeslutning().let {
         behandlingRepo.lagre(it)
         sakRepo.hentForSakId(sakMedRevurdering.id)!! to it as Revurdering
     }
@@ -297,7 +297,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
             },
             omgjørRammevedtak = sakMedRevurdering.vedtaksliste.finnRammevedtakSomOmgjøres(periode),
         )
-    }.getOrNull()!!.tilBeslutning().taBehandling(
+    }.getOrFail().tilBeslutning().taBehandling(
         saksbehandler = beslutter,
         clock = clock,
     ).iverksett(

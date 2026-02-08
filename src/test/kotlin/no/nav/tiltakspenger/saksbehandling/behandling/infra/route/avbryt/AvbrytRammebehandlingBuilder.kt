@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlingRoutes]
+ * Route: [no.nav.tiltakspenger.saksbehandling.behandling.infra.route.rammebehandlingRoutes]
  */
 interface AvbrytRammebehandlingBuilder {
     /**

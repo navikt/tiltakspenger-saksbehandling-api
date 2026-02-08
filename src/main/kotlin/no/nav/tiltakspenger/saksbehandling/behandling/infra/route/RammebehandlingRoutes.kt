@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.forhåndsvisVedtaksbrevRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.iverksettRammebehandlingRoute
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennBehandlingRoute
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennRammebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.Fo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import java.time.Clock
 
-fun Route.behandlingRoutes(
+fun Route.rammebehandlingRoutes(
     behandlingService: RammebehandlingService,
     auditService: AuditService,
     behandleSøknadPåNyttService: BehandleSøknadPåNyttService,
@@ -41,19 +41,19 @@ fun Route.behandlingRoutes(
     tilgangskontrollService: TilgangskontrollService,
     clock: Clock,
 ) {
-    hentBehandlingRoute(behandlingService, auditService, tilgangskontrollService)
+    hentRammebehandlingRoute(behandlingService, auditService, tilgangskontrollService)
     behandleSøknadPåNyttRoute(behandleSøknadPåNyttService, auditService, tilgangskontrollService)
     oppdaterSaksopplysningerRoute(auditService, oppdaterSaksopplysningerService, tilgangskontrollService)
     iverksettRammebehandlingRoute(iverksettRammebehandlingService, auditService, tilgangskontrollService)
-    sendBehandlingTilBeslutningRoute(sendBehandlingTilBeslutningService, auditService, tilgangskontrollService)
+    sendRammebehandlingTilBeslutningRoute(sendBehandlingTilBeslutningService, auditService, tilgangskontrollService)
     forhåndsvisVedtaksbrevRoute(auditService, forhåndsvisVedtaksbrevService, tilgangskontrollService)
     startRevurderingRoute(startRevurderingService, auditService, tilgangskontrollService)
-    taBehandlingRoute(auditService, taBehandlingService, tilgangskontrollService)
-    underkjennBehandlingRoute(auditService, behandlingService, tilgangskontrollService)
-    overtaBehandlingRoute(overtaBehandlingService, auditService, tilgangskontrollService)
-    leggTilbakeBehandlingRoute(auditService, leggTilbakeBehandlingService, tilgangskontrollService)
-    oppdaterBehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
-    settBehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService)
+    taRammebehandlingRoute(auditService, taBehandlingService, tilgangskontrollService)
+    underkjennRammebehandlingRoute(auditService, behandlingService, tilgangskontrollService)
+    overtaRammebehandlingRoute(overtaBehandlingService, auditService, tilgangskontrollService)
+    leggTilbakeRammebehandlingRoute(auditService, leggTilbakeBehandlingService, tilgangskontrollService)
+    oppdaterRammebehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
+    settRammebehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService)
     gjenopptaRammebehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService)
     oppdaterSimuleringRoute(oppdaterSimuleringService, auditService, tilgangskontrollService, clock)
 }

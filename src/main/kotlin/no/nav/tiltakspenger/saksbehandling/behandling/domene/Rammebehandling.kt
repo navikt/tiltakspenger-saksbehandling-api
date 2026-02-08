@@ -21,10 +21,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -126,77 +127,6 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     ): Rammebehandling
 
     fun erFerdigutfylt(): Boolean
-
-    fun settPåVent(
-        endretAv: Saksbehandler,
-        begrunnelse: String,
-        clock: Clock,
-        venterTil: LocalDateTime? = null,
-    ): Rammebehandling {
-        require(!ventestatus.erSattPåVent) { "Behandling med id ${this.id} er allerede satt på vent" }
-        when (status) {
-            UNDER_AUTOMATISK_BEHANDLING,
-            UNDER_BEHANDLING,
-            UNDER_BESLUTNING,
-            -> {
-                require(begrunnelse.isNotBlank()) { "Du må oppgi en grunn for at behandlingen settes på vent." }
-                if (status == UNDER_BEHANDLING) {
-                    krevSaksbehandlerRolle(endretAv)
-                    require(this.saksbehandler == endretAv.navIdent) { "Du må være saksbehandler på behandlingen for å kunne sette den på vent." }
-                }
-                if (status == UNDER_BESLUTNING) {
-                    krevBeslutterRolle(endretAv)
-                    require(this.beslutter == endretAv.navIdent) { "Du må være beslutter på behandlingen for å kunne sette den på vent." }
-                }
-
-                val oppdatertSaksbehandler = if (status == UNDER_AUTOMATISK_BEHANDLING || status == UNDER_BESLUTNING) {
-                    saksbehandler
-                } else {
-                    null
-                }
-
-                val oppdatertStatus = when (status) {
-                    UNDER_BESLUTNING -> KLAR_TIL_BESLUTNING
-                    UNDER_BEHANDLING -> KLAR_TIL_BEHANDLING
-                    UNDER_AUTOMATISK_BEHANDLING -> UNDER_AUTOMATISK_BEHANDLING
-                    else -> throw IllegalStateException("Uventet status $status ved oppdatering til ventende status")
-                }
-                val oppdatertVentestatus = ventestatus.settPåVent(
-                    tidspunkt = nå(clock),
-                    endretAv = endretAv.navIdent,
-                    begrunnelse = begrunnelse,
-                    status = status.toString(),
-                )
-                return when (this) {
-                    is Søknadsbehandling -> this.copy(
-                        ventestatus = oppdatertVentestatus,
-                        saksbehandler = oppdatertSaksbehandler,
-                        beslutter = null,
-                        status = oppdatertStatus,
-                        venterTil = venterTil,
-                        sistEndret = nå(clock),
-                    )
-
-                    is Revurdering -> {
-                        this.copy(
-                            ventestatus = oppdatertVentestatus,
-                            saksbehandler = oppdatertSaksbehandler,
-                            beslutter = null,
-                            status = oppdatertStatus,
-                            venterTil = venterTil,
-                            sistEndret = nå(clock),
-                        )
-                    }
-                }
-            }
-
-            KLAR_TIL_BEHANDLING,
-            KLAR_TIL_BESLUTNING,
-            VEDTATT,
-            AVBRUTT,
-            -> throw IllegalStateException("Kan ikke sette behandling på vent som har status ${status.name}")
-        }
-    }
 
     /**
      * Kan kun gjenoppta en behandling som er satt på vent.

@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
@@ -30,9 +32,25 @@ class BehandlingDTOTest {
                     ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
                 val behandlingSattPåVent = behandling
-                    .settPåVent(beslutter, "1", clock)
+                    .settPåVent(
+                        SettRammebehandlingPåVentKommando(
+                            sakId = behandling.sakId,
+                            rammebehandlingId = behandling.id,
+                            begrunnelse = "1",
+                            saksbehandler = beslutter,
+                        ),
+                        clock,
+                    )
                     .gjenoppta(beslutter, correlationId, clock) { behandling.saksopplysninger }.getOrFail()
-                    .settPåVent(beslutter, "2", clock)
+                    .settPåVent(
+                        SettRammebehandlingPåVentKommando(
+                            sakId = behandling.sakId,
+                            rammebehandlingId = behandling.id,
+                            begrunnelse = "2",
+                            saksbehandler = beslutter,
+                        ),
+                        clock,
+                    )
 
                 behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 3
                 behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING

@@ -18,6 +18,8 @@ import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
@@ -94,8 +96,13 @@ class EndretTiltaksdeltakerJobbTest {
                         saksnummer = sak.saksnummer,
                     ),
                 )
-                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id, tiltaksdeltakerId = tiltaksdeltakerId)
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                val tiltaksdeltakerKafkaDb =
+                    getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id, tiltaksdeltakerId = tiltaksdeltakerId)
+                tiltaksdeltakerKafkaRepository.lagre(
+                    tiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(testDataHelper.clock).minusMinutes(20),
+                )
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -139,7 +146,11 @@ class EndretTiltaksdeltakerJobbTest {
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id)
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                tiltaksdeltakerKafkaRepository.lagre(
+                    tiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(testDataHelper.clock).minusMinutes(20),
+                )
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -200,7 +211,11 @@ class EndretTiltaksdeltakerJobbTest {
                     tom = null,
                     tiltaksdeltakerId = tiltaksdeltakerId,
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                tiltaksdeltakerKafkaRepository.lagre(
+                    tiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(testDataHelper.clock).minusMinutes(20),
+                )
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -261,12 +276,15 @@ class EndretTiltaksdeltakerJobbTest {
                         saksnummer = sak.saksnummer,
                     ),
                 )
-                val behandlingPaVent = behandling.settPåVent(
-                    endretAv = AUTOMATISK_SAKSBEHANDLER,
+                val kommando = SettRammebehandlingPåVentKommando(
+                    sakId = behandling.sakId,
+                    rammebehandlingId = behandling.id,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
-                    clock = testDataHelper.clock,
+                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                     venterTil = deltakelseFom.atStartOfDay(),
-                ) as Søknadsbehandling
+                )
+                val behandlingPaVent =
+                    behandling.settPåVent(kommando = kommando, clock = testDataHelper.clock) as Søknadsbehandling
                 behandlingRepo.lagre(behandlingPaVent)
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
                     id = id,
@@ -276,7 +294,11 @@ class EndretTiltaksdeltakerJobbTest {
                     tom = null,
                     tiltaksdeltakerId = tiltaksdeltakerId,
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                tiltaksdeltakerKafkaRepository.lagre(
+                    tiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(testDataHelper.clock).minusMinutes(20),
+                )
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -339,7 +361,11 @@ class EndretTiltaksdeltakerJobbTest {
                         deltakelsesprosent = 100F,
                         tiltaksdeltakerId = tiltaksdeltakerId,
                     )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                tiltaksdeltakerKafkaRepository.lagre(
+                    tiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(testDataHelper.clock).minusMinutes(20),
+                )
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -398,7 +424,11 @@ class EndretTiltaksdeltakerJobbTest {
                     tom = deltakelsesTom.plusMonths(1),
                     tiltaksdeltakerId = tiltaksdeltakerId,
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                tiltaksdeltakerKafkaRepository.lagre(
+                    tiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(testDataHelper.clock).minusMinutes(20),
+                )
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -481,16 +511,32 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                     tiltaksdeltakerId = tiltaksdeltakerId,
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                tiltaksdeltakerKafkaRepository.lagre(
+                    tiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(testDataHelper.clock).minusMinutes(20),
+                )
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
+                coVerify(exactly = 1) {
+                    oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                        any(),
+                        any(),
+                        "Deltakelsen er avbrutt.",
+                    )
+                }
                 coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS }) }
-                coVerify(exactly = 1) { leggTilbakeBehandlingService.leggTilbakeBehandling(sak.id, any(), AUTOMATISK_SAKSBEHANDLER) }
+                coVerify(exactly = 1) {
+                    leggTilbakeBehandlingService.leggTilbakeBehandling(
+                        sak.id,
+                        any(),
+                        AUTOMATISK_SAKSBEHANDLER,
+                    )
+                }
             }
         }
     }
@@ -592,13 +638,23 @@ class EndretTiltaksdeltakerJobbTest {
                         tiltaksdeltakerId = forsteTiltaksdeltakerId,
                     )
 
-                    tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                    tiltaksdeltakerKafkaRepository.lagre(
+                        tiltaksdeltakerKafkaDb,
+                        "melding",
+                        nå(testDataHelper.clock).minusMinutes(20),
+                    )
                     endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                     val oppdatertTiltaksdeltakerKafkaDb =
                         tiltaksdeltakerKafkaRepository.hent(førsteSøknad.id.toString())
                     oppdatertTiltaksdeltakerKafkaDb shouldBe null
-                    coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
+                    coVerify(exactly = 0) {
+                        oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                            any(),
+                            any(),
+                            "Deltakelsen er avbrutt.",
+                        )
+                    }
                     coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
                     coVerify(exactly = 0) { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) }
                 }
@@ -654,8 +710,16 @@ class EndretTiltaksdeltakerJobbTest {
                         revurdering.copy(saksbehandler = null, status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING),
                     )
 
-                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
-                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                    tiltaksdeltakerKafkaRepository.lagre(
+                        førsteTiltaksdeltakerKafkaDb,
+                        "melding",
+                        nå(testDataHelper.clock).minusMinutes(20),
+                    )
+                    tiltaksdeltakerKafkaRepository.lagre(
+                        andreTiltaksdeltakerKafkaDb,
+                        "melding",
+                        nå(testDataHelper.clock).minusMinutes(20),
+                    )
 
                     endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -667,9 +731,21 @@ class EndretTiltaksdeltakerJobbTest {
                     val andreOppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(andreSøknadstiltakId)
                     andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
 
-                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
+                    coVerify(exactly = 1) {
+                        oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                            any(),
+                            any(),
+                            "Deltakelsen er avbrutt.",
+                        )
+                    }
                     coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS }) }
-                    coVerify(exactly = 1) { leggTilbakeBehandlingService.leggTilbakeBehandling(sak.id, any(), AUTOMATISK_SAKSBEHANDLER) }
+                    coVerify(exactly = 1) {
+                        leggTilbakeBehandlingService.leggTilbakeBehandling(
+                            sak.id,
+                            any(),
+                            AUTOMATISK_SAKSBEHANDLER,
+                        )
+                    }
                 }
             }
         }
@@ -723,8 +799,16 @@ class EndretTiltaksdeltakerJobbTest {
                         revurdering.copy(saksbehandler = null, status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING),
                     )
 
-                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
-                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                    tiltaksdeltakerKafkaRepository.lagre(
+                        førsteTiltaksdeltakerKafkaDb,
+                        "melding",
+                        nå(testDataHelper.clock).minusMinutes(20),
+                    )
+                    tiltaksdeltakerKafkaRepository.lagre(
+                        andreTiltaksdeltakerKafkaDb,
+                        "melding",
+                        nå(testDataHelper.clock).minusMinutes(20),
+                    )
 
                     endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -736,9 +820,21 @@ class EndretTiltaksdeltakerJobbTest {
                     andreOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                     andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
 
-                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
+                    coVerify(exactly = 1) {
+                        oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                            any(),
+                            any(),
+                            "Deltakelsen er avbrutt.",
+                        )
+                    }
                     coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS }) }
-                    coVerify(exactly = 1) { leggTilbakeBehandlingService.leggTilbakeBehandling(sak.id, any(), AUTOMATISK_SAKSBEHANDLER) }
+                    coVerify(exactly = 1) {
+                        leggTilbakeBehandlingService.leggTilbakeBehandling(
+                            sak.id,
+                            any(),
+                            AUTOMATISK_SAKSBEHANDLER,
+                        )
+                    }
                 }
             }
         }
@@ -797,14 +893,20 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveSistSjekket = null,
                     tiltaksdeltakerId = tiltaksdeltakerId,
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                tiltaksdeltakerKafkaRepository.lagre(
+                    tiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(testDataHelper.clock).minusMinutes(20),
+                )
 
                 endretTiltaksdeltakerJobb.opprydning()
 
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                oppdatertTiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe nå(testDataHelper.clock)
+                oppdatertTiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe nå(
+                    testDataHelper.clock,
+                )
                     .truncatedTo(ChronoUnit.MINUTES)
                 coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
             }
@@ -864,7 +966,11 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveSistSjekket = nå(testDataHelper.clock).minusHours(2),
                     tiltaksdeltakerId = tiltaksdeltakerId,
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", nå(testDataHelper.clock).minusMinutes(20))
+                tiltaksdeltakerKafkaRepository.lagre(
+                    tiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(testDataHelper.clock).minusMinutes(20),
+                )
 
                 endretTiltaksdeltakerJobb.opprydning()
 

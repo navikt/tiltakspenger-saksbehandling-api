@@ -1,22 +1,39 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent
 
 import arrow.core.Either
+import arrow.core.right
+import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
-fun Sak.settKlagebehandlingPåVent(
+suspend fun Sak.settKlagebehandlingPåVent(
     kommando: SettKlagebehandlingPåVentKommando,
     clock: Clock,
-): Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Sak, Klagebehandling>> {
+    settRammebehandlingPåVent: suspend (SettRammebehandlingPåVentKommando) -> Pair<Sak, Rammebehandling>,
+    lagreKlagebehandling: (Klagebehandling, SessionContext?) -> Unit,
+): Either<KanIkkeSetteKlagebehandlingPåVent, Triple<Sak, Klagebehandling, Rammebehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let {
-        val rammebehandlingsstatus = it.rammebehandlingId?.let { this.hentRammebehandling(it) }?.status
-        it.settPåVent(kommando, rammebehandlingsstatus, clock)
-            .map {
-                val oppdatertSak = this.oppdaterKlagebehandling(it)
-                Pair(oppdatertSak, it)
-            }
+        val rammebehandling = it.rammebehandlingId?.let { this.hentRammebehandling(it) }
+        if (rammebehandling != null) {
+            return settRammebehandlingPåVent(
+                SettRammebehandlingPåVentKommando(
+                    sakId = kommando.sakId,
+                    rammebehandlingId = rammebehandling.id,
+                    begrunnelse = kommando.begrunnelse,
+                    saksbehandler = kommando.saksbehandler,
+                ),
+            ).let {
+                Triple(it.first, it.second.klagebehandling!!, it.second)
+            }.right()
+        }
+        it.settPåVent(kommando, null, clock).map {
+            val oppdatertSak = this.oppdaterKlagebehandling(it)
+            Triple(oppdatertSak, it, null)
+        }.onRight { lagreKlagebehandling(it.second, null) }
     }
 }

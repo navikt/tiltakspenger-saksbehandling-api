@@ -22,14 +22,14 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}"
 
-fun Route.hentBehandlingRoute(
+fun Route.hentRammebehandlingRoute(
     behandlingService: RammebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger {}
     get(PATH) {
-        logger.debug { "Mottatt get-request på '$PATH' - henter hele behandlingen" }
+        logger.debug { "Mottatt get-request på '$PATH' - henter rammebehandling" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@get
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get
         call.withSakId { sakId ->
@@ -42,7 +42,7 @@ fun Route.hentBehandlingRoute(
                         behandlingId = behandlingId,
                         navIdent = saksbehandler.navIdent,
                         action = AuditLogEvent.Action.ACCESS,
-                        contextMessage = "Henter hele behandlingen",
+                        contextMessage = "Henter rammebehandling",
                         correlationId = correlationId,
                     )
                     call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))

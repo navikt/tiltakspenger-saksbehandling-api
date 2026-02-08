@@ -28,7 +28,7 @@ private data class BegrunnelseDTO(
     val begrunnelse: String?,
 )
 
-fun Route.underkjennBehandlingRoute(
+fun Route.underkjennRammebehandlingRoute(
     auditService: AuditService,
     behandlingService: RammebehandlingService,
     tilgangskontrollService: TilgangskontrollService,
