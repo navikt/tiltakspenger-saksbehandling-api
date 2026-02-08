@@ -65,7 +65,6 @@ fun Rammebehandling.settPåVent(
                             saksbehandler = kommando.saksbehandler,
                             begrunnelse = kommando.begrunnelse,
                         ),
-                        rammebehandlingsstatus = status,
                         clock = clock,
                     ).getOrThrow()
                 } else {

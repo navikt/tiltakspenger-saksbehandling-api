@@ -1,13 +1,13 @@
-package no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta
+package no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 
-data class GjenopptaKlagebehandlingKommando(
+data class GjenopptaRammebehandlingKommando(
     val sakId: SakId,
-    val klagebehandlingId: KlagebehandlingId,
+    val rammebehandlingId: BehandlingId,
     val saksbehandler: Saksbehandler,
     val correlationId: CorrelationId,
 )

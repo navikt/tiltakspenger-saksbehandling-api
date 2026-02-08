@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
@@ -338,8 +340,12 @@ class RammebehandlingTest {
                 behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
 
                 val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(
-                    saksbehandler2,
-                    correlationId,
+                    GjenopptaRammebehandlingKommando(
+                        sakId = behandlingSattPåVent.sakId,
+                        rammebehandlingId = behandlingSattPåVent.id,
+                        saksbehandler = saksbehandler2,
+                        correlationId = correlationId,
+                    ),
                     clock,
                 ) { behandlingSattPåVent.saksopplysninger }.getOrFail()
 
@@ -371,7 +377,15 @@ class RammebehandlingTest {
                 behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
 
                 val gjenopptattBehandling =
-                    behandlingSattPåVent.gjenoppta(beslutter, correlationId, clock) { behandling.saksopplysninger }
+                    behandlingSattPåVent.gjenoppta(
+                        GjenopptaRammebehandlingKommando(
+                            sakId = behandlingSattPåVent.sakId,
+                            rammebehandlingId = behandlingSattPåVent.id,
+                            saksbehandler = beslutter,
+                            correlationId = correlationId,
+                        ),
+                        clock,
+                    ) { behandling.saksopplysninger }
                         .getOrFail()
 
                 gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
@@ -403,8 +417,12 @@ class RammebehandlingTest {
                 behandlingSattPåVent.ventestatus.erSattPåVent shouldBe true
 
                 val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(
-                    saksbehandler,
-                    correlationId,
+                    GjenopptaRammebehandlingKommando(
+                        sakId = behandlingSattPåVent.sakId,
+                        rammebehandlingId = behandlingSattPåVent.id,
+                        saksbehandler = saksbehandler,
+                        correlationId = correlationId,
+                    ),
                     gjenopptaClock,
                 ) { behandling.saksopplysninger }.getOrFail()
 
@@ -430,7 +448,15 @@ class RammebehandlingTest {
                         venterTil = null,
                     )
                     val behandlingPåVent = behandling.settPåVent(kommando, clock)
-                    behandlingPåVent.gjenoppta(saksbehandler, correlationId, clock) { behandling.saksopplysninger }
+                    behandlingPåVent.gjenoppta(
+                        GjenopptaRammebehandlingKommando(
+                            sakId = behandling.sakId,
+                            rammebehandlingId = behandling.id,
+                            saksbehandler = saksbehandler,
+                            correlationId = correlationId,
+                        ),
+                        clock,
+                    ) { behandling.saksopplysninger }
                 }
             }
         }
@@ -450,7 +476,15 @@ class RammebehandlingTest {
                         venterTil = null,
                     )
                     val behandlingPåVent = behandling.settPåVent(kommando, clock)
-                    behandlingPåVent.gjenoppta(saksbehandler, correlationId, clock) { behandling.saksopplysninger }
+                    behandlingPåVent.gjenoppta(
+                        GjenopptaRammebehandlingKommando(
+                            sakId = behandling.sakId,
+                            rammebehandlingId = behandling.id,
+                            saksbehandler = saksbehandler,
+                            correlationId = correlationId,
+                        ),
+                        clock,
+                    ) { behandling.saksopplysninger }
                 }
             }
         }
@@ -462,7 +496,15 @@ class RammebehandlingTest {
                 val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
                 assertThrows<IllegalArgumentException> {
-                    behandling.gjenoppta(beslutter, correlationId, clock) { behandling.saksopplysninger }
+                    behandling.gjenoppta(
+                        GjenopptaRammebehandlingKommando(
+                            sakId = behandling.sakId,
+                            rammebehandlingId = behandling.id,
+                            saksbehandler = beslutter,
+                            correlationId = correlationId,
+                        ),
+                        clock,
+                    ) { behandling.saksopplysninger }
                 }
             }
         }

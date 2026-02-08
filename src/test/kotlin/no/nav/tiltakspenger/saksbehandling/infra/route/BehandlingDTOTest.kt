@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
@@ -41,7 +43,15 @@ class BehandlingDTOTest {
                         ),
                         clock,
                     )
-                    .gjenoppta(beslutter, correlationId, clock) { behandling.saksopplysninger }.getOrFail()
+                    .gjenoppta(
+                        GjenopptaRammebehandlingKommando(
+                            sakId = behandling.sakId,
+                            rammebehandlingId = behandling.id,
+                            saksbehandler = beslutter,
+                            correlationId = correlationId,
+                        ),
+                        clock,
+                    ) { behandling.saksopplysninger }.getOrFail()
                     .settPåVent(
                         SettRammebehandlingPåVentKommando(
                             sakId = behandling.sakId,

@@ -31,7 +31,7 @@ suspend fun Sak.settKlagebehandlingPåVent(
                 Triple(it.first, it.second.klagebehandling!!, it.second)
             }.right()
         }
-        it.settPåVent(kommando, null, clock).map {
+        it.settPåVent(kommando, clock).map {
             val oppdatertSak = this.oppdaterKlagebehandling(it)
             Triple(oppdatertSak, it, null)
         }.onRight { lagreKlagebehandling(it.second, null) }

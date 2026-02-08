@@ -15,11 +15,10 @@ import java.time.Clock
  */
 fun Klagebehandling.gjenopptaKlagebehandling(
     kommando: GjenopptaKlagebehandlingKommando,
-    rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeGjenopptaKlagebehandling, Klagebehandling> {
     kanOppdatereIDenneStatusen(
-        rammebehandlingsstatus = rammebehandlingsstatus,
+        rammebehandlingsstatus = null,
         kanVæreUnderBehandling = true,
         kanVæreKlarTilBehandling = true,
     ).onLeft {

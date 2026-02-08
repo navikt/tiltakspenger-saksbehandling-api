@@ -16,10 +16,9 @@ import java.time.Clock
  */
 fun Klagebehandling.settPåVent(
     kommando: SettKlagebehandlingPåVentKommando,
-    rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeSetteKlagebehandlingPåVent, Klagebehandling> {
-    kanOppdatereIDenneStatusen(rammebehandlingsstatus).onLeft {
+    kanOppdatereIDenneStatusen(null).onLeft {
         return KanIkkeSetteKlagebehandlingPåVent.KanIkkeOppdateres(it).left()
     }
     if (saksbehandler != kommando.saksbehandler.navIdent) {

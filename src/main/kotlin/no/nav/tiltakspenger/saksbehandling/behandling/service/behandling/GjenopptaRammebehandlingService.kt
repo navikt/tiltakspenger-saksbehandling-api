@@ -10,6 +10,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereS
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
@@ -23,11 +25,9 @@ class GjenopptaRammebehandlingService(
     val logger = KotlinLogging.logger { }
 
     suspend fun gjenopptaBehandling(
-        sakId: SakId,
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
+        kommando: GjenopptaRammebehandlingKommando,
     ): Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>> {
+        val (sakId, behandlingId, saksbehandler, correlationId) = kommando
         val (sak, behandling) = behandlingService.hentSakOgBehandling(sakId, behandlingId)
 
         val hentSaksopplysninger = suspend {
@@ -46,7 +46,7 @@ class GjenopptaRammebehandlingService(
             )
         }
 
-        return behandling.gjenoppta(saksbehandler, correlationId, clock, hentSaksopplysninger).mapLeft {
+        return behandling.gjenoppta(kommando, clock, hentSaksopplysninger).mapLeft {
             KunneIkkeGjenopptaBehandling.FeilVedOppdateringAvSaksopplysninger(it)
         }.map {
             val oppdatertSak = sak.oppdaterRammebehandling(it)

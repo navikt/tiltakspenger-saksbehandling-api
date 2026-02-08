@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KunneIkkeGjenopptaBehandling
@@ -39,10 +40,12 @@ fun Route.gjenopptaRammebehandling(
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                 gjenopptaBehandlingService.gjenopptaBehandling(
-                    sakId = sakId,
-                    behandlingId = behandlingId,
-                    saksbehandler = saksbehandler,
-                    correlationId = correlationId,
+                    GjenopptaRammebehandlingKommando(
+                        sakId = sakId,
+                        rammebehandlingId = behandlingId,
+                        saksbehandler = saksbehandler,
+                        correlationId = correlationId,
+                    ),
                 ).fold(
                     ifLeft = {
                         call.respondJson(valueAndStatus = it.tilStatusOgErrorJson())

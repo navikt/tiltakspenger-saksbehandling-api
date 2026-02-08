@@ -24,9 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -62,6 +60,7 @@ const val DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
  * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling] for behandling av meldekort innenfor et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak].
  */
 sealed interface Rammebehandling : AttesterbarBehandling {
+
     override val id: BehandlingId
     val status: Rammebehandlingsstatus
     override val opprettet: LocalDateTime
@@ -101,6 +100,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     val erUnderAutomatiskBehandling: Boolean get() = status == UNDER_AUTOMATISK_BEHANDLING
     val erUnderBehandling: Boolean get() = status == UNDER_BEHANDLING || status == UNDER_AUTOMATISK_BEHANDLING
+    val erKlarTilEllerUnderBeslutning: Boolean get() =
+        status == KLAR_TIL_BESLUTNING || status == UNDER_BESLUTNING
     override val erAvbrutt: Boolean get() = status == AVBRUTT
     val erVedtatt: Boolean get() = status == VEDTATT
     override val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
@@ -127,107 +128,6 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     ): Rammebehandling
 
     fun erFerdigutfylt(): Boolean
-
-    /**
-     * Kan kun gjenoppta en behandling som er satt på vent.
-     * @param hentSaksopplysninger Henter saksopplysninger på nytt dersom denne ikke er null.
-     */
-    suspend fun gjenoppta(
-        endretAv: Saksbehandler,
-        correlationId: CorrelationId,
-        clock: Clock,
-        hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
-    ): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandling> {
-        require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
-
-        val nå = nå(clock)
-        suspend fun gjenopptaBehandling(
-            overta: Boolean,
-            hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
-        ): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandling> {
-            val oppdatertVentestatus = ventestatus.gjenoppta(
-                tidspunkt = nå,
-                endretAv = endretAv.navIdent,
-                status = status.toString(),
-            )
-            return when (this) {
-                is Søknadsbehandling -> this.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
-                is Revurdering -> this.copy(ventestatus = oppdatertVentestatus, venterTil = null, sistEndret = nå)
-            }.let {
-                if (overta) {
-                    if (it.saksbehandler == null || (status == KLAR_TIL_BESLUTNING && beslutter == null)) {
-                        it.taBehandling(endretAv, clock)
-                    } else {
-                        // Vi må overta behandlingen før vi oppdaterer sistEndret og ventestatus
-                        when (this) {
-                            is Søknadsbehandling -> {
-                                val overtattBehandling =
-                                    this.overta(endretAv, correlationId, clock).getOrNull() as Søknadsbehandling
-                                overtattBehandling.copy(
-                                    ventestatus = oppdatertVentestatus,
-                                    venterTil = null,
-                                    sistEndret = nå,
-                                )
-                            }
-
-                            is Revurdering -> {
-                                val overtattBehandling =
-                                    this.overta(endretAv, correlationId, clock).getOrNull() as Revurdering
-                                overtattBehandling.copy(
-                                    ventestatus = oppdatertVentestatus,
-                                    venterTil = null,
-                                    sistEndret = nå,
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    it
-                }
-            }.let {
-                if (hentSaksopplysninger != null) {
-                    it.oppdaterSaksopplysninger(endretAv, hentSaksopplysninger())
-                } else {
-                    it.right()
-                }
-            }
-        }
-
-        return when (status) {
-            VEDTATT, AVBRUTT -> throw IllegalStateException("Kan ikke gjenoppta behandling som har status ${status.name}")
-
-            KLAR_TIL_BEHANDLING -> {
-                krevSaksbehandlerRolle(endretAv)
-                gjenopptaBehandling(true, hentSaksopplysninger)
-            }
-
-            UNDER_BEHANDLING -> {
-                krevSaksbehandlerRolle(endretAv)
-                require(this.saksbehandler == endretAv.navIdent) { "Du må være saksbehandler på behandlingen for å kunne gjenoppta den." }
-                gjenopptaBehandling(false, hentSaksopplysninger)
-            }
-
-            UNDER_AUTOMATISK_BEHANDLING -> {
-                if (endretAv == AUTOMATISK_SAKSBEHANDLER) {
-                    gjenopptaBehandling(false, null)
-                } else {
-                    krevSaksbehandlerRolle(endretAv)
-                    gjenopptaBehandling(true, hentSaksopplysninger)
-                }
-            }
-
-            KLAR_TIL_BESLUTNING -> {
-                krevBeslutterRolle(endretAv)
-                gjenopptaBehandling(true, null)
-            }
-
-            UNDER_BESLUTNING -> {
-                krevBeslutterRolle(endretAv)
-                require(this.beslutter == endretAv.navIdent) { "Du må være beslutter på behandlingen for å kunne gjenoppta den." }
-                gjenopptaBehandling(false, null)
-            }
-        }
-    }
 
     fun leggTilbakeBehandling(
         saksbehandler: Saksbehandler,

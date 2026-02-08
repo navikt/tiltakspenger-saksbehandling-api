@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettRammebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
@@ -56,6 +57,7 @@ open class KlagebehandlingContext(
     private val taRammebehandlingService: TaRammebehandlingService,
     private val overtaRammebehandlingService: OvertaRammebehandlingService,
     private val leggTilbakeRammebehandlingService: LeggTilbakeRammebehandlingService,
+    private val gjenopptaRammebehandlingService: GjenopptaRammebehandlingService,
     private val settRammebehandlingPåVentService: `SettRammebehandlingPåVentService`,
     private val texasClient: TexasClient,
 ) {
@@ -184,6 +186,7 @@ open class KlagebehandlingContext(
     open val gjenopptaKlagebehandlingService by lazy {
         GjenopptaKlagebehandlingService(
             sakService = sakService,
+            gjenopptaRammebehandlingService = gjenopptaRammebehandlingService,
             klagebehandlingRepo = klagebehandlingRepo,
             clock = clock,
         )

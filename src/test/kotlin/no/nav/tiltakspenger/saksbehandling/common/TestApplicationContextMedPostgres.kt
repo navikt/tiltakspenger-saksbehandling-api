@@ -215,6 +215,7 @@ class TestApplicationContextMedPostgres(
             overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
+            gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
             texasClient = texasClient,
         ) {
             override val kabalClient = kabalClientFake

@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.GjenopptaKlagebehandlingKommando
@@ -12,18 +14,19 @@ import java.time.Clock
 
 class GjenopptaKlagebehandlingService(
     private val sakService: SakService,
+    private val gjenopptaRammebehandlingService: GjenopptaRammebehandlingService,
     private val klagebehandlingRepo: KlagebehandlingRepo,
     private val clock: Clock,
 ) {
-    fun gjenoppta(
+    suspend fun gjenoppta(
         kommando: GjenopptaKlagebehandlingKommando,
-    ): Either<KanIkkeGjenopptaKlagebehandling, Pair<Sak, Klagebehandling>> {
+    ): Either<KanIkkeGjenopptaKlagebehandling, Triple<Sak, Klagebehandling, Rammebehandling?>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
         return sak.gjenopptaKlagebehandling(
             kommando = kommando,
             clock = clock,
-        ).onRight {
-            klagebehandlingRepo.lagreKlagebehandling(it.second)
-        }
+            gjenopptaRammebehandling = gjenopptaRammebehandlingService::gjenopptaBehandling,
+            lagreKlagebehandling = klagebehandlingRepo::lagreKlagebehandling,
+        )
     }
 }

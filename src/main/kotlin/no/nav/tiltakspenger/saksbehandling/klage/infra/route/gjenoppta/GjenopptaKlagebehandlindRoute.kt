@@ -48,6 +48,7 @@ fun Route.gjenopptaKlagebehandlingRoute(
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         klagebehandlingId = klagebehandlingId,
+                        correlationId = correlationId,
                     ),
                 ).fold(
                     ifLeft = {

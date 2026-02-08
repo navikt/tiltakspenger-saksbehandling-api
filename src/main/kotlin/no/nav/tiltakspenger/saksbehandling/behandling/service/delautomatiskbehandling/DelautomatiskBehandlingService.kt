@@ -19,6 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbeh
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
@@ -59,11 +61,15 @@ class DelautomatiskBehandlingService(
         val oppdatertBehandling = if (behandling.ventestatus.erSattPåVent) {
             log.info { "Gjenopptar behandling med id ${behandling.id}. CorrelationId: $correlationId" }
             val gjenopptattBehandling = behandling.gjenoppta(
-                endretAv = AUTOMATISK_SAKSBEHANDLER,
-                correlationId = correlationId,
+                GjenopptaRammebehandlingKommando(
+                    sakId = behandling.sakId,
+                    rammebehandlingId = behandling.id,
+                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+                    correlationId = correlationId,
+                ),
+                clock = clock,
                 // Den automatiske jobben oppdaterer saksopplysningene selv.
                 hentSaksopplysninger = null,
-                clock = clock,
             ).getOrThrow()
             rammebehandlingRepo.lagre(gjenopptattBehandling)
             gjenopptattBehandling as Søknadsbehandling
