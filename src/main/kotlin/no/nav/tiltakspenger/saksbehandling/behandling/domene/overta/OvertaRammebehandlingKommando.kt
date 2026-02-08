@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta
+package no.nav.tiltakspenger.saksbehandling.behandling.domene.overta
 
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId

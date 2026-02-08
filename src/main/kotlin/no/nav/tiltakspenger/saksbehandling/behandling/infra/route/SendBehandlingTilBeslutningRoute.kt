@@ -28,7 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilUtbetaling
 
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutning"
 
-fun Route.sendBehandlingTilBeslutningRoute(
+fun Route.sendRammebehandlingTilBeslutningRoute(
     sendBehandlingTilBeslutningService: SendRammebehandlingTilBeslutningService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,

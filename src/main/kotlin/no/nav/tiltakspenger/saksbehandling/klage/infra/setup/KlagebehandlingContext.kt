@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettRammebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
@@ -55,6 +56,7 @@ open class KlagebehandlingContext(
     private val taRammebehandlingService: TaRammebehandlingService,
     private val overtaRammebehandlingService: OvertaRammebehandlingService,
     private val leggTilbakeRammebehandlingService: LeggTilbakeRammebehandlingService,
+    private val settRammebehandlingPåVentService: `SettRammebehandlingPåVentService`,
     private val texasClient: TexasClient,
 ) {
 
@@ -189,6 +191,7 @@ open class KlagebehandlingContext(
     open val settKlagebehandlingPåVentService by lazy {
         SettKlagebehandlingPåVentService(
             sakService = sakService,
+            settRammebehandlingPåVentService = settRammebehandlingPåVentService,
             klagebehandlingRepo = klagebehandlingRepo,
             clock = clock,
         )

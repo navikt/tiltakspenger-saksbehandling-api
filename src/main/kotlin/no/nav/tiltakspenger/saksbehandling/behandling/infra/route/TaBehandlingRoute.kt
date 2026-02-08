@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
 private const val TA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/ta"
 
-fun Route.taBehandlingRoute(
+fun Route.taRammebehandlingRoute(
     auditService: AuditService,
     taBehandlingService: TaRammebehandlingService,
     tilgangskontrollService: TilgangskontrollService,

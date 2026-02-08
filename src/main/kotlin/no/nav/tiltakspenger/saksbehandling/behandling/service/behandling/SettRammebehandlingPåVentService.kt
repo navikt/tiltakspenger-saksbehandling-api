@@ -1,10 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
@@ -17,19 +16,15 @@ class SettRammebehandlingPåVentService(
     val logger = KotlinLogging.logger { }
 
     suspend fun settBehandlingPåVent(
-        sakId: SakId,
-        behandlingId: BehandlingId,
-        begrunnelse: String,
-        saksbehandler: Saksbehandler,
+        kommando: SettRammebehandlingPåVentKommando,
     ): Pair<Sak, Rammebehandling> {
         val (sak, behandling) = behandlingService.hentSakOgBehandling(
-            sakId = sakId,
-            behandlingId = behandlingId,
+            sakId = kommando.sakId,
+            behandlingId = kommando.rammebehandlingId,
         )
 
         return behandling.settPåVent(
-            endretAv = saksbehandler,
-            begrunnelse = begrunnelse,
+            kommando = kommando,
             clock = clock,
         ).let {
             val oppdaterSak = sak.oppdaterRammebehandling(it)

@@ -38,7 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 interface SettKlagebehandlingPåVentBuilder {
     /** 1. Oppretter ny sak, søknad og iverksetter søknadsbehandling.
      *  2. Starter klagebehandling med godkjente formkrav
-     *  3. Overtar klagebehandlingen
+     *  3. Setter klagebehandling på vent
      */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingPåVent(
         tac: TestApplicationContext,

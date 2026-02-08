@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import java.time.LocalDateTime
 
 /**

@@ -372,6 +372,7 @@ open class ApplicationContext(
             taRammebehandlingService = behandlingContext.taRammebehandlingService,
             overtaRammebehandlingService = behandlingContext.overtaRammebehandlingService,
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
+            settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             texasClient = texasClient,
         )
     }

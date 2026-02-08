@@ -9,6 +9,8 @@ import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -139,7 +141,14 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
 
                 coVerify { delautomatiskBehandlingService.behandleAutomatisk(automatiskBehandling, any()) }
-                coVerify(exactly = 0) { oppdaterSaksopplysningerService.oppdaterSaksopplysninger(any(), any(), any(), any()) }
+                coVerify(exactly = 0) {
+                    oppdaterSaksopplysningerService.oppdaterSaksopplysninger(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                }
             }
         }
     }
@@ -186,11 +195,16 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 )
 
                 val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
-                val behandlingPaVent = automatiskBehandling.settPåVent(
-                    endretAv = AUTOMATISK_SAKSBEHANDLER,
+                val kommando = SettRammebehandlingPåVentKommando(
+                    sakId = automatiskBehandling.sakId,
+                    rammebehandlingId = automatiskBehandling.id,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
-                    clock = testDataHelper.clock,
+                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                     venterTil = nå(testDataHelper.clock).plusDays(1),
+                )
+                val behandlingPaVent = automatiskBehandling.settPåVent(
+                    kommando = kommando,
+                    clock = testDataHelper.clock,
                 ) as Søknadsbehandling
                 behandlingRepo.lagre(behandlingPaVent)
 
@@ -219,19 +233,43 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 )
 
                 val (sak, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
-                val behandlingPaVent = automatiskBehandling.settPåVent(
-                    endretAv = AUTOMATISK_SAKSBEHANDLER,
+                val kommando = SettRammebehandlingPåVentKommando(
+                    sakId = automatiskBehandling.sakId,
+                    rammebehandlingId = automatiskBehandling.id,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
-                    clock = testDataHelper.clock,
+                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                     venterTil = nå(testDataHelper.clock).minusDays(1),
+                )
+                val behandlingPaVent = automatiskBehandling.settPåVent(
+                    kommando = kommando,
+                    clock = testDataHelper.clock,
                 ) as Søknadsbehandling
                 behandlingRepo.lagre(behandlingPaVent)
-                coEvery { oppdaterSaksopplysningerService.oppdaterSaksopplysninger(any(), any(), any(), any()) } returns (sak to behandlingPaVent).right()
+                coEvery {
+                    oppdaterSaksopplysningerService.oppdaterSaksopplysninger(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } returns (sak to behandlingPaVent).right()
 
                 delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
 
-                coVerify { delautomatiskBehandlingService.behandleAutomatisk(match { it.id == behandlingPaVent.id }, any()) }
-                coVerify { oppdaterSaksopplysningerService.oppdaterSaksopplysninger(automatiskBehandling.sakId, automatiskBehandling.id, AUTOMATISK_SAKSBEHANDLER, any()) }
+                coVerify {
+                    delautomatiskBehandlingService.behandleAutomatisk(
+                        match { it.id == behandlingPaVent.id },
+                        any(),
+                    )
+                }
+                coVerify {
+                    oppdaterSaksopplysningerService.oppdaterSaksopplysninger(
+                        automatiskBehandling.sakId,
+                        automatiskBehandling.id,
+                        AUTOMATISK_SAKSBEHANDLER,
+                        any(),
+                    )
+                }
             }
         }
     }

@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
 private const val LEGG_TILBAKE_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/legg-tilbake"
 
-fun Route.leggTilbakeBehandlingRoute(
+fun Route.leggTilbakeRammebehandlingRoute(
     auditService: AuditService,
     leggTilbakeBehandlingService: LeggTilbakeRammebehandlingService,
     tilgangskontrollService: TilgangskontrollService,

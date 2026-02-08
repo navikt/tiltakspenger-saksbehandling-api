@@ -20,6 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGru
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
@@ -127,11 +129,16 @@ class DelautomatiskBehandlingServiceTest {
                     status = TiltakDeltakerstatus.Deltar,
                 ),
             )
-            val behandlingPaVent = behandling.settPåVent(
-                endretAv = AUTOMATISK_SAKSBEHANDLER,
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
-                clock = tac.clock,
+                saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                 venterTil = innvilgelsesperiode.fraOgMed.atStartOfDay(),
+            )
+            val behandlingPaVent = behandling.settPåVent(
+                kommando = kommando,
+                clock = tac.clock,
             ) as Søknadsbehandling
             tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
@@ -172,11 +179,16 @@ class DelautomatiskBehandlingServiceTest {
                     status = TiltakDeltakerstatus.VenterPåOppstart,
                 ),
             )
-            val behandlingPaVent = behandling.settPåVent(
-                endretAv = AUTOMATISK_SAKSBEHANDLER,
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
-                clock = tac.clock,
+                saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                 venterTil = nå(tac.clock),
+            )
+            val behandlingPaVent = behandling.settPåVent(
+                kommando = kommando,
+                clock = tac.clock,
             ) as Søknadsbehandling
             tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {

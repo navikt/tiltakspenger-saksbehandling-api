@@ -14,6 +14,8 @@ import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
@@ -702,7 +704,14 @@ class BenkOversiktPostgresRepoTest {
 
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
             val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
-            val oppdatertBehandling = behandling.settPåVent(beslutter, "Venter på AAP søknad", Clock.system(zoneIdOslo))
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
+                begrunnelse = "Venter på AAP søknad",
+                saksbehandler = beslutter,
+                venterTil = null,
+            )
+            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock)
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
             val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
@@ -719,7 +728,13 @@ class BenkOversiktPostgresRepoTest {
 
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
             val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
-            val oppdatertBehandling = behandling.settPåVent(beslutter, "Venter på AAP søknad", Clock.system(zoneIdOslo))
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
+                begrunnelse = "Venter på AAP søknad",
+                saksbehandler = beslutter,
+            )
+            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock)
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
             val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
@@ -738,7 +753,13 @@ class BenkOversiktPostgresRepoTest {
 
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
             val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
-            val oppdatertBehandling = behandling.settPåVent(beslutter, "Venter på AAP søknad", Clock.system(zoneIdOslo))
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
+                begrunnelse = "Venter på AAP søknad",
+                saksbehandler = beslutter,
+            )
+            val oppdatertBehandling = behandling.settPåVent(kommando, Clock.system(zoneIdOslo))
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
             val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
