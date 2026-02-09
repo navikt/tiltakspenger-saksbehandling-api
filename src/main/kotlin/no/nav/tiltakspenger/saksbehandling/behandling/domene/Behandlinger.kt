@@ -93,7 +93,9 @@ data class Behandlinger(
             "Behandlingene må ha unike IDer."
         }
         klagebehandlinger.filter { it.rammebehandlingId != null }.forEach { klagebehandling ->
-            val rammebehandling = rammebehandlinger.single { it.klagebehandling?.id == klagebehandling.id }
+            val rammebehandling = klagebehandling.rammebehandlingId!!.let { klagensRammebehandlingId ->
+                rammebehandlinger.single { it.id == klagensRammebehandlingId }
+            }
             require(rammebehandling.klagebehandling == klagebehandling) {
                 "Klagebehandling ${klagebehandling.id} er tilknyttet rammebehandling ${rammebehandling.id}, men objektene er ikke identiske."
             }
