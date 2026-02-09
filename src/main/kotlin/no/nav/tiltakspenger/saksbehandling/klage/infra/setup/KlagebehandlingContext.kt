@@ -58,7 +58,7 @@ open class KlagebehandlingContext(
     private val overtaRammebehandlingService: OvertaRammebehandlingService,
     private val leggTilbakeRammebehandlingService: LeggTilbakeRammebehandlingService,
     private val gjenopptaRammebehandlingService: GjenopptaRammebehandlingService,
-    private val settRammebehandlingPåVentService: `SettRammebehandlingPåVentService`,
+    private val settRammebehandlingPåVentService: SettRammebehandlingPåVentService,
     private val texasClient: TexasClient,
 ) {
 

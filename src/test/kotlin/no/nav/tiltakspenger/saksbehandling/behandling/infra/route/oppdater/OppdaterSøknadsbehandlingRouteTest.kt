@@ -88,7 +88,7 @@ class OppdaterSøknadsbehandlingRouteTest {
 
             val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
 
-            oppdatertBehandling.resultat.shouldBeInstanceOf<`Søknadsbehandlingsresultat`.Innvilgelse>()
+            oppdatertBehandling.resultat.shouldBeInstanceOf<Søknadsbehandlingsresultat.Innvilgelse>()
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
             oppdatertBehandling.vedtaksperiode shouldBe nyInnvilgelsesperiode

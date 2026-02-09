@@ -30,7 +30,7 @@ internal class BehandleSøknadPåNyttTest {
             val behandling = rammevedtak.rammebehandling as Søknadsbehandling
             behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
-            behandling.resultat is `Søknadsbehandlingsresultat`.Avslag
+            behandling.resultat is Søknadsbehandlingsresultat.Avslag
 
             val (_, _, nyBehandling, _) = this.behandleSøknadPåNytt(
                 tac = tac,
@@ -58,7 +58,7 @@ internal class BehandleSøknadPåNyttTest {
             val behandling = rammevedtak.rammebehandling as Søknadsbehandling
             behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
-            behandling.resultat is `Søknadsbehandlingsresultat`.Avslag
+            behandling.resultat is Søknadsbehandlingsresultat.Avslag
 
             val responskode = this.startBehandlingAvSøknadPåNyttForSøknadId(
                 tac = tac,
@@ -81,7 +81,7 @@ internal class BehandleSøknadPåNyttTest {
             val behandling = rammevedtak.rammebehandling as Søknadsbehandling
             behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
-            behandling.resultat is `Søknadsbehandlingsresultat`.Avslag
+            behandling.resultat is Søknadsbehandlingsresultat.Avslag
 
             tac.tilgangsmaskinFakeClient.leggTil(
                 sak.fnr,

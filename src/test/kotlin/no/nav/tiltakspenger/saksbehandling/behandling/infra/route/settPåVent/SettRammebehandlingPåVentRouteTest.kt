@@ -1,115 +1,25 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.avbryt
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.settPåVent
 
 import io.kotest.assertions.json.shouldEqualJson
-import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgAvbrytKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgSettPåVent
 import org.junit.jupiter.api.Test
 
-class AvbrytRammebehandlingRouteTest {
+class SettRammebehandlingPåVentRouteTest {
     @Test
-    fun `oppretter søknadsbehandling og deretter avbryter`() {
+    fun `sett søknadsbehandling på vent`() {
         withTestApplicationContext { tac ->
-            val (sak, søknad, søknadsbehandling, json) = opprettSøknadsbehandlingOgAvbryt(
-                tac = tac,
-            )!!
-            json.get("søknader").single().toString().shouldEqualJson(
-                """
-{
-  "id": "${søknad.id}",
-  "journalpostId": "123456789",
-  "tiltak": {
-    "id": "61328250-7d5d-4961-b70e-5cb727a34371",
-    "fraOgMed": "2023-01-01",
-    "tilOgMed": "2023-03-31",
-    "typeKode": "GRUPPEAMO",
-    "typeNavn": "Arbeidsmarkedsoppfølging gruppe"
-  },
-  "tiltaksdeltakelseperiodeDetErSøktOm": {
-    "fraOgMed": "2023-01-01",
-    "tilOgMed": "2023-03-31"
-  },
-  "manueltSattTiltak": null,
-  "søknadstype": "DIGITAL",
-  "barnetillegg": [],
-  "opprettet": "2023-01-01T00:00:00",
-  "tidsstempelHosOss": "2023-01-01T00:00:00",
-  "antallVedlegg": 0,
-  "avbrutt": {
-    "avbruttAv": "Z12345",
-    "avbruttTidspunkt": "2025-05-01T01:02:13.456789",
-    "begrunnelse": "begrunnelse for avbryt søknad og/eller rammebehandling"
-  },
-  "kanInnvilges": true,
-  "svar": {
-    "harSøktPåTiltak": {
-      "svar": "JA"
-    },
-    "harSøktOmBarnetillegg": {
-      "svar": "NEI"
-    },
-    "kvp": {
-      "svar": "NEI",
-      "periode": null
-    },
-    "intro": {
-      "svar": "NEI",
-      "periode": null
-    },
-    "institusjon": {
-      "svar": "NEI",
-      "periode": null
-    },
-    "etterlønn": {
-      "svar": "NEI"
-    },
-    "gjenlevendepensjon": {
-      "svar": "NEI",
-      "periode": null
-    },
-    "alderspensjon": {
-      "svar": "NEI",
-      "fraOgMed": null
-    },
-    "sykepenger": {
-      "svar": "NEI",
-      "periode": null
-    },
-    "supplerendeStønadAlder": {
-      "svar": "NEI",
-      "periode": null
-    },
-    "supplerendeStønadFlyktning": {
-      "svar": "NEI",
-      "periode": null
-    },
-    "jobbsjansen": {
-      "svar": "NEI",
-      "periode": null
-    },
-    "trygdOgPensjon": {
-      "svar": "NEI",
-      "periode": null
-    }
-  }
-}
-                """.trimIndent(),
-            )
-            json.get("behandlinger").single().toString().shouldEqualJson(
+            val (sak, søknad, søknadsbehandling, json) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
+            json.toString().shouldEqualJson(
                 """
 {
   "id": "${søknadsbehandling!!.id}",
-  "status": "AVBRUTT",
+  "status": "KLAR_TIL_BEHANDLING",
   "sakId": "${sak.id}",
   "saksnummer": "202505011001",
   "rammevedtakId": null,
   "klagebehandlingId": null,
-  "saksbehandler": "Z12345",
+  "saksbehandler": null,
   "beslutter": null,
   "saksopplysninger": {
     "fødselsdato": "2001-01-01",
@@ -141,14 +51,16 @@ class AvbrytRammebehandlingRouteTest {
   "vedtaksperiode": null,
   "fritekstTilVedtaksbrev": null,
   "begrunnelseVilkårsvurdering": null,
-  "avbrutt": {
-    "avbruttAv": "Z12345",
-    "avbruttTidspunkt": "2025-05-01T01:02:13.456789",
-    "begrunnelse": "begrunnelse for avbryt søknad og/eller rammebehandling"
-  },
-  "sistEndret": "2025-05-01T01:02:13.456789",
+  "avbrutt": null,
+  "sistEndret": "2025-05-01T01:02:14.456789",
   "iverksattTidspunkt": null,
-  "ventestatus": null,
+  "ventestatus": {
+    "sattPåVentAv": "Z12345",
+    "tidspunkt": "2025-05-01T01:02:13.456789",
+    "begrunnelse": "Begrunnelse for å sette rammebehandling på vent",
+    "erSattPåVent": true,
+    "frist": null
+  },
   "utbetaling": null,
   "resultat": "IKKE_VALGT",
   "søknad": {
@@ -171,11 +83,7 @@ class AvbrytRammebehandlingRouteTest {
     "opprettet": "2023-01-01T00:00:00",
     "tidsstempelHosOss": "2023-01-01T00:00:00",
     "antallVedlegg": 0,
-    "avbrutt": {
-      "avbruttAv": "Z12345",
-      "avbruttTidspunkt": "2025-05-01T01:02:13.456789",
-      "begrunnelse": "begrunnelse for avbryt søknad og/eller rammebehandling"
-    },
+    "avbrutt": null,
     "kanInnvilges": true,
     "svar": {
       "harSøktPåTiltak": {

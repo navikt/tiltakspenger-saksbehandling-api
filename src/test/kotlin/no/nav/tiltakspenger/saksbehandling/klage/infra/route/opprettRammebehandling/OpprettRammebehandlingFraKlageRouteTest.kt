@@ -62,7 +62,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "status": "UNDER_BEHANDLING",
               "sakId": "${sak.id}",
               "saksnummer": "202505011001",
-              "rammevedtakId": "null",
+              "rammevedtakId": null,
               "klagebehandlingId": "${klagebehandling.id}",
               "saksbehandler": "saksbehandlerKlagebehandling",
               "beslutter": null,
@@ -230,7 +230,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "status": "UNDER_BEHANDLING",
               "sakId": "${sak.id}",
               "saksnummer": "202505011001",
-              "rammevedtakId": "null",
+              "rammevedtakId": null,
               "klagebehandlingId": "${klagebehandling.id}",
               "saksbehandler": "saksbehandlerKlagebehandling",
               "beslutter": null,
@@ -316,59 +316,58 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 avbrutt = null,
                 ventestatus = Ventestatus(),
             )
-            // TODO: id'ene som genereres her er ikke stabile
-//            json.toString().shouldEqualJson(
-//                """
-//                {
-//                  "id": "beh_01KGSXHC1K6Z7FBG7TJEA6APXY",
-//                  "status": "UNDER_BEHANDLING",
-//                  "sakId": "sak_01KGSXH9H0XAX8WWT2BNG62HHR",
-//                  "saksnummer": "202505011001",
-//                  "rammevedtakId": "null",
-//                  "saksbehandler": "saksbehandlerKlagebehandling",
-//                  "beslutter": null,
-//                  "saksopplysninger": {
-//                    "fødselsdato": "2001-01-01",
-//                    "tiltaksdeltagelse": [
-//                      {
-//                        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-//                        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-//                        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-//                        "typeKode": "GRUPPE_AMO",
-//                        "deltagelseFraOgMed": "2023-01-01",
-//                        "deltagelseTilOgMed": "2023-03-31",
-//                        "deltakelseStatus": "Deltar",
-//                        "deltakelseProsent": 100.0,
-//                        "antallDagerPerUke": 5.0,
-//                        "kilde": "Komet",
-//                        "gjennomforingsprosent": null,
-//                        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0"
-//                      }
-//                    ],
-//                    "periode": {
-//                      "fraOgMed": "2023-01-01",
-//                      "tilOgMed": "2023-03-31"
-//                    },
-//                    "ytelser": [],
-//                    "tiltakspengevedtakFraArena": [],
-//                    "oppslagstidspunkt": "2025-05-01T01:02:36.456789"
-//                  },
-//                  "attesteringer": [],
-//                  "vedtaksperiode": null,
-//                  "fritekstTilVedtaksbrev": null,
-//                  "begrunnelseVilkårsvurdering": null,
-//                  "avbrutt": null,
-//                  "sistEndret": "2025-05-01T01:02:35.456789",
-//                  "iverksattTidspunkt": null,
-//                  "ventestatus": null,
-//                  "utbetaling": null,
-//                  "klagebehandlingId": "klage_01KGSXHBFKT88WM19GDN50X8HA",
-//                  "omgjørVedtak": "vedtak_01KGSXHB6SVRWDS7JQ5QH0ZRX3",
-//                  "resultat": "OMGJØRING_IKKE_VALGT",
-//                  "type": "REVURDERING"
-//                }
-//                """.trimIndent(),
-//            )
+            json.toString().shouldEqualJson(
+                """
+                {
+                  "id": "${rammebehandlingMedKlagebehandling.id}",
+                  "status": "UNDER_BEHANDLING",
+                  "sakId": "${rammebehandlingMedKlagebehandling.sakId}",
+                  "saksnummer": "202505011001",
+                  "rammevedtakId": null,
+                  "saksbehandler": "saksbehandlerKlagebehandling",
+                  "beslutter": null,
+                  "saksopplysninger": {
+                    "fødselsdato": "2001-01-01",
+                    "tiltaksdeltagelse": [
+                      {
+                        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
+                        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
+                        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
+                        "typeKode": "GRUPPE_AMO",
+                        "deltagelseFraOgMed": "2023-01-01",
+                        "deltagelseTilOgMed": "2023-03-31",
+                        "deltakelseStatus": "Deltar",
+                        "deltakelseProsent": 100.0,
+                        "antallDagerPerUke": 5.0,
+                        "kilde": "Komet",
+                        "gjennomforingsprosent": null,
+                        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0"
+                      }
+                    ],
+                    "periode": {
+                      "fraOgMed": "2023-01-01",
+                      "tilOgMed": "2023-03-31"
+                    },
+                    "ytelser": [],
+                    "tiltakspengevedtakFraArena": [],
+                    "oppslagstidspunkt": "2025-05-01T01:02:36.456789"
+                  },
+                  "attesteringer": [],
+                  "vedtaksperiode": null,
+                  "fritekstTilVedtaksbrev": null,
+                  "begrunnelseVilkårsvurdering": null,
+                  "avbrutt": null,
+                  "sistEndret": "2025-05-01T01:02:35.456789",
+                  "iverksattTidspunkt": null,
+                  "ventestatus": null,
+                  "utbetaling": null,
+                  "klagebehandlingId": "${klagebehandling.id}",
+                  "omgjørVedtak": "${sak.vedtaksliste.rammevedtaksliste.first().id}",
+                  "resultat": "OMGJØRING_IKKE_VALGT",
+                  "type": "REVURDERING"
+                }
+                """.trimIndent(),
+            )
         }
     }
 
