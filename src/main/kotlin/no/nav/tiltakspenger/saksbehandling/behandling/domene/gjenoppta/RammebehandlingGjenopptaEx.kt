@@ -58,7 +58,7 @@ suspend fun Rammebehandling.gjenoppta(
                     kommando = kommando,
                     oppdatertSaksbehandler = AUTOMATISK_SAKSBEHANDLER.navIdent,
                     oppdatertBeslutter = null,
-                    oppdatertStatus = UNDER_BEHANDLING,
+                    oppdatertStatus = UNDER_AUTOMATISK_BEHANDLING,
                     clock = clock,
                     hentSaksopplysninger = hentSaksopplysninger,
                 )
