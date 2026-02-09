@@ -1,10 +1,10 @@
-package no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenoppta
 
+import arrow.core.Tuple4
 import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -13,75 +13,82 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 
 /**
- * Route: [avbrytKlagebehandlingRoute]
+ * Route: [no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenopptaRammebehandling]
  */
-interface AvbrytKlagebehandlingBuilder {
+interface GjenopptaRammebehandlingBuilder {
     /**
-     * 1. Oppretter ny sak
-     * 2. Starter klagebehandling til avvisning
-     * 3. Avbryter
+     * 1. Oppretter ny sak og søknad
+     * 2. Starter søknadsbehandling under behandling
+     * 3. Setter rammebehandling på vent
+     * 4. Gjenopptar rammebehandlingen
      */
-    suspend fun ApplicationTestBuilder.opprettSakOgAvbrytKlagebehandling(
+    suspend fun ApplicationTestBuilder.opprettSøknadsbehandlingOgGjenoppta(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
-        val (sak, klagebehandling, _) = this.opprettSakOgKlagebehandlingTilAvvisning(
+    ): Tuple4<Sak, Søknad, Rammebehandling?, SakDTOJson>? {
+        val (sak, _, søknadsbehandling) = this.opprettSøknadsbehandlingUnderBehandling(
             tac = tac,
             saksbehandler = saksbehandler,
             fnr = fnr,
-        ) ?: return null
-        return avbrytKlagebehandling(
+        )
+        // Først setter vi behandlingen på vent
+        settRammebehandlingPåVent(
             tac = tac,
             sakId = sak.id,
-            klagebehandlingId = klagebehandling.id,
+            rammebehandlingId = søknadsbehandling.id,
+            saksbehandler = saksbehandler,
+        )
+
+        return gjenopptaRammebehandling(
+            tac = tac,
+            rammebehandlingId = søknadsbehandling.id,
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
+            sakId = sak.id,
         )
     }
 
     /**
-     * Forventer at det allerede finnes en sak og en åpen klagebehandling.
-     * Merk at klagen ikke må være tilknyttet en åpen rammebehandling, da må den avbrytes først.
+     * Forventer at det allerede finnes en sak og en åpen rammebehandling som er satt på vent.
      */
-    suspend fun ApplicationTestBuilder.avbrytKlagebehandling(
+    suspend fun ApplicationTestBuilder.gjenopptaRammebehandling(
         tac: TestApplicationContext,
         sakId: SakId,
-        klagebehandlingId: KlagebehandlingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        begrunnelse: String = "begrunnelse for avbryt klagebehandling",
+        rammebehandlingId: BehandlingId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
+    ): Tuple4<Sak, Søknad, Rammebehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
-            HttpMethod.Patch,
+            HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/avbryt")
+                path("/sak/$sakId/behandling/$rammebehandlingId/gjenoppta")
             },
             jwt = jwt,
         ) {
-            setBody("""{"begrunnelse": "$begrunnelse"}""")
         }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(
@@ -94,17 +101,14 @@ interface AvbrytKlagebehandlingBuilder {
                 bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
-            val sakJson = objectMapper.readTree(bodyAsText)
-
-            val klagebehandling: KlagebehandlingDTOJson = sakJson.get("klageBehandlinger").single {
-                it.get("id").asText() == klagebehandlingId.toString()
-            }
+            val sakJson: SakDTOJson = objectMapper.readTree(bodyAsText)
 
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            return Triple(
+            return Tuple4(
                 oppdatertSak,
-                oppdatertSak.hentKlagebehandling(klagebehandlingId),
-                klagebehandling,
+                oppdatertSak.søknader.last(),
+                oppdatertSak.hentRammebehandling(rammebehandlingId)!!,
+                sakJson,
             )
         }
     }

@@ -34,7 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurderKlagebehandlingRoute]
+ * Route: [vurderKlagebehandlingRoute]
  */
 interface VurderKlagebehandlingBuilder {
     /** 1. Oppretter ny sak

@@ -26,21 +26,19 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgLeggKlagebehandlingTilbake
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.taKlagebehandlingRoute]
+ * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.gjenopptaKlagebehandlingRoute]
  */
 interface GjenopptaKlagebehandlingBuilder {
     /** 1. Oppretter ny sak, søknad og iverksetter søknadsbehandling.
      *  2. Starter klagebehandling med godkjente formkrav
-     *  3. Legger klagebehandlingen tilbake
-     *  4. Tar klagebehandlingen
+     *  3. Setter klagebehandlingen på vent
+     *  4. Gjenopptar klagebehandlingen
      */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgGjenopptaKlagebehandling(
         tac: TestApplicationContext,

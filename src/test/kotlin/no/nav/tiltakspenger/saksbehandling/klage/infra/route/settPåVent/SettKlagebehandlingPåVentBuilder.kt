@@ -34,7 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.overtaKlagebehandlingRoute]
+ * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent.settKlagebehandlingPåVentRoute]
  */
 interface SettKlagebehandlingPåVentBuilder {
     /** 1. Oppretter ny sak, søknad og iverksetter søknadsbehandling.
