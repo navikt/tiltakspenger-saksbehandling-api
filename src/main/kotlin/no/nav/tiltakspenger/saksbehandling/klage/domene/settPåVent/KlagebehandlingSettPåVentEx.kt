@@ -4,11 +4,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import java.time.Clock
 
 /**
@@ -35,6 +32,7 @@ fun Klagebehandling.settPåVent(
             endretAv = kommando.saksbehandler.navIdent,
             begrunnelse = kommando.begrunnelse,
             status = status.toString(),
+            frist = kommando.frist,
         ),
         sistEndret = nå,
         status = KLAR_TIL_BEHANDLING,

@@ -55,6 +55,7 @@ fun Rammebehandling.settPåVent(
                 endretAv = endretAv.navIdent,
                 begrunnelse = kommando.begrunnelse,
                 status = status.toString(),
+                frist = kommando.frist,
             )
             val oppdatertKlagebehandling =
                 if (klagebehandling != null && status == UNDER_BEHANDLING) {
@@ -64,6 +65,7 @@ fun Rammebehandling.settPåVent(
                             klagebehandlingId = klagebehandling!!.id,
                             saksbehandler = kommando.saksbehandler,
                             begrunnelse = kommando.begrunnelse,
+                            frist = kommando.frist,
                         ),
                         clock = clock,
                     ).getOrThrow()

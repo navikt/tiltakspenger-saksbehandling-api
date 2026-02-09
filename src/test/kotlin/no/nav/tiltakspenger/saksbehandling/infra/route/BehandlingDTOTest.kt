@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneOffset
 
 class BehandlingDTOTest {
@@ -40,6 +41,8 @@ class BehandlingDTOTest {
                             rammebehandlingId = behandling.id,
                             begrunnelse = "1",
                             saksbehandler = beslutter,
+                            venterTil = null,
+                            frist = LocalDate.now(clock).plusWeeks(1),
                         ),
                         clock,
                     )
@@ -58,6 +61,8 @@ class BehandlingDTOTest {
                             rammebehandlingId = behandling.id,
                             begrunnelse = "2",
                             saksbehandler = beslutter,
+                            venterTil = null,
+                            frist = LocalDate.now(clock).plusWeeks(1),
                         ),
                         clock,
                     )

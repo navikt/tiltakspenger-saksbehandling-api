@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.januar
@@ -50,6 +51,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.Clock
+import java.time.LocalDate
 
 class BenkOversiktPostgresRepoTest {
     private fun newCommand(
@@ -744,6 +746,7 @@ class BenkOversiktPostgresRepoTest {
                 begrunnelse = "Venter på AAP søknad",
                 saksbehandler = beslutter,
                 venterTil = null,
+                frist = LocalDate.now(fixedClock).plusWeeks(1),
             )
             val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock)
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
@@ -767,6 +770,7 @@ class BenkOversiktPostgresRepoTest {
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Venter på AAP søknad",
                 saksbehandler = beslutter,
+                frist = LocalDate.now(fixedClock).plusWeeks(1),
             )
             val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock)
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
@@ -792,6 +796,7 @@ class BenkOversiktPostgresRepoTest {
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Venter på AAP søknad",
                 saksbehandler = beslutter,
+                frist = LocalDate.now(fixedClock).plusWeeks(1),
             )
             val oppdatertBehandling = behandling.settPåVent(kommando, Clock.system(zoneIdOslo))
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)

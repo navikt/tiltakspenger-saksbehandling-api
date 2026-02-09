@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class Ventestatus(
@@ -26,6 +26,7 @@ data class Ventestatus(
         endretAv: String,
         begrunnelse: String,
         status: String,
+        frist: LocalDate?,
     ): Ventestatus {
         return copy(
             ventestatusHendelser = ventestatusHendelser + VentestatusHendelse(
@@ -33,7 +34,7 @@ data class Ventestatus(
                 endretAv = endretAv,
                 begrunnelse = begrunnelse,
                 erSattPåVent = true,
-                frist = null, // TODO Saksbehandler skal få sende inn denne i neste PR på #1885
+                frist = frist,
                 status = status,
             ),
         )
@@ -50,7 +51,7 @@ data class Ventestatus(
                 endretAv = endretAv,
                 begrunnelse = "",
                 erSattPåVent = false,
-                frist = null, // TODO Saksbehandler skal få sende inn denne i neste PR på #1885
+                frist = null,
                 status = status,
             ),
         )

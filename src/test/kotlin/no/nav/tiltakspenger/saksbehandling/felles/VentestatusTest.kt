@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class VentestatusTest {
 
@@ -20,7 +21,13 @@ class VentestatusTest {
     fun `kan sette på vent`() {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
-            .settPåVent(nå(clock), "saksbehandler", "Venter på dokumentasjon", "UNDER_BEHANDLING")
+            .settPåVent(
+                tidspunkt = nå(clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Venter på dokumentasjon",
+                status = "UNDER_BEHANDLING",
+                frist = LocalDate.now(clock).plusWeeks(1),
+            )
 
         ventestatus.erSattPåVent shouldBe true
         ventestatus.ventestatusHendelser.size shouldBe 1
@@ -30,7 +37,13 @@ class VentestatusTest {
     fun `kan sette på vent og gjenoppta`() {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
-            .settPåVent(nå(clock), "saksbehandler", "Venter på dokumentasjon", "UNDER_BEHANDLING")
+            .settPåVent(
+                tidspunkt = nå(clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Venter på dokumentasjon",
+                status = "UNDER_BEHANDLING",
+                frist = LocalDate.now(clock).plusWeeks(1),
+            )
             .gjenoppta(nå(clock), "saksbehandler", "UNDER_BEHANDLING")
 
         ventestatus.erSattPåVent shouldBe false
@@ -41,9 +54,21 @@ class VentestatusTest {
     fun `kan sette på vent, gjenoppta og sette på vent igjen`() {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
-            .settPåVent(nå(clock), "saksbehandler", "Venter på dokumentasjon", "UNDER_BEHANDLING")
+            .settPåVent(
+                tidspunkt = nå(clock = clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Venter på dokumentasjon",
+                status = "UNDER_BEHANDLING",
+                frist = null,
+            )
             .gjenoppta(nå(clock), "saksbehandler", "UNDER_BEHANDLING")
-            .settPåVent(nå(clock), "saksbehandler", "Venter på mer info", "UNDER_BEHANDLING")
+            .settPåVent(
+                tidspunkt = nå(clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Venter på mer info",
+                status = "UNDER_BEHANDLING",
+                frist = LocalDate.now(clock).plusWeeks(1),
+            )
 
         ventestatus.erSattPåVent shouldBe true
         ventestatus.ventestatusHendelser.size shouldBe 3

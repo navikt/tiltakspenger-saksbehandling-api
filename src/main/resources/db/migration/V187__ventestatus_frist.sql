@@ -7,3 +7,13 @@ SET ventestatus = jsonb_set(
         true
                       )
 WHERE NOT ventestatus ? 'frist';
+
+
+UPDATE klagebehandling
+SET ventestatus = jsonb_set(
+        ventestatus,
+        '{frist}',
+        'null'::jsonb,
+        true
+                  )
+WHERE NOT ventestatus ? 'frist';

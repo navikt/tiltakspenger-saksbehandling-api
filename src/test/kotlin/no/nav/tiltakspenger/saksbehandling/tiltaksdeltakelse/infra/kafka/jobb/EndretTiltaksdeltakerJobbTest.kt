@@ -282,6 +282,7 @@ class EndretTiltaksdeltakerJobbTest {
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                     saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                     venterTil = deltakelseFom.atStartOfDay(),
+                    frist = null,
                 )
                 val behandlingPaVent =
                     behandling.settPåVent(kommando = kommando, clock = testDataHelper.clock) as Søknadsbehandling

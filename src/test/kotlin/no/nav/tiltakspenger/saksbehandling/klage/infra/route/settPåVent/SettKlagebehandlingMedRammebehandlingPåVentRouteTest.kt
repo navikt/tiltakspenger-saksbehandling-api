@@ -9,12 +9,9 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingPåVent
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
@@ -57,7 +54,8 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                     "sattPåVentAv": "saksbehandlerKlagebehandling",
                     "tidspunkt": "2025-01-01T01:02:43.456789",
                     "begrunnelse": "begrunnelse for å sette klage på vent",
-                    "erSattPåVent": true
+                    "erSattPåVent": true,
+                    "frist": "2025-01-14"
                   }
                 }
                 """.trimIndent(),
@@ -72,6 +70,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                         begrunnelse = "begrunnelse for å sette klage på vent",
                         erSattPåVent = true,
                         status = "UNDER_BEHANDLING",
+                        frist = LocalDate.parse("2025-01-14"),
                     ),
                 ),
             )
