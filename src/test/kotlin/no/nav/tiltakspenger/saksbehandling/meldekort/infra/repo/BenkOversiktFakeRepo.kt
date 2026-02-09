@@ -226,8 +226,14 @@ class BenkOversiktFakeRepo(
 
     private fun Klagebehandlingsstatus.toBehandlingssamendragStatus(): BehandlingssammendragStatus = when (this) {
         Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatus.KLAR_TIL_BEHANDLING
+
         Klagebehandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
+
         Klagebehandlingsstatus.AVBRUTT -> throw IllegalStateException("Avbrutte behandlinger skal ikke være åpne")
+
         Klagebehandlingsstatus.VEDTATT -> throw IllegalStateException("Vedtatte/iverksatte behandlinger skal ikke være åpne")
+
+        // TODO - på et eller annet tidspunkt kommer oversendte behandlinger til å være åpne - det blir mest sannsynlig etter vi får svar fra KA.
+        Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException("Oversendte behandlinger skal ikke være åpne")
     }
 }

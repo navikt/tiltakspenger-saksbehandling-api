@@ -9,6 +9,7 @@ private enum class KlagebehandlingsstatusDbEnum {
 
     // TODO jah: Lag en migrering fra IVERKSATT TIL VEDTATT samtidig som du endrer denne.
     IVERKSATT,
+    OVERSENDT,
     ;
 
     fun toDomain(): Klagebehandlingsstatus {
@@ -17,6 +18,7 @@ private enum class KlagebehandlingsstatusDbEnum {
             UNDER_BEHANDLING -> Klagebehandlingsstatus.UNDER_BEHANDLING
             AVBRUTT -> Klagebehandlingsstatus.AVBRUTT
             IVERKSATT -> Klagebehandlingsstatus.VEDTATT
+            OVERSENDT -> Klagebehandlingsstatus.OVERSENDT
         }
     }
 }
@@ -27,6 +29,7 @@ fun Klagebehandlingsstatus.toDbEnum(): String {
         Klagebehandlingsstatus.UNDER_BEHANDLING -> KlagebehandlingsstatusDbEnum.UNDER_BEHANDLING
         Klagebehandlingsstatus.AVBRUTT -> KlagebehandlingsstatusDbEnum.AVBRUTT
         Klagebehandlingsstatus.VEDTATT -> KlagebehandlingsstatusDbEnum.IVERKSATT
+        Klagebehandlingsstatus.OVERSENDT -> KlagebehandlingsstatusDbEnum.OVERSENDT
     }.name
 }
 

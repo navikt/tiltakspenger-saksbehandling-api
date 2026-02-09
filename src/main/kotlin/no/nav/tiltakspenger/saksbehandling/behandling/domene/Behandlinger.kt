@@ -115,6 +115,8 @@ data class Behandlinger(
                 Klagebehandlingsstatus.AVBRUTT -> throw IllegalStateException("En avbrutt klagebehandling skal ikke være tilknyttet en rammebehandling")
 
                 Klagebehandlingsstatus.VEDTATT -> require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT)
+
+                Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException("En oversendt klagebehandling skal ikke være tilknyttet en rammebehandling")
             }
         }
         // Siden [Rammebehandling] er "eieren" av relasjonen til [Klagebehandling], sjekker vi statusen i initen til implementasjonene av [Rammebehandling].

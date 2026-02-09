@@ -82,4 +82,20 @@ sealed interface Klagebehandlingsresultat {
             return this.copy(rammebehandlingId = null)
         }
     }
+
+    data class Opprettholdt(
+        val årsak: KlageOmgjøringsårsak,
+        val begrunnelse: Begrunnelse,
+        override val brevtekst: Brevtekster?,
+    ) : Klagebehandlingsresultat {
+        override val kanIverksette: Boolean = !brevtekst.isNullOrEmpty()
+        override val kanIkkeIverksetteGrunner: List<String> by lazy {
+            val grunner = mutableListOf<String>()
+            if (brevtekst.isNullOrEmpty()) grunner.add("Må ha minst et element i brevtekst")
+            grunner
+        }
+        override val erKnyttetTilRammebehandling = false
+
+        fun oppdaterBrevtekst(brevtekst: Brevtekster): Opprettholdt = this.copy(brevtekst = brevtekst)
+    }
 }

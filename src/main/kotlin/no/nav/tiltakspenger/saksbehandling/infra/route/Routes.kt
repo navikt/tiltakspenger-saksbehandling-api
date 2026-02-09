@@ -52,7 +52,7 @@ fun Route.routes(
             oppdaterKlagebehandlingTekstTilBrevService = applicationContext.klagebehandlingContext.oppdaterKlagebehandlingTekstTilBrevService,
             auditService = applicationContext.personContext.auditService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
-            iverksettKlagebehandlingService = applicationContext.klagebehandlingContext.iverksettKlagebehandlingService,
+            iverksettAvvistKlagebehandlingService = applicationContext.klagebehandlingContext.iverksettAvvistKlagebehandlingService,
             vurderKlagebehandlingService = applicationContext.klagebehandlingContext.vurderKlagebehandlingService,
             opprettRammebehandlingFraKlageService = applicationContext.klagebehandlingContext.opprettRammebehandlingFraKlageService,
             overtaKlagebehandlingService = applicationContext.klagebehandlingContext.overtaKlagebehandlingService,

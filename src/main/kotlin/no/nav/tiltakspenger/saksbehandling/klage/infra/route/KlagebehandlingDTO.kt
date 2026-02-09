@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.tilVentestatusHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto.Companion.toKlageresultatstypDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto.Companion.toKlagestatustypeDto
 
 data class KlagebehandlingDTO(
     val id: String,
@@ -21,7 +21,7 @@ data class KlagebehandlingDTO(
     val saksbehandler: String?,
     val journalpostId: String,
     val journalpostOpprettet: String,
-    val status: String,
+    val status: KlagestatustypeDto,
     val resultat: KlageresultatstypeDto?,
     val vedtakDetKlagesPå: String?,
     val erKlagerPartISaken: Boolean,
@@ -54,16 +54,7 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     saksbehandler = saksbehandler,
     journalpostId = journalpostId.toString(),
     journalpostOpprettet = journalpostOpprettet.toString(),
-    status = when (status) {
-        Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> "KLAR_TIL_BEHANDLING"
-
-        Klagebehandlingsstatus.UNDER_BEHANDLING -> "UNDER_BEHANDLING"
-
-        Klagebehandlingsstatus.AVBRUTT -> "AVBRUTT"
-
-        // TODO jah: Endre til VEDTATT her og frontend samtidig.
-        Klagebehandlingsstatus.VEDTATT -> "IVERKSATT"
-    },
+    status = status.toKlagestatustypeDto(),
     resultat = resultat?.toKlageresultatstypDto(),
     vedtakDetKlagesPå = formkrav.vedtakDetKlagesPå?.toString(),
     erKlagerPartISaken = formkrav.erKlagerPartISaken,

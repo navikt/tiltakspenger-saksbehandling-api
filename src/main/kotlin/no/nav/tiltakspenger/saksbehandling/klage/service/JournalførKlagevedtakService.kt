@@ -47,6 +47,8 @@ class JournalførKlagevedtakService(
                         )
 
                         is Klagebehandlingsresultat.Omgjør -> throw IllegalStateException("Ugyldig tilstand ved journalføring av klagevedtak. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}")
+
+                        is Klagebehandlingsresultat.Opprettholdt -> TODO("Implementer generering av opprettholdelsesbrev før vi kan journalføre")
                     }.getOrElse { return@forEach }
 
                     log.info { "Vedtaksbrev generert for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }

@@ -4,7 +4,7 @@ import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.forhåndsvisBrevKlagebehandlingRoute
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.iverksettKlagebehandlingRoute
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.iverksettAvvistKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.oppdaterTekstTilBrev
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.gjenopptaKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.leggTilbakeKlagebehandlingRoute
@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.taKlagebehandlin
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.GjenopptaKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettAvvistKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.LeggTilbakeKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
@@ -32,7 +32,7 @@ fun Route.klagebehandlingRoutes(
     avbrytKlagebehandlingService: AvbrytKlagebehandlingService,
     forhåndsvisBrevKlagebehandlingService: ForhåndsvisBrevKlagebehandlingService,
     oppdaterKlagebehandlingTekstTilBrevService: OppdaterKlagebehandlingTekstTilBrevService,
-    iverksettKlagebehandlingService: IverksettKlagebehandlingService,
+    iverksettAvvistKlagebehandlingService: IverksettAvvistKlagebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
     vurderKlagebehandlingService: VurderKlagebehandlingService,
@@ -70,8 +70,8 @@ fun Route.klagebehandlingRoutes(
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
     )
-    iverksettKlagebehandlingRoute(
-        iverksettKlagebehandlingService = iverksettKlagebehandlingService,
+    iverksettAvvistKlagebehandlingRoute(
+        iverksettAvvistKlagebehandlingService = iverksettAvvistKlagebehandlingService,
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
         clock = clock,

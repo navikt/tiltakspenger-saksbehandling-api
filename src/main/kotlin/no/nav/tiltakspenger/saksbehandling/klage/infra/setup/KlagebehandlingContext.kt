@@ -27,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.GjenopptaKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettAvvistKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.JournalførKlagevedtakService
 import no.nav.tiltakspenger.saksbehandling.klage.service.LeggTilbakeKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
@@ -117,8 +117,8 @@ open class KlagebehandlingContext(
             klagebehandlingRepo = klagebehandlingRepo,
         )
     }
-    open val iverksettKlagebehandlingService: IverksettKlagebehandlingService by lazy {
-        IverksettKlagebehandlingService(
+    open val iverksettAvvistKlagebehandlingService: IverksettAvvistKlagebehandlingService by lazy {
+        IverksettAvvistKlagebehandlingService(
             sakService = sakService,
             clock = clock,
             klagebehandlingRepo = klagebehandlingRepo,

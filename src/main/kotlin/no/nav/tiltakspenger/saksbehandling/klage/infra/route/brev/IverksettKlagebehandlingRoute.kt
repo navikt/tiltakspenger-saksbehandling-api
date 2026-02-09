@@ -19,16 +19,16 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettAvvisningKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettAvvistKlagebehandlingService
 import java.time.Clock
 
 private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/iverksett"
 
-fun Route.iverksettKlagebehandlingRoute(
-    iverksettKlagebehandlingService: IverksettKlagebehandlingService,
+fun Route.iverksettAvvistKlagebehandlingRoute(
+    iverksettAvvistKlagebehandlingService: IverksettAvvistKlagebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
     clock: Clock,
@@ -44,14 +44,13 @@ fun Route.iverksettKlagebehandlingRoute(
                 val correlationId = call.correlationId()
                 krevSaksbehandlerRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                iverksettKlagebehandlingService.iverksett(
-                    kommando = IverksettKlagebehandlingKommando(
+                iverksettAvvistKlagebehandlingService.iverksett(
+                    kommando = IverksettAvvisningKommando(
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         correlationId = correlationId,
                         klagebehandlingId = klagebehandlingId,
                         iverksattTidspunkt = nå(clock),
-                        iverksettFraRammebehandling = false,
                     ),
                 ).fold(
                     ifLeft = {

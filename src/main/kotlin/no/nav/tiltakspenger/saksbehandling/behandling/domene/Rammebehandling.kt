@@ -35,8 +35,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksett
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettOmgjøringKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksettOmgjøring
 import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.LeggTilbakeKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.leggTilbake
 import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.OvertaKlagebehandlingKommando
@@ -425,16 +425,12 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
                 val attesteringer = attesteringer.leggTil(attestering)
                 val iverksattTidspunkt = nå(clock)
-                val oppdatertKlagebehandling: Klagebehandling? = klagebehandling?.iverksett(
-                    IverksettKlagebehandlingKommando(
+                val oppdatertKlagebehandling: Klagebehandling? = klagebehandling?.iverksettOmgjøring(
+                    IverksettOmgjøringKommando(
                         sakId = sakId,
                         klagebehandlingId = klagebehandling!!.id,
-                        // Har andre sjekker på at saksbehandler må være lik mellom rammebehandling og klagebehandling ved iverksetting.
-                        // Klagebehandlingen har ikke beslutter per say, så vi sender inn null her.
-                        saksbehandler = null,
                         correlationId = correlationId,
                         iverksattTidspunkt = iverksattTidspunkt,
-                        iverksettFraRammebehandling = true,
                     ),
                     // TODO jah: Endre til left eller custom exception for å propagere feil bedre?
                 )

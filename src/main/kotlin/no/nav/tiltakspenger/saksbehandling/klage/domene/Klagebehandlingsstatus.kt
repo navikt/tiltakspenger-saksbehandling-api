@@ -11,4 +11,7 @@ enum class Klagebehandlingsstatus {
 
     /** Andre ord som iverksatt og ferdigstilt brukes også. Kan brukes både ved avvisning og medhold. */
     VEDTATT,
+
+    /** Behandlingen er sendt over til klageinstansen */
+    OVERSENDT,
 }
