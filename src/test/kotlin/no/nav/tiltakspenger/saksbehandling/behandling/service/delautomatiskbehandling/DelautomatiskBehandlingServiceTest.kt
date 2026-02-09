@@ -186,6 +186,7 @@ class DelautomatiskBehandlingServiceTest {
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                 venterTil = innvilgelsesperiode.fraOgMed.atStartOfDay(),
+                frist = null,
             )
             val behandlingPaVent = behandling.settPåVent(
                 kommando = kommando,
