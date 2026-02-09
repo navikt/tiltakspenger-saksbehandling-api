@@ -92,6 +92,7 @@ private fun Revurdering.oppdaterOmgjøringInnvilgelse(
     ).right()
 }
 
+// TODO abn: sjekkene her bør også kjøres ved iverksetting
 private fun Revurdering.oppdaterOmgjøringOpphør(
     kommando: OppdaterOmgjøringKommando.OmgjøringOpphør,
     utbetaling: BehandlingUtbetaling?,
@@ -99,21 +100,35 @@ private fun Revurdering.oppdaterOmgjøringOpphør(
     omgjortVedtak: Rammevedtak,
     clock: Clock,
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
-    val nyVedtaksperiode = kommando.vedtaksperiode
+    val opphørtPeriode = kommando.vedtaksperiode
 
-    val rammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres(nyVedtaksperiode)
+    val rammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres(opphørtPeriode)
 
     validerRammevedtakSomOmgjøres(
         rammevedtakSomOmgjøres,
         omgjortVedtak.id,
     ).onLeft { return it.left() }
 
+    if (omgjortVedtak.gyldigOpphørskommando == null) {
+        return KanIkkeOppdatereOmgjøring.KanIkkeOpphøreVedtakUtenGjeldendeInnvilgelse.left()
+    }
+
+    if (omgjortVedtak.gjeldendeInnvilgetPerioder.none { it.inneholder(opphørtPeriode.fraOgMed) }) {
+        return KanIkkeOppdatereOmgjøring.UgyldigPeriodeForOpphør("Perioden som opphøres må starte i en gjeldende innvilgelsesperiode")
+            .left()
+    }
+
+    if (omgjortVedtak.gjeldendeInnvilgetPerioder.none { it.inneholder(opphørtPeriode.tilOgMed) }) {
+        return KanIkkeOppdatereOmgjøring.UgyldigPeriodeForOpphør("Perioden som opphøres må slutte i en gjeldende innvilgelsesperiode")
+            .left()
+    }
+
     return this.copy(
         sistEndret = nå(clock),
         begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
         fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
         resultat = Omgjøringsresultat.OmgjøringOpphør(
-            vedtaksperiode = nyVedtaksperiode,
+            vedtaksperiode = opphørtPeriode,
             omgjørRammevedtak = rammevedtakSomOmgjøres,
         ),
         utbetaling = utbetaling,

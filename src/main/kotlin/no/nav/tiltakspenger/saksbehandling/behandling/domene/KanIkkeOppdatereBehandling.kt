@@ -15,4 +15,6 @@ sealed interface KanIkkeOppdatereOmgjøring : KanIkkeOppdatereBehandling {
     data object MåOmgjøreAngittVedtak : KanIkkeOppdatereOmgjøring
     data object MåOmgjøreEnSammenhengendePeriode : KanIkkeOppdatereOmgjøring
     data object VedtaksperiodeMåInneholdeInnvilgelsesperiodene : KanIkkeOppdatereOmgjøring
+    data object KanIkkeOpphøreVedtakUtenGjeldendeInnvilgelse : KanIkkeOppdatereOmgjøring
+    data class UgyldigPeriodeForOpphør(val årsak: String) : KanIkkeOppdatereOmgjøring
 }
