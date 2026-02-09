@@ -124,6 +124,7 @@ class DelautomatiskBehandlingService(
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                     saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                     venterTil = venterTil,
+                    frist = null,
                 ),
                 clock = clock,
             ).let {

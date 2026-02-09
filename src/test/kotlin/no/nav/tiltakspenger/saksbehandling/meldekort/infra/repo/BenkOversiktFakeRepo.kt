@@ -113,6 +113,8 @@ class BenkOversiktFakeRepo(
                 sakId = behandling.sakId,
                 kravtidspunkt = if (behandling.behandlingstype == Behandlingstype.SØKNADSBEHANDLING) behandling.opprettet else null,
                 erSattPåVent = behandling.ventestatus.erSattPåVent,
+                sattPåVentBegrunnelse = behandling.ventestatus.sattPåVentBegrunnelse,
+                sattPåVentFrist = behandling.ventestatus.sattPåVentFrist,
                 sistEndret = behandling.sistEndret,
             )
         }
@@ -130,6 +132,8 @@ class BenkOversiktFakeRepo(
             sakId = søknad.sakId,
             kravtidspunkt = søknad.opprettet,
             erSattPåVent = false,
+            sattPåVentBegrunnelse = null,
+            sattPåVentFrist = null,
             sistEndret = null,
         )
     }
@@ -161,6 +165,8 @@ class BenkOversiktFakeRepo(
                 saksbehandler = it.saksbehandler,
                 beslutter = it.beslutter,
                 erSattPåVent = false,
+                sattPåVentBegrunnelse = null,
+                sattPåVentFrist = null,
                 sistEndret = it.sistEndret,
             )
         }
@@ -211,6 +217,8 @@ class BenkOversiktFakeRepo(
                 saksbehandler = it.saksbehandler,
                 beslutter = null,
                 erSattPåVent = false,
+                sattPåVentBegrunnelse = null,
+                sattPåVentFrist = null,
                 sistEndret = it.sistEndret,
             )
         }

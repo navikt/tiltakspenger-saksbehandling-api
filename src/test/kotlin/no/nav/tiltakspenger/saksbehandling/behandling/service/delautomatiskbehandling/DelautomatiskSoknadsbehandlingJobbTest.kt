@@ -201,6 +201,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                     saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                     venterTil = nå(testDataHelper.clock).plusDays(1),
+                    frist = null,
                 )
                 val behandlingPaVent = automatiskBehandling.settPåVent(
                     kommando = kommando,
@@ -239,6 +240,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                     saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                     venterTil = nå(testDataHelper.clock).minusDays(1),
+                    frist = null,
                 )
                 val behandlingPaVent = automatiskBehandling.settPåVent(
                     kommando = kommando,

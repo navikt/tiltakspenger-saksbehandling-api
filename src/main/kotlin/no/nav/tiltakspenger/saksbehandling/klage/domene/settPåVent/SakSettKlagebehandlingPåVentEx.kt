@@ -25,6 +25,7 @@ suspend fun Sak.settKlagebehandlingPåVent(
                     sakId = kommando.sakId,
                     rammebehandlingId = rammebehandling.id,
                     begrunnelse = kommando.begrunnelse,
+                    frist = kommando.frist,
                     saksbehandler = kommando.saksbehandler,
                 ),
             ).let {

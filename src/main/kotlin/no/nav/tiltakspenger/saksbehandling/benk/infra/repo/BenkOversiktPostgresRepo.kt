@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerComm
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import java.time.LocalDate
 
 data class BehandlingssamendragMedCount(
     val behandlingssammendrag: Behandlingssammendrag,
@@ -45,6 +46,8 @@ class BenkOversiktPostgresRepo(
                                        null                  as saksbehandler,
                                        null                  as beslutter,
                                        null                  as erSattPåVent,
+                                       null                  as sattPåVentBegrunnelse,
+                                       null                  as sattPåVentFrist,
                                        null::timestamp with time zone as sist_endret
                                     from søknad sø
                                              join sak sa on sø.sak_id = sa.id
@@ -59,7 +62,9 @@ class BenkOversiktPostgresRepo(
                                         b.status            as status,
                                         b.saksbehandler     as saksbehandler,
                                         b.beslutter         as beslutter,
-                                        b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent' as erSattPåVent,
+                                        b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent'  as erSattPåVent,
+                                        b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as sattPåVentBegrunnelse,
+                                        b.ventestatus->'ventestatusHendelser'->-1->>'frist'         as sattPåVentFrist,
                                         b.sist_endret       as sist_endret
                                  from behandling b
                                           join søknad s on s.id = b.soknad_id
@@ -77,6 +82,8 @@ class BenkOversiktPostgresRepo(
                                   b.saksbehandler as saksbehandler,
                                   b.beslutter     as beslutter,
                                   b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent' as erSattPåVent,
+                                  b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'  as sattPåVentBegrunnelse,
+                                  b.ventestatus->'ventestatusHendelser'->-1->>'frist'        as sattPåVentFrist,
                                   b.sist_endret   as sist_endret
                            from behandling b
                                     join sak sa on b.sak_id = sa.id
@@ -93,6 +100,8 @@ class BenkOversiktPostgresRepo(
                                           m.saksbehandler       as saksbehandler,
                                           m.beslutter           as beslutter,
                                           null                  as erSattPåVent,
+                                          null                  as sattPåVentBegrunnelse,
+                                          null                  as sattPåVentFrist,
                                           m.sist_endret as sist_endret
                                    from meldekortbehandling m
                                             join sak s on m.sak_id = s.id
@@ -134,6 +143,8 @@ class BenkOversiktPostgresRepo(
                 NULL                           AS saksbehandler,
                 NULL                           AS beslutter,
                 NULL                           AS erSattPåVent,
+                NULL                           AS sattPåVentBegrunnelse,
+                NULL                           AS sattPåVentFrist,
                 NULL::timestamp with time zone AS sist_endret
          FROM meldekort_bruker mbr
                   JOIN sak s ON mbr.sak_id = s.id
@@ -153,6 +164,8 @@ class BenkOversiktPostgresRepo(
                        k.saksbehandler   as saksbehandler,
                        null              as beslutter,
                        null              as erSattPåVent,
+                       null              as sattPåVentBegrunnelse,
+                       null              as sattPåVentFrist,
                        k.sist_endret     as sist_endret
                 from klagebehandling k
                          join sak s on k.sak_id = s.id
@@ -242,6 +255,8 @@ and (
                     val sistEndret = row.localDateTimeOrNull("sist_endret")
                     val count = row.int("total_count")
                     val erSattPåVent = row.booleanOrNull("erSattPåVent") == true
+                    val sattPåVentBegrunnelse = row.stringOrNull("sattPåVentBegrunnelse")
+                    val sattPåVentFrist = row.stringOrNull("sattPåVentFrist")?.let { LocalDate.parse(it) }
 
                     BehandlingssamendragMedCount(
                         Behandlingssammendrag(
@@ -256,6 +271,8 @@ and (
                             beslutter = beslutter,
                             sistEndret = sistEndret,
                             erSattPåVent = erSattPåVent,
+                            sattPåVentBegrunnelse = sattPåVentBegrunnelse,
+                            sattPåVentFrist = sattPåVentFrist,
                         ),
                         totalAntall = count,
                     )

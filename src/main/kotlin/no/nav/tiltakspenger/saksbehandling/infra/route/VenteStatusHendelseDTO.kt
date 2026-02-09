@@ -7,6 +7,7 @@ data class VentestatusHendelseDTO(
     val tidspunkt: String,
     val begrunnelse: String,
     val erSattPåVent: Boolean,
+    val frist: String? = null,
 )
 
 fun VentestatusHendelse.tilVentestatusHendelseDTO() = VentestatusHendelseDTO(
@@ -14,4 +15,5 @@ fun VentestatusHendelse.tilVentestatusHendelseDTO() = VentestatusHendelseDTO(
     tidspunkt = tidspunkt.toString(),
     begrunnelse = begrunnelse,
     erSattPåVent = erSattPåVent,
+    frist = frist?.toString(),
 )

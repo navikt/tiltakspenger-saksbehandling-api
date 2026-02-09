@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class VentestatusTest {
 
@@ -20,7 +21,13 @@ class VentestatusTest {
     fun `kan sette på vent`() {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
-            .settPåVent(nå(clock), "saksbehandler", "Venter på dokumentasjon", "UNDER_BEHANDLING")
+            .settPåVent(
+                tidspunkt = nå(clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Venter på dokumentasjon",
+                status = "UNDER_BEHANDLING",
+                frist = LocalDate.now(clock).plusWeeks(1),
+            )
 
         ventestatus.erSattPåVent shouldBe true
         ventestatus.ventestatusHendelser.size shouldBe 1
@@ -30,7 +37,13 @@ class VentestatusTest {
     fun `kan sette på vent og gjenoppta`() {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
-            .settPåVent(nå(clock), "saksbehandler", "Venter på dokumentasjon", "UNDER_BEHANDLING")
+            .settPåVent(
+                tidspunkt = nå(clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Venter på dokumentasjon",
+                status = "UNDER_BEHANDLING",
+                frist = LocalDate.now(clock).plusWeeks(1),
+            )
             .gjenoppta(nå(clock), "saksbehandler", "UNDER_BEHANDLING")
 
         ventestatus.erSattPåVent shouldBe false
@@ -41,9 +54,21 @@ class VentestatusTest {
     fun `kan sette på vent, gjenoppta og sette på vent igjen`() {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
-            .settPåVent(nå(clock), "saksbehandler", "Venter på dokumentasjon", "UNDER_BEHANDLING")
+            .settPåVent(
+                tidspunkt = nå(clock = clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Venter på dokumentasjon",
+                status = "UNDER_BEHANDLING",
+                frist = null,
+            )
             .gjenoppta(nå(clock), "saksbehandler", "UNDER_BEHANDLING")
-            .settPåVent(nå(clock), "saksbehandler", "Venter på mer info", "UNDER_BEHANDLING")
+            .settPåVent(
+                tidspunkt = nå(clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Venter på mer info",
+                status = "UNDER_BEHANDLING",
+                frist = LocalDate.now(clock).plusWeeks(1),
+            )
 
         ventestatus.erSattPåVent shouldBe true
         ventestatus.ventestatusHendelser.size shouldBe 3
@@ -55,7 +80,14 @@ class VentestatusTest {
         shouldThrow<IllegalArgumentException> {
             Ventestatus(
                 ventestatusHendelser = listOf(
-                    VentestatusHendelse(nå(clock), "saksbehandler", "", erSattPåVent = false, "UNDER_BEHANDLING"),
+                    VentestatusHendelse(
+                        tidspunkt = nå(clock),
+                        endretAv = "saksbehandler",
+                        begrunnelse = "",
+                        frist = null,
+                        erSattPåVent = false,
+                        status = "UNDER_BEHANDLING",
+                    ),
                 ),
             )
         }.message shouldBe "erSattPåVent må alternere, og første hendelse må være sattPåVent=true"
@@ -68,18 +100,20 @@ class VentestatusTest {
             Ventestatus(
                 ventestatusHendelser = listOf(
                     VentestatusHendelse(
-                        nå(clock),
-                        "saksbehandler",
-                        "Begrunnelse 1",
+                        tidspunkt = nå(clock),
+                        endretAv = "saksbehandler",
+                        begrunnelse = "Begrunnelse 1",
+                        frist = null,
                         erSattPåVent = true,
-                        "UNDER_BEHANDLING",
+                        status = "UNDER_BEHANDLING",
                     ),
                     VentestatusHendelse(
-                        nå(clock),
-                        "saksbehandler",
-                        "Begrunnelse 2",
+                        tidspunkt = nå(clock),
+                        endretAv = "saksbehandler",
+                        begrunnelse = "Begrunnelse 2",
+                        frist = null,
                         erSattPåVent = true,
-                        "UNDER_BEHANDLING",
+                        status = "UNDER_BEHANDLING",
                     ),
                 ),
             )
@@ -93,14 +127,29 @@ class VentestatusTest {
             Ventestatus(
                 ventestatusHendelser = listOf(
                     VentestatusHendelse(
-                        nå(clock),
-                        "saksbehandler",
-                        "Begrunnelse",
+                        tidspunkt = nå(clock),
+                        endretAv = "saksbehandler",
+                        begrunnelse = "Begrunnelse",
+                        frist = null,
                         erSattPåVent = true,
+                        status = "UNDER_BEHANDLING",
+                    ),
+                    VentestatusHendelse(
+                        nå(clock = clock),
+                        "saksbehandler",
+                        "",
+                        frist = null,
+                        erSattPåVent = false,
                         "UNDER_BEHANDLING",
                     ),
-                    VentestatusHendelse(nå(clock), "saksbehandler", "", erSattPåVent = false, "UNDER_BEHANDLING"),
-                    VentestatusHendelse(nå(clock), "saksbehandler", "", erSattPåVent = false, "UNDER_BEHANDLING"),
+                    VentestatusHendelse(
+                        nå(clock = clock),
+                        "saksbehandler",
+                        "",
+                        frist = null,
+                        erSattPåVent = false,
+                        "UNDER_BEHANDLING",
+                    ),
                 ),
             )
         }.message shouldBe "erSattPåVent må alternere, og første hendelse må være sattPåVent=true"
@@ -114,13 +163,21 @@ class VentestatusTest {
             Ventestatus(
                 ventestatusHendelser = listOf(
                     VentestatusHendelse(
-                        liktTidspunkt,
-                        "saksbehandler",
-                        "Begrunnelse",
+                        tidspunkt = liktTidspunkt,
+                        endretAv = "saksbehandler",
+                        begrunnelse = "Begrunnelse",
+                        frist = null,
                         erSattPåVent = true,
-                        "UNDER_BEHANDLING",
+                        status = "UNDER_BEHANDLING",
                     ),
-                    VentestatusHendelse(liktTidspunkt, "saksbehandler", "", erSattPåVent = false, "UNDER_BEHANDLING"),
+                    VentestatusHendelse(
+                        tidspunkt = liktTidspunkt,
+                        endretAv = "saksbehandler",
+                        begrunnelse = "",
+                        frist = null,
+                        erSattPåVent = false,
+                        status = "UNDER_BEHANDLING",
+                    ),
                 ),
             )
         }.message shouldBe "Hendelsene må være sortert etter tidspunkt"
