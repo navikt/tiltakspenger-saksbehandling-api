@@ -91,6 +91,8 @@ class BenkOversiktPostgresRepoTest {
                 saksbehandler = null,
                 beslutter = null,
                 erSattPåVent = false,
+                sattPåVentBegrunnelse = null,
+                sattPåVentFrist = null,
                 sistEndret = null,
             )
         }
@@ -143,6 +145,8 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = null,
                     sistEndret = opprettetBehandling.sistEndret,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakKlarTilBeslutning.id,
@@ -156,6 +160,8 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = null,
                     sistEndret = klarTilBeslutning.sistEndret,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakUnderBeslutning.id,
@@ -169,6 +175,8 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = ObjectMother.beslutter().navIdent,
                     sistEndret = underBeslutning.sistEndret,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 )
             }
         }
@@ -203,6 +211,8 @@ class BenkOversiktPostgresRepoTest {
                     kravtidspunkt = null,
                     sistEndret = opprettetRevurdering.sistEndret,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakRevurderingTilBeslutning.id,
@@ -216,6 +226,8 @@ class BenkOversiktPostgresRepoTest {
                     kravtidspunkt = null,
                     sistEndret = revurderingTilBeslutning.sistEndret,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakMedRevurderingUnderBeslutning.id,
@@ -229,6 +241,8 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = ObjectMother.beslutter().navIdent,
                     sistEndret = revurderingUnderBeslutning.sistEndret,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 )
             }
         }
@@ -266,6 +280,8 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = null,
                     sistEndret = null,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sak1MedMeldekortForEnAnnenPeriode.id,
@@ -279,6 +295,8 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = null,
                     sistEndret = null,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sak2.id,
@@ -292,6 +310,8 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = null,
                     sistEndret = null,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 )
             }
         }
@@ -323,6 +343,8 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = null,
                     beslutter = null,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                     sistEndret = null,
                 )
                 it[1] shouldBe Behandlingssammendrag(
@@ -336,6 +358,8 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                     sistEndret = opprettetMeldekortbehandling.sistEndret,
                 )
                 it.last() shouldBe Behandlingssammendrag(
@@ -349,6 +373,8 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                     sistEndret = meldekortbehandlingTilBeslutning.sistEndret,
                 )
             }
@@ -388,6 +414,8 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = null,
                     sistEndret = null,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 ),
             )
 
@@ -429,6 +457,8 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = null,
                     sistEndret = null,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 ),
             )
 
@@ -455,6 +485,8 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = null,
                     sistEndret = behandling.sistEndret,
                     erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
                 ),
             )
 
@@ -544,6 +576,8 @@ class BenkOversiktPostgresRepoTest {
                 saksbehandler = ObjectMother.saksbehandler().navIdent,
                 beslutter = null,
                 erSattPåVent = false,
+                sattPåVentBegrunnelse = null,
+                sattPåVentFrist = null,
                 sistEndret = klagebehandling.sistEndret,
             )
         }

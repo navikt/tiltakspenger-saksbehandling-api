@@ -7,6 +7,8 @@ data class Ventestatus(
     val ventestatusHendelser: List<VentestatusHendelse> = emptyList(),
 ) {
     val erSattPåVent: Boolean = ventestatusHendelser.lastOrNull()?.erSattPåVent ?: false
+    val sattPåVentBegrunnelse = ventestatusHendelser.lastOrNull()?.begrunnelse
+    val sattPåVentFrist = ventestatusHendelser.lastOrNull()?.frist
 
     init {
         require(
@@ -31,6 +33,7 @@ data class Ventestatus(
                 endretAv = endretAv,
                 begrunnelse = begrunnelse,
                 erSattPåVent = true,
+                frist = null, // TODO Saksbehandler skal få sende inn denne i neste PR på #1885
                 status = status,
             ),
         )
@@ -47,6 +50,7 @@ data class Ventestatus(
                 endretAv = endretAv,
                 begrunnelse = "",
                 erSattPåVent = false,
+                frist = null, // TODO Saksbehandler skal få sende inn denne i neste PR på #1885
                 status = status,
             ),
         )

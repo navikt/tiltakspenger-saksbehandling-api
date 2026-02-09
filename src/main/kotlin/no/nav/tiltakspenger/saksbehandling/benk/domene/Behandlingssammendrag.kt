@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.benk.domene
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class Behandlingssammendrag(
@@ -22,6 +23,8 @@ data class Behandlingssammendrag(
     val beslutter: String?,
     val sistEndret: LocalDateTime?,
     val erSattPåVent: Boolean,
+    val sattPåVentBegrunnelse: String?,
+    val sattPåVentFrist: LocalDate?,
 ) {
     init {
         if (behandlingstype == BehandlingssammendragType.SØKNADSBEHANDLING) {

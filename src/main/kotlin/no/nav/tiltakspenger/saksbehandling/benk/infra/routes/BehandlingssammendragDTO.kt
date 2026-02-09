@@ -12,6 +12,8 @@ data class BehandlingssammendragDTO(
     val beslutter: String?,
     val sistEndret: String?,
     val erSattPåVent: Boolean,
+    val sattPåVentBegrunnelse: String?,
+    val sattPåVentFrist: String?,
 )
 
 enum class BehandlingssammendragTypeDTO {
