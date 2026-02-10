@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.satser.Satser
@@ -20,15 +21,22 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.leggTilMeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyOpprettetRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterRevurderingInnvilgelseKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class BeregnRevurderingTest {
@@ -313,5 +321,33 @@ class BeregnRevurderingTest {
 
         // Andre meldeperiode har ingen endringer på beregningen, 0 barn før og etter
         nyBeregning[1].dager shouldBe sakMedMeldekortBehandlinger.meldekortbehandlinger[1].beregning!!.dager
+    }
+
+    // TODO abn: enable når bug med beregning av ny innvilgelse etter opphør er fikset
+    @Disabled
+    @Test
+    fun `skal beregne ny utbetaling dersom en utbetalt periode opphøres og så innvilges på nytt`() {
+        withTestApplicationContext { tac ->
+            val periode = 1.januar(2025) til 31.januar(2025)
+
+            val sak = tac.førsteMeldekortIverksatt(
+                innvilgelsesperiode = periode,
+                fnr = gyldigFnr(),
+            )
+
+            sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 2384
+
+            val (sakMedStans) = iverksettRevurderingStans(tac = tac, sakId = sak.id, stansFraOgMed = periode.fraOgMed)
+
+            sakMedStans.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 0
+
+            val (sakMedNyInnvilgelse) = iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(periode),
+            )
+
+            sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 2384
+        }
     }
 }

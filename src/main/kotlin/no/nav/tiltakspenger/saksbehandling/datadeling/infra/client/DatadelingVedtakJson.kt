@@ -21,9 +21,7 @@ import java.time.LocalDate
 private data class DatadelingVedtakJson(
     val vedtakId: String,
     val sakId: String,
-    val fom: LocalDate,
-    val tom: LocalDate,
-    // TODO: Rename til vedtaksperiode her og i datadeling
+    val vedtaksperiode: PeriodeDTO,
     val virkningsperiode: PeriodeDTO,
     // TODO: oppdater til periodisert innvilgelse
     val innvilgelsesperiode: PeriodeDTO?,
@@ -73,10 +71,8 @@ fun Rammevedtak.toDatadelingJson(): String {
     return DatadelingVedtakJson(
         vedtakId = this.id.toString(),
         sakId = this.sakId.toString(),
-        // Kommentar jah: Deprekerer fom og tom (erstattes av vedtaksperiode+innvilgelsesperiode).
-        fom = periode.fraOgMed,
-        tom = periode.tilOgMed,
         virkningsperiode = periode.toDTO(),
+        vedtaksperiode = periode.toDTO(),
         // TODO abn: burde vi sende periodiseringen istedenfor totalperioden?
         innvilgelsesperiode = innvilgelsesperioder?.totalPeriode?.toDTO(),
         // TODO jah: omgjørRammevedtakId og omgjortAvRammevedtakId bør gjøres om etter vi har lagt på eksplisitt omgjøring på vedtakene.
