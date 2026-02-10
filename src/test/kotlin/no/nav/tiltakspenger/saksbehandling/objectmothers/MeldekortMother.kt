@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.TomPeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
@@ -618,8 +619,9 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldekortIdSomBeregnes = meldekortId,
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
-                    tiltakstypePerioder = tiltakstypePerioder,
-                    meldeperiodeBeregninger = meldekortBehandlinger.tilMeldeperiodeBeregninger(clock),
+                    hentInnvilgelse = { null },
+                    meldekortvedtakTidslinje = TomPeriodisering.instance(),
+
                 )
             },
             simuler = {
@@ -718,8 +720,8 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldekortIdSomBeregnes = meldekortId,
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
-                    tiltakstypePerioder = tiltakstypePerioder,
-                    meldeperiodeBeregninger = meldekortBehandlinger.tilMeldeperiodeBeregninger(clock),
+                    hentInnvilgelse = { null },
+                    meldekortvedtakTidslinje = TomPeriodisering.instance(),
                 )
             },
             simuler = {
