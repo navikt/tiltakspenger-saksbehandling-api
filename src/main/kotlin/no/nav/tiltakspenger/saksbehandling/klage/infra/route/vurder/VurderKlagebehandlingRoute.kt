@@ -45,7 +45,7 @@ enum class Vurderingstype {
 private data class VurderKlagebehandlingBody(
     val begrunnelse: String,
     val årsak: String,
-    val vurderingstype: Vurderingstype,
+    val vurderingstype: Vurderingstype = Vurderingstype.OMGJØR,
 ) {
     fun tilKommando(
         sakId: SakId,
