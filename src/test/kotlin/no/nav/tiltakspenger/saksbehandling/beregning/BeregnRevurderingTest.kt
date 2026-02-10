@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
@@ -332,28 +333,32 @@ class BeregnRevurderingTest {
         withTestApplicationContext { tac ->
             // Mock validering av utbetaling. Kan fjernes når vi støtter feilutbetaling igjen.
             mockkStatic("no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ValiderKanIverksetteUtbetalingKt")
-            every { any<Simulering>().validerKanIverksetteUtbetaling() } returns Unit.right()
+            try {
+                every { any<Simulering>().validerKanIverksetteUtbetaling() } returns Unit.right()
 
-            val periode = 1.januar(2025) til 31.januar(2025)
+                val periode = 1.januar(2025) til 31.januar(2025)
 
-            val sak = tac.førsteMeldekortIverksatt(
-                innvilgelsesperiode = periode,
-                fnr = gyldigFnr(),
-            )
+                val sak = tac.førsteMeldekortIverksatt(
+                    innvilgelsesperiode = periode,
+                    fnr = gyldigFnr(),
+                )
 
-            sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 2384
+                sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 2384
 
-            val (sakMedStans) = iverksettRevurderingStans(tac = tac, sakId = sak.id, stansFraOgMed = periode.fraOgMed)
+                val (sakMedStans) = iverksettRevurderingStans(tac = tac, sakId = sak.id, stansFraOgMed = periode.fraOgMed)
 
-            sakMedStans.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 0
+                sakMedStans.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 0
 
-            val (sakMedNyInnvilgelse) = iverksettRevurderingInnvilgelse(
-                tac = tac,
-                sakId = sak.id,
-                innvilgelsesperioder = innvilgelsesperioder(periode),
-            )
+                val (sakMedNyInnvilgelse) = iverksettRevurderingInnvilgelse(
+                    tac = tac,
+                    sakId = sak.id,
+                    innvilgelsesperioder = innvilgelsesperioder(periode),
+                )
 
-            sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 2384
+                sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 2384
+            } finally {
+                unmockkStatic("no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ValiderKanIverksetteUtbetalingKt")
+            }
         }
     }
 }

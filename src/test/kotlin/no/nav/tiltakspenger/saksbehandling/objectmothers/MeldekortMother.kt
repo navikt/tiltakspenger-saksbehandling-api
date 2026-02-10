@@ -709,7 +709,7 @@ interface MeldekortMother : MotherOfAllMothers {
 
         val meldekortvedtaksliste = meldekortBehandlinger.tilMeldekortvedtaksliste(clock)
 
-        val (oppadatertMeldekortbehandlinger, _) = meldekortBehandlinger.oppdaterMeldekort(
+        val (oppdatertMeldekortbehandlinger, _) = meldekortBehandlinger.oppdaterMeldekort(
             kommando = kommando,
             clock = clock,
             beregn = {
@@ -735,7 +735,7 @@ interface MeldekortMother : MotherOfAllMothers {
             },
         ).getOrFail()
 
-        return oppadatertMeldekortbehandlinger.sendTilBeslutter(
+        return oppdatertMeldekortbehandlinger.sendTilBeslutter(
             kommando = kommando.tilSendMeldekortTilBeslutterKommando(),
             clock,
         ).map { (meldekortBehandlinger, meldekort) ->
