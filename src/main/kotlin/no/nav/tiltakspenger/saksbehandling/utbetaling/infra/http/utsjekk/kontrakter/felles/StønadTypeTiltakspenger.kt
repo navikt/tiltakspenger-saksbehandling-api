@@ -1,21 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles
 
-import com.fasterxml.jackson.annotation.JsonCreator
-
-sealed interface StønadType {
-    fun tilFagsystem(): Fagsystem
-
-    companion object {
-        @JsonCreator
-        @JvmStatic
-        fun deserialize(json: String): StønadType? {
-            val stønadstypeTiltakspenger = StønadTypeTiltakspenger.entries.find { it.name == json }
-            return stønadstypeTiltakspenger
-        }
-    }
-}
-
-enum class StønadTypeTiltakspenger : StønadType {
+enum class StønadTypeTiltakspenger {
     ARBEIDSFORBEREDENDE_TRENING,
     ARBEIDSRETTET_REHABILITERING,
     ARBEIDSTRENING,
@@ -33,7 +18,4 @@ enum class StønadTypeTiltakspenger : StønadType {
     OPPFØLGING,
     UTVIDET_OPPFØLGING_I_NAV,
     UTVIDET_OPPFØLGING_I_OPPLÆRING,
-    ;
-
-    override fun tilFagsystem(): Fagsystem = Fagsystem.TILTAKSPENGER
 }

@@ -1,8 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett
 
-import io.swagger.v3.oas.annotations.media.Schema
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.GyldigBehandlingId
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.GyldigSakId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.Personident
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.Satstype
 import java.time.LocalDate
@@ -18,33 +15,16 @@ import java.time.LocalDateTime
  * @property forrigeIverksetting Id på forrige iverksetting på saken. Settes kun når saken har eksisterende iverksettinger.
  */
 data class IverksettV2Dto(
-    @Schema(
-        required = true,
-        minLength = 1,
-        maxLength = GyldigSakId.MAKSLENGDE,
-        description = GyldigSakId.BESKRIVELSE,
-        type = "String",
-    )
     val sakId: String,
-    @Schema(
-        required = true,
-        minLength = 1,
-        maxLength = GyldigBehandlingId.MAKSLENGDE,
-        description = GyldigBehandlingId.BESKRIVELSE,
-        type = "String",
-    )
     val behandlingId: String,
     val iverksettingId: String? = null,
-    @Schema(required = true, description = "Fødselsnummer eller D-nummer", example = "15507600333", type = "string")
     val personident: Personident,
-    @Schema(description = "Må være satt for utbetalingsvedtak")
     val vedtak: VedtaksdetaljerV2Dto =
         VedtaksdetaljerV2Dto(
             vedtakstidspunkt = LocalDateTime.now(),
             saksbehandlerId = "",
             beslutterId = "",
         ),
-    @Schema(description = "Må være satt hvis det ikke er første iverksetting på saken")
     val forrigeIverksetting: ForrigeIverksettingV2Dto? = null,
 )
 
@@ -56,23 +36,9 @@ data class IverksettV2Dto(
  * Se [funksjonell dokumentasjon](https://navikt.github.io/utsjekk-docs/for_konsumenter/utbetaling/iverksetting#gjeldende-totalbilde-av-utbetalinger-p%C3%A5-saken)
  */
 data class VedtaksdetaljerV2Dto(
-    @Schema(required = true)
     val vedtakstidspunkt: LocalDateTime,
-    @Schema(
-        required = true,
-        description = "NAV-ident til saksbehandler, eller servicebruker til applikasjon dersom vedtaket er fattet fullautomatisk",
-        pattern = "^[A-Z]\\d{6}\$",
-        example = "Z123456",
-    )
     val saksbehandlerId: String,
-    @Schema(
-        required = true,
-        description = "NAV-ident til beslutter, eller servicebruker til applikasjon dersom vedtaket er fattet fullautomatisk",
-        pattern = "^[A-Z]\\d{6}\$",
-        example = "Z123456",
-    )
     val beslutterId: String,
-    @Schema(required = false)
     val utbetalinger: List<UtbetalingV2Dto> = emptyList(),
 )
 
@@ -90,12 +56,7 @@ data class UtbetalingV2Dto(
     val satstype: Satstype,
     val fraOgMedDato: LocalDate,
     val tilOgMedDato: LocalDate,
-    @Schema(
-        oneOf = [
-            StønadsdataTiltakspengerV2Dto::class,
-        ],
-    )
-    val stønadsdata: StønadsdataDto,
+    val stønadsdata: StønadsdataTiltakspengerV2Dto,
 )
 
 /**
@@ -105,13 +66,6 @@ data class UtbetalingV2Dto(
  * @property iverksettingId iverksettingsid for forrige iverksetting. Brukes når konsument iverksetter flere ganger for samme behandling.
  */
 data class ForrigeIverksettingV2Dto(
-    @Schema(
-        required = true,
-        minLength = 1,
-        maxLength = GyldigBehandlingId.MAKSLENGDE,
-        description = GyldigBehandlingId.BESKRIVELSE,
-        type = "String",
-    )
     val behandlingId: String,
     val iverksettingId: String? = null,
 )
