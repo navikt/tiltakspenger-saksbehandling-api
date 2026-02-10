@@ -23,8 +23,8 @@ class BehandlingsresultatDbTest {
         // jan-mars
         val vedtattBehandling = ObjectMother.nyVedtattSøknadsbehandling()
 
-        val søknadsbehandlingInnvilgelse = vedtattBehandling.resultat as `Søknadsbehandlingsresultat`.Innvilgelse
-        val søknadsbehandlingAvslag = `Søknadsbehandlingsresultat`.Avslag(
+        val søknadsbehandlingInnvilgelse = vedtattBehandling.resultat as Søknadsbehandlingsresultat.Innvilgelse
+        val søknadsbehandlingAvslag = Søknadsbehandlingsresultat.Avslag(
             avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
             avslagsperiode = 1 til 10.januar(2025),
         )

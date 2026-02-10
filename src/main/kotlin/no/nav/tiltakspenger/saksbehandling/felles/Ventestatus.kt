@@ -1,12 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class Ventestatus(
     val ventestatusHendelser: List<VentestatusHendelse> = emptyList(),
 ) {
     val erSattPåVent: Boolean = ventestatusHendelser.lastOrNull()?.erSattPåVent ?: false
+    val sattPåVentBegrunnelse = ventestatusHendelser.lastOrNull()?.begrunnelse
+    val sattPåVentFrist = ventestatusHendelser.lastOrNull()?.frist
 
     init {
         require(
@@ -24,6 +26,7 @@ data class Ventestatus(
         endretAv: String,
         begrunnelse: String,
         status: String,
+        frist: LocalDate?,
     ): Ventestatus {
         return copy(
             ventestatusHendelser = ventestatusHendelser + VentestatusHendelse(
@@ -31,6 +34,7 @@ data class Ventestatus(
                 endretAv = endretAv,
                 begrunnelse = begrunnelse,
                 erSattPåVent = true,
+                frist = frist,
                 status = status,
             ),
         )
@@ -47,6 +51,7 @@ data class Ventestatus(
                 endretAv = endretAv,
                 begrunnelse = "",
                 erSattPåVent = false,
+                frist = null,
                 status = status,
             ),
         )

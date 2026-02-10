@@ -12,11 +12,11 @@ import java.time.Clock
  * Reservert for iverksetting av avviste klager.
  * For medhold/omgjøring, se [no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService]
  */
-fun Sak.iverksettKlagebehandling(
-    kommando: IverksettKlagebehandlingKommando,
+fun Sak.iverksettAvvistKlagebehandling(
+    kommando: IverksettAvvisningKommando,
     clock: Clock,
 ): Either<KanIkkeIverksetteKlagebehandling, Pair<Sak, Klagevedtak>> {
-    return this.hentKlagebehandling(kommando.klagebehandlingId).iverksett(kommando = kommando).map {
+    return this.hentKlagebehandling(kommando.klagebehandlingId).iverksettAvvisning(kommando = kommando).map {
         val klagevedtak = Klagevedtak.createFromKlagebehandling(
             clock = clock,
             klagebehandling = it,

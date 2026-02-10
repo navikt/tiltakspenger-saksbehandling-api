@@ -4,7 +4,9 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Avvist
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Omgjør
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Opprettholdt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingsresultatDbJson.KlagebehandlingsresultatDbEnum
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
@@ -19,13 +21,14 @@ private data class KlagebehandlingsresultatDbJson(
     enum class KlagebehandlingsresultatDbEnum {
         AVVIST,
         OMGJØR,
+        OPPRETTHOLDT,
     }
 
     fun toDomain(
         brevtekst: Brevtekster?,
     ): Klagebehandlingsresultat {
         return when (type) {
-            KlagebehandlingsresultatDbEnum.AVVIST -> Klagebehandlingsresultat.Avvist(
+            KlagebehandlingsresultatDbEnum.AVVIST -> Avvist(
                 brevtekst = brevtekst,
             )
 
@@ -34,6 +37,12 @@ private data class KlagebehandlingsresultatDbJson(
                 begrunnelse = Begrunnelse.create(omgjørBegrunnelse!!)!!,
                 rammebehandlingId = rammebehandlingId?.let { BehandlingId.fromString(it) },
             )
+
+            KlagebehandlingsresultatDbEnum.OPPRETTHOLDT -> Opprettholdt(
+                årsak = omgjørÅrsak!!.toDomain(),
+                begrunnelse = Begrunnelse.create(omgjørBegrunnelse!!)!!,
+                brevtekst = brevtekst,
+            )
         }
     }
 }
@@ -41,11 +50,20 @@ private data class KlagebehandlingsresultatDbJson(
 fun Klagebehandlingsresultat.toDbJson(): String {
     return KlagebehandlingsresultatDbJson(
         type = when (this) {
-            is Klagebehandlingsresultat.Avvist -> KlagebehandlingsresultatDbEnum.AVVIST
+            is Avvist -> KlagebehandlingsresultatDbEnum.AVVIST
             is Omgjør -> KlagebehandlingsresultatDbEnum.OMGJØR
+            is Opprettholdt -> KlagebehandlingsresultatDbEnum.OPPRETTHOLDT
         },
-        omgjørBegrunnelse = (this as? Omgjør)?.begrunnelse?.verdi,
-        omgjørÅrsak = (this as? Omgjør)?.årsak?.toDbEnum(),
+        omgjørBegrunnelse = when (this) {
+            is Omgjør -> this.begrunnelse.verdi
+            is Opprettholdt -> this.begrunnelse.verdi
+            is Avvist -> null
+        },
+        omgjørÅrsak = when (this) {
+            is Omgjør -> this.årsak.toDbEnum()
+            is Opprettholdt -> this.årsak.toDbEnum()
+            is Avvist -> null
+        },
         rammebehandlingId = (this as? Omgjør)?.rammebehandlingId?.toString(),
     ).let { serialize(it) }
 }

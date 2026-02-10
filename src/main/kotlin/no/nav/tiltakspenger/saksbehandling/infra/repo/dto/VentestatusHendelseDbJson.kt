@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo.dto
 
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class VentestatusHendelseDbJson(
@@ -8,6 +9,7 @@ data class VentestatusHendelseDbJson(
     val endretAv: String,
     val tidspunkt: String,
     val erSattPåVent: Boolean,
+    val frist: LocalDate?,
     val status: String,
 )
 
@@ -18,13 +20,15 @@ fun VentestatusHendelseDbJson.toSattPåVentBegrunnelse(): VentestatusHendelse {
         begrunnelse = begrunnelse,
         erSattPåVent = erSattPåVent,
         status = status,
+        frist = frist,
     )
 }
 
 fun VentestatusHendelse.toDbJson(): VentestatusHendelseDbJson = VentestatusHendelseDbJson(
-    begrunnelse = this.begrunnelse,
+    begrunnelse = begrunnelse,
     endretAv = this.endretAv,
     tidspunkt = this.tidspunkt.toString(),
     erSattPåVent = this.erSattPåVent,
     status = status,
+    frist = frist,
 )

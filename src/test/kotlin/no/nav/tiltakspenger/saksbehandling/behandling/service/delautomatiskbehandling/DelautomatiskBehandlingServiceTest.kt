@@ -135,6 +135,7 @@ class DelautomatiskBehandlingServiceTest {
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                 venterTil = innvilgelsesperiode.fraOgMed.atStartOfDay(),
+                frist = null,
             )
             val behandlingPaVent = behandling.settPåVent(
                 kommando = kommando,
@@ -165,6 +166,57 @@ class DelautomatiskBehandlingServiceTest {
     }
 
     @Test
+    fun `behandleAutomatisk - behandling der deltakelsen ikke lenger er på vent men har feil status og skal sendes til manuell`() {
+        withTestApplicationContext { tac ->
+            val clock = tac.clock
+            val iDag = LocalDate.now(clock)
+            val innvilgelsesperiode =
+                Periode(fraOgMed = iDag.minusDays(1), tilOgMed = iDag.plusMonths(3))
+            val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                tac = tac,
+                tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+                    fom = innvilgelsesperiode.fraOgMed,
+                    tom = innvilgelsesperiode.tilOgMed,
+                    status = TiltakDeltakerstatus.SøktInn,
+                ),
+            )
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
+                begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+                venterTil = innvilgelsesperiode.fraOgMed.atStartOfDay(),
+                frist = null,
+            )
+            val behandlingPaVent = behandling.settPåVent(
+                kommando = kommando,
+                clock = tac.clock,
+            ) as Søknadsbehandling
+            tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+                it.venterTil shouldNotBe null
+            }
+
+            soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
+
+            tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                behandlingPaVent,
+                CorrelationId.generate(),
+            )
+
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id) as Søknadsbehandling
+            oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+            oppdatertBehandling.saksbehandler shouldBe null
+            oppdatertBehandling.venterTil?.toLocalDate() shouldBe null
+            oppdatertBehandling.ventestatus.erSattPåVent shouldBe false
+            oppdatertBehandling.automatiskSaksbehandlet shouldBe false
+            oppdatertBehandling.manueltBehandlesGrunner shouldBe listOf(ManueltBehandlesGrunn.SAKSOPPLYSNING_HAR_IKKE_DELTATT_PA_TILTAK)
+        }
+    }
+
+    @Test
     fun `behandleAutomatisk - behandling var på vent og skal fortsatt vente - oppdaterer venter_til`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContext(clock = clock) { tac ->
@@ -185,6 +237,7 @@ class DelautomatiskBehandlingServiceTest {
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                 venterTil = nå(tac.clock),
+                frist = null,
             )
             val behandlingPaVent = behandling.settPåVent(
                 kommando = kommando,

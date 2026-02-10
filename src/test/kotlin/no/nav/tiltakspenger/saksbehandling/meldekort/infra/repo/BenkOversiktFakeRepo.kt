@@ -113,6 +113,8 @@ class BenkOversiktFakeRepo(
                 sakId = behandling.sakId,
                 kravtidspunkt = if (behandling.behandlingstype == Behandlingstype.SØKNADSBEHANDLING) behandling.opprettet else null,
                 erSattPåVent = behandling.ventestatus.erSattPåVent,
+                sattPåVentBegrunnelse = behandling.ventestatus.sattPåVentBegrunnelse,
+                sattPåVentFrist = behandling.ventestatus.sattPåVentFrist,
                 sistEndret = behandling.sistEndret,
             )
         }
@@ -130,6 +132,8 @@ class BenkOversiktFakeRepo(
             sakId = søknad.sakId,
             kravtidspunkt = søknad.opprettet,
             erSattPåVent = false,
+            sattPåVentBegrunnelse = null,
+            sattPåVentFrist = null,
             sistEndret = null,
         )
     }
@@ -161,6 +165,8 @@ class BenkOversiktFakeRepo(
                 saksbehandler = it.saksbehandler,
                 beslutter = it.beslutter,
                 erSattPåVent = false,
+                sattPåVentBegrunnelse = null,
+                sattPåVentFrist = null,
                 sistEndret = it.sistEndret,
             )
         }
@@ -211,6 +217,8 @@ class BenkOversiktFakeRepo(
                 saksbehandler = it.saksbehandler,
                 beslutter = null,
                 erSattPåVent = false,
+                sattPåVentBegrunnelse = null,
+                sattPåVentFrist = null,
                 sistEndret = it.sistEndret,
             )
         }
@@ -226,8 +234,14 @@ class BenkOversiktFakeRepo(
 
     private fun Klagebehandlingsstatus.toBehandlingssamendragStatus(): BehandlingssammendragStatus = when (this) {
         Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatus.KLAR_TIL_BEHANDLING
+
         Klagebehandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
+
         Klagebehandlingsstatus.AVBRUTT -> throw IllegalStateException("Avbrutte behandlinger skal ikke være åpne")
+
         Klagebehandlingsstatus.VEDTATT -> throw IllegalStateException("Vedtatte/iverksatte behandlinger skal ikke være åpne")
+
+        // TODO - på et eller annet tidspunkt kommer oversendte behandlinger til å være åpne - det blir mest sannsynlig etter vi får svar fra KA.
+        Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException("Oversendte behandlinger skal ikke være åpne")
     }
 }

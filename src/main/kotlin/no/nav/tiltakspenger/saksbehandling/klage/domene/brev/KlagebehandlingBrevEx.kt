@@ -2,12 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.brev
 
 import arrow.core.Either
 import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
+import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageOpprettholdelsesbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
 
@@ -18,17 +20,24 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.V
 suspend fun Klagebehandling.genererBrev(
     kommando: KlagebehandlingBrevKommando,
     genererAvvisningsbrev: GenererKlageAvvisningsbrev,
+    genererKlageOpprettholdelsesbrev: GenererKlageOpprettholdelsesbrev,
 ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-    require(resultat is Klagebehandlingsresultat.Avvist) {
-        "Kan kun generere klagebrev for avvisning når formkrav er avvisning.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+    require(resultat is Klagebehandlingsresultat.Avvist || resultat is Klagebehandlingsresultat.Opprettholdt) {
+        """
+            Kan kun generere klagebrev dersom;
+                - Klagebehandlingen har formkravene sine avvist
+                - Klagebehandlingen har formkravene sine til vurdering
+            Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id
+        """.trimIndent()
     }
-    if (erVedtatt) return genererBrev(genererAvvisningsbrev)
+    if (erVedtatt) return genererBrev(genererAvvisningsbrev, genererKlageOpprettholdelsesbrev)
+
     val brevtekst = resultat.brevtekst
     val saksbehandler: String = when (status) {
         KLAR_TIL_BEHANDLING -> "-"
         UNDER_BEHANDLING -> this.saksbehandler!!
         AVBRUTT -> this.saksbehandler ?: "-"
-        VEDTATT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
+        VEDTATT, OVERSENDT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
     }
     val erSaksbehandlerPåBehandlingen = this.erSaksbehandlerPåBehandlingen(kommando.saksbehandler)
     val tilleggstekst: Brevtekster = when (status) {
@@ -42,15 +51,26 @@ suspend fun Klagebehandling.genererBrev(
 
         AVBRUTT -> brevtekst ?: Brevtekster.empty
 
-        VEDTATT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
+        VEDTATT, OVERSENDT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
     }
-    return genererAvvisningsbrev(
-        saksnummer,
-        fnr,
-        saksbehandler,
-        tilleggstekst,
-        true,
-    )
+
+    return when (resultat) {
+        is Klagebehandlingsresultat.Avvist -> genererAvvisningsbrev(
+            saksnummer,
+            fnr,
+            saksbehandler,
+            tilleggstekst,
+            true,
+        )
+
+        is Klagebehandlingsresultat.Opprettholdt -> genererKlageOpprettholdelsesbrev(
+            saksnummer,
+            fnr,
+            saksbehandler,
+            tilleggstekst,
+            true,
+        )
+    }
 }
 
 /**
@@ -59,15 +79,37 @@ suspend fun Klagebehandling.genererBrev(
  */
 suspend fun Klagebehandling.genererBrev(
     genererAvvisningsbrev: GenererKlageAvvisningsbrev,
+    genererKlageOpprettholdelsesbrev: GenererKlageOpprettholdelsesbrev,
 ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-    require(erVedtatt) {
-        "Kan kun generere klagebrev for avvisning når klagebehandling er iverksatt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+    require(erVedtatt || erOversendt) {
+        """
+            Kan kun generere endelig klagebrev dersom;
+                - klagen er avvist og klagebehandlingen er vedtatt
+                - klagen er opprettholdt og oversendt til klageinstansen
+            Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id
+        """.trimIndent()
     }
-    return genererAvvisningsbrev(
-        saksnummer,
-        fnr,
-        saksbehandler!!,
-        (resultat as Klagebehandlingsresultat.Avvist).brevtekst!!,
-        false,
-    )
+
+    return when (status) {
+        KLAR_TIL_BEHANDLING,
+        UNDER_BEHANDLING,
+        AVBRUTT,
+        -> throw IllegalStateException("Ved generering av endelig brev må klagebehandlingen enten være vedtatt eller oversendt. Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id")
+
+        VEDTATT -> genererAvvisningsbrev(
+            saksnummer,
+            fnr,
+            saksbehandler!!,
+            (resultat as Klagebehandlingsresultat.Avvist).brevtekst!!,
+            false,
+        )
+
+        OVERSENDT -> genererKlageOpprettholdelsesbrev(
+            saksnummer,
+            fnr,
+            saksbehandler!!,
+            (resultat as Klagebehandlingsresultat.Opprettholdt).brevtekst!!,
+            false,
+        )
+    }
 }

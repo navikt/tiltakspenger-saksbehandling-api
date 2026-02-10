@@ -27,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 /**
- * Route:
+ * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett.iverksettAvvistKlagebehandlingRoute]
  */
 interface IverksettKlagebehandlingBuilder {
     /** 1. Oppretter ny sak

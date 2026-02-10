@@ -71,7 +71,7 @@ class DelautomatiskBehandlingService(
                 // Den automatiske jobben oppdaterer saksopplysningene selv.
                 hentSaksopplysninger = null,
             ).getOrThrow()
-            rammebehandlingRepo.lagre(gjenopptattBehandling)
+            // I alle tilfeller der den automatiske jobben gjenopptar en behandling, vil den enten sette den til manuell eller sende til beslutning. I begge tilfeller persisteres behandlingen, så vi trenger ikke gjøre det her. Hvis vi vil gjøre det her, bør vi gjøre det i en transaksjon.
             gjenopptattBehandling as Søknadsbehandling
         } else {
             behandling
@@ -124,6 +124,7 @@ class DelautomatiskBehandlingService(
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                     saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                     venterTil = venterTil,
+                    frist = null,
                 ),
                 clock = clock,
             ).let {

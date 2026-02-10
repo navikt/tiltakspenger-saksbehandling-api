@@ -83,7 +83,7 @@ fun Klagebehandling.fjernRammebehandlingId(
     return when (val res = resultat) {
         is Klagebehandlingsresultat.Omgjør -> this.copy(resultat = res.fjernRammebehandlingId(rammebehandlingId), sistEndret = sistEndret)
 
-        is Klagebehandlingsresultat.Avvist, null -> throw IllegalStateException(
+        is Klagebehandlingsresultat.Avvist, is Klagebehandlingsresultat.Opprettholdt, null -> throw IllegalStateException(
             "Klagebehandling er ikke knyttet til en rammebehandling. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id",
         )
     }

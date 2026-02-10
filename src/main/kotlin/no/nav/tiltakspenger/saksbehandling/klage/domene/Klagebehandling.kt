@@ -3,38 +3,24 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import arrow.core.toNonEmptyListOrNull
 import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
-import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
-import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
-import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
-import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
-import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KanIkkeVurdereKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OmgjørKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import java.time.Clock
 import java.time.LocalDateTime
 
 /**
@@ -67,10 +53,12 @@ data class Klagebehandling(
     val erKlarTilBehandling = status == KLAR_TIL_BEHANDLING
     override val erAvbrutt = status == AVBRUTT
     val erVedtatt = status == VEDTATT
+    val erOversendt = status == OVERSENDT
     override val erAvsluttet = erAvbrutt || erVedtatt
     val erÅpen = !erAvsluttet
     val erAvvisning = resultat is Klagebehandlingsresultat.Avvist
     val erOmgjøring = resultat is Klagebehandlingsresultat.Omgjør
+    val erOpprettholdt = resultat is Klagebehandlingsresultat.Opprettholdt
 
     /**
      * Hvis resultatet er [Klagebehandlingsresultat.Omgjør] og [Klagebehandlingsresultat.Omgjør.rammebehandlingId] er satt.
@@ -79,7 +67,7 @@ data class Klagebehandling(
     val erKnyttetTilRammebehandling: Boolean = resultat?.erKnyttetTilRammebehandling == true
     val rammebehandlingId: BehandlingId? = when (val res = resultat) {
         is Klagebehandlingsresultat.Omgjør -> res.rammebehandlingId
-        is Klagebehandlingsresultat.Avvist, null -> null
+        is Klagebehandlingsresultat.Avvist, is Klagebehandlingsresultat.Opprettholdt, null -> null
     }
 
     /** Dette flagget gir ikke så mye mening dersom resultatet er medhold/omgjøring, siden man må spørre Rammebehandlingen om man kanIverksette */
@@ -177,10 +165,28 @@ data class Klagebehandling(
                     is Klagebehandlingsresultat.Avvist -> require(!resultat.brevtekst.isNullOrEmpty()) {
                         "Klagebehandling som er $status må ha brevtekst satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
                     }
+
+                    is Klagebehandlingsresultat.Opprettholdt -> throw IllegalArgumentException("Klagebehandling som er $status kan ikke ha resultat satt til OPPRETHOLDT.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id")
+                }
+            }
+
+            OVERSENDT -> {
+                require(saksbehandler != null) {
+                    "Klagebehandling som er $status må ha saksbehandler satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+                }
+                require(iverksattTidspunkt != null) {
+                    "Klagebehandling som er $status må ha iverksattTidspunkt satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+                }
+                require(resultat is Klagebehandlingsresultat.Opprettholdt) {
+                    "Klagebehandling som er $status må ha resultat som opprettholdt satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+                }
+                require(rammebehandlingId == null) {
+                    "Klagebehandling som er $status skal ikke være knyttet en rammebehandling. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
                 }
             }
         }
     }
+
     companion object {
         // Må ligge ved for å kunne opprette Companion extension functions.
     }

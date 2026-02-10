@@ -10,9 +10,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRevurde
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto.Companion.toKlageresultatstypDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto.Companion.toKlagestatustypeDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeStatusDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldeperiodeKjedeStatusDTO
@@ -111,7 +112,7 @@ sealed interface ÅpenBehandlingDTO {
         override val sakId: String,
         override val saksnummer: String,
         override val opprettet: LocalDateTime,
-        val status: String,
+        val status: KlagestatustypeDto,
         val saksbehandler: String?,
         val resultat: KlageresultatstypeDto?,
     ) : ÅpenBehandlingDTO {
@@ -145,16 +146,7 @@ private fun List<Klagebehandling>.toÅpenKlagebehandlingDTO(): List<ÅpenBehandl
         sakId = it.sakId.toString(),
         saksnummer = it.saksnummer.toString(),
         opprettet = it.opprettet,
-        status = when (it.status) {
-            Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> "KLAR_TIL_BEHANDLING"
-
-            Klagebehandlingsstatus.UNDER_BEHANDLING -> "UNDER_BEHANDLING"
-
-            Klagebehandlingsstatus.AVBRUTT -> "AVBRUTT"
-
-            // TODO jah: Endre til VEDTATT her og frontend samtidig.
-            Klagebehandlingsstatus.VEDTATT -> "IVERKSATT"
-        },
+        status = it.status.toKlagestatustypeDto(),
         saksbehandler = it.saksbehandler,
         resultat = it.resultat?.toKlageresultatstypDto(),
     )

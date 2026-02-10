@@ -30,6 +30,9 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
+/**
+ * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.oppdaterKlagebehandlingFormkravRoute]
+ */
 interface OppdaterKlagebehandlingFormkravBuilder {
     /** 1. Oppretter ny sak
      *  2. Starter klagebehandling til avvisning

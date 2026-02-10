@@ -22,11 +22,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+import java.time.LocalDate
 
 private const val SETT_BEHANDLING_PÅ_VENT_PATH = "/sak/{sakId}/behandling/{behandlingId}/pause"
 
 private data class BegrunnelseDTO(
     val begrunnelse: String,
+    val frist: LocalDate?,
 ) {
     fun toKommando(
         sakId: SakId,
@@ -36,6 +38,7 @@ private data class BegrunnelseDTO(
         sakId = sakId,
         rammebehandlingId = behandlingId,
         begrunnelse = begrunnelse,
+        frist = frist,
         saksbehandler = saksbehandler,
     )
 }

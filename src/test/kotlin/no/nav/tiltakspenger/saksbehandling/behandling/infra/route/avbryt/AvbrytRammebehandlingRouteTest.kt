@@ -107,7 +107,7 @@ class AvbrytRammebehandlingRouteTest {
   "status": "AVBRUTT",
   "sakId": "${sak.id}",
   "saksnummer": "202505011001",
-  "rammevedtakId": "null",
+  "rammevedtakId": null,
   "klagebehandlingId": null,
   "saksbehandler": "Z12345",
   "beslutter": null,

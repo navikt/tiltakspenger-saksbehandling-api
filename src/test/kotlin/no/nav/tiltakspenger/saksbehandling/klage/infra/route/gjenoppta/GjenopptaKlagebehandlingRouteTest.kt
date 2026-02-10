@@ -51,7 +51,8 @@ class GjenopptaKlagebehandlingRouteTest {
                     "sattPåVentAv": "saksbehandlerKlagebehandling",
                     "tidspunkt": "2025-01-01T01:02:49.456789",
                     "begrunnelse": "",
-                    "erSattPåVent": false
+                    "erSattPåVent": false,
+                    "frist": null
                   }
                 }
                 """.trimIndent(),

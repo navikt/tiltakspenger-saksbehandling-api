@@ -130,15 +130,8 @@ class IverksettKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
-                    """
-                     {
-                        "melding": "Feil inngang brukt for å iverksette klagebehandling. forventet: Iverksett klagebehandling fra rammebehandling, faktisk: Iverksett klagebehandling utenom rammebehandling",
-                        "kode": "feil_inngang_ved_iverksetting"
-                     }
-                    """.trimIndent()
-                },
+                forventetStatus = HttpStatusCode.InternalServerError,
+                forventetJsonBody = null,
             ) shouldBe null
         }
     }

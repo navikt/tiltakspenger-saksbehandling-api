@@ -27,6 +27,9 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
+/**
+ * Route: [avbrytKlagebehandlingRoute]
+ */
 interface AvbrytKlagebehandlingBuilder {
     /**
      * 1. Oppretter ny sak

@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneOffset
 
 class RammebehandlingTest {
@@ -206,6 +207,7 @@ class RammebehandlingTest {
                     begrunnelse = "Denne kaster exception",
                     saksbehandler = saksbehandler,
                     venterTil = null,
+                    frist = null,
                 )
                 behandling.settPåVent(kommando, clock)
             }
@@ -221,6 +223,7 @@ class RammebehandlingTest {
                 begrunnelse = "Venter på mer informasjon",
                 saksbehandler = saksbehandler,
                 venterTil = null,
+                frist = null,
             )
             val behandlingSattPåVent = behandling.settPåVent(kommando, clock)
 
@@ -246,6 +249,7 @@ class RammebehandlingTest {
                     begrunnelse = "Denne kaster exception",
                     saksbehandler = saksbehandler,
                     venterTil = null,
+                    frist = null,
                 )
                 behandling.settPåVent(kommando, clock)
             }
@@ -262,6 +266,7 @@ class RammebehandlingTest {
                 begrunnelse = "Venter på mer informasjon",
                 saksbehandler = beslutter,
                 venterTil = null,
+                frist = null,
             )
             val behandlingSattPåVent = behandling.settPåVent(kommando, clock)
 
@@ -288,6 +293,7 @@ class RammebehandlingTest {
                     begrunnelse = "Denne kaster exception",
                     saksbehandler = saksbehandler,
                     venterTil = null,
+                    frist = null,
                 )
                 behandling.settPåVent(kommando, clock)
             }
@@ -305,6 +311,7 @@ class RammebehandlingTest {
                     begrunnelse = "Denne kaster exception",
                     saksbehandler = saksbehandler,
                     venterTil = null,
+                    frist = null,
                 )
                 behandling.settPåVent(kommando, clock)
             }
@@ -330,6 +337,7 @@ class RammebehandlingTest {
                                 begrunnelse = "1",
                                 saksbehandler = saksbehandler,
                                 venterTil = null,
+                                frist = LocalDate.now(clock).plusWeeks(1),
                             ),
                             clock,
                         )
@@ -338,6 +346,8 @@ class RammebehandlingTest {
                 behandlingSattPåVent.saksbehandler shouldBe null
                 behandlingSattPåVent.beslutter shouldBe null
                 behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+                behandlingSattPåVent.ventestatus.erSattPåVent shouldBe true
+                behandlingSattPåVent.ventestatus.sattPåVentFrist shouldBe LocalDate.now(clock).plusWeeks(1)
 
                 val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(
                     GjenopptaRammebehandlingKommando(
@@ -369,6 +379,7 @@ class RammebehandlingTest {
                     begrunnelse = "Venter på mer informasjon",
                     saksbehandler = beslutter,
                     venterTil = null,
+                    frist = null,
                 )
                 val behandlingSattPåVent = behandling.settPåVent(kommando, clock)
 
@@ -407,6 +418,7 @@ class RammebehandlingTest {
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
                     saksbehandler = AUTOMATISK_SAKSBEHANDLER,
                     venterTil = nå(clock).plusWeeks(1),
+                    frist = null,
                 )
                 val behandlingSattPåVent = behandling.settPåVent(kommando, clockPaVent)
                 val gjenopptaClock = Clock.fixed(Instant.parse("2025-07-01T13:30:00Z"), ZoneOffset.UTC)
@@ -446,6 +458,7 @@ class RammebehandlingTest {
                         begrunnelse = "Denne kaster exception og skal ikke kunne bli gjenopptatt",
                         saksbehandler = saksbehandler,
                         venterTil = null,
+                        frist = null,
                     )
                     val behandlingPåVent = behandling.settPåVent(kommando, clock)
                     behandlingPåVent.gjenoppta(
@@ -474,6 +487,7 @@ class RammebehandlingTest {
                         begrunnelse = "Denne kaster exception og skal ikke kunne bli gjenopptatt",
                         saksbehandler = saksbehandler,
                         venterTil = null,
+                        frist = null,
                     )
                     val behandlingPåVent = behandling.settPåVent(kommando, clock)
                     behandlingPåVent.gjenoppta(

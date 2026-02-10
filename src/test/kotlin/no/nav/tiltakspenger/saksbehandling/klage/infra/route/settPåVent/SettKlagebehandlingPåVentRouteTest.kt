@@ -49,7 +49,8 @@ class SettKlagebehandlingPåVentRouteTest {
                     "sattPåVentAv": "saksbehandlerKlagebehandling",
                     "tidspunkt": "2025-01-01T01:02:34.456789",
                     "begrunnelse": "begrunnelse for å sette klage på vent",
-                    "erSattPåVent": true
+                    "erSattPåVent": true,
+                    "frist": "2025-01-14"
                   }
                 }
                 """.trimIndent(),

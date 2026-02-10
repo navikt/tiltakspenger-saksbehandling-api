@@ -31,9 +31,10 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import java.time.LocalDate
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.overtaKlagebehandlingRoute]
+ * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent.settKlagebehandlingPåVentRoute]
  */
 interface SettKlagebehandlingPåVentBuilder {
     /** 1. Oppretter ny sak, søknad og iverksetter søknadsbehandling.
@@ -82,6 +83,7 @@ interface SettKlagebehandlingPåVentBuilder {
         klagebehandlingId: KlagebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         begrunnelse: String = "begrunnelse for å sette klage på vent",
+        frist: LocalDate = LocalDate.of(2025, 1, 14),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
@@ -99,7 +101,8 @@ interface SettKlagebehandlingPåVentBuilder {
                 //language=JSON
                 """
                 {
-                    "begrunnelse": "$begrunnelse"
+                    "begrunnelse": "$begrunnelse",
+                    "frist": "$frist"
                 }
                 """.trimIndent(),
             )

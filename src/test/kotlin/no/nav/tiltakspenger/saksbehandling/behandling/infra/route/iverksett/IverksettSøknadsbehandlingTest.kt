@@ -60,7 +60,7 @@ class IverksettSøknadsbehandlingTest {
             val behandling = rammevedtak.rammebehandling
             behandling.vedtaksperiode.shouldNotBeNull()
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
-            behandling.resultat shouldBe instanceOf<`Søknadsbehandlingsresultat`.Avslag>()
+            behandling.resultat shouldBe instanceOf<Søknadsbehandlingsresultat.Avslag>()
         }
     }
 

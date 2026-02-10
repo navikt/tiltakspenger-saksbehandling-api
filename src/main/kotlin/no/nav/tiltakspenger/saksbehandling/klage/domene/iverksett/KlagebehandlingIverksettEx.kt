@@ -7,51 +7,56 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
 
-/**
- * Ved medhold/omgjøring må rammebehandlingId være satt, rammebehandlingen må være i riktig tilstand og skal kun kalles via [no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService]
- */
-fun Klagebehandling.iverksett(
-    kommando: IverksettKlagebehandlingKommando,
-): Either<KanIkkeIverksetteKlagebehandling, Klagebehandling> {
+fun Klagebehandling.iverksettOmgjøring(command: IverksettOmgjøringKommando): Either<KanIkkeIverksetteKlagebehandling, Klagebehandling> {
+    // left eller throw?...
+    require(resultat is Klagebehandlingsresultat.Omgjør && resultat.rammebehandlingId != null) {
+        """
+            Kan kun iverksette omgjøring dersom resultatet er Omgjør - og at rammebehandlingId er satt.
+                - Ved avvisning skal man bruke [iverksettAvvisning]
+            Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id, resultat=${resultat?.javaClass?.simpleName}
+        """.trimIndent()
+    }
+
     if (!erUnderBehandling) {
         return KanIkkeIverksetteKlagebehandling.MåHaStatusUnderBehandling(status.toString()).left()
     }
-    if (kommando.saksbehandler != null && !erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
+
+    if (kanIverksette == false) {
+        return KanIkkeIverksetteKlagebehandling.AndreGrunner(kanIkkeIverksetteGrunner).left()
+    }
+
+    return this.copy(
+        sistEndret = command.iverksattTidspunkt,
+        iverksattTidspunkt = command.iverksattTidspunkt,
+        status = VEDTATT,
+    ).right()
+}
+
+fun Klagebehandling.iverksettAvvisning(
+    kommando: IverksettAvvisningKommando,
+): Either<KanIkkeIverksetteKlagebehandling, Klagebehandling> {
+    // left eller throw?...
+    require(resultat is Klagebehandlingsresultat.Avvist) {
+        """
+            Kan kun iverksette avvisning dersom resultatet er Avvist.
+                - Ved omgjøring skal man bruke [iverksettOmgjøring]
+            Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id, resultat=${resultat?.javaClass?.simpleName}
+        """.trimIndent()
+    }
+
+    if (!erUnderBehandling) {
+        return KanIkkeIverksetteKlagebehandling.MåHaStatusUnderBehandling(status.toString()).left()
+    }
+
+    if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
         return KanIkkeIverksetteKlagebehandling.SaksbehandlerMismatch(
             forventetSaksbehandler = this.saksbehandler!!,
             faktiskSaksbehandler = kommando.saksbehandler.navIdent,
         ).left()
     }
-    when (resultat) {
-        is Klagebehandlingsresultat.Avvist, is Klagebehandlingsresultat.Omgjør -> {
-            when (resultat) {
-                is Klagebehandlingsresultat.Avvist -> {
-                    if (kommando.iverksettFraRammebehandling) {
-                        return KanIkkeIverksetteKlagebehandling.FeilInngang(
-                            forventetInngang = "Iverksett klagebehandling utenom rammebehandling",
-                            faktiskInngang = "Iverksett klagebehandling fra rammebehandling",
-                        ).left()
-                    }
-                }
 
-                is Klagebehandlingsresultat.Omgjør -> {
-                    if (!kommando.iverksettFraRammebehandling) {
-                        return KanIkkeIverksetteKlagebehandling.FeilInngang(
-                            forventetInngang = "Iverksett klagebehandling fra rammebehandling",
-                            faktiskInngang = "Iverksett klagebehandling utenom rammebehandling",
-                        ).left()
-                    }
-                }
-            }
-            if (kanIverksette == false) {
-                return KanIkkeIverksetteKlagebehandling.AndreGrunner(kanIkkeIverksetteGrunner).left()
-            }
-        }
-
-        null -> return KanIkkeIverksetteKlagebehandling.FeilResultat(
-            forventetResultat = Klagebehandlingsresultat.Avvist::class.simpleName!!,
-            faktiskResultat = null,
-        ).left()
+    if (kanIverksette == false) {
+        return KanIkkeIverksetteKlagebehandling.AndreGrunner(kanIkkeIverksetteGrunner).left()
     }
 
     return this.copy(

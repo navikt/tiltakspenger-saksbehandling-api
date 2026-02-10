@@ -28,9 +28,11 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toStatusAndErrorJso
 import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
+import java.time.LocalDate
 
 private data class SettKlagebehandlingPåVentBody(
     val begrunnelse: String,
+    val frist: LocalDate?,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -42,6 +44,7 @@ private data class SettKlagebehandlingPåVentBody(
             klagebehandlingId = klagebehandlingId,
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
+            frist = frist,
         )
     }
 }

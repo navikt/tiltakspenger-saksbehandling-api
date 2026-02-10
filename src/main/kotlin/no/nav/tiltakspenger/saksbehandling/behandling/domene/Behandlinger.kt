@@ -93,7 +93,9 @@ data class Behandlinger(
             "Behandlingene må ha unike IDer."
         }
         klagebehandlinger.filter { it.rammebehandlingId != null }.forEach { klagebehandling ->
-            val rammebehandling = rammebehandlinger.single { it.klagebehandling?.id == klagebehandling.id }
+            val rammebehandling = klagebehandling.rammebehandlingId!!.let { klagensRammebehandlingId ->
+                rammebehandlinger.single { it.id == klagensRammebehandlingId }
+            }
             require(rammebehandling.klagebehandling == klagebehandling) {
                 "Klagebehandling ${klagebehandling.id} er tilknyttet rammebehandling ${rammebehandling.id}, men objektene er ikke identiske."
             }
@@ -115,6 +117,8 @@ data class Behandlinger(
                 Klagebehandlingsstatus.AVBRUTT -> throw IllegalStateException("En avbrutt klagebehandling skal ikke være tilknyttet en rammebehandling")
 
                 Klagebehandlingsstatus.VEDTATT -> require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT)
+
+                Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException("En oversendt klagebehandling skal ikke være tilknyttet en rammebehandling")
             }
         }
         // Siden [Rammebehandling] er "eieren" av relasjonen til [Klagebehandling], sjekker vi statusen i initen til implementasjonene av [Rammebehandling].
