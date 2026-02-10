@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
@@ -10,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingKlient
+import tools.jackson.module.kotlin.readValue
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse

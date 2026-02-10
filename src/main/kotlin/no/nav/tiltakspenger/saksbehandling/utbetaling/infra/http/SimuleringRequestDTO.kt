@@ -7,8 +7,8 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
-import no.nav.utsjekk.kontrakter.iverksett.ForrigeIverksettingV2Dto
-import no.nav.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.ForrigeIverksettingV2Dto
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
 
 /**
  * Kommentar jah: Ser ikke simuleringstypene i kontrakter: https://github.com/navikt/utsjekk-kontrakter/

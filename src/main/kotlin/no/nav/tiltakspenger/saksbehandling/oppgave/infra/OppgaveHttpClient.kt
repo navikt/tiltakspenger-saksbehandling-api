@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.oppgave.infra
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
@@ -11,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
+import tools.jackson.module.kotlin.readValue
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse

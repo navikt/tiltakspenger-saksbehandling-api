@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
-import com.fasterxml.jackson.databind.node.TextNode
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
+import tools.jackson.databind.node.StringNode
 
 fun SendtUtbetaling.toJson(): String {
     return serialiserRequestResponse(
@@ -43,5 +43,5 @@ private fun String.toValidJson(): String {
     } catch (e: Exception) {
         false
     }
-    return if (isValidJson) this else TextNode(this).toString()
+    return if (isValidJson) this else StringNode(this).toString()
 }

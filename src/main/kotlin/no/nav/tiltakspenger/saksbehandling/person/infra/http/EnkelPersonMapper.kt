@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.person.infra.http
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -16,6 +15,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarFødsel
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarGradering
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarNavn
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import tools.jackson.module.kotlin.readValue
 
 internal data class PdlHentPersonResponse(
     val hentPerson: PdlPerson,

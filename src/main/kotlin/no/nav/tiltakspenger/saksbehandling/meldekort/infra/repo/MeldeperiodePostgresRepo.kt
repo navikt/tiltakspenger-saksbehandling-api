@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
-import com.fasterxml.jackson.core.type.TypeReference
 import kotliquery.Row
 import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -18,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import tools.jackson.core.type.TypeReference
 import java.time.LocalDate
 
 class MeldeperiodePostgresRepo(

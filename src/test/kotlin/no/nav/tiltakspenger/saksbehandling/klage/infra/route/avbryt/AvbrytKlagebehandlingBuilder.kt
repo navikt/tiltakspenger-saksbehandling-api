@@ -97,7 +97,7 @@ interface AvbrytKlagebehandlingBuilder {
             val sakJson = objectMapper.readTree(bodyAsText)
 
             val klagebehandling: KlagebehandlingDTOJson = sakJson.get("klageBehandlinger").single {
-                it.get("id").asText() == klagebehandlingId.toString()
+                it.get("id").asString() == klagebehandlingId.toString()
             }
 
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

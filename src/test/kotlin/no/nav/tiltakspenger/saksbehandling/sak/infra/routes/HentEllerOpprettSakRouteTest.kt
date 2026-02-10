@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.setBody
@@ -19,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.FnrDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.junit.jupiter.api.Test
+import tools.jackson.module.kotlin.readValue
 
 class HentEllerOpprettSakRouteTest {
     private val ident = Fnr.random()

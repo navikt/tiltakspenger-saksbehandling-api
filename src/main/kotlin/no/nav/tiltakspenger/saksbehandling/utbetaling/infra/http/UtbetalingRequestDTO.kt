@@ -9,14 +9,14 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
-import no.nav.utsjekk.kontrakter.felles.Personident
-import no.nav.utsjekk.kontrakter.felles.Satstype
-import no.nav.utsjekk.kontrakter.felles.StønadTypeTiltakspenger
-import no.nav.utsjekk.kontrakter.iverksett.ForrigeIverksettingV2Dto
-import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
-import no.nav.utsjekk.kontrakter.iverksett.StønadsdataTiltakspengerV2Dto
-import no.nav.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
-import no.nav.utsjekk.kontrakter.iverksett.VedtaksdetaljerV2Dto
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.Personident
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.Satstype
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.StønadTypeTiltakspenger
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.ForrigeIverksettingV2Dto
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.IverksettV2Dto
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.StønadsdataTiltakspengerV2Dto
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.VedtaksdetaljerV2Dto
 import java.time.LocalDate
 import kotlin.collections.fold
 

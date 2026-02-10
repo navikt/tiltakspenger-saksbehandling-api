@@ -94,7 +94,7 @@ interface IverksettKlagebehandlingBuilder {
             tac.klagebehandlingContext.journalførKlagevedtakService.journalfør()
             tac.klagebehandlingContext.distribuerKlagevedtaksbrevService.distribuer()
             val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
-            val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asText())
+            val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asString())
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
 
             return Triple(
