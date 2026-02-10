@@ -397,7 +397,7 @@ fun Sak.beregnMeldekort(
         meldekortIdSomBeregnes = meldekortIdSomBeregnes,
         meldeperiodeSomBeregnes = meldeperiodeSomBeregnes,
         barnetilleggsPerioder = this.barnetilleggsperioder,
-        hentInnvilgelse = { this.rammevedtaksliste.innvilgelsesperioder.hentVerdiForDag(it) },
+        hentInnvilgelse = this.rammevedtaksliste.innvilgelsesperioder::hentVerdiForDag,
         gjeldendeBeregninger = this.meldeperiodeBeregninger,
         meldekortvedtakTidslinje = this.meldekortvedtaksliste.tidslinje,
     )
@@ -413,7 +413,7 @@ fun beregnMeldekort(
 ): NonEmptyList<MeldeperiodeBeregning> {
     return BeregnMeldeperioder(
         meldeperioderSomBeregnes = nonEmptyListOf(meldeperiodeSomBeregnes.tilSkalBeregnes(meldekortIdSomBeregnes)),
-        hentAntallBarn = { barnetilleggsPerioder.hentVerdiForDag(it) },
+        hentAntallBarn = barnetilleggsPerioder::hentVerdiForDag,
         hentInnvilgelse = hentInnvilgelse,
         beregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortIdSomBeregnes),
         gjeldendeBeregninger = gjeldendeBeregninger,
