@@ -44,7 +44,8 @@ class TaKlagebehandlingRouteTest {
                   "årsak": null,
                   "begrunnelse": null,
                   "rammebehandlingId": null,
-                  "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )
@@ -88,7 +89,8 @@ class TaKlagebehandlingRouteTest {
                   "årsak": null,
                   "begrunnelse": null,
                   "rammebehandlingId": null,
-                  "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )

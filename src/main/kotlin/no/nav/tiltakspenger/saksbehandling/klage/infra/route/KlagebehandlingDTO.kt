@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto.Companion.toKlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto.Companion.toKlageresultatstypDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto.Companion.toKlagestatustypeDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlagefristUnntakSvarordDto
@@ -34,6 +35,7 @@ data class KlagebehandlingDTO(
     val avbrutt: AvbruttDTO?,
     val kanIverksette: Boolean?,
     val årsak: String?,
+    val hjemler: List<KlagehjemmelDto>?,
     val begrunnelse: String?,
     val rammebehandlingId: String?,
     val ventestatus: VentestatusHendelseDTO?,
@@ -76,18 +78,9 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     } ?: emptyList(),
     avbrutt = this.avbrutt?.toAvbruttDTO(),
     kanIverksette = kanIverksette,
-    årsak = when (resultat) {
-        is Klagebehandlingsresultat.Omgjør -> resultat.årsak.name
-        is Klagebehandlingsresultat.Opprettholdt -> resultat.årsak.name
-        is Klagebehandlingsresultat.Avvist -> null
-        null -> null
-    },
-    begrunnelse = when (resultat) {
-        is Klagebehandlingsresultat.Omgjør -> resultat.begrunnelse.verdi
-        is Klagebehandlingsresultat.Opprettholdt -> resultat.begrunnelse.verdi
-        is Klagebehandlingsresultat.Avvist -> null
-        null -> null
-    },
+    årsak = (resultat as? Klagebehandlingsresultat.Omgjør)?.årsak?.name,
+    begrunnelse = (resultat as? Klagebehandlingsresultat.Omgjør)?.begrunnelse?.verdi,
     rammebehandlingId = (resultat as? Klagebehandlingsresultat.Omgjør)?.rammebehandlingId?.toString(),
     ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
+    hjemler = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.hjemler?.toKlagehjemmelDto(),
 )

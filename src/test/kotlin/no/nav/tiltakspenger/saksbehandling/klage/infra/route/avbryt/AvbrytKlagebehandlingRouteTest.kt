@@ -58,7 +58,8 @@ class AvbrytKlagebehandlingRouteTest {
                      "årsak": null,
                      "begrunnelse": null,
                      "rammebehandlingId": null,
-                     "ventestatus": null
+                     "ventestatus": null,
+                     "hjemler": null
                    }
                 """.trimIndent(),
             )
@@ -107,7 +108,8 @@ class AvbrytKlagebehandlingRouteTest {
                      "årsak": "PROSESSUELL_FEIL",
                      "begrunnelse": "Begrunnelse for omgjøring",
                      "rammebehandlingId": null,
-                     "ventestatus": null
+                     "ventestatus": null,
+                     "hjemler": null
                    }
                 """.trimIndent(),
             )
@@ -168,7 +170,8 @@ class AvbrytKlagebehandlingRouteTest {
                      "årsak": "PROSESSUELL_FEIL",
                      "begrunnelse": "Begrunnelse for omgjøring",
                      "rammebehandlingId": null,
-                     "ventestatus": null
+                     "ventestatus": null,
+                     "hjemler": null
                    }
                 """.trimIndent(),
             )

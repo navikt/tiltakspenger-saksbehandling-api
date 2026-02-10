@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
+import arrow.core.toNonEmptySetOrThrow
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
@@ -9,6 +10,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Opprettholdt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingsresultatDbJson.KlagebehandlingsresultatDbEnum
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehjemmelDb.Companion.toDb
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehjemmelDb.Companion.toDomain
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
 private data class KlagebehandlingsresultatDbJson(
@@ -16,6 +19,7 @@ private data class KlagebehandlingsresultatDbJson(
     val omgjørBegrunnelse: String? = null,
     val omgjørÅrsak: KlagebehandlingsOmgjørÅrsakDbEnum? = null,
     val rammebehandlingId: String? = null,
+    val hjemler: List<KlagehjemmelDb>? = null,
     // TODO jah: Flytt avvisningsbrevtekst hit fra klagebehandlingstabellen
 ) {
     enum class KlagebehandlingsresultatDbEnum {
@@ -39,8 +43,7 @@ private data class KlagebehandlingsresultatDbJson(
             )
 
             KlagebehandlingsresultatDbEnum.OPPRETTHOLDT -> Opprettholdt(
-                årsak = omgjørÅrsak!!.toDomain(),
-                begrunnelse = Begrunnelse.create(omgjørBegrunnelse!!)!!,
+                hjemler = hjemler!!.toDomain().toNonEmptySetOrThrow(),
                 brevtekst = brevtekst,
             )
         }
@@ -54,17 +57,10 @@ fun Klagebehandlingsresultat.toDbJson(): String {
             is Omgjør -> KlagebehandlingsresultatDbEnum.OMGJØR
             is Opprettholdt -> KlagebehandlingsresultatDbEnum.OPPRETTHOLDT
         },
-        omgjørBegrunnelse = when (this) {
-            is Omgjør -> this.begrunnelse.verdi
-            is Opprettholdt -> this.begrunnelse.verdi
-            is Avvist -> null
-        },
-        omgjørÅrsak = when (this) {
-            is Omgjør -> this.årsak.toDbEnum()
-            is Opprettholdt -> this.årsak.toDbEnum()
-            is Avvist -> null
-        },
+        omgjørBegrunnelse = (this as? Omgjør)?.begrunnelse?.verdi,
+        omgjørÅrsak = (this as? Omgjør)?.årsak?.toDbEnum(),
         rammebehandlingId = (this as? Omgjør)?.rammebehandlingId?.toString(),
+        hjemler = (this as? Opprettholdt)?.hjemler?.map { it.toDb() },
     ).let { serialize(it) }
 }
 

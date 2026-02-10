@@ -63,7 +63,8 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                     "begrunnelse": "",
                     "erSattPåVent": false,
                     "frist": null
-                  }
+                  },
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )

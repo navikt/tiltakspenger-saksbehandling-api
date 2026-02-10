@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
@@ -84,14 +85,14 @@ sealed interface Klagebehandlingsresultat {
     }
 
     data class Opprettholdt(
-        val årsak: KlageOmgjøringsårsak,
-        val begrunnelse: Begrunnelse,
+        val hjemler: NonEmptySet<Klagehjemmel>,
         override val brevtekst: Brevtekster?,
     ) : Klagebehandlingsresultat {
         override val kanIverksette: Boolean = !brevtekst.isNullOrEmpty()
         override val kanIkkeIverksetteGrunner: List<String> by lazy {
             val grunner = mutableListOf<String>()
             if (brevtekst.isNullOrEmpty()) grunner.add("Må ha minst et element i brevtekst")
+            if (hjemler.isEmpty()) grunner.add("Må ha minst en hjemmel")
             grunner
         }
         override val erKnyttetTilRammebehandling = false

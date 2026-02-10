@@ -7,8 +7,6 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -50,7 +48,8 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                   "årsak": "PROSESSUELL_FEIL",
                   "begrunnelse": "Begrunnelse for omgjøring",
                   "rammebehandlingId": "${rammebehandlingMedKlagebehandling.id}",
-                  "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )

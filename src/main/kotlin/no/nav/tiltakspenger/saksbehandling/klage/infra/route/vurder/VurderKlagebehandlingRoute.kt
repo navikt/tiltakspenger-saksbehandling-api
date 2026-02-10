@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder
 
+import arrow.core.toNonEmptySetOrThrow
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
@@ -32,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjørings�
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OmgjørKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OpprettholdKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toStatusAndErrorJson
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
@@ -43,9 +45,12 @@ enum class Vurderingstype {
 }
 
 private data class VurderKlagebehandlingBody(
-    val begrunnelse: String,
-    val årsak: String,
+    // TODO - fjern default når frontend er klar
     val vurderingstype: Vurderingstype = Vurderingstype.OMGJØR,
+    val begrunnelse: String?,
+    val årsak: String?,
+    // TODO - fjern default når frontend er klar
+    val hjemler: List<KlagehjemmelDto>? = null,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -53,23 +58,21 @@ private data class VurderKlagebehandlingBody(
         correlationId: CorrelationId,
         klagebehandlingId: KlagebehandlingId,
     ): VurderKlagebehandlingKommando {
-        val årsak = when (årsak) {
-            "FEIL_LOVANVENDELSE" -> FEIL_LOVANVENDELSE
-            "FEIL_REGELVERKSFORSTAAELSE" -> FEIL_REGELVERKSFORSTAAELSE
-            "FEIL_ELLER_ENDRET_FAKTA" -> FEIL_ELLER_ENDRET_FAKTA
-            "PROSESSUELL_FEIL" -> PROSESSUELL_FEIL
-            "ANNET" -> ANNET
-            else -> throw IllegalArgumentException("Ukjent omgjøringsårsak: $årsak")
-        }
-
         return when (vurderingstype) {
             Vurderingstype.OMGJØR -> OmgjørKlagebehandlingKommando(
                 sakId = sakId,
                 klagebehandlingId = klagebehandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                begrunnelse = Begrunnelse.create(begrunnelse)!!,
-                årsak = årsak,
+                begrunnelse = Begrunnelse.create(begrunnelse!!)!!,
+                årsak = when (årsak) {
+                    "FEIL_LOVANVENDELSE" -> FEIL_LOVANVENDELSE
+                    "FEIL_REGELVERKSFORSTAAELSE" -> FEIL_REGELVERKSFORSTAAELSE
+                    "FEIL_ELLER_ENDRET_FAKTA" -> FEIL_ELLER_ENDRET_FAKTA
+                    "PROSESSUELL_FEIL" -> PROSESSUELL_FEIL
+                    "ANNET" -> ANNET
+                    else -> throw IllegalArgumentException("Ukjent omgjøringsårsak: $årsak")
+                },
             )
 
             Vurderingstype.OPPRETTHOLD -> OpprettholdKlagebehandlingKommando(
@@ -77,8 +80,7 @@ private data class VurderKlagebehandlingBody(
                 klagebehandlingId = klagebehandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                begrunnelse = Begrunnelse.create(begrunnelse)!!,
-                årsak = årsak,
+                hjemler = hjemler!!.map { it.toKlagehjemmel() }.toNonEmptySetOrThrow(),
             )
         }
     }

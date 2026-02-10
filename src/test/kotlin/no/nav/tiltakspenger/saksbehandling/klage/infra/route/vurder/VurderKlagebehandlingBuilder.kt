@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandling
@@ -52,8 +53,9 @@ interface VurderKlagebehandlingBuilder {
         erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
         erKlagenSignert: Boolean = true,
         vurderingstype: Vurderingstype = Vurderingstype.OMGJØR,
-        begrunnelse: Begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-        årsak: KlageOmgjøringsårsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
+        begrunnelse: Begrunnelse? = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
+        årsak: KlageOmgjøringsårsak? = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
+        hjemler: List<KlagehjemmelDto>? = null,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, Klagebehandling, KlagebehandlingDTOJson>? {
@@ -75,6 +77,7 @@ interface VurderKlagebehandlingBuilder {
             saksbehandler = saksbehandlerKlagebehandling,
             begrunnelse = begrunnelse,
             årsak = årsak,
+            hjemler = hjemler,
             vurderingstype = vurderingstype,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
@@ -89,8 +92,9 @@ interface VurderKlagebehandlingBuilder {
         klagebehandlingId: KlagebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         vurderingstype: Vurderingstype,
-        begrunnelse: Begrunnelse,
-        årsak: KlageOmgjøringsårsak,
+        begrunnelse: Begrunnelse?,
+        årsak: KlageOmgjøringsårsak?,
+        hjemler: List<KlagehjemmelDto>?,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
@@ -109,8 +113,9 @@ interface VurderKlagebehandlingBuilder {
                 """
                 {
                     "vurderingstype": "$vurderingstype",
-                    "begrunnelse": "${begrunnelse.verdi}",
-                    "årsak": "$årsak"
+                    "begrunnelse": ${begrunnelse?.let { "\"${it.verdi}\"" }},
+                    "årsak": ${årsak?.let { "\"${it.name}\"" }},
+                    "hjemler": ${hjemler?.joinToString(",") { "\"${it}\"" }?.let { "[$it]" }}
                 }
                 """.trimIndent(),
             )

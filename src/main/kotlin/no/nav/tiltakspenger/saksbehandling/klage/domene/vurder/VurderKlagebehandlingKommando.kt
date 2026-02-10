@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.vurder
 
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagehjemmel
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
@@ -17,8 +19,6 @@ sealed interface VurderKlagebehandlingKommando {
     val klagebehandlingId: KlagebehandlingId
     val saksbehandler: Saksbehandler
     val correlationId: CorrelationId
-    val årsak: KlageOmgjøringsårsak
-    val begrunnelse: Begrunnelse
 }
 
 /**
@@ -29,8 +29,8 @@ data class OmgjørKlagebehandlingKommando(
     override val klagebehandlingId: KlagebehandlingId,
     override val saksbehandler: Saksbehandler,
     override val correlationId: CorrelationId,
-    override val årsak: KlageOmgjøringsårsak,
-    override val begrunnelse: Begrunnelse,
+    val årsak: KlageOmgjøringsårsak,
+    val begrunnelse: Begrunnelse,
 ) : VurderKlagebehandlingKommando {
     /**
      * Brukes bare initielt.
@@ -49,9 +49,8 @@ data class OpprettholdKlagebehandlingKommando(
     override val klagebehandlingId: KlagebehandlingId,
     override val saksbehandler: Saksbehandler,
     override val correlationId: CorrelationId,
-    override val årsak: KlageOmgjøringsårsak,
-    override val begrunnelse: Begrunnelse,
+    val hjemler: NonEmptySet<Klagehjemmel>,
 ) : VurderKlagebehandlingKommando {
     fun tilResultat(brevtekster: Brevtekster?): Klagebehandlingsresultat.Opprettholdt =
-        Klagebehandlingsresultat.Opprettholdt(årsak = årsak, begrunnelse = begrunnelse, brevtekst = brevtekster)
+        Klagebehandlingsresultat.Opprettholdt(hjemler = hjemler, brevtekst = brevtekster)
 }

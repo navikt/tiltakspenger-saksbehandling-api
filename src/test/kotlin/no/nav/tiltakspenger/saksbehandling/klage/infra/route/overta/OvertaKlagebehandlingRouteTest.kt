@@ -44,7 +44,8 @@ class OvertaKlagebehandlingRouteTest {
                   "årsak": null,
                   "begrunnelse": null,
                   "rammebehandlingId": null,
-                  "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )
@@ -88,7 +89,8 @@ class OvertaKlagebehandlingRouteTest {
                   "årsak": null,
                   "begrunnelse": null,
                   "rammebehandlingId": null,
-                  "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )

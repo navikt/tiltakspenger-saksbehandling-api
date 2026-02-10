@@ -64,7 +64,8 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                   "årsak": null,
                   "begrunnelse": null,
                   "rammebehandlingId": null,
-                     "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )
@@ -95,6 +96,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
                 årsak = KlageOmgjøringsårsak.FEIL_LOVANVENDELSE,
                 vurderingstype = Vurderingstype.OMGJØR,
+                hjemler = null,
             )!!
 
             oppdaterKlagebehandlingFormkravForSakId(
@@ -135,7 +137,8 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                   "årsak": "FEIL_LOVANVENDELSE",
                   "begrunnelse": "Begrunnelse for omgjøring",
                   "rammebehandlingId": null,
-                  "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": null
                 }
                     """.trimIndent()
                 },

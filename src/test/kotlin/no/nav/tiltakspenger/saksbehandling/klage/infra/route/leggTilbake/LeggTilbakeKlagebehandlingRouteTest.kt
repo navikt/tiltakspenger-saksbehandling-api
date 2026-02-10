@@ -43,7 +43,8 @@ class LeggTilbakeKlagebehandlingRouteTest {
                   "årsak": null,
                   "begrunnelse": null,
                   "rammebehandlingId": null,
-                  "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )

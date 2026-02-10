@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
@@ -54,7 +55,8 @@ class VurderKlagebehandlingRouteTest {
                   "årsak": "PROSESSUELL_FEIL",
                   "begrunnelse": "Begrunnelse for omgjøring",
                   "rammebehandlingId": null,
-                  "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )
@@ -68,6 +70,12 @@ class VurderKlagebehandlingRouteTest {
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
                 vurderingstype = Vurderingstype.OPPRETTHOLD,
+                årsak = null,
+                begrunnelse = null,
+                hjemler = listOf(
+                    KlagehjemmelDto.ARBEIDSMARKEDSLOVEN_17,
+                    KlagehjemmelDto.TILTAKSPENGEFORSKRIFTEN_2,
+                ),
             )!!
             json.toString().shouldEqualJson(
                 """
@@ -93,10 +101,14 @@ class VurderKlagebehandlingRouteTest {
                   "brevtekst": [],
                   "avbrutt": null,
                   "kanIverksette": false,
-                  "årsak": "PROSESSUELL_FEIL",
-                  "begrunnelse": "Begrunnelse for omgjøring",
+                  "årsak": null,
+                  "begrunnelse":null,
                   "rammebehandlingId": null,
-                  "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": [
+                    "ARBEIDSMARKEDSLOVEN_17",
+                    "TILTAKSPENGEFORSKRIFTEN_2"
+                   ]       
                 }
                 """.trimIndent(),
             )
@@ -121,6 +133,7 @@ class VurderKlagebehandlingRouteTest {
                 begrunnelse = Begrunnelse.createOrThrow("oppdatert begrunnelse for omgjøring"),
                 årsak = KlageOmgjøringsårsak.ANNET,
                 vurderingstype = Vurderingstype.OMGJØR,
+                hjemler = null,
             )!!
             json.toString().shouldEqualJson(
                 """
@@ -149,7 +162,8 @@ class VurderKlagebehandlingRouteTest {
                   "årsak": "ANNET",
                   "begrunnelse": "oppdatert begrunnelse for omgjøring",
                   "rammebehandlingId": "${rammebehandlingMedKlagebehandling.id}",
-                  "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )
@@ -185,6 +199,7 @@ class VurderKlagebehandlingRouteTest {
                 begrunnelse = Begrunnelse.createOrThrow("oppdatert begrunnelse for omgjøring"),
                 årsak = KlageOmgjøringsårsak.ANNET,
                 vurderingstype = Vurderingstype.OMGJØR,
+                hjemler = null,
                 forventetStatus = HttpStatusCode.BadRequest,
                 forventetJsonBody = {
                     """
@@ -234,6 +249,7 @@ class VurderKlagebehandlingRouteTest {
                 begrunnelse = Begrunnelse.createOrThrow("oppdatert begrunnelse for omgjøring"),
                 årsak = KlageOmgjøringsårsak.ANNET,
                 vurderingstype = Vurderingstype.OMGJØR,
+                hjemler = null,
                 forventetStatus = HttpStatusCode.BadRequest,
                 forventetJsonBody = {
                     """
@@ -289,6 +305,7 @@ class VurderKlagebehandlingRouteTest {
                 begrunnelse = Begrunnelse.createOrThrow("oppdatert begrunnelse for omgjøring"),
                 årsak = KlageOmgjøringsårsak.ANNET,
                 vurderingstype = Vurderingstype.OMGJØR,
+                hjemler = null,
                 forventetStatus = HttpStatusCode.BadRequest,
                 forventetJsonBody = {
                     """

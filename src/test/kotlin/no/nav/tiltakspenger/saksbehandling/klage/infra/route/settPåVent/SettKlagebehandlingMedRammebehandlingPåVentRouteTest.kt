@@ -62,7 +62,8 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                     "begrunnelse": "begrunnelse for å sette klage på vent",
                     "erSattPåVent": true,
                     "frist": "2025-01-14"
-                  }
+                  },
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )

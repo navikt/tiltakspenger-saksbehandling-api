@@ -50,7 +50,8 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
                   "årsak": "PROSESSUELL_FEIL",
                   "begrunnelse": "Begrunnelse for omgjøring",
                   "rammebehandlingId": "${rammebehandlingMedKlagebehandling.id}",
-                  "ventestatus": null
+                  "ventestatus": null,
+                  "hjemler": null
                 }
                 """.trimIndent(),
             )
