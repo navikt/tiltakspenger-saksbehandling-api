@@ -22,7 +22,6 @@ private data class DatadelingVedtakJson(
     val vedtakId: String,
     val sakId: String,
     val vedtaksperiode: PeriodeDTO,
-    val virkningsperiode: PeriodeDTO,
     // TODO: oppdater til periodisert innvilgelse
     val innvilgelsesperiode: PeriodeDTO?,
     val omgjørRammevedtakId: String?,
@@ -71,7 +70,6 @@ fun Rammevedtak.toDatadelingJson(): String {
     return DatadelingVedtakJson(
         vedtakId = this.id.toString(),
         sakId = this.sakId.toString(),
-        virkningsperiode = periode.toDTO(),
         vedtaksperiode = periode.toDTO(),
         // TODO abn: burde vi sende periodiseringen istedenfor totalperioden?
         innvilgelsesperiode = innvilgelsesperioder?.totalPeriode?.toDTO(),
