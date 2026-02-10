@@ -22,11 +22,11 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.libs.periodisering.TomPeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
@@ -73,6 +73,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKom
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -230,14 +232,12 @@ interface MeldekortMother : MotherOfAllMothers {
             opprettet = opprettet,
             antallDagerForPeriode = 10,
         ),
-        dager: MeldekortDager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         brukersMeldekort: BrukersMeldekort = brukersMeldekort(
             sakId = sakId,
             meldeperiode = meldeperiode,
             behandlesAutomatisk = true,
             mottatt = nå(clock),
-
         ),
         beregning: Beregning = brukersMeldekort.tilMeldekortBeregning(
             meldekortBehandlingId = id,
@@ -256,7 +256,7 @@ interface MeldekortMother : MotherOfAllMothers {
             navkontor = navkontor,
             brukersMeldekort = brukersMeldekort,
             meldeperiode = meldeperiode,
-            dager = dager,
+            dager = brukersMeldekort.tilMeldekortDager(),
             beregning = beregning,
             type = type,
             status = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
@@ -547,10 +547,10 @@ interface MeldekortMother : MotherOfAllMothers {
     suspend fun førsteBeregnetMeldekort(
         kommando: OppdaterMeldekortKommando,
         vedtaksperiode: Periode,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett> = SammenhengendePeriodisering(
-            TiltakstypeSomGirRett.GRUPPE_AMO,
-            vedtaksperiode,
-        ),
+        innvilgelsesperioder: Periodisering<InnvilgelsesperiodeVerdi> = innvilgelsesperioder(
+            periode = vedtaksperiode,
+            valgtTiltaksdeltakelse = tiltaksdeltakelse(periode = vedtaksperiode),
+        ).periodisering,
         meldekortId: MeldekortId,
         sakId: SakId,
         clock: Clock = TikkendeKlokke(),
@@ -611,7 +611,9 @@ interface MeldekortMother : MotherOfAllMothers {
             ),
         )
 
-        val (oppadatertMeldekortbehandlinger, _) = meldekortBehandlinger.oppdaterMeldekort(
+        val meldekortvedtaksliste = meldekortBehandlinger.tilMeldekortvedtaksliste(clock)
+
+        val (oppdatertMeldekortbehandlinger, _) = meldekortBehandlinger.oppdaterMeldekort(
             kommando = kommando,
             clock = clock,
             beregn = {
@@ -619,9 +621,9 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldekortIdSomBeregnes = meldekortId,
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
-                    hentInnvilgelse = { null },
-                    meldekortvedtakTidslinje = TomPeriodisering.instance(),
-
+                    hentInnvilgelse = innvilgelsesperioder::hentVerdiForDag,
+                    gjeldendeBeregninger = meldekortvedtaksliste.tilMeldeperiodeBeregninger(),
+                    meldekortvedtakTidslinje = meldekortvedtaksliste.tidslinje,
                 )
             },
             simuler = {
@@ -637,7 +639,7 @@ interface MeldekortMother : MotherOfAllMothers {
             },
         ).getOrFail()
 
-        return oppadatertMeldekortbehandlinger.sendTilBeslutter(
+        return oppdatertMeldekortbehandlinger.sendTilBeslutter(
             kommando = kommando.tilSendMeldekortTilBeslutterKommando(),
             clock = clock,
         )
@@ -661,10 +663,10 @@ interface MeldekortMother : MotherOfAllMothers {
         opprettet: LocalDateTime = nå(clock),
         barnetilleggsPerioder: Periodisering<AntallBarn>,
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.UNDER_BEHANDLING,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett> = SammenhengendePeriodisering(
-            TiltakstypeSomGirRett.GRUPPE_AMO,
-            vedtaksperiode,
-        ),
+        innvilgelsesperioder: Periodisering<InnvilgelsesperiodeVerdi> = innvilgelsesperioder(
+            periode = vedtaksperiode,
+            valgtTiltaksdeltakelse = tiltaksdeltakelse(periode = vedtaksperiode),
+        ).periodisering,
         girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
         attesteringer: Attesteringer = Attesteringer.empty(),
@@ -712,6 +714,8 @@ interface MeldekortMother : MotherOfAllMothers {
             ),
         )
 
+        val meldekortvedtaksliste = meldekortBehandlinger.tilMeldekortvedtaksliste(clock)
+
         val (oppadatertMeldekortbehandlinger, _) = meldekortBehandlinger.oppdaterMeldekort(
             kommando = kommando,
             clock = clock,
@@ -720,8 +724,9 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldekortIdSomBeregnes = meldekortId,
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
-                    hentInnvilgelse = { null },
-                    meldekortvedtakTidslinje = TomPeriodisering.instance(),
+                    hentInnvilgelse = innvilgelsesperioder::hentVerdiForDag,
+                    gjeldendeBeregninger = meldekortvedtaksliste.tilMeldeperiodeBeregninger(),
+                    meldekortvedtakTidslinje = meldekortvedtaksliste.tidslinje,
                 )
             },
             simuler = {
@@ -1033,6 +1038,10 @@ fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): Dager {
 }
 
 fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): MeldeperiodeBeregningerVedtatt {
+    return this.tilMeldekortvedtaksliste(clock).tilMeldeperiodeBeregninger()
+}
+
+fun Meldekortbehandlinger.tilMeldekortvedtaksliste(clock: Clock): Meldekortvedtaksliste {
     return this.sortedBy { it.iverksattTidspunkt }.fold(emptyList<Meldekortvedtak>()) { acc, mkb ->
         if (mkb !is MeldekortBehandling.Behandlet) {
             return@fold acc
@@ -1040,12 +1049,16 @@ fun Meldekortbehandlinger.tilMeldeperiodeBeregninger(clock: Clock): Meldeperiode
 
         acc.plus(mkb.opprettVedtak(acc.lastOrNull()?.utbetaling, clock))
     }.let {
-        MeldeperiodeBeregningerVedtatt.fraVedtaksliste(
-            Vedtaksliste(
-                Rammevedtaksliste.empty(),
-                Meldekortvedtaksliste(it),
-                Klagevedtaksliste.empty(),
-            ),
-        )
+        Meldekortvedtaksliste(it)
     }
+}
+
+fun Meldekortvedtaksliste.tilMeldeperiodeBeregninger(): MeldeperiodeBeregningerVedtatt {
+    return MeldeperiodeBeregningerVedtatt.fraVedtaksliste(
+        Vedtaksliste(
+            Rammevedtaksliste.empty(),
+            Meldekortvedtaksliste(this),
+            Klagevedtaksliste.empty(),
+        ),
+    )
 }

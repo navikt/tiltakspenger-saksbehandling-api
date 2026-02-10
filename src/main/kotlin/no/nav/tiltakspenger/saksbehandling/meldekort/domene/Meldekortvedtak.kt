@@ -48,6 +48,7 @@ data class Meldekortvedtak(
     val rammevedtak: List<VedtakId> = meldekortBehandling.rammevedtak
     val beregningsperiode: Periode = meldekortBehandling.beregning.periode
     val antallDagerPerMeldeperiode: Int = meldeperiode.maksAntallDagerForMeldeperiode
+    val dager: List<MeldekortDag> = meldekortBehandling.dager
 
     override val periode: Periode = meldeperiode.periode
 

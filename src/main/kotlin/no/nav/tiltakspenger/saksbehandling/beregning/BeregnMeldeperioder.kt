@@ -60,6 +60,7 @@ private data class BeregnMeldeperioder(
     val meldeperioderSomBeregnes: NonEmptyList<MeldeperiodeSomSkalBeregnes>,
     val hentAntallBarn: HentAntallBarn,
     val hentInnvilgelse: HentInnvilgelse,
+    val gjeldendeBeregninger: MeldeperiodeBeregningerVedtatt,
     val meldekortvedtakTidslinje: Periodisering<Meldekortvedtak>,
 ) {
     private val egenSykeperiode: SykedagerPeriode = SykedagerPeriode()
@@ -88,19 +89,19 @@ private data class BeregnMeldeperioder(
             .let { (meldekortFørBeregningsperioden, meldekortUnderOgEtterBeregningsperioden) ->
                 // Kjør gjennom tidligere beregninger for å sette riktig state for sykedager før vi gjør nye beregninger
                 meldekortFørBeregningsperioden.forEach {
-                    beregnMeldeperiode(it.tilSkalBeregnes { dato -> harRett(dato) })
+                    beregnMeldeperiode(it.tilSkalBeregnes())
                 }
 
                 val beregningerForBeregningsperioden = meldeperioderSomBeregnes.map { beregnMeldeperiode(it) }
 
                 val beregningerEtterBeregningsperioden = meldekortUnderOgEtterBeregningsperioden
                     .dropWhile { it.tilOgMed <= beregningsperiode.tilOgMed }
-                    .map { it.tilSkalBeregnes { dato -> harRett(dato) } }
+                    .map { it.tilSkalBeregnes() }
 
                 val beregningerEtterBeregningsperiodenOmberegnet = beregningerEtterBeregningsperioden
                     .map { beregning ->
                         val nyBeregning = beregnMeldeperiode(beregning)
-                        val harEndringer = nyBeregning.dager != beregning.eksisterendeBeregning
+                        val harEndringer = nyBeregning.dager != hentGjeldendeBeregningDagerForKjede(beregning.kjedeId)
 
                         nyBeregning to harEndringer
                     }
@@ -121,6 +122,10 @@ private data class BeregnMeldeperioder(
 
     private fun hentTiltakstype(dato: LocalDate): TiltakstypeSomGirRett? {
         return hentInnvilgelse(dato)?.valgtTiltaksdeltakelse?.typeKode
+    }
+
+    private fun hentGjeldendeBeregningDagerForKjede(kjedeId: MeldeperiodeKjedeId): NonEmptyList<MeldeperiodeBeregningDag>? {
+        return gjeldendeBeregninger.gjeldendeBeregningPerKjede[kjedeId]?.dager
     }
 
     private fun beregnMeldeperiode(meldeperiode: MeldeperiodeSomSkalBeregnes): MeldeperiodeBeregning {
@@ -144,6 +149,10 @@ private data class BeregnMeldeperioder(
         dato: LocalDate,
         status: MeldekortDagStatus,
     ): MeldeperiodeBeregningDag {
+        if (!harRett(dato)) {
+            return IkkeRettTilTiltakspenger(dato = dato)
+        }
+
         val antallBarn = hentAntallBarn(dato) ?: AntallBarn.ZERO
 
         val tiltakstype by lazy {
@@ -261,13 +270,12 @@ private class SykedagerPeriode {
 
 /** Kan representere enten en tidligere beregnet meldeperiode, eller en ny meldeperiode
  *
- *  @param eksisterendeBeregning Forrige beregning for meldeperioden, eller null for ny meldeperiode
+ *  @param gjeldendeBeregning Forrige beregning for meldeperioden, eller null for ny meldeperiode
  * */
 private data class MeldeperiodeSomSkalBeregnes(
     val kjedeId: MeldeperiodeKjedeId,
     val meldekortId: MeldekortId,
     val dager: NonEmptyList<MeldekortDag>,
-    val eksisterendeBeregning: NonEmptyList<MeldeperiodeBeregningDag>?,
 ) {
     val fraOgMed: LocalDate = dager.first().dato
     val tilOgMed: LocalDate = dager.last().dato
@@ -278,23 +286,14 @@ private fun MeldekortDager.tilSkalBeregnes(meldekortId: MeldekortId): Meldeperio
         kjedeId = this.meldeperiode.kjedeId,
         meldekortId = meldekortId,
         dager = this.verdi.toNonEmptyListOrThrow(),
-        eksisterendeBeregning = null,
     )
 }
 
-private fun Meldekortvedtak.tilSkalBeregnes(
-    harRett: (dag: LocalDate) -> Boolean,
-): MeldeperiodeSomSkalBeregnes {
+private fun Meldekortvedtak.tilSkalBeregnes(): MeldeperiodeSomSkalBeregnes {
     return MeldeperiodeSomSkalBeregnes(
         kjedeId = this.meldeperiode.kjedeId,
         meldekortId = this.meldekortId,
-        dager = this.meldekortBehandling.dager.map { dag ->
-            MeldekortDag(
-                dato = dag.dato,
-                status = if (harRett(dag.dato)) dag.status else IKKE_RETT_TIL_TILTAKSPENGER,
-            )
-        }.toNonEmptyListOrThrow(),
-        eksisterendeBeregning = this.beregning.dager,
+        dager = this.dager.toNonEmptyListOrThrow(),
     )
 }
 
@@ -360,24 +359,13 @@ private fun Sak.beregnRammebehandling(
     nyeBarnetilleggsperioder: Periodisering<AntallBarn>? = null,
 ): Beregning? {
     require(innvilgelsesperioder == null || innvilgelsesperioder.perioder.all { vedtaksperiode.inneholderHele(it) }) {
-        "Vedtaksperioden $vedtaksperiode må inneholde alle innvilgelsesperiodene $innvilgelsesperioder"
+        "Vedtaksperioden $vedtaksperiode må inneholde alle innvilgelsesperiodene ${innvilgelsesperioder!!.perioder}"
     }
 
     val meldeperioderSomBeregnesPåNytt = meldekortvedtaksliste.tidslinje
         .overlappendePeriode(vedtaksperiode)
-        .verdier.map { meldekortvedtak ->
-            meldekortvedtak.tilSkalBeregnes(
-                harRett = { dato ->
-                    if (vedtaksperiode.contains(dato)) {
-                        innvilgelsesperioder?.perioder?.any {
-                            it.contains(dato)
-                        } ?: false
-                    } else {
-                        rammevedtaksliste.harInnvilgetTiltakspengerPåDato(dato)
-                    }
-                },
-            )
-        }.toNonEmptyListOrNull()
+        .verdier.map { it.tilSkalBeregnes() }
+        .toNonEmptyListOrNull()
 
     if (meldeperioderSomBeregnesPåNytt == null) {
         return null
@@ -397,6 +385,7 @@ private fun Sak.beregnRammebehandling(
                 this.rammevedtaksliste.innvilgelsesperioder.hentVerdiForDag(it)
             }
         },
+        gjeldendeBeregninger = this.meldeperiodeBeregninger,
         meldekortvedtakTidslinje = this.meldekortvedtaksliste.tidslinje,
     ).beregn().let { Beregning(it) }
 }
@@ -410,6 +399,7 @@ fun Sak.beregnMeldekort(
         meldeperiodeSomBeregnes = meldeperiodeSomBeregnes,
         barnetilleggsPerioder = this.barnetilleggsperioder,
         hentInnvilgelse = { this.rammevedtaksliste.innvilgelsesperioder.hentVerdiForDag(it) },
+        gjeldendeBeregninger = this.meldeperiodeBeregninger,
         meldekortvedtakTidslinje = this.meldekortvedtaksliste.tidslinje,
     )
 }
@@ -419,6 +409,7 @@ fun beregnMeldekort(
     meldeperiodeSomBeregnes: MeldekortDager,
     barnetilleggsPerioder: Periodisering<AntallBarn>,
     hentInnvilgelse: HentInnvilgelse,
+    gjeldendeBeregninger: MeldeperiodeBeregningerVedtatt,
     meldekortvedtakTidslinje: Periodisering<Meldekortvedtak>,
 ): NonEmptyList<MeldeperiodeBeregning> {
     return BeregnMeldeperioder(
@@ -426,6 +417,7 @@ fun beregnMeldekort(
         hentAntallBarn = { barnetilleggsPerioder.hentVerdiForDag(it) },
         hentInnvilgelse = hentInnvilgelse,
         beregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortIdSomBeregnes),
+        gjeldendeBeregninger = gjeldendeBeregninger,
         meldekortvedtakTidslinje = meldekortvedtakTidslinje,
     ).beregn()
 }

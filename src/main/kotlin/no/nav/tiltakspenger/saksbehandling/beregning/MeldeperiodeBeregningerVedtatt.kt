@@ -9,7 +9,6 @@ import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 
 /**
@@ -96,14 +95,6 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
                 (vedtaksliste.rammevedtaksliste + vedtaksliste.meldekortvedtaksliste)
                     .sortedBy { it.opprettet }
                     .flatMap { it.beregning?.beregninger ?: emptyList() },
-            )
-        }
-
-        fun fraMeldekort(meldekortvedtaksliste: Meldekortvedtaksliste): MeldeperiodeBeregningerVedtatt {
-            return MeldeperiodeBeregningerVedtatt(
-                meldekortvedtaksliste
-                    .sortedBy { it.opprettet }
-                    .flatMap { it.beregning.beregninger },
             )
         }
     }
