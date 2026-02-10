@@ -281,10 +281,10 @@ private fun mapIverksettStatus(
 
     when (status) {
         202 -> {
-            log.info(RuntimeException("Trigger stacktrace for enklere debug.")) {
+            log.info {
                 "202 Accepted fra helved utsjekk for, utbetaling $utbetalingId. Response: $response. Se sikkerlogg for mer kontekst."
             }
-            Sikkerlogg.info(RuntimeException("Trigger stacktrace for enklere debug.")) {
+            Sikkerlogg.info {
                 "202 Accepted fra helved utsjekk for, utbetaling $utbetalingId. Response: $response. Request = $request"
             }
             return SendtUtbetaling(
@@ -326,10 +326,10 @@ private fun mapIverksettStatus(
         409 -> {
             // TODO post-mvp jah: På sikt er dette en litt skjør sjekk som kan føre til at vi må endre denne sjekken dersom helved forandrer meldingen. Vi har bestilt et ønske fra helved om at vi får en json-respons med en kontraktsfestet kode, evt. at de garanterer at 409 kun brukes til dedupformål.
             if (response.contains("Iverksettingen er allerede mottatt")) {
-                log.info(RuntimeException("Trigger stacktrace for enklere debug.")) {
+                log.info {
                     "409 Conflict fra helved utsjekk, for utbetaling $utbetalingId. Vi antar vi har sendt samme melding tidligere og behandler denne på samme måte som 202 Response: $response. Se sikkerlogg for mer kontekst."
                 }
-                Sikkerlogg.info(RuntimeException("Trigger stacktrace for enklere debug.")) {
+                Sikkerlogg.info {
                     "409 Conflict fra helved utsjekk, for utbetaling $utbetalingId. Vi antar vi har sendt samme melding tidligere og behandler denne på samme måte som 202 Response: $response. Request = $request"
                 }
                 return SendtUtbetaling(
