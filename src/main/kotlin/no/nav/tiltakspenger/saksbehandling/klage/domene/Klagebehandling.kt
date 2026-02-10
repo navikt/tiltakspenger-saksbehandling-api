@@ -166,7 +166,7 @@ data class Klagebehandling(
                         "Klagebehandling som er $status må ha brevtekst satt.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
                     }
 
-                    is Klagebehandlingsresultat.Opprettholdt -> throw IllegalArgumentException("Klagebehandling som er $status kan ikke ha resultat satt til OPPRETHOLDT.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id")
+                    is Klagebehandlingsresultat.Opprettholdt -> throw IllegalArgumentException("Klagebehandling som er $status kan ikke ha resultat satt til OPPRETTHOLDT.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id")
                 }
             }
 

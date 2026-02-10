@@ -35,5 +35,15 @@ fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode,
                 ),
             )
         }
+
+        is KanIkkeOppdatereKlagebehandling.KlageErKnyttetTilRammebehandling -> {
+            Pair(
+                HttpStatusCode.BadRequest,
+                ErrorJson(
+                    "Klagebehandling er knyttet til rammebehandling med id ${u.rammebehandlingId}, og kan derfor ikke oppdateres",
+                    "klage_er_knyttet_til_rammebehandling",
+                ),
+            )
+        }
     }
 }

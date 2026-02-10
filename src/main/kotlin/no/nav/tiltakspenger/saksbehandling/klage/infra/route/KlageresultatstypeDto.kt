@@ -5,14 +5,14 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 enum class KlageresultatstypeDto {
     AVVIST,
     OMGJØR,
-    OPPRETHOLDT,
+    OPPRETTHOLDT,
     ;
 
     companion object {
         fun Klagebehandlingsresultat.toKlageresultatstypDto(): KlageresultatstypeDto = when (this) {
             is Klagebehandlingsresultat.Avvist -> AVVIST
             is Klagebehandlingsresultat.Omgjør -> OMGJØR
-            is Klagebehandlingsresultat.Opprettholdt -> OPPRETHOLDT
+            is Klagebehandlingsresultat.Opprettholdt -> OPPRETTHOLDT
         }
     }
 }

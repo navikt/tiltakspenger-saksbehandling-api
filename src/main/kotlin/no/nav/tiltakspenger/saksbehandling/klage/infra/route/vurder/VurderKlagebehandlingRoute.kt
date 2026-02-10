@@ -30,15 +30,22 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjørings�
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.FEIL_REGELVERKSFORSTAAELSE
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.PROSESSUELL_FEIL
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OmgjørKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OpprettholdKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toStatusAndErrorJson
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
+enum class Vurderingstype {
+    OMGJØR,
+    OPPRETTHOLD,
+}
+
 private data class VurderKlagebehandlingBody(
     val begrunnelse: String,
     val årsak: String,
+    val vurderingstype: Vurderingstype,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -46,21 +53,34 @@ private data class VurderKlagebehandlingBody(
         correlationId: CorrelationId,
         klagebehandlingId: KlagebehandlingId,
     ): VurderKlagebehandlingKommando {
-        return OmgjørKlagebehandlingKommando(
-            sakId = sakId,
-            klagebehandlingId = klagebehandlingId,
-            saksbehandler = saksbehandler,
-            correlationId = correlationId,
-            begrunnelse = Begrunnelse.create(begrunnelse)!!,
-            årsak = when (årsak) {
-                "FEIL_LOVANVENDELSE" -> FEIL_LOVANVENDELSE
-                "FEIL_REGELVERKSFORSTAAELSE" -> FEIL_REGELVERKSFORSTAAELSE
-                "FEIL_ELLER_ENDRET_FAKTA" -> FEIL_ELLER_ENDRET_FAKTA
-                "PROSESSUELL_FEIL" -> PROSESSUELL_FEIL
-                "ANNET" -> ANNET
-                else -> throw IllegalArgumentException("Ukjent omgjøringsårsak: $årsak")
-            },
-        )
+        val årsak = when (årsak) {
+            "FEIL_LOVANVENDELSE" -> FEIL_LOVANVENDELSE
+            "FEIL_REGELVERKSFORSTAAELSE" -> FEIL_REGELVERKSFORSTAAELSE
+            "FEIL_ELLER_ENDRET_FAKTA" -> FEIL_ELLER_ENDRET_FAKTA
+            "PROSESSUELL_FEIL" -> PROSESSUELL_FEIL
+            "ANNET" -> ANNET
+            else -> throw IllegalArgumentException("Ukjent omgjøringsårsak: $årsak")
+        }
+
+        return when (vurderingstype) {
+            Vurderingstype.OMGJØR -> OmgjørKlagebehandlingKommando(
+                sakId = sakId,
+                klagebehandlingId = klagebehandlingId,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                begrunnelse = Begrunnelse.create(begrunnelse)!!,
+                årsak = årsak,
+            )
+
+            Vurderingstype.OPPRETTHOLD -> OpprettholdKlagebehandlingKommando(
+                sakId = sakId,
+                klagebehandlingId = klagebehandlingId,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                begrunnelse = Begrunnelse.create(begrunnelse)!!,
+                årsak = årsak,
+            )
+        }
     }
 }
 

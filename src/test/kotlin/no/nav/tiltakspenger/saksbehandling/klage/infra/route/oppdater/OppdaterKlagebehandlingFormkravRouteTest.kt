@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.Vurderingstype
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterKlagebehandlingFormkravForSakId
@@ -93,6 +94,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 klagebehandlingId = klagebehandling.id,
                 begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
                 årsak = KlageOmgjøringsårsak.FEIL_LOVANVENDELSE,
+                vurderingstype = Vurderingstype.OMGJØR,
             )!!
 
             oppdaterKlagebehandlingFormkravForSakId(

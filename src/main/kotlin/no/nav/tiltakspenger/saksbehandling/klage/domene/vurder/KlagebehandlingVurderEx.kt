@@ -20,19 +20,9 @@ fun Klagebehandling.vurder(
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeVurdereKlagebehandling, Klagebehandling> {
-    require(kommando is OmgjørKlagebehandlingKommando)
     kanOppdatereIDenneStatusen(rammebehandlingsstatus).onLeft {
         return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres(
             it,
-        ).left()
-    }
-    // TODO jah: Denne må nok gjøres om litt når vi legger til opprettholdelse
-    if (resultat != null && !erOmgjøring) {
-        return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres(
-            KanIkkeOppdatereKlagebehandling.FeilResultat(
-                forventetResultat = Klagebehandlingsresultat.Omgjør::class.simpleName!!,
-                faktiskResultat = resultat::class.simpleName!!,
-            ),
         ).left()
     }
     if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
@@ -41,12 +31,37 @@ fun Klagebehandling.vurder(
             faktiskSaksbehandler = kommando.saksbehandler.navIdent,
         ).left()
     }
+
+    return when (kommando) {
+        is OmgjørKlagebehandlingKommando -> this.vurderOmgjøring(kommando, clock).right()
+        is OpprettholdKlagebehandlingKommando -> this.vurderOpprettholdelse(kommando, clock)
+    }
+}
+
+private fun Klagebehandling.vurderOmgjøring(
+    kommando: OmgjørKlagebehandlingKommando,
+    clock: Clock,
+): Klagebehandling = this.copy(
+    sistEndret = nå(clock),
+    resultat = resultat?.let {
+        it as Klagebehandlingsresultat.Omgjør
+        it.oppdater(kommando)
+    } ?: kommando.tilResultatUtenRammebehandlingId(),
+)
+
+private fun Klagebehandling.vurderOpprettholdelse(
+    kommando: OpprettholdKlagebehandlingKommando,
+    clock: Clock,
+): Either<KanIkkeVurdereKlagebehandling, Klagebehandling> {
+    if (this.rammebehandlingId != null) {
+        return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres(
+            KanIkkeOppdatereKlagebehandling.KlageErKnyttetTilRammebehandling(rammebehandlingId = this.rammebehandlingId),
+        ).left()
+    }
+
     return this.copy(
         sistEndret = nå(clock),
-        resultat = resultat?.let {
-            it as Klagebehandlingsresultat.Omgjør
-            it.oppdater(kommando)
-        } ?: kommando.tilResultatUtenRammebehandlingId(),
+        resultat = kommando.tilResultat(brevtekster = this.resultat?.brevtekst),
     ).right()
 }
 
@@ -81,7 +96,10 @@ fun Klagebehandling.fjernRammebehandlingId(
     }
     require(erSaksbehandlerPåBehandlingen(saksbehandler))
     return when (val res = resultat) {
-        is Klagebehandlingsresultat.Omgjør -> this.copy(resultat = res.fjernRammebehandlingId(rammebehandlingId), sistEndret = sistEndret)
+        is Klagebehandlingsresultat.Omgjør -> this.copy(
+            resultat = res.fjernRammebehandlingId(rammebehandlingId),
+            sistEndret = sistEndret,
+        )
 
         is Klagebehandlingsresultat.Avvist, is Klagebehandlingsresultat.Opprettholdt, null -> throw IllegalStateException(
             "Klagebehandling er ikke knyttet til en rammebehandling. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id",

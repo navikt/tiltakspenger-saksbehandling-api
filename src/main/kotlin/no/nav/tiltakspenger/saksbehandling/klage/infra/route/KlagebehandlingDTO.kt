@@ -76,8 +76,18 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     } ?: emptyList(),
     avbrutt = this.avbrutt?.toAvbruttDTO(),
     kanIverksette = kanIverksette,
-    årsak = (resultat as? Klagebehandlingsresultat.Omgjør)?.årsak?.toString(),
-    begrunnelse = (resultat as? Klagebehandlingsresultat.Omgjør)?.begrunnelse?.verdi,
+    årsak = when (resultat) {
+        is Klagebehandlingsresultat.Omgjør -> resultat.årsak.name
+        is Klagebehandlingsresultat.Opprettholdt -> resultat.årsak.name
+        is Klagebehandlingsresultat.Avvist -> null
+        null -> null
+    },
+    begrunnelse = when (resultat) {
+        is Klagebehandlingsresultat.Omgjør -> resultat.begrunnelse.verdi
+        is Klagebehandlingsresultat.Opprettholdt -> resultat.begrunnelse.verdi
+        is Klagebehandlingsresultat.Avvist -> null
+        null -> null
+    },
     rammebehandlingId = (resultat as? Klagebehandlingsresultat.Omgjør)?.rammebehandlingId?.toString(),
     ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
 )

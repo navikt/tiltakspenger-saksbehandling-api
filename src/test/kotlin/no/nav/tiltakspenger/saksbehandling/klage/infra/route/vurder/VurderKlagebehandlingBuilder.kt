@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.Vurderingstype
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandling
@@ -51,6 +52,7 @@ interface VurderKlagebehandlingBuilder {
         erKlagefristenOverholdt: Boolean = true,
         erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
         erKlagenSignert: Boolean = true,
+        vurderingstype: Vurderingstype = Vurderingstype.OMGJØR,
         begrunnelse: Begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
         årsak: KlageOmgjøringsårsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
@@ -74,6 +76,7 @@ interface VurderKlagebehandlingBuilder {
             saksbehandler = saksbehandlerKlagebehandling,
             begrunnelse = begrunnelse,
             årsak = årsak,
+            vurderingstype = vurderingstype,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
@@ -86,6 +89,7 @@ interface VurderKlagebehandlingBuilder {
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        vurderingstype: Vurderingstype,
         begrunnelse: Begrunnelse,
         årsak: KlageOmgjøringsårsak,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
@@ -105,6 +109,7 @@ interface VurderKlagebehandlingBuilder {
                 //language=JSON
                 """
                 {
+                    "vurderingstype": "$vurderingstype",
                     "begrunnelse": "${begrunnelse.verdi}",
                     "årsak": "$årsak"
                 }

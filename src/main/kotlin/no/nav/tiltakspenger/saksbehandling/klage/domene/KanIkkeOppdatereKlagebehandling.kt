@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.Nel
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 
 /**
@@ -21,4 +22,6 @@ sealed interface KanIkkeOppdatereKlagebehandling {
         val forventetResultat: String,
         val faktiskResultat: String?,
     ) : KanIkkeOppdatereKlagebehandling
+
+    data class KlageErKnyttetTilRammebehandling(val rammebehandlingId: BehandlingId) : KanIkkeOppdatereKlagebehandling
 }
