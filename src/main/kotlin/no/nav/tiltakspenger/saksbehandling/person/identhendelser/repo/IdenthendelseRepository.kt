@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -10,6 +9,7 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
+import tools.jackson.module.kotlin.readValue
 import java.time.Clock
 import java.util.UUID
 

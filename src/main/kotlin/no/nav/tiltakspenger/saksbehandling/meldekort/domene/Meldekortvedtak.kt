@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.Satstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
-import no.nav.utsjekk.kontrakter.felles.Satstype
 import java.time.Clock
 import java.time.LocalDateTime
 

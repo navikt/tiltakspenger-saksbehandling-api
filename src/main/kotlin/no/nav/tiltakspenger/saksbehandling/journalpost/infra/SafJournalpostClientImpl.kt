@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.journalpost.infra
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.ResponseException
@@ -14,6 +13,7 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.infra.graphql.GraphQLResponse
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientWithRetry
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import tools.jackson.module.kotlin.readValue
 
 /**
  * Dokumentasjon for SAF

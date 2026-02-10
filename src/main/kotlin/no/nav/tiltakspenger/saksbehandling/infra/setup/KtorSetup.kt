@@ -1,12 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
-import arrow.integrations.jackson.module.NonEmptyCollectionsModule
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.jackson3.JacksonConverter
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.authentication
@@ -25,13 +21,11 @@ import io.micrometer.core.instrument.Clock
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.prometheus.metrics.model.registry.PrometheusRegistry
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.TexasAuthenticationProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
-import org.apache.kafka.shaded.com.google.protobuf.TextFormat
-import java.text.Format
 
 const val CALL_ID_MDC_KEY = "call-id"
 
@@ -53,12 +47,7 @@ internal fun Application.ktorSetup(
     // Kommentar jah: Denne skal egentlig ikke være i bruk, men legger den inn som et sikkerhetsnett frem til vi har migrert oss vekk fra call.respond( i common libs. Bør også gå over alt av implisitt retur av JSON, som f.eks. auth.
     //  Denne er uforandret. Bare kopiert fra funksjonen som var brukt av testene.
     install(ContentNegotiation) {
-        jackson {
-            configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-            registerModule(JavaTimeModule())
-            registerModule(NonEmptyCollectionsModule())
-            registerModule(KotlinModule.Builder().build())
-        }
+        register(ContentType.Application.Json, JacksonConverter(objectMapper))
     }
     configureExceptions()
     setupAuthentication(applicationContext.texasClient)

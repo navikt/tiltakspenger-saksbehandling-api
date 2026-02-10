@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.route
 
-import com.fasterxml.jackson.databind.JsonNode
 import org.json.JSONObject
+import tools.jackson.databind.JsonNode
 
 /**
  * Se også [no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SakDTO]

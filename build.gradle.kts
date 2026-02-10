@@ -4,11 +4,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val kotlinxCoroutinesVersion = "1.10.2"
 val kotestVersion = "6.1.2"
-val felleslibVersion = "0.0.673"
+val felleslibVersion = "0.0.685"
 val mockkVersion = "1.14.9"
 val ktorVersion = "3.4.0"
 val testContainersVersion = "2.0.3"
-val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 val confluentVersion = "8.1.1"
 val avroVersion = "1.12.1"
 val prometeusVersion = "1.16.2"
@@ -54,7 +53,7 @@ dependencies {
     implementation("io.ktor:ktor-server-default-headers-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-host-common:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-jackson3:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-utils:$ktorVersion")
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
@@ -75,13 +74,10 @@ dependencies {
     api("com.auth0:jwks-rsa:0.23.0")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:11.20.3")
+    implementation("org.flywaydb:flyway-database-postgresql:12.0.0")
     implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.postgresql:postgresql:42.7.9")
     implementation("com.github.seratch:kotliquery:1.9.1")
-
-    // Helved/Utsjekk/Utbetaling
-    implementation("no.nav.utsjekk.kontrakter:iverksett:$iverksettVersjon")
 
     // Avro
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
@@ -89,8 +85,8 @@ dependencies {
 
     // DIV
     // Arrow
-    implementation("io.arrow-kt:arrow-core:2.2.0")
-    implementation("io.arrow-kt:arrow-core-jackson:2.2.0")
+    implementation("io.arrow-kt:arrow-core:2.2.1.1")
+    implementation("io.arrow-kt:arrow-core-jackson:2.2.1.1")
 
     // Caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")

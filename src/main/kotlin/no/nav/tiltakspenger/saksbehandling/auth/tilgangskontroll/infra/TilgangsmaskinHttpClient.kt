@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -11,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Avvis
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.PersonRequestItem
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponse
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
+import tools.jackson.module.kotlin.readValue
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest

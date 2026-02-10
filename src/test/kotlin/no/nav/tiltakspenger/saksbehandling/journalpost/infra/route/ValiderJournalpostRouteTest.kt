@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.journalpost.infra.route
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -24,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
+import tools.jackson.module.kotlin.readValue
 
 class ValiderJournalpostRouteTest {
     @Test

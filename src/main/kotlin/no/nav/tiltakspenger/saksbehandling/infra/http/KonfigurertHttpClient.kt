@@ -1,10 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.infra.http
 
-import com.fasterxml.jackson.core.util.DefaultIndenter
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.apache.Apache
@@ -14,7 +9,9 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.serialization.jackson.jackson
+import io.ktor.http.ContentType
+import io.ktor.serialization.jackson3.JacksonConverter
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import java.time.Duration
 
@@ -43,17 +40,7 @@ fun httpClientWithRetry(timeout: Long = SIXTY_SECONDS) =
 private fun HttpClient.config(timeout: Long) =
     this.config {
         install(ContentNegotiation) {
-            jackson {
-                registerModule(KotlinModule.Builder().build())
-                registerModule(JavaTimeModule())
-                setDefaultPrettyPrinter(
-                    DefaultPrettyPrinter().apply {
-                        indentArraysWith(DefaultPrettyPrinter.FixedSpaceIndenter.instance)
-                        indentObjectsWith(DefaultIndenter("  ", "\n"))
-                    },
-                )
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            }
+            register(ContentType.Application.Json, JacksonConverter(objectMapper))
         }
         install(HttpTimeout) {
             connectTimeoutMillis = Duration.ofSeconds(timeout).toMillis()

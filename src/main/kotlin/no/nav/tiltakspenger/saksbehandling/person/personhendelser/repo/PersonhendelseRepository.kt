@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -12,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import org.intellij.lang.annotations.Language
+import tools.jackson.module.kotlin.readValue
 import java.time.Clock
 import java.time.LocalDateTime
 import java.util.UUID

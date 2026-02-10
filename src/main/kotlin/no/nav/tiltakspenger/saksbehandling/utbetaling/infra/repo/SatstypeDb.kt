@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
-import no.nav.utsjekk.kontrakter.felles.Satstype
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.Satstype
 
 private enum class SatstypeDb {
     DAGLIG,
