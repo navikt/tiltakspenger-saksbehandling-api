@@ -9,7 +9,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
@@ -42,7 +41,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class BeregnRevurderingTest {
@@ -332,8 +330,8 @@ class BeregnRevurderingTest {
     @Test
     fun `skal beregne ny utbetaling dersom en utbetalt periode opphøres og så innvilges på nytt`() {
         withTestApplicationContext { tac ->
+            // Mock validering av utbetaling. Kan fjernes når vi støtter feilutbetaling igjen.
             mockkStatic("no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ValiderKanIverksetteUtbetalingKt")
-
             every { any<Simulering>().validerKanIverksetteUtbetaling() } returns Unit.right()
 
             val periode = 1.januar(2025) til 31.januar(2025)

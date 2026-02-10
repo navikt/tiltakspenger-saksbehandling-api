@@ -8,7 +8,6 @@ import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 
 /**
@@ -75,10 +74,6 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
 
             ForrigeBeregningFinnesIkke.BeregningFinnesIkke -> gjeldendeBeregningPerKjede[kjedeId]
         }
-    }
-
-    fun sisteBeregningerForPeriode(periode: Periode): List<MeldeperiodeBeregning> {
-        return gjeldendeBeregningPerKjede.values.filter { it.periode.overlapperMed(periode) }
     }
 
     init {

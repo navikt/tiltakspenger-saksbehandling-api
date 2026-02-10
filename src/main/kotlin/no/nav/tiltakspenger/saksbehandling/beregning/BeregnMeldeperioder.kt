@@ -268,10 +268,7 @@ private class SykedagerPeriode {
     }
 }
 
-/** Kan representere enten en tidligere beregnet meldeperiode, eller en ny meldeperiode
- *
- *  @param gjeldendeBeregning Forrige beregning for meldeperioden, eller null for ny meldeperiode
- * */
+/** Kan representere enten et tidligere beregnet meldekort, eller et nytt meldekort */
 private data class MeldeperiodeSomSkalBeregnes(
     val kjedeId: MeldeperiodeKjedeId,
     val meldekortId: MeldekortId,
@@ -281,6 +278,7 @@ private data class MeldeperiodeSomSkalBeregnes(
     val tilOgMed: LocalDate = dager.last().dato
 }
 
+/** Nytt meldekort */
 private fun MeldekortDager.tilSkalBeregnes(meldekortId: MeldekortId): MeldeperiodeSomSkalBeregnes {
     return MeldeperiodeSomSkalBeregnes(
         kjedeId = this.meldeperiode.kjedeId,
@@ -289,6 +287,7 @@ private fun MeldekortDager.tilSkalBeregnes(meldekortId: MeldekortId): Meldeperio
     )
 }
 
+/** Et tidligere beregnet meldekort som skal beregnes på nytt */
 private fun Meldekortvedtak.tilSkalBeregnes(): MeldeperiodeSomSkalBeregnes {
     return MeldeperiodeSomSkalBeregnes(
         kjedeId = this.meldeperiode.kjedeId,
