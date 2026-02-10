@@ -92,10 +92,7 @@ data class UtbetalingV2Dto(
     val tilOgMedDato: LocalDate,
     @Schema(
         oneOf = [
-            StønadsdataAAPDto::class,
-            StønadsdataDagpengerDto::class,
             StønadsdataTiltakspengerV2Dto::class,
-            StønadsdataTilleggsstønaderDto::class,
         ],
     )
     val stønadsdata: StønadsdataDto,

@@ -9,22 +9,10 @@ sealed interface StønadType {
         @JsonCreator
         @JvmStatic
         fun deserialize(json: String): StønadType? {
-            val stønadstypeDagpenger = StønadTypeDagpenger.entries.find { it.name == json }
             val stønadstypeTiltakspenger = StønadTypeTiltakspenger.entries.find { it.name == json }
-            val stønadstypeTilleggsstønader = StønadTypeTilleggsstønader.entries.find { it.name == json }
-            return stønadstypeDagpenger ?: stønadstypeTiltakspenger ?: stønadstypeTilleggsstønader
+            return stønadstypeTiltakspenger
         }
     }
-}
-
-enum class StønadTypeDagpenger : StønadType {
-    DAGPENGER_ARBEIDSSØKER_ORDINÆR,
-    DAGPENGER_PERMITTERING_ORDINÆR,
-    DAGPENGER_PERMITTERING_FISKEINDUSTRI,
-    DAGPENGER_EØS,
-    ;
-
-    override fun tilFagsystem(): Fagsystem = Fagsystem.DAGPENGER
 }
 
 enum class StønadTypeTiltakspenger : StønadType {
@@ -48,23 +36,4 @@ enum class StønadTypeTiltakspenger : StønadType {
     ;
 
     override fun tilFagsystem(): Fagsystem = Fagsystem.TILTAKSPENGER
-}
-
-enum class StønadTypeTilleggsstønader : StønadType {
-    TILSYN_BARN_ENSLIG_FORSØRGER,
-    TILSYN_BARN_AAP,
-    TILSYN_BARN_ETTERLATTE,
-    LÆREMIDLER_ENSLIG_FORSØRGER,
-    LÆREMIDLER_AAP,
-    LÆREMIDLER_ETTERLATTE,
-    ;
-
-    override fun tilFagsystem(): Fagsystem = Fagsystem.TILLEGGSSTØNADER
-}
-
-enum class StønadTypeAAP : StønadType {
-    AAP_UNDER_ARBEIDSAVKLARING,
-    ;
-
-    override fun tilFagsystem(): Fagsystem = Fagsystem.AAP
 }
