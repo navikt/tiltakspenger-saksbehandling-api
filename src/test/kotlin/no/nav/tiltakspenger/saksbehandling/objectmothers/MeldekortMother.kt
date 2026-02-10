@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
@@ -74,7 +74,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePå
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -547,10 +546,7 @@ interface MeldekortMother : MotherOfAllMothers {
     suspend fun førsteBeregnetMeldekort(
         kommando: OppdaterMeldekortKommando,
         vedtaksperiode: Periode,
-        innvilgelsesperioder: Periodisering<InnvilgelsesperiodeVerdi> = innvilgelsesperioder(
-            periode = vedtaksperiode,
-            valgtTiltaksdeltakelse = tiltaksdeltakelse(periode = vedtaksperiode),
-        ).periodisering,
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode),
         meldekortId: MeldekortId,
         sakId: SakId,
         clock: Clock = TikkendeKlokke(),
@@ -663,10 +659,7 @@ interface MeldekortMother : MotherOfAllMothers {
         opprettet: LocalDateTime = nå(clock),
         barnetilleggsPerioder: Periodisering<AntallBarn>,
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.UNDER_BEHANDLING,
-        innvilgelsesperioder: Periodisering<InnvilgelsesperiodeVerdi> = innvilgelsesperioder(
-            periode = vedtaksperiode,
-            valgtTiltaksdeltakelse = tiltaksdeltakelse(periode = vedtaksperiode),
-        ).periodisering,
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode),
         girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
         attesteringer: Attesteringer = Attesteringer.empty(),

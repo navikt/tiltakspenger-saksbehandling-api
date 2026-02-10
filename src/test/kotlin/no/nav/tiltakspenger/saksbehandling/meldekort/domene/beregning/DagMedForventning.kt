@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKom
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.tilMeldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilMeldeperiodeBeregninger
 import java.time.Clock
 import java.time.LocalDate
@@ -29,7 +28,7 @@ suspend fun NonEmptyList<NonEmptyList<DagMedForventning>>.assertForventning(
         meldeperioder = this.map { outer -> outer.map { OppdaterMeldekortKommando.Dager.Dag(it.dag, it.status) } },
     )
 
-    meldekortBehandlinger.tilMeldekortvedtaksliste(clock).tilMeldeperiodeBeregninger().gjeldendeBeregningPerKjede.values
+    meldekortBehandlinger.tilMeldeperiodeBeregninger(clock).gjeldendeBeregningPerKjede.values
         .flatMap { it.dager }
         .forEachIndexed { index, it ->
             (it.dato to it.reduksjon) shouldBe (this.flatten()[index].dag to flatten()[index].forventning)
