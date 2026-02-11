@@ -18,11 +18,9 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -32,7 +30,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -68,19 +65,6 @@ import java.util.UUID
 interface BehandlingMother : MotherOfAllMothers {
     /** Felles default vedtaksperiode for testdatatypene */
     fun vedtaksperiode() = 1.januar(2023) til 31.mars(2023)
-
-    fun Rammebehandling.innvilgelsesperioderDTO(
-        periode: Periode,
-        antallDager: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-    ): List<InnvilgelsesperiodeDTO> {
-        return listOf(
-            InnvilgelsesperiodeDTO(
-                periode = periode.toDTO(),
-                antallDagerPerMeldeperiode = antallDager,
-                internDeltakelseId = this.saksopplysninger.tiltaksdeltakelser.single().internDeltakelseId.toString(),
-            ),
-        )
-    }
 
     fun godkjentAttestering(beslutter: Saksbehandler = beslutter(), clock: Clock = this.clock): Attestering =
         Attestering(
@@ -899,7 +883,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
         sak.meldekortbehandlinger.first().tilSendMeldekortTilBeslutterKommando(
             saksbehandler,
         ),
-    )
+    ).getOrFail()
     return this.sakContext.sakService.hentForSakId(sak.id)
 }
 

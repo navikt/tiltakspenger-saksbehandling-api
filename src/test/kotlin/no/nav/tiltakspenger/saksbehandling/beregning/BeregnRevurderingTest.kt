@@ -1,15 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.nonEmptyListOf
-import arrow.core.right
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.every
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
@@ -37,11 +33,12 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterRe
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
+import no.nav.tiltakspenger.saksbehandling.objectmothers.medTillattFeilutbetaling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import org.junit.jupiter.api.Test
 
 class BeregnRevurderingTest {
@@ -329,13 +326,9 @@ class BeregnRevurderingTest {
     }
 
     @Test
-    fun `skal beregne ny utbetaling dersom en utbetalt periode opphøres og så innvilges på nytt`() {
+    fun `skal beregne ny utbetaling dersom en utbetalt periode stanses og så innvilges på nytt`() {
         withTestApplicationContext { tac ->
-            // Mock validering av utbetaling. Kan fjernes når vi støtter feilutbetaling igjen.
-            mockkStatic("no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ValiderKanIverksetteUtbetalingKt")
-            try {
-                every { any<Simulering>().validerKanIverksetteUtbetaling() } returns Unit.right()
-
+            medTillattFeilutbetaling {
                 val periode = 1.januar(2025) til 31.januar(2025)
 
                 val sak = tac.førsteMeldekortIverksatt(
@@ -343,9 +336,13 @@ class BeregnRevurderingTest {
                     fnr = gyldigFnr(),
                 )
 
-                sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 2384
+                sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
 
-                val (sakMedStans) = iverksettRevurderingStans(tac = tac, sakId = sak.id, stansFraOgMed = periode.fraOgMed)
+                val (sakMedStans) = iverksettRevurderingStans(
+                    tac = tac,
+                    sakId = sak.id,
+                    stansFraOgMed = periode.fraOgMed,
+                )
 
                 sakMedStans.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 0
 
@@ -355,9 +352,79 @@ class BeregnRevurderingTest {
                     innvilgelsesperioder = innvilgelsesperioder(periode),
                 )
 
-                sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 2384
-            } finally {
-                unmockkStatic("no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ValiderKanIverksetteUtbetalingKt")
+                sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
+            }
+        }
+    }
+
+    @Test
+    fun `skal beregne ny utbetaling dersom en utbetalt periode opphøres og så innvilges på nytt`() {
+        withTestApplicationContext { tac ->
+            medTillattFeilutbetaling {
+                val periode = 1.januar(2025) til 31.januar(2025)
+
+                val sak = tac.førsteMeldekortIverksatt(
+                    innvilgelsesperiode = periode,
+                    fnr = gyldigFnr(),
+                )
+
+                sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
+
+                val (sakMedOpphør) = iverksettOmgjøringOpphør(
+                    tac = tac,
+                    sakId = sak.id,
+                    rammevedtakIdSomOmgjøres = sak.rammevedtaksliste.single().id,
+                    vedtaksperiode = periode,
+                )
+
+                sakMedOpphør.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 0
+
+                val (sakMedNyInnvilgelse) = iverksettRevurderingInnvilgelse(
+                    tac = tac,
+                    sakId = sak.id,
+                    innvilgelsesperioder = innvilgelsesperioder(periode),
+                )
+
+                sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
+            }
+        }
+    }
+
+    @Test
+    fun `skal beregne ny utbetaling ved delvis innvilgelse over tidligere full innvilgelse, og så ny full innvilgelse`() {
+        withTestApplicationContext { tac ->
+            medTillattFeilutbetaling {
+                // Første meldeperiode begynner på onsdag, 8 dager med rett
+                val periode = 1.januar(2025) til 31.januar(2025)
+
+                val sak = tac.førsteMeldekortIverksatt(
+                    innvilgelsesperiode = periode,
+                    fnr = gyldigFnr(),
+                )
+
+                sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
+
+                // Vil opphøre andre uke av meldeperioden (5 dager med rett fjernes)
+                val (sakMedDelvisOpphør) = iverksettOmgjøringInnvilgelse(
+                    tac = tac,
+                    sakId = sak.id,
+                    innvilgelsesperioder = innvilgelsesperioder(
+                        1.januar(2025) til 5.januar(2025),
+                        20.januar(2025) til 31.januar(2025),
+                    ),
+                    rammevedtakIdSomOmgjøres = sak.rammevedtaksliste.single().id,
+                )
+
+                sakMedDelvisOpphør.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 3
+
+                // Andre uke av første meldeperiode innvilges igjen, så det igjen blir 8 dager med rett
+                val (sakMedNyInnvilgelse) = iverksettRevurderingInnvilgelse(
+                    tac = tac,
+                    sakId = sak.id,
+                    innvilgelsesperioder = innvilgelsesperioder(6.januar(2025) til 12.januar(2025)),
+                )
+
+                sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
             }
         }
     }
