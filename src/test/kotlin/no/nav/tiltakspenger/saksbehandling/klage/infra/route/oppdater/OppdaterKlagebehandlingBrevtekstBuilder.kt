@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
+import arrow.core.Tuple4
 import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
@@ -27,7 +28,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilOpprettholdelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.oppdaterTekstTilBrev]
@@ -38,7 +41,7 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
      * 2. Starter klagebehandling til avvisning
      * 3. Oppdaterer brevtekst
      */
-    suspend fun ApplicationTestBuilder.opprettSakOgOppdaterKlagebehandlingBrevtekst(
+    suspend fun ApplicationTestBuilder.opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
@@ -66,6 +69,36 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         )
+    }
+    suspend fun ApplicationTestBuilder.opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst(
+        tac: TestApplicationContext,
+        fnr: Fnr = ObjectMother.gyldigFnr(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        brevtekst: List<TittelOgTekst> = listOf(
+            TittelOgTekst(
+                tittel = NonBlankString.create("Avvisning av klage"),
+                tekst = NonBlankString.create("Din klage er dessverre avvist."),
+            ),
+        ),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+    ): Tuple4<Sak, Rammevedtak, Klagebehandling, KlagebehandlingDTOJson>? {
+        val (sak, rammevedtak, klagebehandling, _) = this.opprettSakOgKlagebehandlingTilOpprettholdelse(
+            tac = tac,
+            saksbehandler = saksbehandler,
+            fnr = fnr,
+        ) ?: return null
+        val (oppdatertSak, oppdatertKlagebehandling, klagebehandlingJson) = oppdaterKlagebehandlingBrevtekstForSakId(
+            tac = tac,
+            sakId = sak.id,
+            klagebehandlingId = klagebehandling.id,
+            saksbehandler = saksbehandler,
+            brevtekst = brevtekst,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        )!!
+
+        return Tuple4(oppdatertSak, rammevedtak, oppdatertKlagebehandling, klagebehandlingJson)
     }
 
     /** Forventer at det allerede finnes en sak. */

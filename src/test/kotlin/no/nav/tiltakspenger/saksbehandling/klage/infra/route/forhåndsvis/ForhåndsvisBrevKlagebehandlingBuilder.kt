@@ -34,7 +34,7 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
      *  2. Starter klagebehandling til avvisning
      *  3. Genererer vedtaksbrev for forhåndsvisning
      */
-    suspend fun ApplicationTestBuilder.opprettSakOgForhåndsvisKlagebehandlingsbrev(
+    suspend fun ApplicationTestBuilder.opprettSakOgForhåndsvisKlagebehandlingTilAvvisningsbrev(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
@@ -109,8 +109,14 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
                         "Status: ${this.status}\n" +
                         "Content-Type: ${this.contentType()}\n",
                 ) {
-                    if (forventetStatus != null) status shouldBe forventetStatus
-                    contentType() shouldBe ContentType.parse("application/pdf")
+                    if (forventetStatus != null) {
+                        status shouldBe forventetStatus
+                        if (forventetStatus == HttpStatusCode.OK) {
+                            contentType() shouldBe ContentType.parse("application/pdf")
+                        } else {
+                            contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                        }
+                    }
                     if (forventetPdf != null) pdfBytes shouldBe forventetPdf
                 }
                 if (status != HttpStatusCode.OK) return null

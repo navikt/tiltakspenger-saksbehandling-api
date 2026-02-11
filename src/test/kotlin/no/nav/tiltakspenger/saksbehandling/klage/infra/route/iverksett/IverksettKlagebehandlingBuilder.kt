@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagevedtakForKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingBrevtekst
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 /**
@@ -42,7 +42,7 @@ interface IverksettKlagebehandlingBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagevedtak, KlagebehandlingDTOJson>? {
-        val (sak, klagebehandling, _) = this.opprettSakOgOppdaterKlagebehandlingBrevtekst(
+        val (sak, klagebehandling, _) = this.opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
             tac = tac,
             saksbehandler = saksbehandler,
             fnr = fnr,

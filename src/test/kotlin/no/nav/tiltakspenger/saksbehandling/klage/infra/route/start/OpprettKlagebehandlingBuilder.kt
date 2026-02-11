@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.start
 
+import arrow.core.Tuple4
 import arrow.core.Tuple5
 import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
@@ -27,10 +28,13 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.Vurderingstype
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -56,6 +60,32 @@ interface OpprettKlagebehandlingBuilder {
             forventetJsonBody = forventetJsonBody,
         )!!
         return Triple(oppdatertSak, klagebehandling, klagebehandlingJson)
+    }
+
+    suspend fun ApplicationTestBuilder.opprettSakOgKlagebehandlingTilOpprettholdelse(
+        tac: TestApplicationContext,
+        fnr: Fnr = ObjectMother.gyldigFnr(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+    ): Tuple4<Sak, Rammevedtak, Klagebehandling, KlagebehandlingDTOJson>? {
+        val (oppdatertSak, _, rammevedtak, klagebehandling) = this.iverksettSøknadsbehandlingOgOpprettKlagebehandling(
+            tac = tac,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        )!!
+
+        val (sakMedVurdertKlage, vurdertKlage, vurdertKlageJson) = this.vurderKlagebehandling(
+            tac = tac,
+            sakId = oppdatertSak.id,
+            klagebehandlingId = klagebehandling.id,
+            vurderingstype = Vurderingstype.OPPRETTHOLD,
+            hjemler = listOf(KlagehjemmelDto.ARBEIDSMARKEDSLOVEN_17),
+            begrunnelse = null,
+            årsak = null,
+        )!!
+
+        return Tuple4(sakMedVurdertKlage, rammevedtak, vurdertKlage, vurdertKlageJson)
     }
 
     /** Oppretter ny sak, søknad og iverksetter søknadsbehandlingen; og starter klagebehandling med oppfylte formkrav  */

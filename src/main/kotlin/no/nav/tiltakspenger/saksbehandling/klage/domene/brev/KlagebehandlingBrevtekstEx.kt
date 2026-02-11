@@ -12,7 +12,7 @@ fun Klagebehandling.oppdaterBrevtekst(
     kommando: KlagebehandlingBrevKommando,
     clock: Clock,
 ): Either<KanIkkeOppdatereBrevtekstPåKlagebehandling, Klagebehandling> {
-    if (!erAvvisning || !erUnderBehandling) {
+    if (!(erAvvisning && erOpprettholdt) && !erUnderBehandling) {
         return KanIkkeOppdatereBrevtekstPåKlagebehandling.KanIkkeOppdateres.left()
     }
     if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
@@ -21,10 +21,24 @@ fun Klagebehandling.oppdaterBrevtekst(
             faktiskSaksbehandler = kommando.saksbehandler.navIdent,
         ).left()
     }
-    return (resultat as Klagebehandlingsresultat.Avvist).oppdaterBrevtekst(kommando.brevtekster).let {
-        this.copy(
-            sistEndret = nå(clock),
-            resultat = it,
-        ).right()
+
+    return when (resultat) {
+        is Klagebehandlingsresultat.Avvist -> this.resultat.oppdaterBrevtekst(kommando.brevtekster).let {
+            this.copy(
+                sistEndret = nå(clock),
+                resultat = it,
+            ).right()
+        }
+
+        is Klagebehandlingsresultat.Opprettholdt -> this.resultat.oppdaterBrevtekst(kommando.brevtekster).let {
+            this.copy(
+                sistEndret = nå(clock),
+                resultat = it,
+            ).right()
+        }
+
+        is Klagebehandlingsresultat.Omgjør -> throw IllegalArgumentException("Kan ikke oppdatere brevtekst på en klagebehandling med omgjøringsresultat. Dette skjedde for klagebehandling ${this.id} og resultat ${this.resultat::class.simpleName}")
+
+        null -> throw IllegalStateException("Klagebehandling må ha et resultat for å kunne oppdatere brevtekst. Dette skjedde for klagebehandling ${this.id} og resultat ${this.resultat}")
     }
 }

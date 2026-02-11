@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgAvbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgIverksettKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingBrevtekst
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
@@ -187,7 +187,7 @@ class IverksettKlagebehandlingRouteTest {
     @Test
     fun `kan ikke iverksette - feil saksbehandler`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, klagebehandling, _) = opprettSakOgOppdaterKlagebehandlingBrevtekst(
+            val (sak, klagebehandling, _) = opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
                 tac = tac,
             )!!
             iverksettKlagebehandlingForSakId(
