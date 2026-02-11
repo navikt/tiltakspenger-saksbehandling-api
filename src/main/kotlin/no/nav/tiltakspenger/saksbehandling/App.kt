@@ -36,7 +36,6 @@ fun main() {
 
     log.info { "starting server" }
     start(log)
-    start(log)
 }
 
 internal fun start(
