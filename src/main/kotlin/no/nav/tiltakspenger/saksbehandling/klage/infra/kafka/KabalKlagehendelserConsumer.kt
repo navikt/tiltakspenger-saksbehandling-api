@@ -18,7 +18,7 @@ class KabalKlagehendelserConsumer(
     private val klagehendelseRepo: KlagehendelseRepo,
     topic: String = "klage.behandling-events.v1",
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "none") else LocalKafkaConfig(),
+    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
     private val clock: Clock,
 ) : Consumer<String, String?> {
     private val log = KotlinLogging.logger { }
