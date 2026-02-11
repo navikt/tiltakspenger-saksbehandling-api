@@ -16,9 +16,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -56,7 +56,7 @@ interface SendRevurderingTilBeslutningBuilder {
             behandlingId = revurdering.id,
             begrunnelseVilkårsvurdering = null,
             fritekstTilVedtaksbrev = null,
-            valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
+            valgteHjemler = setOf(HjemmelForStansEllerOpphør.Alder),
             stansFraOgMed = søknadsbehandling.vedtaksperiode!!.fraOgMed,
             harValgtStansFraFørsteDagSomGirRett = false,
         )

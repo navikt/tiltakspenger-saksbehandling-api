@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import java.time.LocalDate
 
 /**
@@ -20,7 +20,7 @@ data class ForhåndsvisVedtaksbrevForRevurderingStansKommando(
     override val correlationId: CorrelationId,
     override val saksbehandler: Saksbehandler,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    val valgteHjemler: NonEmptySet<ValgtHjemmelForStans>,
+    val valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
     val stansFraOgMed: LocalDate?,
 ) : ForhåndsvisVedtaksbrevForRevurderingKommando {
 

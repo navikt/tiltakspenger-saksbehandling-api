@@ -20,9 +20,9 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -208,6 +208,7 @@ interface OppdaterRammebehandlingBuilder {
         sakId: SakId,
         behandlingId: BehandlingId,
         vedtaksperiode: Periode,
+        valgteHjemler: Set<HjemmelForStansEllerOpphør> = setOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
@@ -218,6 +219,7 @@ interface OppdaterRammebehandlingBuilder {
             {
               "resultat": "OMGJØRING_OPPHØR",
               "vedtaksperiode": ${serialize(vedtaksperiode.toDTO())},
+              "valgteHjemler": [${valgteHjemler.joinToString(",") { it.tilDTO().toString().medQuotes() }}],
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()}
             }
@@ -265,7 +267,7 @@ interface OppdaterRammebehandlingBuilder {
         fritekstTilVedtaksbrev: String? = null,
         stansFraOgMed: LocalDate? = null,
         harValgtStansFraFørsteDagSomGirRett: Boolean = stansFraOgMed == null,
-        valgteHjemler: Set<ValgtHjemmelForStans> = setOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: Set<HjemmelForStansEllerOpphør> = setOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, String> {

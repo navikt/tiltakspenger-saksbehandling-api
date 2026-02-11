@@ -6,7 +6,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Stans
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -40,7 +40,7 @@ class OppdaterRevurderingStansRouteTest {
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
             oppdatertBehandling.vedtaksperiode!!.fraOgMed shouldBe 9.april(2025)
-            (oppdatertBehandling.resultat as Stans).valgtHjemmel shouldBe listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak)
+            (oppdatertBehandling.resultat as Stans).valgtHjemmel shouldBe listOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak)
         }
     }
 
@@ -58,7 +58,7 @@ class OppdaterRevurderingStansRouteTest {
                 behandlingId = revurdering.id,
                 fritekstTilVedtaksbrev = "ny brevtekst",
                 begrunnelseVilkårsvurdering = "ny begrunnelse",
-                valgteHjemler = setOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+                valgteHjemler = setOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
                 stansFraOgMed = 9.april(2025),
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
@@ -69,7 +69,7 @@ class OppdaterRevurderingStansRouteTest {
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
             oppdatertBehandling.vedtaksperiode!!.fraOgMed shouldBe 9.april(2025)
-            (oppdatertBehandling.resultat as Stans).valgtHjemmel shouldBe listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak)
+            (oppdatertBehandling.resultat as Stans).valgtHjemmel shouldBe listOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak)
         }
     }
 
@@ -86,7 +86,7 @@ class OppdaterRevurderingStansRouteTest {
                 behandlingId = revurdering.id,
                 begrunnelseVilkårsvurdering = null,
                 fritekstTilVedtaksbrev = null,
-                valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
+                valgteHjemler = setOf(HjemmelForStansEllerOpphør.Alder),
                 stansFraOgMed = stansFraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
                 forventetStatus = HttpStatusCode.InternalServerError,
@@ -106,7 +106,7 @@ class OppdaterRevurderingStansRouteTest {
                 behandlingId = revurdering.id,
                 begrunnelseVilkårsvurdering = null,
                 fritekstTilVedtaksbrev = null,
-                valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
+                valgteHjemler = setOf(HjemmelForStansEllerOpphør.Alder),
                 stansFraOgMed = stansFraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
                 forventetStatus = HttpStatusCode.InternalServerError,
@@ -131,7 +131,7 @@ class OppdaterRevurderingStansRouteTest {
                 behandlingId = revurdering.id,
                 begrunnelseVilkårsvurdering = null,
                 fritekstTilVedtaksbrev = null,
-                valgteHjemler = setOf(ValgtHjemmelForStans.Alder),
+                valgteHjemler = setOf(HjemmelForStansEllerOpphør.Alder),
                 stansFraOgMed = 9.januar(2026),
                 harValgtStansFraFørsteDagSomGirRett = false,
             )

@@ -18,10 +18,10 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansEllerOpphørDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -41,7 +41,7 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
         fritekstTilVedtaksbrev: String = "some_tekst",
         vedtaksperiode: Periode? = null,
         stansFraOgMed: LocalDate? = null,
-        valgteHjemler: List<ValgtHjemmelForStansDTO>? = null,
+        valgteHjemler: List<HjemmelForStansEllerOpphørDTO>? = null,
         barnetillegg: List<BarnetilleggPeriodeDTO>? = null,
         resultat: RammebehandlingResultatTypeDTO,
         avslagsgrunner: List<ValgtHjemmelForAvslagDTO>? = null,

@@ -19,13 +19,13 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterOmgjøringKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdaterOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
@@ -100,7 +100,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             tom = vedtaksperiode.tilOgMed,
             clock = clock,
         ),
-        valgteHjemler: NonEmptySet<ValgtHjemmelForStans> = nonEmptySetOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør> = nonEmptySetOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
         stansFraOgMed: LocalDate?,
         førsteDagSomGirRett: LocalDate,
         sisteDagSomGirRett: LocalDate,
@@ -153,7 +153,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             tom = vedtaksperiode.tilOgMed,
             clock = clock,
         ),
-        valgteHjemler: NonEmptySet<ValgtHjemmelForStans> = nonEmptySetOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør> = nonEmptySetOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
         attestering: Attestering = godkjentAttestering(beslutter, clock),
         stansFraOgMed: LocalDate?,
         førsteDagSomGirRett: LocalDate,

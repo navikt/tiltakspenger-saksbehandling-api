@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
@@ -139,16 +139,16 @@ private fun Rammebehandling.getBehandlingAarsak(): StatistikkBehandlingAarsak? {
     return null
 }
 
-private fun ValgtHjemmelForStans.toBehandlingAarsak() =
+private fun HjemmelForStansEllerOpphør.toBehandlingAarsak() =
     when (this) {
-        ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak -> StatistikkBehandlingAarsak.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
-        ValgtHjemmelForStans.Alder -> StatistikkBehandlingAarsak.ALDER
-        ValgtHjemmelForStans.Livsoppholdytelser -> StatistikkBehandlingAarsak.LIVSOPPHOLDYTELSER
-        ValgtHjemmelForStans.Institusjonsopphold -> StatistikkBehandlingAarsak.INSTITUSJONSOPPHOLD
-        ValgtHjemmelForStans.Kvalifiseringsprogrammet -> StatistikkBehandlingAarsak.KVALIFISERINGSPROGRAMMET
-        ValgtHjemmelForStans.Introduksjonsprogrammet -> StatistikkBehandlingAarsak.INTRODUKSJONSPROGRAMMET
-        ValgtHjemmelForStans.LønnFraTiltaksarrangør -> StatistikkBehandlingAarsak.LONN_FRA_TILTAKSARRANGOR
-        ValgtHjemmelForStans.LønnFraAndre -> StatistikkBehandlingAarsak.LONN_FRA_ANDRE
+        HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak -> StatistikkBehandlingAarsak.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
+        HjemmelForStansEllerOpphør.Alder -> StatistikkBehandlingAarsak.ALDER
+        HjemmelForStansEllerOpphør.Livsoppholdytelser -> StatistikkBehandlingAarsak.LIVSOPPHOLDYTELSER
+        HjemmelForStansEllerOpphør.Institusjonsopphold -> StatistikkBehandlingAarsak.INSTITUSJONSOPPHOLD
+        HjemmelForStansEllerOpphør.Kvalifiseringsprogrammet -> StatistikkBehandlingAarsak.KVALIFISERINGSPROGRAMMET
+        HjemmelForStansEllerOpphør.Introduksjonsprogrammet -> StatistikkBehandlingAarsak.INTRODUKSJONSPROGRAMMET
+        HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> StatistikkBehandlingAarsak.LONN_FRA_TILTAKSARRANGOR
+        HjemmelForStansEllerOpphør.LønnFraAndre -> StatistikkBehandlingAarsak.LONN_FRA_ANDRE
     }
 
 private fun Søknadstype.toSøknadsformat(): StatistikkFormat =

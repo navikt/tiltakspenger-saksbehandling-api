@@ -8,7 +8,6 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -22,7 +21,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
@@ -432,7 +430,8 @@ class RammebehandlingPostgresRepo(
 
                     val resultat = when (resultatType) {
                         RevurderingsresultatType.STANS -> Revurderingsresultat.Stans(
-                            valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()
+                            valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")
+                                ?.tilHjemmelForStans()
                                 ?.toNonEmptySetOrNull(),
                             harValgtStansFraFørsteDagSomGirRett = booleanOrNull("har_valgt_stans_fra_første_dag_som_gir_rett"),
                             stansperiode = vedtaksperiode,
@@ -457,6 +456,8 @@ class RammebehandlingPostgresRepo(
                         RevurderingsresultatType.OMGJØRING_OPPHØR -> Omgjøringsresultat.OmgjøringOpphør(
                             vedtaksperiode = vedtaksperiode!!,
                             omgjørRammevedtak = omgjørRammevedtak,
+                            valgteHjemler = string("valgt_hjemmel_har_ikke_rettighet")
+                                .tilHjemmelForOpphør(),
                         )
 
                         RevurderingsresultatType.OMGJØRING_IKKE_VALGT -> Omgjøringsresultat.OmgjøringIkkeValgt(
@@ -800,7 +801,7 @@ private fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> =
     )
 
     is Revurderingsresultat.Stans -> arrayOf(
-        "valgt_hjemmel_har_ikke_rettighet" to this.valgtHjemmel.toDbJson(),
+        "valgt_hjemmel_har_ikke_rettighet" to this.valgtHjemmel.toHjemmelForStansDbJson(),
         "har_valgt_stans_fra_forste_dag_som_gir_rett" to this.harValgtStansFraFørsteDagSomGirRett,
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
     )
@@ -811,6 +812,7 @@ private fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> =
 
     is Omgjøringsresultat.OmgjøringOpphør -> arrayOf(
         "omgjoer_rammevedtak" to this.omgjørRammevedtak.toDbJson(),
+        "valgt_hjemmel_har_ikke_rettighet" to this.valgteHjemler.toHjemmelForOpphørDbJson(),
     )
 
     null -> emptyArray()

@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat
 
 import arrow.core.Either
+import arrow.core.NonEmptySet
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat.IkkeValgt
@@ -89,6 +91,7 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
     data class OmgjøringOpphør(
         override val vedtaksperiode: Periode,
         override val omgjørRammevedtak: OmgjørRammevedtak,
+        val valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
     ) : Omgjøringsresultat {
         override val innvilgelsesperioder = null
         override val barnetillegg = null
@@ -102,7 +105,6 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
             return this.right()
         }
 
-        /** Dersom vi skal ha hjemler for opphør tilsvarende som for stans, legg inn sjekk for det her */
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
             return true
         }

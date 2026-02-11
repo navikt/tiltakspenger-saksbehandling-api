@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -31,7 +31,7 @@ class BrevRevurderingStansDTOTest {
                 forhåndsvisning = true,
                 vedtaksdato = 1.april(2025),
                 stansperiode = ObjectMother.vedtaksperiode(),
-                valgteHjemler = nonEmptySetOf(ValgtHjemmelForStans.Introduksjonsprogrammet),
+                valgteHjemler = nonEmptySetOf(HjemmelForStansEllerOpphør.Introduksjonsprogrammet),
             )
 
             //language=json

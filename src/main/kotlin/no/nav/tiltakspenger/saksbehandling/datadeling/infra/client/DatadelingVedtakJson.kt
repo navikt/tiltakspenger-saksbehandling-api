@@ -5,9 +5,9 @@ import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
@@ -135,16 +135,16 @@ private fun Revurdering.toValgteHjemlerHarIkkeRettighetListe() =
 private fun Søknadsbehandling.toValgteHjemlerHarIkkeRettighetListe() =
     (this.resultat as Søknadsbehandlingsresultat.Avslag).avslagsgrunner.map { it.toValgtHjemmelHarIkkeRettighetString() }
 
-private fun ValgtHjemmelForStans.toValgtHjemmelHarIkkeRettighetString() =
+private fun HjemmelForStansEllerOpphør.toValgtHjemmelHarIkkeRettighetString() =
     when (this) {
-        ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelHarIkkeRettighet.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK.name
-        ValgtHjemmelForStans.Alder -> ValgtHjemmelHarIkkeRettighet.ALDER.name
-        ValgtHjemmelForStans.Institusjonsopphold -> ValgtHjemmelHarIkkeRettighet.INSTITUSJONSOPPHOLD.name
-        ValgtHjemmelForStans.Introduksjonsprogrammet -> ValgtHjemmelHarIkkeRettighet.INTRODUKSJONSPROGRAMMET.name
-        ValgtHjemmelForStans.Kvalifiseringsprogrammet -> ValgtHjemmelHarIkkeRettighet.KVALIFISERINGSPROGRAMMET.name
-        ValgtHjemmelForStans.Livsoppholdytelser -> ValgtHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER.name
-        ValgtHjemmelForStans.LønnFraAndre -> ValgtHjemmelHarIkkeRettighet.LONN_FRA_ANDRE.name
-        ValgtHjemmelForStans.LønnFraTiltaksarrangør -> ValgtHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR.name
+        HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelHarIkkeRettighet.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK.name
+        HjemmelForStansEllerOpphør.Alder -> ValgtHjemmelHarIkkeRettighet.ALDER.name
+        HjemmelForStansEllerOpphør.Institusjonsopphold -> ValgtHjemmelHarIkkeRettighet.INSTITUSJONSOPPHOLD.name
+        HjemmelForStansEllerOpphør.Introduksjonsprogrammet -> ValgtHjemmelHarIkkeRettighet.INTRODUKSJONSPROGRAMMET.name
+        HjemmelForStansEllerOpphør.Kvalifiseringsprogrammet -> ValgtHjemmelHarIkkeRettighet.KVALIFISERINGSPROGRAMMET.name
+        HjemmelForStansEllerOpphør.Livsoppholdytelser -> ValgtHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER.name
+        HjemmelForStansEllerOpphør.LønnFraAndre -> ValgtHjemmelHarIkkeRettighet.LONN_FRA_ANDRE.name
+        HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> ValgtHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR.name
     }
 
 private fun Avslagsgrunnlag.toValgtHjemmelHarIkkeRettighetString() =

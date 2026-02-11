@@ -6,7 +6,7 @@ import arrow.core.nonEmptySetOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
@@ -86,7 +86,7 @@ class JournalførRammevedtakService(
                                 sakId = vedtak.sakId,
                                 forhåndsvisning = false,
                                 tilleggstekst = vedtak.rammebehandling.fritekstTilVedtaksbrev,
-                                valgteHjemler = nonEmptySetOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+                                valgteHjemler = nonEmptySetOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
                             )
                         }
 

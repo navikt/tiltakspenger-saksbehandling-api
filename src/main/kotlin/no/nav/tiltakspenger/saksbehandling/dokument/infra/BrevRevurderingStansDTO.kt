@@ -6,8 +6,8 @@ import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -58,7 +58,7 @@ suspend fun genererStansbrev(
     stansperiode: Periode,
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
-    valgteHjemler: NonEmptySet<ValgtHjemmelForStans>,
+    valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
     tilleggstekst: FritekstTilVedtaksbrev? = null,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
@@ -84,47 +84,47 @@ suspend fun genererStansbrev(
 }
 
 // TODO abn: enten fjerne tekstene om barnetillegg, eller sette flagget basert på tidligere vedtak i stans-perioden
-private fun ValgtHjemmelForStans.tekstVedtaksbrev(barnetillegg: Boolean = false): String {
+private fun HjemmelForStansEllerOpphør.tekstVedtaksbrev(barnetillegg: Boolean = false): String {
     return when (this) {
-        ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak ->
+        HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak ->
             if (barnetillegg) {
                 "du ikke lenger deltar på arbeidsmarkedstiltak. Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til tiltakspenger og barnetillegg. Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften §§ 2 og 3."
             } else {
                 "du ikke lenger deltar på arbeidsmarkedstiltak. Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til å få tiltakspenger. Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 2."
             }
 
-        ValgtHjemmelForStans.Alder ->
+        HjemmelForStansEllerOpphør.Alder ->
             "du ikke har fylt 18 år. Du må ha fylt 18 år for å ha rett til å få tiltakspenger. Det kommer frem av tiltakspengeforskriften § 3."
 
-        ValgtHjemmelForStans.Livsoppholdytelser ->
+        HjemmelForStansEllerOpphør.Livsoppholdytelser ->
             if (barnetillegg) {
                 "du mottar en annen pengestøtte til livsopphold. Deltakere som har rett til andre pengestøtter til livsopphold har ikke samtidig rett til å få tiltakspenger og barnetillegg. Dette kommer frem av arbeidsmarkedsloven § 13 første ledd og forskrift om tiltakspenger §§ 3 og 7."
             } else {
                 "du mottar en annen pengestøtte til livsopphold. Deltakere som har rett til andre pengestøtter til livsopphold, har ikke samtidig rett til å få tiltakspenger. Dette kommer frem av arbeidsmarkedsloven § 13 første ledd og tiltakspengeforskriften § 7."
             }
 
-        ValgtHjemmelForStans.Kvalifiseringsprogrammet ->
+        HjemmelForStansEllerOpphør.Kvalifiseringsprogrammet ->
             if (barnetillegg) {
                 "du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram, har ikke rett til tiltakspenger og barnetillegg. Dette kommer frem av tiltakspengeforskriften §§ 3 og 7 tredje ledd."
             } else {
                 "du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
             }
 
-        ValgtHjemmelForStans.Introduksjonsprogrammet ->
+        HjemmelForStansEllerOpphør.Introduksjonsprogrammet ->
             if (barnetillegg) {
                 "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger og barnetillegg. Dette kommer frem av tiltakspengeforskriften §§ 3 og 7 tredje ledd."
             } else {
                 "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
             }
 
-        ValgtHjemmelForStans.LønnFraTiltaksarrangør ->
+        HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør ->
             if (barnetillegg) {
                 "du mottar lønn fra tiltaksarrangør for tiden i arbeidsmarkedstiltaket. Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket, har ikke rett til tiltakspenger og barnetillegg. Dette kommer frem av tiltakspengeforskriften §§ 3 og 8. "
             } else {
                 "du mottar lønn fra tiltaksarrangør for tiden i arbeidsmarkedstiltaket. Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften § 8."
             }
 
-        ValgtHjemmelForStans.LønnFraAndre ->
+        HjemmelForStansEllerOpphør.LønnFraAndre ->
             if (barnetillegg) {
                 """
                     du mottar lønn for arbeid som er en del av tiltaksdeltakelsen og du derfor har dekning av utgifter til livsopphold.
@@ -141,7 +141,7 @@ private fun ValgtHjemmelForStans.tekstVedtaksbrev(barnetillegg: Boolean = false)
                 """
             }
 
-        ValgtHjemmelForStans.Institusjonsopphold ->
+        HjemmelForStansEllerOpphør.Institusjonsopphold ->
             if (barnetillegg) {
                 """
                     du oppholder deg på en institusjon med gratis opphold, mat og drikke. 

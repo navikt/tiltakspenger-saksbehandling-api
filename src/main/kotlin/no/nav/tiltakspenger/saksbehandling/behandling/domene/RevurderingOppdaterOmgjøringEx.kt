@@ -130,6 +130,7 @@ private fun Revurdering.oppdaterOmgjøringOpphør(
         resultat = Omgjøringsresultat.OmgjøringOpphør(
             vedtaksperiode = opphørtPeriode,
             omgjørRammevedtak = rammevedtakSomOmgjøres,
+            valgteHjemler = kommando.valgteHjemler,
         ),
         utbetaling = utbetaling,
     ).right()

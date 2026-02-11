@@ -11,9 +11,9 @@ import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansEllerOpphørDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDomain
@@ -123,7 +123,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
         val fritekst: String?,
         val harValgtStansFraFørsteDagSomGirRett: Boolean?,
         val stansFraOgMed: LocalDate?,
-        val valgteHjemler: List<ValgtHjemmelForStansDTO>,
+        val valgteHjemler: List<HjemmelForStansEllerOpphørDTO>,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
