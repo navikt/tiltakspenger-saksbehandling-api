@@ -19,7 +19,10 @@ data class DagMedForventning(
     val forventning: ReduksjonAvYtelsePåGrunnAvFravær,
 )
 
-suspend fun NonEmptyList<NonEmptyList<DagMedForventning>>.assertForventning(vedtaksperiode: Periode, clock: Clock = TikkendeKlokke()) {
+suspend fun NonEmptyList<NonEmptyList<DagMedForventning>>.assertForventning(
+    vedtaksperiode: Periode,
+    clock: Clock = TikkendeKlokke(),
+) {
     val meldekortBehandlinger = ObjectMother.beregnMeldekortperioder(
         vedtaksperiode = vedtaksperiode,
         meldeperioder = this.map { outer -> outer.map { OppdaterMeldekortKommando.Dager.Dag(it.dag, it.status) } },

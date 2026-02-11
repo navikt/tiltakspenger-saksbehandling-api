@@ -112,6 +112,10 @@ data class Innvilgelsesperioder(
     fun erInnenforTiltaksperiodene(saksopplysninger: Saksopplysninger): Boolean {
         return this.perioder.trekkFra(saksopplysninger.tiltaksdeltakelser.perioder).isEmpty()
     }
+
+    fun hentVerdiForDag(dato: LocalDate): InnvilgelsesperiodeVerdi? {
+        return periodisering.hentVerdiForDag(dato)
+    }
 }
 
 data class InnvilgelsesperiodeVerdi(

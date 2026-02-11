@@ -1,11 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 
 data class Meldekortvedtaksliste(
     val verdi: List<Meldekortvedtak>,
@@ -19,6 +18,10 @@ data class Meldekortvedtaksliste(
 
     val utbetalinger: List<VedtattUtbetaling> by lazy {
         verdi.map { it.utbetaling }
+    }
+
+    val tidslinje: Periodisering<Meldekortvedtak> by lazy {
+        verdi.toTidslinje()
     }
 
     init {

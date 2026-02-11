@@ -33,10 +33,12 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterRe
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
+import no.nav.tiltakspenger.saksbehandling.objectmothers.medTillattFeilutbetaling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class BeregnRevurderingTest {
@@ -323,31 +325,107 @@ class BeregnRevurderingTest {
         nyBeregning[1].dager shouldBe sakMedMeldekortBehandlinger.meldekortbehandlinger[1].beregning!!.dager
     }
 
-    // TODO abn: enable når bug med beregning av ny innvilgelse etter opphør er fikset
-    @Disabled
+    @Test
+    fun `skal beregne ny utbetaling dersom en utbetalt periode stanses og så innvilges på nytt`() {
+        withTestApplicationContext { tac ->
+            medTillattFeilutbetaling {
+                val periode = 1.januar(2025) til 31.januar(2025)
+
+                val sak = tac.førsteMeldekortIverksatt(
+                    innvilgelsesperiode = periode,
+                    fnr = gyldigFnr(),
+                )
+
+                sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
+
+                val (sakMedStans) = iverksettRevurderingStans(
+                    tac = tac,
+                    sakId = sak.id,
+                    stansFraOgMed = periode.fraOgMed,
+                )
+
+                sakMedStans.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 0
+
+                val (sakMedNyInnvilgelse) = iverksettRevurderingInnvilgelse(
+                    tac = tac,
+                    sakId = sak.id,
+                    innvilgelsesperioder = innvilgelsesperioder(periode),
+                )
+
+                sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
+            }
+        }
+    }
+
     @Test
     fun `skal beregne ny utbetaling dersom en utbetalt periode opphøres og så innvilges på nytt`() {
         withTestApplicationContext { tac ->
-            val periode = 1.januar(2025) til 31.januar(2025)
+            medTillattFeilutbetaling {
+                val periode = 1.januar(2025) til 31.januar(2025)
 
-            val sak = tac.førsteMeldekortIverksatt(
-                innvilgelsesperiode = periode,
-                fnr = gyldigFnr(),
-            )
+                val sak = tac.førsteMeldekortIverksatt(
+                    innvilgelsesperiode = periode,
+                    fnr = gyldigFnr(),
+                )
 
-            sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 2384
+                sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
 
-            val (sakMedStans) = iverksettRevurderingStans(tac = tac, sakId = sak.id, stansFraOgMed = periode.fraOgMed)
+                val (sakMedOpphør) = iverksettOmgjøringOpphør(
+                    tac = tac,
+                    sakId = sak.id,
+                    rammevedtakIdSomOmgjøres = sak.rammevedtaksliste.single().id,
+                    vedtaksperiode = periode,
+                )
 
-            sakMedStans.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 0
+                sakMedOpphør.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 0
 
-            val (sakMedNyInnvilgelse) = iverksettRevurderingInnvilgelse(
-                tac = tac,
-                sakId = sak.id,
-                innvilgelsesperioder = innvilgelsesperioder(periode),
-            )
+                val (sakMedNyInnvilgelse) = iverksettRevurderingInnvilgelse(
+                    tac = tac,
+                    sakId = sak.id,
+                    innvilgelsesperioder = innvilgelsesperioder(periode),
+                )
 
-            sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 2384
+                sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
+            }
+        }
+    }
+
+    @Test
+    fun `skal beregne ny utbetaling ved delvis innvilgelse over tidligere full innvilgelse, og så ny full innvilgelse`() {
+        withTestApplicationContext { tac ->
+            medTillattFeilutbetaling {
+                // Første meldeperiode begynner på onsdag, 8 dager med rett
+                val periode = 1.januar(2025) til 31.januar(2025)
+
+                val sak = tac.førsteMeldekortIverksatt(
+                    innvilgelsesperiode = periode,
+                    fnr = gyldigFnr(),
+                )
+
+                sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
+
+                // Vil opphøre andre uke av meldeperioden (5 dager med rett fjernes)
+                val (sakMedDelvisOpphør) = iverksettOmgjøringInnvilgelse(
+                    tac = tac,
+                    sakId = sak.id,
+                    innvilgelsesperioder = innvilgelsesperioder(
+                        1.januar(2025) til 5.januar(2025),
+                        20.januar(2025) til 31.januar(2025),
+                    ),
+                    rammevedtakIdSomOmgjøres = sak.rammevedtaksliste.single().id,
+                )
+
+                sakMedDelvisOpphør.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 3
+
+                // Andre uke av første meldeperiode innvilges igjen, så det igjen blir 8 dager med rett
+                val (sakMedNyInnvilgelse) = iverksettRevurderingInnvilgelse(
+                    tac = tac,
+                    sakId = sak.id,
+                    innvilgelsesperioder = innvilgelsesperioder(6.januar(2025) til 12.januar(2025)),
+                )
+
+                sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
+            }
         }
     }
 }
