@@ -36,6 +36,7 @@ fun main() {
 
     log.info { "starting server" }
     start(log)
+    start(log)
 }
 
 internal fun start(
@@ -114,12 +115,13 @@ internal fun start(
     )
 
     if (Configuration.isNais()) {
-        val consumers = listOf(
+        val consumers = listOfNotNull(
             applicationContext.tiltaksdeltakerArenaConsumer,
             applicationContext.tiltaksdeltakerKometConsumer,
             applicationContext.tiltaksdeltakerTeamTiltakConsumer,
             applicationContext.leesahConsumer,
             applicationContext.aktorV2Consumer,
+            if (Configuration.isDev()) applicationContext.kabalKlagehendelseConsumer else null,
         )
         consumers.forEach { it.run() }
     }

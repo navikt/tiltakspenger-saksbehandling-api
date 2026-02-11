@@ -18,11 +18,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagehendelseRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
@@ -67,6 +69,9 @@ open class KlagebehandlingContext(
     }
     open val klagevedtakRepo: KlagevedtakRepo by lazy {
         KlagevedtakPostgresRepo(sessionFactory as PostgresSessionFactory)
+    }
+    open val klagehendelseRepo: KlagehendelseRepo by lazy {
+        KlagehendelsePostgresRepo(sessionFactory as PostgresSessionFactory)
     }
 
     open val kabalClient: KabalClient by lazy {
