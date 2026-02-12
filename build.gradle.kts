@@ -91,7 +91,7 @@ dependencies {
     // Caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.3.0")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.3.10")
     testImplementation(platform("org.junit:junit-bom:6.0.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
