@@ -119,7 +119,7 @@ dependencies {
 }
 plugins {
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
-    kotlin("jvm") version "2.3.0"
+    kotlin("jvm") version "2.3.10"
     id("com.diffplug.spotless") version "8.2.1"
     application
 }
