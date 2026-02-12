@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
@@ -131,6 +132,9 @@ fun genererSaksstatistikkForBehandling(
 
 private fun Rammebehandling.getBehandlingAarsak(): StatistikkBehandlingAarsak? {
     if (this is Søknadsbehandling) {
+        if (this.søknad.behandlingsarsak != null) {
+            return this.søknad.behandlingsarsak!!.toStatistikkBehandlingAarsak()
+        }
         return StatistikkBehandlingAarsak.SOKNAD
     }
     if (this is Revurdering && this.resultat is Revurderingsresultat.Stans && !resultat.valgtHjemmel.isNullOrEmpty()) {
@@ -160,3 +164,12 @@ private fun Søknadstype.toSøknadsformat(): StatistikkFormat =
         Søknadstype.MODIA -> StatistikkFormat.MODIA
         Søknadstype.ANNET -> StatistikkFormat.ANNET
     }
+
+private fun Behandlingsarsak.toStatistikkBehandlingAarsak(): StatistikkBehandlingAarsak {
+    return when (this) {
+        Behandlingsarsak.FORLENGELSE_FRA_ARENA -> StatistikkBehandlingAarsak.FORLENGELSE_FRA_ARENA
+        Behandlingsarsak.SOKNADSBEHANDLING_FRA_ARENA -> StatistikkBehandlingAarsak.SOKNADSBEHANDLING_FRA_ARENA
+        Behandlingsarsak.OVERLAPPENDE_TILTAK_I_ARENA -> StatistikkBehandlingAarsak.OVERLAPPENDE_TILTAK_I_ARENA
+        Behandlingsarsak.ANNET -> StatistikkBehandlingAarsak.OVERFORT_FRA_ARENA
+    }
+}

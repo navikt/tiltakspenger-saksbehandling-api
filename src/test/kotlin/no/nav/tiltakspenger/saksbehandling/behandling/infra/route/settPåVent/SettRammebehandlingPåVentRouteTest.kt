@@ -135,7 +135,8 @@ class SettRammebehandlingPåVentRouteTest {
         "svar": "NEI",
         "periode": null
       }
-    }
+    },
+    "behandlingsarsak": null
   },
   "automatiskSaksbehandlet": false,
   "manueltBehandlesGrunner": [],

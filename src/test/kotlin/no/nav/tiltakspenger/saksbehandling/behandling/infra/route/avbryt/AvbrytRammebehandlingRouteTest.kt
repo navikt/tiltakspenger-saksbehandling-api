@@ -96,7 +96,8 @@ class AvbrytRammebehandlingRouteTest {
       "svar": "NEI",
       "periode": null
     }
-  }
+  },
+  "behandlingsarsak": null
 }
                 """.trimIndent(),
             )
@@ -227,7 +228,8 @@ class AvbrytRammebehandlingRouteTest {
         "svar": "NEI",
         "periode": null
       }
-    }
+    },
+    "behandlingsarsak": null
   },
   "automatiskSaksbehandlet": false,
   "manueltBehandlesGrunner": [],

@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -264,7 +265,8 @@ internal object SøknadDAO {
                     soknadstype,
                     manuelt_satt_soknadsperiode_fra_og_med,
                     manuelt_satt_soknadsperiode_til_og_med,
-                    manuelt_satt_tiltak
+                    manuelt_satt_tiltak,
+                    behandlingsarsak
                 ) values (
                     :id,
                     :versjon,
@@ -322,7 +324,8 @@ internal object SøknadDAO {
                     :soknadstype,
                     :manuelt_satt_soknadsperiode_fra_og_med,
                     :manuelt_satt_soknadsperiode_til_og_med,
-                    :manuelt_satt_tiltak
+                    :manuelt_satt_tiltak,
+                    :behandlingsarsak
                 )
                 """.trimIndent(),
                 paramMap =
@@ -343,6 +346,7 @@ internal object SøknadDAO {
                         "manuelt_satt_soknadsperiode_fra_og_med" to søknad.manueltSattSøknadsperiode?.fraOgMed,
                         "manuelt_satt_soknadsperiode_til_og_med" to søknad.manueltSattSøknadsperiode?.tilOgMed,
                         "manuelt_satt_tiltak" to søknad.manueltSattTiltak,
+                        "behandlingsarsak" to søknad.behandlingsarsak?.name,
                     ),
             ).asUpdate,
         )
@@ -416,6 +420,7 @@ internal object SøknadDAO {
                 null
             }
         val manueltSattTiltak = stringOrNull("manuelt_satt_tiltak")
+        val behandlingsarsak = stringOrNull("behandlingsarsak")?.let { Behandlingsarsak.valueOf(it) }
         return if (søknadstiltak != null) {
             InnvilgbarSøknad(
                 versjon = versjon,
@@ -451,6 +456,7 @@ internal object SøknadDAO {
                 søknadstype = søknadstype,
                 manueltSattSøknadsperiode = manueltSattSøknadsperiode,
                 manueltSattTiltak = manueltSattTiltak,
+                behandlingsarsak = behandlingsarsak,
             )
         } else {
             IkkeInnvilgbarSøknad(
@@ -487,6 +493,7 @@ internal object SøknadDAO {
                 søknadstype = søknadstype,
                 manueltSattSøknadsperiode = manueltSattSøknadsperiode,
                 manueltSattTiltak = manueltSattTiltak,
+                behandlingsarsak = behandlingsarsak,
             )
         }
     }

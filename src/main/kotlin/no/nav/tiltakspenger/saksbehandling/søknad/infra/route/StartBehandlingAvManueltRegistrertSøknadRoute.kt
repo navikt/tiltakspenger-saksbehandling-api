@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSaksnummer
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
@@ -79,6 +80,7 @@ data class StartBehandlingAvManueltRegistrertSøknadCommand(
     val journalpostId: JournalpostId,
     val manueltSattSøknadsperiode: Periode?,
     val manueltSattTiltak: String?,
+    val behandlingsarsak: Behandlingsarsak?,
     val søknadstiltak: Søknadstiltak?,
     val barnetillegg: List<BarnetilleggFraSøknad>,
     val antallVedlegg: Int,

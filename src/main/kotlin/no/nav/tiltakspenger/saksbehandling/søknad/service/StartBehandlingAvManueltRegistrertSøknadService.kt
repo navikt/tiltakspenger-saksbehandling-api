@@ -84,6 +84,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
             manueltSattSøknadsperiode = kommando.manueltSattSøknadsperiode,
             manueltSattTiltak = kommando.manueltSattTiltak,
             søknadstype = kommando.søknadstype,
+            behandlingsarsak = kommando.behandlingsarsak,
         )
 
         // Legg søknaden inn i sak før vi oppretter behandlingen eventuelt tiltak inkluderes i saksopplysningene

@@ -47,6 +47,9 @@ sealed interface Søknad {
     // Blir ikke satt for digitale søknader
     val manueltSattSøknadsperiode: Periode?
 
+    // Brukes hvis behandlingen er overført fra Arena
+    val behandlingsarsak: Behandlingsarsak?
+
     /**
      * Fritekstfelt for at saksbehandler kan skrive inn hvilket tiltak søknaden gjelder for ved manuelt registrerte søknader,
      * hvor man ikke har kunne velge et relevant tiltak. Enten fordi man ikke fikk treff på tiltaket når søknaden
@@ -81,6 +84,7 @@ sealed interface Søknad {
             manueltSattSøknadsperiode: Periode?,
             manueltSattTiltak: String?,
             søknadstype: Søknadstype,
+            behandlingsarsak: Behandlingsarsak?,
         ): Søknad =
             if (søknadstiltak != null) {
                 InnvilgbarSøknad(
@@ -110,6 +114,7 @@ sealed interface Søknad {
                     manueltSattSøknadsperiode = manueltSattSøknadsperiode,
                     manueltSattTiltak = manueltSattTiltak,
                     søknadstype = søknadstype,
+                    behandlingsarsak = behandlingsarsak,
                 )
             } else {
                 IkkeInnvilgbarSøknad(
@@ -139,6 +144,7 @@ sealed interface Søknad {
                     manueltSattSøknadsperiode = manueltSattSøknadsperiode,
                     manueltSattTiltak = manueltSattTiltak,
                     søknadstype = søknadstype,
+                    behandlingsarsak = behandlingsarsak,
                 )
             }
     }

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -29,6 +30,7 @@ data class SøknadDTO(
     val avbrutt: AvbruttDTO?,
     val kanInnvilges: Boolean,
     val svar: SøknadSvarDTO,
+    val behandlingsarsak: Behandlingsarsak?,
 ) {
     data class TiltaksdeltagelseFraSøknadDTO(
         val id: String,
@@ -126,6 +128,7 @@ fun InnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
             jobbsjansen = jobbsjansen.toDTO(),
             trygdOgPensjon = trygdOgPensjon.toDTO(),
         ),
+        behandlingsarsak = behandlingsarsak,
     )
 }
 
@@ -158,6 +161,7 @@ fun IkkeInnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
             jobbsjansen = jobbsjansen.toDTO(),
             trygdOgPensjon = trygdOgPensjon.toDTO(),
         ),
+        behandlingsarsak = behandlingsarsak,
     )
 }
 

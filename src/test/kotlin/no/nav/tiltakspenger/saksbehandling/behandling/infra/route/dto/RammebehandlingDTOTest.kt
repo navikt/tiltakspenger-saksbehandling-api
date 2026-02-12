@@ -250,7 +250,8 @@ class RammebehandlingDTOTest {
                 "svar": "NEI",
                 "periode": null
               }
-            }
+            },
+            "behandlingsarsak": null
           },
           "automatiskSaksbehandlet": false,
           "manueltBehandlesGrunner": [],
@@ -440,7 +441,8 @@ class RammebehandlingDTOTest {
                     "svar": "NEI",
                     "periode": null
                   }
-                }
+                },
+                "behandlingsarsak": null
               },
               "automatiskSaksbehandlet": false,
               "manueltBehandlesGrunner": [],
@@ -616,7 +618,8 @@ class RammebehandlingDTOTest {
                     "svar": "NEI",
                     "periode": null
                   }
-                }
+                },
+                "behandlingsarsak": null
               },
               "automatiskSaksbehandlet": false,
               "manueltBehandlesGrunner": [],

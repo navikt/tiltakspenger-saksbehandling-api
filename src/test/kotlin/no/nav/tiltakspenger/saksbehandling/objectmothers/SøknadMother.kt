@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -178,6 +179,7 @@ interface SøknadMother {
         søknadsperiode: Periode? = ObjectMother.vedtaksperiode(),
         manueltSattTiltak: String? = null,
         søknadstype: Søknadstype = Søknadstype.PAPIR_SKJEMA,
+        behandlingsarsak: Behandlingsarsak? = null,
     ): IkkeInnvilgbarSøknad =
         IkkeInnvilgbarSøknad(
             versjon = versjon,
@@ -208,6 +210,7 @@ interface SøknadMother {
             manueltSattSøknadsperiode = søknadsperiode,
             manueltSattTiltak = manueltSattTiltak,
             søknadstype = søknadstype,
+            behandlingsarsak = behandlingsarsak,
         )
 
     fun personSøknad(
