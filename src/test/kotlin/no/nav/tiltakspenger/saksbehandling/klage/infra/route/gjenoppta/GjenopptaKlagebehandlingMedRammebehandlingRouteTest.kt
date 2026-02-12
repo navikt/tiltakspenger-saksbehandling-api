@@ -256,7 +256,8 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
         "svar": "NEI",
         "periode": null
       }
-    }
+    },
+    "behandlingsarsak": null
   },
   "automatiskSaksbehandlet": false,
   "manueltBehandlesGrunner": [],

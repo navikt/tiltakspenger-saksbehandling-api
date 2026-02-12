@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.fraOgMedDa
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nei
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.periodeNei
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -55,10 +56,12 @@ class SøknadTest {
                 manueltSattSøknadsperiode = null,
                 manueltSattTiltak = null,
                 søknadstype = Søknadstype.PAPIR_SKJEMA,
+                behandlingsarsak = Behandlingsarsak.FORLENGELSE_FRA_ARENA,
             )
 
             opprettetSøknad.shouldBeInstanceOf<InnvilgbarSøknad>()
             opprettetSøknad.tiltak shouldNotBe null
+            opprettetSøknad.behandlingsarsak shouldBe Behandlingsarsak.FORLENGELSE_FRA_ARENA
         }
 
         @Test
@@ -90,6 +93,7 @@ class SøknadTest {
                 manueltSattSøknadsperiode = null,
                 manueltSattTiltak = null,
                 søknadstype = Søknadstype.PAPIR_SKJEMA,
+                behandlingsarsak = null,
             )
             opprettetSøknad.shouldBeInstanceOf<IkkeInnvilgbarSøknad>()
             opprettetSøknad.tiltak shouldBe null

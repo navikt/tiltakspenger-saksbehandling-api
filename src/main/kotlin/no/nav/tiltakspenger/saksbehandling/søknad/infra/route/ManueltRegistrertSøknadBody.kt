@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -18,12 +19,14 @@ data class ManueltRegistrertSøknadBody(
     val antallVedlegg: Int,
     val søknadstype: SøknadstypeDTO,
     val svar: ManueltRegistrertSøknadSvarDTO,
+    val behandlingsarsak: Behandlingsarsak?,
 ) {
     fun tilKommando(internTiltaksdeltakelsesId: TiltaksdeltakerId?): StartBehandlingAvManueltRegistrertSøknadCommand {
         return StartBehandlingAvManueltRegistrertSøknadCommand(
             journalpostId = JournalpostId(journalpostId),
             manueltSattSøknadsperiode = manueltSattSøknadsperiode?.toDomain(),
             manueltSattTiltak = manueltSattTiltak,
+            behandlingsarsak = behandlingsarsak,
             søknadstiltak = this.svar.tiltak?.tilDomene(internTiltaksdeltakelsesId),
             barnetillegg = this.svar.barnetilleggPdl.map { it.tilDomenePdl() } +
                 this.svar.barnetilleggManuelle.map { it.tilDomeneManuell() },

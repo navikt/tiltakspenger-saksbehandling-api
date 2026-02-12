@@ -135,7 +135,8 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
         "svar": "NEI",
         "periode": null
       }
-    }
+    },
+    "behandlingsarsak": null
   },
   "automatiskSaksbehandlet": false,
   "manueltBehandlesGrunner": [],
