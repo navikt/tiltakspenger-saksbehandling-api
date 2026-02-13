@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
@@ -17,8 +18,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemm
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDomain
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForRevurderingOmgjøringKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForRevurderingStansKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForSøknadsbehandlingAvslagKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevForSøknadsbehandlingInnvilgelseKommando
@@ -35,14 +37,13 @@ import java.time.LocalDate
         name = "INNVILGELSE",
     ),
     JsonSubTypes.Type(value = ForhåndsvisVedtaksbrevRequestBody.SøknadsbehandlingAvslag::class, name = "AVSLAG"),
-
     JsonSubTypes.Type(
         value = ForhåndsvisVedtaksbrevRequestBody.RevurderingInnvilgelse::class,
         name = "REVURDERING_INNVILGELSE",
     ),
     JsonSubTypes.Type(value = ForhåndsvisVedtaksbrevRequestBody.RevurderingStans::class, name = "STANS"),
-
-    JsonSubTypes.Type(value = ForhåndsvisVedtaksbrevRequestBody.RevurderingOmgjøring::class, name = "OMGJØRING"),
+    JsonSubTypes.Type(value = ForhåndsvisVedtaksbrevRequestBody.OmgjøringInnvilgelse::class, name = "OMGJØRING"),
+    JsonSubTypes.Type(value = ForhåndsvisVedtaksbrevRequestBody.OmgjøringOpphør::class, name = "OMGJØRING_OPPHØR"),
 )
 sealed interface ForhåndsvisVedtaksbrevRequestBody {
     fun toDomain(
@@ -143,7 +144,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
         }
     }
 
-    data class RevurderingOmgjøring(
+    data class OmgjøringInnvilgelse(
         val fritekst: String?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
         val barnetillegg: List<BarnetilleggPeriodeDTO>?,
@@ -153,8 +154,8 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
             behandlingId: BehandlingId,
             correlationId: CorrelationId,
             saksbehandler: Saksbehandler,
-        ): ForhåndsvisVedtaksbrevForRevurderingOmgjøringKommando {
-            return ForhåndsvisVedtaksbrevForRevurderingOmgjøringKommando(
+        ): ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando {
+            return ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando(
                 sakId = sakId,
                 behandlingId = behandlingId,
                 correlationId = correlationId,
@@ -162,6 +163,29 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 innvilgelsesperioder = innvilgelsesperioder.tilKommando(),
                 barnetillegg = if (barnetillegg.isNullOrEmpty()) null else (barnetillegg.tilPeriodisering() as IkkeTomPeriodisering),
+            )
+        }
+    }
+
+    data class OmgjøringOpphør(
+        val fritekst: String?,
+        val vedtaksperiode: PeriodeDTO,
+        val valgteHjemler: List<HjemmelForStansEllerOpphørDTO>,
+    ) : ForhåndsvisVedtaksbrevRequestBody {
+        override fun toDomain(
+            sakId: SakId,
+            behandlingId: BehandlingId,
+            correlationId: CorrelationId,
+            saksbehandler: Saksbehandler,
+        ): ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando {
+            return ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando(
+                sakId = sakId,
+                behandlingId = behandlingId,
+                correlationId = correlationId,
+                saksbehandler = saksbehandler,
+                fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
+                vedtaksperiode = vedtaksperiode.toDomain(),
+                valgteHjemler = valgteHjemler.toDomain().toNonEmptySetOrThrow(),
             )
         }
     }

@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForOpphørKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
@@ -53,7 +54,7 @@ import kotlin.time.toJavaDuration
  *
  * timeout er satt til 6 sekunder siden pdfgen bruker lang tid første gang den genererer en pdf (nesten 5 sekunder). Etter det tar det 1-2 sekunder
  */
-internal class PdfgenHttpClient(
+class PdfgenHttpClient(
     baseUrl: String,
     connectTimeout: Duration = 1.seconds,
     private val timeout: Duration = 20.seconds,
@@ -61,6 +62,7 @@ internal class PdfgenHttpClient(
     GenererVedtaksbrevForUtbetalingKlient,
     GenererVedtaksbrevForStansKlient,
     GenererVedtaksbrevForAvslagKlient,
+    GenererVedtaksbrevForOpphørKlient,
     GenererKlagebrevKlient {
 
     private val log = KotlinLogging.logger {}
@@ -76,6 +78,7 @@ internal class PdfgenHttpClient(
     private val vedtakAvslagUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakAvslag")
     private val meldekortvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
     private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/stansvedtak")
+    private val opphørUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakOpphør")
     private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
     private val klageAvvisUri = URI.create("$baseUrl/api/v1/genpdf/tpts/klageAvvis")
 
@@ -242,7 +245,7 @@ internal class PdfgenHttpClient(
         )
     }
 
-    override suspend fun genererStansvedtak(
+    override suspend fun genererStansBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -261,7 +264,7 @@ internal class PdfgenHttpClient(
         )
     }
 
-    override suspend fun genererStansvedtak(
+    override suspend fun genererStansBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
@@ -271,7 +274,6 @@ internal class PdfgenHttpClient(
         stansperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
-        forhåndsvisning: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
@@ -286,7 +288,7 @@ internal class PdfgenHttpClient(
                     beslutterNavIdent = beslutterNavIdent,
                     stansperiode = stansperiode,
                     saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
+                    forhåndsvisning = true,
                     valgteHjemler = valgteHjemler,
                     tilleggstekst = tilleggstekst,
                 )
@@ -377,6 +379,73 @@ internal class PdfgenHttpClient(
             },
             errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning",
             uri = klageAvvisUri,
+        )
+    }
+
+    override suspend fun genererOpphørBrev(
+        vedtak: Rammevedtak,
+        vedtaksdato: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                vedtak.tilBrevOmgjøringOpphørDTO(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    vedtaksdato = vedtaksdato,
+                )
+            },
+            errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
+            uri = opphørUri,
+        )
+    }
+
+    override suspend fun genererOpphørBrevForhåndsvisning(
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
+        fnr: Fnr,
+        saksbehandlerNavIdent: String,
+        beslutterNavIdent: String?,
+        saksnummer: Saksnummer,
+        sakId: SakId,
+        tilleggstekst: FritekstTilVedtaksbrev?,
+        valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+        vedtaksperiode: Periode,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        genererOpphørBrev(
+            hentBrukersNavn = hentBrukersNavn,
+            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            vedtaksdato = vedtaksdato,
+            fnr = fnr,
+            saksbehandlerNavIdent = saksbehandlerNavIdent,
+            beslutterNavIdent = beslutterNavIdent,
+            saksnummer = saksnummer,
+            forhåndsvisning = true,
+            vedtaksperiode = vedtaksperiode,
+            valgteHjemler = valgteHjemler,
+            tilleggstekst = tilleggstekst,
+        )
+
+        return pdfgenRequest(
+            jsonPayload = {
+                genererOpphørBrev(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    vedtaksdato = vedtaksdato,
+                    fnr = fnr,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    beslutterNavIdent = beslutterNavIdent,
+                    saksnummer = saksnummer,
+                    forhåndsvisning = true,
+                    vedtaksperiode = vedtaksperiode,
+                    valgteHjemler = valgteHjemler,
+                    tilleggstekst = tilleggstekst,
+                )
+            },
+            errorContext = "SakId: $sakId, saksnummer: $saksnummer",
+            uri = opphørUri,
         )
     }
 

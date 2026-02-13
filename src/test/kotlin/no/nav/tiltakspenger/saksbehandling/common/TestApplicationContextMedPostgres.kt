@@ -72,7 +72,7 @@ class TestApplicationContextMedPostgres(
     private val tiltakspengerArenaFakeClient = TiltakspengerArenaFakeClient()
     private val personFakeKlient = PersonFakeKlient(clock)
     private val genererFakeVedtaksbrevForUtbetalingKlient = GenererFakeVedtaksbrevForUtbetalingKlient()
-    private val genererFakeVedtaksbrevForInnvilgelseKlient = GenererFakeVedtaksbrevKlient()
+    private val genererFakeVedtaksbrevKlient = GenererFakeVedtaksbrevKlient()
     private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
     private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
     private val journalførFakeKlagevedtaksbrevKlient = JournalførFakeKlagevedtakKlient(journalpostIdGenerator)
@@ -102,7 +102,7 @@ class TestApplicationContextMedPostgres(
             override val journalførMeldekortKlient = journalførFakeMeldekortKlient
             override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
             override val genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient
-            override val genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevForInnvilgelseKlient
+            override val genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevKlient
         }
     }
 
@@ -178,9 +178,10 @@ class TestApplicationContextMedPostgres(
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,
-            genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
-            genererVedtaksbrevForAvslagKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
-            genererVedtaksbrevForStansKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
+            genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevKlient,
+            genererVedtaksbrevForAvslagKlient = genererFakeVedtaksbrevKlient,
+            genererVedtaksbrevForStansKlient = genererFakeVedtaksbrevKlient,
+            genererVedtaksbrevForOpphørKlient = genererFakeVedtaksbrevKlient,
             personService = personContext.personService,
             dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
             navIdentClient = personContext.navIdentClient,
@@ -206,7 +207,7 @@ class TestApplicationContextMedPostgres(
             validerJournalpostService = ValiderJournalpostService(safJournalpostClient),
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
-            genererKlagebrevKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
+            genererKlagebrevKlient = genererFakeVedtaksbrevKlient,
             journalførKlagevedtaksbrevKlient = journalførFakeKlagevedtaksbrevKlient,
             dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
             behandleSøknadPåNyttService = behandlingContext.behandleSøknadPåNyttService,
