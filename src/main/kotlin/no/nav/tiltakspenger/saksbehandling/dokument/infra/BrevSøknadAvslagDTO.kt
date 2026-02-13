@@ -131,7 +131,7 @@ fun Set<Avslagsgrunnlag>.createBrevForskrifter(harSøktBarnetillegg: Boolean): S
     val tiltakspengeHjemler = hjemler.filter { it.rettskilde == Rettskilde.Tiltakspengeforskriften }
         .let {
             if (harSøktBarnetillegg) {
-                it + Hjemmel.TILTAKSPENGEFORSKRIFTEN_3
+                it + Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3
             } else {
                 it
             }

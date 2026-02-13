@@ -1,19 +1,22 @@
-package no.nav.tiltakspenger.saksbehandling.klage.domene
+@file:Suppress("PackageDirectoryMismatch")
+// Må ligge i samme pakke som Hjemmel, men trenger ikke ligge i samme mappe.
 
-enum class Klagehjemmel {
-    ARBEIDSMARKEDSLOVEN_2,
-    ARBEIDSMARKEDSLOVEN_13,
-    ARBEIDSMARKEDSLOVEN_13_LØNN,
-    ARBEIDSMARKEDSLOVEN_13_FJERDE_LEDD,
-    ARBEIDSMARKEDSLOVEN_15,
-    ARBEIDSMARKEDSLOVEN_17,
-    TILTAKSPENGEFORSKRIFTEN_2,
-    TILTAKSPENGEFORSKRIFTEN_3,
-    TILTAKSPENGEFORSKRIFTEN_5,
-    TILTAKSPENGEFORSKRIFTEN_6,
-    TILTAKSPENGEFORSKRIFTEN_7,
-    TILTAKSPENGEFORSKRIFTEN_8,
-    TILTAKSPENGEFORSKRIFTEN_9,
-    TILTAKSPENGEFORSKRIFTEN_10,
-    TILTAKSPENGEFORSKRIFTEN_11,
+package no.nav.tiltakspenger.saksbehandling.behandling.domene
+
+sealed interface Klagehjemmel : Hjemmel {
+    sealed interface KlageArbeidsmarkedsloven :
+        Klagehjemmel,
+        Hjemmel.ArbeidsmarkedslovenHjemmel
+    sealed interface KlageTiltakspengeforskriften :
+        Klagehjemmel,
+        Hjemmel.TiltakspengeforskriftenHjemmel
+    sealed interface KlageForvaltningsloven :
+        Klagehjemmel,
+        Hjemmel.ForvaltningslovenHjemmel
+    sealed interface KlageFolketrygdloven :
+        Klagehjemmel,
+        Hjemmel.FolketrygdlovenHjemmel
+    sealed interface KlageForeldelsesloven :
+        Klagehjemmel,
+        Hjemmel.ForeldelseslovenHjemmel
 }

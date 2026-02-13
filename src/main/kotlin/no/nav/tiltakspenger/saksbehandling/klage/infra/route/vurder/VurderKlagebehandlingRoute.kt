@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagehjemler
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KanIkkeVurdereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.ANNET
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.FEIL_ELLER_ENDRET_FAKTA
@@ -80,7 +81,7 @@ private data class VurderKlagebehandlingBody(
                 klagebehandlingId = klagebehandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                hjemler = hjemler!!.map { it.toKlagehjemmel() }.toNonEmptySetOrThrow(),
+                hjemler = Klagehjemler(hjemler!!.map { it.toKlagehjemmel() }.toNonEmptySetOrThrow()),
             )
         }
     }
