@@ -3,9 +3,13 @@ package no.nav.tiltakspenger.saksbehandling.infra.repo
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.SettKlagebehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -48,4 +52,54 @@ internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilAvvisning(
         oppdatertSak,
         klagebehandling,
     )
+}
+
+internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilVurdering(
+    sakId: SakId = SakId.random(),
+    klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    fnr: Fnr = Fnr.random(),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = saksnummer,
+    ),
+    settPåVent: Boolean = false,
+): Pair<Sak, Klagebehandling> {
+    val (_, vedtak) = this.persisterIverksattSøknadsbehandling(sak = sak)
+    val klagebehandling = ObjectMother.opprettKlagebehandling(
+        id = klagebehandlingId,
+        sakId = sak.id,
+        fnr = sak.fnr,
+        saksnummer = sak.saksnummer,
+        vedtakDetKlagesPå = vedtak.id,
+        erKlagerPartISaken = true,
+        klagesDetPåKonkreteElementerIVedtaket = true,
+        erKlagefristenOverholdt = true,
+        erKlagenSignert = true,
+    )
+    this.klagebehandlingRepo.lagreKlagebehandling(klagebehandling)
+
+    if (settPåVent) {
+        val sattPåVent = klagebehandling.settPåVent(
+            kommando = SettKlagebehandlingPåVentKommando(
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksbehandler = ObjectMother.saksbehandler(),
+                begrunnelse = "persisterOpprettetKlagebehandlingTilVurdering",
+                frist = 13.februar(2026),
+            ),
+            clock = this.clock,
+        ).getOrFail()
+        this.klagebehandlingRepo.lagreKlagebehandling(sattPåVent)
+
+        val oppdatertSak = sakRepo.hentForSakId(sakId)!!
+        oppdatertSak.behandlinger.klagebehandlinger.single() shouldBe sattPåVent
+
+        return Pair(oppdatertSak, sattPåVent)
+    }
+    val oppdatertSak = sakRepo.hentForSakId(sakId)!!
+    oppdatertSak.behandlinger.klagebehandlinger.single() shouldBe klagebehandling
+
+    return Pair(oppdatertSak, klagebehandling)
 }
