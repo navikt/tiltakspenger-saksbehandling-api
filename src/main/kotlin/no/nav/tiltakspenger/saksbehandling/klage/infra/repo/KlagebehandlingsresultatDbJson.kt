@@ -43,7 +43,7 @@ private data class KlagebehandlingsresultatDbJson(
             )
 
             KlagebehandlingsresultatDbEnum.OPPRETTHOLDT -> Opprettholdt(
-                hjemler = hjemler!!.toDomain().toNonEmptySetOrThrow(),
+                hjemler = hjemler!!.toDomain(),
                 brevtekst = brevtekst,
             )
         }
