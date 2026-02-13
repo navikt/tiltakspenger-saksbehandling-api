@@ -92,11 +92,12 @@ enum class StatistikkBehandlingStatus {
     AVSLUTTET,
 }
 
+// FØRSTEGANGSBEHANDLING skal ikke brukes mer, men beholdes fordi den finnes i databasen
 enum class StatistikkBehandlingType {
     FØRSTEGANGSBEHANDLING,
+    SØKNADSBEHANDLING,
     REVURDERING,
     KLAGE,
-    ANKE,
 }
 
 enum class StatistikkBehandlingMetode {
