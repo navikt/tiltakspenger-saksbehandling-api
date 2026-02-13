@@ -157,8 +157,7 @@ data class SimulertBeregning(
                 meldeperioder = perMeldeperiode,
                 // TODO jah: Grav i hvorfor denne tilsynelatende ikke finnes.
                 beregningstidspunkt = null,
-                // TODO jah: Legg på denne på simuleringen i domenet+basen
-                simuleringstidspunkt = null,
+                simuleringstidspunkt = simulering?.simuleringstidspunkt,
                 simuleringsdato = (simulering as? Simulering.Endring)?.datoBeregnet,
                 simuleringTotalBeløp = (simulering as? Simulering.Endring)?.totalBeløp,
                 simuleringResultat = when (simulering) {
