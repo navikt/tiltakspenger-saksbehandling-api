@@ -30,6 +30,10 @@ class StatistikkSakFakeRepo : StatistikkSakRepo {
         return data.get()[sakId]?.let { listOf(it) } ?: emptyList()
     }
 
+    override fun hentRaderSomSkalPatchesOgResendes(): List<StatistikkSakDTO> {
+        return emptyList()
+    }
+
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
         val statistikkSak = data.get().values.find { it.fnr == gammeltFnr.verdi }
         statistikkSak?.let {
