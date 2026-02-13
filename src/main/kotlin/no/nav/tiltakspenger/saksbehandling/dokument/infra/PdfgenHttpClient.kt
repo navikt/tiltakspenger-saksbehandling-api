@@ -414,20 +414,6 @@ class PdfgenHttpClient(
         valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
         vedtaksperiode: Periode,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        genererOpphørBrev(
-            hentBrukersNavn = hentBrukersNavn,
-            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-            vedtaksdato = vedtaksdato,
-            fnr = fnr,
-            saksbehandlerNavIdent = saksbehandlerNavIdent,
-            beslutterNavIdent = beslutterNavIdent,
-            saksnummer = saksnummer,
-            forhåndsvisning = true,
-            vedtaksperiode = vedtaksperiode,
-            valgteHjemler = valgteHjemler,
-            tilleggstekst = tilleggstekst,
-        )
-
         return pdfgenRequest(
             jsonPayload = {
                 genererOpphørBrev(
