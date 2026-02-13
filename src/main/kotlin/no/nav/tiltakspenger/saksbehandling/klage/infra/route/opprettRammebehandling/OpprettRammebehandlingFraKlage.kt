@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -34,7 +33,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingF
 
 private data class OpprettRammebehandlingFraKlage(
     val søknadId: String?,
-    val vedtakIdSomOmgjøres: String?,
     val type: Type,
 ) {
     enum class Type {
@@ -70,10 +68,6 @@ private data class OpprettRammebehandlingFraKlage(
                         Type.REVURDERING_OMGJØRING -> OpprettRevurderingFraKlageKommando.Type.OMGJØRING
                     },
                     correlationId = correlationId,
-                    vedtakIdSomOmgjøres = when (type) {
-                        Type.REVURDERING_INNVILGELSE -> null
-                        Type.REVURDERING_OMGJØRING -> VedtakId.fromString(vedtakIdSomOmgjøres!!)
-                    },
                 )
             }
         }

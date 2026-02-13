@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingF
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
@@ -34,6 +35,7 @@ suspend fun Sak.opprettRammebehandlingFraKlage(
         is OpprettRevurderingFraKlageKommando -> this.opprettRevurderingFraKlage(
             kommando = kommando,
             opprettRevurdering = opprettRevurdering,
+            vedtakIdSomOmgjøres = klagebehandling.formkrav.vedtakDetKlagesPå,
         )
     }.right()
 }
@@ -57,6 +59,7 @@ private suspend fun Sak.opprettSøknadsbehandlingFraKlage(
 private suspend fun Sak.opprettRevurderingFraKlage(
     kommando: OpprettRevurderingFraKlageKommando,
     opprettRevurdering: suspend (StartRevurderingKommando, Sak) -> Pair<Sak, Revurdering>,
+    vedtakIdSomOmgjøres: VedtakId?,
 ): Pair<Sak, Rammebehandling> {
     return opprettRevurdering(
         StartRevurderingKommando(
@@ -69,7 +72,7 @@ private suspend fun Sak.opprettRevurderingFraKlage(
             },
             vedtakIdSomOmgjøres = when (kommando.type) {
                 OpprettRevurderingFraKlageKommando.Type.INNVILGELSE -> null
-                OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> kommando.vedtakIdSomOmgjøres!!
+                OpprettRevurderingFraKlageKommando.Type.OMGJØRING -> vedtakIdSomOmgjøres!!
             },
             klagebehandlingId = kommando.klagebehandlingId,
         ),
