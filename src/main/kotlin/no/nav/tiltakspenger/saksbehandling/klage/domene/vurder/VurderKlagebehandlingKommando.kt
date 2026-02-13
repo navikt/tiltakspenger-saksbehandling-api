@@ -22,7 +22,7 @@ sealed interface VurderKlagebehandlingKommando {
 /**
  * rammebehandlingId genereres av systemet når klagen omgjøres til en rammebehandling.
  */
-data class OmgjørKlagebehandlingKommando(
+data class VurderOmgjørKlagebehandlingKommando(
     override val sakId: SakId,
     override val klagebehandlingId: KlagebehandlingId,
     override val saksbehandler: Saksbehandler,
@@ -42,7 +42,7 @@ data class OmgjørKlagebehandlingKommando(
     }
 }
 
-data class OpprettholdKlagebehandlingKommando(
+data class VurderOpprettholdKlagebehandlingKommando(
     override val sakId: SakId,
     override val klagebehandlingId: KlagebehandlingId,
     override val saksbehandler: Saksbehandler,
@@ -50,5 +50,5 @@ data class OpprettholdKlagebehandlingKommando(
     val hjemler: Klagehjemler,
 ) : VurderKlagebehandlingKommando {
     fun tilResultat(): Klagebehandlingsresultat.Opprettholdt =
-        Klagebehandlingsresultat.Opprettholdt(hjemler = hjemler, brevtekst = null)
+        Klagebehandlingsresultat.Opprettholdt.create(hjemler = hjemler)
 }

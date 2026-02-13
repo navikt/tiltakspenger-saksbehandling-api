@@ -1,0 +1,1 @@
+ALTER TABLE klagebehandling ADD COLUMN kabal_metadata JSONB;

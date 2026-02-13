@@ -31,5 +31,5 @@ abstract class TestApplicationContext(
 
     abstract val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient
 
-    val kabalClientFake = KabalClientFake()
+    val kabalClientFake by lazy { KabalClientFake(clock) }
 }

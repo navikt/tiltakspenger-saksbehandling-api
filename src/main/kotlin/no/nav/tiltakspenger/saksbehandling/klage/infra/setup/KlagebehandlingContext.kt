@@ -17,6 +17,8 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonskli
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient
+import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.DistribuerKlagebrevJobb
+import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.JournalførKlagebrevJobb
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
@@ -30,17 +32,16 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingSe
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.GjenopptaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettAvvistKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.klage.service.JournalførKlagevedtakService
 import no.nav.tiltakspenger.saksbehandling.klage.service.LeggTilbakeKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingFraKlageService
+import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettholdKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.DistribuerKlagevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.time.Clock
 
@@ -78,6 +79,7 @@ open class KlagebehandlingContext(
         KabalHttpClient(
             baseUrl = Configuration.kabalUrl,
             getToken = { texasClient.getSystemToken(Configuration.kabalScope, IdentityProvider.AZUREAD) },
+            clock = clock,
         )
     }
 
@@ -132,10 +134,11 @@ open class KlagebehandlingContext(
         )
     }
 
-    open val journalførKlagevedtakService: JournalførKlagevedtakService by lazy {
-        JournalførKlagevedtakService(
+    open val journalførKlagevedtakService: JournalførKlagebrevJobb by lazy {
+        JournalførKlagebrevJobb(
             journalførKlagevedtaksbrevKlient = journalførKlagevedtaksbrevKlient,
             klagevedtakRepo = klagevedtakRepo,
+            klagebehandlingRepo = klagebehandlingRepo,
             genererKlagebrevKlient = genererKlagebrevKlient,
             personService = personService,
             navIdentClient = navIdentClient,
@@ -144,9 +147,10 @@ open class KlagebehandlingContext(
     }
 
     open val distribuerKlagevedtaksbrevService by lazy {
-        DistribuerKlagevedtaksbrevService(
+        DistribuerKlagebrevJobb(
             dokumentdistribusjonsklient = dokumentdistribusjonsklient,
             klagevedtakRepo = klagevedtakRepo,
+            klagebehandlingRepo = klagebehandlingRepo,
             clock = clock,
         )
     }
@@ -202,6 +206,12 @@ open class KlagebehandlingContext(
             settRammebehandlingPåVentService = settRammebehandlingPåVentService,
             klagebehandlingRepo = klagebehandlingRepo,
             clock = clock,
+        )
+    }
+    open val opprettholdKlagebehandlingService by lazy {
+        OpprettholdKlagebehandlingService(
+            sakService = sakService,
+            klagebehandlingRepo = klagebehandlingRepo,
         )
     }
 }

@@ -9,6 +9,7 @@ private enum class KlagebehandlingsstatusDbEnum {
 
     // TODO jah: Lag en migrering fra IVERKSATT TIL VEDTATT samtidig som du endrer denne.
     IVERKSATT,
+    OPPRETTHOLDT,
     OVERSENDT,
     ;
 
@@ -18,6 +19,7 @@ private enum class KlagebehandlingsstatusDbEnum {
             UNDER_BEHANDLING -> Klagebehandlingsstatus.UNDER_BEHANDLING
             AVBRUTT -> Klagebehandlingsstatus.AVBRUTT
             IVERKSATT -> Klagebehandlingsstatus.VEDTATT
+            OPPRETTHOLDT -> Klagebehandlingsstatus.OPPRETTHOLDT
             OVERSENDT -> Klagebehandlingsstatus.OVERSENDT
         }
     }
@@ -30,6 +32,7 @@ fun Klagebehandlingsstatus.toDbEnum(): String {
         Klagebehandlingsstatus.AVBRUTT -> KlagebehandlingsstatusDbEnum.AVBRUTT
         Klagebehandlingsstatus.VEDTATT -> KlagebehandlingsstatusDbEnum.IVERKSATT
         Klagebehandlingsstatus.OVERSENDT -> KlagebehandlingsstatusDbEnum.OVERSENDT
+        Klagebehandlingsstatus.OPPRETTHOLDT -> KlagebehandlingsstatusDbEnum.OPPRETTHOLDT
     }.name
 }
 

@@ -7,11 +7,25 @@ enum class Klagebehandlingsstatus {
     /** En saksbehandler står på behandlingen. */
     UNDER_BEHANDLING,
 
+    /** Klagebehandlingen er avsluttet. Dette er en en endelig tilstand.*/
     AVBRUTT,
 
-    /** Andre ord som iverksatt og ferdigstilt brukes også. Kan brukes både ved avvisning og medhold. */
+    /** Andre ord som iverksatt og ferdigstilt brukes også. Kan brukes både ved avvisning og medhold, men også etter klageinstansens avgjørelse */
     VEDTATT,
 
-    /** Behandlingen er sendt over til klageinstansen */
+    /**
+     * Saksbehandler har opprettholdt og bedt at den oversendes til klageinstansen.
+     * En jobb plukker opp disse statusene, journalfører og distribuerer innstillingsbrev og oversender klagen til klageinstansen.
+     * Fra saksbehenandler sitt perspektiv, merk at vi anser behandlingen som "avsluttet", frem til klageinstansen har iverksatt ett vedtak.
+     * Så denne statusen skal ikke vises i benken.
+     */
+    OPPRETTHOLDT,
+
+    /**
+     * Vi har journalført+distribuert innstillingsbrevet og oversendt klagen til klageinstansen.
+     * Fra saksbehenandler sitt perspektiv, merk at vi anser behandlingen som "avsluttet", frem til klageinstansen har iverksatt ett vedtak.
+     * Så denne statusen skal ikke vises i benken.
+     *
+     * */
     OVERSENDT,
 }

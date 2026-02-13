@@ -31,9 +31,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjørings�
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.FEIL_LOVANVENDELSE
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.FEIL_REGELVERKSFORSTAAELSE
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak.PROSESSUELL_FEIL
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OmgjørKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.OpprettholdKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderOmgjørKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderOpprettholdKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toStatusAndErrorJson
@@ -60,7 +60,7 @@ private data class VurderKlagebehandlingBody(
         klagebehandlingId: KlagebehandlingId,
     ): VurderKlagebehandlingKommando {
         return when (vurderingstype) {
-            Vurderingstype.OMGJØR -> OmgjørKlagebehandlingKommando(
+            Vurderingstype.OMGJØR -> VurderOmgjørKlagebehandlingKommando(
                 sakId = sakId,
                 klagebehandlingId = klagebehandlingId,
                 saksbehandler = saksbehandler,
@@ -76,7 +76,7 @@ private data class VurderKlagebehandlingBody(
                 },
             )
 
-            Vurderingstype.OPPRETTHOLD -> OpprettholdKlagebehandlingKommando(
+            Vurderingstype.OPPRETTHOLD -> VurderOpprettholdKlagebehandlingKommando(
                 sakId = sakId,
                 klagebehandlingId = klagebehandlingId,
                 saksbehandler = saksbehandler,

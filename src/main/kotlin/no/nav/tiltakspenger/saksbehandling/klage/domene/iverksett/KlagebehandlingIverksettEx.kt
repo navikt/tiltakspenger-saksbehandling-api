@@ -21,8 +21,8 @@ fun Klagebehandling.iverksettOmgjøring(command: IverksettOmgjøringKommando): E
         return KanIkkeIverksetteKlagebehandling.MåHaStatusUnderBehandling(status.toString()).left()
     }
 
-    if (kanIverksette == false) {
-        return KanIkkeIverksetteKlagebehandling.AndreGrunner(kanIkkeIverksetteGrunner).left()
+    if (!kanIverksetteVedtak) {
+        return KanIkkeIverksetteKlagebehandling.AndreGrunner(kanIkkeIverksetteVedtakGrunner()).left()
     }
 
     return this.copy(
@@ -55,8 +55,8 @@ fun Klagebehandling.iverksettAvvisning(
         ).left()
     }
 
-    if (kanIverksette == false) {
-        return KanIkkeIverksetteKlagebehandling.AndreGrunner(kanIkkeIverksetteGrunner).left()
+    if (!kanIverksetteVedtak) {
+        return KanIkkeIverksetteKlagebehandling.AndreGrunner(kanIkkeIverksetteVedtakGrunner()).left()
     }
 
     return this.copy(

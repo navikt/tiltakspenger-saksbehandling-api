@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.brev
 
 import arrow.core.Either
 import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
-import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageOpprettholdelsesbrev
+import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageInnstillingsbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -14,12 +14,12 @@ import java.time.Clock
 suspend fun Sak.forhåndsvisKlagebrev(
     kommando: KlagebehandlingBrevKommando,
     genererAvvisningsbrev: GenererKlageAvvisningsbrev,
-    genererKlageOpprettholdelsesbrev: GenererKlageOpprettholdelsesbrev,
+    genererKlageInnstillingsbrev: GenererKlageInnstillingsbrev,
 ): Either<KunneIkkeGenererePdf, PdfOgJson> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).genererBrev(
         kommando = kommando,
         genererAvvisningsbrev = genererAvvisningsbrev,
-        genererKlageOpprettholdelsesbrev = genererKlageOpprettholdelsesbrev,
+        genererKlageInnstillingsbrev = genererKlageInnstillingsbrev,
     )
 }
 

@@ -89,10 +89,16 @@ internal fun start(
             { applicationContext.utbetalingContext.journalførMeldekortvedtakService.journalfør() },
             { applicationContext.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved() },
             { applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus() },
+
             { applicationContext.behandlingContext.journalførRammevedtaksbrevService.journalfør() },
-            { applicationContext.klagebehandlingContext.journalførKlagevedtakService.journalfør() },
             { applicationContext.behandlingContext.distribuerRammevedtaksbrevService.distribuer() },
-            { applicationContext.klagebehandlingContext.distribuerKlagevedtaksbrevService.distribuer() },
+
+            { applicationContext.klagebehandlingContext.journalførKlagevedtakService.journalførAvvisningbrev() },
+            // TODO jah: Mangler litt på innstilingsbrev+oversende klage før vi kan aktivere de.
+            // { applicationContext.klagebehandlingContext.journalførKlagevedtakService.journalførInnstillingsbrev() },
+            { applicationContext.klagebehandlingContext.distribuerKlagevedtaksbrevService.distribuerAvvisningsbrev() },
+            // { applicationContext.klagebehandlingContext.distribuerKlagevedtaksbrevService.distribuerInnstillingsbrev() },
+
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },
             { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock) },
         ).let {
@@ -105,6 +111,7 @@ internal fun start(
                         { applicationContext.personhendelseJobb.opprettOppgaveForPersonhendelser() },
                         { applicationContext.personhendelseJobb.opprydning() },
                         { applicationContext.identhendelseJobb.behandleIdenthendelser() },
+                        // { applicationContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans() },
                     ),
                 )
             } else {

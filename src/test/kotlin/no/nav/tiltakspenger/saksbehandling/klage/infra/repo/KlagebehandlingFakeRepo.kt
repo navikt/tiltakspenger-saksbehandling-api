@@ -8,7 +8,10 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.klage.ports.OversendtKlageTilKabal
 
 class KlagebehandlingFakeRepo : KlagebehandlingRepo {
 
@@ -55,6 +58,34 @@ class KlagebehandlingFakeRepo : KlagebehandlingRepo {
         }
         data.get()[behandlingId] = klagebehandling
         return true
+    }
+
+    override fun hentInnstillingsbrevSomSkalJournalføres(limit: Int): List<Klagebehandling> {
+        return data.get().values.filter {
+            it.status == Klagebehandlingsstatus.OPPRETTHOLDT &&
+                it.resultat is Klagebehandlingsresultat.Opprettholdt &&
+                it.resultat.journalpostIdInnstillingsbrev == null
+        }.take(limit)
+    }
+
+    override fun hentInnstillingsbrevSomSkalDistribueres(limit: Int): List<Klagebehandling> {
+        return data.get().values.filter {
+            it.status == Klagebehandlingsstatus.OPPRETTHOLDT &&
+                it.resultat is Klagebehandlingsresultat.Opprettholdt &&
+                it.resultat.journalpostIdInnstillingsbrev != null &&
+                it.resultat.distribusjonIdInnstillingsbrev == null
+        }.take(limit)
+    }
+
+    override fun hentSakerSomSkalOversendesKlageinstansen(limit: Int): List<SakId> {
+        return data.get().values.filter { it.kanOversendeKlageinstans }.map { it.sakId }.take(limit)
+    }
+
+    override fun markerOversendtTilKlageinstans(
+        klagebehandling: Klagebehandling,
+        metadata: OversendtKlageTilKabal,
+    ) {
+        data.get()[klagebehandling.id] = klagebehandling
     }
 
     fun hentForSakId(sakId: SakId): Klagebehandlinger {

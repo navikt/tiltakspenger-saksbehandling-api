@@ -35,8 +35,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
                 status = Klagebehandlingsstatus.UNDER_BEHANDLING,
-                journalpostId = JournalpostId("12345"),
-                journalpostOpprettet = klagebehandling.journalpostOpprettet,
+                klagensJournalpostId = JournalpostId("12345"),
+                klagensJournalpostOpprettet = klagebehandling.klagensJournalpostOpprettet,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
@@ -204,8 +204,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
                 status = Klagebehandlingsstatus.UNDER_BEHANDLING,
-                journalpostId = JournalpostId("12345"),
-                journalpostOpprettet = klagebehandling.journalpostOpprettet,
+                klagensJournalpostId = JournalpostId("12345"),
+                klagensJournalpostOpprettet = klagebehandling.klagensJournalpostOpprettet,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
@@ -297,8 +297,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
                 status = Klagebehandlingsstatus.UNDER_BEHANDLING,
-                journalpostId = JournalpostId("12345"),
-                journalpostOpprettet = klagebehandling.journalpostOpprettet,
+                klagensJournalpostId = JournalpostId("12345"),
+                klagensJournalpostOpprettet = klagebehandling.klagensJournalpostOpprettet,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,

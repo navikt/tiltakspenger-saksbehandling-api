@@ -35,13 +35,13 @@ fun Klagebehandling.vurder(
     }
 
     return when (kommando) {
-        is OmgjørKlagebehandlingKommando -> this.vurderOmgjøring(kommando, clock).right()
-        is OpprettholdKlagebehandlingKommando -> this.vurderOpprettholdelse(kommando, clock)
+        is VurderOmgjørKlagebehandlingKommando -> this.vurderOmgjøring(kommando, clock).right()
+        is VurderOpprettholdKlagebehandlingKommando -> this.vurderOpprettholdelse(kommando, clock)
     }
 }
 
 private fun Klagebehandling.vurderOmgjøring(
-    kommando: OmgjørKlagebehandlingKommando,
+    kommando: VurderOmgjørKlagebehandlingKommando,
     clock: Clock,
 ): Klagebehandling = this.copy(
     sistEndret = nå(clock),
@@ -49,7 +49,7 @@ private fun Klagebehandling.vurderOmgjøring(
 )
 
 private fun Klagebehandling.vurderOpprettholdelse(
-    kommando: OpprettholdKlagebehandlingKommando,
+    kommando: VurderOpprettholdKlagebehandlingKommando,
     clock: Clock,
 ): Either<KanIkkeVurdereKlagebehandling, Klagebehandling> {
     if (this.rammebehandlingId != null) {
