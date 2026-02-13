@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansElle
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForOpphørKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
@@ -29,6 +30,7 @@ class GenererFakeVedtaksbrevKlient :
     GenererVedtaksbrevForInnvilgelseKlient,
     GenererVedtaksbrevForStansKlient,
     GenererVedtaksbrevForAvslagKlient,
+    GenererVedtaksbrevForOpphørKlient,
     GenererKlagebrevKlient {
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json").right() }
 
@@ -72,7 +74,7 @@ class GenererFakeVedtaksbrevKlient :
         tilleggstekst: FritekstTilVedtaksbrev?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
 
-    override suspend fun genererStansvedtak(
+    override suspend fun genererStansBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -81,7 +83,7 @@ class GenererFakeVedtaksbrevKlient :
         return response
     }
 
-    override suspend fun genererStansvedtak(
+    override suspend fun genererStansBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
@@ -91,7 +93,6 @@ class GenererFakeVedtaksbrevKlient :
         stansperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
-        forhåndsvisning: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
@@ -148,5 +149,30 @@ class GenererFakeVedtaksbrevKlient :
                 fnr = fnr,
             ),
         ).right()
+    }
+
+    override suspend fun genererOpphørBrev(
+        vedtak: Rammevedtak,
+        vedtaksdato: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response
+    }
+
+    override suspend fun genererOpphørBrevForhåndsvisning(
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
+        fnr: Fnr,
+        saksbehandlerNavIdent: String,
+        beslutterNavIdent: String?,
+        saksnummer: Saksnummer,
+        sakId: SakId,
+        tilleggstekst: FritekstTilVedtaksbrev?,
+        valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+        vedtaksperiode: Periode,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response
     }
 }

@@ -347,6 +347,7 @@ open class ApplicationContext(
             genererVedtaksbrevForInnvilgelseKlient = dokumentContext.genererVedtaksbrevForInnvilgelseKlient,
             genererVedtaksbrevForAvslagKlient = dokumentContext.genererVedtaksbrevForAvslagKlient,
             genererVedtaksbrevForStansKlient = dokumentContext.genererVedtaksbrevForStansKlient,
+            genererVedtaksbrevForOpphørKlient = dokumentContext.genererVedtaksbrevForOpphørKlient,
             dokumentdistribusjonsklient = dokumentContext.dokumentdistribusjonsklient,
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,

@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaC
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForOpphørKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
@@ -58,6 +59,7 @@ open class BehandlingOgVedtakContext(
     genererVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient,
     genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient,
     genererVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient,
+    genererVedtaksbrevForOpphørKlient: GenererVedtaksbrevForOpphørKlient,
     personService: PersonService,
     dokumentdistribusjonsklient: Dokumentdistribusjonsklient,
     navIdentClient: NavIdentClient,
@@ -186,9 +188,10 @@ open class BehandlingOgVedtakContext(
             rammevedtakRepo = rammevedtakRepo,
             genererVedtaksbrevForInnvilgelseKlient = genererVedtaksbrevForInnvilgelseKlient,
             genererVedtaksbrevForAvslagKlient = genererVedtaksbrevForAvslagKlient,
+            genererVedtaksbrevForStansKlient = genererVedtaksbrevForStansKlient,
+            genererVedtaksbrevForOpphørKlient = genererVedtaksbrevForOpphørKlient,
             personService = personService,
             navIdentClient = navIdentClient,
-            genererVedtaksbrevForStansKlient = genererVedtaksbrevForStansKlient,
             clock = clock,
         )
     }
@@ -207,6 +210,7 @@ open class BehandlingOgVedtakContext(
             genererInnvilgelsesbrevClient = genererVedtaksbrevForInnvilgelseKlient,
             genererVedtaksbrevForAvslagKlient = genererVedtaksbrevForAvslagKlient,
             genererStansbrevClient = genererVedtaksbrevForStansKlient,
+            genererOpphørbrevKlient = genererVedtaksbrevForOpphørKlient,
             personService = personService,
             navIdentClient = navIdentClient,
             clock = clock,

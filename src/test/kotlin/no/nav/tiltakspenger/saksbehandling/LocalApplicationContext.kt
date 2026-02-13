@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.Tilgangsm
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForOpphørKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
@@ -92,6 +93,8 @@ class LocalApplicationContext(
     private val genererFakeVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient =
         if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
     private val genererFakeVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient =
+        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+    private val genererFakeVedtaksbrevForOpphørKlient: GenererVedtaksbrevForOpphørKlient =
         if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
     private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
     private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
@@ -229,6 +232,7 @@ class LocalApplicationContext(
             genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
             genererVedtaksbrevForAvslagKlient = genererFakeVedtaksbrevForAvslagKlient,
             genererVedtaksbrevForStansKlient = genererFakeVedtaksbrevForStansKlient,
+            genererVedtaksbrevForOpphørKlient = genererFakeVedtaksbrevForOpphørKlient,
             personService = personContext.personService,
             dokumentdistribusjonsklient = dokumentdistribusjonsklientFakeKlient,
             navIdentClient = personContext.navIdentClient,
