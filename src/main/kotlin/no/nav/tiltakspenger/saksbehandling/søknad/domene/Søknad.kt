@@ -43,6 +43,7 @@ sealed interface Søknad {
     val trygdOgPensjon: PeriodeSpm
     val vedlegg: Int
     val søknadstype: Søknadstype
+    val manueltRegistrert: Boolean
 
     // Blir ikke satt for digitale søknader
     val manueltSattSøknadsperiode: Periode?
@@ -85,6 +86,7 @@ sealed interface Søknad {
             manueltSattTiltak: String?,
             søknadstype: Søknadstype,
             behandlingsarsak: Behandlingsarsak?,
+            manueltRegistrert: Boolean,
         ): Søknad =
             if (søknadstiltak != null) {
                 InnvilgbarSøknad(
@@ -115,6 +117,7 @@ sealed interface Søknad {
                     manueltSattTiltak = manueltSattTiltak,
                     søknadstype = søknadstype,
                     behandlingsarsak = behandlingsarsak,
+                    manueltRegistrert = manueltRegistrert,
                 )
             } else {
                 IkkeInnvilgbarSøknad(
@@ -145,6 +148,7 @@ sealed interface Søknad {
                     manueltSattTiltak = manueltSattTiltak,
                     søknadstype = søknadstype,
                     behandlingsarsak = behandlingsarsak,
+                    manueltRegistrert = manueltRegistrert,
                 )
             }
     }

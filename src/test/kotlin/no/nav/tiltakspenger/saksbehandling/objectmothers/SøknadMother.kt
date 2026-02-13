@@ -211,6 +211,7 @@ interface SøknadMother {
             manueltSattTiltak = manueltSattTiltak,
             søknadstype = søknadstype,
             behandlingsarsak = behandlingsarsak,
+            manueltRegistrert = true,
         )
 
     fun personSøknad(

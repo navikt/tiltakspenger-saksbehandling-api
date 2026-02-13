@@ -57,11 +57,13 @@ class SøknadTest {
                 manueltSattTiltak = null,
                 søknadstype = Søknadstype.PAPIR_SKJEMA,
                 behandlingsarsak = Behandlingsarsak.FORLENGELSE_FRA_ARENA,
+                manueltRegistrert = true,
             )
 
             opprettetSøknad.shouldBeInstanceOf<InnvilgbarSøknad>()
             opprettetSøknad.tiltak shouldNotBe null
             opprettetSøknad.behandlingsarsak shouldBe Behandlingsarsak.FORLENGELSE_FRA_ARENA
+            opprettetSøknad.manueltRegistrert shouldBe true
         }
 
         @Test
@@ -94,6 +96,7 @@ class SøknadTest {
                 manueltSattTiltak = null,
                 søknadstype = Søknadstype.PAPIR_SKJEMA,
                 behandlingsarsak = null,
+                manueltRegistrert = true,
             )
             opprettetSøknad.shouldBeInstanceOf<IkkeInnvilgbarSøknad>()
             opprettetSøknad.tiltak shouldBe null

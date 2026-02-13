@@ -41,6 +41,7 @@ data class InnvilgbarSøknad(
     override val manueltSattTiltak: String? = null,
     override val søknadstype: Søknadstype,
     override val behandlingsarsak: Behandlingsarsak? = null,
+    override val manueltRegistrert: Boolean = false,
 ) : Søknad {
     val kravdato: LocalDate = tidsstempelHosOss.toLocalDate()
     override val fnr: Fnr = personopplysninger.fnr

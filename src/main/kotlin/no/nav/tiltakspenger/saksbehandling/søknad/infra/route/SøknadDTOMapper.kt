@@ -60,6 +60,7 @@ object SøknadDTOMapper {
             saksnummer = sak.saksnummer,
             avbrutt = null,
             søknadstype = Søknadstype.DIGITAL,
+            manueltRegistrert = false,
         )
 
     fun PeriodeSpmDTO.tilDomene(): Søknad.PeriodeSpm =
