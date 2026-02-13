@@ -98,5 +98,6 @@ sealed interface Klagebehandlingsresultat {
         override val erKnyttetTilRammebehandling = false
 
         fun oppdaterBrevtekst(brevtekst: Brevtekster): Opprettholdt = this.copy(brevtekst = brevtekst)
+        fun oppdaterHjemler(hjemler: NonEmptySet<Klagehjemmel>) = this.copy(hjemler = hjemler)
     }
 }

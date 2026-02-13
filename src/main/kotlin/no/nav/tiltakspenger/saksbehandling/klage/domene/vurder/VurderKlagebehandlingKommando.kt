@@ -51,6 +51,6 @@ data class OpprettholdKlagebehandlingKommando(
     override val correlationId: CorrelationId,
     val hjemler: NonEmptySet<Klagehjemmel>,
 ) : VurderKlagebehandlingKommando {
-    fun tilResultat(brevtekster: Brevtekster?): Klagebehandlingsresultat.Opprettholdt =
-        Klagebehandlingsresultat.Opprettholdt(hjemler = hjemler, brevtekst = brevtekster)
+    fun tilResultat(): Klagebehandlingsresultat.Opprettholdt =
+        Klagebehandlingsresultat.Opprettholdt(hjemler = hjemler, brevtekst = null)
 }
