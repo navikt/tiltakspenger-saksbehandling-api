@@ -10,12 +10,12 @@ class AvslagsgrunnlagTest {
         Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak.hjemler.let {
             it.size shouldBe 2
 
-            it.first().paragraf shouldBe Paragraf(2)
-            it.first().forskrift shouldBe Forskrift.Tiltakspengeforskriften
+            it.first().paragraf shouldBe Paragraf("2")
+            it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
             it.first().ledd shouldBe null
 
-            it.last().paragraf shouldBe Paragraf(13)
-            it.last().forskrift shouldBe Forskrift.Arbeidsmarkedsloven
+            it.last().paragraf shouldBe Paragraf("13")
+            it.last().rettskilde shouldBe Rettskilde.Arbeidsmarkedsloven
             it.last().ledd shouldBe null
         }
     }
@@ -25,8 +25,8 @@ class AvslagsgrunnlagTest {
         Avslagsgrunnlag.Alder.hjemler.let {
             it.size shouldBe 1
 
-            it.first().paragraf shouldBe Paragraf(3)
-            it.first().forskrift shouldBe Forskrift.Tiltakspengeforskriften
+            it.first().paragraf shouldBe Paragraf("3")
+            it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
             it.first().ledd shouldBe null
         }
     }
@@ -36,12 +36,12 @@ class AvslagsgrunnlagTest {
         Avslagsgrunnlag.Livsoppholdytelser.hjemler.let {
             it.size shouldBe 2
 
-            it.first().paragraf shouldBe Paragraf(7)
-            it.first().forskrift shouldBe Forskrift.Tiltakspengeforskriften
+            it.first().paragraf shouldBe Paragraf("7")
+            it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
             it.first().ledd shouldBe Ledd(1)
 
-            it.last().paragraf shouldBe Paragraf(13)
-            it.last().forskrift shouldBe Forskrift.Arbeidsmarkedsloven
+            it.last().paragraf shouldBe Paragraf("13")
+            it.last().rettskilde shouldBe Rettskilde.Arbeidsmarkedsloven
             it.last().ledd shouldBe Ledd(1)
         }
     }
@@ -51,8 +51,8 @@ class AvslagsgrunnlagTest {
         Avslagsgrunnlag.Kvalifiseringsprogrammet.hjemler.let {
             it.size shouldBe 1
 
-            it.first().paragraf shouldBe Paragraf(7)
-            it.first().forskrift shouldBe Forskrift.Tiltakspengeforskriften
+            it.first().paragraf shouldBe Paragraf("7")
+            it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
             it.first().ledd shouldBe Ledd(3)
         }
     }
@@ -62,8 +62,8 @@ class AvslagsgrunnlagTest {
         Avslagsgrunnlag.Introduksjonsprogrammet.hjemler.let {
             it.size shouldBe 1
 
-            it.first().paragraf shouldBe Paragraf(7)
-            it.first().forskrift shouldBe Forskrift.Tiltakspengeforskriften
+            it.first().paragraf shouldBe Paragraf("7")
+            it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
             it.first().ledd shouldBe Ledd(3)
         }
     }
@@ -73,8 +73,8 @@ class AvslagsgrunnlagTest {
         Avslagsgrunnlag.LønnFraTiltaksarrangør.hjemler.let {
             it.size shouldBe 1
 
-            it.first().paragraf shouldBe Paragraf(8)
-            it.first().forskrift shouldBe Forskrift.Tiltakspengeforskriften
+            it.first().paragraf shouldBe Paragraf("8")
+            it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
             it.first().ledd shouldBe null
         }
     }
@@ -84,12 +84,12 @@ class AvslagsgrunnlagTest {
         Avslagsgrunnlag.LønnFraAndre.hjemler.let {
             it.size shouldBe 2
 
-            it.first().paragraf shouldBe Paragraf(13)
-            it.first().forskrift shouldBe Forskrift.Arbeidsmarkedsloven
-            it.first().ledd shouldBe null
-            it.last().paragraf shouldBe Paragraf(8)
-            it.last().forskrift shouldBe Forskrift.Tiltakspengeforskriften
-            it.last().ledd shouldBe Ledd(2)
+            it.first().paragraf shouldBe Paragraf("8")
+            it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
+            it.first().ledd shouldBe Ledd(2)
+            it.last().paragraf shouldBe Paragraf("13")
+            it.last().rettskilde shouldBe Rettskilde.Arbeidsmarkedsloven
+            it.last().ledd shouldBe null
         }
     }
 
@@ -98,8 +98,8 @@ class AvslagsgrunnlagTest {
         Avslagsgrunnlag.Institusjonsopphold.hjemler.let {
             it.size shouldBe 1
 
-            it.first().paragraf shouldBe Paragraf(9)
-            it.first().forskrift shouldBe Forskrift.Tiltakspengeforskriften
+            it.first().paragraf shouldBe Paragraf("9")
+            it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
             it.first().ledd shouldBe null
         }
     }
@@ -109,12 +109,12 @@ class AvslagsgrunnlagTest {
         Avslagsgrunnlag.FremmetForSent.hjemler.let {
             it.size shouldBe 2
 
-            it.first().paragraf shouldBe Paragraf(11)
-            it.first().forskrift shouldBe Forskrift.Tiltakspengeforskriften
+            it.first().paragraf shouldBe Paragraf("11")
+            it.first().rettskilde shouldBe Rettskilde.Tiltakspengeforskriften
             it.first().ledd shouldBe null
 
-            it.last().paragraf shouldBe Paragraf(15)
-            it.last().forskrift shouldBe Forskrift.Arbeidsmarkedsloven
+            it.last().paragraf shouldBe Paragraf("15")
+            it.last().rettskilde shouldBe Rettskilde.Arbeidsmarkedsloven
             it.last().ledd shouldBe null
         }
     }

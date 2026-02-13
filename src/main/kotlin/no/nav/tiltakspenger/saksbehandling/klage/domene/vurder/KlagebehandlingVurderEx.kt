@@ -10,6 +10,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Omgjør
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Opprettholdt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import java.time.Clock
@@ -43,10 +45,7 @@ private fun Klagebehandling.vurderOmgjøring(
     clock: Clock,
 ): Klagebehandling = this.copy(
     sistEndret = nå(clock),
-    resultat = resultat?.let {
-        it as Klagebehandlingsresultat.Omgjør
-        it.oppdater(kommando)
-    } ?: kommando.tilResultatUtenRammebehandlingId(),
+    resultat = (resultat as? Omgjør)?.oppdater(kommando) ?: kommando.tilResultatUtenRammebehandlingId(),
 )
 
 private fun Klagebehandling.vurderOpprettholdelse(
@@ -61,7 +60,7 @@ private fun Klagebehandling.vurderOpprettholdelse(
 
     return this.copy(
         sistEndret = nå(clock),
-        resultat = kommando.tilResultat(brevtekster = this.resultat?.brevtekst),
+        resultat = (resultat as? Opprettholdt)?.oppdaterHjemler(kommando.hjemler) ?: kommando.tilResultat(),
     ).right()
 }
 
@@ -70,7 +69,7 @@ fun Klagebehandling.oppdaterRammebehandlingId(
     saksbehandler: Saksbehandler,
     sistEndret: LocalDateTime,
 ): Klagebehandling {
-    require(resultat is Klagebehandlingsresultat.Omgjør) {
+    require(resultat is Omgjør) {
         "Resultatet må være Omgjør, men var $resultat. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
     require(status == UNDER_BEHANDLING) {
@@ -96,12 +95,12 @@ fun Klagebehandling.fjernRammebehandlingId(
     }
     require(erSaksbehandlerPåBehandlingen(saksbehandler))
     return when (val res = resultat) {
-        is Klagebehandlingsresultat.Omgjør -> this.copy(
+        is Omgjør -> this.copy(
             resultat = res.fjernRammebehandlingId(rammebehandlingId),
             sistEndret = sistEndret,
         )
 
-        is Klagebehandlingsresultat.Avvist, is Klagebehandlingsresultat.Opprettholdt, null -> throw IllegalStateException(
+        is Klagebehandlingsresultat.Avvist, is Opprettholdt, null -> throw IllegalStateException(
             "Klagebehandling er ikke knyttet til en rammebehandling. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id",
         )
     }
