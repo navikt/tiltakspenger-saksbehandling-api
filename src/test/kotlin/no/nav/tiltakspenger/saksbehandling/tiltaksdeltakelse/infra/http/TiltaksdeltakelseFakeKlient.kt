@@ -26,9 +26,7 @@ class TiltaksdeltakelseFakeKlient(
         correlationId: CorrelationId,
     ): TiltaksdeltakelserFraRegister {
         return data.get()[fnr] ?: if (defaultTiltaksdeltakelserTilSøknadHvisDenMangler) {
-            hentTiltaksdeltakelseFraSøknad(
-                fnr,
-            )
+            hentTiltaksdeltakelseFraSøknad(fnr)
         } else {
             TiltaksdeltakelserFraRegister.empty()
         }
@@ -74,7 +72,10 @@ class TiltaksdeltakelseFakeKlient(
     private suspend fun hentTiltaksdeltakelseFraSøknad(fnr: Fnr): TiltaksdeltakelserFraRegister {
         val søknadRepo = søknadRepoProvider()!!
         val søknader = søknadRepo.hentSøknaderForFnr(fnr, disableSessionCounter = true)
-        val tiltak = søknader.mapNotNull { it.tiltak?.toTiltak() }.distinctBy { it.eksternDeltakelseId }
+        val tiltak = søknader
+            .sortedByDescending { it.opprettet }
+            .mapNotNull { it.tiltak?.toTiltak() }
+            .distinctBy { it.eksternDeltakelseId }
             .map { it.toTiltaksdeltakelseFraRegister() }
 
         return TiltaksdeltakelserFraRegister(tiltak)
