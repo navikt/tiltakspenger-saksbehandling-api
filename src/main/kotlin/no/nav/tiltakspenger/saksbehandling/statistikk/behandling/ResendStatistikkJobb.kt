@@ -20,15 +20,20 @@ class ResendStatistikkJobb(
     fun resend() {
         val behandlingId = "beh_01KBZ0N5YVWZS093H24BC09N59"
         val raderSomSkalPatchesOgResendes = statistikkSakRepo.hentRaderSomSkalPatchesOgResendes(behandlingId)
-        log.info { "Fant ${raderSomSkalPatchesOgResendes.size} rader som skal patches/resendes" }
-        raderSomSkalPatchesOgResendes.forEach {
-            val oppdatertStatistikkDTO = it.copy(
-                tekniskTidspunkt = LocalDateTime.now(),
-                behandlingType = StatistikkBehandlingType.SØKNADSBEHANDLING,
-                søknadsformat = StatistikkFormat.PAPIR_SKJEMA.name,
-            )
-            statistikkSakRepo.lagre(oppdatertStatistikkDTO)
-            log.info { "Resendte rad med sakId ${oppdatertStatistikkDTO.sakId}, behandlingId ${oppdatertStatistikkDTO.behandlingId}, funksjonell tid ${oppdatertStatistikkDTO.endretTidspunkt}" }
+        if (raderSomSkalPatchesOgResendes.size > 4) {
+            log.info { "Behandling med id $behandlingId er allerede resendt" }
+            return
+        } else {
+            log.info { "Fant ${raderSomSkalPatchesOgResendes.size} rader som skal patches/resendes" }
+            raderSomSkalPatchesOgResendes.forEach {
+                val oppdatertStatistikkDTO = it.copy(
+                    tekniskTidspunkt = LocalDateTime.now(),
+                    behandlingType = StatistikkBehandlingType.SØKNADSBEHANDLING,
+                    søknadsformat = StatistikkFormat.PAPIR_SKJEMA.name,
+                )
+                statistikkSakRepo.lagre(oppdatertStatistikkDTO)
+                log.info { "Resendte rad med sakId ${oppdatertStatistikkDTO.sakId}, behandlingId ${oppdatertStatistikkDTO.behandlingId}, funksjonell tid ${oppdatertStatistikkDTO.endretTidspunkt}" }
+            }
         }
     }
 }
