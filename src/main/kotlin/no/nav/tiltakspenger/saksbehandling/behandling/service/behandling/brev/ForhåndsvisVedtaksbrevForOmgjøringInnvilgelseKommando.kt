@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 
-data class ForhåndsvisVedtaksbrevForRevurderingOmgjøringKommando(
+data class ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando(
     override val sakId: SakId,
     override val behandlingId: BehandlingId,
     override val correlationId: CorrelationId,
@@ -23,6 +23,7 @@ data class ForhåndsvisVedtaksbrevForRevurderingOmgjøringKommando(
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = innvilgelsesperioder.map {
         it.verdi.antallDagerPerMeldeperiode
     }.slåSammenTilstøtendePerioder()
+
     init {
         if (barnetillegg != null) {
             require(barnetillegg.perioder.trekkFra(innvilgelsesperioder.perioder).isEmpty()) {

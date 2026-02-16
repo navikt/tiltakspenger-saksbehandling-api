@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 
+import arrow.core.Either
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -9,10 +10,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForOpphørKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
+import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.time.Clock
@@ -23,6 +27,7 @@ class ForhåndsvisRammevedtaksbrevService(
     private val genererInnvilgelsesbrevClient: GenererVedtaksbrevForInnvilgelseKlient,
     private val genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient,
     private val genererStansbrevClient: GenererVedtaksbrevForStansKlient,
+    private val genererOpphørbrevKlient: GenererVedtaksbrevForOpphørKlient,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
     private val clock: Clock,
@@ -31,7 +36,9 @@ class ForhåndsvisRammevedtaksbrevService(
         kommando: ForhåndsvisVedtaksbrevKommando,
     ): PdfA {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
-        return when (val behandling: Rammebehandling = sak.hentRammebehandling(kommando.behandlingId)!!) {
+        val behandling: Rammebehandling = sak.hentRammebehandling(kommando.behandlingId)!!
+
+        return when (behandling) {
             is Søknadsbehandling -> {
                 when (val k = kommando as ForhåndsvisVedtaksbrevForSøknadsbehandlingKommando) {
                     is ForhåndsvisVedtaksbrevForSøknadsbehandlingInnvilgelseKommando -> genrererSøknadsbehandlingInnvilgelsesbrev(
@@ -77,7 +84,7 @@ class ForhåndsvisRammevedtaksbrevService(
                         kommando = k,
                     )
 
-                    is ForhåndsvisVedtaksbrevForRevurderingOmgjøringKommando -> genererRevurderingOmgjøringsbrev(
+                    is ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando -> genererOmgjøringInnvilgelseBrev(
                         sak = sak,
                         behandling = behandling,
                         innvilgelsesperioder = if (behandling.status == Rammebehandlingsstatus.UNDER_BEHANDLING) {
@@ -89,9 +96,18 @@ class ForhåndsvisRammevedtaksbrevService(
                         },
                         kommando = k,
                     )
+
+                    is ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando -> genererOmgjøringOpphørBrev(
+                        sak = sak,
+                        behandling = behandling,
+                        kommando = k,
+                    )
                 }
             }
-        }
+        }.fold(
+            ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
+            ifRight = { it.pdf },
+        )
     }
 
     private suspend fun genererRevurderingInnvilgelsesbrev(
@@ -99,7 +115,7 @@ class ForhåndsvisRammevedtaksbrevService(
         behandling: Revurdering,
         innvilgelsesperioder: Innvilgelsesperioder,
         kommando: ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando,
-    ): PdfA {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -112,9 +128,6 @@ class ForhåndsvisRammevedtaksbrevService(
             innvilgelsesperioder = innvilgelsesperioder,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             barnetilleggsperioder = kommando.barnetillegg,
-        ).fold(
-            ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
-            ifRight = { it.pdf },
         )
     }
 
@@ -122,11 +135,10 @@ class ForhåndsvisRammevedtaksbrevService(
         sak: Sak,
         kommando: ForhåndsvisVedtaksbrevForRevurderingStansKommando,
         behandling: Revurdering,
-    ): PdfA {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val stansperiode = kommando.utledStansperiode(sak.førsteDagSomGirRett!!, sak.sisteDagSomGirRett!!)
 
-        @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
-        return genererStansbrevClient.genererStansvedtak(
+        return genererStansbrevClient.genererStansBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
             vedtaksdato = LocalDate.now(clock),
@@ -136,22 +148,18 @@ class ForhåndsvisRammevedtaksbrevService(
             stansperiode = stansperiode,
             saksnummer = sak.saksnummer,
             sakId = sak.id,
-            forhåndsvisning = true,
             valgteHjemler = kommando.valgteHjemler,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
 
-        ).fold(
-            ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
-            ifRight = { it.pdf },
         )
     }
 
-    private suspend fun genererRevurderingOmgjøringsbrev(
+    private suspend fun genererOmgjøringInnvilgelseBrev(
         sak: Sak,
         behandling: Revurdering,
         innvilgelsesperioder: Innvilgelsesperioder,
-        kommando: ForhåndsvisVedtaksbrevForRevurderingOmgjøringKommando,
-    ): PdfA {
+        kommando: ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -164,9 +172,26 @@ class ForhåndsvisRammevedtaksbrevService(
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             innvilgelsesperioder = innvilgelsesperioder,
             barnetilleggsperioder = kommando.barnetillegg,
-        ).fold(
-            ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
-            ifRight = { it.pdf },
+        )
+    }
+
+    private suspend fun genererOmgjøringOpphørBrev(
+        sak: Sak,
+        behandling: Revurdering,
+        kommando: ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return genererOpphørbrevKlient.genererOpphørBrevForhåndsvisning(
+            hentBrukersNavn = personService::hentNavn,
+            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+            vedtaksdato = LocalDate.now(clock),
+            fnr = sak.fnr,
+            saksbehandlerNavIdent = behandling.saksbehandler!!,
+            beslutterNavIdent = behandling.beslutter,
+            saksnummer = sak.saksnummer,
+            sakId = sak.id,
+            tilleggstekst = kommando.fritekstTilVedtaksbrev,
+            valgteHjemler = kommando.valgteHjemler,
+            vedtaksperiode = kommando.vedtaksperiode,
         )
     }
 
@@ -175,31 +200,30 @@ class ForhåndsvisRammevedtaksbrevService(
         sak: Sak,
         behandling: Søknadsbehandling,
         avslagsperiode: Periode,
-    ): PdfA = genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
-        hentBrukersNavn = personService::hentNavn,
-        hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-        avslagsgrunner = kommando.avslagsgrunner,
-        fnr = sak.fnr,
-        saksbehandlerNavIdent = behandling.saksbehandler!!,
-        beslutterNavIdent = behandling.beslutter,
-        avslagsperiode = avslagsperiode,
-        saksnummer = sak.saksnummer,
-        sakId = sak.id,
-        tilleggstekst = kommando.fritekstTilVedtaksbrev,
-        forhåndsvisning = true,
-        harSøktBarnetillegg = behandling.søknad.barnetillegg.isNotEmpty(),
-        datoForUtsending = LocalDate.now(clock),
-    ).fold(
-        ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
-        ifRight = { it.pdf },
-    )
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
+            hentBrukersNavn = personService::hentNavn,
+            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+            avslagsgrunner = kommando.avslagsgrunner,
+            fnr = sak.fnr,
+            saksbehandlerNavIdent = behandling.saksbehandler!!,
+            beslutterNavIdent = behandling.beslutter,
+            avslagsperiode = avslagsperiode,
+            saksnummer = sak.saksnummer,
+            sakId = sak.id,
+            tilleggstekst = kommando.fritekstTilVedtaksbrev,
+            forhåndsvisning = true,
+            harSøktBarnetillegg = behandling.søknad.barnetillegg.isNotEmpty(),
+            datoForUtsending = LocalDate.now(clock),
+        )
+    }
 
     private suspend fun genrererSøknadsbehandlingInnvilgelsesbrev(
         kommando: ForhåndsvisVedtaksbrevForSøknadsbehandlingInnvilgelseKommando,
         sak: Sak,
         behandling: Søknadsbehandling,
         innvilgelsesperioder: Innvilgelsesperioder,
-    ): PdfA {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return genererInnvilgelsesbrevClient.genererInnvilgetSøknadBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -212,9 +236,6 @@ class ForhåndsvisRammevedtaksbrevService(
             sakId = sak.id,
             innvilgelsesperioder = innvilgelsesperioder,
             barnetilleggsperioder = kommando.barnetillegg,
-        ).fold(
-            ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
-            ifRight = { it.pdf },
         )
     }
 }

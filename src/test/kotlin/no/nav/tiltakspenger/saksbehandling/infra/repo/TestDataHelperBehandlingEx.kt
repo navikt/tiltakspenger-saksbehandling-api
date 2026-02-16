@@ -528,7 +528,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     clock: Clock = this.clock,
 ): Triple<Sak, Rammevedtak, Rammebehandling> {
     val (sak, søknadsbehandling) = persisterKlarTilBeslutningSøknadsbehandling(
-        sakId = sakId,
+        sakId = sak.id,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
         deltakelseTom = deltakelseTom,
@@ -555,10 +555,10 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
         skalSendesTilMeldekortApi = true,
         skalSendeMeldeperioderTilDatadeling = true,
     )
-    val oppdatertSak = sakRepo.hentForSakId(sakId)!!
+    val oppdatertSak = sakRepo.hentForSakId(sak.id)!!
     val (_, meldeperioder) = oppdatertSak.genererMeldeperioder(clock)
     meldeperiodeRepo.lagre(meldeperioder)
-    return Triple(sakRepo.hentForSakId(sakId)!!, vedtak, oppdatertRammebehandling)
+    return Triple(sakRepo.hentForSakId(sak.id)!!, vedtak, oppdatertRammebehandling)
 }
 
 internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(

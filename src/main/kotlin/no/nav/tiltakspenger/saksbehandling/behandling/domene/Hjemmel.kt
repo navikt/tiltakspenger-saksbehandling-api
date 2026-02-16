@@ -1,80 +1,278 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "ktlint")
 
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Klagehjemmel.KlageArbeidsmarkedsloven
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Klagehjemmel.KlageForeldelsesloven
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Klagehjemmel.KlageForvaltningsloven
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Klagehjemmel.KlageTiltakspengeforskriften
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rettskilde.Arbeidsmarkedsloven
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rettskilde.Folketrygdloven
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rettskilde.Foreldelsesloven
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rettskilde.Forvaltningsloven
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rettskilde.Tiltakspengeforskriften
 
-enum class Hjemmel(
-    val paragraf: Paragraf,
-    val rettskilde: Rettskilde,
-    val ledd: Ledd? = null,
-) {
-    ARBEIDSMARKEDSLOVEN_2("2", Arbeidsmarkedsloven),
-    ARBEIDSMARKEDSLOVEN_12("12", Arbeidsmarkedsloven),
-    ARBEIDSMARKEDSLOVEN_13("13", Arbeidsmarkedsloven),
-    ARBEIDSMARKEDSLOVEN_13_L1("13", Arbeidsmarkedsloven, Ledd(1)),
-    ARBEIDSMARKEDSLOVEN_13_L4("13", Arbeidsmarkedsloven, Ledd(4)),
-    ARBEIDSMARKEDSLOVEN_15("15", Arbeidsmarkedsloven),
-    ARBEIDSMARKEDSLOVEN_17("17", Arbeidsmarkedsloven),
-    ARBEIDSMARKEDSLOVEN_19("19", Arbeidsmarkedsloven),
-    ARBEIDSMARKEDSLOVEN_22("22", Arbeidsmarkedsloven),
-    ARBEIDSMARKEDSLOVEN_28("28", Arbeidsmarkedsloven),
+sealed interface Hjemmel {
+    val paragraf: Paragraf
+    val rettskilde: Rettskilde
+    val ledd: Ledd? get() = null
 
-    FOLKETRYGDLOVEN_22_15("22-15", Folketrygdloven),
-    FOLKETRYGDLOVEN_22_15_A("22-15 a.", Folketrygdloven),
-    FOLKETRYGDLOVEN_22_15_B("22-15 b.", Folketrygdloven),
-    FOLKETRYGDLOVEN_22_15_C("22-15 c.", Folketrygdloven),
-    FOLKETRYGDLOVEN_22_15_D("22-15 d.", Folketrygdloven),
-    FOLKETRYGDLOVEN_22_15_E("22-15 e.", Folketrygdloven),
-    FOLKETRYGDLOVEN_22_15_F("22-15 f.", Folketrygdloven),
-    FOLKETRYGDLOVEN_22_17_A("22-17 a.", Folketrygdloven),
+    sealed interface ArbeidsmarkedslovenHjemmel : Hjemmel {
+        override val rettskilde: Rettskilde get() = Arbeidsmarkedsloven
 
-    FORELDELSESLOVEN_2("2", Foreldelsesloven),
-    FORELDELSESLOVEN_3("3", Foreldelsesloven),
-    FORELDELSESLOVEN_10("10", Foreldelsesloven),
-    FORELDELSESLOVEN_16("16", Foreldelsesloven),
-    FORELDELSESLOVEN_17("17", Foreldelsesloven),
-    FORELDELSESLOVEN_21("21", Foreldelsesloven),
-    FORELDELSESLOVEN_28("28", Foreldelsesloven),
+        data object ARBEIDSMARKEDSLOVEN_2 : ArbeidsmarkedslovenHjemmel, KlageArbeidsmarkedsloven {
+            override val paragraf = Paragraf("2")
+        }
 
-    FORVALTNINGSLOVEN_11("11", Forvaltningsloven),
-    FORVALTNINGSLOVEN_12("12", Forvaltningsloven),
-    FORVALTNINGSLOVEN_14("14", Forvaltningsloven),
-    FORVALTNINGSLOVEN_16("16", Forvaltningsloven),
-    FORVALTNINGSLOVEN_17("17", Forvaltningsloven),
-    FORVALTNINGSLOVEN_18("18", Forvaltningsloven),
-    FORVALTNINGSLOVEN_19("19", Forvaltningsloven),
-    FORVALTNINGSLOVEN_21("21", Forvaltningsloven),
-    FORVALTNINGSLOVEN_24("24", Forvaltningsloven),
-    FORVALTNINGSLOVEN_25("25", Forvaltningsloven),
-    FORVALTNINGSLOVEN_28("28", Forvaltningsloven),
-    FORVALTNINGSLOVEN_29("29", Forvaltningsloven),
-    FORVALTNINGSLOVEN_30("30", Forvaltningsloven),
-    FORVALTNINGSLOVEN_31("31", Forvaltningsloven),
-    FORVALTNINGSLOVEN_32("32", Forvaltningsloven),
-    FORVALTNINGSLOVEN_33("33", Forvaltningsloven),
-    FORVALTNINGSLOVEN_35("35", Forvaltningsloven),
-    FORVALTNINGSLOVEN_41("41", Forvaltningsloven),
-    FORVALTNINGSLOVEN_42("42", Forvaltningsloven),
+        data object ARBEIDSMARKEDSLOVEN_12 : ArbeidsmarkedslovenHjemmel {
+            override val paragraf = Paragraf("12")
+        }
 
-    TILTAKSPENGEFORSKRIFTEN_2("2", Tiltakspengeforskriften),
-    TILTAKSPENGEFORSKRIFTEN_3("3", Tiltakspengeforskriften),
-    TILTAKSPENGEFORSKRIFTEN_5("5", Tiltakspengeforskriften),
-    TILTAKSPENGEFORSKRIFTEN_6("6", Tiltakspengeforskriften),
-    TILTAKSPENGEFORSKRIFTEN_7("7", Tiltakspengeforskriften),
-    TILTAKSPENGEFORSKRIFTEN_7_L1("7", Tiltakspengeforskriften, Ledd(1)),
-    TILTAKSPENGEFORSKRIFTEN_7_L3("7", Tiltakspengeforskriften, Ledd(3)),
-    TILTAKSPENGEFORSKRIFTEN_8("8", Tiltakspengeforskriften),
-    TILTAKSPENGEFORSKRIFTEN_8_L2("8", Tiltakspengeforskriften, Ledd(2)),
-    TILTAKSPENGEFORSKRIFTEN_9("9", Tiltakspengeforskriften),
-    TILTAKSPENGEFORSKRIFTEN_10("10", Tiltakspengeforskriften),
-    TILTAKSPENGEFORSKRIFTEN_11("11", Tiltakspengeforskriften),
-    ;
+        data object ARBEIDSMARKEDSLOVEN_13 : ArbeidsmarkedslovenHjemmel, KlageArbeidsmarkedsloven {
+            override val paragraf = Paragraf("13")
+        }
 
-    // dummy-parameteren er en liten hack for å unngå Platform declaration clash
-    constructor(paragraf: String, forskrift: Rettskilde, ledd: Ledd? = null, dummy: Nothing? = null) : this(Paragraf(paragraf), forskrift, ledd)
+        data object ARBEIDSMARKEDSLOVEN_13_L1 : ArbeidsmarkedslovenHjemmel, KlageArbeidsmarkedsloven {
+            override val paragraf = Paragraf("13")
+            override val ledd = Ledd(1)
+        }
+
+        data object ARBEIDSMARKEDSLOVEN_13_L4 : ArbeidsmarkedslovenHjemmel, KlageArbeidsmarkedsloven {
+            override val paragraf = Paragraf("13")
+            override val ledd = Ledd(4)
+        }
+
+        data object ARBEIDSMARKEDSLOVEN_15 : ArbeidsmarkedslovenHjemmel, KlageArbeidsmarkedsloven {
+            override val paragraf = Paragraf("15")
+        }
+
+        data object ARBEIDSMARKEDSLOVEN_17 : ArbeidsmarkedslovenHjemmel, KlageArbeidsmarkedsloven {
+            override val paragraf = Paragraf("17")
+        }
+
+        data object ARBEIDSMARKEDSLOVEN_19 : ArbeidsmarkedslovenHjemmel {
+            override val paragraf = Paragraf("19")
+        }
+
+        data object ARBEIDSMARKEDSLOVEN_22 : ArbeidsmarkedslovenHjemmel, KlageArbeidsmarkedsloven {
+            override val paragraf = Paragraf("22")
+        }
+
+        data object ARBEIDSMARKEDSLOVEN_28 : ArbeidsmarkedslovenHjemmel {
+            override val paragraf = Paragraf("28")
+        }
+    }
+
+    sealed interface FolketrygdlovenHjemmel : Hjemmel {
+        override val rettskilde: Rettskilde get() = Folketrygdloven
+
+        data object FOLKETRYGDLOVEN_22_15 : FolketrygdlovenHjemmel, Klagehjemmel.KlageFolketrygdloven {
+            override val paragraf = Paragraf("22-15")
+        }
+
+        data object FOLKETRYGDLOVEN_22_15_A : FolketrygdlovenHjemmel {
+            override val paragraf = Paragraf("22-15 a.")
+        }
+
+        data object FOLKETRYGDLOVEN_22_15_B : FolketrygdlovenHjemmel {
+            override val paragraf = Paragraf("22-15 b.")
+        }
+
+        data object FOLKETRYGDLOVEN_22_15_C : FolketrygdlovenHjemmel {
+            override val paragraf = Paragraf("22-15 c.")
+        }
+
+        data object FOLKETRYGDLOVEN_22_15_D : FolketrygdlovenHjemmel {
+            override val paragraf = Paragraf("22-15 d.")
+        }
+
+        data object FOLKETRYGDLOVEN_22_15_E : FolketrygdlovenHjemmel {
+            override val paragraf = Paragraf("22-15 e.")
+        }
+
+        data object FOLKETRYGDLOVEN_22_15_F : FolketrygdlovenHjemmel {
+            override val paragraf = Paragraf("22-15 f.")
+        }
+
+        data object FOLKETRYGDLOVEN_22_17_A : FolketrygdlovenHjemmel, Klagehjemmel.KlageFolketrygdloven {
+            override val paragraf = Paragraf("22-17 a.")
+        }
+    }
+
+    sealed interface ForeldelseslovenHjemmel : Hjemmel {
+        override val rettskilde: Rettskilde get() = Foreldelsesloven
+
+        data object FORELDELSESLOVEN_2 : ForeldelseslovenHjemmel {
+            override val paragraf = Paragraf("2")
+        }
+
+        /** Disse kommer i følge Kabalteamet alltid i par. Vi modellerer det inn mtp. klagebehandling */
+        data object FORELDELSESLOVEN_2_OG_3 : ForeldelseslovenHjemmel, KlageForeldelsesloven {
+            override val paragraf = Paragraf("2 og 3")
+        }
+
+        data object FORELDELSESLOVEN_3 : ForeldelseslovenHjemmel {
+            override val paragraf = Paragraf("3")
+        }
+
+        data object FORELDELSESLOVEN_10 : ForeldelseslovenHjemmel, KlageForeldelsesloven {
+            override val paragraf = Paragraf("10")
+        }
+
+        data object FORELDELSESLOVEN_16 : ForeldelseslovenHjemmel {
+            override val paragraf = Paragraf("16")
+        }
+
+        data object FORELDELSESLOVEN_17 : ForeldelseslovenHjemmel {
+            override val paragraf = Paragraf("17")
+        }
+
+        data object FORELDELSESLOVEN_21 : ForeldelseslovenHjemmel {
+            override val paragraf = Paragraf("21")
+        }
+
+        data object FORELDELSESLOVEN_28 : ForeldelseslovenHjemmel {
+            override val paragraf = Paragraf("28")
+        }
+    }
+
+    sealed interface ForvaltningslovenHjemmel : Hjemmel {
+        override val rettskilde: Rettskilde get() = Forvaltningsloven
+
+        data object FORVALTNINGSLOVEN_11 : ForvaltningslovenHjemmel, KlageForvaltningsloven {
+            override val paragraf = Paragraf("11")
+        }
+
+        data object FORVALTNINGSLOVEN_12 : ForvaltningslovenHjemmel {
+            override val paragraf = Paragraf("12")
+        }
+
+        data object FORVALTNINGSLOVEN_14 : ForvaltningslovenHjemmel {
+            override val paragraf = Paragraf("14")
+        }
+
+        data object FORVALTNINGSLOVEN_16 : ForvaltningslovenHjemmel {
+            override val paragraf = Paragraf("16")
+        }
+
+        data object FORVALTNINGSLOVEN_17 : ForvaltningslovenHjemmel, KlageForvaltningsloven {
+            override val paragraf = Paragraf("17")
+        }
+
+        data object FORVALTNINGSLOVEN_18 : ForvaltningslovenHjemmel {
+            override val paragraf = Paragraf("18")
+        }
+
+        /** Disse kommer i følge Kabalteamet alltid i par. Vi modellerer det inn mtp. klagebehandling */
+        data object FORVALTNINGSLOVEN_18_OG_19 : ForvaltningslovenHjemmel, KlageForvaltningsloven {
+            override val paragraf = Paragraf("18 og 19")
+        }
+
+        data object FORVALTNINGSLOVEN_19 : ForvaltningslovenHjemmel {
+            override val paragraf = Paragraf("19")
+        }
+
+        data object FORVALTNINGSLOVEN_21 : ForvaltningslovenHjemmel {
+            override val paragraf = Paragraf("21")
+        }
+
+        data object FORVALTNINGSLOVEN_24 : ForvaltningslovenHjemmel {
+            override val paragraf = Paragraf("24")
+        }
+
+        data object FORVALTNINGSLOVEN_25 : ForvaltningslovenHjemmel {
+            override val paragraf = Paragraf("25")
+        }
+
+        data object FORVALTNINGSLOVEN_28 : ForvaltningslovenHjemmel, KlageForvaltningsloven {
+            override val paragraf = Paragraf("28")
+        }
+
+        data object FORVALTNINGSLOVEN_29 : ForvaltningslovenHjemmel {
+            override val paragraf = Paragraf("29")
+        }
+
+        data object FORVALTNINGSLOVEN_30 : ForvaltningslovenHjemmel, KlageForvaltningsloven {
+            override val paragraf = Paragraf("30")
+        }
+
+        data object FORVALTNINGSLOVEN_31 : ForvaltningslovenHjemmel, KlageForvaltningsloven {
+            override val paragraf = Paragraf("31")
+        }
+
+        data object FORVALTNINGSLOVEN_32 : ForvaltningslovenHjemmel, KlageForvaltningsloven {
+            override val paragraf = Paragraf("32")
+        }
+
+        data object FORVALTNINGSLOVEN_33 : ForvaltningslovenHjemmel {
+            override val paragraf = Paragraf("33")
+        }
+
+        data object FORVALTNINGSLOVEN_35 : ForvaltningslovenHjemmel, KlageForvaltningsloven {
+            override val paragraf = Paragraf("35")
+        }
+
+        data object FORVALTNINGSLOVEN_41 : ForvaltningslovenHjemmel, KlageForvaltningsloven {
+            override val paragraf = Paragraf("41")
+        }
+
+        data object FORVALTNINGSLOVEN_42 : ForvaltningslovenHjemmel, KlageForvaltningsloven {
+            override val paragraf = Paragraf("42")
+        }
+    }
+
+    sealed interface TiltakspengeforskriftenHjemmel : Hjemmel {
+        override val rettskilde: Rettskilde get() = Tiltakspengeforskriften
+
+        data object TILTAKSPENGEFORSKRIFTEN_2 : TiltakspengeforskriftenHjemmel, KlageTiltakspengeforskriften {
+            override val paragraf = Paragraf("2")
+        }
+
+        data object TILTAKSPENGEFORSKRIFTEN_3 : TiltakspengeforskriftenHjemmel, KlageTiltakspengeforskriften {
+            override val paragraf = Paragraf("3")
+        }
+
+        data object TILTAKSPENGEFORSKRIFTEN_5 : TiltakspengeforskriftenHjemmel, KlageTiltakspengeforskriften {
+            override val paragraf = Paragraf("5")
+        }
+
+        data object TILTAKSPENGEFORSKRIFTEN_6 : TiltakspengeforskriftenHjemmel, KlageTiltakspengeforskriften {
+            override val paragraf = Paragraf("6")
+        }
+
+        data object TILTAKSPENGEFORSKRIFTEN_7 : TiltakspengeforskriftenHjemmel, KlageTiltakspengeforskriften {
+            override val paragraf = Paragraf("7")
+        }
+
+        data object TILTAKSPENGEFORSKRIFTEN_7_L1 : TiltakspengeforskriftenHjemmel {
+            override val paragraf = Paragraf("7")
+            override val ledd = Ledd(1)
+        }
+
+        data object TILTAKSPENGEFORSKRIFTEN_7_L3 : TiltakspengeforskriftenHjemmel {
+            override val paragraf = Paragraf("7")
+            override val ledd = Ledd(3)
+        }
+
+        data object TILTAKSPENGEFORSKRIFTEN_8 : TiltakspengeforskriftenHjemmel, KlageTiltakspengeforskriften {
+            override val paragraf = Paragraf("8")
+        }
+
+        data object TILTAKSPENGEFORSKRIFTEN_8_L2 : TiltakspengeforskriftenHjemmel {
+            override val paragraf = Paragraf("8")
+            override val ledd = Ledd(2)
+        }
+
+        data object TILTAKSPENGEFORSKRIFTEN_9 : TiltakspengeforskriftenHjemmel, KlageTiltakspengeforskriften {
+            override val paragraf = Paragraf("9")
+        }
+
+        data object TILTAKSPENGEFORSKRIFTEN_10 : TiltakspengeforskriftenHjemmel, KlageTiltakspengeforskriften {
+            override val paragraf = Paragraf("10")
+        }
+
+        data object TILTAKSPENGEFORSKRIFTEN_11 : TiltakspengeforskriftenHjemmel, KlageTiltakspengeforskriften {
+            override val paragraf = Paragraf("11")
+        }
+    }
 }

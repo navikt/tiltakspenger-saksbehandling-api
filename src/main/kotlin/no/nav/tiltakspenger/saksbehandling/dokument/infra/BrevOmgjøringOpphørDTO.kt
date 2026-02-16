@@ -8,13 +8,13 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
-private data class BrevRevurderingStansDTO(
+private data class BrevOmgjøringOpphørDTO(
     override val personalia: BrevPersonaliaDTO,
     override val saksnummer: String,
     override val saksbehandlerNavn: String,
@@ -22,42 +22,42 @@ private data class BrevRevurderingStansDTO(
     override val datoForUtsending: String,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-    val stansFraOgMedDato: String,
+    val vedtaksperiode: BrevPeriodeDTO,
     val valgtHjemmelTekst: List<String>?,
 ) : BrevRammevedtakBaseDTO
 
-suspend fun Rammevedtak.toRevurderingStans(
+suspend fun Rammevedtak.tilBrevOmgjøringOpphørDTO(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
 ): String {
-    require(rammebehandling is Revurdering && rammebehandling.resultat is Revurderingsresultat.Stans)
+    require(rammebehandling is Revurdering && rammebehandling.resultat is Omgjøringsresultat.OmgjøringOpphør)
 
-    return genererStansbrev(
+    return genererOpphørBrev(
         hentBrukersNavn = hentBrukersNavn,
         hentSaksbehandlersNavn = hentSaksbehandlersNavn,
         vedtaksdato = vedtaksdato,
         fnr = fnr,
         saksbehandlerNavIdent = saksbehandler,
         beslutterNavIdent = beslutter,
-        stansperiode = this.periode,
         saksnummer = saksnummer,
         forhåndsvisning = false,
-        valgteHjemler = rammebehandling.resultat.valgtHjemmel!!,
+        vedtaksperiode = this.periode,
+        valgteHjemler = rammebehandling.resultat.valgteHjemler,
         tilleggstekst = rammebehandling.fritekstTilVedtaksbrev,
     )
 }
 
-suspend fun genererStansbrev(
+suspend fun genererOpphørBrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
     fnr: Fnr,
     saksbehandlerNavIdent: String,
     beslutterNavIdent: String?,
-    stansperiode: Periode,
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
+    vedtaksperiode: Periode,
     valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
     tilleggstekst: FritekstTilVedtaksbrev? = null,
 ): String {
@@ -65,13 +65,13 @@ suspend fun genererStansbrev(
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
     val besluttersNavn = beslutterNavIdent?.let { hentSaksbehandlersNavn(it) }
 
-    return BrevRevurderingStansDTO(
+    return BrevOmgjøringOpphørDTO(
         personalia = BrevPersonaliaDTO(
             ident = fnr.verdi,
             fornavn = brukersNavn.fornavn,
             etternavn = brukersNavn.mellomnavnOgEtternavn,
         ),
-        stansFraOgMedDato = stansperiode.fraOgMed.format(norskDatoFormatter),
+        vedtaksperiode = BrevPeriodeDTO.fraPeriode(vedtaksperiode),
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
