@@ -38,6 +38,7 @@ data class IkkeInnvilgbarSøknad(
     override val manueltSattTiltak: String?,
     override val søknadstype: Søknadstype,
     override val behandlingsarsak: Behandlingsarsak?,
+    override val manueltRegistrert: Boolean,
 ) : Søknad {
     override val fnr: Fnr = personopplysninger.fnr
     override val erAvbrutt: Boolean by lazy { avbrutt != null }

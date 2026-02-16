@@ -266,7 +266,8 @@ internal object SøknadDAO {
                     manuelt_satt_soknadsperiode_fra_og_med,
                     manuelt_satt_soknadsperiode_til_og_med,
                     manuelt_satt_tiltak,
-                    behandlingsarsak
+                    behandlingsarsak,
+                    manuelt_registrert
                 ) values (
                     :id,
                     :versjon,
@@ -325,7 +326,8 @@ internal object SøknadDAO {
                     :manuelt_satt_soknadsperiode_fra_og_med,
                     :manuelt_satt_soknadsperiode_til_og_med,
                     :manuelt_satt_tiltak,
-                    :behandlingsarsak
+                    :behandlingsarsak,
+                    :manuelt_registrert
                 )
                 """.trimIndent(),
                 paramMap =
@@ -347,6 +349,7 @@ internal object SøknadDAO {
                         "manuelt_satt_soknadsperiode_til_og_med" to søknad.manueltSattSøknadsperiode?.tilOgMed,
                         "manuelt_satt_tiltak" to søknad.manueltSattTiltak,
                         "behandlingsarsak" to søknad.behandlingsarsak?.name,
+                        "manuelt_registrert" to søknad.manueltRegistrert,
                     ),
             ).asUpdate,
         )
@@ -421,6 +424,7 @@ internal object SøknadDAO {
             }
         val manueltSattTiltak = stringOrNull("manuelt_satt_tiltak")
         val behandlingsarsak = stringOrNull("behandlingsarsak")?.let { Behandlingsarsak.valueOf(it) }
+        val manueltRegistrert = boolean("manuelt_registrert")
         return if (søknadstiltak != null) {
             InnvilgbarSøknad(
                 versjon = versjon,
@@ -457,6 +461,7 @@ internal object SøknadDAO {
                 manueltSattSøknadsperiode = manueltSattSøknadsperiode,
                 manueltSattTiltak = manueltSattTiltak,
                 behandlingsarsak = behandlingsarsak,
+                manueltRegistrert = manueltRegistrert,
             )
         } else {
             IkkeInnvilgbarSøknad(
@@ -494,6 +499,7 @@ internal object SøknadDAO {
                 manueltSattSøknadsperiode = manueltSattSøknadsperiode,
                 manueltSattTiltak = manueltSattTiltak,
                 behandlingsarsak = behandlingsarsak,
+                manueltRegistrert = manueltRegistrert,
             )
         }
     }

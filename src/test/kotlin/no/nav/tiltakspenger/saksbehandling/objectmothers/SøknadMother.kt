@@ -143,6 +143,7 @@ interface SøknadMother {
             avbrutt = avbrutt,
             manueltSattSøknadsperiode = søknadsperiode,
             søknadstype = søknadstype,
+            manueltRegistrert = false,
         )
 
     fun nyIkkeInnvilgbarSøknad(
@@ -211,6 +212,7 @@ interface SøknadMother {
             manueltSattTiltak = manueltSattTiltak,
             søknadstype = søknadstype,
             behandlingsarsak = behandlingsarsak,
+            manueltRegistrert = true,
         )
 
     fun personSøknad(

@@ -43,6 +43,7 @@ sealed interface Søknad {
     val trygdOgPensjon: PeriodeSpm
     val vedlegg: Int
     val søknadstype: Søknadstype
+    val manueltRegistrert: Boolean
 
     // Blir ikke satt for digitale søknader
     val manueltSattSøknadsperiode: Periode?
@@ -85,6 +86,7 @@ sealed interface Søknad {
             manueltSattTiltak: String?,
             søknadstype: Søknadstype,
             behandlingsarsak: Behandlingsarsak?,
+            manueltRegistrert: Boolean,
         ): Søknad =
             if (søknadstiltak != null) {
                 InnvilgbarSøknad(
@@ -115,6 +117,7 @@ sealed interface Søknad {
                     manueltSattTiltak = manueltSattTiltak,
                     søknadstype = søknadstype,
                     behandlingsarsak = behandlingsarsak,
+                    manueltRegistrert = manueltRegistrert,
                 )
             } else {
                 IkkeInnvilgbarSøknad(
@@ -145,6 +148,7 @@ sealed interface Søknad {
                     manueltSattTiltak = manueltSattTiltak,
                     søknadstype = søknadstype,
                     behandlingsarsak = behandlingsarsak,
+                    manueltRegistrert = manueltRegistrert,
                 )
             }
     }
@@ -154,13 +158,9 @@ sealed interface Søknad {
      * Man kan bare søke om tiltakspenger for en tiltaksdeltakelse per søknad (aug 2025).
      */
     fun tiltaksdeltakelseperiodeDetErSøktOm(): Periode?
-    fun erManueltRegistrertSøknad() =
-        søknadstype == Søknadstype.PAPIR ||
-            søknadstype == Søknadstype.PAPIR_SKJEMA ||
-            søknadstype == Søknadstype.PAPIR_FRIHAND ||
-            søknadstype == Søknadstype.MODIA ||
-            søknadstype == Søknadstype.ANNET
-    fun erDigitalSøknad() = søknadstype == Søknadstype.DIGITAL
+    fun erManueltRegistrertSøknad() = manueltRegistrert
+
+    fun erDigitalSøknad() = !manueltRegistrert
     fun kanInnvilges() =
         (erDigitalSøknad() && tiltak != null) || (erManueltRegistrertSøknad() && tiltak != null && manueltSattSøknadsperiode != null)
 
