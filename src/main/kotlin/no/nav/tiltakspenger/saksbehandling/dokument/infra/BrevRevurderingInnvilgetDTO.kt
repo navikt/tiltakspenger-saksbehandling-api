@@ -24,10 +24,12 @@ private data class BrevRevurderingInnvilgetDTO(
     override val datoForUtsending: String,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-
+    @Deprecated("Erstattes av innvilgelsesperioder og barnetillegg - så kan pdfgen få bestemme hvordan de skal presenteres. Datoene blir formatert for å slippe å gjøre det i pdfgen")
     override val introTekst: String,
     override val harBarnetillegg: Boolean,
     override val satser: List<SatserDTO>,
+    override val innvilgelsesperioder: List<BrevPeriodeDTO>,
+    override val barnetillegg: List<BrevBarnetilleggDTO>,
 ) : BrevRammevedtakInnvilgelseBaseDTO
 
 suspend fun Rammevedtak.tilRevurderingInnvilgetBrev(
@@ -83,6 +85,8 @@ suspend fun genererRevurderingInnvilgetBrev(
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
         introTekst = tilIntroTekst(innvilgelsesperioder, barnetillegg),
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
+        innvilgelsesperioder = tilInnvilgelsesperioder(innvilgelsesperioder),
+        barnetillegg = tilBarnetillegg(barnetillegg),
     ).let { serialize(it) }
 }
 
@@ -121,4 +125,29 @@ private fun tilIntroTekst(
             perioderMedBarnetilleggString?.let { "\n\nDu får barnetillegg $it." } ?: "",
         )
     }
+}
+
+private fun tilInnvilgelsesperioder(
+    innvilgelsesperioder: Innvilgelsesperioder,
+): List<BrevPeriodeDTO> {
+    val sammenhengendeInnvilgelsesperioder = innvilgelsesperioder.perioder.leggSammen(false)
+
+    return sammenhengendeInnvilgelsesperioder.map {
+        BrevPeriodeDTO.fraPeriode(it)
+    }
+}
+
+private fun tilBarnetillegg(
+    barnetillegg: Periodisering<AntallBarn>?,
+): List<BrevBarnetilleggDTO> {
+    val perioderMedBarnetillegg = barnetillegg?.perioderMedVerdi
+        ?.filter { it.verdi.value > 0 }
+        ?.let { it.ifEmpty { null } }
+
+    return perioderMedBarnetillegg?.map { periodeMedVerdi ->
+        BrevBarnetilleggDTO(
+            antallBarnTekst = periodeMedVerdi.verdi.toTekst(),
+            periode = BrevPeriodeDTO.fraPeriode(periodeMedVerdi.periode),
+        )
+    } ?: emptyList()
 }
