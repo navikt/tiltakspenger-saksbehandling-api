@@ -45,6 +45,7 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahCo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.ResendStatistikkJobb
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
@@ -153,6 +154,12 @@ open class ApplicationContext(
             søknadRepo = søknadContext.søknadRepo,
             arenaDeltakerMapper = ArenaDeltakerMapper(),
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+        )
+    }
+
+    open val resendStatistikkJobb by lazy {
+        ResendStatistikkJobb(
+            statistikkSakRepo = statistikkContext.statistikkSakRepo,
         )
     }
 

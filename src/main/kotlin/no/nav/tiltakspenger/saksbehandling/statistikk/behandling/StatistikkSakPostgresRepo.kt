@@ -62,6 +62,28 @@ internal class StatistikkSakPostgresRepo(
         )
     }
 
+    override fun hentRaderSomSkalPatchesOgResendes(behandlingId: String): List<StatistikkSakDTO> {
+        return sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                    select *
+                    from statistikk_sak
+                    where behandlingId = :behandlingid
+                    and behandlingtype = :behandlingtype
+                    and soknadsformat = :soknadsformat
+                    """.trimIndent(),
+                    mapOf(
+                        "behandlingid" to behandlingId,
+                        "behandlingtype" to StatistikkBehandlingType.FØRSTEGANGSBEHANDLING.name,
+                        "soknadsformat" to StatistikkFormat.DIGITAL.name,
+                    ),
+                ).map { row -> row.toStatistikkSakDTO() }
+                    .asList,
+            )
+        }
+    }
+
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
         sessionFactory.withTransaction(context) { tx ->
             tx.run(
