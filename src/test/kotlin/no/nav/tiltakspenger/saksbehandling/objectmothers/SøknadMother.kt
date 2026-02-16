@@ -143,6 +143,7 @@ interface SøknadMother {
             avbrutt = avbrutt,
             manueltSattSøknadsperiode = søknadsperiode,
             søknadstype = søknadstype,
+            manueltRegistrert = false,
         )
 
     fun nyIkkeInnvilgbarSøknad(
