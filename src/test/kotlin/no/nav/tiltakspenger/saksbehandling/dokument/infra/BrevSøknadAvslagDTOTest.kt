@@ -114,6 +114,16 @@ class BrevSøknadAvslagDTOTest {
         }
 
         @Test
+        fun `skal ikke gjenta samme paragraf 2 ganger`() {
+            val actual = setOf(Avslagsgrunnlag.Kvalifiseringsprogrammet, Avslagsgrunnlag.Introduksjonsprogrammet).createBrevForskrifter(true)
+            val expected = """
+                Dette kommer frem av tiltakspengeforskriften §§ 3, 7 tredje ledd.
+            """.trimIndent()
+
+            actual shouldBe expected
+        }
+
+        @Test
         fun `lager forskrifter med tiltakspengerforskrifter og arbeidsmarkedsloven`() {
             val actual = setOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak).createBrevForskrifter(true)
             val expected = """

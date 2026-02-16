@@ -86,7 +86,7 @@ private fun List<MeldeperiodeTilOppdrag>.toUtbetalingDto(
 
 private fun List<UtbetalingV2Dto>.valider() {
     this.groupBy {
-        val stønadsdata = it.stønadsdata as StønadsdataTiltakspengerV2Dto
+        val stønadsdata = it.stønadsdata
         stønadsdata.barnetillegg
     }.values.forEach {
         it.zipWithNext().forEach { (a, b) ->
@@ -100,7 +100,7 @@ private fun List<UtbetalingV2Dto>.valider() {
 private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(beregning: Beregning): List<UtbetalingV2Dto> {
     val oppdaterteKjeder = beregning.beregninger.map { it.kjedeId.verdi }.toSet()
     return this.vedtak.utbetalinger.filterNot { tidligereUtbetaling ->
-        val stønadsdata = tidligereUtbetaling.stønadsdata as StønadsdataTiltakspengerV2Dto
+        val stønadsdata = tidligereUtbetaling.stønadsdata
         oppdaterteKjeder.contains(stønadsdata.meldekortId)
     }
 }

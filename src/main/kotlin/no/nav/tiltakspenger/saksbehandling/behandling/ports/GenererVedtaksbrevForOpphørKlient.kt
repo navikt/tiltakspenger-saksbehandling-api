@@ -14,25 +14,25 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
-interface GenererVedtaksbrevForStansKlient {
-    suspend fun genererStansBrev(
+interface GenererVedtaksbrevForOpphørKlient {
+    suspend fun genererOpphørBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
-    suspend fun genererStansBrevForhåndsvisning(
+    suspend fun genererOpphørBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         vedtaksdato: LocalDate,
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        stansperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+        vedtaksperiode: Periode,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

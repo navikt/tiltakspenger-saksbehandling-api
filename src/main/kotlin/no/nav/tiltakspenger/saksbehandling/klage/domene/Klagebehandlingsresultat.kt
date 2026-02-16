@@ -85,18 +85,18 @@ sealed interface Klagebehandlingsresultat {
     }
 
     data class Opprettholdt(
-        val hjemler: NonEmptySet<Klagehjemmel>,
+        val hjemler: Klagehjemler,
         override val brevtekst: Brevtekster?,
     ) : Klagebehandlingsresultat {
         override val kanIverksette: Boolean = !brevtekst.isNullOrEmpty()
         override val kanIkkeIverksetteGrunner: List<String> by lazy {
             val grunner = mutableListOf<String>()
             if (brevtekst.isNullOrEmpty()) grunner.add("Må ha minst et element i brevtekst")
-            if (hjemler.isEmpty()) grunner.add("Må ha minst en hjemmel")
             grunner
         }
         override val erKnyttetTilRammebehandling = false
 
         fun oppdaterBrevtekst(brevtekst: Brevtekster): Opprettholdt = this.copy(brevtekst = brevtekst)
+        fun oppdaterHjemler(hjemler: Klagehjemler) = this.copy(hjemler = hjemler)
     }
 }

@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.dato.august
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
@@ -41,6 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterManuellMeldekortBehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOppdatertMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetKlagebehandlingTilAvvisning
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetKlagebehandlingTilVurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingStansTilBeslutning
@@ -562,11 +564,14 @@ class BenkOversiktPostgresRepoTest {
     fun `henter åpne klagebehandlinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, klagebehandling) = testDataHelper.persisterOpprettetKlagebehandlingTilAvvisning()
+            val (_, klagebehandlingPåVent) = testDataHelper.persisterOpprettetKlagebehandlingTilVurdering(
+                settPåVent = true,
+            )
 
             val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
-            totalAntall shouldBe 1
-            actual.size shouldBe 1
+            totalAntall shouldBe 2
+            actual.size shouldBe 2
             actual.first() shouldBe Behandlingssammendrag(
                 sakId = klagebehandling.sakId,
                 fnr = klagebehandling.fnr,
@@ -581,6 +586,21 @@ class BenkOversiktPostgresRepoTest {
                 sattPåVentBegrunnelse = null,
                 sattPåVentFrist = null,
                 sistEndret = klagebehandling.sistEndret,
+            )
+            actual.last() shouldBe Behandlingssammendrag(
+                sakId = klagebehandlingPåVent.sakId,
+                fnr = klagebehandlingPåVent.fnr,
+                saksnummer = klagebehandlingPåVent.saksnummer,
+                startet = klagebehandlingPåVent.opprettet,
+                kravtidspunkt = null,
+                behandlingstype = BehandlingssammendragType.KLAGEBEHANDLING,
+                status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                saksbehandler = null,
+                beslutter = null,
+                erSattPåVent = true,
+                sattPåVentBegrunnelse = "persisterOpprettetKlagebehandlingTilVurdering",
+                sattPåVentFrist = 13.februar(2026),
+                sistEndret = klagebehandlingPåVent.sistEndret,
             )
         }
     }
@@ -759,7 +779,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
-    fun `henter både behandlinger som er klar`() {
+    fun `henter behandlinger som er klar`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val beslutter = ObjectMother.beslutter("Z111111")
 

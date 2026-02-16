@@ -163,9 +163,9 @@ class BenkOversiktPostgresRepo(
                        k.status          as status,
                        k.saksbehandler   as saksbehandler,
                        null              as beslutter,
-                       null              as erSattPåVent,
-                       null              as sattPåVentBegrunnelse,
-                       null              as sattPåVentFrist,
+                       k.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent'  as erSattPåVent,
+                       k.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as sattPåVentBegrunnelse,
+                       k.ventestatus->'ventestatusHendelser'->-1->>'frist'         as sattPåVentFrist,
                        k.sist_endret     as sist_endret
                 from klagebehandling k
                          join sak s on k.sak_id = s.id

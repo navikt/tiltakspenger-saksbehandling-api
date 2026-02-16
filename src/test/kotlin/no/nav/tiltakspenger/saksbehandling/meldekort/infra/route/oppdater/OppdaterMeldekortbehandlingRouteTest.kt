@@ -194,7 +194,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                   "beslutter": null,
                   "simulertBeregning": {
                     "behandlingstype": "MELDEKORT",
-                    "simuleringstidspunkt": null,
+                    "simuleringstidspunkt": "2025-01-01T01:02:03.456789",
                     "simulerteBeløp": {
                       "etterbetaling": 2682,
                       "totalJustering": 0,

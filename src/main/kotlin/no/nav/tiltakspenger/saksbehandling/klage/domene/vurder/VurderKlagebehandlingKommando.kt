@@ -1,13 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.vurder
 
-import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagehjemmel
-import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagehjemler
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
 /**
@@ -49,8 +47,8 @@ data class OpprettholdKlagebehandlingKommando(
     override val klagebehandlingId: KlagebehandlingId,
     override val saksbehandler: Saksbehandler,
     override val correlationId: CorrelationId,
-    val hjemler: NonEmptySet<Klagehjemmel>,
+    val hjemler: Klagehjemler,
 ) : VurderKlagebehandlingKommando {
-    fun tilResultat(brevtekster: Brevtekster?): Klagebehandlingsresultat.Opprettholdt =
-        Klagebehandlingsresultat.Opprettholdt(hjemler = hjemler, brevtekst = brevtekster)
+    fun tilResultat(): Klagebehandlingsresultat.Opprettholdt =
+        Klagebehandlingsresultat.Opprettholdt(hjemler = hjemler, brevtekst = null)
 }

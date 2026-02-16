@@ -6,11 +6,10 @@ import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Forskrift
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Ledd
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Paragraf
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rettskilde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.person.Navn
@@ -129,23 +128,20 @@ enum class AvslagsgrunnerBrevDto {
 fun Set<Avslagsgrunnlag>.createBrevForskrifter(harSøktBarnetillegg: Boolean): String {
     val hjemler = this.flatMap { it.hjemler }
 
-    val tiltakspengeHjemler = hjemler.filter { it.forskrift == Forskrift.Tiltakspengeforskriften }
+    val tiltakspengeHjemler = hjemler.filter { it.rettskilde == Rettskilde.Tiltakspengeforskriften }
         .let {
             if (harSøktBarnetillegg) {
-                it + Hjemmel(
-                    paragraf = Paragraf(3),
-                    forskrift = Forskrift.Tiltakspengeforskriften,
-                )
+                it + Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3
             } else {
                 it
             }
         }
-        .groupBy { it.paragraf.nummer }
+        .groupBy { it.paragraf.verdi }
         .map { e -> Pair(e.key, e.value.distinct().mapNotNull { it.ledd }.sortedBy { it.nummer }) }
         .sortedBy { it.first }
 
-    val arbeidsmarkedlovenHjemler = hjemler.filter { it.forskrift == Forskrift.Arbeidsmarkedsloven }
-        .groupBy { it.paragraf.nummer }
+    val arbeidsmarkedlovenHjemler = hjemler.filter { it.rettskilde == Rettskilde.Arbeidsmarkedsloven }
+        .groupBy { it.paragraf.verdi }
         .map { e -> Pair(e.key, e.value.distinct().mapNotNull { it.ledd }.sortedBy { it.nummer }) }
         .sortedBy { it.first }
 
