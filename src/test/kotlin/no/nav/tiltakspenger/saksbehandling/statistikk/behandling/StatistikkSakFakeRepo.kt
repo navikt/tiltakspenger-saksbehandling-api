@@ -30,7 +30,7 @@ class StatistikkSakFakeRepo : StatistikkSakRepo {
         return data.get()[sakId]?.let { listOf(it) } ?: emptyList()
     }
 
-    override fun hentRaderSomSkalPatchesOgResendes(): List<StatistikkSakDTO> {
+    override fun hentRaderSomSkalPatchesOgResendes(behandlingId: String): List<StatistikkSakDTO> {
         return emptyList()
     }
 

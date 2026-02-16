@@ -18,12 +18,14 @@ class ResendStatistikkJobb(
     private val log = KotlinLogging.logger {}
 
     fun resend() {
-        val raderSomSkalPatchesOgResendes = statistikkSakRepo.hentRaderSomSkalPatchesOgResendes()
+        val behandlingId = "beh_01KBZ0N5YVWZS093H24BC09N59"
+        val raderSomSkalPatchesOgResendes = statistikkSakRepo.hentRaderSomSkalPatchesOgResendes(behandlingId)
         log.info { "Fant ${raderSomSkalPatchesOgResendes.size} rader som skal patches/resendes" }
         raderSomSkalPatchesOgResendes.forEach {
             val oppdatertStatistikkDTO = it.copy(
                 tekniskTidspunkt = LocalDateTime.now(),
-
+                behandlingType = StatistikkBehandlingType.SØKNADSBEHANDLING,
+                søknadsformat = StatistikkFormat.PAPIR_SKJEMA.name,
             )
             statistikkSakRepo.lagre(oppdatertStatistikkDTO)
             log.info { "Resendte rad med sakId ${oppdatertStatistikkDTO.sakId}, behandlingId ${oppdatertStatistikkDTO.behandlingId}, funksjonell tid ${oppdatertStatistikkDTO.endretTidspunkt}" }
