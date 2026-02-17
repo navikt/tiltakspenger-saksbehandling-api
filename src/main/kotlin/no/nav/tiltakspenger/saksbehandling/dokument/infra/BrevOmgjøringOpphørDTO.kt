@@ -92,11 +92,10 @@ private fun HjemmelForStansEllerOpphør.tilTekst(harOpphørtBarnetillegg: Boolea
     return when (harOpphørtBarnetillegg) {
         true -> this.tekstMedBarnetillegg()
         false -> this.tekstUtenBarnetillegg()
-    }.plus(
+    }.plus("\n\n").plus(
         """
-            \n
             Når et vedtak bygger på et uriktig faktisk grunnlag, kan Nav omgjøre vedtaket til ugunst for deg. Dette gjelder også, selv om det ikke var din skyld at vedtaket ble feil.
-                
+
             Dette kommer frem av forvaltningsloven § 35 første ledd bokstav c.
         """.trimIndent(),
     )
@@ -163,7 +162,7 @@ private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
             """
                 du oppholder deg på en institusjon med gratis opphold, mat og drikke.   
                 
-                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger.
+                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger.
                 
                 Det er gjort unntak for opphold i  barneverns-institusjoner.  Dette kommer frem av tiltakspengeforskriften § 9.
             """
@@ -174,7 +173,7 @@ private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
                                     
                 Du må ha lovlig opphold i Norge, for å ha rett til tiltakspenger.
                 
-                Dette kommer frem av arbeidsmarkedsloven § 2.            
+                Dette kommer frem av arbeidsmarkedsloven § 2.
             """
     }.trimIndent()
 }
@@ -240,7 +239,7 @@ private fun HjemmelForStansEllerOpphør.tekstMedBarnetillegg(): String {
             """
                 du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
                 
-                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger og barnetillegg.
+                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger og barnetillegg.
                 
                 Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften §3, §9. 
             """

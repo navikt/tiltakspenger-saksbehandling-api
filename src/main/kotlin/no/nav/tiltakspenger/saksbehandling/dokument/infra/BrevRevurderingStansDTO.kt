@@ -125,9 +125,9 @@ private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
 
         HjemmelForStansEllerOpphør.Introduksjonsprogrammet ->
             """
-                du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger
+                du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger.
                 
-                Dette kommer frem av tiltakspengeforskriften § 7 og 3 tredje ledd.  
+                Dette kommer frem av tiltakspengeforskriften § 7 og 3 tredje ledd.
             """
 
         HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør ->
@@ -136,7 +136,7 @@ private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
 
                 Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket, har ikke rett til tiltakspenger.
 
-                Dette kommer frem av tiltakspengeforskriften § 8. 
+                Dette kommer frem av tiltakspengeforskriften § 8.
             """
 
         HjemmelForStansEllerOpphør.LønnFraAndre ->
@@ -154,7 +154,7 @@ private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
             """                	
                 du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
                 
-                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger.
+                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger.
                 
                 Det er gjort unntak for opphold i  barneverns-institusjoner.  Dette kommer frem av tiltakspengeforskriften § 9. 
             """
@@ -233,7 +233,7 @@ private fun HjemmelForStansEllerOpphør.tekstMedBarnetillegg(): String {
             """                	
                 du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
                 
-                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger og barnetillegg.
+                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger og barnetillegg.
                 
                 Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften §3, §9.
             """

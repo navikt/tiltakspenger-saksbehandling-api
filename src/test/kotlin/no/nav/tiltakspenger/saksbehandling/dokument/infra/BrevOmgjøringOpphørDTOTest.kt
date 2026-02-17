@@ -57,8 +57,9 @@ class BrevOmgjøringOpphørDTOTest {
                     "tilOgMed": "31. januar 2026"
                   },
                   "valgtHjemmelTekst": [
-                    "du har deltatt i introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
+                        "du har deltatt i introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd.\n\nNår et vedtak bygger på et uriktig faktisk grunnlag, kan Nav omgjøre vedtaket til ugunst for deg. Dette gjelder også, selv om det ikke var din skyld at vedtaket ble feil.\n\nDette kommer frem av forvaltningsloven § 35 første ledd bokstav c."
                   ],
+                  "barnetillegg": false,
                   "kontor": "Nav Tiltakspenger"
                 }
             """.trimIndent()
@@ -107,8 +108,9 @@ class BrevOmgjøringOpphørDTOTest {
                     "tilOgMed": "31. januar 2026"
                   },
                   "valgtHjemmelTekst": [
-                    "du deltar på introduksjonsprogram.\nDeltakere i introduksjonsprogram, har ikke rett til tiltakspenger og barnetillegg. Dette kommer frem av tiltakspengeforskriften §§ 3 og 7 tredje ledd."
+                        "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger og barnetillegg.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd.\n\nNår et vedtak bygger på et uriktig faktisk grunnlag, kan Nav omgjøre vedtaket til ugunst for deg. Dette gjelder også, selv om det ikke var din skyld at vedtaket ble feil.\n\nDette kommer frem av forvaltningsloven § 35 første ledd bokstav c."
                   ],
+                  "barnetillegg": true,
                   "kontor": "Nav Tiltakspenger"
                 }
             """.trimIndent()
