@@ -79,6 +79,7 @@ class GenererFakeVedtaksbrevKlient :
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harStansetBarnetillegg: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }
@@ -86,6 +87,7 @@ class GenererFakeVedtaksbrevKlient :
     override suspend fun genererStansBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harStansetBarnetillegg: Boolean,
         vedtaksdato: LocalDate,
         fnr: Fnr,
         saksbehandlerNavIdent: String,
@@ -156,6 +158,7 @@ class GenererFakeVedtaksbrevKlient :
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harOpphørtBarnetillegg: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }
@@ -163,6 +166,7 @@ class GenererFakeVedtaksbrevKlient :
     override suspend fun genererOpphørBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harOpphørtBarnetillegg: Boolean,
         vedtaksdato: LocalDate,
         fnr: Fnr,
         saksbehandlerNavIdent: String,

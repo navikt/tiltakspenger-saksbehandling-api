@@ -20,11 +20,13 @@ interface GenererVedtaksbrevForStansKlient {
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harStansetBarnetillegg: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererStansBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harStansetBarnetillegg: Boolean,
         vedtaksdato: LocalDate,
         fnr: Fnr,
         saksbehandlerNavIdent: String,

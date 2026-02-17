@@ -30,6 +30,7 @@ suspend fun Rammevedtak.toRevurderingStans(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
+    harStansetBarnetillegg: Boolean,
 ): String {
     require(rammebehandling is Revurdering && rammebehandling.resultat is Revurderingsresultat.Stans)
 
@@ -45,6 +46,7 @@ suspend fun Rammevedtak.toRevurderingStans(
         forhåndsvisning = false,
         valgteHjemler = rammebehandling.resultat.valgtHjemmel!!,
         tilleggstekst = rammebehandling.fritekstTilVedtaksbrev,
+        harStansetBarnetillegg = harStansetBarnetillegg,
     )
 }
 
@@ -60,6 +62,7 @@ suspend fun genererStansbrev(
     forhåndsvisning: Boolean,
     valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
     tilleggstekst: FritekstTilVedtaksbrev? = null,
+    harStansetBarnetillegg: Boolean,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
@@ -78,7 +81,84 @@ suspend fun genererStansbrev(
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         forhandsvisning = forhåndsvisning,
-        valgtHjemmelTekst = valgteHjemler.map { it.tekstVedtaksbrev() },
+        valgtHjemmelTekst = when (harStansetBarnetillegg) {
+            true -> valgteHjemler.map { it.tekstMedBarnetillegg() }
+            false -> valgteHjemler.map { it.tekstUtenBarnetillegg() }
+        },
         tilleggstekst = tilleggstekst?.verdi,
     ).let { serialize(it) }
+}
+
+private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
+    return when (this) {
+        HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak ->
+            "du ikke lenger deltar på arbeidsmarkedstiltak. Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til å få tiltakspenger. Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 2."
+
+        HjemmelForStansEllerOpphør.Alder ->
+            "du ikke har fylt 18 år. Du må ha fylt 18 år for å ha rett til å få tiltakspenger. Det kommer frem av tiltakspengeforskriften § 3."
+
+        HjemmelForStansEllerOpphør.Livsoppholdytelser ->
+            "du mottar en annen pengestøtte til livsopphold. Deltakere som har rett til andre pengestøtter til livsopphold, har ikke samtidig rett til å få tiltakspenger. Dette kommer frem av arbeidsmarkedsloven § 13 første ledd og tiltakspengeforskriften § 7."
+
+        HjemmelForStansEllerOpphør.Kvalifiseringsprogrammet ->
+            "du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
+
+        HjemmelForStansEllerOpphør.Introduksjonsprogrammet ->
+            "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
+
+        HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør ->
+            "du mottar lønn fra tiltaksarrangør for tiden i arbeidsmarkedstiltaket. Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften § 8."
+
+        HjemmelForStansEllerOpphør.LønnFraAndre ->
+            """
+                du mottar lønn for arbeid som er en del av tiltaksdeltakelsen og du derfor har dekning av utgifter til livsopphold.
+                Deltaker i arbeidsmarkedstiltak som har rett til å få dekket utgifter til livsopphold på annen måte har ikke rett til tiltakspenger. Lønn anses som dekning av utgifter til livsopphold på annen måte, når du får lønnen for arbeid som er en del av tiltaksdeltakelsen.
+                Lønn fra arbeid utenom tiltaksdeltakelsen har ikke betydning for din rett til tiltakspenger.
+                Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 8 andre ledd.
+            """
+
+        HjemmelForStansEllerOpphør.Institusjonsopphold ->
+            """
+                du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
+                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger.
+                Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften § 9. 
+            """
+    }.trimIndent()
+}
+
+private fun HjemmelForStansEllerOpphør.tekstMedBarnetillegg(): String {
+    return when (this) {
+        HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak ->
+            "du ikke lenger deltar på arbeidsmarkedstiltak. Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til tiltakspenger og barnetillegg. Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften §§ 2 og 3."
+
+        HjemmelForStansEllerOpphør.Alder ->
+            "du ikke har fylt 18 år. Du må ha fylt 18 år for å ha rett til å få tiltakspenger. Det kommer frem av tiltakspengeforskriften § 3."
+
+        HjemmelForStansEllerOpphør.Livsoppholdytelser ->
+            "du mottar en annen pengestøtte til livsopphold. Deltakere som har rett til andre pengestøtter til livsopphold har ikke samtidig rett til å få tiltakspenger og barnetillegg. Dette kommer frem av arbeidsmarkedsloven § 13 første ledd og forskrift om tiltakspenger §§ 3 og 7."
+
+        HjemmelForStansEllerOpphør.Kvalifiseringsprogrammet ->
+            "du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram, har ikke rett til tiltakspenger og barnetillegg. Dette kommer frem av tiltakspengeforskriften §§ 3 og 7 tredje ledd."
+
+        HjemmelForStansEllerOpphør.Introduksjonsprogrammet ->
+            "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger og barnetillegg. Dette kommer frem av tiltakspengeforskriften §§ 3 og 7 tredje ledd."
+
+        HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør ->
+            "du mottar lønn fra tiltaksarrangør for tiden i arbeidsmarkedstiltaket. Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket, har ikke rett til tiltakspenger og barnetillegg. Dette kommer frem av tiltakspengeforskriften §§ 3 og 8. "
+
+        HjemmelForStansEllerOpphør.LønnFraAndre ->
+            """
+                du mottar lønn for arbeid som er en del av tiltaksdeltakelsen og du derfor har dekning av utgifter til livsopphold.
+                Deltaker i arbeidsmarkedstiltak som har rett til å få dekket utgifter til livsopphold på annen måte har ikke rett til tiltakspenger og barnetillegg. Lønn anses som dekning av utgifter til livsopphold på annen måte, når du får lønnen for arbeid som er en del av tiltaksdeltakelsen.
+                Lønn fra arbeid utenom tiltaksdeltakelsen har ikke betydning for din rett til tiltakspenger.
+                Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften §$ 3 og 8 andre ledd.
+            """
+
+        HjemmelForStansEllerOpphør.Institusjonsopphold ->
+            """
+                du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
+                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger og barnetillegg.
+                Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften §§ 3 og 9. 
+            """
+    }.trimIndent()
 }

@@ -20,11 +20,13 @@ interface GenererVedtaksbrevForOpphørKlient {
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harOpphørtBarnetillegg: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererOpphørBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harOpphørtBarnetillegg: Boolean,
         vedtaksdato: LocalDate,
         fnr: Fnr,
         saksbehandlerNavIdent: String,

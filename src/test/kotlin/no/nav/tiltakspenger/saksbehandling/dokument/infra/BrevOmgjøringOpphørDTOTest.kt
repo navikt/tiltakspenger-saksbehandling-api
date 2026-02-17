@@ -35,6 +35,7 @@ class BrevOmgjøringOpphørDTOTest {
                 vedtaksdato = 1.april(2025),
                 vedtaksperiode = vedtaksperiode,
                 valgteHjemler = nonEmptySetOf(HjemmelForStansEllerOpphør.Introduksjonsprogrammet),
+                harBarnetillegg = false,
             )
 
             //language=json

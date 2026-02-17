@@ -31,9 +31,21 @@ class RammevedtakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : RammevedtakRepo {
 
-    override fun hentForVedtakId(vedtakId: VedtakId): Rammevedtak? {
-        return sessionFactory.withSession { session ->
+    override fun hentForVedtakId(
+        vedtakId: VedtakId,
+        context: SessionContext?,
+    ): Rammevedtak? {
+        return sessionFactory.withSession(context) { session ->
             hentForVedtakId(vedtakId, session)
+        }
+    }
+
+    override fun hentForVedtakIder(
+        vedtakIder: List<VedtakId>,
+        context: SessionContext?,
+    ): List<Rammevedtak> {
+        return sessionFactory.withSession(context) { session ->
+            vedtakIder.mapNotNull { hentForVedtakId(it, session) }
         }
     }
 

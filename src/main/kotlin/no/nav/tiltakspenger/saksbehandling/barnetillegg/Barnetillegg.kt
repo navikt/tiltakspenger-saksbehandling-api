@@ -22,6 +22,10 @@ data class Barnetillegg(
         periodisering.any { it.verdi != AntallBarn.ZERO }
     }
 
+    fun harBarnetilleggIPeriode(periode: Periode): Boolean {
+        return periodisering.overlappendePeriode(periode).any { it.verdi != AntallBarn.ZERO }
+    }
+
     fun krympTilPerioder(perioder: List<Periode>): Barnetillegg? {
         val krympetPeriodisering = periodisering.perioderMedVerdi.toList().flatMap { bt ->
             bt.periode.overlappendePerioder(perioder).map {

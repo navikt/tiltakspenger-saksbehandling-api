@@ -250,6 +250,7 @@ class PdfgenHttpClient(
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harStansetBarnetillegg: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -257,6 +258,7 @@ class PdfgenHttpClient(
                     hentBrukersNavn = hentBrukersNavn,
                     hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                     vedtaksdato = vedtaksdato,
+                    harStansetBarnetillegg = harStansetBarnetillegg,
                 )
             },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
@@ -267,6 +269,7 @@ class PdfgenHttpClient(
     override suspend fun genererStansBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harStansetBarnetillegg: Boolean,
         vedtaksdato: LocalDate,
         fnr: Fnr,
         saksbehandlerNavIdent: String,
@@ -291,6 +294,7 @@ class PdfgenHttpClient(
                     forhåndsvisning = true,
                     valgteHjemler = valgteHjemler,
                     tilleggstekst = tilleggstekst,
+                    harStansetBarnetillegg = harStansetBarnetillegg,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",
@@ -387,12 +391,14 @@ class PdfgenHttpClient(
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harOpphørtBarnetillegg: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
                 vedtak.tilBrevOmgjøringOpphørDTO(
                     hentBrukersNavn = hentBrukersNavn,
                     hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    harBarnetillegg = harOpphørtBarnetillegg,
                     vedtaksdato = vedtaksdato,
                 )
             },
@@ -404,6 +410,7 @@ class PdfgenHttpClient(
     override suspend fun genererOpphørBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        harOpphørtBarnetillegg: Boolean,
         vedtaksdato: LocalDate,
         fnr: Fnr,
         saksbehandlerNavIdent: String,
@@ -419,6 +426,7 @@ class PdfgenHttpClient(
                 genererOpphørBrev(
                     hentBrukersNavn = hentBrukersNavn,
                     hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    harBarnetillegg = harOpphørtBarnetillegg,
                     vedtaksdato = vedtaksdato,
                     fnr = fnr,
                     saksbehandlerNavIdent = saksbehandlerNavIdent,

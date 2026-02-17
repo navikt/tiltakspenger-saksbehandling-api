@@ -23,7 +23,14 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
 
     private val data = Atomic(mutableMapOf<VedtakId, Rammevedtak>())
 
-    override fun hentForVedtakId(vedtakId: VedtakId): Rammevedtak? = data.get()[vedtakId]
+    override fun hentForVedtakId(vedtakId: VedtakId, context: SessionContext?): Rammevedtak? = data.get()[vedtakId]
+
+    override fun hentForVedtakIder(
+        vedtakIder: List<VedtakId>,
+        context: SessionContext?,
+    ): List<Rammevedtak> {
+        return vedtakIder.mapNotNull { hentForVedtakId(it, context) }
+    }
 
     override fun lagre(
         vedtak: Rammevedtak,
@@ -58,8 +65,13 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
         }.take(limit)
     }
 
-    override fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, distribusjonstidspunkt: LocalDateTime) {
-        data.get()[id] = data.get()[id]!!.copy(distribusjonId = distribusjonId, distribusjonstidspunkt = distribusjonstidspunkt)
+    override fun markerDistribuert(
+        id: VedtakId,
+        distribusjonId: DistribusjonId,
+        distribusjonstidspunkt: LocalDateTime,
+    ) {
+        data.get()[id] =
+            data.get()[id]!!.copy(distribusjonId = distribusjonId, distribusjonstidspunkt = distribusjonstidspunkt)
     }
 
     override fun hentRammevedtakTilDatadeling(limit: Int): List<Rammevedtak> {
