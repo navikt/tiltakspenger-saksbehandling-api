@@ -108,7 +108,7 @@ data class Rammevedtak(
         rammebehandling.resultat is Omgjøringsresultat.OmgjøringOpphør
     }
 
-    /** Vil være null for stans, avslag eller dersom bruker ikke har rett på barnetillegg  */
+    /** Vil være null for stans, opphør og avslag */
     val barnetillegg: Barnetillegg? by lazy { rammebehandling.barnetillegg }
 
     /** Vil være null for stans og avslag */

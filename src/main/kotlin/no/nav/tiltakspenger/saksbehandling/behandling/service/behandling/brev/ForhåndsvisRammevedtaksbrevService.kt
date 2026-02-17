@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -150,7 +151,7 @@ class ForhåndsvisRammevedtaksbrevService(
             sakId = sak.id,
             valgteHjemler = kommando.valgteHjemler,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
-
+            harStansetBarnetillegg = sak.harBarnetillegg(stansperiode),
         )
     }
 
@@ -192,6 +193,7 @@ class ForhåndsvisRammevedtaksbrevService(
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             valgteHjemler = kommando.valgteHjemler,
             vedtaksperiode = kommando.vedtaksperiode,
+            harOpphørtBarnetillegg = sak.harBarnetillegg(kommando.vedtaksperiode),
         )
     }
 
@@ -237,5 +239,9 @@ class ForhåndsvisRammevedtaksbrevService(
             innvilgelsesperioder = innvilgelsesperioder,
             barnetilleggsperioder = kommando.barnetillegg,
         )
+    }
+
+    private fun Sak.harBarnetillegg(periode: Periode): Boolean {
+        return barnetilleggsperioder.overlappendePeriode(periode).any { it.verdi != AntallBarn.ZERO }
     }
 }

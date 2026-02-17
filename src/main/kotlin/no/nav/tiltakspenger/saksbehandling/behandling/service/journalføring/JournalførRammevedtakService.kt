@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 import java.time.LocalDate
 
@@ -56,6 +57,7 @@ class JournalførRammevedtakService(
                         is Revurderingsresultat.Stans -> genererVedtaksbrevForStansKlient.genererStansBrev(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
+                            harStansetBarnetillegg = vedtak.harOmgjortBarnetillegg(),
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         )
@@ -67,14 +69,13 @@ class JournalførRammevedtakService(
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         )
 
-                        is Omgjøringsresultat.OmgjøringOpphør -> {
-                            genererVedtaksbrevForOpphørKlient.genererOpphørBrev(
-                                vedtak = vedtak,
-                                vedtaksdato = vedtaksdato,
-                                hentBrukersNavn = personService::hentNavn,
-                                hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-                            )
-                        }
+                        is Omgjøringsresultat.OmgjøringOpphør -> genererVedtaksbrevForOpphørKlient.genererOpphørBrev(
+                            vedtak = vedtak,
+                            vedtaksdato = vedtaksdato,
+                            harOpphørtBarnetillegg = vedtak.harOmgjortBarnetillegg(),
+                            hentBrukersNavn = personService::hentNavn,
+                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                        )
 
                         is Rammebehandlingsresultat.IkkeValgt -> vedtak.rammebehandlingsresultat.vedtakError()
                     }.getOrElse { return@forEach }
@@ -96,6 +97,19 @@ class JournalførRammevedtakService(
             }
         }.onLeft {
             errorEveryNLogger.log(it) { "Ukjent feil skjedde under journalføring av førstegangsvedtak." }
+        }
+    }
+
+    private fun Rammevedtak.harOmgjortBarnetillegg(): Boolean {
+        val rammevedtakSomOmgjøres =
+            rammevedtakRepo.hentForVedtakIder(omgjørRammevedtak.rammevedtakIDer).zip(omgjørRammevedtak.perioder)
+
+        require(rammevedtakSomOmgjøres.size == omgjørRammevedtak.size) {
+            "Forventet at alle rammevedtak som omgjøres skal kunne hentes. Fikk ${rammevedtakSomOmgjøres.size} rammevedtak, forventet ${omgjørRammevedtak.size}."
+        }
+
+        return rammevedtakSomOmgjøres.any { (rammevedtak, omgjortPeriode) ->
+            rammevedtak.barnetillegg?.harBarnetilleggIPeriode(omgjortPeriode) ?: false
         }
     }
 }

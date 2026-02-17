@@ -13,7 +13,15 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface RammevedtakRepo {
-    fun hentForVedtakId(vedtakId: VedtakId): Rammevedtak?
+    fun hentForVedtakId(
+        vedtakId: VedtakId,
+        context: SessionContext? = null,
+    ): Rammevedtak?
+
+    fun hentForVedtakIder(
+        vedtakIder: List<VedtakId>,
+        context: SessionContext? = null,
+    ): List<Rammevedtak>
 
     fun lagre(
         vedtak: Rammevedtak,
@@ -26,7 +34,13 @@ interface RammevedtakRepo {
 
     fun hentRammevedtakSomSkalDistribueres(limit: Int = 10): List<VedtakSomSkalDistribueres>
 
-    fun markerJournalført(id: VedtakId, vedtaksdato: LocalDate, brevJson: String, journalpostId: JournalpostId, tidspunkt: LocalDateTime)
+    fun markerJournalført(
+        id: VedtakId,
+        vedtaksdato: LocalDate,
+        brevJson: String,
+        journalpostId: JournalpostId,
+        tidspunkt: LocalDateTime,
+    )
 
     fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, distribusjonstidspunkt: LocalDateTime)
 
@@ -34,5 +48,9 @@ interface RammevedtakRepo {
 
     fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime)
 
-    fun oppdaterOmgjortAv(vedtakId: VedtakId, omgjortAvRammevedtak: OmgjortAvRammevedtak, sessionContext: SessionContext?)
+    fun oppdaterOmgjortAv(
+        vedtakId: VedtakId,
+        omgjortAvRammevedtak: OmgjortAvRammevedtak,
+        sessionContext: SessionContext?,
+    )
 }

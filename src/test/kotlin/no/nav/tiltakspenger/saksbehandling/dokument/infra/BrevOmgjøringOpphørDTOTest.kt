@@ -35,6 +35,7 @@ class BrevOmgjøringOpphørDTOTest {
                 vedtaksdato = 1.april(2025),
                 vedtaksperiode = vedtaksperiode,
                 valgteHjemler = nonEmptySetOf(HjemmelForStansEllerOpphør.Introduksjonsprogrammet),
+                harOpphørtBarnetillegg = false,
             )
 
             //language=json
@@ -56,8 +57,60 @@ class BrevOmgjøringOpphørDTOTest {
                     "tilOgMed": "31. januar 2026"
                   },
                   "valgtHjemmelTekst": [
-                    "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
+                        "du har deltatt i introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd.\n\nNår et vedtak bygger på et uriktig faktisk grunnlag, kan Nav omgjøre vedtaket til ugunst for deg. Dette gjelder også, selv om det ikke var din skyld at vedtaket ble feil.\n\nDette kommer frem av forvaltningsloven § 35 første ledd bokstav c."
                   ],
+                  "barnetillegg": false,
+                  "kontor": "Nav Tiltakspenger"
+                }
+            """.trimIndent()
+
+            actual.shouldEqualJson(expected)
+        }
+    }
+
+    @Test
+    fun `genererer og serialiserer brevdata for pdf med barnetillegg`() {
+        runTest {
+            val fnr = Fnr.random()
+            val vedtaksperiode = 1.januar(2026) til 31.januar(2026)
+
+            val actual = genererOpphørBrev(
+                hentBrukersNavn = { _ -> Navn("Fornavn", null, "Etternavn") },
+                hentSaksbehandlersNavn = { _ -> "Saksbehandlernavn" },
+                tilleggstekst = FritekstTilVedtaksbrev.create("genererer og serialiserer brevdata for pdf test"),
+                fnr = fnr,
+                saksbehandlerNavIdent = "SaksbehandlerNavIdent",
+                beslutterNavIdent = null,
+                saksnummer = Saksnummer.genererSaknummer(LocalDate.now(fixedClock), "2000"),
+                forhåndsvisning = true,
+                vedtaksdato = 1.april(2025),
+                vedtaksperiode = vedtaksperiode,
+                valgteHjemler = nonEmptySetOf(HjemmelForStansEllerOpphør.Introduksjonsprogrammet),
+                harOpphørtBarnetillegg = true,
+            )
+
+            //language=json
+            val expected = """
+                {
+                 "personalia": {
+                    "ident": "${fnr.verdi}",
+                    "fornavn": "Fornavn",
+                    "etternavn": "Etternavn"
+                  },
+                  "saksnummer": "202501012000",
+                  "saksbehandlerNavn": "Saksbehandlernavn",
+                  "beslutterNavn": null,
+                  "datoForUtsending": "1. april 2025",
+                  "tilleggstekst": "genererer og serialiserer brevdata for pdf test",
+                  "forhandsvisning": true,
+                  "vedtaksperiode": {
+                    "fraOgMed": "1. januar 2026",
+                    "tilOgMed": "31. januar 2026"
+                  },
+                  "valgtHjemmelTekst": [
+                        "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger og barnetillegg.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd.\n\nNår et vedtak bygger på et uriktig faktisk grunnlag, kan Nav omgjøre vedtaket til ugunst for deg. Dette gjelder også, selv om det ikke var din skyld at vedtaket ble feil.\n\nDette kommer frem av forvaltningsloven § 35 første ledd bokstav c."
+                  ],
+                  "barnetillegg": true,
                   "kontor": "Nav Tiltakspenger"
                 }
             """.trimIndent()

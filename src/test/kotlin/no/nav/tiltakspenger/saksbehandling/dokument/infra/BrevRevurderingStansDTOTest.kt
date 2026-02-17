@@ -32,6 +32,7 @@ class BrevRevurderingStansDTOTest {
                 vedtaksdato = 1.april(2025),
                 stansperiode = ObjectMother.vedtaksperiode(),
                 valgteHjemler = nonEmptySetOf(HjemmelForStansEllerOpphør.Introduksjonsprogrammet),
+                harStansetBarnetillegg = false,
             )
 
             //language=json
@@ -50,8 +51,55 @@ class BrevRevurderingStansDTOTest {
                   "forhandsvisning": true,
                   "stansFraOgMedDato": "1. januar 2023",
                   "valgtHjemmelTekst": [
-                    "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
+                    "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 og 3 tredje ledd."
                   ],
+                  "barnetillegg": false,
+                  "kontor": "Nav Tiltakspenger"
+                }
+            """.trimIndent()
+
+            actual.shouldEqualJson(expected)
+        }
+    }
+
+    @Test
+    fun `genererer og serialiserer brevdata for pdf med barnetillegg`() {
+        runTest {
+            val fnr = Fnr.random()
+            val actual = genererStansbrev(
+                hentBrukersNavn = { _ -> Navn("Fornavn", null, "Etternavn") },
+                hentSaksbehandlersNavn = { _ -> "Saksbehandlernavn" },
+                tilleggstekst = FritekstTilVedtaksbrev.create("genererer og serialiserer brevdata for pdf test"),
+                fnr = fnr,
+                saksbehandlerNavIdent = "SaksbehandlerNavIdent",
+                beslutterNavIdent = null,
+                saksnummer = Saksnummer.genererSaknummer(LocalDate.now(fixedClock), "2000"),
+                forhåndsvisning = true,
+                vedtaksdato = 1.april(2025),
+                stansperiode = ObjectMother.vedtaksperiode(),
+                valgteHjemler = nonEmptySetOf(HjemmelForStansEllerOpphør.Introduksjonsprogrammet),
+                harStansetBarnetillegg = true,
+            )
+
+            //language=json
+            val expected = """
+                {
+                 "personalia": {
+                    "ident": "${fnr.verdi}",
+                    "fornavn": "Fornavn",
+                    "etternavn": "Etternavn"
+                  },
+                  "saksnummer": "202501012000",
+                  "saksbehandlerNavn": "Saksbehandlernavn",
+                  "beslutterNavn": null,
+                  "datoForUtsending": "1. april 2025",
+                  "tilleggstekst": "genererer og serialiserer brevdata for pdf test",
+                  "forhandsvisning": true,
+                  "stansFraOgMedDato": "1. januar 2023",
+                  "valgtHjemmelTekst": [
+                        "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger og barnetillegg.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
+                  ],
+                  "barnetillegg": true,
                   "kontor": "Nav Tiltakspenger"
                 }
             """.trimIndent()

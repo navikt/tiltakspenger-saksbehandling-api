@@ -12,4 +12,5 @@ enum class HjemmelForStansEllerOpphør {
     LønnFraTiltaksarrangør,
     LønnFraAndre,
     Institusjonsopphold,
+    IkkeLovligOpphold,
 }
