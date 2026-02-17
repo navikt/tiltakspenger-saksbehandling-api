@@ -42,6 +42,7 @@ private data class DatadelingGodkjentMeldekortJson(
             DELTATT_MED_LONN_I_TILTAKET,
             FRAVAER_SYK,
             FRAVAER_SYKT_BARN,
+            FRAVAER_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
             FRAVAER_GODKJENT_AV_NAV,
             FRAVAER_ANNET,
             IKKE_BESVART,
@@ -85,6 +86,7 @@ fun MeldekortDagStatus.tilDatadelingMeldekortDagStatus(): String =
         MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> DatadelingGodkjentMeldekortJson.MeldekortDagDTO.MeldekortDagStatus.DELTATT_MED_LONN_I_TILTAKET.name
         MeldekortDagStatus.FRAVÆR_SYK -> DatadelingGodkjentMeldekortJson.MeldekortDagDTO.MeldekortDagStatus.FRAVAER_SYK.name
         MeldekortDagStatus.FRAVÆR_SYKT_BARN -> DatadelingGodkjentMeldekortJson.MeldekortDagDTO.MeldekortDagStatus.FRAVAER_SYKT_BARN.name
+        MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> DatadelingGodkjentMeldekortJson.MeldekortDagDTO.MeldekortDagStatus.FRAVAER_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU.name
         MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> DatadelingGodkjentMeldekortJson.MeldekortDagDTO.MeldekortDagStatus.FRAVAER_GODKJENT_AV_NAV.name
         MeldekortDagStatus.FRAVÆR_ANNET -> DatadelingGodkjentMeldekortJson.MeldekortDagDTO.MeldekortDagStatus.FRAVAER_ANNET.name
         MeldekortDagStatus.IKKE_BESVART -> DatadelingGodkjentMeldekortJson.MeldekortDagDTO.MeldekortDagStatus.IKKE_BESVART.name
@@ -95,6 +97,7 @@ fun MeldekortDagStatus.tilDatadelingMeldekortDagStatus(): String =
 fun MeldekortDagStatus.tilDatadelingReduksjon(): String =
     when (this) {
         MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
+        MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
         MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV,
         -> DatadelingGodkjentMeldekortJson.MeldekortDagDTO.Reduksjon.INGEN_REDUKSJON.name
 

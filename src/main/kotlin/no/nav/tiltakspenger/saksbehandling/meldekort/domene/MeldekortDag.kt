@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fr
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværSterkeVelferdsgrunnerEllerJobbintervju
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
@@ -22,6 +23,7 @@ data class MeldekortDag(
         MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET,
         MeldekortDagStatus.FRAVÆR_SYK,
         MeldekortDagStatus.FRAVÆR_SYKT_BARN,
+        MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
         MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV,
         MeldekortDagStatus.FRAVÆR_ANNET,
         -> true
@@ -39,6 +41,7 @@ enum class MeldekortDagStatus {
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
     FRAVÆR_GODKJENT_AV_NAV,
+    FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
     FRAVÆR_ANNET,
 
     /** Kun et "valg" for bruker; ikke saksbehandler. Bruker har ikke tatt stilling til denne dagen. Het tidligere IKKE_REGISTRERT og IKKE_UFYLT. */
@@ -56,6 +59,7 @@ fun MeldeperiodeBeregningDag.tilMeldekortDagStatus(): MeldekortDagStatus =
         is DeltattMedLønnITiltaket -> MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
         is SykBruker -> MeldekortDagStatus.FRAVÆR_SYK
         is SyktBarn -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
+        is FraværSterkeVelferdsgrunnerEllerJobbintervju -> MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
         is FraværGodkjentAvNav -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
         is FraværAnnet -> MeldekortDagStatus.FRAVÆR_ANNET
         is IkkeBesvart -> MeldekortDagStatus.IKKE_BESVART

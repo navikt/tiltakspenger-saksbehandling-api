@@ -53,6 +53,7 @@ class OppdaterMeldekortKommando(
         DELTATT_MED_LØNN_I_TILTAKET,
         FRAVÆR_SYK,
         FRAVÆR_SYKT_BARN,
+        FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
         FRAVÆR_GODKJENT_AV_NAV,
         FRAVÆR_ANNET,
         IKKE_TILTAKSDAG,
@@ -68,6 +69,7 @@ class OppdaterMeldekortKommando(
             DELTATT_MED_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
             FRAVÆR_SYK -> MeldekortDagStatus.FRAVÆR_SYK
             FRAVÆR_SYKT_BARN -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
+            FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
             FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
             FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_ANNET
             IKKE_TILTAKSDAG -> MeldekortDagStatus.IKKE_TILTAKSDAG

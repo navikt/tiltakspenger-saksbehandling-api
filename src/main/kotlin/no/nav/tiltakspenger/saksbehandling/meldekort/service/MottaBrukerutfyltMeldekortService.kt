@@ -110,7 +110,7 @@ class MottaBrukerutfyltMeldekortService(
 
         val harForMangeDagerSammenhengendeGodkjentFravær = kommando.dager
             .windowed(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER + 1)
-            .any { forMangeDager -> forMangeDager.all { it.status == InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV } }
+            .any { forMangeDager -> forMangeDager.all { it.status == InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV || it.status == InnmeldtStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU } }
 
         if (harForMangeDagerSammenhengendeGodkjentFravær) {
             return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR.left()

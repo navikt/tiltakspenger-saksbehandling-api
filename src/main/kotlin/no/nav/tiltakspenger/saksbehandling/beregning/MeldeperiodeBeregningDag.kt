@@ -229,6 +229,32 @@ sealed interface MeldeperiodeBeregningDag {
                 }
             }
 
+            data class FraværSterkeVelferdsgrunnerEllerJobbintervju private constructor(
+                override val dato: LocalDate,
+                override val tiltakstype: TiltakstypeSomGirRett,
+                override val beregningsdag: Beregningsdag,
+            ) : Velferd {
+                override val reduksjon = IngenReduksjon
+
+                companion object {
+                    fun create(
+                        dato: LocalDate,
+                        tiltakstype: TiltakstypeSomGirRett,
+                        antallBarn: AntallBarn,
+                    ) = FraværSterkeVelferdsgrunnerEllerJobbintervju(
+                        dato,
+                        tiltakstype,
+                        beregnDag(dato, IngenReduksjon, antallBarn),
+                    )
+
+                    fun fromDb(
+                        dato: LocalDate,
+                        tiltakstype: TiltakstypeSomGirRett,
+                        beregningsdag: Beregningsdag,
+                    ) = FraværSterkeVelferdsgrunnerEllerJobbintervju(dato, tiltakstype, beregningsdag)
+                }
+            }
+
             data class FraværAnnet private constructor(
                 override val dato: LocalDate,
                 override val tiltakstype: TiltakstypeSomGirRett,

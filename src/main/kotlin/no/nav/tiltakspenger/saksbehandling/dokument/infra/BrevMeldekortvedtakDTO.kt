@@ -180,6 +180,7 @@ private fun MeldeperiodeBeregningDag.toStatus(): String {
         is MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket -> "Deltatt"
         is MeldeperiodeBeregningDag.Fravær.Syk.SykBruker -> "Syk"
         is MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn -> "Sykt barn eller syk barnepasser"
+        is MeldeperiodeBeregningDag.Fravær.Velferd.FraværSterkeVelferdsgrunnerEllerJobbintervju -> "Sterke velferdsgrunner eller jobbintervju"
         is MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav -> "Fravær godkjent av Nav"
         is MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet -> "Annet fravær"
         is MeldeperiodeBeregningDag.IkkeBesvart -> "Ikke besvart"
