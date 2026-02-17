@@ -14,6 +14,7 @@ private enum class HjemmelForStansDb {
     STANS_LØNN_FRA_TILTAKSARRANGØR,
     STANS_LØNN_FRA_ANDRE,
     STANS_INSTITUSJONSOPPHOLD,
+    STANS_IKKE_LOVLIG_OPPHOLD,
 }
 
 fun NonEmptySet<HjemmelForStansEllerOpphør>?.toHjemmelForStansDbJson(): String {
@@ -29,6 +30,7 @@ fun NonEmptySet<HjemmelForStansEllerOpphør>?.toHjemmelForStansDbJson(): String 
                 HjemmelForStansEllerOpphør.Livsoppholdytelser -> HjemmelForStansDb.STANS_LIVSOPPHOLDSYTELSER
                 HjemmelForStansEllerOpphør.LønnFraAndre -> HjemmelForStansDb.STANS_LØNN_FRA_ANDRE
                 HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> HjemmelForStansDb.STANS_LØNN_FRA_TILTAKSARRANGØR
+                HjemmelForStansEllerOpphør.IkkeLovligOpphold -> HjemmelForStansDb.STANS_IKKE_LOVLIG_OPPHOLD
             }
         }.sortedBy { it.name },
     )
@@ -48,5 +50,6 @@ private fun HjemmelForStansDb.tilHjemmelForStans(): HjemmelForStansEllerOpphør 
         HjemmelForStansDb.STANS_LØNN_FRA_TILTAKSARRANGØR -> HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør
         HjemmelForStansDb.STANS_LØNN_FRA_ANDRE -> HjemmelForStansEllerOpphør.LønnFraAndre
         HjemmelForStansDb.STANS_INSTITUSJONSOPPHOLD -> HjemmelForStansEllerOpphør.Institusjonsopphold
+        HjemmelForStansDb.STANS_IKKE_LOVLIG_OPPHOLD -> HjemmelForStansEllerOpphør.IkkeLovligOpphold
     }
 }

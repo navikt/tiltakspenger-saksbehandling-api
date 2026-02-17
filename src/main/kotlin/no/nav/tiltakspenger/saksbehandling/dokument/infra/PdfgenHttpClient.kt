@@ -398,7 +398,7 @@ class PdfgenHttpClient(
                 vedtak.tilBrevOmgjøringOpphørDTO(
                     hentBrukersNavn = hentBrukersNavn,
                     hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    harBarnetillegg = harOpphørtBarnetillegg,
+                    harOpphørtBarnetillegg = harOpphørtBarnetillegg,
                     vedtaksdato = vedtaksdato,
                 )
             },
@@ -426,7 +426,7 @@ class PdfgenHttpClient(
                 genererOpphørBrev(
                     hentBrukersNavn = hentBrukersNavn,
                     hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    harBarnetillegg = harOpphørtBarnetillegg,
+                    harOpphørtBarnetillegg = harOpphørtBarnetillegg,
                     vedtaksdato = vedtaksdato,
                     fnr = fnr,
                     saksbehandlerNavIdent = saksbehandlerNavIdent,

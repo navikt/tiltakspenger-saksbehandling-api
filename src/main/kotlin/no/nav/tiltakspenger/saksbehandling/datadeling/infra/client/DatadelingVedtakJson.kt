@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingVedtakJson.DatadelingHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingVedtakJson.DatadelingRettighet
-import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingVedtakJson.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
@@ -45,7 +45,7 @@ private data class DatadelingVedtakJson(
         )
     }
 
-    enum class ValgtHjemmelHarIkkeRettighet {
+    enum class DatadelingHjemmelHarIkkeRettighet {
         DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK,
         ALDER,
         LIVSOPPHOLDSYTELSER,
@@ -55,6 +55,7 @@ private data class DatadelingVedtakJson(
         LONN_FRA_ANDRE,
         INSTITUSJONSOPPHOLD,
         FREMMET_FOR_SENT,
+        IKKE_LOVLIG_OPPHOLD,
     }
 
     enum class DatadelingRettighet {
@@ -137,25 +138,26 @@ private fun Søknadsbehandling.toValgteHjemlerHarIkkeRettighetListe() =
 
 private fun HjemmelForStansEllerOpphør.toValgtHjemmelHarIkkeRettighetString() =
     when (this) {
-        HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelHarIkkeRettighet.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK.name
-        HjemmelForStansEllerOpphør.Alder -> ValgtHjemmelHarIkkeRettighet.ALDER.name
-        HjemmelForStansEllerOpphør.Institusjonsopphold -> ValgtHjemmelHarIkkeRettighet.INSTITUSJONSOPPHOLD.name
-        HjemmelForStansEllerOpphør.Introduksjonsprogrammet -> ValgtHjemmelHarIkkeRettighet.INTRODUKSJONSPROGRAMMET.name
-        HjemmelForStansEllerOpphør.Kvalifiseringsprogrammet -> ValgtHjemmelHarIkkeRettighet.KVALIFISERINGSPROGRAMMET.name
-        HjemmelForStansEllerOpphør.Livsoppholdytelser -> ValgtHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER.name
-        HjemmelForStansEllerOpphør.LønnFraAndre -> ValgtHjemmelHarIkkeRettighet.LONN_FRA_ANDRE.name
-        HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> ValgtHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR.name
-    }
+        HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak -> DatadelingHjemmelHarIkkeRettighet.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
+        HjemmelForStansEllerOpphør.Alder -> DatadelingHjemmelHarIkkeRettighet.ALDER
+        HjemmelForStansEllerOpphør.Institusjonsopphold -> DatadelingHjemmelHarIkkeRettighet.INSTITUSJONSOPPHOLD
+        HjemmelForStansEllerOpphør.Introduksjonsprogrammet -> DatadelingHjemmelHarIkkeRettighet.INTRODUKSJONSPROGRAMMET
+        HjemmelForStansEllerOpphør.Kvalifiseringsprogrammet -> DatadelingHjemmelHarIkkeRettighet.KVALIFISERINGSPROGRAMMET
+        HjemmelForStansEllerOpphør.Livsoppholdytelser -> DatadelingHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER
+        HjemmelForStansEllerOpphør.LønnFraAndre -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_ANDRE
+        HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR
+        HjemmelForStansEllerOpphør.IkkeLovligOpphold -> DatadelingHjemmelHarIkkeRettighet.IKKE_LOVLIG_OPPHOLD
+    }.let { serialize(it) }
 
 private fun Avslagsgrunnlag.toValgtHjemmelHarIkkeRettighetString() =
     when (this) {
-        Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelHarIkkeRettighet.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK.name
-        Avslagsgrunnlag.Alder -> ValgtHjemmelHarIkkeRettighet.ALDER.name
-        Avslagsgrunnlag.FremmetForSent -> ValgtHjemmelHarIkkeRettighet.FREMMET_FOR_SENT.name
-        Avslagsgrunnlag.Institusjonsopphold -> ValgtHjemmelHarIkkeRettighet.INSTITUSJONSOPPHOLD.name
-        Avslagsgrunnlag.Introduksjonsprogrammet -> ValgtHjemmelHarIkkeRettighet.INTRODUKSJONSPROGRAMMET.name
-        Avslagsgrunnlag.Kvalifiseringsprogrammet -> ValgtHjemmelHarIkkeRettighet.KVALIFISERINGSPROGRAMMET.name
-        Avslagsgrunnlag.Livsoppholdytelser -> ValgtHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER.name
-        Avslagsgrunnlag.LønnFraAndre -> ValgtHjemmelHarIkkeRettighet.LONN_FRA_ANDRE.name
-        Avslagsgrunnlag.LønnFraTiltaksarrangør -> ValgtHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR.name
-    }
+        Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak -> DatadelingHjemmelHarIkkeRettighet.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
+        Avslagsgrunnlag.Alder -> DatadelingHjemmelHarIkkeRettighet.ALDER
+        Avslagsgrunnlag.FremmetForSent -> DatadelingHjemmelHarIkkeRettighet.FREMMET_FOR_SENT
+        Avslagsgrunnlag.Institusjonsopphold -> DatadelingHjemmelHarIkkeRettighet.INSTITUSJONSOPPHOLD
+        Avslagsgrunnlag.Introduksjonsprogrammet -> DatadelingHjemmelHarIkkeRettighet.INTRODUKSJONSPROGRAMMET
+        Avslagsgrunnlag.Kvalifiseringsprogrammet -> DatadelingHjemmelHarIkkeRettighet.KVALIFISERINGSPROGRAMMET
+        Avslagsgrunnlag.Livsoppholdytelser -> DatadelingHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER
+        Avslagsgrunnlag.LønnFraAndre -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_ANDRE
+        Avslagsgrunnlag.LønnFraTiltaksarrangør -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR
+    }.let { serialize(it) }
