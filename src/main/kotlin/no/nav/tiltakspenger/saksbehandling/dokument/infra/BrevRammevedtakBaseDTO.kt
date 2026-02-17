@@ -19,9 +19,12 @@ sealed interface BrevRammevedtakBaseDTO {
 }
 
 sealed interface BrevRammevedtakInnvilgelseBaseDTO : BrevRammevedtakBaseDTO {
+    @Deprecated("Erstattes av innvilgelsesperioder og barnetillegg - så kan pdfgen få bestemme hvordan de skal presenteres. Datoene blir formatert for å slippe å gjøre det i pdfgen")
     val introTekst: String
     val harBarnetillegg: Boolean
     val satser: List<SatserDTO>
+    val innvilgelsesperioder: BrevInnvilgelsesperioderDTO
+    val barnetillegg: List<BrevBarnetilleggDTO>
 
     data class SatserDTO(
         val år: Int,
@@ -42,3 +45,13 @@ data class BrevPeriodeDTO private constructor(val fraOgMed: String, val tilOgMed
         }
     }
 }
+
+data class BrevInnvilgelsesperioderDTO(
+    val antallDagerTekst: String?,
+    val perioder: List<BrevPeriodeDTO>,
+)
+
+data class BrevBarnetilleggDTO(
+    val antallBarnTekst: String,
+    val periode: BrevPeriodeDTO,
+)

@@ -23,10 +23,12 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     override val datoForUtsending: String,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-
+    @Deprecated("Erstattes av innvilgelsesperioder og barnetillegg - så kan pdfgen få bestemme hvordan de skal presenteres. Datoene blir formatert for å slippe å gjøre det i pdfgen")
     override val introTekst: String,
     override val harBarnetillegg: Boolean,
     override val satser: List<SatserDTO>,
+    override val innvilgelsesperioder: BrevInnvilgelsesperioderDTO,
+    override val barnetillegg: List<BrevBarnetilleggDTO>,
 ) : BrevRammevedtakInnvilgelseBaseDTO
 
 suspend fun Rammevedtak.tilInnvilgetSøknadsbrev(
@@ -82,6 +84,8 @@ suspend fun genererInnvilgetSøknadsbrev(
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
         introTekst = tilIntroTekst(innvilgelsesperioder, barnetillegg),
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
+        innvilgelsesperioder = tilInnvilgelsesperioder(innvilgelsesperioder),
+        barnetillegg = tilBarnetillegg(barnetillegg),
     ).let { serialize(it) }
 }
 
@@ -90,7 +94,7 @@ private fun tilIntroTekst(
     barnetillegg: Periodisering<AntallBarn>?,
 ): String {
     val antallDagerPerUkeTekst =
-        toAntallDagerTekst(innvilgelsesperioder.antallDagerPerMeldeperiode)?.let { " for $it" } ?: ""
+        tilAntallDagerTekst(innvilgelsesperioder.antallDagerPerMeldeperiode)?.let { " for $it per uke" } ?: ""
 
     val perioderMedBarnetillegg = barnetillegg?.perioderMedVerdi
         ?.filter { it.verdi.value > 0 }
@@ -111,6 +115,34 @@ private fun tilIntroTekst(
         }?.joinMedKonjunksjon()
 
     return "Du får tiltakspenger $tiltakspengerPerioderString$antallDagerPerUkeTekst fordi du deltar på arbeidsmarkedstiltak.".plus(
-        barnetilleggPerioderString?.let { " Du får barnetillegg $it." } ?: "",
+        barnetilleggPerioderString?.let { "\n\nDu får barnetillegg $it." } ?: "",
     )
+}
+
+private fun tilInnvilgelsesperioder(
+    innvilgelsesperioder: Innvilgelsesperioder,
+): BrevInnvilgelsesperioderDTO {
+    val sammenhengendeInnvilgelsesperioder = innvilgelsesperioder.perioder.leggSammen(false)
+
+    return BrevInnvilgelsesperioderDTO(
+        antallDagerTekst = tilAntallDagerTekst(innvilgelsesperioder.antallDagerPerMeldeperiode),
+        perioder = sammenhengendeInnvilgelsesperioder.map {
+            BrevPeriodeDTO.fraPeriode(it)
+        },
+    )
+}
+
+private fun tilBarnetillegg(
+    barnetillegg: Periodisering<AntallBarn>?,
+): List<BrevBarnetilleggDTO> {
+    val perioderMedBarnetillegg = barnetillegg?.perioderMedVerdi
+        ?.filter { it.verdi.value > 0 }
+        ?.let { it.ifEmpty { null } }
+
+    return perioderMedBarnetillegg?.map { periodeMedVerdi ->
+        BrevBarnetilleggDTO(
+            antallBarnTekst = periodeMedVerdi.verdi.toTekst(),
+            periode = BrevPeriodeDTO.fraPeriode(periodeMedVerdi.periode),
+        )
+    } ?: emptyList()
 }

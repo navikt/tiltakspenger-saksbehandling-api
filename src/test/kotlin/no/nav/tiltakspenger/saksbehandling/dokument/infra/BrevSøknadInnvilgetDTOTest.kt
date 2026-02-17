@@ -24,14 +24,14 @@ import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import org.junit.jupiter.api.Test
 
-class BrevRevurderingInnvilgetDTOTest {
+class BrevSøknadInnvilgetDTOTest {
 
     @Test
     fun `brev uten barnetillegg innenfor 1 års-periode`() {
         runTest {
             val fnr = Fnr.random()
             val saksnummer = Saksnummer("202501301001")
-            val actual = genererRevurderingInnvilgetBrev(
+            val actual = genererInnvilgetSøknadsbrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
                 tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
@@ -54,7 +54,7 @@ class BrevRevurderingInnvilgetDTOTest {
                  "beslutterNavn":"Saksbehandler Navn",
                  "kontor":"Nav Tiltakspenger",
                  "harBarnetillegg":false,
-                 "introTekst": "Du får tiltakspenger fra og med 1. juni 2025 til og med 31. august 2025 for fem dager per uke.",
+                 "introTekst": "Du får tiltakspenger fra og med 1. juni 2025 til og med 31. august 2025 for fem dager per uke fordi du deltar på arbeidsmarkedstiltak.",
                  "satser": [
                    {
                      "år": 2025,
@@ -85,7 +85,7 @@ class BrevRevurderingInnvilgetDTOTest {
         runTest {
             val fnr = Fnr.random()
             val saksnummer = Saksnummer("202501301001")
-            val actual = genererRevurderingInnvilgetBrev(
+            val actual = genererInnvilgetSøknadsbrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
                 tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
@@ -108,7 +108,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   "beslutterNavn":"Saksbehandler Navn",
                   "kontor":"Nav Tiltakspenger",
                   "harBarnetillegg":false,
-                  "introTekst": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 for fem dager per uke.",
+                  "introTekst": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 for fem dager per uke fordi du deltar på arbeidsmarkedstiltak.",
                   "satser": [
                   {
                     "år": 2024,
@@ -144,7 +144,7 @@ class BrevRevurderingInnvilgetDTOTest {
         runTest {
             val fnr = Fnr.random()
             val saksnummer = Saksnummer("202501301001")
-            val actual = genererRevurderingInnvilgetBrev(
+            val actual = genererInnvilgetSøknadsbrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
                 tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
@@ -167,7 +167,7 @@ class BrevRevurderingInnvilgetDTOTest {
                  "beslutterNavn":"Saksbehandler Navn",
                  "kontor":"Nav Tiltakspenger",
                  "harBarnetillegg":true,
-                 "introTekst":"Du får tiltakspenger og barnetillegg for to barn fra og med 1. juni 2025 til og med 31. august 2025 for fem dager per uke.",
+                 "introTekst": "Du får tiltakspenger fra og med 1. juni 2025 til og med 31. august 2025 for fem dager per uke fordi du deltar på arbeidsmarkedstiltak.\n\nDu får barnetillegg for to barn fra og med 1. juni 2025 til og med 31. august 2025.",
                  "satser": [
                    {
                      "år": 2025,
@@ -206,7 +206,7 @@ class BrevRevurderingInnvilgetDTOTest {
         runTest {
             val fnr = Fnr.random()
             val saksnummer = Saksnummer("202501301001")
-            val actual = genererRevurderingInnvilgetBrev(
+            val actual = genererInnvilgetSøknadsbrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
                 tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
@@ -236,7 +236,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
                   "harBarnetillegg": true,
-                  "introTekst": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 for fem dager per uke.\n\nDu får barnetillegg for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
+                  "introTekst": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 for fem dager per uke fordi du deltar på arbeidsmarkedstiltak.\n\nDu får barnetillegg for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
                   "satser": [
                     {
                       "år": 2024,
@@ -287,7 +287,7 @@ class BrevRevurderingInnvilgetDTOTest {
         runTest {
             val fnr = Fnr.random()
             val saksnummer = Saksnummer("202501301001")
-            val actual = genererRevurderingInnvilgetBrev(
+            val actual = genererInnvilgetSøknadsbrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
                 tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
@@ -318,7 +318,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
                   "harBarnetillegg": true,
-                  "introTekst": "Du får tiltakspenger fra og med 1. november 2024 til og med 31. januar 2025 for fem dager per uke.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 30. november 2024, for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
+                  "introTekst": "Du får tiltakspenger fra og med 1. november 2024 til og med 31. januar 2025 for fem dager per uke fordi du deltar på arbeidsmarkedstiltak.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 30. november 2024, for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
                   "satser": [
                     {
                       "år": 2024,
@@ -376,7 +376,7 @@ class BrevRevurderingInnvilgetDTOTest {
         runTest {
             val fnr = Fnr.random()
             val saksnummer = Saksnummer("202501301001")
-            val actual = genererRevurderingInnvilgetBrev(
+            val actual = genererInnvilgetSøknadsbrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
                 tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
@@ -411,7 +411,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
                   "harBarnetillegg": true,
-                  "introTekst": "Du får tiltakspenger fra og med 1. november 2024 til og med 28. februar 2025 og fra og med 1. april 2025 til og med 30. april 2025 for fem dager per uke.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 31. januar 2025, for to barn fra og med 1. februar 2025 til og med 28. februar 2025 og for tre barn fra og med 1. april 2025 til og med 30. april 2025.",
+                  "introTekst": "Du får tiltakspenger fra og med 1. november 2024 til og med 28. februar 2025 og fra og med 1. april 2025 til og med 30. april 2025 for fem dager per uke fordi du deltar på arbeidsmarkedstiltak.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 31. januar 2025, for to barn fra og med 1. februar 2025 til og med 28. februar 2025 og for tre barn fra og med 1. april 2025 til og med 30. april 2025.",
                   "satser": [
                     {
                       "år": 2024,
@@ -473,7 +473,7 @@ class BrevRevurderingInnvilgetDTOTest {
         runTest {
             val fnr = Fnr.random()
             val saksnummer = Saksnummer("202501301001")
-            val actual = genererRevurderingInnvilgetBrev(
+            val actual = genererInnvilgetSøknadsbrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
                 tilleggstekst = FritekstTilVedtaksbrev.create("Dette er en vurdering"),
@@ -509,7 +509,7 @@ class BrevRevurderingInnvilgetDTOTest {
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
                   "harBarnetillegg": true,
-                  "introTekst": "Du får tiltakspenger og barnetillegg for ett barn fra og med 1. november 2024 til og med 28. februar 2025, for to barn fra og med 1. april 2025 til og med 30. april 2025 og for tre barn fra og med 2. mai 2025 til og med 31. mai 2025 for fem dager per uke.",
+                  "introTekst": "Du får tiltakspenger fra og med 1. november 2024 til og med 28. februar 2025, fra og med 1. april 2025 til og med 30. april 2025 og fra og med 2. mai 2025 til og med 31. mai 2025 for fem dager per uke fordi du deltar på arbeidsmarkedstiltak.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 28. februar 2025, for to barn fra og med 1. april 2025 til og med 30. april 2025 og for tre barn fra og med 2. mai 2025 til og med 31. mai 2025.",
                   "satser": [
                     {
                       "år": 2024,
