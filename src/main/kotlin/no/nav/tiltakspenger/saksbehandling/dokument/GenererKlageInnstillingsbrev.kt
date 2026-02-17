@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
-typealias GenererKlageOpprettholdelsesbrev = suspend (
+typealias GenererKlageInnstillingsbrev = suspend (
     saksnummer: Saksnummer,
     fnr: Fnr,
     saksbehandlerNavIdent: String,

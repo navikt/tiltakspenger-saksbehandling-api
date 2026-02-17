@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett.iverksett
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.leggTilbakeKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprett.opprettKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling.opprettRammebehandlingFraKlage
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppretthold.opprettholdKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.overtaKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent.settKlagebehandlingPåVentRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.taKlagebehandlingRoute
@@ -25,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingFraKlageService
+import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettholdKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingService
@@ -47,6 +49,7 @@ fun Route.klagebehandlingRoutes(
     leggTilbakeKlagebehandlingService: LeggTilbakeKlagebehandlingService,
     gjenopptaKlagebehandlingService: GjenopptaKlagebehandlingService,
     settKlagebehandlingPåVentService: SettKlagebehandlingPåVentService,
+    opprettholdKlagebehandlingService: OpprettholdKlagebehandlingService,
     clock: Clock,
 ) {
     opprettKlagebehandlingRoute(
@@ -117,6 +120,12 @@ fun Route.klagebehandlingRoutes(
     )
     gjenopptaKlagebehandlingRoute(
         gjenopptaKlagebehandlingService = gjenopptaKlagebehandlingService,
+        auditService = auditService,
+        tilgangskontrollService = tilgangskontrollService,
+        clock = clock,
+    )
+    opprettholdKlagebehandlingRoute(
+        opprettholdKlagebehandlingService = opprettholdKlagebehandlingService,
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
         clock = clock,

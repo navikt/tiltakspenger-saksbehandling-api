@@ -39,6 +39,10 @@ data class Klagebehandlinger(
         return klagebehandlinger.single { it.id == klagebehandlingId }
     }
 
+    fun hentKlagebehandlingerSomSkalOversendesKlageinstansen(): List<Klagebehandling> {
+        return klagebehandlinger.filter { it.kanOversendeKlageinstans }
+    }
+
     init {
         klagebehandlinger.map { it.id }.also {
             require(it.distinct().size == it.size) {

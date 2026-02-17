@@ -38,7 +38,7 @@ class ForhåndsvisBrevKlagebehandlingService(
                     hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                 )
             },
-            genererKlageOpprettholdelsesbrev = suspend { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning ->
+            genererKlageInnstillingsbrev = suspend { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning ->
                 TODO("Implementer generering av opprettholdelsesbrev")
             },
         ).map { it.pdf }.mapLeft {

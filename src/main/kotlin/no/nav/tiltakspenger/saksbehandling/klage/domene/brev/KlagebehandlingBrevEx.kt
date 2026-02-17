@@ -2,13 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.brev
 
 import arrow.core.Either
 import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageAvvisningsbrev
-import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageOpprettholdelsesbrev
+import no.nav.tiltakspenger.saksbehandling.dokument.GenererKlageInnstillingsbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OPPRETTHOLDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
@@ -20,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.V
 suspend fun Klagebehandling.genererBrev(
     kommando: KlagebehandlingBrevKommando,
     genererAvvisningsbrev: GenererKlageAvvisningsbrev,
-    genererKlageOpprettholdelsesbrev: GenererKlageOpprettholdelsesbrev,
+    genererKlageInnstillingsbrev: GenererKlageInnstillingsbrev,
 ): Either<KunneIkkeGenererePdf, PdfOgJson> {
     require(resultat is Klagebehandlingsresultat.Avvist || resultat is Klagebehandlingsresultat.Opprettholdt) {
         """
@@ -30,14 +31,14 @@ suspend fun Klagebehandling.genererBrev(
             Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id
         """.trimIndent()
     }
-    if (erVedtatt) return genererBrev(genererAvvisningsbrev, genererKlageOpprettholdelsesbrev)
+    if (skalGenerereBrevKunFraBehandling()) return genererBrev(genererAvvisningsbrev, genererKlageInnstillingsbrev)
 
     val brevtekst = resultat.brevtekst
     val saksbehandler: String = when (status) {
         KLAR_TIL_BEHANDLING -> "-"
         UNDER_BEHANDLING -> this.saksbehandler!!
         AVBRUTT -> this.saksbehandler ?: "-"
-        VEDTATT, OVERSENDT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
+        VEDTATT, OPPRETTHOLDT, OVERSENDT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
     }
     val erSaksbehandlerPåBehandlingen = this.erSaksbehandlerPåBehandlingen(kommando.saksbehandler)
     val tilleggstekst: Brevtekster = when (status) {
@@ -50,8 +51,6 @@ suspend fun Klagebehandling.genererBrev(
         }
 
         AVBRUTT -> brevtekst ?: Brevtekster.empty
-
-        VEDTATT, OVERSENDT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
     }
 
     return when (resultat) {
@@ -63,7 +62,7 @@ suspend fun Klagebehandling.genererBrev(
             true,
         )
 
-        is Klagebehandlingsresultat.Opprettholdt -> genererKlageOpprettholdelsesbrev(
+        is Klagebehandlingsresultat.Opprettholdt -> genererKlageInnstillingsbrev(
             saksnummer,
             fnr,
             saksbehandler,
@@ -79,9 +78,9 @@ suspend fun Klagebehandling.genererBrev(
  */
 suspend fun Klagebehandling.genererBrev(
     genererAvvisningsbrev: GenererKlageAvvisningsbrev,
-    genererKlageOpprettholdelsesbrev: GenererKlageOpprettholdelsesbrev,
+    genererKlageInnstillingsbrev: GenererKlageInnstillingsbrev,
 ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-    require(erVedtatt || erOversendt) {
+    require(skalGenerereBrevKunFraBehandling()) {
         """
             Kan kun generere endelig klagebrev dersom;
                 - klagen er avvist og klagebehandlingen er vedtatt
@@ -104,7 +103,7 @@ suspend fun Klagebehandling.genererBrev(
             false,
         )
 
-        OVERSENDT -> genererKlageOpprettholdelsesbrev(
+        OPPRETTHOLDT, OVERSENDT -> genererKlageInnstillingsbrev(
             saksnummer,
             fnr,
             saksbehandler!!,

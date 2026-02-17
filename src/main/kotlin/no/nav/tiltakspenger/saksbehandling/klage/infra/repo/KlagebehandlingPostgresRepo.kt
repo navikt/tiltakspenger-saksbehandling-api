@@ -18,7 +18,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.klage.ports.OversendtKlageTilKabal
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 
 class KlagebehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -81,6 +83,93 @@ class KlagebehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { session ->
             overtaBehandling(klagebehandling, nåværendeSaksbehandler, session)
+        }
+    }
+
+    /**
+     * Henter de som har ligget lengst basert på sist_endret.
+     */
+    override fun hentInnstillingsbrevSomSkalJournalføres(
+        limit: Int,
+    ): List<Klagebehandling> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select distinct k.sak_id
+                    from klagebehandling k
+                    where k.status = 'OPPRETTHOLDT'
+                    and k.resultat->>'journalpostIdInnstillingsbrev' is null
+                    order by k.sist_endret
+                    limit $limit
+                    """.trimIndent(),
+                ).map { fromRow(it) }.asList,
+            )
+        }
+    }
+
+    override fun hentInnstillingsbrevSomSkalDistribueres(limit: Int): List<Klagebehandling> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select distinct k.sak_id
+                    from klagebehandling k
+                    where k.status = 'OPPRETTHOLDT'
+                    and k.resultat->>'journalpostIdInnstillingsbrev' is not null
+                    and k.resultat->>'distribusjonId' is null
+                    order by k.sist_endret
+                    limit $limit
+                    """.trimIndent(),
+                ).map { fromRow(it) }.asList,
+            )
+        }
+    }
+
+    /**
+     * Henter de som har ligget lengst basert på sist_endret.
+     */
+    override fun hentSakerSomSkalOversendesKlageinstansen(
+        limit: Int,
+    ): List<SakId> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select distinct k.sak_id
+                    from klagebehandling k
+                    where k.status = 'OPPRETTHOLDT'
+                    and k.resultat->>'journalpostIdInnstillingsbrev' is not null
+                    and k.resultat->>'distribusjonIdInnstillingsbrev' is not null
+                    and k.resultat->>'oversendtKlageinstansenTidspunkt' is null
+                    order by k.sist_endret
+                    limit $limit
+                    """.trimIndent(),
+                ).map { SakId.fromString(it.string("sak_id")) }.asList,
+            )
+        }
+    }
+
+    override fun markerOversendtTilKlageinstans(klagebehandling: Klagebehandling, metadata: OversendtKlageTilKabal) {
+        sessionFactory.withTransaction { tx ->
+            tx.run(
+                sqlQuery(
+                    """
+                    update klagebehandling set
+                        kabal_metadata = to_jsonb(:metadata::jsonb)
+                    where id = :id and status = 'OPPRETTHOLDT'
+                    """,
+                    "id" to klagebehandling.id.toString(),
+                    "metadata" to """
+                    {
+                        "request": ${metadata.request},
+                        "response": "${metadata.response}",
+                        "oversendtTidspunkt": "${metadata.oversendtTidspunkt}"
+                    }
+                    """.trimIndent(),
+                ).asUpdate,
+            )
+            lagreKlagebehandling(klagebehandling, tx)
         }
     }
 
@@ -188,8 +277,8 @@ class KlagebehandlingPostgresRepo(
                         "status" to klagebehandling.status.toDbEnum(),
                         "formkrav" to klagebehandling.formkrav.toDbJson(),
                         "saksbehandler" to klagebehandling.saksbehandler,
-                        "journalpost_id" to klagebehandling.journalpostId.toString(),
-                        "journalpost_opprettet" to klagebehandling.journalpostOpprettet,
+                        "journalpost_id" to klagebehandling.klagensJournalpostId.toString(),
+                        "journalpost_opprettet" to klagebehandling.klagensJournalpostOpprettet,
                         "resultat" to klagebehandling.resultat?.toDbJson(),
                         "brevtekst" to klagebehandling.brevtekst?.toDbJson(),
                         "iverksatt_tidspunkt" to klagebehandling.iverksattTidspunkt,
@@ -264,8 +353,8 @@ class KlagebehandlingPostgresRepo(
                 status = row.string("status").toKlagebehandlingsstatus(),
                 formkrav = row.string("formkrav").toKlageFormkrav(),
                 saksbehandler = row.stringOrNull("saksbehandler"),
-                journalpostId = JournalpostId(row.string("journalpost_id")),
-                journalpostOpprettet = row.localDateTime("journalpost_opprettet"),
+                klagensJournalpostId = JournalpostId(row.string("journalpost_id")),
+                klagensJournalpostOpprettet = row.localDateTime("journalpost_opprettet"),
                 resultat = row.stringOrNull("resultat")?.toKlagebehandlingResultat(
                     brevtekst = row.stringOrNull("brevtekst")?.toKlageBrevtekst(),
                 ),

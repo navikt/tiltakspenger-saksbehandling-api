@@ -33,8 +33,8 @@ fun Klagebehandling.oppdaterFormkrav(
     return this.copy(
         sistEndret = nå(clock),
         formkrav = oppdaterteFormkrav,
-        journalpostId = kommando.journalpostId,
-        journalpostOpprettet = journalpostOpprettet,
+        klagensJournalpostId = kommando.journalpostId,
+        klagensJournalpostOpprettet = journalpostOpprettet,
         resultat = when {
             oppdaterteFormkrav.erAvvisning && tidligereResultat is Klagebehandlingsresultat.Avvist -> tidligereResultat
             oppdaterteFormkrav.erAvvisning -> Klagebehandlingsresultat.Avvist.empty

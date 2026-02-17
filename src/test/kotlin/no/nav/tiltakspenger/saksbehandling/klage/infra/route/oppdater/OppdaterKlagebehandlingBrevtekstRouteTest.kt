@@ -87,7 +87,7 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                     }
                   ],
                   "avbrutt": null,
-                  "kanIverksette": true,
+                  "kanIverksette": false,
                   "årsak": null,
                   "begrunnelse": null,
                   "rammebehandlingId": null,

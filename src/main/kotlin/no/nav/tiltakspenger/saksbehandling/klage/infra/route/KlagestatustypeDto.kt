@@ -7,6 +7,7 @@ enum class KlagestatustypeDto {
     UNDER_BEHANDLING,
     AVBRUTT,
     IVERKSATT,
+    OPPRETTHOLDT,
     OVERSENDT,
     ;
 
@@ -20,6 +21,8 @@ enum class KlagestatustypeDto {
 
             // TODO jah: Endre til VEDTATT her og frontend samtidig.
             Klagebehandlingsstatus.VEDTATT -> IVERKSATT
+
+            Klagebehandlingsstatus.OPPRETTHOLDT -> OPPRETTHOLDT
 
             Klagebehandlingsstatus.OVERSENDT -> OVERSENDT
         }

@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 
 /**
  * @param vedtakDetKlagesPå Id til vedtaket som klages på. Kan være null hvis klagen ikke gjelder et spesifikt vedtak, i så fall vil det bli en avvisning.
+ * Se også: https://lovdata.no/lov/1967-02-10/§29 til og med §33
  */
 data class KlageFormkrav(
     val vedtakDetKlagesPå: VedtakId?,

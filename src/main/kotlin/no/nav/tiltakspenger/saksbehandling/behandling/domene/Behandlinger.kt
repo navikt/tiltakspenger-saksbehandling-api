@@ -85,6 +85,10 @@ data class Behandlinger(
         return rammebehandlinger.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId)
     }
 
+    fun hentKlagebehandlingerSomSkalOversendesKlageinstansen(): List<Klagebehandling> {
+        return klagebehandlinger.hentKlagebehandlingerSomSkalOversendesKlageinstansen()
+    }
+
     init {
         require(slåttSammen.distinctBy { it.opprettet }.size == slåttSammen.size) {
             "Behandlingene kan ikke ha samme opprettet-tidspunkt."
@@ -114,11 +118,9 @@ data class Behandlinger(
                     "Forventet at rammebehandling ${rammebehandling.id} er [UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING] når klagebehandling ${klagebehandling.id} er UNDER_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
                 }
 
-                Klagebehandlingsstatus.AVBRUTT -> throw IllegalStateException("En avbrutt klagebehandling skal ikke være tilknyttet en rammebehandling")
-
                 Klagebehandlingsstatus.VEDTATT -> require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT)
 
-                Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException("En oversendt klagebehandling skal ikke være tilknyttet en rammebehandling")
+                Klagebehandlingsstatus.AVBRUTT, Klagebehandlingsstatus.OPPRETTHOLDT, Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException("En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling")
             }
         }
         // Siden [Rammebehandling] er "eieren" av relasjonen til [Klagebehandling], sjekker vi statusen i initen til implementasjonene av [Rammebehandling].

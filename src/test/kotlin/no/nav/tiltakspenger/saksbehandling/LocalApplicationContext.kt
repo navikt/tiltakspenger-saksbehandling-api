@@ -285,7 +285,7 @@ class LocalApplicationContext(
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
             texasClient = texasClient,
         ) {
-            override val kabalClient: KabalClient = KabalClientFake()
+            override val kabalClient: KabalClient = KabalClientFake(clock)
         }
     }
 

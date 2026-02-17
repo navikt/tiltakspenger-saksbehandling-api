@@ -17,32 +17,20 @@ class OversendelsesDtoTest {
 
     @Test
     fun `mapper klagebehandling til oversendelseDto`() {
-        val fnr = Fnr.random()
-        val saksnummer = Saksnummer.genererSaknummer(5.februar(2026), "1001")
-        val klagebehandlingId = KlagebehandlingId.random()
-        val journalpostIdKlage = JournalpostId("klage-journalpost-id")
-        val mottattJournalpostDato = LocalDateTime.now(fixedClock)
         val journalpostIdVedtak = JournalpostId("vedtak-journalpost-id")
-        val klagebehandling = ObjectMother.opprettKlagebehandling(
-            id = klagebehandlingId,
-            fnr = fnr,
-            saksnummer = saksnummer,
-            journalpostId = journalpostIdKlage,
-            journalpostOpprettet = mottattJournalpostDato,
-            vedtakDetKlagesPå = VedtakId.random(),
-            erKlagerPartISaken = true,
-            klagesDetPåKonkreteElementerIVedtaket = true,
-            erKlagefristenOverholdt = true,
-            erUnntakForKlagefrist = null,
-            erKlagenSignert = true,
-        )
+        val klagebehandling = ObjectMother.opprettholdtKlagebehandlingKlarForOversendelse()
+        val fnr = klagebehandling.fnr
+        val saksnummer = klagebehandling.saksnummer
+        val klagebehandlingId = klagebehandling.id
+        val journalpostIdKlage = klagebehandling.klagensJournalpostId
+        val mottattJournalpostDato = LocalDateTime.now(fixedClock)
 
         klagebehandling.toOversendelsesDto(journalpostIdVedtak) shouldBe KlageOversendelseDto(
             sakenGjelder = SakenGjelder(id = SakenGjelderId(fnr.verdi)),
             fagsak = OversendelsesFagsak(fagsakId = saksnummer.verdi),
             kildeReferanse = klagebehandlingId.toString(),
             dvhReferanse = klagebehandlingId.toString(),
-            hjemler = listOf(),
+            hjemler = listOf("TILTAKSPENGEFORSKRIFTEN_3"),
             tilknyttedeJournalposter = listOf(
                 TilknyttetJournalpost(
                     type = TilknyttetJournalpostType.BRUKERS_KLAGE,

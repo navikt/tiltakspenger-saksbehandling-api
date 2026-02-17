@@ -269,24 +269,23 @@ class IverksettKlagebehandlingRouteTest {
                 it.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:48.456789")
                 it.iverksattTidspunkt shouldBe LocalDateTime.parse("2025-01-01T01:02:48.456789")
                 it.status shouldBe Klagebehandlingsstatus.VEDTATT
-                it.kanIverksette shouldBe false
+                it.kanIverksetteVedtak shouldBe false
                 it.erVedtatt shouldBe true
                 it.erAvsluttet shouldBe true
                 it.erUnderBehandling shouldBe false
                 it.erÅpen shouldBe false
-                it.kanIkkeIverksetteGrunner shouldBe listOf("Klagebehandling er ikke under behandling")
+                it.kanIkkeIverksetteVedtakGrunner() shouldBe listOf("Klagebehandling er ikke under behandling")
             }
             rammevedtak.klagebehandling.shouldBeEqualToIgnoringFields(
                 klagebehandling,
                 Klagebehandling::sistEndret,
                 Klagebehandling::iverksattTidspunkt,
                 Klagebehandling::status,
-                Klagebehandling::kanIverksette,
+                Klagebehandling::kanIverksetteVedtak,
                 Klagebehandling::erVedtatt,
                 Klagebehandling::erAvsluttet,
                 Klagebehandling::erUnderBehandling,
                 Klagebehandling::erÅpen,
-                Klagebehandling::kanIkkeIverksetteGrunner,
             )
             rammevedtak.klagebehandlingsresultat shouldBe klagebehandling.resultat
             json.getString("klagebehandlingId") shouldBe klagebehandling.id.toString()
