@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAu
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 internal class MottaBrukerutfyltMeldekortServiceTest {
 
@@ -280,7 +279,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                     .flatMapIndexed { index, dager ->
                         dager.map {
                             BrukersMeldekort.BrukersMeldekortDag(
-                                status = if (index % 2 == 0) InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV else InnmeldtStatus.IKKE_BESVART,
+                                status = if (index % 2 == 0) InnmeldtStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU else InnmeldtStatus.IKKE_BESVART,
                                 dato = it.key,
                             )
                         }
@@ -323,7 +322,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                     .flatMapIndexed { index, dager ->
                         dager.map {
                             BrukersMeldekort.BrukersMeldekortDag(
-                                status = if (index % 2 == 0) InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV else InnmeldtStatus.IKKE_BESVART,
+                                status = if (index % 2 == 0) InnmeldtStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU else InnmeldtStatus.IKKE_BESVART,
                                 dato = it.key,
                             )
                         }

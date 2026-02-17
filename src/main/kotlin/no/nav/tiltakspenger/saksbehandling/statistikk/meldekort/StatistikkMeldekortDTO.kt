@@ -39,6 +39,7 @@ data class StatistikkMeldekortDTO(
             DELTATT_MED_LONN_I_TILTAKET,
             FRAVAER_SYK,
             FRAVAER_SYKT_BARN,
+            FRAVAER_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
             FRAVAER_GODKJENT_AV_NAV,
             FRAVAER_ANNET,
             IKKE_BESVART,
@@ -78,6 +79,7 @@ fun MeldekortDagStatus.tilStatistikkMeldekortDagStatus(): StatistikkMeldekortDTO
         MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.DELTATT_MED_LONN_I_TILTAKET
         MeldekortDagStatus.FRAVÆR_SYK -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.FRAVAER_SYK
         MeldekortDagStatus.FRAVÆR_SYKT_BARN -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.FRAVAER_SYKT_BARN
+        MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.FRAVAER_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
         MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.FRAVAER_GODKJENT_AV_NAV
         MeldekortDagStatus.FRAVÆR_ANNET -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.FRAVAER_ANNET
         MeldekortDagStatus.IKKE_BESVART -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.IKKE_BESVART
@@ -89,6 +91,7 @@ fun MeldekortDagStatus.tilReduksjon(): StatistikkMeldekortDTO.StatistikkMeldekor
     when (this) {
         MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
         MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV,
+        MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
         -> StatistikkMeldekortDTO.StatistikkMeldekortDag.Reduksjon.INGEN_REDUKSJON
 
         MeldekortDagStatus.FRAVÆR_SYK,

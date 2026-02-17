@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fr
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværSterkeVelferdsgrunnerEllerJobbintervju
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
@@ -88,6 +89,12 @@ private data class MeldeperiodeBeregningDagDbJson(
                 parsedBeregningsdag!!,
             )
 
+            MeldekortstatusDb.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> FraværSterkeVelferdsgrunnerEllerJobbintervju.fromDb(
+                parsedDato,
+                parsedTiltakstype!!,
+                parsedBeregningsdag!!,
+            )
+
             MeldekortstatusDb.FRAVÆR_ANNET -> FraværAnnet.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
@@ -131,6 +138,7 @@ private fun List<MeldeperiodeBeregningDag>.toDbJson() = this.map { meldekortdag 
             is SykBruker -> MeldekortstatusDb.FRAVÆR_SYK
             is SyktBarn -> MeldekortstatusDb.FRAVÆR_SYKT_BARN
             is FraværGodkjentAvNav -> MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV
+            is FraværSterkeVelferdsgrunnerEllerJobbintervju -> MeldekortstatusDb.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
             is FraværAnnet -> MeldekortstatusDb.FRAVÆR_ANNET
             is MeldeperiodeBeregningDag.IkkeBesvart -> MeldekortstatusDb.IKKE_BESVART
             is IkkeDeltatt -> MeldekortstatusDb.IKKE_TILTAKSDAG

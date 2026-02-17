@@ -7,6 +7,7 @@ enum class MeldekortstatusDb {
     DELTATT_MED_LØNN_I_TILTAKET,
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
+    FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
     FRAVÆR_GODKJENT_AV_NAV,
     FRAVÆR_ANNET,
 
@@ -25,6 +26,7 @@ fun MeldekortDagStatus.toDb(): MeldekortstatusDb {
         MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> MeldekortstatusDb.DELTATT_MED_LØNN_I_TILTAKET
         MeldekortDagStatus.FRAVÆR_SYK -> MeldekortstatusDb.FRAVÆR_SYK
         MeldekortDagStatus.FRAVÆR_SYKT_BARN -> MeldekortstatusDb.FRAVÆR_SYKT_BARN
+        MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> MeldekortstatusDb.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
         MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV
         MeldekortDagStatus.FRAVÆR_ANNET -> MeldekortstatusDb.FRAVÆR_ANNET
         MeldekortDagStatus.IKKE_BESVART -> MeldekortstatusDb.IKKE_BESVART
@@ -39,6 +41,7 @@ fun MeldekortstatusDb.toMeldekortDagStatus(): MeldekortDagStatus {
         MeldekortstatusDb.DELTATT_MED_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
         MeldekortstatusDb.FRAVÆR_SYK -> MeldekortDagStatus.FRAVÆR_SYK
         MeldekortstatusDb.FRAVÆR_SYKT_BARN -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
+        MeldekortstatusDb.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
         MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
         MeldekortstatusDb.FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_ANNET
         MeldekortstatusDb.IKKE_BESVART -> MeldekortDagStatus.IKKE_BESVART

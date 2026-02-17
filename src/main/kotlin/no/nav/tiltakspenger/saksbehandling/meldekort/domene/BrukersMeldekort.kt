@@ -51,6 +51,7 @@ data class BrukersMeldekort(
             InnmeldtStatus.FRAVÆR_SYK,
             InnmeldtStatus.FRAVÆR_SYKT_BARN,
             InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV,
+            InnmeldtStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
             InnmeldtStatus.FRAVÆR_ANNET,
             InnmeldtStatus.IKKE_TILTAKSDAG,
             -> true
@@ -111,6 +112,7 @@ enum class InnmeldtStatus {
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
     FRAVÆR_GODKJENT_AV_NAV,
+    FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
     FRAVÆR_ANNET,
     IKKE_BESVART,
     IKKE_TILTAKSDAG,
@@ -125,6 +127,8 @@ enum class InnmeldtStatus {
         FRAVÆR_SYK -> MeldekortDagStatus.FRAVÆR_SYK
 
         FRAVÆR_SYKT_BARN -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
+
+        FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
 
         // TODO jah: Rydd opp i disse i neste PR
         FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV

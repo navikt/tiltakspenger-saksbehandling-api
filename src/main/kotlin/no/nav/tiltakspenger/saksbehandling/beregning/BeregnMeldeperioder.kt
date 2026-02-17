@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fr
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværSterkeVelferdsgrunnerEllerJobbintervju
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
@@ -31,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.D
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.FRAVÆR_ANNET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.FRAVÆR_SYK
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.FRAVÆR_SYKT_BARN
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_BESVART
@@ -193,6 +195,12 @@ private data class BeregnMeldeperioder(
                 dato = dato,
                 tiltakstype = tiltakstype,
                 reduksjon = barnSykeperiode.oppdaterOgFinnReduksjon(dato),
+                antallBarn = antallBarn,
+            )
+
+            FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> FraværSterkeVelferdsgrunnerEllerJobbintervju.create(
+                dato = dato,
+                tiltakstype = tiltakstype,
                 antallBarn = antallBarn,
             )
 

@@ -74,6 +74,7 @@ private fun BrukerutfyltMeldekortDTO.toDomain(): LagreBrukersMeldekortKommando {
                     BrukerutfyltMeldekortDTO.Status.FRAVÆR_SYK -> InnmeldtStatus.FRAVÆR_SYK
                     BrukerutfyltMeldekortDTO.Status.FRAVÆR_SYKT_BARN -> InnmeldtStatus.FRAVÆR_SYKT_BARN
                     BrukerutfyltMeldekortDTO.Status.FRAVÆR_GODKJENT_AV_NAV -> InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV
+                    BrukerutfyltMeldekortDTO.Status.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> InnmeldtStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
                     BrukerutfyltMeldekortDTO.Status.FRAVÆR_ANNET -> InnmeldtStatus.FRAVÆR_ANNET
                     BrukerutfyltMeldekortDTO.Status.IKKE_BESVART -> InnmeldtStatus.IKKE_BESVART
                     BrukerutfyltMeldekortDTO.Status.IKKE_TILTAKSDAG -> InnmeldtStatus.IKKE_TILTAKSDAG

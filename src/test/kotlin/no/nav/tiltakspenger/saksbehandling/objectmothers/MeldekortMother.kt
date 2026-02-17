@@ -38,6 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fr
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværSterkeVelferdsgrunnerEllerJobbintervju
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
@@ -77,6 +78,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgels
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
@@ -342,6 +344,12 @@ interface MeldekortMother : MotherOfAllMothers {
                             )
 
                             MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> FraværGodkjentAvNav.create(
+                                dato,
+                                tiltakstype,
+                                antallBarn,
+                            )
+
+                            MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> FraværSterkeVelferdsgrunnerEllerJobbintervju.create(
                                 dato,
                                 tiltakstype,
                                 antallBarn,
@@ -917,6 +925,8 @@ fun MeldekortBehandling.tilOppdaterMeldekortKommando(
 
                 MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_GODKJENT_AV_NAV
 
+                MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> OppdaterMeldekortKommando.Status.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
+
                 MeldekortDagStatus.FRAVÆR_ANNET -> OppdaterMeldekortKommando.Status.FRAVÆR_ANNET
 
                 MeldekortDagStatus.IKKE_BESVART -> if (dag.dato.erHelg()) {
@@ -954,6 +964,8 @@ fun MeldekortBehandling.tilSendMeldekortTilBeslutterKommando(
                 MeldekortDagStatus.FRAVÆR_SYK -> OppdaterMeldekortKommando.Status.FRAVÆR_SYK
 
                 MeldekortDagStatus.FRAVÆR_SYKT_BARN -> OppdaterMeldekortKommando.Status.FRAVÆR_SYKT_BARN
+
+                MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> OppdaterMeldekortKommando.Status.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
 
                 MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_GODKJENT_AV_NAV
 
