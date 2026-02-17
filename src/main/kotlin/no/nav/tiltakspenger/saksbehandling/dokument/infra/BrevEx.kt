@@ -31,7 +31,7 @@ fun Int.toTekst(): String = when (this) {
 
 fun AntallBarn.toTekst(): String = this.value.toTekst()
 
-fun toAntallDagerTekst(
+fun tilAntallDagerTekst(
     antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>,
 ): String? {
     val verdier = antallDagerPerMeldeperiode.verdier.distinctBy { it.value }
@@ -45,10 +45,10 @@ fun toAntallDagerTekst(
     if (antallDager == 0 || antallDager > 10 || erOddetall(antallDager)) {
         return null
     } else if (antallDager == 2) {
-        return "en dag per uke"
+        return "en dag"
     } else {
         val antallDagerPerUke = antallDager / 2
-        return "${antallDagerPerUke.toTekst()} dager per uke"
+        return "${antallDagerPerUke.toTekst()} dager"
     }
 }
 

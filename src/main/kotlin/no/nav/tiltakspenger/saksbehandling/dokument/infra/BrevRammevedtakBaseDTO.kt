@@ -23,7 +23,7 @@ sealed interface BrevRammevedtakInnvilgelseBaseDTO : BrevRammevedtakBaseDTO {
     val introTekst: String
     val harBarnetillegg: Boolean
     val satser: List<SatserDTO>
-    val innvilgelsesperioder: List<BrevPeriodeDTO>
+    val innvilgelsesperioder: BrevInnvilgelsesperioderDTO
     val barnetillegg: List<BrevBarnetilleggDTO>
 
     data class SatserDTO(
@@ -45,6 +45,11 @@ data class BrevPeriodeDTO private constructor(val fraOgMed: String, val tilOgMed
         }
     }
 }
+
+data class BrevInnvilgelsesperioderDTO(
+    val antallDagerTekst: String?,
+    val perioder: List<BrevPeriodeDTO>,
+)
 
 data class BrevBarnetilleggDTO(
     val antallBarnTekst: String,

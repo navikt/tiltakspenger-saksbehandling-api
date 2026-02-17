@@ -27,7 +27,7 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     override val introTekst: String,
     override val harBarnetillegg: Boolean,
     override val satser: List<SatserDTO>,
-    override val innvilgelsesperioder: List<BrevPeriodeDTO>,
+    override val innvilgelsesperioder: BrevInnvilgelsesperioderDTO,
     override val barnetillegg: List<BrevBarnetilleggDTO>,
 ) : BrevRammevedtakInnvilgelseBaseDTO
 
@@ -94,7 +94,7 @@ private fun tilIntroTekst(
     barnetillegg: Periodisering<AntallBarn>?,
 ): String {
     val antallDagerPerUkeTekst =
-        toAntallDagerTekst(innvilgelsesperioder.antallDagerPerMeldeperiode)?.let { " for $it" } ?: ""
+        tilAntallDagerTekst(innvilgelsesperioder.antallDagerPerMeldeperiode)?.let { " for $it per uke" } ?: ""
 
     val perioderMedBarnetillegg = barnetillegg?.perioderMedVerdi
         ?.filter { it.verdi.value > 0 }
@@ -121,12 +121,15 @@ private fun tilIntroTekst(
 
 private fun tilInnvilgelsesperioder(
     innvilgelsesperioder: Innvilgelsesperioder,
-): List<BrevPeriodeDTO> {
+): BrevInnvilgelsesperioderDTO {
     val sammenhengendeInnvilgelsesperioder = innvilgelsesperioder.perioder.leggSammen(false)
 
-    return sammenhengendeInnvilgelsesperioder.map {
-        BrevPeriodeDTO.fraPeriode(it)
-    }
+    return BrevInnvilgelsesperioderDTO(
+        antallDagerTekst = tilAntallDagerTekst(innvilgelsesperioder.antallDagerPerMeldeperiode),
+        perioder = sammenhengendeInnvilgelsesperioder.map {
+            BrevPeriodeDTO.fraPeriode(it)
+        },
+    )
 }
 
 private fun tilBarnetillegg(
