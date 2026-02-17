@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -24,11 +25,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.time.LocalDate
 
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.oppdaterKlagebehandlingFormkravRoute]
@@ -88,6 +91,8 @@ interface OppdaterKlagebehandlingFormkravBuilder {
         erKlagefristenOverholdt: Boolean = true,
         erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
         erKlagenSignert: Boolean = true,
+        innsendingsdato: LocalDate = 16.februar(2026),
+        innsendingskilde: KlageInnsendingskilde = KlageInnsendingskilde.DIGITAL,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
@@ -111,7 +116,9 @@ interface OppdaterKlagebehandlingFormkravBuilder {
                     "klagesDetPåKonkreteElementerIVedtaket": $klagesDetPåKonkreteElementerIVedtaket,
                     "erKlagefristenOverholdt": $erKlagefristenOverholdt,
                     "erUnntakForKlagefrist": ${erUnntakForKlagefrist?.let { "\"$it\"" }},
-                    "erKlagenSignert": $erKlagenSignert
+                    "erKlagenSignert": $erKlagenSignert,
+                    "innsendingsdato": "$innsendingsdato",
+                    "innsendingskilde": "${innsendingskilde.name}"
                 }
                 """.trimIndent(),
             )

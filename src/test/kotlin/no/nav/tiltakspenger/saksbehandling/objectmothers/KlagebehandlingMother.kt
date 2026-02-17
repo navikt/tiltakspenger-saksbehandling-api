@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
@@ -22,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.oppdaterBrevtekst
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.opprett
@@ -32,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.vurder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface KlagebehandlingMother : MotherOfAllMothers {
@@ -51,6 +54,8 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         erKlagefristenOverholdt: Boolean = true,
         erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
         erKlagenSignert: Boolean = true,
+        innsendingsdato: LocalDate = 16.februar(2026),
+        innsendingskilde: KlageInnsendingskilde = KlageInnsendingskilde.DIGITAL,
         correlationId: CorrelationId = CorrelationId.generate(),
     ): Klagebehandling {
         return runBlocking {
@@ -70,6 +75,8 @@ interface KlagebehandlingMother : MotherOfAllMothers {
                     erKlagefristenOverholdt = erKlagefristenOverholdt,
                     erUnntakForKlagefrist = erUnntakForKlagefrist,
                     erKlagenSignert = erKlagenSignert,
+                    innsendingsdato = innsendingsdato,
+                    innsendingskilde = innsendingskilde,
                     correlationId = correlationId,
                 ),
             )

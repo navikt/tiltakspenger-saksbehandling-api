@@ -4,7 +4,34 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlageInnsendingskildeDb.Companion.toDb
+import java.time.LocalDate
+
+enum class KlageInnsendingskildeDb {
+    DIGITAL,
+    PAPIR,
+    MODIA,
+    ANNET,
+    ;
+
+    fun toDomain(): KlageInnsendingskilde = when (this) {
+        DIGITAL -> KlageInnsendingskilde.DIGITAL
+        PAPIR -> KlageInnsendingskilde.PAPIR
+        MODIA -> KlageInnsendingskilde.MODIA
+        ANNET -> KlageInnsendingskilde.ANNET
+    }
+
+    companion object {
+        fun KlageInnsendingskilde.toDb(): KlageInnsendingskildeDb = when (this) {
+            KlageInnsendingskilde.DIGITAL -> DIGITAL
+            KlageInnsendingskilde.PAPIR -> PAPIR
+            KlageInnsendingskilde.MODIA -> MODIA
+            KlageInnsendingskilde.ANNET -> ANNET
+        }
+    }
+}
 
 private data class KlagebehandlingFormkravDbJson(
     val vedtakDetKlagesPå: String?,
@@ -13,6 +40,8 @@ private data class KlagebehandlingFormkravDbJson(
     val erKlagefristenOverholdt: Boolean,
     val erUnntakForKlagefrist: KlagefristUnntakSvarordDb?,
     val erKlagenSignert: Boolean,
+    val innsendingsdato: LocalDate,
+    val innsendingskilde: KlageInnsendingskildeDb,
 ) {
     fun toDomain(): KlageFormkrav {
         return KlageFormkrav(
@@ -22,6 +51,8 @@ private data class KlagebehandlingFormkravDbJson(
             erKlagefristenOverholdt = erKlagefristenOverholdt,
             erUnntakForKlagefrist = erUnntakForKlagefrist?.toDomain(),
             erKlagenSignert = erKlagenSignert,
+            innsendingsdato = innsendingsdato,
+            innsendingskilde = innsendingskilde.toDomain(),
         )
     }
 }
@@ -57,6 +88,8 @@ fun KlageFormkrav.toDbJson(): String {
         erKlagefristenOverholdt = erKlagefristenOverholdt,
         erUnntakForKlagefrist = erUnntakForKlagefrist?.let { KlagefristUnntakSvarordDb.toDbDto(it) },
         erKlagenSignert = erKlagenSignert,
+        innsendingsdato = innsendingsdato,
+        innsendingskilde = this.innsendingskilde.toDb(),
     ).let { serialize(it) }
 }
 

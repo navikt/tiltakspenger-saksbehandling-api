@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.OppdaterKlagebehandlingFormkravKommando
+import java.time.LocalDate
 
 data class OppdaterKlagebehandlingFormkravBody(
     val journalpostId: String,
@@ -16,6 +17,8 @@ data class OppdaterKlagebehandlingFormkravBody(
     val erKlagefristenOverholdt: Boolean,
     val erUnntakForKlagefrist: KlagefristUnntakSvarordDto?,
     val erKlagenSignert: Boolean,
+    val innsendingsdato: LocalDate,
+    val innsendingskilde: KlageInnsendingskildeDto,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -34,6 +37,8 @@ data class OppdaterKlagebehandlingFormkravBody(
             erKlagefristenOverholdt = erKlagefristenOverholdt,
             erUnntakForKlagefrist = erUnntakForKlagefrist?.toDomain(),
             erKlagenSignert = erKlagenSignert,
+            innsendingsdato = innsendingsdato,
+            innsendingskilde = innsendingskilde.toDomain(),
             correlationId = correlationId,
         )
     }

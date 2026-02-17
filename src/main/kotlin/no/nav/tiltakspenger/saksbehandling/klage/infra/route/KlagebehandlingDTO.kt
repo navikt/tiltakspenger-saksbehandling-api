@@ -10,7 +10,10 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnnta
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto.Companion.toKlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto.Companion.toKlageresultatstypDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto.Companion.toKlagestatustypeDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlageInnsendingskildeDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlageInnsendingskildeDto.Companion.toDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlagefristUnntakSvarordDto
+import java.time.LocalDate
 
 data class KlagebehandlingDTO(
     val id: String,
@@ -31,6 +34,8 @@ data class KlagebehandlingDTO(
     val erKlagefristenOverholdt: Boolean,
     val erUnntakForKlagefrist: KlagefristUnntakSvarordDto?,
     val erKlagenSignert: Boolean,
+    val innsendingsdato: LocalDate,
+    val innsendingskilde: KlageInnsendingskildeDto,
     val brevtekst: List<TittelOgTekstDTO>,
     val avbrutt: AvbruttDTO?,
     val kanIverksette: Boolean?,
@@ -83,4 +88,6 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     rammebehandlingId = (resultat as? Klagebehandlingsresultat.Omgjør)?.rammebehandlingId?.toString(),
     ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
     hjemler = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.hjemler?.toKlagehjemmelDto(),
+    innsendingsdato = this.formkrav.innsendingsdato,
+    innsendingskilde = this.formkrav.innsendingskilde.toDto(),
 )

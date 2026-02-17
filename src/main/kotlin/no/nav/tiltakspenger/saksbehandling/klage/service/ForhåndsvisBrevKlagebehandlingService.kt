@@ -38,8 +38,18 @@ class ForhåndsvisBrevKlagebehandlingService(
                     hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                 )
             },
-            genererKlageInnstillingsbrev = suspend { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning ->
-                TODO("Implementer generering av opprettholdelsesbrev")
+            genererKlageInnstillingsbrev = suspend { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning, innsendingsdato ->
+                genererKlagebrevKlient.genererInnstillingsbrev(
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    tilleggstekst = tilleggstekst,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    forhåndsvisning = forhåndsvisning,
+                    vedtaksdato = LocalDate.now(clock),
+                    hentBrukersNavn = personService::hentNavn,
+                    hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                    innsendingsdato = innsendingsdato,
+                )
             },
         ).map { it.pdf }.mapLeft {
             KanIkkeForhåndsviseBrev.FeilMotPdfgen

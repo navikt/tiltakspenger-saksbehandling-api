@@ -34,6 +34,8 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                   "erKlagefristenOverholdt": true,
                   "erUnntakForKlagefrist": null,
                   "erKlagenSignert": true,
+                  "innsendingsdato": "2026-02-16",
+                  "innsendingskilde": "DIGITAL",
                   "brevtekst": [
                     {
                       "tittel": "Avvisning av klage",
@@ -80,6 +82,8 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                   "erKlagefristenOverholdt": true,
                   "erUnntakForKlagefrist": null,
                   "erKlagenSignert": true,
+                  "innsendingsdato": "2026-02-16",
+                  "innsendingskilde": "DIGITAL",
                   "brevtekst": [
                     {
                       "tittel": "Avvisning av klage",

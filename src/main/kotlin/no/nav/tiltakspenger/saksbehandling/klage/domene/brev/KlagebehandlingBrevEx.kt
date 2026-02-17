@@ -68,6 +68,7 @@ suspend fun Klagebehandling.genererBrev(
             saksbehandler,
             tilleggstekst,
             true,
+            this.formkrav.innsendingsdato,
         )
     }
 }
@@ -109,6 +110,7 @@ suspend fun Klagebehandling.genererBrev(
             saksbehandler!!,
             (resultat as Klagebehandlingsresultat.Opprettholdt).brevtekst!!,
             false,
+            this.formkrav.innsendingsdato,
         )
     }
 }

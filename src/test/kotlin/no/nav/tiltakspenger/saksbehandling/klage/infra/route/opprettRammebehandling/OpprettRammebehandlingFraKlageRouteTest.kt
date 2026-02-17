@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehand
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -12,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
@@ -50,6 +52,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                     erKlagenSignert = true,
                     erUnntakForKlagefrist = null,
                     vedtakDetKlagesPå = sak.vedtaksliste.rammevedtaksliste.first().id,
+                    innsendingsdato = 16.februar(2026),
+                    innsendingskilde = KlageInnsendingskilde.DIGITAL,
                 ),
                 iverksattTidspunkt = null,
                 avbrutt = null,
@@ -219,6 +223,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                     erKlagenSignert = true,
                     erUnntakForKlagefrist = null,
                     vedtakDetKlagesPå = sak.vedtaksliste.rammevedtaksliste.first().id,
+                    innsendingsdato = 16.februar(2026),
+                    innsendingskilde = KlageInnsendingskilde.DIGITAL,
                 ),
                 iverksattTidspunkt = null,
                 avbrutt = null,
@@ -312,6 +318,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                     erKlagenSignert = true,
                     erUnntakForKlagefrist = null,
                     vedtakDetKlagesPå = sak.vedtaksliste.rammevedtaksliste.first().id,
+                    innsendingsdato = 16.februar(2026),
+                    innsendingskilde = KlageInnsendingskilde.DIGITAL,
                 ),
                 iverksattTidspunkt = null,
                 avbrutt = null,

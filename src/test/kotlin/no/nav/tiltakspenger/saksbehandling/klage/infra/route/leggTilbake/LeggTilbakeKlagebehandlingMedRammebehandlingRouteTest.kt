@@ -44,6 +44,8 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
                   "erKlagefristenOverholdt": true,
                   "erUnntakForKlagefrist": null,
                   "erKlagenSignert": true,
+                  "innsendingsdato": "2026-02-16",
+                  "innsendingskilde": "DIGITAL",
                   "brevtekst": [],
                   "avbrutt": null,
                   "kanIverksette": false,

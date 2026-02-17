@@ -6,7 +6,9 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
+import java.time.LocalDate
 
 /**
  * @param erKlagefristenOverholdt Hvis true, skal erUnntakForKlagefrist være null. Hvis false, må erUnntakForKlagefrist være satt.
@@ -21,6 +23,8 @@ data class OpprettKlagebehandlingKommando(
     val erKlagefristenOverholdt: Boolean,
     val erUnntakForKlagefrist: KlagefristUnntakSvarord?,
     val erKlagenSignert: Boolean,
+    val innsendingsdato: LocalDate,
+    val innsendingskilde: KlageInnsendingskilde,
     val correlationId: CorrelationId,
 ) {
     fun toKlageFormkrav(): KlageFormkrav {
@@ -31,6 +35,8 @@ data class OpprettKlagebehandlingKommando(
             erKlagefristenOverholdt = erKlagefristenOverholdt,
             erUnntakForKlagefrist = erUnntakForKlagefrist,
             erKlagenSignert = erKlagenSignert,
+            innsendingsdato = innsendingsdato,
+            innsendingskilde = innsendingskilde,
         )
     }
 

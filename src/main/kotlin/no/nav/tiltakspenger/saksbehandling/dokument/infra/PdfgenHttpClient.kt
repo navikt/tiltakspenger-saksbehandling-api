@@ -81,6 +81,7 @@ class PdfgenHttpClient(
     private val opphørUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakOpphør")
     private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
     private val klageAvvisUri = URI.create("$baseUrl/api/v1/genpdf/tpts/klageAvvis")
+    private val klageInnstillingUrl = URI.create("$baseUrl/api/v1/genpdf/tpts/klageInnstilling")
 
     override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
@@ -379,6 +380,37 @@ class PdfgenHttpClient(
             },
             errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning",
             uri = klageAvvisUri,
+        )
+    }
+
+    override suspend fun genererInnstillingsbrev(
+        saksnummer: Saksnummer,
+        fnr: Fnr,
+        tilleggstekst: Brevtekster,
+        saksbehandlerNavIdent: String,
+        forhåndsvisning: Boolean,
+        vedtaksdato: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        innsendingsdato: LocalDate,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                BrevKlageInnstillingDTO.create(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    datoForUtsending = vedtaksdato,
+                    tilleggstekst = tilleggstekst,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    saksnummer = saksnummer,
+                    forhåndsvisning = forhåndsvisning,
+                    fnr = fnr,
+                    vedtaksdato = vedtaksdato,
+                    innsendingsdato = innsendingsdato,
+                )
+            },
+            errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning",
+            uri = klageInnstillingUrl,
         )
     }
 

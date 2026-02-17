@@ -48,6 +48,8 @@ class AvbrytKlagebehandlingRouteTest {
                      "erKlagefristenOverholdt": true,
                      "erUnntakForKlagefrist": null,
                      "erKlagenSignert": true,
+                     "innsendingsdato": "2026-02-16",
+                     "innsendingskilde": "DIGITAL",
                      "brevtekst": [],
                      "avbrutt": {
                           "avbruttAv": "saksbehandlerKlagebehandling",
@@ -98,6 +100,8 @@ class AvbrytKlagebehandlingRouteTest {
                      "erKlagefristenOverholdt": true,
                      "erUnntakForKlagefrist": null,
                      "erKlagenSignert": true,
+                     "innsendingsdato": "2026-02-16",
+                     "innsendingskilde": "DIGITAL",
                      "brevtekst": [],
                      "avbrutt": {
                           "avbruttAv": "saksbehandlerKlagebehandling",
@@ -160,6 +164,8 @@ class AvbrytKlagebehandlingRouteTest {
                      "erKlagefristenOverholdt": true,
                      "erUnntakForKlagefrist": null,
                      "erKlagenSignert": true,
+                     "innsendingsdato": "2026-02-16",
+                     "innsendingskilde": "DIGITAL",
                      "brevtekst": [],
                      "avbrutt": {
                           "avbruttAv": "Z12345",

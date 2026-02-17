@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -26,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto
@@ -38,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderK
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import java.time.LocalDate
 
 interface OpprettKlagebehandlingBuilder {
     /** Oppretter ny sak og starter klagebehandling til avvisning  */
@@ -135,6 +138,8 @@ interface OpprettKlagebehandlingBuilder {
         erKlagefristenOverholdt: Boolean = true,
         erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
         erKlagenSignert: Boolean = true,
+        innsendingsdato: LocalDate = 16.februar(2026),
+        innsendingskilde: KlageInnsendingskilde = KlageInnsendingskilde.DIGITAL,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
@@ -158,7 +163,10 @@ interface OpprettKlagebehandlingBuilder {
                     "klagesDetPåKonkreteElementerIVedtaket": $klagesDetPåKonkreteElementerIVedtaket,
                     "erKlagefristenOverholdt": $erKlagefristenOverholdt,
                     "erUnntakForKlagefrist": ${erUnntakForKlagefrist?.let { "\"$it\"" }},
-                    "erKlagenSignert": $erKlagenSignert
+                    "erKlagenSignert": $erKlagenSignert,
+                    "innsendingsdato": "$innsendingsdato",
+                    "innsendingskilde": "${innsendingskilde.name}"
+                    
                 }
                 """.trimIndent(),
             )

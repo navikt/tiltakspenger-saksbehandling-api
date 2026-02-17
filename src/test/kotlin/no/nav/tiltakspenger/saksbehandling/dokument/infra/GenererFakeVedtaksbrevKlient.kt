@@ -151,6 +151,34 @@ class GenererFakeVedtaksbrevKlient :
         ).right()
     }
 
+    override suspend fun genererInnstillingsbrev(
+        saksnummer: Saksnummer,
+        fnr: Fnr,
+        tilleggstekst: Brevtekster,
+        saksbehandlerNavIdent: String,
+        forhåndsvisning: Boolean,
+        vedtaksdato: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        innsendingsdato: LocalDate,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return PdfOgJson(
+            pdf = PdfA("pdf".toByteArray()),
+            json = BrevKlageInnstillingDTO.create(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                datoForUtsending = vedtaksdato,
+                tilleggstekst = tilleggstekst,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = forhåndsvisning,
+                fnr = fnr,
+                vedtaksdato = vedtaksdato,
+                innsendingsdato = innsendingsdato,
+            ),
+        ).right()
+    }
+
     override suspend fun genererOpphørBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,

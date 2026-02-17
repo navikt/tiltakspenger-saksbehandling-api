@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav
 
 import no.nav.tiltakspenger.libs.common.VedtakId
+import java.time.LocalDate
 
 /**
  * @param vedtakDetKlagesPå Id til vedtaket som klages på. Kan være null hvis klagen ikke gjelder et spesifikt vedtak, i så fall vil det bli en avvisning.
@@ -13,6 +14,8 @@ data class KlageFormkrav(
     val erKlagefristenOverholdt: Boolean,
     val erUnntakForKlagefrist: KlagefristUnntakSvarord?,
     val erKlagenSignert: Boolean,
+    val innsendingsdato: LocalDate,
+    val innsendingskilde: KlageInnsendingskilde,
 ) {
     val erAvvisning: Boolean by lazy {
         if (vedtakDetKlagesPå == null) return@lazy true
