@@ -174,7 +174,7 @@ private fun HjemmelForStansEllerOpphør.tekstMedBarnetillegg(): String {
     return when (this) {
         HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak ->
             """
-                Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til tiltakspenger og barnetillegg.
+                du må være deltaker i et arbeidsmarkedstiltak for å ha rett til tiltakspenger og barnetillegg.
                 
                 Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften § 2 og 3.
                 
