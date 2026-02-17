@@ -18,6 +18,8 @@ import org.intellij.lang.annotations.Language
  * man ønsker å gjøre pr rad som skal patches.
  *
  * Dokumentasjon: https://confluence.adeo.no/spaces/DVH/pages/459904637/Funksjonell+tid+teknisk+tid+og+lastet+tids+rolle+i+modell
+ *
+ * Vår dokumentasjon: docs/statistikk/resending_team_sak.md
  */
 internal class StatistikkSakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -60,28 +62,6 @@ internal class StatistikkSakPostgresRepo(
             ).map { row -> row.toStatistikkSakDTO() }
                 .asList,
         )
-    }
-
-    override fun hentRaderSomSkalPatchesOgResendes(behandlingId: String): List<StatistikkSakDTO> {
-        return sessionFactory.withSession {
-            it.run(
-                queryOf(
-                    """
-                    select *
-                    from statistikk_sak
-                    where behandlingId = :behandlingid
-                    and behandlingtype = :behandlingtype
-                    and soknadsformat = :soknadsformat
-                    """.trimIndent(),
-                    mapOf(
-                        "behandlingid" to behandlingId,
-                        "behandlingtype" to StatistikkBehandlingType.FØRSTEGANGSBEHANDLING.name,
-                        "soknadsformat" to StatistikkFormat.DIGITAL.name,
-                    ),
-                ).map { row -> row.toStatistikkSakDTO() }
-                    .asList,
-            )
-        }
     }
 
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
