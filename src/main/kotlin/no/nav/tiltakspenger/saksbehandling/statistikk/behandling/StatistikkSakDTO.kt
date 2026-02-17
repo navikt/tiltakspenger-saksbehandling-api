@@ -29,7 +29,7 @@ data class StatistikkSakDTO(
      * Formatet er ikke strukturert på noe vis per nå, bruker derfor verdiene som ble diskutert frem på slack
      * https://nav-it.slack.com/archives/C066TB6TFEH/p1765541455556029?thread_ts=1765190061.367509&cid=C066TB6TFEH
      */
-    val søknadsformat: String,
+    val søknadsformat: StatistikkFormat,
 
     /** Hvis systemet eller bruker har et forhold til når ytelsen normalt skal utbetales (planlagt uttak, ønsket oppstart etc.) */
     val forventetOppstartTidspunkt: LocalDate?,
@@ -67,6 +67,7 @@ data class StatistikkSakDTO(
     val ansvarligenhet: String,
 )
 
+// PAPIR skal ikke brukes mer, men beholdes fordi den finnes i databasen
 enum class StatistikkFormat {
     PAPIR,
     DIGITAL,

@@ -4,9 +4,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 
 private enum class SøknadstypeDb {
     DIGITAL,
-
-    @Deprecated("Erstattet av mer spesifikke typer: PAPIR_SKJEMA, PAPIR_FRIHAND, MODIA og ANNET")
-    PAPIR,
     PAPIR_SKJEMA,
     PAPIR_FRIHAND,
     MODIA,
@@ -16,7 +13,6 @@ private enum class SøknadstypeDb {
 fun Søknadstype.toDbValue(): String {
     return when (this) {
         Søknadstype.DIGITAL -> SøknadstypeDb.DIGITAL
-        Søknadstype.PAPIR -> SøknadstypeDb.PAPIR
         Søknadstype.PAPIR_SKJEMA -> SøknadstypeDb.PAPIR_SKJEMA
         Søknadstype.PAPIR_FRIHAND -> SøknadstypeDb.PAPIR_FRIHAND
         Søknadstype.MODIA -> SøknadstypeDb.MODIA
@@ -27,7 +23,6 @@ fun Søknadstype.toDbValue(): String {
 fun String.toSøknadstype(): Søknadstype {
     return when (SøknadstypeDb.valueOf(this)) {
         SøknadstypeDb.DIGITAL -> Søknadstype.DIGITAL
-        SøknadstypeDb.PAPIR -> Søknadstype.PAPIR
         SøknadstypeDb.PAPIR_SKJEMA -> Søknadstype.PAPIR_SKJEMA
         SøknadstypeDb.PAPIR_FRIHAND -> Søknadstype.PAPIR_FRIHAND
         SøknadstypeDb.MODIA -> Søknadstype.MODIA
