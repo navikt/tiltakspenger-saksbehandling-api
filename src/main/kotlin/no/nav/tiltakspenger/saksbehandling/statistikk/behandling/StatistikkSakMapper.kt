@@ -38,7 +38,7 @@ fun genererSaksstatistikkForRammevedtak(
         endretTidspunkt = vedtak.opprettet,
         utbetaltTidspunkt = null,
         tekniskTidspunkt = nå(clock),
-        søknadsformat = StatistikkFormat.DIGITAL.name,
+        søknadsformat = behandling.getSoknadsformat(),
         // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende søknadsbehandling sin første innvilget fraOgMed eller null?
         forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.vedtaksperiode?.fraOgMed else null,
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.SØKNADSBEHANDLING else StatistikkBehandlingType.REVURDERING,
@@ -96,10 +96,7 @@ fun genererSaksstatistikkForBehandling(
         endretTidspunkt = behandling.sistEndret,
         utbetaltTidspunkt = null,
         tekniskTidspunkt = nå(clock),
-        søknadsformat = when (behandling) {
-            is Søknadsbehandling -> behandling.søknad.søknadstype.name
-            is Revurdering -> StatistikkFormat.DIGITAL.name
-        },
+        søknadsformat = behandling.getSoknadsformat(),
         forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.vedtaksperiode?.fraOgMed else null,
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.SØKNADSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         behandlingStatus = if (behandling.erAvbrutt) {
@@ -130,6 +127,13 @@ fun genererSaksstatistikkForBehandling(
     )
 }
 
+private fun Rammebehandling.getSoknadsformat(): StatistikkFormat {
+    return when (this) {
+        is Søknadsbehandling -> this.søknad.søknadstype.toSøknadsformat()
+        is Revurdering -> StatistikkFormat.DIGITAL
+    }
+}
+
 private fun Rammebehandling.getBehandlingAarsak(): StatistikkBehandlingAarsak? {
     if (this is Søknadsbehandling) {
         if (this.søknad.behandlingsarsak != null) {
@@ -158,7 +162,6 @@ private fun HjemmelForStansEllerOpphør.toBehandlingAarsak() =
 private fun Søknadstype.toSøknadsformat(): StatistikkFormat =
     when (this) {
         Søknadstype.DIGITAL -> StatistikkFormat.DIGITAL
-        Søknadstype.PAPIR -> StatistikkFormat.PAPIR
         Søknadstype.PAPIR_SKJEMA -> StatistikkFormat.PAPIR_SKJEMA
         Søknadstype.PAPIR_FRIHAND -> StatistikkFormat.PAPIR_FRIHAND
         Søknadstype.MODIA -> StatistikkFormat.MODIA
