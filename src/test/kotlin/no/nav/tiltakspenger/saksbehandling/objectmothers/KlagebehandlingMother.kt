@@ -83,7 +83,9 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         }
     }
 
-    fun opprettholdtKlagebehandlingKlarForOversendelse(): Klagebehandling {
+    fun opprettholdtKlagebehandlingKlarForOversendelse(
+        innstillingsbrevJournalpostId: JournalpostId = JournalpostId("journalpostId"),
+    ): Klagebehandling {
         val clock = TikkendeKlokke()
         val correlationId: CorrelationId = CorrelationId.generate()
         val opprettetKlagebehandling = opprettKlagebehandling(vedtakDetKlagesPå = VedtakId.random(), clock = clock, correlationId = correlationId)
@@ -120,7 +122,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
             ),
         ).getOrFail()
         return iverksattOpprettholdt
-            .oppdaterInnstillingsbrevJournalpost(JournalpostId("journalpostId"), nå)
+            .oppdaterInnstillingsbrevJournalpost(innstillingsbrevJournalpostId, nå)
             .oppdaterInnstillingsbrevDistribusjon(DistribusjonId("distribusjonId"), nå)
     }
 }

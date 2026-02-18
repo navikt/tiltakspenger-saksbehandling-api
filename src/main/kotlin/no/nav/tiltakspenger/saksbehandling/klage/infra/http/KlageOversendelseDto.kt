@@ -31,10 +31,13 @@ fun Klagebehandling.toOversendelsesDto(
                 type = TilknyttetJournalpostType.OPPRINNELIG_VEDTAK,
                 journalpostId = journalpostIdVedtak.toString(),
             ),
+            TilknyttetJournalpost(
+                type = TilknyttetJournalpostType.OVERSENDELSESBREV,
+                // journalpostIdInnstillingsbrev skal være satt før jobben sender til KA.
+                journalpostId = resultat.journalpostIdInnstillingsbrev!!.toString(),
+            ),
         ),
-        // vi har kun data for journalposten, ikke for når klagen ble mottatt i vedtaksinstansen
-        brukersKlageMottattVedtaksinstans = this.klagensJournalpostOpprettet.toLocalDate(),
-        hindreAutomatiskSvarbrev = null,
+        brukersKlageMottattVedtaksinstans = this.formkrav.innsendingsdato,
     )
 }
 
@@ -46,7 +49,6 @@ data class KlageOversendelseDto(
     val hjemler: List<String>,
     val tilknyttedeJournalposter: List<TilknyttetJournalpost>,
     val brukersKlageMottattVedtaksinstans: LocalDate?,
-    val hindreAutomatiskSvarbrev: Boolean?,
 ) {
     @JsonInclude
     val type: String = "KLAGE"
@@ -71,9 +73,6 @@ data class SakenGjelderId(
      */
     val verdi: String,
 ) {
-    /** Enum. Gyldige verdier er [PERSON,VIRKSOMHET].
-     * TODO - dersom vi skal sette 'klager' på DTO'en, så må type inn i konstruktøren
-     */
     @JsonInclude
     val type: String = "PERSON"
 }
@@ -94,8 +93,6 @@ enum class TilknyttetJournalpostType {
     BRUKERS_SOEKNAD,
     OPPRINNELIG_VEDTAK,
     BRUKERS_KLAGE,
-    BRUKERS_OMGJOERINGSKRAV,
-    BRUKERS_BEGJAERING_OM_GJENOPPTAK,
     OVERSENDELSESBREV,
     KLAGE_VEDTAK,
     ANNET,
