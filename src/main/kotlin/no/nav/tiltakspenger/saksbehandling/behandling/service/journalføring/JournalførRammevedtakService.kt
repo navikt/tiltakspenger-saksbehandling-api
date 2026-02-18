@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
@@ -101,15 +102,15 @@ class JournalførRammevedtakService(
     }
 
     private fun Rammevedtak.harOmgjortBarnetillegg(): Boolean {
-        val rammevedtakSomOmgjøres =
-            rammevedtakRepo.hentForVedtakIder(omgjørRammevedtak.rammevedtakIDer).zip(omgjørRammevedtak.perioder)
+        val rammevedtakSomOmgjøres: Map<VedtakId, Rammevedtak> =
+            rammevedtakRepo.hentForVedtakIder(omgjørRammevedtak.rammevedtakIDer).associateBy { it.id }
 
         require(rammevedtakSomOmgjøres.size == omgjørRammevedtak.size) {
             "Forventet at alle rammevedtak som omgjøres skal kunne hentes. Fikk ${rammevedtakSomOmgjøres.size} rammevedtak, forventet ${omgjørRammevedtak.size}."
         }
 
-        return rammevedtakSomOmgjøres.any { (rammevedtak, omgjortPeriode) ->
-            rammevedtak.barnetillegg?.harBarnetilleggIPeriode(omgjortPeriode) ?: false
+        return omgjørRammevedtak.any {
+            rammevedtakSomOmgjøres[it.rammevedtakId]!!.barnetillegg?.harBarnetilleggIPeriode(it.periode) ?: false
         }
     }
 }
