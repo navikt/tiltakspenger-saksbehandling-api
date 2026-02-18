@@ -54,7 +54,6 @@ class BrevRevurderingInnvilgetDTOTest {
                  "beslutterNavn":"Saksbehandler Navn",
                  "kontor":"Nav Tiltakspenger",
                  "harBarnetillegg":false,
-                 "introTekst": "Du får tiltakspenger fra og med 1. juni 2025 til og med 31. august 2025 for fem dager per uke.",
                  "satser": [
                    {
                      "år": 2025,
@@ -108,7 +107,6 @@ class BrevRevurderingInnvilgetDTOTest {
                   "beslutterNavn":"Saksbehandler Navn",
                   "kontor":"Nav Tiltakspenger",
                   "harBarnetillegg":false,
-                  "introTekst": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 for fem dager per uke.",
                   "satser": [
                   {
                     "år": 2024,
@@ -167,7 +165,6 @@ class BrevRevurderingInnvilgetDTOTest {
                  "beslutterNavn":"Saksbehandler Navn",
                  "kontor":"Nav Tiltakspenger",
                  "harBarnetillegg":true,
-                 "introTekst":"Du får tiltakspenger og barnetillegg for to barn fra og med 1. juni 2025 til og med 31. august 2025 for fem dager per uke.",
                  "satser": [
                    {
                      "år": 2025,
@@ -236,7 +233,6 @@ class BrevRevurderingInnvilgetDTOTest {
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
                   "harBarnetillegg": true,
-                  "introTekst": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 for fem dager per uke.\n\nDu får barnetillegg for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
                   "satser": [
                     {
                       "år": 2024,
@@ -318,7 +314,6 @@ class BrevRevurderingInnvilgetDTOTest {
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
                   "harBarnetillegg": true,
-                  "introTekst": "Du får tiltakspenger fra og med 1. november 2024 til og med 31. januar 2025 for fem dager per uke.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 30. november 2024, for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og for tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
                   "satser": [
                     {
                       "år": 2024,
@@ -411,7 +406,6 @@ class BrevRevurderingInnvilgetDTOTest {
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
                   "harBarnetillegg": true,
-                  "introTekst": "Du får tiltakspenger fra og med 1. november 2024 til og med 28. februar 2025 og fra og med 1. april 2025 til og med 30. april 2025 for fem dager per uke.\n\nDu får barnetillegg for ett barn fra og med 1. november 2024 til og med 31. januar 2025, for to barn fra og med 1. februar 2025 til og med 28. februar 2025 og for tre barn fra og med 1. april 2025 til og med 30. april 2025.",
                   "satser": [
                     {
                       "år": 2024,
@@ -509,7 +503,6 @@ class BrevRevurderingInnvilgetDTOTest {
                   "beslutterNavn": "Saksbehandler Navn",
                   "kontor": "Nav Tiltakspenger",
                   "harBarnetillegg": true,
-                  "introTekst": "Du får tiltakspenger og barnetillegg for ett barn fra og med 1. november 2024 til og med 28. februar 2025, for to barn fra og med 1. april 2025 til og med 30. april 2025 og for tre barn fra og med 2. mai 2025 til og med 31. mai 2025 for fem dager per uke.",
                   "satser": [
                     {
                       "år": 2024,
