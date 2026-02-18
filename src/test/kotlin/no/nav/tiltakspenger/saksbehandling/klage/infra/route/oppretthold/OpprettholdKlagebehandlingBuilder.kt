@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett
+package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppretthold
 
 import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
@@ -19,35 +19,35 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
-import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagevedtakForKlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett.iverksettAvvistKlagebehandlingRoute]
  */
-interface IverksettKlagebehandlingBuilder {
+interface OpprettholdKlagebehandlingBuilder {
     /** 1. Oppretter ny sak
-     *  2. Starter klagebehandling til avvisning
+     *  2. Starter klagebehandling til opprettholdelse
      *  3. Oppdaterer brevtekst
-     *  4. Iverksetter
+     *  4. Opprettholder (emulerer journalføring, distribuering av vedtaksbrev og oversendelse til klageinstansen)
      */
-    suspend fun ApplicationTestBuilder.opprettSakOgIverksettKlagebehandling(
+    suspend fun ApplicationTestBuilder.opprettSakOgOpprettholdKlagebehandling(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Triple<Sak, Klagevedtak, KlagebehandlingDTOJson>? {
-        val (sak, klagebehandling, _) = this.opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
+    ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
+        val (sak, _, klagebehandling, _) = this.opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst(
             tac = tac,
             saksbehandler = saksbehandler,
             fnr = fnr,
         ) ?: return null
-        return iverksettKlagebehandlingForSakId(
+        return opprettholdKlagebehandlingForSakId(
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
@@ -59,23 +59,23 @@ interface IverksettKlagebehandlingBuilder {
 
     /**
      * Forventer at det allerede finnes en sak.
-     * Emulerer journalføring av vedtaksbrev.
+     * Emulerer journalføring og distribuering av innstillingsbrev + oversendelse til klageinstansen.
      */
-    suspend fun ApplicationTestBuilder.iverksettKlagebehandlingForSakId(
+    suspend fun ApplicationTestBuilder.opprettholdKlagebehandlingForSakId(
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Triple<Sak, Klagevedtak, KlagebehandlingDTOJson>? {
+    ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Patch,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/iverksett")
+                path("/sak/$sakId/klage/$klagebehandlingId/oppretthold")
             },
             jwt = jwt,
         ).apply {
@@ -90,16 +90,18 @@ interface IverksettKlagebehandlingBuilder {
                 bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
-            // Emulerer journalføring og distribuering av vedtaksbrev
-            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførAvvisningbrev()
-            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerAvvisningsbrev()
+            // Emulerer journalføring og distribuering av innstillingbrev + oversendelse til klageinstansen.
+            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev()
+            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev()
+            tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans()
+
             val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
             val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asString())
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
 
             return Triple(
                 oppdatertSak,
-                oppdatertSak.hentKlagevedtakForKlagebehandlingId(klagebehandlingId),
+                oppdatertSak.hentKlagebehandling(klagebehandlingId)!!,
                 jsonObject,
             )
         }

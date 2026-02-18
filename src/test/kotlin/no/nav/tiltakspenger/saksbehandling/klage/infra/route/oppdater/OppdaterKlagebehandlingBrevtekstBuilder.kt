@@ -70,14 +70,23 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
             forventetJsonBody = forventetJsonBody,
         )
     }
+
     suspend fun ApplicationTestBuilder.opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         brevtekst: List<TittelOgTekst> = listOf(
             TittelOgTekst(
-                tittel = NonBlankString.create("Avvisning av klage"),
-                tekst = NonBlankString.create("Din klage er dessverre avvist."),
+                tittel = NonBlankString.create("Hva klagesaken gjelder"),
+                tekst = NonBlankString.create("Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"),
+            ),
+            TittelOgTekst(
+                tittel = NonBlankString.create("Klagers anførsler"),
+                tekst = NonBlankString.create("<saksbehandler fyller ut>"),
+            ),
+            TittelOgTekst(
+                tittel = NonBlankString.create("Vurdering av klagen"),
+                tekst = NonBlankString.create("<saksbehandler fyller ut>"),
             ),
         ),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,

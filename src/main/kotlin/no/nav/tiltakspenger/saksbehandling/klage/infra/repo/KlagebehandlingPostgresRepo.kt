@@ -96,11 +96,15 @@ class KlagebehandlingPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                    select distinct k.sak_id
+                  select
+                      k.*,
+                      s.fnr,
+                      s.saksnummer
                     from klagebehandling k
+                    join sak s on s.id = k.sak_id
                     where k.status = 'OPPRETTHOLDT'
                     and k.resultat->>'journalpostIdInnstillingsbrev' is null
-                    order by k.sist_endret
+                    order by k.sist_endret, k.sak_id
                     limit $limit
                     """.trimIndent(),
                 ).map { fromRow(it) }.asList,
@@ -113,8 +117,12 @@ class KlagebehandlingPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                    select distinct k.sak_id
+                   select
+                      k.*,
+                      s.fnr,
+                      s.saksnummer
                     from klagebehandling k
+                    join sak s on s.id = k.sak_id
                     where k.status = 'OPPRETTHOLDT'
                     and k.resultat->>'journalpostIdInnstillingsbrev' is not null
                     and k.resultat->>'distribusjonId' is null
@@ -136,7 +144,7 @@ class KlagebehandlingPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                    select distinct k.sak_id
+                    select distinct k.sak_id, k.sist_endret
                     from klagebehandling k
                     where k.status = 'OPPRETTHOLDT'
                     and k.resultat->>'journalpostIdInnstillingsbrev' is not null

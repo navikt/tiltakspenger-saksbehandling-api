@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.jobb
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentJournalpostIdForVedtakId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandlingerSomSkalOversendesKlageinstansen
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppdaterOversendtKlageinstansenTidspunkt
@@ -12,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 class OversendKlageTilKlageinstansJobb(
     private val klagebehandlingRepo: KlagebehandlingRepo,
-    private val sakRepo: SakRepo,
+    private val sakService: SakService,
     private val kabalClient: KabalClient,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -24,7 +25,7 @@ class OversendKlageTilKlageinstansJobb(
     suspend fun oversendKlagerTilKlageinstans() {
         klagebehandlingRepo.hentSakerSomSkalOversendesKlageinstansen().forEach { sakId ->
             Either.runCatching {
-                val sak: Sak = sakRepo.hentForSakId(sakId)!!
+                val sak: Sak = sakService.hentForSakId(sakId)
                 sak.hentKlagebehandlingerSomSkalOversendesKlageinstansen().forEach { klagebehandling ->
                     Either.runCatching {
                         val journalpostIdVedtak = klagebehandling.formkrav.vedtakDetKlagesPå!!.let {

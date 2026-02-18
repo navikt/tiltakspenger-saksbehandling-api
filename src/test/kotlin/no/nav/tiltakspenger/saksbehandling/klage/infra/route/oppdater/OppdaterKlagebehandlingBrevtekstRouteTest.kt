@@ -85,12 +85,20 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                   "erKlagenSignert": true,
                   "innsendingsdato": "2026-02-16",
                   "innsendingskilde": "DIGITAL",
-                  "brevtekst": [
-                    {
-                      "tittel": "Avvisning av klage",
-                      "tekst": "Din klage er dessverre avvist."
-                    }
-                  ],
+                     "brevtekst": [
+                       {
+                         "tittel": "Hva klagesaken gjelder",
+                         "tekst": "Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"
+                       },
+                       {
+                         "tittel": "Klagers anførsler",
+                         "tekst": "<saksbehandler fyller ut>"
+                       },
+                       {
+                         "tittel": "Vurdering av klagen",
+                         "tekst": "<saksbehandler fyller ut>"
+                       }
+                     ],
                   "avbrutt": null,
                   "kanIverksetteVedtak": false,
                   "kanIverksetteOpprettholdelse": true,

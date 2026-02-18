@@ -93,10 +93,10 @@ internal fun start(
             { applicationContext.behandlingContext.journalførRammevedtaksbrevService.journalfør() },
             { applicationContext.behandlingContext.distribuerRammevedtaksbrevService.distribuer() },
 
-            { applicationContext.klagebehandlingContext.journalførKlagevedtakService.journalførAvvisningbrev() },
+            { applicationContext.klagebehandlingContext.journalførKlagebrevJobb.journalførAvvisningbrev() },
             // TODO jah: Mangler litt på innstilingsbrev+oversende klage før vi kan aktivere de.
             // { applicationContext.klagebehandlingContext.journalførKlagevedtakService.journalførInnstillingsbrev() },
-            { applicationContext.klagebehandlingContext.distribuerKlagevedtaksbrevService.distribuerAvvisningsbrev() },
+            { applicationContext.klagebehandlingContext.distribuerKlagebrevJobb.distribuerAvvisningsbrev() },
             // { applicationContext.klagebehandlingContext.distribuerKlagevedtaksbrevService.distribuerInnstillingsbrev() },
 
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },

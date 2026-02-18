@@ -268,14 +268,6 @@ open class ApplicationContext(
         )
     }
 
-    open val oversendKlageTilKlageinstansJobb by lazy {
-        OversendKlageTilKlageinstansJobb(
-            klagebehandlingRepo = klagebehandlingContext.klagebehandlingRepo,
-            sakRepo = sakContext.sakRepo,
-            kabalClient = klagebehandlingContext.kabalClient,
-        )
-    }
-
     open val delautomatiskSoknadsbehandlingJobb by lazy {
         DelautomatiskSoknadsbehandlingJobb(
             søknadRepo = søknadContext.søknadRepo,

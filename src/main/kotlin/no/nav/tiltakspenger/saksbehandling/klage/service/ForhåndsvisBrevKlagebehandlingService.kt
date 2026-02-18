@@ -26,7 +26,7 @@ class ForhåndsvisBrevKlagebehandlingService(
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
         return sak.forhåndsvisKlagebrev(
             kommando = kommando,
-            genererAvvisningsbrev = suspend { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning ->
+            genererAvvisningsbrev = { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning ->
                 genererKlagebrevKlient.genererAvvisningsvedtak(
                     saksnummer = saksnummer,
                     fnr = fnr,
@@ -38,7 +38,7 @@ class ForhåndsvisBrevKlagebehandlingService(
                     hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                 )
             },
-            genererKlageInnstillingsbrev = suspend { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning, innsendingsdato ->
+            genererKlageInnstillingsbrev = { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning, innsendingsdato ->
                 genererKlagebrevKlient.genererInnstillingsbrev(
                     saksnummer = saksnummer,
                     fnr = fnr,

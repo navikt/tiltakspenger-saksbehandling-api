@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient
 import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.DistribuerKlagebrevJobb
 import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.JournalførKlagebrevJobb
+import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.OversendKlageTilKlageinstansJobb
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
@@ -134,7 +135,7 @@ open class KlagebehandlingContext(
         )
     }
 
-    open val journalførKlagevedtakService: JournalførKlagebrevJobb by lazy {
+    open val journalførKlagebrevJobb: JournalførKlagebrevJobb by lazy {
         JournalførKlagebrevJobb(
             journalførKlagevedtaksbrevKlient = journalførKlagevedtaksbrevKlient,
             klagevedtakRepo = klagevedtakRepo,
@@ -146,7 +147,7 @@ open class KlagebehandlingContext(
         )
     }
 
-    open val distribuerKlagevedtaksbrevService by lazy {
+    open val distribuerKlagebrevJobb by lazy {
         DistribuerKlagebrevJobb(
             dokumentdistribusjonsklient = dokumentdistribusjonsklient,
             klagevedtakRepo = klagevedtakRepo,
@@ -212,6 +213,14 @@ open class KlagebehandlingContext(
         OpprettholdKlagebehandlingService(
             sakService = sakService,
             klagebehandlingRepo = klagebehandlingRepo,
+        )
+    }
+
+    open val oversendKlageTilKlageinstansJobb by lazy {
+        OversendKlageTilKlageinstansJobb(
+            klagebehandlingRepo = klagebehandlingRepo,
+            sakService = sakService,
+            kabalClient = kabalClient,
         )
     }
 }
