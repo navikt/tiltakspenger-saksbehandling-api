@@ -19,8 +19,6 @@ sealed interface BrevRammevedtakBaseDTO {
 }
 
 sealed interface BrevRammevedtakInnvilgelseBaseDTO : BrevRammevedtakBaseDTO {
-    @Deprecated("Erstattes av innvilgelsesperioder og barnetillegg - så kan pdfgen få bestemme hvordan de skal presenteres. Datoene blir formatert for å slippe å gjøre det i pdfgen")
-    val introTekst: String
     val harBarnetillegg: Boolean
     val satser: List<SatserDTO>
     val innvilgelsesperioder: BrevInnvilgelsesperioderDTO

@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.perioder
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
@@ -24,8 +23,6 @@ private data class BrevRevurderingInnvilgetDTO(
     override val datoForUtsending: String,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-    @Deprecated("Erstattes av innvilgelsesperioder og barnetillegg - så kan pdfgen få bestemme hvordan de skal presenteres. Datoene blir formatert for å slippe å gjøre det i pdfgen")
-    override val introTekst: String,
     override val harBarnetillegg: Boolean,
     override val satser: List<SatserDTO>,
     override val innvilgelsesperioder: BrevInnvilgelsesperioderDTO,
@@ -83,48 +80,10 @@ suspend fun genererRevurderingInnvilgetBrev(
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
-        introTekst = tilIntroTekst(innvilgelsesperioder, barnetillegg),
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         innvilgelsesperioder = tilInnvilgelsesperioder(innvilgelsesperioder),
         barnetillegg = tilBarnetillegg(barnetillegg),
     ).let { serialize(it) }
-}
-
-private fun tilIntroTekst(
-    innvilgelsesperioder: Innvilgelsesperioder,
-    barnetillegg: Periodisering<AntallBarn>?,
-): String {
-    val antallDagerPerUkeTekst =
-        tilAntallDagerTekst(innvilgelsesperioder.antallDagerPerMeldeperiode)?.let { " for $it per uke" } ?: ""
-
-    val perioderMedBarnetillegg = barnetillegg?.perioderMedVerdi
-        ?.filter { it.verdi.value > 0 }
-        ?.let { it.ifEmpty { null } }
-
-    val sammenhengendeInnvilgelsesperioder = innvilgelsesperioder.perioder.leggSammen(false)
-
-    val harBarnetilleggForHeleInnvilgelsesperioden =
-        perioderMedBarnetillegg?.perioder() == sammenhengendeInnvilgelsesperioder
-
-    val perioderMedBarnetilleggString = perioderMedBarnetillegg
-        ?.map { periodeMedVerdi ->
-            val antallBarn = periodeMedVerdi.verdi.toTekst()
-            "for $antallBarn barn fra og med ${periodeMedVerdi.periode.fraOgMed.format(norskDatoFormatter)} til og med ${
-                periodeMedVerdi.periode.tilOgMed.format(norskDatoFormatter)
-            }"
-        }?.joinMedKonjunksjon()
-
-    return if (harBarnetilleggForHeleInnvilgelsesperioden) {
-        "Du får tiltakspenger og barnetillegg $perioderMedBarnetilleggString$antallDagerPerUkeTekst."
-    } else {
-        val tiltakspengerString = sammenhengendeInnvilgelsesperioder.map {
-            "fra og med ${it.fraOgMed.format(norskDatoFormatter)} til og med ${it.tilOgMed.format(norskDatoFormatter)}"
-        }.joinMedKonjunksjon()
-
-        "Du får tiltakspenger $tiltakspengerString$antallDagerPerUkeTekst.".plus(
-            perioderMedBarnetilleggString?.let { "\n\nDu får barnetillegg $it." } ?: "",
-        )
-    }
 }
 
 private fun tilInnvilgelsesperioder(
