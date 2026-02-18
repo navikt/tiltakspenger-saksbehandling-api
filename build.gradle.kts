@@ -42,7 +42,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.29")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
-    implementation("com.aallam.ulid:ulid-kotlin:1.5.0")
+    implementation("com.aallam.ulid:ulid-kotlin:1.6.0")
 
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-call-id:$ktorVersion")
