@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Klagehjemmel
 enum class KlagehjemmelDto {
     ARBEIDSMARKEDSLOVEN_2,
     ARBEIDSMARKEDSLOVEN_13,
-    ARBEIDSMARKEDSLOVEN_13_L1,
+    ARBEIDSMARKEDSLOVEN_13_LØNN,
     ARBEIDSMARKEDSLOVEN_13_L4,
     ARBEIDSMARKEDSLOVEN_15,
     ARBEIDSMARKEDSLOVEN_17,
@@ -47,7 +47,7 @@ enum class KlagehjemmelDto {
     fun toKlagehjemmel(): Klagehjemmel = when (this) {
         ARBEIDSMARKEDSLOVEN_2 -> ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_2
         ARBEIDSMARKEDSLOVEN_13 -> ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13
-        ARBEIDSMARKEDSLOVEN_13_L1 -> ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L1
+        ARBEIDSMARKEDSLOVEN_13_LØNN -> ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_LØNN
         ARBEIDSMARKEDSLOVEN_13_L4 -> ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L4
         ARBEIDSMARKEDSLOVEN_15 -> ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_15
         ARBEIDSMARKEDSLOVEN_17 -> ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_17
@@ -80,7 +80,7 @@ enum class KlagehjemmelDto {
     companion object {
         fun Klagehjemmel.toKlagehjemmelDto(): KlagehjemmelDto = when (this) {
             ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13 -> ARBEIDSMARKEDSLOVEN_13
-            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L1 -> ARBEIDSMARKEDSLOVEN_13_L1
+            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_LØNN -> ARBEIDSMARKEDSLOVEN_13_LØNN
             ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L4 -> ARBEIDSMARKEDSLOVEN_13_L4
             ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_15 -> ARBEIDSMARKEDSLOVEN_15
             ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_17 -> ARBEIDSMARKEDSLOVEN_17

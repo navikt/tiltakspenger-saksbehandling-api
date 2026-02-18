@@ -16,6 +16,7 @@ sealed interface Hjemmel {
     val paragraf: Paragraf
     val rettskilde: Rettskilde
     val ledd: Ledd? get() = null
+    val punktum: Int? get() = null
 
     sealed interface ArbeidsmarkedslovenHjemmel : Hjemmel {
         override val rettskilde: Rettskilde get() = Arbeidsmarkedsloven
@@ -32,7 +33,14 @@ sealed interface Hjemmel {
             override val paragraf = Paragraf("13")
         }
 
-        data object ARBEIDSMARKEDSLOVEN_13_L1 : ArbeidsmarkedslovenHjemmel, KlageArbeidsmarkedsloven {
+        /** Henviser kun til første leddsetningen av 1. punktum i paragraf 13: Deltakere i arbeidsmarkedstiltak kan få tiltakspenger dersom de ikke mottar lønn fra tiltaksarrangør eller har rett til å få dekket utgifter til livsopphold på annen måte. */
+        data object ARBEIDSMARKEDSLOVEN_13_LØNN : ArbeidsmarkedslovenHjemmel, KlageArbeidsmarkedsloven {
+            override val paragraf = Paragraf("13")
+            override val ledd = Ledd(1)
+            override val punktum = 1
+        }
+
+        data object ARBEIDSMARKEDSLOVEN_13_L1 : ArbeidsmarkedslovenHjemmel {
             override val paragraf = Paragraf("13")
             override val ledd = Ledd(1)
         }
@@ -275,4 +283,5 @@ sealed interface Hjemmel {
             override val paragraf = Paragraf("11")
         }
     }
+
 }

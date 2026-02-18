@@ -37,7 +37,7 @@ class KabalHttpClientTest {
                     klagebehandling = klagebehandling,
                     journalpostIdVedtak = JournalpostId("journalpost-vedtak-1"),
                 ) shouldBe OversendtKlageTilKabal(
-                    request = """{"sakenGjelder":{"id":{"verdi":"${klagebehandling.fnr.verdi}","type":"PERSON"}},"fagsak":{"fagsakId":"202401011234","fagsystem":"TILTAKSPENGER"},"kildeReferanse":"${klagebehandling.id}","dvhReferanse":"${klagebehandling.id}","hjemler":["TILTAKSPENGEFORSKRIFTEN_3"],"tilknyttedeJournalposter":[{"type":"BRUKERS_KLAGE","journalpostId":"journalpostId"},{"type":"OPPRINNELIG_VEDTAK","journalpostId":"journalpost-vedtak-1"},{"type":"OVERSENDELSESBREV","journalpostId":"journalpostId"}],"brukersKlageMottattVedtaksinstans":"2026-02-16","forrigeBehandlendeEnhet":"0387","type":"KLAGE","ytelse":"TIL_TIP"}""".trimIndent(),
+                    request = """{"sakenGjelder":{"id":{"verdi":"${klagebehandling.fnr.verdi}","type":"PERSON"}},"fagsak":{"fagsakId":"202401011234","fagsystem":"TILTAKSPENGER"},"kildeReferanse":"${klagebehandling.id}","dvhReferanse":"${klagebehandling.id}","hjemler":["FS_TIP_3"],"tilknyttedeJournalposter":[{"type":"BRUKERS_KLAGE","journalpostId":"journalpostId"},{"type":"OPPRINNELIG_VEDTAK","journalpostId":"journalpost-vedtak-1"},{"type":"OVERSENDELSESBREV","journalpostId":"journalpostId"}],"brukersKlageMottattVedtaksinstans":"2026-02-16","forrigeBehandlendeEnhet":"0387","type":"KLAGE","ytelse":"TIL_TIP"}""".trimIndent(),
                     response = "",
                     oversendtTidspunkt = nå(fixedClock),
                 ).right()

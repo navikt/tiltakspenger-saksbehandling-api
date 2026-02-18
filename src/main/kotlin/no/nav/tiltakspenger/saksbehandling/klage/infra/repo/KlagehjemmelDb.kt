@@ -8,12 +8,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagehjemler
 enum class KlagehjemmelDb {
     ARBEIDSMARKEDSLOVEN_2,
     ARBEIDSMARKEDSLOVEN_13,
-    ARBEIDSMARKEDSLOVEN_13_L1,
-    ARBEIDSMARKEDSLOVEN_13_L4,
-
-    // Beholder disse 2 for bakoverkompabilitet. TODO jah: Bør migreres i dev-basen.
     ARBEIDSMARKEDSLOVEN_13_LØNN,
-    ARBEIDSMARKEDSLOVEN_13_FJERDE_LEDD,
+    ARBEIDSMARKEDSLOVEN_13_L4,
     ARBEIDSMARKEDSLOVEN_15,
     ARBEIDSMARKEDSLOVEN_17,
     ARBEIDSMARKEDSLOVEN_22,
@@ -49,12 +45,10 @@ enum class KlagehjemmelDb {
     fun toDomain(): Klagehjemmel = when (this) {
         ARBEIDSMARKEDSLOVEN_2 -> Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_2
         ARBEIDSMARKEDSLOVEN_13 -> Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13
-        ARBEIDSMARKEDSLOVEN_13_LØNN -> Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13
-        ARBEIDSMARKEDSLOVEN_13_FJERDE_LEDD -> Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13
+        ARBEIDSMARKEDSLOVEN_13_LØNN -> Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_LØNN
+        ARBEIDSMARKEDSLOVEN_13_L4 -> Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L4
         ARBEIDSMARKEDSLOVEN_15 -> Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_15
         ARBEIDSMARKEDSLOVEN_17 -> Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_17
-        ARBEIDSMARKEDSLOVEN_13_L1 -> Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L1
-        ARBEIDSMARKEDSLOVEN_13_L4 -> Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L4
         ARBEIDSMARKEDSLOVEN_22 -> Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_22
         FOLKETRYGDLOVEN_22_15 -> Hjemmel.FolketrygdlovenHjemmel.FOLKETRYGDLOVEN_22_15
         FOLKETRYGDLOVEN_22_17_A -> Hjemmel.FolketrygdlovenHjemmel.FOLKETRYGDLOVEN_22_17_A
@@ -85,7 +79,7 @@ enum class KlagehjemmelDb {
         fun Klagehjemmel.toDb(): KlagehjemmelDb = when (this) {
             Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_2 -> ARBEIDSMARKEDSLOVEN_2
             Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13 -> ARBEIDSMARKEDSLOVEN_13
-            Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L1 -> ARBEIDSMARKEDSLOVEN_13_L1
+            Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_LØNN -> ARBEIDSMARKEDSLOVEN_13_LØNN
             Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L4 -> ARBEIDSMARKEDSLOVEN_13_L4
             Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_15 -> ARBEIDSMARKEDSLOVEN_15
             Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_17 -> ARBEIDSMARKEDSLOVEN_17

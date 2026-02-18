@@ -24,7 +24,7 @@ class OversendelsesDtoTest {
             fagsak = OversendelsesFagsak(fagsakId = saksnummer.verdi),
             kildeReferanse = klagebehandlingId.toString(),
             dvhReferanse = klagebehandlingId.toString(),
-            hjemler = listOf("TILTAKSPENGEFORSKRIFTEN_3"),
+            hjemler = listOf("FS_TIP_3"),
             tilknyttedeJournalposter = listOf(
                 TilknyttetJournalpost(
                     type = TilknyttetJournalpostType.BRUKERS_KLAGE,

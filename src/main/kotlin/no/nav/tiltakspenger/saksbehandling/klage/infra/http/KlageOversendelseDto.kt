@@ -1,7 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.http
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.ArbeidsmarkedslovenHjemmel
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.FolketrygdlovenHjemmel
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.ForeldelseslovenHjemmel
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.ForvaltningslovenHjemmel
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.TiltakspengeforskriftenHjemmel
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -98,69 +102,42 @@ enum class TilknyttetJournalpostType {
     ANNET,
 }
 
+/**
+ * https://github.com/navikt/klage-kodeverk/blob/077caf7d5402898e0bead6b723ce4f9443adc85b/src/main/kotlin/no/nav/klage/kodeverk/hjemmel/YtelseToHjemler.kt#L1320
+ */
 fun Klagehjemler.tilHjemlerDto(): List<String> {
     return this.map {
         when (it) {
-            // TODO jah klage: Synkroniser med det Kabal-gjengen legger inn hos seg.
-            Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13 -> "ARBEIDSMARKEDSLOVEN_13"
-
-            Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L1 -> "ARBEIDSMARKEDSLOVEN_13_L1"
-
-            Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L4 -> "ARBEIDSMARKEDSLOVEN_13_L4"
-
-            Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_15 -> "ARBEIDSMARKEDSLOVEN_15"
-
-            Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_17 -> "ARBEIDSMARKEDSLOVEN_17"
-
-            Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_2 -> "ARBEIDSMARKEDSLOVEN_2"
-
-            Hjemmel.ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_22 -> "ARBEIDSMARKEDSLOVEN_22"
-
-            Hjemmel.FolketrygdlovenHjemmel.FOLKETRYGDLOVEN_22_15 -> "FOLKETRYGDLOVEN_22_15"
-
-            Hjemmel.FolketrygdlovenHjemmel.FOLKETRYGDLOVEN_22_17_A -> "FOLKETRYGDLOVEN_22_17_A"
-
-            Hjemmel.ForeldelseslovenHjemmel.FORELDELSESLOVEN_10 -> "FORELDELSESLOVEN_10"
-
-            Hjemmel.ForeldelseslovenHjemmel.FORELDELSESLOVEN_2_OG_3 -> "FORELDELSESLOVEN_2_OG_3"
-
-            Hjemmel.ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_11 -> "FORVALTNINGSLOVEN_11"
-
-            Hjemmel.ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_17 -> "FORVALTNINGSLOVEN_17"
-
-            Hjemmel.ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_18_OG_19 -> "FORVALTNINGSLOVEN_18_OG_19"
-
-            Hjemmel.ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_28 -> "FORVALTNINGSLOVEN_28"
-
-            Hjemmel.ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_30 -> "FORVALTNINGSLOVEN_30"
-
-            Hjemmel.ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_31 -> "FORVALTNINGSLOVEN_31"
-
-            Hjemmel.ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_32 -> "FORVALTNINGSLOVEN_32"
-
-            Hjemmel.ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_35 -> "FORVALTNINGSLOVEN_35"
-
-            Hjemmel.ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_41 -> "FORVALTNINGSLOVEN_41"
-
-            Hjemmel.ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_42 -> "FORVALTNINGSLOVEN_42"
-
-            Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_10 -> "TILTAKSPENGEFORSKRIFTEN_10"
-
-            Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_11 -> "TILTAKSPENGEFORSKRIFTEN_11"
-
-            Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_2 -> "TILTAKSPENGEFORSKRIFTEN_2"
-
-            Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3 -> "TILTAKSPENGEFORSKRIFTEN_3"
-
-            Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_5 -> "TILTAKSPENGEFORSKRIFTEN_5"
-
-            Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_6 -> "TILTAKSPENGEFORSKRIFTEN_6"
-
-            Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_7 -> "TILTAKSPENGEFORSKRIFTEN_7"
-
-            Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_8 -> "TILTAKSPENGEFORSKRIFTEN_8"
-
-            Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_9 -> "TILTAKSPENGEFORSKRIFTEN_9"
+            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_2 -> "ARBML_2"
+            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13 -> "ARBML_13"
+            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_LØNN -> "ARBML_13_LOENN"
+            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L4 -> "ARBML_13_4"
+            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_15 -> "ARBML_15"
+            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_17 -> "ARBML_17"
+            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_22 -> "ARBML_22"
+            FolketrygdlovenHjemmel.FOLKETRYGDLOVEN_22_15 -> "FTRL_22_15"
+            FolketrygdlovenHjemmel.FOLKETRYGDLOVEN_22_17_A -> "FTRL_22_17A"
+            ForeldelseslovenHjemmel.FORELDELSESLOVEN_10 -> "FORELDELSESLOVEN_10"
+            ForeldelseslovenHjemmel.FORELDELSESLOVEN_2_OG_3 -> "FORELDELSESLOVEN_2_OG_3"
+            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_11 -> "FVL_11"
+            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_17 -> "FVL_17"
+            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_18_OG_19 -> "FVL_18_OG_19"
+            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_28 -> "FVL_28"
+            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_30 -> "FVL_30"
+            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_31 -> "FVL_31"
+            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_32 -> "FVL_32"
+            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_35 -> "FVL_35"
+            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_41 -> "FVL_41"
+            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_42 -> "FVL_42"
+            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_2 -> "FS_TIP_2"
+            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3 -> "FS_TIP_3"
+            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_5 -> "FS_TIP_5"
+            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_6 -> "FS_TIP_6"
+            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_7 -> "FS_TIP_7"
+            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_8 -> "FS_TIP_8"
+            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_9 -> "FS_TIP_9"
+            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_10 -> "FS_TIP_10"
+            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_11 -> "FS_TIP_11"
         }
     }
 }
