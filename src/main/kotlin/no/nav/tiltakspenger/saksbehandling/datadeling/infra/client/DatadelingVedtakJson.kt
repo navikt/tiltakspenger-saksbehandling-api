@@ -29,7 +29,7 @@ private data class DatadelingVedtakJson(
     val rettighet: DatadelingRettighet,
     val opprettet: String,
     val barnetillegg: Barnetillegg?,
-    val valgteHjemlerHarIkkeRettighet: List<String>?,
+    val valgteHjemlerHarIkkeRettighet: List<DatadelingHjemmelHarIkkeRettighet>?,
 ) {
     data class Barnetillegg(
         val perioder: List<BarnetilleggPeriode>,
@@ -119,7 +119,7 @@ private fun Barnetillegg.toDatadelingBarnetillegg(): DatadelingVedtakJson.Barnet
     null
 }
 
-private fun Rammevedtak.toValgteHjemlerHarIkkeRettighetListe(): List<String>? {
+private fun Rammevedtak.toValgteHjemlerHarIkkeRettighetListe(): List<DatadelingHjemmelHarIkkeRettighet>? {
     return when (this.rammebehandlingsresultat) {
         is Rammebehandlingsresultat.Innvilgelse -> null
         is Omgjøringsresultat.OmgjøringOpphør -> null
@@ -129,14 +129,14 @@ private fun Rammevedtak.toValgteHjemlerHarIkkeRettighetListe(): List<String>? {
     }
 }
 
-private fun Revurdering.toValgteHjemlerHarIkkeRettighetListe() =
+private fun Revurdering.toValgteHjemlerHarIkkeRettighetListe(): List<DatadelingHjemmelHarIkkeRettighet> =
     (this.resultat as Revurderingsresultat.Stans).valgtHjemmel?.map { it.toValgtHjemmelHarIkkeRettighetString() }
         ?: emptyList()
 
-private fun Søknadsbehandling.toValgteHjemlerHarIkkeRettighetListe() =
+private fun Søknadsbehandling.toValgteHjemlerHarIkkeRettighetListe(): List<DatadelingHjemmelHarIkkeRettighet> =
     (this.resultat as Søknadsbehandlingsresultat.Avslag).avslagsgrunner.map { it.toValgtHjemmelHarIkkeRettighetString() }
 
-private fun HjemmelForStansEllerOpphør.toValgtHjemmelHarIkkeRettighetString() =
+private fun HjemmelForStansEllerOpphør.toValgtHjemmelHarIkkeRettighetString(): DatadelingHjemmelHarIkkeRettighet =
     when (this) {
         HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak -> DatadelingHjemmelHarIkkeRettighet.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
         HjemmelForStansEllerOpphør.Alder -> DatadelingHjemmelHarIkkeRettighet.ALDER
@@ -147,9 +147,9 @@ private fun HjemmelForStansEllerOpphør.toValgtHjemmelHarIkkeRettighetString() =
         HjemmelForStansEllerOpphør.LønnFraAndre -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_ANDRE
         HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR
         HjemmelForStansEllerOpphør.IkkeLovligOpphold -> DatadelingHjemmelHarIkkeRettighet.IKKE_LOVLIG_OPPHOLD
-    }.let { serialize(it) }
+    }
 
-private fun Avslagsgrunnlag.toValgtHjemmelHarIkkeRettighetString() =
+private fun Avslagsgrunnlag.toValgtHjemmelHarIkkeRettighetString(): DatadelingHjemmelHarIkkeRettighet =
     when (this) {
         Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak -> DatadelingHjemmelHarIkkeRettighet.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
         Avslagsgrunnlag.Alder -> DatadelingHjemmelHarIkkeRettighet.ALDER
@@ -160,4 +160,4 @@ private fun Avslagsgrunnlag.toValgtHjemmelHarIkkeRettighetString() =
         Avslagsgrunnlag.Livsoppholdytelser -> DatadelingHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER
         Avslagsgrunnlag.LønnFraAndre -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_ANDRE
         Avslagsgrunnlag.LønnFraTiltaksarrangør -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR
-    }.let { serialize(it) }
+    }
