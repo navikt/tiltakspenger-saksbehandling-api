@@ -43,7 +43,8 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                     }
                   ],
                   "avbrutt": null,
-                  "kanIverksette": true,
+                  "kanIverksetteVedtak": true,
+                  "kanIverksetteOpprettholdelse": false,
                   "årsak": null,
                   "begrunnelse": null,
                   "rammebehandlingId": null,
@@ -91,7 +92,8 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                     }
                   ],
                   "avbrutt": null,
-                  "kanIverksette": false,
+                  "kanIverksetteVedtak": false,
+                  "kanIverksetteOpprettholdelse": true,
                   "årsak": null,
                   "begrunnelse": null,
                   "rammebehandlingId": null,

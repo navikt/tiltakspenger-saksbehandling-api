@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.ArbeidsmarkedslovenHjemmel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.FolketrygdlovenHjemmel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.ForeldelseslovenHjemmel

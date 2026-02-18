@@ -5,5 +5,5 @@ sealed interface KanIkkeIverksetteKlagebehandling {
     data class MåHaStatusUnderBehandling(val actualStatus: String) : KanIkkeIverksetteKlagebehandling
     data class FeilResultat(val forventetResultat: String, val faktiskResultat: String?) : KanIkkeIverksetteKlagebehandling
     data class FeilInngang(val forventetInngang: String, val faktiskInngang: String) : KanIkkeIverksetteKlagebehandling
-    data class AndreGrunner(val årsak: List<String>) : KanIkkeIverksetteKlagebehandling
+    data object ManglerBrevtekst : KanIkkeIverksetteKlagebehandling
 }

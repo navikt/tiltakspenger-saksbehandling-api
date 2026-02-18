@@ -83,14 +83,6 @@ private fun KanIkkeOpprettholdeKlagebehandling.toStatusAndErrorJson(): Pair<Http
             ),
         )
 
-        is KanIkkeOpprettholdeKlagebehandling.AndreGrunner -> Pair(
-            HttpStatusCode.BadRequest,
-            ErrorJson(
-                "Kan ikke opprettholde klagebehandling på grunn av: ${this.årsak.joinToString(", ")}",
-                "kan_ikke_opprettholde_klagebehandling",
-            ),
-        )
-
         is KanIkkeOpprettholdeKlagebehandling.FeilResultat -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
@@ -104,6 +96,14 @@ private fun KanIkkeOpprettholdeKlagebehandling.toStatusAndErrorJson(): Pair<Http
             ErrorJson(
                 "Kan kun opprettholde klagebehandling med status UNDER_BEHANDLING",
                 "må_ha_status_under_behandling",
+            ),
+        )
+
+        KanIkkeOpprettholdeKlagebehandling.ManglerBrevtekst -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Kan ikke opprettholde klagebehandling uten brevtekst",
+                "mangler_brevtekst",
             ),
         )
     }

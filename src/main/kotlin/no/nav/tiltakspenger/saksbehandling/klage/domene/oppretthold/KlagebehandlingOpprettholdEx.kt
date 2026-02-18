@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Opprettholdt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
-import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.KanIkkeOpprettholdeKlagebehandling.AndreGrunner
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.KanIkkeOpprettholdeKlagebehandling.FeilResultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.KanIkkeOpprettholdeKlagebehandling.MåHaStatusUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.KanIkkeOpprettholdeKlagebehandling.SaksbehandlerMismatch
@@ -33,14 +32,23 @@ fun Klagebehandling.oppretthold(
         ).left()
     }
     if (!erUnderBehandling) return MåHaStatusUnderBehandling(status.toString()).left()
-    if (!kanIverksetteOpprettholdelse) return AndreGrunner(kanIkkeIverksetteOpprettholdelseGrunner()).left()
 
     // TODO jah: Vi får ta en egen beslutning om vi skal ta saksbehandler av behandlingen.
-    return this.copy(
-        sistEndret = kommando.tidspunkt,
-        resultat = resultat.oppdaterIverksattOpprettholdelseTidspunkt(kommando.tidspunkt),
-        status = Klagebehandlingsstatus.OPPRETTHOLDT,
-    ).right()
+    return resultat.oppdaterIverksattOpprettholdelseTidspunkt(kommando.tidspunkt).map {
+        this.copy(
+            sistEndret = kommando.tidspunkt,
+            resultat = it,
+            status = Klagebehandlingsstatus.OPPRETTHOLDT,
+        )
+    }
+}
+
+fun Opprettholdt.oppdaterIverksattOpprettholdelseTidspunkt(
+    tidspunkt: LocalDateTime,
+): Either<KanIkkeOpprettholdeKlagebehandling, Opprettholdt> {
+    if (brevtekst.isNullOrEmpty()) return KanIkkeOpprettholdeKlagebehandling.ManglerBrevtekst.left()
+    require(iverksattOpprettholdelseTidspunkt == null) { "Allerede iverksatt. Skal ikke kunne inntreffe, siden den skal plukkes opp av status og resultat-sjekken. Hvis dette ikke er en bug, gjør om til en left." }
+    return this.copy(iverksattOpprettholdelseTidspunkt = tidspunkt).right()
 }
 
 fun Klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(tidspunkt: LocalDateTime): Klagebehandling {

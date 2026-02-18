@@ -83,14 +83,6 @@ private fun KanIkkeIverksetteKlagebehandling.toStatusAndErrorJson(): Pair<HttpSt
             ),
         )
 
-        is KanIkkeIverksetteKlagebehandling.AndreGrunner -> Pair(
-            HttpStatusCode.BadRequest,
-            ErrorJson(
-                "Kan ikke iverksette behandling på grunn av: ${this.årsak.joinToString(", ")}",
-                "kan_ikke_iverksette_behandling",
-            ),
-        )
-
         is KanIkkeIverksetteKlagebehandling.FeilResultat -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
@@ -112,6 +104,14 @@ private fun KanIkkeIverksetteKlagebehandling.toStatusAndErrorJson(): Pair<HttpSt
             ErrorJson(
                 "Feil inngang brukt for å iverksette klagebehandling. forventet: ${this.forventetInngang}, faktisk: ${this.faktiskInngang}",
                 "feil_inngang_ved_iverksetting",
+            ),
+        )
+
+        is KanIkkeIverksetteKlagebehandling.ManglerBrevtekst -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Kan ikke iverksette klagebheandling uten brevtekst",
+                "mangler_brevtekst",
             ),
         )
     }

@@ -19,15 +19,13 @@ sealed interface Klagebehandlingsresultat {
 
     val rammebehandlingId: BehandlingId?
     val brevtekst: Brevtekster?
-    fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean
 
     /** Dersom vi har journalført+distribuert innstillingsbrevet og ikke allerede har sendt klagen til klageinstansen */
     val kanOversendeKlageinstans: Boolean
     val harJournalførtInnstillingsbrev: Boolean
     val harDistribuertInnstillingsbrev: Boolean
-    fun kanIkkeIverksetteVedtakGrunner(): List<String>
-    fun kanIkkeIverksetteOpprettholdelseGrunner(): List<String>
-    val kanIverksetteOpprettholdelse: Boolean
+    fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean?
+    fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus): Boolean
     val erKnyttetTilRammebehandling: Boolean
     fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean
 
@@ -38,20 +36,10 @@ sealed interface Klagebehandlingsresultat {
     data class Avvist(
         override val brevtekst: Brevtekster?,
     ) : Klagebehandlingsresultat {
-        override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean {
-            return status == UNDER_BEHANDLING && !brevtekst.isNullOrEmpty()
-        }
-
-        override fun kanIkkeIverksetteVedtakGrunner(): List<String> {
-            val grunner = mutableListOf<String>()
-            if (brevtekst.isNullOrEmpty()) grunner.add("Må ha minst et element i brevtekst")
-            return grunner
-        }
 
         override val erKnyttetTilRammebehandling = false
         override val rammebehandlingId = null
         override val kanOversendeKlageinstans = false
-        override val kanIverksetteOpprettholdelse = false
         override val harJournalførtInnstillingsbrev = false
         override val harDistribuertInnstillingsbrev = false
 
@@ -64,9 +52,10 @@ sealed interface Klagebehandlingsresultat {
             }
         }
 
-        override fun kanIkkeIverksetteOpprettholdelseGrunner(): Nothing {
-            throw IllegalStateException("Avvist klage kan ikke iverksette opprettholdelse, så denne listen skal ikke brukes")
+        override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean {
+            return status == UNDER_BEHANDLING && !brevtekst.isNullOrEmpty()
         }
+        override fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus) = false
 
         fun oppdaterBrevtekst(
             brevtekst: Brevtekster,
@@ -92,30 +81,20 @@ sealed interface Klagebehandlingsresultat {
     ) : Klagebehandlingsresultat {
         override val kanOversendeKlageinstans = false
         override val brevtekst = null
-        override fun kanIkkeIverksetteOpprettholdelseGrunner(): Nothing {
-            throw IllegalStateException("Omgjort klage kan ikke iverksette opprettholdelse, så denne funksjonen skal ikke brukes.")
-        }
 
         override fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean {
             throw IllegalStateException("Omgjort klage skal ikke generere brev, så denne funksjonen skal ikke brukes.")
         }
 
-        override fun kanIkkeIverksetteVedtakGrunner(): List<String> {
-            return if (rammebehandlingId == null) {
-                listOf("Må ha en rammebehandlingId for å kunne iverksette omgjøring")
-            } else {
-                emptyList()
-            }
-        }
-
-        override val kanIverksetteOpprettholdelse = false
-
         override val harJournalførtInnstillingsbrev = false
         override val harDistribuertInnstillingsbrev = false
 
-        override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean {
-            return status == UNDER_BEHANDLING && rammebehandlingId != null
+        /** Brukes av frontend. Man kan ikke iverksette klagebehandlingen*/
+        override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean? {
+            if (status != UNDER_BEHANDLING || rammebehandlingId == null) return false
+            return null
         }
+        override fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus) = false
 
         override val erKnyttetTilRammebehandling = rammebehandlingId != null
 
@@ -125,17 +104,6 @@ sealed interface Klagebehandlingsresultat {
                 årsak = kommando.årsak,
                 begrunnelse = kommando.begrunnelse,
             )
-        }
-
-        fun oppdaterRammebehandlingId(
-            rammebehandlingId: BehandlingId,
-        ): Omgjør = this.copy(rammebehandlingId = rammebehandlingId)
-
-        fun fjernRammebehandlingId(rammmebehandlingId: BehandlingId): Omgjør {
-            require(this.rammebehandlingId == rammmebehandlingId) {
-                "Kan kun fjerne rammebehandlingId hvis den matcher eksisterende verdi"
-            }
-            return this.copy(rammebehandlingId = null)
         }
     }
 
@@ -153,19 +121,21 @@ sealed interface Klagebehandlingsresultat {
         val distribusjonstidspunktInnstillingsbrev: LocalDateTime?,
         val oversendtKlageinstansenTidspunkt: LocalDateTime?,
     ) : Klagebehandlingsresultat {
-        // TODO jah: Vi iverksetter etter vi har fått svar fra Kabal (og utført handlingene de krever). Vi må legge inn svarene fra Kabal før denne kan bli true.
-        override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean {
-            return false
-        }
 
         override val erKnyttetTilRammebehandling = false
         override val rammebehandlingId = null
-        override val kanIverksetteOpprettholdelse: Boolean =
-            iverksattOpprettholdelseTidspunkt == null && !brevtekst.isNullOrEmpty()
         override val harJournalførtInnstillingsbrev: Boolean = journalpostIdInnstillingsbrev != null
         override val harDistribuertInnstillingsbrev: Boolean = distribusjonIdInnstillingsbrev != null
         override val kanOversendeKlageinstans =
             harJournalførtInnstillingsbrev && oversendtKlageinstansenTidspunkt == null
+
+        override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean {
+            // TODO jah: Legg til den etter vi har mappet klageinstans-hendelsen.
+            return false
+        }
+        override fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus): Boolean {
+            return status == UNDER_BEHANDLING && !brevtekst.isNullOrEmpty() && iverksattOpprettholdelseTidspunkt == null
+        }
 
         /** Merk at generering av brev kan feile i tilstandene KLAR_TIL_BEHANDLING og AVBRUTT hvis [brevtekst] er null. */
         override fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean {
@@ -178,21 +148,8 @@ sealed interface Klagebehandlingsresultat {
             }
         }
 
-        override fun kanIkkeIverksetteVedtakGrunner(): List<String> {
-            throw IllegalStateException("Bruk [kanIkkeIverksetteOpprettholdelseGrunner] istedenfor. TODO jah: Denne blir implementert når vi behandler svaret til klageinstansen.")
-        }
-
-        override fun kanIkkeIverksetteOpprettholdelseGrunner(): List<String> {
-            return if (brevtekst.isNullOrEmpty()) listOf("Må ha minst ett element i brevtekst") else emptyList()
-        }
-
         fun oppdaterBrevtekst(brevtekst: Brevtekster): Opprettholdt = this.copy(brevtekst = brevtekst)
         fun oppdaterHjemler(hjemler: Klagehjemler) = this.copy(hjemler = hjemler)
-
-        fun oppdaterIverksattOpprettholdelseTidspunkt(tidspunkt: LocalDateTime): Opprettholdt {
-            require(iverksattOpprettholdelseTidspunkt == null) { "Kan kun sette skalOversendesTidspunkt én gang" }
-            return this.copy(iverksattOpprettholdelseTidspunkt = tidspunkt)
-        }
 
         fun oppdaterOversendtKlageinstansenTidspunkt(tidspunkt: LocalDateTime): Opprettholdt {
             require(iverksattOpprettholdelseTidspunkt != null && oversendtKlageinstansenTidspunkt == null) { "Kan kun sette oversendtTidspunkt én gang" }

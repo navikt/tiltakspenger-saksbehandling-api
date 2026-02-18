@@ -56,7 +56,8 @@ class AvbrytKlagebehandlingRouteTest {
                           "avbruttTidspunkt": "2025-05-01T01:02:09.456789",
                           "begrunnelse": "begrunnelse for avbryt klagebehandling"
                      },
-                     "kanIverksette": false,
+                     "kanIverksetteVedtak": false,
+                     "kanIverksetteOpprettholdelse": false,
                      "årsak": null,
                      "begrunnelse": null,
                      "rammebehandlingId": null,
@@ -108,7 +109,8 @@ class AvbrytKlagebehandlingRouteTest {
                           "avbruttTidspunkt": "2025-05-01T01:02:36.456789",
                           "begrunnelse": "begrunnelse for avbryt klagebehandling"
                      },
-                     "kanIverksette": false,
+                     "kanIverksetteVedtak": false,
+                     "kanIverksetteOpprettholdelse": false,
                      "årsak": "PROSESSUELL_FEIL",
                      "begrunnelse": "Begrunnelse for omgjøring",
                      "rammebehandlingId": null,
@@ -172,7 +174,8 @@ class AvbrytKlagebehandlingRouteTest {
                           "avbruttTidspunkt": "2025-05-01T01:02:59.456789",
                           "begrunnelse": "begrunnelse for avbryt klagebehandling"
                      },
-                     "kanIverksette": false,
+                     "kanIverksetteVedtak": false,
+                     "kanIverksetteOpprettholdelse": false,
                      "årsak": "PROSESSUELL_FEIL",
                      "begrunnelse": "Begrunnelse for omgjøring",
                      "rammebehandlingId": null,

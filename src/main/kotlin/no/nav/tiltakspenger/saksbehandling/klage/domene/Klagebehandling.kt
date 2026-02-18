@@ -67,6 +67,10 @@ data class Klagebehandling(
     val erÅpen: Boolean = !erAvsluttet
     val erAvvisning: Boolean = resultat is Klagebehandlingsresultat.Avvist
 
+    /** Dersom resultatet er omgjøring og klagebehandlingen er i en tilstand som kan iverksettes, returneres null; siden det er Rammebehandlingen som avgjør dette. */
+    val kanIverksetteVedtak: Boolean? = if (resultat == null) false else resultat.kanIverksetteVedtak(status)
+    val kanIverksetteOpprettholdelse = resultat?.kanIverksetteOpprettholdelse(status) ?: false
+
     @Suppress("unused")
     val erOmgjøring: Boolean = resultat is Klagebehandlingsresultat.Omgjør
     val erOpprettholdt: Boolean = resultat is Klagebehandlingsresultat.Opprettholdt
@@ -78,33 +82,12 @@ data class Klagebehandling(
     val erKnyttetTilRammebehandling: Boolean = resultat?.erKnyttetTilRammebehandling == true
     val rammebehandlingId: BehandlingId? = resultat?.rammebehandlingId
 
-    /** Dette flagget gir ikke så mye mening dersom resultatet er medhold/omgjøring, siden man må spørre Rammebehandlingen om man kanIverksette */
-    val kanIverksetteVedtak: Boolean by lazy { resultat?.kanIverksetteVedtak(status) == true }
-    val kanIverksetteOpprettholdelse: Boolean by lazy {
-        status == UNDER_BEHANDLING && resultat?.kanIverksetteOpprettholdelse == true
-    }
-
     /**
      * Siden vi i alle tilfeller genererer brevet på nytt, må vi skille på om vi skal akseptere forhåndsvisningens parametre eller ikke.
      * Etter vi har passert et visst punkt i behandlingen, skal ikke saksbehandler kunne påvirke innholdet i brevet lenger.
      * Per tidspunkt har vi bare 2 brev i klagebehandlingen: avvisningsbrev og innstillingsbrev. Så vi kan gjenbruke denne variabelen frem til en behandling har mer enn 1 brev.
      */
     fun skalGenerereBrevKunFraBehandling(): Boolean = resultat?.skalGenerereBrevKunFraBehandling(status) == true
-
-    fun kanIkkeIverksetteVedtakGrunner(): List<String> {
-        val grunner = mutableListOf<String>()
-        // TODO jah: For Oppretthold vil vi kreve at den er oversendt før vi kan iverksette. Gir mer mening og sende statusen til funksjonen på resultatet.
-        if (!erUnderBehandling) grunner.add("Klagebehandling er ikke under behandling")
-        if (resultat == null) grunner.add("Resultat er ikke satt")
-        return grunner + (resultat?.kanIkkeIverksetteVedtakGrunner() ?: emptyList())
-    }
-
-    fun kanIkkeIverksetteOpprettholdelseGrunner(): List<String> {
-        val grunner = mutableListOf<String>()
-        if (!erUnderBehandling) grunner.add("Klagebehandling er ikke under behandling")
-        if (resultat == null) grunner.add("Resultat er ikke satt")
-        return grunner + (resultat?.kanIkkeIverksetteOpprettholdelseGrunner() ?: emptyList())
-    }
 
     fun erSaksbehandlerPåBehandlingen(saksbehandler: Saksbehandler): Boolean {
         return this.saksbehandler == saksbehandler.navIdent

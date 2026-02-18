@@ -89,7 +89,8 @@ class IverksettKlagebehandlingRouteTest {
                         }
                       ],
                      "avbrutt": null,
-                     "kanIverksette": false,
+                     "kanIverksetteVedtak": false,
+                     "kanIverksetteOpprettholdelse": false,
                      "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
                      "årsak": null,
                      "begrunnelse": null,
@@ -133,7 +134,7 @@ class IverksettKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventetStatus = HttpStatusCode.BadRequest,
                 forventetJsonBody = null,
             ) shouldBe null
         }
@@ -224,8 +225,8 @@ class IverksettKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                      {
-                        "melding": "Kan ikke iverksette behandling på grunn av: Må ha minst et element i brevtekst",
-                        "kode": "kan_ikke_iverksette_behandling"
+                        "melding": "Kan ikke iverksette klagebheandling uten brevtekst",
+                        "kode": "mangler_brevtekst"
                      }
                     """.trimIndent()
                 },
@@ -276,7 +277,6 @@ class IverksettKlagebehandlingRouteTest {
                 it.erAvsluttet shouldBe true
                 it.erUnderBehandling shouldBe false
                 it.erÅpen shouldBe false
-                it.kanIkkeIverksetteVedtakGrunner() shouldBe listOf("Klagebehandling er ikke under behandling")
             }
             rammevedtak.klagebehandling.shouldBeEqualToIgnoringFields(
                 klagebehandling,

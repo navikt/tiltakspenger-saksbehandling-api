@@ -81,6 +81,9 @@ fun Klagebehandling.oppdaterRammebehandlingId(
         sistEndret = sistEndret,
     )
 }
+fun Omgjør.oppdaterRammebehandlingId(
+    rammebehandlingId: BehandlingId,
+): Omgjør = this.copy(rammebehandlingId = rammebehandlingId)
 
 fun Klagebehandling.fjernRammebehandlingId(
     rammebehandlingId: BehandlingId,
@@ -104,4 +107,11 @@ fun Klagebehandling.fjernRammebehandlingId(
             "Klagebehandling er ikke knyttet til en rammebehandling. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id",
         )
     }
+}
+
+fun Omgjør.fjernRammebehandlingId(rammmebehandlingId: BehandlingId): Omgjør {
+    require(this.rammebehandlingId == rammmebehandlingId) {
+        "Kan kun fjerne rammebehandlingId hvis den matcher eksisterende verdi"
+    }
+    return this.copy(rammebehandlingId = null)
 }
