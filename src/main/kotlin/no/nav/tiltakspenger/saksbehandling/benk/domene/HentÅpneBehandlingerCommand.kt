@@ -37,6 +37,7 @@ data class BenkSortering(
 enum class BenkSorteringKolonne {
     STARTET,
     SIST_ENDRET,
+    FRIST,
     ;
 
     companion object {

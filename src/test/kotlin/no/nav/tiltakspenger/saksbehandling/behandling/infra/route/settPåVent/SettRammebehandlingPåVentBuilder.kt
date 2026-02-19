@@ -26,9 +26,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.behandling.infra.route.settRammebehandlingPåVentRoute]
@@ -44,6 +43,7 @@ interface SettRammebehandlingPåVentBuilder {
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        frist: LocalDate = LocalDate.now(),
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Tuple4<Sak, Søknad, Rammebehandling?, SakDTOJson>? {
         val (sak, _, søknadsbehandling) = this.opprettSøknadsbehandlingUnderBehandling(
@@ -56,6 +56,7 @@ interface SettRammebehandlingPåVentBuilder {
             rammebehandlingId = søknadsbehandling.id,
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
+            frist = frist,
             forventetJsonBody = forventetJsonBody,
             sakId = sak.id,
         )
@@ -70,7 +71,7 @@ interface SettRammebehandlingPåVentBuilder {
         rammebehandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String = "Begrunnelse for å sette rammebehandling på vent",
-        frist: LocalDateTime? = null,
+        frist: LocalDate? = null,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Tuple4<Sak, Søknad, Rammebehandling, SakDTOJson>? {
@@ -87,8 +88,8 @@ interface SettRammebehandlingPåVentBuilder {
             setBody(
                 """
                 {
-                "frist": ${frist?.let { "$it" } },
-                "begrunnelse": "$begrunnelse"
+                    "frist": "${frist?.let { "$it" } }",
+                    "begrunnelse": "$begrunnelse"
                 }
                 """.trimIndent(),
             )

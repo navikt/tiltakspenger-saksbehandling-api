@@ -310,6 +310,7 @@ fun BenkSorteringKolonne.toDbString(): String =
     when (this) {
         BenkSorteringKolonne.STARTET -> "startet"
         BenkSorteringKolonne.SIST_ENDRET -> "sist_endret"
+        BenkSorteringKolonne.FRIST -> "sattPåVentFrist"
     }
 
 fun String.toBehandlingssammendragStatus(): BehandlingssammendragStatus =
