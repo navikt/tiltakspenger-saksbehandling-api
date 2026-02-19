@@ -26,7 +26,7 @@ import java.time.LocalDate
 
 private const val SETT_BEHANDLING_PÅ_VENT_PATH = "/sak/{sakId}/behandling/{behandlingId}/pause"
 
-private data class BegrunnelseDTO(
+private data class SettPåVentBody(
     val begrunnelse: String,
     val frist: LocalDate?,
 ) {
@@ -55,7 +55,7 @@ fun Route.settRammebehandlingPåVentRoute(
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
             call.withBehandlingId { behandlingId ->
-                call.withBody<BegrunnelseDTO> { body ->
+                call.withBody<SettPåVentBody> { body ->
                     val correlationId = call.correlationId()
                     krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)

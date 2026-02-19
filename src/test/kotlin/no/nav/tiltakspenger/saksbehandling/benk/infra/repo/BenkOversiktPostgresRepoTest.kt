@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
@@ -27,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.domene.SorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttRevurdering
@@ -51,6 +53,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgSettPåVent
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -831,28 +834,92 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
-    fun `kan sortere asc og desc`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            val søknad = testDataHelper.persisterSakOgSøknad()
-            val (sak2, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
+    fun `kan sortere på startet`() {
+        withTestApplicationContext { tac ->
+            val benkOversiktRepo = tac.benkOversiktContext.benkOversiktRepo
+            val (sak1, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
+            val (sak2, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
 
-            val (actualAsc, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
-                newCommand(sortering = BenkSortering(BenkSorteringKolonne.STARTET, SorteringRetning.ASC)),
+            val (actualAsc, _) = benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(
+                    sortering = BenkSortering(BenkSorteringKolonne.STARTET, SorteringRetning.ASC),
+                ),
             )
-            val (actualDesc, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
-                newCommand(sortering = BenkSortering(BenkSorteringKolonne.STARTET, SorteringRetning.DESC)),
+            val (actualDesc, _) = benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(
+                    sortering = BenkSortering(BenkSorteringKolonne.STARTET, SorteringRetning.DESC),
+                ),
             )
 
-            actualAsc.size shouldBe 2
             actualAsc.let {
-                it.first().sakId shouldBe søknad.sakId
+                it.first().sakId shouldBe sak1.id
                 it.last().sakId shouldBe sak2.id
             }
 
-            actualDesc.size shouldBe 2
             actualDesc.let {
                 it.first().sakId shouldBe sak2.id
-                it.last().sakId shouldBe søknad.sakId
+                it.last().sakId shouldBe sak1.id
+            }
+        }
+    }
+
+    @Test
+    fun `kan sortere på sist endret`() {
+        withTestApplicationContext { tac ->
+            val benkOversiktRepo = tac.benkOversiktContext.benkOversiktRepo
+            val (sak1, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
+            val (sak2, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
+
+            val (actualAsc, _) = benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(
+                    sortering = BenkSortering(BenkSorteringKolonne.SIST_ENDRET, SorteringRetning.ASC),
+                ),
+            )
+            val (actualDesc, _) = benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(
+                    sortering = BenkSortering(BenkSorteringKolonne.SIST_ENDRET, SorteringRetning.DESC),
+                ),
+            )
+
+            actualAsc.let {
+                it.first().sakId shouldBe sak1.id
+                it.last().sakId shouldBe sak2.id
+            }
+
+            actualDesc.let {
+                it.first().sakId shouldBe sak2.id
+                it.last().sakId shouldBe sak1.id
+            }
+        }
+    }
+
+    @Test
+    fun `kan sortere på frist`() {
+        withTestApplicationContext { tac ->
+            val benkOversiktRepo = tac.benkOversiktContext.benkOversiktRepo
+            val dagensDato = nå(fixedClock).toLocalDate()
+            val (sak1, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac, frist = dagensDato)!!
+            val (sak2, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac, frist = dagensDato.minusDays(1))!!
+
+            val (actualAsc, _) = benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(
+                    sortering = BenkSortering(BenkSorteringKolonne.FRIST, SorteringRetning.ASC),
+                ),
+            )
+            val (actualDesc, _) = benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(
+                    sortering = BenkSortering(BenkSorteringKolonne.FRIST, SorteringRetning.DESC),
+                ),
+            )
+
+            actualAsc.let {
+                it.first().sakId shouldBe sak1.id
+                it.last().sakId shouldBe sak2.id
+            }
+
+            actualDesc.let {
+                it.first().sakId shouldBe sak2.id
+                it.last().sakId shouldBe sak1.id
             }
         }
     }

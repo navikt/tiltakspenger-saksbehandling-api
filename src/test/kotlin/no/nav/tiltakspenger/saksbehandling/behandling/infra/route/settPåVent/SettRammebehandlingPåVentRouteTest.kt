@@ -59,7 +59,7 @@ class SettRammebehandlingPåVentRouteTest {
     "tidspunkt": "2025-05-01T01:02:13.456789",
     "begrunnelse": "Begrunnelse for å sette rammebehandling på vent",
     "erSattPåVent": true,
-    "frist": null
+    "frist": "${søknadsbehandling.ventestatus.sattPåVentFrist}"
   },
   "utbetaling": null,
   "resultat": "IKKE_VALGT",
