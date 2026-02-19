@@ -164,6 +164,7 @@ open class BehandlingOgVedtakContext(
         SendRammebehandlingTilBeslutningService(
             sakService = sakService,
             rammebehandlingRepo = rammebehandlingRepo,
+            simulerService = simulerService,
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
