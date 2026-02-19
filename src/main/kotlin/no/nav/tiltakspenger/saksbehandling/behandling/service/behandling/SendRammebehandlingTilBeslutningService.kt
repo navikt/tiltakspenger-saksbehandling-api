@@ -10,17 +10,16 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimuleringService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.harEndringer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import java.time.Clock
 
 class SendRammebehandlingTilBeslutningService(
     private val sakService: SakService,
-    private val oppdaterSimuleringService: OppdaterSimuleringService,
+    private val oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
@@ -40,7 +39,7 @@ class SendRammebehandlingTilBeslutningService(
                 .left()
         }
 
-        val (_, behandlingMedOppdatertSimulering) = oppdaterSimuleringService.oppdaterBeregningOgSimuleringForRammebehandling(
+        val (_, behandlingMedOppdatertSimulering) = oppdaterBeregningOgSimuleringService.oppdaterBeregningOgSimuleringForRammebehandling(
             sak,
             behandling,
             kommando.saksbehandler,
@@ -48,19 +47,14 @@ class SendRammebehandlingTilBeslutningService(
             return KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeilet(it).left()
         }
 
-        if (behandling.utbetaling?.simulering.harEndringer(behandlingMedOppdatertSimulering.utbetaling?.simulering)) {
-            logger.error { "Simulering av utbetaling på behandlingen har endringer siden forrige lagring - ${kommando.behandlingId}" }
-            return KanIkkeSendeRammebehandlingTilBeslutter.SimuleringEndret.left()
-        }
-
-        behandling.utbetaling?.also { utbetaling ->
-            utbetaling.validerKanIverksetteUtbetaling().onLeft {
+        behandlingMedOppdatertSimulering.utbetaling?.also { utbetaling ->
+            utbetaling.validerKanIverksetteUtbetaling(behandling.utbetaling).onLeft {
                 logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${kommando.behandlingId} / $it" }
                 return KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingStøttesIkke(it).left()
             }
         }
 
-        return behandling.tilBeslutning(
+        return behandlingMedOppdatertSimulering.tilBeslutning(
             kommando = kommando,
             clock = clock,
         ).map {

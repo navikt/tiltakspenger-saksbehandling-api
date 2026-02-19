@@ -20,5 +20,10 @@ fun KanIkkeIverksetteUtbetaling.tilUtbetalingErrorJson(): Pair<HttpStatusCode, E
             "Behandling med justering på tvers av måneder eller meldeperioder støttes ikke på nåværende tidspunkt",
             "støtter_ikke_justering",
         )
+
+        KanIkkeIverksetteUtbetaling.SimuleringHarEndringer -> HttpStatusCode.Conflict to ErrorJson(
+            "Simulering av utbetaling har endret seg siden behandlingen ble sendt til beslutning.",
+            "simulering_endret",
+        )
     }
 }
