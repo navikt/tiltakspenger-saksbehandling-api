@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo.Companion.IKKE_TILDELT
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import java.time.LocalDate
 
 data class BehandlingssamendragMedCount(
     val behandlingssammendrag: Behandlingssammendrag,
@@ -39,9 +38,9 @@ class BenkOversiktPostgresRepo(
                 'KLAR_TIL_BEHANDLING' as status,
                 null                  as saksbehandler,
                 null                  as beslutter,
-                null                  as erSattPåVent,
+                null::boolean         as erSattPåVent,
                 null                  as sattPåVentBegrunnelse,
-                null                  as sattPåVentFrist,
+                null::date            as sattPåVentFrist,
                 null::timestamp with time zone as sist_endret
             from søknad sø
                 join sak sa on sø.sak_id = sa.id
@@ -61,9 +60,9 @@ class BenkOversiktPostgresRepo(
                 b.status            as status,
                 b.saksbehandler     as saksbehandler,
                 b.beslutter         as beslutter,
-                b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent'  as erSattPåVent,
+                (b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean  as erSattPåVent,
                 b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as sattPåVentBegrunnelse,
-                b.ventestatus->'ventestatusHendelser'->-1->>'frist'         as sattPåVentFrist,
+                (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
                 b.sist_endret       as sist_endret
             from behandling b
                 join søknad s on s.id = b.soknad_id
@@ -83,9 +82,9 @@ class BenkOversiktPostgresRepo(
                 b.status        as status,
                 b.saksbehandler as saksbehandler,
                 b.beslutter     as beslutter,
-                b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent' as erSattPåVent,
+                (b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean as erSattPåVent,
                 b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'  as sattPåVentBegrunnelse,
-                b.ventestatus->'ventestatusHendelser'->-1->>'frist'        as sattPåVentFrist,
+                (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
                 b.sist_endret   as sist_endret
             from behandling b
                 join sak sa on b.sak_id = sa.id
@@ -104,9 +103,9 @@ class BenkOversiktPostgresRepo(
                 m.status              as status,
                 m.saksbehandler       as saksbehandler,
                 m.beslutter           as beslutter,
-                null                  as erSattPåVent,
+                null::boolean         as erSattPåVent,
                 null                  as sattPåVentBegrunnelse,
-                null                  as sattPåVentFrist,
+                null::date            as sattPåVentFrist,
                 m.sist_endret as sist_endret
             from meldekortbehandling m
                 join sak s on m.sak_id = s.id
@@ -120,47 +119,52 @@ class BenkOversiktPostgresRepo(
              * meldekortMetadata er en hjelpe-tabell som vi bruker for å finne riktig behandlingstype, og
              * for at vi ikke skal gi ut 'duplikate' rader til benken
              */
-            WITH meldekortMetadata AS (SELECT mbr.sak_id                                                                          AS sakId,
-                                              mbr.meldeperiode_kjede_id                                                           AS kjedeId,
-                                              COUNT(*) OVER (PARTITION BY mbr.sak_id, mbr.meldeperiode_kjede_id)                  AS antallInnsendteMeldekort,
-                                              mbr.id                                                                              AS meldekortId,
-                                              ROW_NUMBER()
-                                              OVER (PARTITION BY mbr.sak_id, mbr.meldeperiode_kjede_id ORDER BY mbr.mottatt DESC) AS sisteMeldekortNr
-                                       FROM meldekort_bruker mbr),
-                /*
-                Hjelpe-tabell for å finne siste opprettede meldekortbehandling på en sak/kjede - dette er for å vite om et meldekort er potensielt tatt stilling til
-                 */
-                  sisteMeldekortBehandlingForKjede AS (SELECT sak_id,
-                                                              meldeperiode_kjede_id,
-                                                              MAX(mbh.sist_endret) AS sist_endret_tidspunkt
-                                                       FROM meldekortbehandling mbh
-                                                                join sak s on mbh.sak_id = s.id
-                                                       group by sak_id, meldeperiode_kjede_id)
-            SELECT s.id                           AS sakId,
-                   s.fnr                          AS fnr,
-                   s.saksnummer                   AS saksnummer,
-                   mbr.mottatt                    AS startet,
-                   CASE
-                       WHEN mdk.sisteMeldekortNr = mdk.antallInnsendteMeldekort AND mdk.sakId = mbr.sak_id AND
-                            mdk.meldekortId = mbr.id
-                           THEN 'INNSENDT_MELDEKORT'
-                       ELSE 'KORRIGERT_MELDEKORT'
-                       END                        AS behandlingstype,
-                   'KLAR_TIL_BEHANDLING'          AS status,
-                   NULL                           AS saksbehandler,
-                   NULL                           AS beslutter,
-                   NULL                           AS erSattPåVent,
-                   NULL                           AS sattPåVentBegrunnelse,
-                   NULL                           AS sattPåVentFrist,
-                   NULL::timestamp with time zone AS sist_endret
-            FROM meldekort_bruker mbr
-                     JOIN sak s ON mbr.sak_id = s.id
-                     JOIN meldekortMetadata mdk ON mbr.id = mdk.meldekortId AND mbr.sak_id = mdk.sakId
-                     LEFT JOIN sisteMeldekortBehandlingForKjede smbh
-                               ON smbh.sak_id = s.id AND smbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id
-            WHERE behandles_automatisk = false
-              AND mdk.sisteMeldekortNr = 1
-              AND (mbr.mottatt > smbh.sist_endret_tidspunkt OR smbh.sist_endret_tidspunkt IS NULL)
+            with meldekortMetadata as (
+                select 
+                    mbr.sak_id,
+                    mbr.meldeperiode_kjede_id,
+                    count(*) over (partition by mbr.sak_id, mbr.meldeperiode_kjede_id) as antallInnsendteMeldekort,
+                    mbr.id as meldekortId,
+                    row_number() over (partition by mbr.sak_id, mbr.meldeperiode_kjede_id order by mbr.mottatt desc) as sisteMeldekortNr
+                from meldekort_bruker mbr
+                where behandles_automatisk = false
+            ),
+            /*
+            Hjelpe-tabell for å finne siste opprettede meldekortbehandling på en sak/kjede - dette er for å vite om et meldekort er potensielt tatt stilling til
+             */
+            sisteMeldekortBehandlingForKjede as (
+                select 
+                    sak_id,
+                    meldeperiode_kjede_id,
+                    max(sist_endret) as sist_endret_tidspunkt
+                from meldekortbehandling
+                group by sak_id, meldeperiode_kjede_id
+            )
+            select 
+                s.id                           as sakId,
+                s.fnr                          as fnr,
+                s.saksnummer                   as saksnummer,
+                mbr.mottatt                    as startet,
+                case
+                    when mdk.sisteMeldekortNr = mdk.antallInnsendteMeldekort
+                        then 'INNSENDT_MELDEKORT'
+                    else 'KORRIGERT_MELDEKORT'
+                end                            as behandlingstype,
+                'KLAR_TIL_BEHANDLING'          as status,
+                null                           as saksbehandler,
+                null                           as beslutter,
+                null::boolean                  as erSattPåVent,
+                null                           as sattPåVentBegrunnelse,
+                null::date                     as sattPåVentFrist,
+                null::timestamp with time zone as sist_endret
+            from meldekort_bruker mbr
+            join sak s on mbr.sak_id = s.id
+            join meldekortMetadata mdk on mbr.id = mdk.meldekortId
+            left join sisteMeldekortBehandlingForKjede smbh
+                on smbh.sak_id = mbr.sak_id 
+                and smbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id
+            where mdk.sisteMeldekortNr = 1
+              and (mbr.mottatt > smbh.sist_endret_tidspunkt or smbh.sist_endret_tidspunkt is null)
         """
 
         const val ÅPNE_KLAGER = """
@@ -172,9 +176,9 @@ class BenkOversiktPostgresRepo(
                 k.status          as status,
                 k.saksbehandler   as saksbehandler,
                 null              as beslutter,
-                k.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent'  as erSattPåVent,
+                (k.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean  as erSattPåVent,
                 k.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as sattPåVentBegrunnelse,
-                k.ventestatus->'ventestatusHendelser'->-1->>'frist'         as sattPåVentFrist,
+                (k.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
                 k.sist_endret     as sist_endret
             from klagebehandling k
                 join sak s on k.sak_id = s.id
@@ -246,12 +250,12 @@ class BenkOversiktPostgresRepo(
                     and (
                       :benktype::text[] is null
                       or (
-                        ('KLAR' = any(:benktype::text[]) and (erSattPåVent is null or erSattPåVent != 'true'))
+                        ('KLAR' = any(:benktype::text[]) and (erSattPåVent is null or erSattPåVent = false))
                         or
-                        ('VENTER' = any(:benktype::text[]) and erSattPåVent = 'true')
+                        ('VENTER' = any(:benktype::text[]) and erSattPåVent = true)
                       )
                     )
-                    order by ${command.sortering.kolonne.toDbString()} ${command.sortering.retning.toDbString()}
+                    order by ${command.sortering.kolonne.toDbString()} ${command.sortering.retning.toDbString()} nulls last
                     limit :limit;
                     """.trimIndent(),
                     mapQueryParams(command, limit),
@@ -267,9 +271,9 @@ class BenkOversiktPostgresRepo(
                     val beslutter = row.stringOrNull("beslutter")
                     val sistEndret = row.localDateTimeOrNull("sist_endret")
                     val count = row.int("total_count")
-                    val erSattPåVent = row.booleanOrNull("erSattPåVent") == true
+                    val erSattPåVent = row.booleanOrNull("erSattPåVent") ?: false
                     val sattPåVentBegrunnelse = row.stringOrNull("sattPåVentBegrunnelse")
-                    val sattPåVentFrist = row.stringOrNull("sattPåVentFrist")?.let { LocalDate.parse(it) }
+                    val sattPåVentFrist = row.localDateOrNull("sattPåVentFrist")
 
                     BehandlingssamendragMedCount(
                         Behandlingssammendrag(
