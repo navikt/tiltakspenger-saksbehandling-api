@@ -47,7 +47,7 @@ class BenkOversiktPostgresRepo(
                 join sak sa on sø.sak_id = sa.id
             where 
                 not exists (
-                    select 1 from behandling b where b.soknad_id = soknad.id
+                    select 1 from behandling b where b.soknad_id = sø.id
                 )
                 and sø.avbrutt is null
         """
