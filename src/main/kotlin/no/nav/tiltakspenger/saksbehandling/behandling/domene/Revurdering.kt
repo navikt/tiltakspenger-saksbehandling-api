@@ -175,9 +175,11 @@ data class Revurdering(
         )
     }
 
-    override fun oppdaterSimulering(nySimulering: Simulering?): Revurdering {
-        require(this.erUnderBehandling) { "Forventet at behandlingen var under behandling, men var: ${this.status} for sakId: $sakId og behandlingId: $id" }
-        return this.copy(utbetaling = utbetaling!!.oppdaterSimulering(nySimulering))
+    override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?): Revurdering {
+        require(this.erUnderBehandlingEllerBeslutning) {
+            "Forventet at behandlingen var under behandling eller beslutning, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
+        }
+        return this.copy(utbetaling = oppdatertUtbetaling)
     }
 
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling {
