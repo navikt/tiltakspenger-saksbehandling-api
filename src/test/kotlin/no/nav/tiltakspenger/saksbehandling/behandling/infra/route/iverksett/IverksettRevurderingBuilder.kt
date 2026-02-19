@@ -294,6 +294,7 @@ interface IverksettRevurderingBuilder {
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         vedtaksperiode: Periode? = null,
+        valgteHjemler: Set<HjemmelForStansEllerOpphør> = setOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
     ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
@@ -312,6 +313,7 @@ interface IverksettRevurderingBuilder {
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
             saksbehandler = saksbehandler,
             vedtaksperiode = vedtaksperiode ?: revurdering.vedtaksperiode!!,
+            valgteHjemler = valgteHjemler,
         )
 
         sendRevurderingTilBeslutningForBehandlingId(

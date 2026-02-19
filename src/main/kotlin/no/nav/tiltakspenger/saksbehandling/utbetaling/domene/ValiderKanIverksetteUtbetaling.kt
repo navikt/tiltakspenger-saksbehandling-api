@@ -48,6 +48,22 @@ private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(
     }
 }
 
+fun Simulering?.harEndringer(ny: Simulering?): Boolean {
+    if (this == null && ny == null) {
+        return false
+    }
+
+    if (this is Simulering.IngenEndring && ny is Simulering.IngenEndring) {
+        return false
+    }
+
+    if (this is Simulering.Endring && ny is Simulering.Endring) {
+        return this.simuleringPerMeldeperiode != ny.simuleringPerMeldeperiode
+    }
+
+    return true
+}
+
 enum class KanIkkeIverksetteUtbetaling {
     SimuleringMangler,
     FeilutbetalingStøttesIkke,
