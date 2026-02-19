@@ -88,7 +88,7 @@ interface SettRammebehandlingPåVentBuilder {
             setBody(
                 """
                 {
-                    "frist": "${frist?.let { "$it" } }",
+                    "frist": "${frist?.let { "$it" } ?: ""}",
                     "begrunnelse": "$begrunnelse"
                 }
                 """.trimIndent(),
