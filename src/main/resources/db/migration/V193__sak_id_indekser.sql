@@ -1,0 +1,10 @@
+CREATE INDEX ON identhendelse (sak_id);
+CREATE INDEX ON klagebehandling (sak_id);
+CREATE INDEX ON klagehendelse (sak_id);
+CREATE INDEX ON klagevedtak (sak_id);
+CREATE INDEX ON meldekortvedtak (sak_id);
+CREATE INDEX ON personhendelse (sak_id);
+CREATE INDEX ON rammevedtak (sak_id);
+CREATE INDEX ON tiltaksdeltaker_kafka (sak_id);
+CREATE INDEX ON utbetaling (sak_id);
+CREATE INDEX ON utbetalingsvedtak (sak_id);
