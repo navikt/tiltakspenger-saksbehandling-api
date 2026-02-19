@@ -6,8 +6,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 private val LOG = KotlinLogging.logger {}
 
 object DataSourceSetup {
-    private const val MAX_POOLS = 5
-
     fun createDatasource(
         jdbcUrl: String,
     ): HikariDataSource {
@@ -18,7 +16,8 @@ object DataSourceSetup {
         return HikariDataSource().apply {
             this.jdbcUrl = jdbcUrl
             initializationFailTimeout = 5000
-            maximumPoolSize = MAX_POOLS
+            minimumIdle = 5
+            maximumPoolSize = 10
         }.also {
             LOG.info { "Starter migrering" }
             flywayMigrate(it)
