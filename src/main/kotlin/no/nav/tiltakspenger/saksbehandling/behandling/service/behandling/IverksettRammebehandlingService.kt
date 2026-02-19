@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -22,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
@@ -34,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDT
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import java.time.Clock
@@ -49,7 +53,10 @@ class IverksettRammebehandlingService(
     private val sakService: SakService,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
+    private val oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
 ) {
+    private val logger = KotlinLogging.logger { }
+
     suspend fun iverksettRammebehandling(
         rammebehandlingId: BehandlingId,
         beslutter: Saksbehandler,
@@ -68,6 +75,21 @@ class IverksettRammebehandlingService(
             return KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter(
                 eiesAvBeslutter = behandling.beslutter,
             ).left()
+        }
+
+        val (_, behandlingMedOppdatertSimulering) = this@IverksettRammebehandlingService.oppdaterBeregningOgSimuleringService.oppdaterBeregningOgSimuleringForRammebehandling(
+            sak,
+            behandling,
+            beslutter,
+        ).getOrElse {
+            return KanIkkeIverksetteBehandling.SimuleringFeilet(it).left()
+        }
+
+        behandlingMedOppdatertSimulering.utbetaling?.also { utbetaling ->
+            utbetaling.validerKanIverksetteUtbetaling(behandling.utbetaling).onLeft {
+                logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - $rammebehandlingId / $it" }
+                return KanIkkeIverksetteBehandling.UtbetalingStøttesIkke(it).left()
+            }
         }
 
         val attestering = Attestering(

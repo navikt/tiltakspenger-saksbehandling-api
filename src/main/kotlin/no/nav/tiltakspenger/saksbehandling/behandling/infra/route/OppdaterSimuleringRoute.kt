@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimuleringService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -26,7 +26,7 @@ import java.time.Clock
 private const val OPPDATER_SIMULERING_PATH = "/sak/{sakId}/behandling/{behandlingId}/oppdaterSimulering"
 
 fun Route.oppdaterSimuleringRoute(
-    oppdaterSimuleringService: OppdaterSimuleringService,
+    oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
     clock: Clock,
@@ -44,7 +44,7 @@ fun Route.oppdaterSimuleringRoute(
 
             krevSaksbehandlerRolle(saksbehandler)
             tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-            oppdaterSimuleringService.oppdaterSimulering(
+            oppdaterBeregningOgSimuleringService.oppdaterSimulering(
                 sakId = sakId,
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,

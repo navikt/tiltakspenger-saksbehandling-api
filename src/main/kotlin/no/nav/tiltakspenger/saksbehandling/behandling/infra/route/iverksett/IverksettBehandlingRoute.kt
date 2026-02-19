@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -20,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilUtbetalingErrorJson
 
 fun Route.iverksettRammebehandlingRoute(
     iverksettRammebehandlingService: IverksettRammebehandlingService,
@@ -51,6 +54,23 @@ fun Route.iverksettRammebehandlingRoute(
                             KanIkkeIverksetteBehandling.KanIkkeHaUtbetaling -> call.respond400BadRequest(
                                 melding = "Behandling med utbetaling kan ikke iverksettes på nåværende tidspunkt",
                                 kode = "støtter_ikke_utbetaling",
+                            )
+
+                            is KanIkkeIverksetteBehandling.UtbetalingStøttesIkke -> it.feil.tilUtbetalingErrorJson()
+
+                            KanIkkeIverksetteBehandling.SimuleringEndret -> HttpStatusCode.Conflict to ErrorJson(
+                                "Simulering av utbetaling har endret seg. Se over beregning og simulering på nytt og prøv igjen.",
+                                "simulering_endret",
+                            )
+
+                            is KanIkkeIverksetteBehandling.SimuleringFeilet -> HttpStatusCode.InternalServerError to ErrorJson(
+                                "Kunne ikke simulere: ${it.underliggende}",
+                                "simulering_feilet",
+                            )
+
+                            KanIkkeIverksetteBehandling.KunneIkkeHenteNavkontorForUtbetaling -> HttpStatusCode.InternalServerError to ErrorJson(
+                                "Kunne hente navkontor for utbetaling",
+                                "kunne_ikke_hente_navkontor_for_utbetaling",
                             )
                         }
                     },

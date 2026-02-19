@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimuleringService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
@@ -157,6 +157,7 @@ open class BehandlingOgVedtakContext(
             sakService = sakService,
             clock = clock,
             statistikkSakService = statistikkSakService,
+            oppdaterBeregningOgSimuleringService = oppdaterBeregningOgSimuleringService,
         )
     }
 
@@ -164,7 +165,7 @@ open class BehandlingOgVedtakContext(
         SendRammebehandlingTilBeslutningService(
             sakService = sakService,
             rammebehandlingRepo = rammebehandlingRepo,
-            oppdaterSimuleringService = oppdaterSimuleringService,
+            oppdaterBeregningOgSimuleringService = oppdaterBeregningOgSimuleringService,
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
@@ -279,8 +280,8 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val oppdaterSimuleringService by lazy {
-        OppdaterSimuleringService(
+    val oppdaterBeregningOgSimuleringService by lazy {
+        OppdaterBeregningOgSimuleringService(
             sakService = sakService,
             rammebehandlingRepo = rammebehandlingRepo,
             meldekortBehandlingRepo = meldekortBehandlingRepo,

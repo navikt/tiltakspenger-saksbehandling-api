@@ -28,7 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 
-class OppdaterSimuleringService(
+class OppdaterBeregningOgSimuleringService(
     val sakService: SakService,
     val rammebehandlingRepo: RammebehandlingRepo,
     val meldekortBehandlingRepo: MeldekortBehandlingRepo,
@@ -36,7 +36,7 @@ class OppdaterSimuleringService(
     val sessionFactory: SessionFactory,
 ) {
     /**
-     * Oppdaterer simuleringen på en åpen behandling som ikke er sendt til beslutter.
+     * Oppdaterer beregning og simuleringen av utbetaling på en åpen behandling som er under behandling eller beslutning
      * @param behandlingId id til behandlingen som skal oppdateres ([BehandlingId] eller [MeldekortId])
      */
     suspend fun oppdaterSimulering(

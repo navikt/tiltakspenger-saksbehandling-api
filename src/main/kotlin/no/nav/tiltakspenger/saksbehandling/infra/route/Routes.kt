@@ -40,7 +40,7 @@ fun Route.routes(
             oppdaterBehandlingService = applicationContext.behandlingContext.oppdaterRammebehandlingService,
             settBehandlingPåVentService = applicationContext.behandlingContext.settRammebehandlingPåVentService,
             gjenopptaBehandlingService = applicationContext.behandlingContext.gjenopptaRammebehandlingService,
-            oppdaterSimuleringService = applicationContext.behandlingContext.oppdaterSimuleringService,
+            oppdaterBeregningOgSimuleringService = applicationContext.behandlingContext.oppdaterBeregningOgSimuleringService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             clock = applicationContext.clock,
         )
