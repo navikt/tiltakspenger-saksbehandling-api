@@ -16,6 +16,7 @@ object DataSourceSetup {
         return HikariDataSource().apply {
             this.jdbcUrl = jdbcUrl
             initializationFailTimeout = 5000
+            connectionTimeout = 2000
             minimumIdle = 5
             maximumPoolSize = 10
         }.also {
