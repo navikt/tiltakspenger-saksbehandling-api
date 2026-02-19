@@ -7,7 +7,6 @@ sealed interface KanIkkeIverksetteBehandling {
     data class BehandlingenEiesAvAnnenBeslutter(val eiesAvBeslutter: String?) : KanIkkeIverksetteBehandling
     data object KanIkkeHaUtbetaling : KanIkkeIverksetteBehandling
     data class SimuleringFeilet(val underliggende: KunneIkkeSimulere) : KanIkkeIverksetteBehandling
-    data object SimuleringEndret : KanIkkeIverksetteBehandling
     data object KunneIkkeHenteNavkontorForUtbetaling : KanIkkeIverksetteBehandling
     data class UtbetalingStøttesIkke(val feil: KanIkkeIverksetteUtbetaling) : KanIkkeIverksetteBehandling
 }
