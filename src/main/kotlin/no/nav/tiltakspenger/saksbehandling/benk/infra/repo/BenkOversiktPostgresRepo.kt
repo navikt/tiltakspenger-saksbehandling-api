@@ -45,9 +45,11 @@ class BenkOversiktPostgresRepo(
                 null::timestamp with time zone as sist_endret
             from søknad sø
                 join sak sa on sø.sak_id = sa.id
-                left join behandling b on sø.id = b.soknad_id
-            where b.id is null
-              and sø.avbrutt is null
+            where 
+                not exists (
+                    select 1 from behandling b where b.soknad_id = soknad.id
+                )
+                and sø.avbrutt is null
         """
 
         const val ÅPNE_SØKNADSBEHANDLINGER = """
