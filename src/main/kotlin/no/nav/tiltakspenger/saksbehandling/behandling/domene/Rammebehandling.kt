@@ -100,8 +100,9 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     val erUnderAutomatiskBehandling: Boolean get() = status == UNDER_AUTOMATISK_BEHANDLING
     val erUnderBehandling: Boolean get() = status == UNDER_BEHANDLING || status == UNDER_AUTOMATISK_BEHANDLING
-    val erKlarTilEllerUnderBeslutning: Boolean get() =
-        status == KLAR_TIL_BESLUTNING || status == UNDER_BESLUTNING
+    val erUnderBeslutning: Boolean get() = status == UNDER_BESLUTNING
+    val erUnderBehandlingEllerBeslutning: Boolean get() = erUnderBehandling || erUnderBeslutning
+
     override val erAvbrutt: Boolean get() = status == AVBRUTT
     val erVedtatt: Boolean get() = status == VEDTATT
     override val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
@@ -710,6 +711,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         }
     }
 
-    fun oppdaterSimulering(nySimulering: Simulering?): Rammebehandling
+    /** Oppdaterer beregning og simulering for utbetaling */
+    fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?): Rammebehandling
+
     fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling
 }

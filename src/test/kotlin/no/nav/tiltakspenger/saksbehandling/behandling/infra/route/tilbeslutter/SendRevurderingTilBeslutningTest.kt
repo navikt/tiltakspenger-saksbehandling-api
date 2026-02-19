@@ -260,7 +260,8 @@ class SendRevurderingTilBeslutningTest {
                 )
 
                 // En annen omgjøring iverksettes i mellomtiden, som opphører samme periode som den første.
-                // Beregningen av første omgjøring vil da være endret til null, og vi skal ikke kunne sende den til beslutning.
+                // Beregningen av første omgjøring vil da endres til null/ingen endring, og vi skal ikke kunne sende den til beslutning.
+                // (den første omgjøringen vil forøvrig i dette tilfellet feile ved gjentatte forsøk også, ettersom perioden nå allerede er opphørt)
                 iverksettOmgjøringOpphør(
                     tac = tac,
                     sakId = sak.id,

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAu
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 data class Behandlinger(
@@ -27,6 +28,16 @@ data class Behandlinger(
     val sakId: SakId? by lazy { slåttSammen.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow() }
     val saksnummer: Saksnummer? by lazy {
         slåttSammen.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
+    }
+
+    val sisteNavkontor: Navkontor? by lazy {
+        slåttSammen.asReversed().firstNotNullOfOrNull {
+            when (it) {
+                is Rammebehandling -> it.utbetaling?.navkontor
+                is MeldekortBehandling -> it.navkontor
+                else -> null
+            }
+        }
     }
 
     val harEnEllerFlereÅpneBehandlinger: Boolean by lazy {
@@ -120,7 +131,9 @@ data class Behandlinger(
 
                 Klagebehandlingsstatus.VEDTATT -> require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT)
 
-                Klagebehandlingsstatus.AVBRUTT, Klagebehandlingsstatus.OPPRETTHOLDT, Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException("En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling")
+                Klagebehandlingsstatus.AVBRUTT, Klagebehandlingsstatus.OPPRETTHOLDT, Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException(
+                    "En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling",
+                )
             }
         }
         // Siden [Rammebehandling] er "eieren" av relasjonen til [Klagebehandling], sjekker vi statusen i initen til implementasjonene av [Rammebehandling].
