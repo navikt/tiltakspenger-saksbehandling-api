@@ -8,5 +8,14 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerComm
  * Custom spørringer for å vise en oversikt over søknader og behandlinger.
  */
 interface BenkOversiktRepo {
-    fun hentÅpneBehandlinger(command: HentÅpneBehandlingerCommand, sessionContext: SessionContext? = null, limit: Int = 500): BenkOversikt
+    companion object {
+        const val IKKE_TILDELT: String = "IKKE_TILDELT"
+        const val DEFAULT_LIMIT = 500
+    }
+
+    fun hentÅpneBehandlinger(
+        command: HentÅpneBehandlingerCommand,
+        sessionContext: SessionContext? = null,
+        limit: Int = DEFAULT_LIMIT,
+    ): BenkOversikt
 }
