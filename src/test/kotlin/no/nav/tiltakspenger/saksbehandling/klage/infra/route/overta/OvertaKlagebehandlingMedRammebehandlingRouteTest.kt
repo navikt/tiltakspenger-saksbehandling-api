@@ -51,7 +51,11 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                   "begrunnelse": "Begrunnelse for omgjøring",
                   "rammebehandlingId": "${rammebehandlingMedKlagebehandling.id}",
                   "ventestatus": null,
-                  "hjemler": null
+                  "hjemler": null,
+                  "iverksattOpprettholdelseTidspunkt": null,
+                  "journalføringstidspunktInnstillingsbrev": null,
+                  "distribusjonstidspunktInnstillingsbrev": null,
+                  "oversendtKlageinstansenTidspunkt": null
                 }
                 """.trimIndent(),
             )

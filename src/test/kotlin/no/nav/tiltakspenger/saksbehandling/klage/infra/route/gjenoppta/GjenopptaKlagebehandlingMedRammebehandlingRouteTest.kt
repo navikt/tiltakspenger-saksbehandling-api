@@ -67,7 +67,11 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                     "erSattPåVent": false,
                     "frist": null
                   },
-                  "hjemler": null
+                  "hjemler": null,
+                  "iverksattOpprettholdelseTidspunkt": null,
+                  "journalføringstidspunktInnstillingsbrev": null,
+                  "distribusjonstidspunktInnstillingsbrev": null,
+                  "oversendtKlageinstansenTidspunkt": null
                 }
                 """.trimIndent(),
             )

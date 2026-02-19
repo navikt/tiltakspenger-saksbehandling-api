@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettKlagebehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
@@ -78,7 +77,11 @@ class OpprettKlagebehandlingRouteTest {
                      "begrunnelse": null,
                      "rammebehandlingId": null,
                      "ventestatus": null,
-                     "hjemler": ["ARBEIDSMARKEDSLOVEN_17"]
+                     "hjemler": ["ARBEIDSMARKEDSLOVEN_17"],
+                     "iverksattOpprettholdelseTidspunkt": "2025-01-01T01:02:36.456789",
+                     "journalføringstidspunktInnstillingsbrev": null,
+                     "distribusjonstidspunktInnstillingsbrev": null,
+                     "oversendtKlageinstansenTidspunkt": null
                    }
                 """.trimIndent(),
             )

@@ -53,7 +53,11 @@ class SettKlagebehandlingPåVentRouteTest {
                     "erSattPåVent": true,
                     "frist": "2025-01-14"
                   },
-                  "hjemler": null
+                  "hjemler": null,
+                  "iverksattOpprettholdelseTidspunkt": null,
+                  "journalføringstidspunktInnstillingsbrev": null,
+                  "distribusjonstidspunktInnstillingsbrev": null,
+                  "oversendtKlageinstansenTidspunkt": null
                 }
                 """.trimIndent(),
             )

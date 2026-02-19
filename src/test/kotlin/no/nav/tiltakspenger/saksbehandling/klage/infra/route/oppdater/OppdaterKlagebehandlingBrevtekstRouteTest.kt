@@ -49,7 +49,11 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                   "begrunnelse": null,
                   "rammebehandlingId": null,
                   "ventestatus": null,
-                  "hjemler": null
+                  "hjemler": null,
+                  "iverksattOpprettholdelseTidspunkt": null,
+                  "journalføringstidspunktInnstillingsbrev": null,
+                  "distribusjonstidspunktInnstillingsbrev": null,
+                  "oversendtKlageinstansenTidspunkt": null
                 }
                 """.trimIndent(),
             )
@@ -106,7 +110,11 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                   "begrunnelse": null,
                   "rammebehandlingId": null,
                   "ventestatus": null,
-                  "hjemler": ["ARBEIDSMARKEDSLOVEN_17"]
+                  "hjemler": ["ARBEIDSMARKEDSLOVEN_17"],
+                  "iverksattOpprettholdelseTidspunkt": null,
+                  "journalføringstidspunktInnstillingsbrev": null,
+                  "distribusjonstidspunktInnstillingsbrev": null,
+                  "oversendtKlageinstansenTidspunkt": null
                 }
                 """.trimIndent(),
             )

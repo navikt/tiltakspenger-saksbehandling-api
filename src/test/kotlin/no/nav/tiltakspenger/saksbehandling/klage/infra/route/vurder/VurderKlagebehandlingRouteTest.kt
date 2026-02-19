@@ -59,7 +59,11 @@ class VurderKlagebehandlingRouteTest {
                   "begrunnelse": "Begrunnelse for omgjøring",
                   "rammebehandlingId": null,
                   "ventestatus": null,
-                  "hjemler": null
+                  "hjemler": null,
+                  "iverksattOpprettholdelseTidspunkt": null,
+                  "journalføringstidspunktInnstillingsbrev": null,
+                  "distribusjonstidspunktInnstillingsbrev": null,
+                  "oversendtKlageinstansenTidspunkt": null
                 }
                 """.trimIndent(),
             )
@@ -114,7 +118,11 @@ class VurderKlagebehandlingRouteTest {
                   "hjemler": [
                     "ARBEIDSMARKEDSLOVEN_17",
                     "TILTAKSPENGEFORSKRIFTEN_2"
-                   ]       
+                   ],
+                   "iverksattOpprettholdelseTidspunkt": null,
+                   "journalføringstidspunktInnstillingsbrev": null,
+                   "distribusjonstidspunktInnstillingsbrev": null,
+                   "oversendtKlageinstansenTidspunkt": null
                 }
                 """.trimIndent(),
             )
@@ -172,7 +180,11 @@ class VurderKlagebehandlingRouteTest {
                   "begrunnelse": "oppdatert begrunnelse for omgjøring",
                   "rammebehandlingId": "${rammebehandlingMedKlagebehandling.id}",
                   "ventestatus": null,
-                  "hjemler": null
+                  "hjemler": null,
+                  "iverksattOpprettholdelseTidspunkt": null,
+                  "journalføringstidspunktInnstillingsbrev": null,
+                  "distribusjonstidspunktInnstillingsbrev": null,
+                  "oversendtKlageinstansenTidspunkt": null
                 }
                 """.trimIndent(),
             )

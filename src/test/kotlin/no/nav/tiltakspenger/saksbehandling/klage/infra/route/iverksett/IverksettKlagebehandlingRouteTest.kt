@@ -96,7 +96,11 @@ class IverksettKlagebehandlingRouteTest {
                      "begrunnelse": null,
                      "rammebehandlingId": null,
                      "ventestatus": null,
-                     "hjemler": null
+                     "hjemler": null,
+                     "iverksattOpprettholdelseTidspunkt": null,
+                     "journalføringstidspunktInnstillingsbrev": null,
+                     "distribusjonstidspunktInnstillingsbrev": null,
+                     "oversendtKlageinstansenTidspunkt": null
                    }
                 """.trimIndent(),
             )

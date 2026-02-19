@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlageInnse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlageInnsendingskildeDto.Companion.toDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlagefristUnntakSvarordDto
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class KlagebehandlingDTO(
     val id: String,
@@ -45,6 +46,10 @@ data class KlagebehandlingDTO(
     val begrunnelse: String?,
     val rammebehandlingId: String?,
     val ventestatus: VentestatusHendelseDTO?,
+    val iverksattOpprettholdelseTidspunkt: LocalDateTime?,
+    val journalføringstidspunktInnstillingsbrev: LocalDateTime?,
+    val distribusjonstidspunktInnstillingsbrev: LocalDateTime?,
+    val oversendtKlageinstansenTidspunkt: LocalDateTime?,
 ) {
     data class TittelOgTekstDTO(
         val tittel: String,
@@ -92,4 +97,8 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     hjemler = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.hjemler?.toKlagehjemmelDto(),
     innsendingsdato = this.formkrav.innsendingsdato,
     innsendingskilde = this.formkrav.innsendingskilde.toDto(),
+    iverksattOpprettholdelseTidspunkt = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.iverksattOpprettholdelseTidspunkt,
+    journalføringstidspunktInnstillingsbrev = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.journalføringstidspunktInnstillingsbrev,
+    distribusjonstidspunktInnstillingsbrev = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.distribusjonstidspunktInnstillingsbrev,
+    oversendtKlageinstansenTidspunkt = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.oversendtKlageinstansenTidspunkt,
 )

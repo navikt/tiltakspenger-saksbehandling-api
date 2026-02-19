@@ -68,7 +68,11 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                   "begrunnelse": null,
                   "rammebehandlingId": null,
                   "ventestatus": null,
-                  "hjemler": null
+                  "hjemler": null,
+                  "iverksattOpprettholdelseTidspunkt": null,
+                  "journalføringstidspunktInnstillingsbrev": null,
+                  "distribusjonstidspunktInnstillingsbrev": null,
+                  "oversendtKlageinstansenTidspunkt": null
                 }
                 """.trimIndent(),
             )
@@ -144,7 +148,11 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                   "begrunnelse": "Begrunnelse for omgjøring",
                   "rammebehandlingId": null,
                   "ventestatus": null,
-                  "hjemler": null
+                  "hjemler": null,
+                  "iverksattOpprettholdelseTidspunkt": null,
+                  "journalføringstidspunktInnstillingsbrev": null,
+                  "distribusjonstidspunktInnstillingsbrev": null,
+                  "oversendtKlageinstansenTidspunkt": null
                 }
                     """.trimIndent()
                 },
