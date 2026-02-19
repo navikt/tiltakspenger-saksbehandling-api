@@ -21,11 +21,15 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.contentType
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientWithRetry
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.toJournalpostRequest
 import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
@@ -34,6 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.toJournalpostReq
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.http.utgåendeJournalpostRequest
+import java.time.Clock
 
 internal const val DOKARKIV_PATH = "rest/journalpostapi/v1/journalpost"
 
@@ -46,6 +51,7 @@ internal const val DOKARKIV_PATH = "rest/journalpostapi/v1/journalpost"
 internal class DokarkivHttpClient(
     private val baseUrl: String,
     private val client: HttpClient = httpClientWithRetry(timeout = 30L),
+    private val clock: Clock,
     private val getToken: suspend () -> AccessToken,
 ) : JournalførRammevedtaksbrevKlient,
     JournalførMeldekortKlient,
@@ -57,7 +63,7 @@ internal class DokarkivHttpClient(
         vedtak: Rammevedtak,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
-    ): JournalpostId {
+    ): Pair<JournalpostId, JournalførBrevMetadata> {
         val jsonBody = vedtak.utgåendeJournalpostRequest(pdfOgJson)
         return opprettJournalpost(jsonBody, correlationId)
     }
@@ -66,7 +72,7 @@ internal class DokarkivHttpClient(
         meldekortvedtak: Meldekortvedtak,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
-    ): JournalpostId {
+    ): Pair<JournalpostId, JournalførBrevMetadata> {
         val jsonBody = meldekortvedtak.toJournalpostRequest(pdfOgJson)
         return opprettJournalpost(jsonBody, correlationId)
     }
@@ -75,17 +81,26 @@ internal class DokarkivHttpClient(
         klagevedtak: Klagevedtak,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
-    ): JournalpostId {
+    ): Pair<JournalpostId, JournalførBrevMetadata> {
         val jsonBody = klagevedtak.toJournalpostRequest(pdfOgJson)
         return opprettJournalpost(jsonBody, correlationId)
     }
 
-    private suspend fun opprettJournalpost(
-        jsonBody: String,
+    override suspend fun journalførInnstillingsbrevForOpprettholdtKlagebehandling(
+        klagebehandling: Klagebehandling,
+        pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
-    ): JournalpostId {
+    ): Pair<JournalpostId, JournalførBrevMetadata> {
+        val jsonBody = klagebehandling.toJournalpostRequest(pdfOgJson)
+        return opprettJournalpost(jsonBody, correlationId)
+    }
+
+    private suspend fun opprettJournalpost(
+        jsonRequestBody: String,
+        correlationId: CorrelationId,
+    ): Pair<JournalpostId, JournalførBrevMetadata> {
         val token = Either.catch { getToken() }.getOrElse {
-            Sikkerlogg.error(it) { "Kunne ikke hente token for journalføring. jsonBody: $jsonBody, correlationId: $correlationId" }
+            Sikkerlogg.error(it) { "Kunne ikke hente token for journalføring. jsonBody: $jsonRequestBody, correlationId: $correlationId" }
             throw RuntimeException("Kunne ikke hente token for journalføring. Se sikkerlogg for mer kontekst.")
         }
         try {
@@ -98,13 +113,14 @@ internal class DokarkivHttpClient(
                 parameter("forsoekFerdigstill", true)
                 bearerAuth(token.token)
                 contentType(ContentType.Application.Json)
-                setBody(jsonBody)
+                setBody(jsonRequestBody)
             }
 
-            when (res.status) {
+            when (val status = res.status) {
                 HttpStatusCode.Created -> {
-                    val response = res.call.body<DokarkivResponse>()
-                    log.info { response.toString() }
+                    val responseBody: String = res.call.body()
+                    val response = deserialize<DokarkivResponse>(responseBody)
+                    log.info { "Mottok 201 Created fra dokarkiv med response body: $responseBody" }
 
                     val journalpostId = if (response.journalpostId.isNullOrEmpty()) {
                         log.warn { "Kallet til dokarkiv gikk ok, men vi fikk ingen journalpostId fra dokarkiv" }
@@ -114,15 +130,20 @@ internal class DokarkivHttpClient(
                     }
 
                     if ((response.journalpostferdigstilt == null) || !response.journalpostferdigstilt) {
-                        log.error { "Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId. response=$response" }
+                        log.error { "Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId. response=$responseBody" }
                     }
 
                     log.info { "Vi har opprettet journalpost med id : $journalpostId" }
-                    return JournalpostId(journalpostId)
+                    return JournalpostId(journalpostId) to JournalførBrevMetadata(
+                        requestBody = jsonRequestBody,
+                        responseStatus = "201 Created",
+                        responseBody = responseBody,
+                        journalføringsTidspunkt = nå(clock),
+                    )
                 }
 
                 else -> {
-                    log.warn { "Kallet til dokarkiv feilet ${res.status} ${res.status.description}" }
+                    log.warn { "Kallet til dokarkiv feilet $status ${status.description}" }
                     throw RuntimeException("Feil i kallet til dokarkiv")
                 }
             }
@@ -138,8 +159,14 @@ internal class DokarkivHttpClient(
 
                         Conflict -> {
                             log.warn { "Har allerede blitt journalført (409 Conflict)" }
-                            val response = throwable.response.call.body<DokarkivResponse>()
-                            return JournalpostId(response.journalpostId.orEmpty())
+                            val responseBody: String = throwable.response.call.body()
+                            val response = deserialize<DokarkivResponse>(responseBody)
+                            return JournalpostId(response.journalpostId.orEmpty()) to JournalførBrevMetadata(
+                                requestBody = jsonRequestBody,
+                                responseStatus = "409 Conflict",
+                                responseBody = responseBody,
+                                journalføringsTidspunkt = nå(clock),
+                            )
                         }
 
                         else -> {

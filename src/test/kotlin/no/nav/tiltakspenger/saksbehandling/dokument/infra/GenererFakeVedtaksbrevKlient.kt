@@ -32,7 +32,7 @@ class GenererFakeVedtaksbrevKlient :
     GenererVedtaksbrevForAvslagKlient,
     GenererVedtaksbrevForOpphørKlient,
     GenererKlagebrevKlient {
-    private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json").right() }
+    private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "{}").right() }
 
     override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,

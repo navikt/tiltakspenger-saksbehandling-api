@@ -26,7 +26,7 @@ interface GenererKlagebrevKlient {
         fnr: Fnr,
         tilleggstekst: Brevtekster,
         saksbehandlerNavIdent: String,
-        `forhåndsvisning`: Boolean,
+        forhåndsvisning: Boolean,
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,

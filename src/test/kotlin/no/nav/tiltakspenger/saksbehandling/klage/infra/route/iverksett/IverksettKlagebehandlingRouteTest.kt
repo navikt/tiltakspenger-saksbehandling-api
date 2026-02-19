@@ -41,8 +41,6 @@ class IverksettKlagebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = klagevedtak.behandling
-            val expectedBrevJson =
-                """{"personalia": {"ident": "12345678911", "fornavn": "Fornavn", "etternavn": "Etternavn"}, "saksnummer": "202501011001", "tilleggstekst": [{"tekst": "Din klage er dessverre avvist.", "tittel": "Avvisning av klage"}], "forhandsvisning": false, "datoForUtsending": "1. januar 2025", "saksbehandlerNavn": "Saksbehandler Saksbehandleren"}""".trimIndent()
             val expectedKlagevedtak = Klagevedtak(
                 id = klagevedtak.id,
                 opprettet = LocalDateTime.parse("2025-01-01T01:02:10.456789"),
@@ -53,7 +51,6 @@ class IverksettKlagebehandlingRouteTest {
                 distribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:13.456789"),
                 vedtaksdato = LocalDate.parse("2025-01-01"),
                 sendtTilDatadeling = null,
-                brevJson = expectedBrevJson,
             )
             klagevedtak shouldBe expectedKlagevedtak
             tac.sessionFactory.withSession {
@@ -273,8 +270,8 @@ class IverksettKlagebehandlingRouteTest {
                 beslutter = beslutter,
             )!!
             rammevedtak.klagebehandling!!.also {
-                it.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:48.456789")
-                it.iverksattTidspunkt shouldBe LocalDateTime.parse("2025-01-01T01:02:48.456789")
+                it.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:51.456789")
+                it.iverksattTidspunkt shouldBe LocalDateTime.parse("2025-01-01T01:02:51.456789")
                 it.status shouldBe Klagebehandlingsstatus.VEDTATT
                 it.kanIverksetteVedtak shouldBe false
                 it.erVedtatt shouldBe true

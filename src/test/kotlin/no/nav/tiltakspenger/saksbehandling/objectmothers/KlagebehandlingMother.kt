@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
@@ -88,7 +89,8 @@ interface KlagebehandlingMother : MotherOfAllMothers {
     ): Klagebehandling {
         val clock = TikkendeKlokke()
         val correlationId: CorrelationId = CorrelationId.generate()
-        val opprettetKlagebehandling = opprettKlagebehandling(vedtakDetKlagesPå = VedtakId.random(), clock = clock, correlationId = correlationId)
+        val opprettetKlagebehandling =
+            opprettKlagebehandling(vedtakDetKlagesPå = VedtakId.random(), clock = clock, correlationId = correlationId)
         val vurdertKlagebehandling = opprettetKlagebehandling.vurder(
             kommando = VurderOpprettholdKlagebehandlingKommando(
                 sakId = opprettetKlagebehandling.sakId,
@@ -122,7 +124,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
             ),
         ).getOrFail()
         return iverksattOpprettholdt
-            .oppdaterInnstillingsbrevJournalpost(innstillingsbrevJournalpostId, nå)
+            .oppdaterInnstillingsbrevJournalpost(LocalDate.now(fixedClock), innstillingsbrevJournalpostId, nå)
             .oppdaterInnstillingsbrevDistribusjon(DistribusjonId("distribusjonId"), nå)
     }
 }

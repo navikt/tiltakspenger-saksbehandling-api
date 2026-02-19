@@ -35,6 +35,7 @@ interface IverksettRammebehandlingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
+        utførJobber: Boolean = true,
     ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = beslutter,
@@ -58,7 +59,13 @@ interface IverksettRammebehandlingBuilder {
                 bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
-
+            if (utførJobber) {
+                // Emulerer jobbene som normalt ville blitt trigget av å sette behandling til IVERKSATT.
+                tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+                tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+                tac.behandlingContext.journalførRammevedtaksbrevService.journalfør()
+                tac.behandlingContext.distribuerRammevedtaksbrevService.distribuer()
+            }
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val rammevedtak = sak.vedtaksliste.hentRammevedtakForBehandlingId(behandlingId)
             return Triple(sak, rammevedtak, JSONObject(bodyAsText))

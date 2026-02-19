@@ -13,14 +13,17 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
+import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OversendtKlageTilKabalMetadata
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo.Companion.overtaBehandling
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo.Companion.taBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.klage.ports.OversendtKlageTilKabal
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 
 class KlagebehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -112,6 +115,28 @@ class KlagebehandlingPostgresRepo(
         }
     }
 
+    override fun markerInnstillingsbrevJournalført(
+        klagebehandling: Klagebehandling,
+        metadata: JournalførBrevMetadata,
+    ) {
+        sessionFactory.withTransaction { tx ->
+            lagreKlagebehandling(klagebehandling, tx)
+            tx.run(
+                queryOf(
+                    """
+                    update klagebehandling set 
+                        brev_metadata = to_jsonb(:brev_metadata::jsonb)
+                    where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "id" to klagebehandling.id.toString(),
+                        "brev_metadata" to metadata.toDbJson(),
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
     override fun hentInnstillingsbrevSomSkalDistribueres(limit: Int): List<Klagebehandling> {
         return sessionFactory.withSession { session ->
             session.run(
@@ -158,14 +183,17 @@ class KlagebehandlingPostgresRepo(
         }
     }
 
-    override fun markerOversendtTilKlageinstans(klagebehandling: Klagebehandling, metadata: OversendtKlageTilKabal) {
+    override fun markerOversendtTilKlageinstans(
+        klagebehandling: Klagebehandling,
+        metadata: OversendtKlageTilKabalMetadata,
+    ) {
         sessionFactory.withTransaction { tx ->
             tx.run(
                 sqlQuery(
                     """
                     update klagebehandling set
                         kabal_metadata = to_jsonb(:metadata::jsonb)
-                    where id = :id and status = 'OPPRETTHOLDT'
+                    where id = :id
                     """,
                     "id" to klagebehandling.id.toString(),
                     "metadata" to """

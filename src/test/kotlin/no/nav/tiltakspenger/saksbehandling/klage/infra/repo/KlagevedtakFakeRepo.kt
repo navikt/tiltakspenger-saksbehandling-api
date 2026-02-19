@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
+import no.nav.tiltakspenger.saksbehandling.`journalføring`.`JournalførBrevMetadata`
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
@@ -33,7 +34,7 @@ class KlagevedtakFakeRepo : KlagevedtakRepo {
     override fun markerJournalført(
         id: VedtakId,
         vedtaksdato: LocalDate,
-        brevJson: String,
+        metadata: JournalførBrevMetadata,
         journalpostId: JournalpostId,
         tidspunkt: LocalDateTime,
     ) {
@@ -42,7 +43,6 @@ class KlagevedtakFakeRepo : KlagevedtakRepo {
                 journalpostId = journalpostId,
                 journalføringstidspunkt = tidspunkt,
                 vedtaksdato = vedtaksdato,
-                brevJson = brevJson,
             )
     }
 

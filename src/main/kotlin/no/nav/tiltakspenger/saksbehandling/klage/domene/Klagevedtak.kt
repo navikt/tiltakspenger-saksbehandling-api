@@ -24,7 +24,6 @@ data class Klagevedtak(
     val distribusjonstidspunkt: LocalDateTime?,
     val vedtaksdato: LocalDate?,
     val sendtTilDatadeling: LocalDateTime?,
-    val brevJson: String?,
 ) : Vedtak {
 
     override val beregning: Beregning? = null
@@ -54,7 +53,6 @@ data class Klagevedtak(
                 distribusjonstidspunkt = null,
                 vedtaksdato = null,
                 sendtTilDatadeling = null,
-                brevJson = null,
             )
         }
     }

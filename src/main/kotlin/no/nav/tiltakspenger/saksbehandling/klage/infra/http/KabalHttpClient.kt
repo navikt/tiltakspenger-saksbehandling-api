@@ -12,9 +12,9 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.infra.http.isSuccess
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.ports.FeilVedOversendelseTilKabal
+import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.FeilVedOversendelseTilKabal
+import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OversendtKlageTilKabalMetadata
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
-import no.nav.tiltakspenger.saksbehandling.klage.ports.OversendtKlageTilKabal
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -41,7 +41,7 @@ class KabalHttpClient(
     override suspend fun oversend(
         klagebehandling: Klagebehandling,
         journalpostIdVedtak: JournalpostId,
-    ): Either<FeilVedOversendelseTilKabal, OversendtKlageTilKabal> {
+    ): Either<FeilVedOversendelseTilKabal, OversendtKlageTilKabalMetadata> {
         return Either.catch {
             val payload = serialize(klagebehandling.toOversendelsesDto(journalpostIdVedtak))
 
@@ -58,7 +58,7 @@ class KabalHttpClient(
                 FeilVedOversendelseTilKabal.left()
             } else {
                 logger.info { "Klagebehandling ${klagebehandling.id} for sak ${klagebehandling.saksnummer} ble oversendt til kabal" }
-                OversendtKlageTilKabal(
+                OversendtKlageTilKabalMetadata(
                     request = payload,
                     response = response.body(),
                     oversendtTidspunkt = nå(clock),

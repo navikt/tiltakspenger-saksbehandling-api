@@ -1,22 +1,16 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.http
 
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest.JournalpostDokument.DokumentVariant.ArkivPDF
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest.JournalpostDokument.DokumentVariant.OriginalJson
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
-import java.time.format.DateTimeFormatter
-import java.time.temporal.WeekFields
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 
-/** Denne ligger nærmere klage enn journalføring strukturmessig */
-fun Klagevedtak.toJournalpostRequest(
+fun Klagebehandling.toJournalpostRequest(
     pdfOgJson: PdfOgJson,
 ): String {
-    val tittel = "Avvisning av klage på vedtak om tiltakspenger"
+    val tittel = "Opprettholdelse av klage på vedtak om tiltakspenger"
     return DokarkivRequest(
         tittel = tittel,
         journalpostType = DokarkivRequest.JournalPostType.UTGAAENDE,
@@ -28,8 +22,7 @@ fun Klagevedtak.toJournalpostRequest(
         dokumenter = listOf(
             DokarkivRequest.JournalpostDokument(
                 tittel = tittel,
-                // TODO jah:brevkode bør være bakt inn i PdfOgJson og settes samtidig som vi mottar PDFen fra pdfgen.
-                brevkode = "KLAGE-AVVISNING-TILTAKSPENGER",
+                brevkode = "KLAGE-OPPRETTHOLDELSE-TILTAKSPENGER",
                 dokumentvarianter = listOf(
                     ArkivPDF(
                         fysiskDokument = pdfOgJson.pdfAsBase64(),

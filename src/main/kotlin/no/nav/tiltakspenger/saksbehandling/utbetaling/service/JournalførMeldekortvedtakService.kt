@@ -86,7 +86,7 @@ class JournalførMeldekortvedtakService(
                         meldekortvedtak = meldekortvedtak,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
-                    )
+                    ).first
                     log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
                     meldekortvedtakRepo.markerJournalført(meldekortvedtak.id, journalpostId, nå(clock))
                     log.info { "Meldekortvedtak markert som journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }

@@ -16,13 +16,16 @@ import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
+import java.time.Clock
 
 open class DokumentContext(
     private val texasClient: TexasClient,
+    private val clock: Clock,
 ) {
     private val dokarkivClient by lazy {
         DokarkivHttpClient(
             baseUrl = Configuration.dokarkivUrl,
+            clock = clock,
             getToken = { texasClient.getSystemToken(Configuration.dokarkivScope, IdentityProvider.AZUREAD) },
         )
     }

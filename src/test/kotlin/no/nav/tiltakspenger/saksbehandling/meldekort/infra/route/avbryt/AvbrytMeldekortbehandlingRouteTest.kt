@@ -25,13 +25,13 @@ class AvbrytMeldekortbehandlingRouteTest {
                     {
                       "begrunnelse": null,
                       "avbrutt": {
-                        "avbruttTidspunkt": "2025-01-01T01:02:24.456789",
+                        "avbruttTidspunkt": "2025-01-01T01:02:27.456789",
                         "begrunnelse": "begrunnelse for avbrytelse",
                         "avbruttAv": "Z12345"
                       },
                       "attesteringer": [],
                       "saksbehandler": "Z12345",
-                      "opprettet": "2025-01-01T01:02:22.456789",
+                      "opprettet": "2025-01-01T01:02:25.456789",
                       "type": "FØRSTE_BEHANDLING",
                       "meldeperiodeId": "${avbruttMeldekortbehandling.meldeperiode.id}",
                       "beregning": null,

@@ -98,7 +98,7 @@ class TestApplicationContextMedPostgres(
             override val navIdentClient = fakeNavIdentClient
         }
     override val dokumentContext by lazy {
-        object : DokumentContext(texasClient) {
+        object : DokumentContext(texasClient, clock) {
             override val journalførMeldekortKlient = journalførFakeMeldekortKlient
             override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
             override val genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient

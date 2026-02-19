@@ -9,7 +9,9 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
@@ -41,8 +43,7 @@ class KlagevedtakPostgresRepo(
                         distribusjon_id,
                         distribusjonstidspunkt,
                         sendt_til_datadeling,
-                        vedtaksdato,
-                        brev_json
+                        vedtaksdato
                     ) values (
                         :id,
                         :sak_id,
@@ -53,8 +54,7 @@ class KlagevedtakPostgresRepo(
                         :distribusjon_id,
                         :distribusjonstidspunkt,
                         :sendt_til_datadeling,
-                        :vedtaksdato,
-                        to_jsonb(:brev_json::jsonb)
+                        :vedtaksdato
                     ) on conflict (id) do update set
                         sak_id = :sak_id,
                         klagebehandling_id = :klagebehandling_id,
@@ -64,8 +64,7 @@ class KlagevedtakPostgresRepo(
                         distribusjon_id = :distribusjon_id,
                         distribusjonstidspunkt = :distribusjonstidspunkt,
                         sendt_til_datadeling = :sendt_til_datadeling,
-                        vedtaksdato = :vedtaksdato,
-                        brev_json = to_jsonb(:brev_json::jsonb)
+                        vedtaksdato = :vedtaksdato
                     """.trimIndent(),
                     mapOf(
                         "id" to klagevedtak.id.toString(),
@@ -78,7 +77,6 @@ class KlagevedtakPostgresRepo(
                         "distribusjonstidspunkt" to klagevedtak.distribusjonstidspunkt,
                         "sendt_til_datadeling" to klagevedtak.sendtTilDatadeling,
                         "vedtaksdato" to klagevedtak.vedtaksdato,
-                        "brev_json" to klagevedtak.brevJson,
                     ),
                 ).asUpdate,
             )
@@ -88,7 +86,7 @@ class KlagevedtakPostgresRepo(
     override fun markerJournalført(
         id: VedtakId,
         vedtaksdato: LocalDate,
-        brevJson: String,
+        metadata: JournalførBrevMetadata,
         journalpostId: JournalpostId,
         tidspunkt: LocalDateTime,
     ) {
@@ -98,7 +96,7 @@ class KlagevedtakPostgresRepo(
                     """
                     update klagevedtak set 
                         vedtaksdato = :vedtaksdato,
-                        brev_json = to_jsonb(:brev_json::jsonb),
+                        brev_metadata = to_jsonb(:brev_metadata::jsonb),
                         journalpost_id = :journalpost_id,
                         journalføringstidspunkt = :journalforingstidspunkt
                     where id = :id
@@ -106,7 +104,7 @@ class KlagevedtakPostgresRepo(
                     mapOf(
                         "id" to id.toString(),
                         "vedtaksdato" to vedtaksdato,
-                        "brev_json" to brevJson,
+                        "brev_metadata" to metadata.toDbJson(),
                         "journalpost_id" to journalpostId.toString(),
                         "journalforingstidspunkt" to tidspunkt,
                     ),
@@ -238,7 +236,6 @@ class KlagevedtakPostgresRepo(
                 distribusjonstidspunkt = row.localDateTimeOrNull("distribusjonstidspunkt"),
                 vedtaksdato = row.localDateOrNull("vedtaksdato"),
                 sendtTilDatadeling = row.localDateTimeOrNull("sendt_til_datadeling"),
-                brevJson = row.stringOrNull("brev_json"),
             )
         }
     }

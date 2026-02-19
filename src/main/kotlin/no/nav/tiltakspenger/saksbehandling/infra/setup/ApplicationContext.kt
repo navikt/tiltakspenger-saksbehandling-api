@@ -279,7 +279,7 @@ open class ApplicationContext(
     }
 
     open val personContext by lazy { PersonContext(sessionFactory, texasClient) }
-    open val dokumentContext by lazy { DokumentContext(texasClient) }
+    open val dokumentContext by lazy { DokumentContext(texasClient, clock) }
     open val statistikkContext by lazy {
         StatistikkContext(
             sessionFactory,

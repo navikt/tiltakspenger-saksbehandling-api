@@ -81,7 +81,7 @@ class UtbetalingerIT {
             )
             taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
 
-            val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)!!
+            val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id, utførJobber = false)!!
 
             oppdatertSak.utbetalinger shouldBe listOf(
                 oppdatertSak.meldekortvedtaksliste.first().utbetaling,

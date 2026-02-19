@@ -19,7 +19,7 @@ class LeggTilbakeMeldekortbehandlingRouteTest {
                       "avbrutt": null,
                       "attesteringer": [],
                       "saksbehandler": null,
-                      "opprettet": "2025-05-01T01:02:23.456789",
+                      "opprettet": "2025-05-01T01:02:26.456789",
                       "type": "FØRSTE_BEHANDLING",
                       "meldeperiodeId": "${meldekortbehandling.meldeperiode.id}",
                       "beregning": null,

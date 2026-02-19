@@ -41,6 +41,7 @@ interface OpprettholdKlagebehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        utførJobber: Boolean = true,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
         val (sak, _, klagebehandling, _) = this.opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst(
             tac = tac,
@@ -54,6 +55,7 @@ interface OpprettholdKlagebehandlingBuilder {
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
+            utførJobber = utførJobber,
         )
     }
 
@@ -68,6 +70,7 @@ interface OpprettholdKlagebehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        utførJobber: Boolean = true,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
@@ -90,18 +93,19 @@ interface OpprettholdKlagebehandlingBuilder {
                 bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
-            // Emulerer journalføring og distribuering av innstillingbrev + oversendelse til klageinstansen.
-            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev()
-            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev()
-            tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans()
-
+            if (utførJobber) {
+                // Emulerer journalføring og distribuering av innstillingbrev + oversendelse til klageinstansen.
+                tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev()
+                tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev()
+                tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans()
+            }
             val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
             val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asString())
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
 
             return Triple(
                 oppdatertSak,
-                oppdatertSak.hentKlagebehandling(klagebehandlingId)!!,
+                oppdatertSak.hentKlagebehandling(klagebehandlingId),
                 jsonObject,
             )
         }

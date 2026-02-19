@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.common.withWireMockServer
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.klage.ports.OversendtKlageTilKabal
+import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OversendtKlageTilKabalMetadata
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
@@ -36,7 +36,7 @@ class KabalHttpClientTest {
                 kabalclient.oversend(
                     klagebehandling = klagebehandling,
                     journalpostIdVedtak = JournalpostId("journalpost-vedtak-1"),
-                ) shouldBe OversendtKlageTilKabal(
+                ) shouldBe OversendtKlageTilKabalMetadata(
                     request = """{"sakenGjelder":{"id":{"verdi":"${klagebehandling.fnr.verdi}","type":"PERSON"}},"fagsak":{"fagsakId":"202401011234","fagsystem":"TILTAKSPENGER"},"kildeReferanse":"${klagebehandling.id}","dvhReferanse":"${klagebehandling.id}","hjemler":["FS_TIP_3"],"tilknyttedeJournalposter":[{"type":"BRUKERS_KLAGE","journalpostId":"journalpostId"},{"type":"OPPRINNELIG_VEDTAK","journalpostId":"journalpost-vedtak-1"},{"type":"OVERSENDELSESBREV","journalpostId":"journalpostId"}],"brukersKlageMottattVedtaksinstans":"2026-02-16","forrigeBehandlendeEnhet":"0387","type":"KLAGE","ytelse":"TIL_TIP"}""".trimIndent(),
                     response = "",
                     oversendtTidspunkt = nå(fixedClock),

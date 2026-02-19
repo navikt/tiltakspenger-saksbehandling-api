@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.V
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -125,6 +126,7 @@ data class Klagebehandling(
     }
 
     fun oppdaterInnstillingsbrevJournalpost(
+        brevdato: LocalDate,
         journalpostId: JournalpostId,
         tidspunkt: LocalDateTime,
     ): Klagebehandling {
@@ -132,7 +134,7 @@ data class Klagebehandling(
             "Kun klagebehandlinger med resultat Opprettholdt kan journalføre innstillingsbrev. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
         }
         return this.copy(
-            resultat = resultat.oppdaterInnstillingsbrevJournalpost(journalpostId, tidspunkt),
+            resultat = resultat.oppdaterInnstillingsbrevJournalpost(brevdato, journalpostId, tidspunkt),
         )
     }
 

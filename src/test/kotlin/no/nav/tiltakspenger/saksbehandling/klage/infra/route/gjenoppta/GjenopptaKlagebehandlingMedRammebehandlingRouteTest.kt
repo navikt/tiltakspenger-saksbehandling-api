@@ -37,12 +37,12 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                   "sakId": "${sak.id}",
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678911",
-                  "opprettet": "2025-01-01T01:02:33.456789",
-                  "sistEndret": "2025-01-01T01:03:01.456789",
+                  "opprettet": "2025-01-01T01:02:36.456789",
+                  "sistEndret": "2025-01-01T01:03:04.456789",
                   "iverksattTidspunkt": null,
                   "saksbehandler": "saksbehandlerKlagebehandling",
                   "journalpostId": "12345",
-                  "journalpostOpprettet": "2025-01-01T01:02:32.456789",
+                  "journalpostOpprettet": "2025-01-01T01:02:35.456789",
                   "status": "UNDER_BEHANDLING",
                   "resultat": "OMGJØR",
                   "vedtakDetKlagesPå": "${sak.rammevedtaksliste.first().id}",
@@ -62,7 +62,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                   "rammebehandlingId": "${rammebehandlingMedKlagebehandling.id}",
                   "ventestatus": {
                     "sattPåVentAv": "saksbehandlerKlagebehandling",
-                    "tidspunkt": "2025-01-01T01:03:01.456789",
+                    "tidspunkt": "2025-01-01T01:03:04.456789",
                     "begrunnelse": "",
                     "erSattPåVent": false,
                     "frist": null
@@ -78,7 +78,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
             klagebehandling.ventestatus shouldBe Ventestatus(
                 listOf(
                     VentestatusHendelse(
-                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:43.456789"),
+                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:46.456789"),
                         endretAv = "saksbehandlerKlagebehandling",
                         begrunnelse = "begrunnelse for å sette klage på vent",
                         erSattPåVent = true,
@@ -86,7 +86,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                         frist = 14.januar(2025),
                     ),
                     VentestatusHendelse(
-                        tidspunkt = LocalDateTime.parse("2025-01-01T01:03:01.456789"),
+                        tidspunkt = LocalDateTime.parse("2025-01-01T01:03:04.456789"),
                         endretAv = "saksbehandlerKlagebehandling",
                         begrunnelse = "",
                         erSattPåVent = false,
@@ -100,7 +100,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
             rammebehandlingMedKlagebehandling.ventestatus shouldBe Ventestatus(
                 listOf(
                     VentestatusHendelse(
-                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:42.456789"),
+                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:45.456789"),
                         endretAv = "saksbehandlerKlagebehandling",
                         begrunnelse = "begrunnelse for å sette klage på vent",
                         erSattPåVent = true,
@@ -108,7 +108,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                         frist = LocalDate.parse("2025-01-14"),
                     ),
                     VentestatusHendelse(
-                        tidspunkt = LocalDateTime.parse("2025-01-01T01:03:00.456789"),
+                        tidspunkt = LocalDateTime.parse("2025-01-01T01:03:03.456789"),
                         endretAv = "saksbehandlerKlagebehandling",
                         begrunnelse = "",
                         erSattPåVent = false,
@@ -117,7 +117,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                     ),
                 ),
             )
-            rammebehandlingMedKlagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:03:00.456789")
+            rammebehandlingMedKlagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:03:03.456789")
         }
     }
 
@@ -172,18 +172,18 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
     },
     "ytelser": [],
     "tiltakspengevedtakFraArena": [],
-    "oppslagstidspunkt": "2025-01-01T01:03:02.456789"
+    "oppslagstidspunkt": "2025-01-01T01:03:05.456789"
   },
   "attesteringer": [],
   "vedtaksperiode": null,
   "fritekstTilVedtaksbrev": null,
   "begrunnelseVilkårsvurdering": null,
   "avbrutt": null,
-  "sistEndret": "2025-01-01T01:03:00.456789",
+  "sistEndret": "2025-01-01T01:03:03.456789",
   "iverksattTidspunkt": null,
   "ventestatus": {
     "sattPåVentAv": "saksbehandlerKlagebehandling",
-    "tidspunkt": "2025-01-01T01:03:00.456789",
+    "tidspunkt": "2025-01-01T01:03:03.456789",
     "begrunnelse": "",
     "erSattPåVent": false,
     "frist": null
@@ -278,7 +278,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
             klagebehandling.ventestatus shouldBe Ventestatus(
                 listOf(
                     VentestatusHendelse(
-                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:43.456789"),
+                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:46.456789"),
                         endretAv = "saksbehandlerKlagebehandling",
                         begrunnelse = "begrunnelse for å sette klage på vent",
                         erSattPåVent = true,
@@ -286,7 +286,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                         frist = 14.januar(2025),
                     ),
                     VentestatusHendelse(
-                        tidspunkt = LocalDateTime.parse("2025-01-01T01:03:01.456789"),
+                        tidspunkt = LocalDateTime.parse("2025-01-01T01:03:04.456789"),
                         endretAv = "saksbehandlerKlagebehandling",
                         begrunnelse = "",
                         erSattPåVent = false,
@@ -295,7 +295,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                     ),
                 ),
             )
-            klagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:03:01.456789")
+            klagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:03:04.456789")
         }
     }
 }

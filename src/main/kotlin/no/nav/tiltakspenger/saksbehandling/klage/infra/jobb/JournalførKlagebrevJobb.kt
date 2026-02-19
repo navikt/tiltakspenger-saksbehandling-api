@@ -53,7 +53,7 @@ class JournalførKlagebrevJobb(
                     }.getOrElse { return@forEach }
 
                     log.info { "Vedtaksbrev generert for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
-                    val journalpostId = journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
+                    val (journalpostId, metadata) = journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
                         klagevedtak = vedtak,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
@@ -62,7 +62,7 @@ class JournalførKlagebrevJobb(
                     klagevedtakRepo.markerJournalført(
                         vedtak.id,
                         vedtaksdato,
-                        pdfOgJson.json,
+                        metadata,
                         journalpostId,
                         nå(clock),
                     )
@@ -79,17 +79,42 @@ class JournalførKlagebrevJobb(
 
     suspend fun journalførInnstillingsbrev() {
         Either.catch {
-            klagebehandlingRepo.hentInnstillingsbrevSomSkalJournalføres().forEach { behandling ->
-                val sakId = behandling.sakId
-                val saksnummer = behandling.saksnummer
-                val id = behandling.id
+            klagebehandlingRepo.hentInnstillingsbrevSomSkalJournalføres().forEach { klagebehandling ->
+                val sakId = klagebehandling.sakId
+                val saksnummer = klagebehandling.saksnummer
+                val id = klagebehandling.id
                 val loggkontekst = "sakId: $sakId, saksnummer: $saksnummer, klagebehandlingId: $id"
                 Either.catch {
                     val correlationId = CorrelationId.generate()
-                    val resultat = behandling.resultat as Klagebehandlingsresultat.Opprettholdt
-                    log.info { "Prøver å journalføre innstillingsbrev. $loggkontekst" }
                     val vårDatoIBrevet = LocalDate.now(clock)
-                    // TODO jah: Må gjøre dette etter vi har logikken for innstillingsbrevet på plass
+                    log.info { "Genererer innstillingsbrev. $loggkontekst" }
+                    val pdfOgJson = genererKlagebrevKlient.genererInnstillingsbrev(
+                        saksnummer = saksnummer,
+                        fnr = klagebehandling.fnr,
+                        tilleggstekst = klagebehandling.brevtekst!!,
+                        saksbehandlerNavIdent = klagebehandling.saksbehandler!!,
+                        forhåndsvisning = false,
+                        vedtaksdato = vårDatoIBrevet,
+                        hentBrukersNavn = personService::hentNavn,
+                        hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                        innsendingsdato = klagebehandling.formkrav.innsendingsdato,
+                    ).getOrElse { return@forEach }
+
+                    log.info { "Innstillingsbrev generert. $loggkontekst" }
+                    val (journalpostId, metadata) = journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
+                        klagebehandling = klagebehandling,
+                        pdfOgJson = pdfOgJson,
+                        correlationId = correlationId,
+                    )
+                    val oppdatertKlagebehandling = klagebehandling.oppdaterInnstillingsbrevJournalpost(
+                        brevdato = vårDatoIBrevet,
+                        journalpostId = journalpostId,
+                        tidspunkt = metadata.journalføringsTidspunkt,
+                    )
+                    log.info { "Innstillingsbrev journalført. Prøver å lagre. journalpostId: $journalpostId, $loggkontekst" }
+                    klagebehandlingRepo.markerInnstillingsbrevJournalført(oppdatertKlagebehandling, metadata)
+                    log.info { "Innstillingsbrev markert som journalført. journalpostId: $journalpostId, $loggkontekst" }
+                    errorEveryNLogger.reset()
                 }.onLeft {
                     errorEveryNLogger.log(it) { "Feil ved journalføring av innstillingsbrev. $loggkontekst" }
                 }

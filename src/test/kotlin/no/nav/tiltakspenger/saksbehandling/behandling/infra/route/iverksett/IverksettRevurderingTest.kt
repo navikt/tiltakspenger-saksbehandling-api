@@ -235,7 +235,7 @@ internal class IverksettRevurderingTest {
                 gjeldendeInnvilgetPerioder = listOf(9.til(11.april(2025))),
                 opprinneligVedtaksperiode = 9.til(11.april(2025)),
                 opprinneligInnvilgetPerioder = listOf(9.til(11.april(2025))),
-                opprettet = "2025-01-01T01:02:34.456789",
+                opprettet = "2025-01-01T01:02:37.456789",
                 resultat = "REVURDERING_INNVILGELSE",
                 innvilgelsesperioder = """
                     [
@@ -298,7 +298,7 @@ internal class IverksettRevurderingTest {
                 gjeldendeInnvilgetPerioder = emptyList(),
                 opprinneligVedtaksperiode = 5.januar(2023) til 31.mars(2023),
                 opprinneligInnvilgetPerioder = emptyList(),
-                opprettet = "2025-01-01T01:02:42.456789",
+                opprettet = "2025-01-01T01:02:45.456789",
                 resultat = "STANS",
                 barnetillegg = null,
                 innvilgelsesperioder = null,
@@ -356,7 +356,7 @@ internal class IverksettRevurderingTest {
                 gjeldendeInnvilgetPerioder = listOf(innvilgelsesperiode),
                 opprinneligVedtaksperiode = innvilgelsesperiode,
                 opprinneligInnvilgetPerioder = listOf(innvilgelsesperiode),
-                opprettet = "2025-01-01T01:02:42.456789",
+                opprettet = "2025-01-01T01:02:45.456789",
                 resultat = "OMGJØRING",
                 saksbehandler = revurdering.saksbehandler!!,
                 beslutter = revurdering.beslutter!!,

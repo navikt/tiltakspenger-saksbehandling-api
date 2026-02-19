@@ -21,11 +21,11 @@ class DistribuerKlagebrevJobb(
     private val log = KotlinLogging.logger {}
 
     suspend fun distribuerAvvisningsbrev() {
-        Either.Companion.catch {
+        Either.catch {
             klagevedtakRepo.hentKlagevedtakSomSkalDistribueres().forEach { vedtakSomSkalDistribueres ->
-                val correlationId = CorrelationId.Companion.generate()
+                val correlationId = CorrelationId.generate()
                 log.info { "Prøver å distribuere journalpost for avvist klagevedtaksbrev. $vedtakSomSkalDistribueres" }
-                Either.Companion.catch {
+                Either.catch {
                     val distribusjonId =
                         dokumentdistribusjonsklient.distribuerDokument(
                             vedtakSomSkalDistribueres.journalpostId,

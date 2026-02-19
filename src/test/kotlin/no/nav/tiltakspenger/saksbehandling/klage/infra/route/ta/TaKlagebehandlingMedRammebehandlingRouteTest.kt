@@ -20,7 +20,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            val expectedSistEndret = LocalDateTime.parse("2025-01-01T01:03:00.456789")
+            val expectedSistEndret = LocalDateTime.parse("2025-01-01T01:03:03.456789")
             json.get("klageBehandlinger").first().toString().shouldEqualJson(
                 """
                 {
@@ -28,12 +28,12 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                   "sakId": "${sak.id}",
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678911",
-                  "opprettet": "2025-01-01T01:02:33.456789",
+                  "opprettet": "2025-01-01T01:02:36.456789",
                   "sistEndret": "$expectedSistEndret",
                   "iverksattTidspunkt": null,
                   "saksbehandler": "saksbehandlerSomTarKlagebehandling",
                   "journalpostId": "12345",
-                  "journalpostOpprettet": "2025-01-01T01:02:32.456789",
+                  "journalpostOpprettet": "2025-01-01T01:02:35.456789",
                   "status": "UNDER_BEHANDLING",
                   "resultat": "OMGJØR",
                   "vedtakDetKlagesPå": "${sak.rammevedtaksliste.first().id}",

@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.Klagebehandlingsresu
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehjemmelDb.Companion.toDb
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehjemmelDb.Companion.toDomain
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 private data class KlagebehandlingsresultatDbJson(
@@ -23,6 +24,7 @@ private data class KlagebehandlingsresultatDbJson(
     val rammebehandlingId: String?,
     val hjemler: List<KlagehjemmelDb>?,
     val iverksattOpprettholdelseTidspunkt: LocalDateTime?,
+    val brevdato: LocalDate?,
     val oversendtKlageinstansenTidspunkt: LocalDateTime?,
     val journalpostIdInnstillingsbrev: String?,
     val journalføringstidspunktInnstillingsbrev: LocalDateTime?,
@@ -54,6 +56,7 @@ private data class KlagebehandlingsresultatDbJson(
             KlagebehandlingsresultatDbEnum.OPPRETTHOLDT -> Opprettholdt(
                 hjemler = hjemler!!.toDomain(),
                 brevtekst = brevtekst,
+                brevdato = brevdato,
                 iverksattOpprettholdelseTidspunkt = iverksattOpprettholdelseTidspunkt,
                 journalpostIdInnstillingsbrev = journalpostIdInnstillingsbrev?.let { JournalpostId(it) },
                 journalføringstidspunktInnstillingsbrev = journalføringstidspunktInnstillingsbrev,
@@ -82,6 +85,7 @@ fun Klagebehandlingsresultat.toDbJson(): String {
         journalføringstidspunktInnstillingsbrev = (this as? Opprettholdt)?.journalføringstidspunktInnstillingsbrev,
         distribusjonIdInnstillingsbrev = (this as? Opprettholdt)?.distribusjonIdInnstillingsbrev?.toString(),
         distribusjonstidspunktInnstillingsbrev = (this as? Opprettholdt)?.distribusjonstidspunktInnstillingsbrev,
+        brevdato = (this as? Opprettholdt)?.brevdato,
     ).let { serialize(it) }
 }
 

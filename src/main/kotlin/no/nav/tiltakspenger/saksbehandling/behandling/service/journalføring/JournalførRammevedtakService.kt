@@ -82,12 +82,11 @@ class JournalførRammevedtakService(
                     }.getOrElse { return@forEach }
 
                     log.info { "Vedtaksbrev generert for vedtak ${vedtak.id}" }
-                    val journalpostId =
-                        journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(
-                            vedtak,
-                            pdfOgJson,
-                            correlationId,
-                        )
+                    val journalpostId = journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(
+                        vedtak = vedtak,
+                        pdfOgJson = pdfOgJson,
+                        correlationId = correlationId,
+                    ).first
                     log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
                     rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
                     log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }

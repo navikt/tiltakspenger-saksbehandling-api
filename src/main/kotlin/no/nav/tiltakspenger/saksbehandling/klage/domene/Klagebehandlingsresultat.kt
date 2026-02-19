@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderOmgjørKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 sealed interface Klagebehandlingsresultat {
@@ -115,6 +116,7 @@ sealed interface Klagebehandlingsresultat {
         val hjemler: Klagehjemler,
         override val brevtekst: Brevtekster?,
         val iverksattOpprettholdelseTidspunkt: LocalDateTime?,
+        val brevdato: LocalDate?,
         val journalpostIdInnstillingsbrev: JournalpostId?,
         val journalføringstidspunktInnstillingsbrev: LocalDateTime?,
         val distribusjonIdInnstillingsbrev: DistribusjonId?,
@@ -170,6 +172,7 @@ sealed interface Klagebehandlingsresultat {
         }
 
         fun oppdaterInnstillingsbrevJournalpost(
+            brevdato: LocalDate,
             journalpostId: JournalpostId,
             tidspunkt: LocalDateTime,
         ): Opprettholdt {
@@ -177,6 +180,7 @@ sealed interface Klagebehandlingsresultat {
                 "Kan kun sette journalpostId og journalføringstidspunkt én gang"
             }
             return copy(
+                brevdato = brevdato,
                 journalpostIdInnstillingsbrev = journalpostId,
                 journalføringstidspunktInnstillingsbrev = tidspunkt,
             )
@@ -188,6 +192,7 @@ sealed interface Klagebehandlingsresultat {
                     hjemler = hjemler,
                     brevtekst = null,
                     iverksattOpprettholdelseTidspunkt = null,
+                    brevdato = null,
                     oversendtKlageinstansenTidspunkt = null,
                     journalpostIdInnstillingsbrev = null,
                     journalføringstidspunktInnstillingsbrev = null,

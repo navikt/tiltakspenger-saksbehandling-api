@@ -5,13 +5,14 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OversendtKlageTilKabalMetadata
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.klage.ports.OversendtKlageTilKabal
 
 class KlagebehandlingFakeRepo : KlagebehandlingRepo {
 
@@ -68,6 +69,13 @@ class KlagebehandlingFakeRepo : KlagebehandlingRepo {
         }.take(limit)
     }
 
+    override fun markerInnstillingsbrevJournalført(
+        klagebehandling: Klagebehandling,
+        metadata: JournalførBrevMetadata,
+    ) {
+        data.get()[klagebehandling.id] = klagebehandling
+    }
+
     override fun hentInnstillingsbrevSomSkalDistribueres(limit: Int): List<Klagebehandling> {
         return data.get().values.filter {
             it.status == Klagebehandlingsstatus.OPPRETTHOLDT &&
@@ -83,7 +91,7 @@ class KlagebehandlingFakeRepo : KlagebehandlingRepo {
 
     override fun markerOversendtTilKlageinstans(
         klagebehandling: Klagebehandling,
-        metadata: OversendtKlageTilKabal,
+        metadata: OversendtKlageTilKabalMetadata,
     ) {
         data.get()[klagebehandling.id] = klagebehandling
     }

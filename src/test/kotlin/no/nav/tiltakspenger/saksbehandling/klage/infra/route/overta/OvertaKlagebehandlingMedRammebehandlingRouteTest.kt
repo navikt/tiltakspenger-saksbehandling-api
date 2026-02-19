@@ -27,12 +27,12 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                   "sakId": "${sak.id}",
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678911",
-                  "opprettet": "2025-01-01T01:02:33.456789",
-                  "sistEndret": "2025-01-01T02:02:43.913578",
+                  "opprettet": "2025-01-01T01:02:36.456789",
+                  "sistEndret": "2025-01-01T02:02:46.913578",
                   "iverksattTidspunkt": null,
                   "saksbehandler": "saksbehandlerSomOvertarKlagebehandling",
                   "journalpostId": "12345",
-                  "journalpostOpprettet": "2025-01-01T01:02:32.456789",
+                  "journalpostOpprettet": "2025-01-01T01:02:35.456789",
                   "status": "UNDER_BEHANDLING",
                   "resultat": "OMGJØR",
                   "vedtakDetKlagesPå": "${sak.rammevedtaksliste.first().id}",
@@ -61,7 +61,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
             )
             rammebehandlingMedKlagebehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
             rammebehandlingMedKlagebehandling.saksbehandler shouldBe "saksbehandlerSomOvertarKlagebehandling"
-            rammebehandlingMedKlagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T02:02:42.913578")
+            rammebehandlingMedKlagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T02:02:45.913578")
         }
     }
 }
