@@ -150,7 +150,7 @@ class KlagebehandlingPostgresRepo(
                     join sak s on s.id = k.sak_id
                     where k.status = 'OPPRETTHOLDT'
                     and k.resultat->>'journalpostIdInnstillingsbrev' is not null
-                    and k.resultat->>'distribusjonId' is null
+                    and k.resultat->>'distribusjonIdInnstillingsbrev' is null
                     order by k.sist_endret
                     limit $limit
                     """.trimIndent(),

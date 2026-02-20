@@ -48,15 +48,15 @@ class DistribuerKlagebrevJobb(
     }
 
     suspend fun distribuerInnstillingsbrev() {
-        Either.Companion.catch {
+        Either.catch {
             klagebehandlingRepo.hentInnstillingsbrevSomSkalDistribueres().forEach { behandlingSomSkalDistribueres ->
-                val correlationId = CorrelationId.Companion.generate()
+                val correlationId = CorrelationId.generate()
                 val journalpostId: JournalpostId =
                     (behandlingSomSkalDistribueres.resultat as Klagebehandlingsresultat.Opprettholdt).journalpostIdInnstillingsbrev!!
                 val kontekstTilLog =
                     "sakId: ${behandlingSomSkalDistribueres.sakId}, saksnummer: ${behandlingSomSkalDistribueres.saksnummer}, klagebehandlingId: ${behandlingSomSkalDistribueres.id}, journalpostId: $journalpostId"
                 log.info { "Prøver å distribuere innstillingsbrev. $kontekstTilLog" }
-                Either.Companion.catch {
+                Either.catch {
                     val distribusjonId =
                         dokumentdistribusjonsklient.distribuerDokument(journalpostId, correlationId).getOrElse {
                             log.error { "Kunne ikke distribuere innstillingsbrev. Underliggende feil: $it. $kontekstTilLog" }
