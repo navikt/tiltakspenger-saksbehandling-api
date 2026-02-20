@@ -110,7 +110,7 @@ internal fun start(
                         { applicationContext.personhendelseJobb.opprettOppgaveForPersonhendelser() },
                         { applicationContext.personhendelseJobb.opprydning() },
                         { applicationContext.identhendelseJobb.behandleIdenthendelser() },
-                        { applicationContext.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans() },
+//                        { applicationContext.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans() },
                     ),
                 )
             } else {
