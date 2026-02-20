@@ -79,7 +79,7 @@ open class KlagebehandlingContext(
     open val kabalClient: KabalClient by lazy {
         KabalHttpClient(
             baseUrl = Configuration.kabalUrl,
-            getToken = { texasClient.getSystemToken(Configuration.kabalScope, IdentityProvider.AZUREAD) },
+            getToken = { texasClient.getSystemToken(Configuration.kabalScope, IdentityProvider.AZUREAD, rewriteAudienceTarget = false) },
             clock = clock,
         )
     }
