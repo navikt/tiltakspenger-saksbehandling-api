@@ -25,6 +25,7 @@ class IverksattOpprettholdelseJobberTest {
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val (_, klagebehandling, _) = opprettSakOgOpprettholdKlagebehandling(tac = tac, utførJobber = false)!!
             verifiserResultat(tac, klagebehandling.id)
+            tac.klagebehandlingContext.klagebehandlingRepo.hentInnstillingsbrevSomSkalJournalføres().size shouldBe 1
             tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev()
             verifiserResultat(
                 tac = tac,
@@ -34,8 +35,10 @@ class IverksattOpprettholdelseJobberTest {
                 forventetJournalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:03.456789"),
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
+            tac.klagebehandlingContext.klagebehandlingRepo.hentInnstillingsbrevSomSkalJournalføres().size shouldBe 0
             tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev()
 
+            tac.klagebehandlingContext.klagebehandlingRepo.hentInnstillingsbrevSomSkalDistribueres().size shouldBe 1
             tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev()
             verifiserResultat(
                 tac = tac,
@@ -47,8 +50,10 @@ class IverksattOpprettholdelseJobberTest {
                 forventetDistribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:41.456789"),
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
+            tac.klagebehandlingContext.klagebehandlingRepo.hentInnstillingsbrevSomSkalDistribueres().size shouldBe 0
             tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev()
 
+            tac.klagebehandlingContext.klagebehandlingRepo.hentSakerSomSkalOversendesKlageinstansen().size shouldBe 1
             tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans()
             verifiserResultat(
                 tac = tac,
@@ -61,6 +66,7 @@ class IverksattOpprettholdelseJobberTest {
                 forventetOversendtKlageinstansenTidspunkt = LocalDateTime.parse("2025-01-01T01:02:42.456789"),
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
+            tac.klagebehandlingContext.klagebehandlingRepo.hentSakerSomSkalOversendesKlageinstansen().size shouldBe 0
             tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans()
         }
     }
