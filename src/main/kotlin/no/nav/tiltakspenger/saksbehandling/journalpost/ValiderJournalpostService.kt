@@ -50,7 +50,7 @@ class ValiderJournalpostService(
     private suspend fun Journalpost.finnFnrFraJournalpost(journalpostId: JournalpostId): Fnr? {
         return if (bruker == null || bruker.id == null) {
             if (avsenderMottaker?.id != null && avsenderMottaker.type == "FNR") {
-                logger.debug { "Bruker mangler på journalposten, bruker for for avsender" }
+                logger.debug { "Bruker mangler på journalposten, bruker avsender for fnr" }
                 Fnr.tryFromString(avsenderMottaker.id)
             } else {
                 null
