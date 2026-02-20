@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.person.Identtype
 import no.nav.tiltakspenger.saksbehandling.person.Personident
 import tools.jackson.module.kotlin.readValue
 
@@ -13,8 +14,21 @@ data class PdlHentIdenterResponse(
 )
 
 data class HentIdenter(
-    val identer: List<Personident>,
+    val identer: List<Ident>,
 )
+
+data class Ident(
+    val ident: String,
+    val historisk: Boolean,
+    val gruppe: Identtype,
+) {
+    fun toPersonident(): Personident =
+        Personident(
+            ident = ident,
+            historisk = historisk,
+            identtype = gruppe,
+        )
+}
 
 private val logger = KotlinLogging.logger { }
 
@@ -26,5 +40,7 @@ fun String.toPersonidenter(aktorId: String): List<Personident> {
         Sikkerlogg.error(it) { "Klarte ikke deserialisere ident-respons fra pdl. Aktørid $aktorId respons: $this " }
         throw it
     }
-    return data.hentIdenter.identer
+    return data.hentIdenter.identer.map {
+        it.toPersonident()
+    }
 }
