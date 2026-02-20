@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.jobb
 
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -34,6 +33,9 @@ class IverksattOpprettholdelseJobberTest {
                 forventetJournalpostId = JournalpostId("2"),
                 forventetJournalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:03.456789"),
             )
+            // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
+            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev()
+
             tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev()
             verifiserResultat(
                 tac = tac,
@@ -44,6 +46,9 @@ class IverksattOpprettholdelseJobberTest {
                 forventetDistribusjonId = DistribusjonId("2"),
                 forventetDistribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:41.456789"),
             )
+            // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
+            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev()
+
             tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans()
             verifiserResultat(
                 tac = tac,
@@ -55,6 +60,8 @@ class IverksattOpprettholdelseJobberTest {
                 forventetDistribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:41.456789"),
                 forventetOversendtKlageinstansenTidspunkt = LocalDateTime.parse("2025-01-01T01:02:42.456789"),
             )
+            // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
+            tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans()
         }
     }
 
