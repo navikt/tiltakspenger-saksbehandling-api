@@ -5,8 +5,11 @@ import no.nav.person.pdl.aktor.v2.Aktor
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.person.Identtype
+import no.nav.tiltakspenger.saksbehandling.person.Personident
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseRepository
+import no.nav.tiltakspenger.saksbehandling.person.toPersonident
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.util.UUID
 

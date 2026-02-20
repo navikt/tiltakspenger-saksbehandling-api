@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.GraphqlQuery
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
+import no.nav.tiltakspenger.saksbehandling.person.Personident
 
 class PersonHttpklient(
     endepunkt: String,
@@ -58,6 +59,17 @@ class PersonHttpklient(
         }
     }
 
+    override suspend fun hentIdenter(aktorId: String): List<Personident> {
+        return withContext(Dispatchers.IO) {
+            personklient.graphqlRequest(
+                token = getToken(),
+                jsonRequestBody = objectMapper.writeValueAsString(hentIdenterQuery(aktorId)),
+            )
+                .map { it.toPersonidenter(aktorId) }
+                .getOrElse { it.mapError() }
+        }
+    }
+
     /**
      * Query for å hente person fra PersonDataLøsningen (PDL)
      */
@@ -85,6 +97,13 @@ class PersonHttpklient(
         return GraphqlBolkQuery(
             query = getResource("/pdl/hentPersonBolk.graphql"),
             variables = mapOf("identer" to fnrs.map { it.verdi }),
+        )
+    }
+
+    private fun hentIdenterQuery(aktorId: String): GraphqlQuery {
+        return GraphqlQuery(
+            query = getResource("/pdl/hentIdenter.graphql"),
+            variables = mapOf("ident" to aktorId),
         )
     }
 

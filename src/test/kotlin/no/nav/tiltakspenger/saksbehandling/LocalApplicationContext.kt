@@ -270,7 +270,7 @@ class LocalApplicationContext(
             sessionFactory = sessionFactory,
             sakService = sakContext.sakService,
             clock = clock,
-            validerJournalpostService = ValiderJournalpostService(safJournalpostClient),
+            validerJournalpostService = ValiderJournalpostService(safJournalpostClient, personContext.personKlient),
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
             genererKlagebrevKlient = dokumentContext.genererKlagebrevKlient,

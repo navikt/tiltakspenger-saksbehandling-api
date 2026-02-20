@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjonRolle
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
+import no.nav.tiltakspenger.saksbehandling.person.Personident
 import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -34,6 +35,10 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
 
     override suspend fun hentPersonBolk(fnrs: List<Fnr>): List<EnkelPerson> =
         fnrs.map { fnr -> hentEnkelPerson(fnr) }
+
+    override suspend fun hentIdenter(aktorId: String): List<Personident> {
+        return emptyList()
+    }
 
     /**
      * Denne bør kalles av testoppsettet før vi lager en søknad.
