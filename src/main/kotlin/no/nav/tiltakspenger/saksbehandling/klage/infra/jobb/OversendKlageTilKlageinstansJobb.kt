@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.jobb
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentJournalpostIdForVedtakId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandlingerSomSkalOversendesKlageinstansen
@@ -27,6 +26,10 @@ class OversendKlageTilKlageinstansJobb(
             Either.runCatching {
                 val sak: Sak = sakService.hentForSakId(sakId)
                 sak.hentKlagebehandlingerSomSkalOversendesKlageinstansen().forEach { klagebehandling ->
+                    val kontekstTilLog =
+                        "sakId: ${klagebehandling.sakId}, saksnummer: ${klagebehandling.saksnummer}, klagebehandlingId: ${klagebehandling.id}"
+                    logger.info { "Prøver å oversende til Nav Klageinstans. $kontekstTilLog" }
+
                     Either.runCatching {
                         val journalpostIdVedtak = klagebehandling.formkrav.vedtakDetKlagesPå!!.let {
                             sak.hentJournalpostIdForVedtakId(it)
