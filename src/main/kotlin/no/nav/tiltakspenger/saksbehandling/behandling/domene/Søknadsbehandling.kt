@@ -36,7 +36,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -203,9 +202,11 @@ data class Søknadsbehandling(
         return resultat?.erFerdigutfylt(saksopplysninger) ?: false
     }
 
-    override fun oppdaterSimulering(nySimulering: Simulering?): Søknadsbehandling {
-        require(this.erUnderBehandling) { "Forventet at behandlingen var under behandling, men var: ${this.status} for sakId: $sakId og behandlingId: $id" }
-        return this.copy(utbetaling = utbetaling!!.oppdaterSimulering(nySimulering))
+    override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?): Søknadsbehandling {
+        require(this.erUnderBehandlingEllerBeslutning) {
+            "Forventet at behandlingen var under behandling eller beslutning, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
+        }
+        return this.copy(utbetaling = oppdatertUtbetaling)
     }
 
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling {

@@ -78,7 +78,7 @@ class OppdaterRammebehandlingService(
         }
     }
 
-    suspend fun Sak.beregnOgSimulerHvisAktuelt(
+    private suspend fun Sak.beregnOgSimulerHvisAktuelt(
         kommando: OppdaterBehandlingKommando,
         behandling: Rammebehandling,
     ): Pair<BehandlingUtbetaling?, SimuleringMedMetadata?> {

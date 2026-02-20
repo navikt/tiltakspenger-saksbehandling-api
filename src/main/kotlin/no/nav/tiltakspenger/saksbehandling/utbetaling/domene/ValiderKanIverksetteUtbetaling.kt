@@ -6,7 +6,11 @@ import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 
-fun BehandlingUtbetaling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
+fun BehandlingUtbetaling.validerKanIverksetteUtbetaling(forrigeBeregnedeUtbetaling: BehandlingUtbetaling?): Either<KanIkkeIverksetteUtbetaling, Unit> {
+    if (forrigeBeregnedeUtbetaling?.simulering.harEndringer(this.simulering)) {
+        return KanIkkeIverksetteUtbetaling.SimuleringHarEndringer.left()
+    }
+
     return simulering.validerKanIverksetteUtbetaling()
 }
 
@@ -48,8 +52,25 @@ private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(
     }
 }
 
+private fun Simulering?.harEndringer(ny: Simulering?): Boolean {
+    if (this == null && ny == null) {
+        return false
+    }
+
+    if (this is Simulering.IngenEndring && ny is Simulering.IngenEndring) {
+        return false
+    }
+
+    if (this is Simulering.Endring && ny is Simulering.Endring) {
+        return this.simuleringPerMeldeperiode != ny.simuleringPerMeldeperiode
+    }
+
+    return true
+}
+
 enum class KanIkkeIverksetteUtbetaling {
     SimuleringMangler,
     FeilutbetalingStøttesIkke,
     JusteringStøttesIkke,
+    SimuleringHarEndringer,
 }

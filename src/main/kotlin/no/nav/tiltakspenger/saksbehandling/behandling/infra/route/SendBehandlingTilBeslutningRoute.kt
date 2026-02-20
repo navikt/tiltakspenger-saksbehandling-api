@@ -87,4 +87,19 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStat
         "Behandlingen er satt på vent",
         "behandlingen_er_pa_vent",
     )
+
+    KanIkkeSendeRammebehandlingTilBeslutter.SimuleringEndret -> HttpStatusCode.Conflict to ErrorJson(
+        "Simulering av utbetaling har endret seg. Se over beregning og simulering på nytt og prøv igjen.",
+        "simulering_endret",
+    )
+
+    is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeilet -> HttpStatusCode.InternalServerError to ErrorJson(
+        "Kunne ikke simulere: ${this.underliggende}",
+        "simulering_feilet",
+    )
+
+    KanIkkeSendeRammebehandlingTilBeslutter.KunneIkkeHenteNavkontorForUtbetaling -> HttpStatusCode.InternalServerError to ErrorJson(
+        "Kunne hente navkontor for utbetaling",
+        "kunne_ikke_hente_navkontor_for_utbetaling",
+    )
 }

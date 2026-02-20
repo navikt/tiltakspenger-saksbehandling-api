@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.forhåndsvisVedtaksbrevRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.iverksettRammebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennRammebehandlingRoute
-import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimuleringService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
@@ -37,7 +37,7 @@ fun Route.rammebehandlingRoutes(
     oppdaterBehandlingService: OppdaterRammebehandlingService,
     settBehandlingPåVentService: SettRammebehandlingPåVentService,
     gjenopptaBehandlingService: GjenopptaRammebehandlingService,
-    oppdaterSimuleringService: OppdaterSimuleringService,
+    oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
     tilgangskontrollService: TilgangskontrollService,
     clock: Clock,
 ) {
@@ -55,5 +55,5 @@ fun Route.rammebehandlingRoutes(
     oppdaterRammebehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
     settRammebehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService)
     gjenopptaRammebehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService)
-    oppdaterSimuleringRoute(oppdaterSimuleringService, auditService, tilgangskontrollService, clock)
+    oppdaterSimuleringRoute(oppdaterBeregningOgSimuleringService, auditService, tilgangskontrollService, clock)
 }

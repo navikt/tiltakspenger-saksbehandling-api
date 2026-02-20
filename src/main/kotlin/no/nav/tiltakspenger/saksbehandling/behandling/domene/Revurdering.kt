@@ -29,7 +29,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 import java.time.LocalDate
@@ -175,9 +174,11 @@ data class Revurdering(
         )
     }
 
-    override fun oppdaterSimulering(nySimulering: Simulering?): Revurdering {
-        require(this.erUnderBehandling) { "Forventet at behandlingen var under behandling, men var: ${this.status} for sakId: $sakId og behandlingId: $id" }
-        return this.copy(utbetaling = utbetaling!!.oppdaterSimulering(nySimulering))
+    override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?): Revurdering {
+        require(this.erUnderBehandlingEllerBeslutning) {
+            "Forventet at behandlingen var under behandling eller beslutning, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
+        }
+        return this.copy(utbetaling = oppdatertUtbetaling)
     }
 
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling {
