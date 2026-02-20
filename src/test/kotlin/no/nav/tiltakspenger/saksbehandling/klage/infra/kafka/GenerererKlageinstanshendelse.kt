@@ -7,7 +7,7 @@ object GenerererKlageinstanshendelse {
     fun avsluttetJson(
         eventId: String = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
         kildeReferanse: String = "1272760b-f9be-4ad8-99c4-d01823462784",
-        kilde: String = "TIL-TIP",
+        kilde: String = "TIL_TIP",
         kabalReferanse: String = "c0aef33a-da01-4262-ab55-1bbdde157e8a",
         avsluttetTidspunkt: String = "2025-01-01T01:02:03.456789",
         utfall: GenererKlageinstanshendelseUtfall,
@@ -35,7 +35,7 @@ object GenerererKlageinstanshendelse {
     fun omgjøringsbehandlingAvsluttet(
         eventId: String = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
         kildeReferanse: String = "1272760b-f9be-4ad8-99c4-d01823462784",
-        kilde: String = "TIL-TIP",
+        kilde: String = "TIL_TIP",
         kabalReferanse: String = "c0aef33a-da01-4262-ab55-1bbdde157e8a",
         avsluttetTidspunkt: String = "2025-01-01T01:02:03.456789",
         journalpostReferanser: List<String> = listOf("123", "456"),
@@ -63,7 +63,7 @@ object GenerererKlageinstanshendelse {
     private fun behandlingFeilregistrert(
         eventId: String = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
         kildeReferanse: String = "1272760b-f9be-4ad8-99c4-d01823462784",
-        kilde: String = "TIL-TIP",
+        kilde: String = "TIL_TIP",
         kabalReferanse: String = "c0aef33a-da01-4262-ab55-1bbdde157e8a",
         feilregistrert: String = "2025-01-01T01:02:03.456789",
         reason: String = "Årsaken til at behandlingen endte opp som feilregistrert.",

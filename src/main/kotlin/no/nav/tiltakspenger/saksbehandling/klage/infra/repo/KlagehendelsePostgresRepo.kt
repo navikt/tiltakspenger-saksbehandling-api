@@ -48,7 +48,7 @@ class KlagehendelsePostgresRepo(
                     "mottatt_data" to """
                             {
                                 "key": "${nyKlagehendelse.key}",
-                                "value": "${nyKlagehendelse.value}"
+                                "value": ${nyKlagehendelse.value}
                             }
                     """.trimIndent(),
                 ).asUpdate,

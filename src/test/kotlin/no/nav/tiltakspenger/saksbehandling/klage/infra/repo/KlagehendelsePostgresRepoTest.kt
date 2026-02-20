@@ -16,7 +16,7 @@ class KlagehendelsePostgresRepoTest {
                 opprettet = LocalDateTime.now(tac.clock),
                 eksternKlagehendelseId = "eksternKlagehendelseId",
                 key = "key",
-                value = "value",
+                value = "{}",
             )
             repo.lagreNyHendelse(klagehendelse, null)
             tac.sessionFactory.withSession {
