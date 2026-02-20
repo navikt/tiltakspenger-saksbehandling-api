@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
@@ -137,7 +138,27 @@ class ForhåndsvisRammevedtaksbrevService(
         kommando: ForhåndsvisVedtaksbrevForRevurderingStansKommando,
         behandling: Revurdering,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        val stansperiode = kommando.utledStansperiode(sak.førsteDagSomGirRett!!, sak.sisteDagSomGirRett!!)
+        val (stansperiode, valgteHjemler, tilleggstekst) = when (behandling.status) {
+            Rammebehandlingsstatus.UNDER_BEHANDLING -> Triple(
+                kommando.utledStansperiode(
+                    sak.førsteDagSomGirRett!!,
+                    sak.sisteDagSomGirRett!!,
+                ),
+                kommando.valgteHjemler,
+                kommando.fritekstTilVedtaksbrev,
+            )
+
+            Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
+            Rammebehandlingsstatus.KLAR_TIL_BEHANDLING,
+            Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
+            Rammebehandlingsstatus.UNDER_BESLUTNING,
+            Rammebehandlingsstatus.VEDTATT,
+            Rammebehandlingsstatus.AVBRUTT,
+            -> {
+                val resultat = behandling.resultat as Revurderingsresultat.Stans
+                Triple(resultat.stansperiode!!, resultat.valgtHjemmel!!, behandling.fritekstTilVedtaksbrev)
+            }
+        }
 
         return genererStansbrevClient.genererStansBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
@@ -149,8 +170,8 @@ class ForhåndsvisRammevedtaksbrevService(
             stansperiode = stansperiode,
             saksnummer = sak.saksnummer,
             sakId = sak.id,
-            valgteHjemler = kommando.valgteHjemler,
-            tilleggstekst = kommando.fritekstTilVedtaksbrev,
+            valgteHjemler = valgteHjemler,
+            tilleggstekst = tilleggstekst,
             harStansetBarnetillegg = sak.harBarnetillegg(stansperiode),
         )
     }
