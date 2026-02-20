@@ -23,17 +23,26 @@ class SafJournalpostFakeClient(
                     type = "FNR",
                 ),
                 datoOpprettet = LocalDateTime.now(clock).toString(),
+                bruker = Bruker(
+                    id = "12345678911",
+                    type = "FNR",
+                ),
             )
         }
 
         // Journalpost finnes, men på et annet fnr
         if (journalpostId.toString() == "123456") {
+            val fnr = Fnr.random().verdi
             return Journalpost(
                 avsenderMottaker = AvsenderMottaker(
-                    id = Fnr.random().verdi,
+                    id = fnr,
                     type = "FNR",
                 ),
                 datoOpprettet = LocalDateTime.now(clock).toString(),
+                bruker = Bruker(
+                    id = fnr,
+                    type = "FNR",
+                ),
             )
         }
 
@@ -44,6 +53,10 @@ class SafJournalpostFakeClient(
                     type = "FNR",
                 ),
                 datoOpprettet = LocalDateTime.now(clock).toString(),
+                bruker = Bruker(
+                    id = it.verdi,
+                    type = "FNR",
+                ),
             )
         }
     }

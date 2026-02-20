@@ -203,6 +203,7 @@ class TestApplicationContextMedInMemoryDb(
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             clock = clock,
             safJournalpostClient = safJournalpostFakeClient,
+            personKlient = personFakeKlient,
         ) {
             override val søknadRepo = søknadFakeRepo
         }

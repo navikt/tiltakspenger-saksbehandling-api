@@ -20,8 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknads
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.person.identhendelser.Identtype
-import no.nav.tiltakspenger.saksbehandling.person.identhendelser.Personident
+import no.nav.tiltakspenger.saksbehandling.person.Identtype
+import no.nav.tiltakspenger.saksbehandling.person.Personident
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseDto
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb

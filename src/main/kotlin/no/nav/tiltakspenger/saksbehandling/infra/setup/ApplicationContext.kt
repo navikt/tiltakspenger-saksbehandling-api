@@ -399,6 +399,7 @@ open class ApplicationContext(
             statistikkSakService = statistikkContext.statistikkSakService,
             clock = clock,
             safJournalpostClient = safJournalpostClient,
+            personKlient = personContext.personKlient,
         )
     }
 

@@ -204,7 +204,7 @@ class TestApplicationContextMedPostgres(
             sessionFactory = sessionFactory,
             sakService = sakContext.sakService,
             clock = clock,
-            validerJournalpostService = ValiderJournalpostService(safJournalpostClient),
+            validerJournalpostService = ValiderJournalpostService(safJournalpostClient, personFakeKlient),
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
             genererKlagebrevKlient = genererFakeVedtaksbrevKlient,

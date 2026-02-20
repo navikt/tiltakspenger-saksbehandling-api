@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.person.identhendelser
+package no.nav.tiltakspenger.saksbehandling.person
 
 import no.nav.person.pdl.aktor.v2.Identifikator
 import no.nav.person.pdl.aktor.v2.Type

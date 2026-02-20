@@ -105,13 +105,3 @@ data class Variables(val id: String)
 data class HentJournalpostResponse(
     val journalpost: Journalpost?,
 )
-
-data class Journalpost(
-    val avsenderMottaker: AvsenderMottaker?,
-    val datoOpprettet: String?,
-)
-
-data class AvsenderMottaker(
-    val id: String?,
-    val type: String?,
-)

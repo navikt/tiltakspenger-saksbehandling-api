@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
+import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvManueltRegistrertSøknadService
@@ -26,6 +27,7 @@ open class SøknadContext(
     statistikkSakService: StatistikkSakService,
     clock: Clock,
     safJournalpostClient: SafJournalpostClient,
+    personKlient: PersonKlient,
 ) {
     open val søknadRepo: SøknadRepo by lazy { SøknadPostgresRepo(sessionFactory = sessionFactory as PostgresSessionFactory) }
     val søknadService: SøknadService by lazy {
@@ -53,6 +55,7 @@ open class SøknadContext(
     val validerJournalpostService: ValiderJournalpostService by lazy {
         ValiderJournalpostService(
             safJournalpostClient = safJournalpostClient,
+            personKlient = personKlient,
         )
     }
 }
