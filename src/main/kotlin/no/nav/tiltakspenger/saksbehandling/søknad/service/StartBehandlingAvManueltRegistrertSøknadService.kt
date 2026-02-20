@@ -53,6 +53,10 @@ class StartBehandlingAvManueltRegistrertSøknadService(
             throw IllegalArgumentException("Journalpost ${kommando.journalpostId} mangler datoOpprettet")
         }
 
+        if (journalpostValidering.gjelderInnsendtFnr == false) {
+            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} tilhører en annen bruker")
+        }
+
         val personopplysninger = personService.hentPersonopplysninger(sak.fnr)
 
         val manueltRegistrertSøknad = Søknad.opprett(
