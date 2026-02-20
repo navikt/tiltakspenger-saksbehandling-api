@@ -158,6 +158,7 @@ private fun HjemmelForStansEllerOpphør.toBehandlingAarsak() =
         HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> StatistikkBehandlingAarsak.LONN_FRA_TILTAKSARRANGOR
         HjemmelForStansEllerOpphør.LønnFraAndre -> StatistikkBehandlingAarsak.LONN_FRA_ANDRE
         HjemmelForStansEllerOpphør.IkkeLovligOpphold -> StatistikkBehandlingAarsak.IKKE_LOVLIG_OPPHOLD
+        HjemmelForStansEllerOpphør.FremmetForSent -> StatistikkBehandlingAarsak.FREMMET_FOR_SENT
     }
 
 private fun Søknadstype.toSøknadsformat(): StatistikkFormat =

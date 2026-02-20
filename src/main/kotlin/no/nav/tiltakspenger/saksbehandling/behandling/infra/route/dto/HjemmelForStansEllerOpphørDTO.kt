@@ -13,6 +13,7 @@ enum class HjemmelForStansEllerOpphørDTO {
     LønnFraAndre,
     Institusjonsopphold,
     IkkeLovligOpphold,
+    FremmetForSent,
     ;
 
     fun toDomain(): HjemmelForStansEllerOpphør = when (this) {
@@ -25,6 +26,7 @@ enum class HjemmelForStansEllerOpphørDTO {
         LønnFraAndre -> HjemmelForStansEllerOpphør.LønnFraAndre
         Institusjonsopphold -> HjemmelForStansEllerOpphør.Institusjonsopphold
         IkkeLovligOpphold -> HjemmelForStansEllerOpphør.IkkeLovligOpphold
+        FremmetForSent -> HjemmelForStansEllerOpphør.FremmetForSent
     }
 }
 
@@ -41,6 +43,7 @@ fun HjemmelForStansEllerOpphør.tilDTO(): HjemmelForStansEllerOpphørDTO {
         HjemmelForStansEllerOpphør.LønnFraAndre -> HjemmelForStansEllerOpphørDTO.LønnFraAndre
         HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> HjemmelForStansEllerOpphørDTO.LønnFraTiltaksarrangør
         HjemmelForStansEllerOpphør.IkkeLovligOpphold -> HjemmelForStansEllerOpphørDTO.IkkeLovligOpphold
+        HjemmelForStansEllerOpphør.FremmetForSent -> HjemmelForStansEllerOpphørDTO.FremmetForSent
     }
 }
 

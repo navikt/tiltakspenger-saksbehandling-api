@@ -31,6 +31,7 @@ fun NonEmptySet<HjemmelForStansEllerOpphør>?.toHjemmelForStansDbJson(): String 
                 HjemmelForStansEllerOpphør.LønnFraAndre -> HjemmelForStansDb.STANS_LØNN_FRA_ANDRE
                 HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> HjemmelForStansDb.STANS_LØNN_FRA_TILTAKSARRANGØR
                 HjemmelForStansEllerOpphør.IkkeLovligOpphold -> HjemmelForStansDb.STANS_IKKE_LOVLIG_OPPHOLD
+                HjemmelForStansEllerOpphør.FremmetForSent -> throw IllegalArgumentException("Fremmet for sent skal ikke kunne være en hjemmel for stans")
             }
         }.sortedBy { it.name },
     )

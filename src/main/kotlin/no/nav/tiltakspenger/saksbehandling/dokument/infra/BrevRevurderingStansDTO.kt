@@ -167,6 +167,8 @@ private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
                 
                 Dette kommer frem av arbeidsmarkedsloven § 2.                
             """
+
+        HjemmelForStansEllerOpphør.FremmetForSent -> throw IllegalArgumentException("$this er ikke gyldig hjemmel for stans")
     }.trimIndent()
 }
 
@@ -246,5 +248,7 @@ private fun HjemmelForStansEllerOpphør.tekstMedBarnetillegg(): String {
                 
                 Dette kommer frem av arbeidsmarkedsloven § 2.                
             """
+
+        HjemmelForStansEllerOpphør.FremmetForSent -> throw IllegalArgumentException("$this er ikke gyldig hjemmel for stans")
     }.trimIndent()
 }

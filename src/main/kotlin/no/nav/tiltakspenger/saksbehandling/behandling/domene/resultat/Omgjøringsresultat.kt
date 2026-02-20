@@ -108,6 +108,13 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean {
             return true
         }
+
+        companion object {
+            val hjemlerSomMåHaFritekst: Set<HjemmelForStansEllerOpphør> = setOf(
+                HjemmelForStansEllerOpphør.FremmetForSent,
+                HjemmelForStansEllerOpphør.Alder,
+            )
+        }
     }
 
     data class OmgjøringIkkeValgt(

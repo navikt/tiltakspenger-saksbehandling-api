@@ -65,4 +65,9 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
         "Ugyldig periode for opphør: ${this.årsak}",
         "ugyldig_periode_for_opphør",
     )
+
+    is KanIkkeOppdatereOmgjøring.MåHaFritekstForValgteHjemler -> HttpStatusCode.BadRequest to ErrorJson(
+        "For valgt hjemmel må vedtaket begrunnes med fritekst: ${this.hjemler}",
+        "valgte_hjemler_krever_fritekst",
+    )
 }

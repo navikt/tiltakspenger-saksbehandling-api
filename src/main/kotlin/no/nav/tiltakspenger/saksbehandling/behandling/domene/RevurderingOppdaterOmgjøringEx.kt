@@ -32,13 +32,23 @@ fun Revurdering.oppdaterOmgjøring(
             clock = clock,
         )
 
-        is OppdaterOmgjøringKommando.OmgjøringOpphør -> oppdaterOmgjøringOpphør(
-            kommando = kommando,
-            utbetaling = utbetaling,
-            finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
-            omgjortVedtak = omgjortVedtak,
-            clock = clock,
-        )
+        is OppdaterOmgjøringKommando.OmgjøringOpphør -> {
+            val måHaFritekst = kommando.valgteHjemler.any {
+                Omgjøringsresultat.OmgjøringOpphør.hjemlerSomMåHaFritekst.contains(it)
+            }
+
+            if (måHaFritekst && fritekstTilVedtaksbrev == null) {
+                return KanIkkeOppdatereOmgjøring.MåHaFritekstForValgteHjemler(kommando.valgteHjemler).left()
+            }
+
+            oppdaterOmgjøringOpphør(
+                kommando = kommando,
+                utbetaling = utbetaling,
+                finnRammevedtakSomOmgjøres = finnRammevedtakSomOmgjøres,
+                omgjortVedtak = omgjortVedtak,
+                clock = clock,
+            )
+        }
 
         is OppdaterOmgjøringKommando.OmgjøringIkkeValgt -> oppdaterOmgjøringIkkeValgt(
             kommando = kommando,

@@ -147,6 +147,7 @@ private fun HjemmelForStansEllerOpphør.toValgtHjemmelHarIkkeRettighetString(): 
         HjemmelForStansEllerOpphør.LønnFraAndre -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_ANDRE
         HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR
         HjemmelForStansEllerOpphør.IkkeLovligOpphold -> DatadelingHjemmelHarIkkeRettighet.IKKE_LOVLIG_OPPHOLD
+        HjemmelForStansEllerOpphør.FremmetForSent -> DatadelingHjemmelHarIkkeRettighet.FREMMET_FOR_SENT
     }
 
 private fun Avslagsgrunnlag.toValgtHjemmelHarIkkeRettighetString(): DatadelingHjemmelHarIkkeRettighet =

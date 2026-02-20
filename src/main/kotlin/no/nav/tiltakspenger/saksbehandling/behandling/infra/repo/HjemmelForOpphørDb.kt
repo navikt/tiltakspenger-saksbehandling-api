@@ -16,6 +16,7 @@ private enum class HjemmelForOpphørDb {
     OPPHØR_LØNN_FRA_ANDRE,
     OPPHØR_INSTITUSJONSOPPHOLD,
     OPPHØR_IKKE_LOVLIG_OPPHOLD,
+    OPPHØR_FREMMET_FOR_SENT,
 }
 
 fun NonEmptySet<HjemmelForStansEllerOpphør>.toHjemmelForOpphørDbJson(): String {
@@ -31,6 +32,7 @@ fun NonEmptySet<HjemmelForStansEllerOpphør>.toHjemmelForOpphørDbJson(): String
                 HjemmelForStansEllerOpphør.LønnFraAndre -> HjemmelForOpphørDb.OPPHØR_LØNN_FRA_ANDRE
                 HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> HjemmelForOpphørDb.OPPHØR_LØNN_FRA_TILTAKSARRANGØR
                 HjemmelForStansEllerOpphør.IkkeLovligOpphold -> HjemmelForOpphørDb.OPPHØR_IKKE_LOVLIG_OPPHOLD
+                HjemmelForStansEllerOpphør.FremmetForSent -> HjemmelForOpphørDb.OPPHØR_FREMMET_FOR_SENT
             }
         }.sortedBy { it.name },
     )
@@ -51,5 +53,6 @@ private fun HjemmelForOpphørDb.tilHjemmelForOpphør(): HjemmelForStansEllerOpph
         HjemmelForOpphørDb.OPPHØR_LØNN_FRA_ANDRE -> HjemmelForStansEllerOpphør.LønnFraAndre
         HjemmelForOpphørDb.OPPHØR_INSTITUSJONSOPPHOLD -> HjemmelForStansEllerOpphør.Institusjonsopphold
         HjemmelForOpphørDb.OPPHØR_IKKE_LOVLIG_OPPHOLD -> HjemmelForStansEllerOpphør.IkkeLovligOpphold
+        HjemmelForOpphørDb.OPPHØR_FREMMET_FOR_SENT -> HjemmelForStansEllerOpphør.FremmetForSent
     }
 }
