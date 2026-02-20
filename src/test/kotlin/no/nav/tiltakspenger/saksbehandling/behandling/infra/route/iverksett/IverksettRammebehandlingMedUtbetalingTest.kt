@@ -75,6 +75,15 @@ class IverksettRammebehandlingMedUtbetalingTest {
                     forventetStatus = HttpStatusCode.Conflict,
                     forventetJsonBody = expectedResponse,
                 )
+
+                // Skal ikke fungere ved gjentatte forsøk heller!
+                iverksettForBehandlingId(
+                    tac = tac,
+                    sakId = sak.id,
+                    behandlingId = omgjøring.id,
+                    forventetStatus = HttpStatusCode.Conflict,
+                    forventetJsonBody = expectedResponse,
+                )
             }
         }
     }

@@ -186,6 +186,16 @@ class SendRevurderingTilBeslutningTest {
                 )
 
                 response harKode "simulering_endret"
+
+                // Skal ikke fungere ved gjentatte forsøk heller!
+                val retryResponse = sendRevurderingTilBeslutningForBehandlingId(
+                    tac = tac,
+                    sakId = sak.id,
+                    behandlingId = omgjøring.id,
+                    forventetStatus = HttpStatusCode.Conflict,
+                )
+
+                retryResponse harKode "simulering_endret"
             }
         }
     }
