@@ -50,6 +50,7 @@ class ValiderJournalpostService(
     private suspend fun Journalpost.finnFnrFraJournalpost(journalpostId: JournalpostId): Fnr? {
         return if (bruker == null || bruker.id == null) {
             if (avsenderMottaker?.id != null && avsenderMottaker.type == "FNR") {
+                logger.debug { "Bruker mangler på journalposten, bruker for for avsender" }
                 Fnr.tryFromString(avsenderMottaker.id)
             } else {
                 null
@@ -72,6 +73,7 @@ class ValiderJournalpostService(
             logger.warn { "Kunne ikke avgjøre fødselsnummer fra PDL for journalpostId $journalpostId" }
             return null
         } else {
+            logger.debug { "Hentet fnr for aktørId fra PDL" }
             return Fnr.tryFromString(fnrFraPdl.first().ident)
         }
     }
