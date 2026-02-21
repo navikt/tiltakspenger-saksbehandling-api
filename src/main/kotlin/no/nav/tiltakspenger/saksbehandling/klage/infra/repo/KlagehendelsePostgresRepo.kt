@@ -1,12 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
 import kotliquery.Session
-import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klagehendelse
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.KlagehendelseId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.NyKlagehendelse
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagehendelseRepo
 
@@ -56,17 +56,36 @@ class KlagehendelsePostgresRepo(
         }
     }
 
+    override fun hentUbehandledeHendelser(limit: Int): List<NyKlagehendelse> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    "select id,ekstern_id,opprettet,key,value from klagehendelse where sak_id is null",
+                ).map { row ->
+                    val keyValueJson = objectMapper.readTree(row.string("mottatt_data"))
+                    NyKlagehendelse(
+                        klagehendelseId = KlagehendelseId.fromString(row.string("id")),
+                        eksternKlagehendelseId = row.string("ekstern_id"),
+                        opprettet = row.localDateTime("opprettet"),
+                        key = keyValueJson.get("key").asString(),
+                        value = keyValueJson.get("value").toString(),
+                    )
+                }.asList,
+            )
+        }
+    }
+
     companion object {
         fun hentHendelse(
             klagehendelseId: KlagehendelseId,
             session: Session,
-        ): Klagehendelse {
+        ): Klageinstanshendelse {
             return session.run(
                 sqlQuery(
                     "select * from klagehendelse where id = :id",
                     "id" to klagehendelseId.toString(),
                 ).map { row ->
-                    Klagehendelse(
+                    Klageinstanshendelse(
                         klagehendelseId = KlagehendelseId.fromString(row.string("id")),
                         eksternKlagehendelseId = row.string("ekstern_id"),
                         opprettet = row.localDateTime("opprettet"),

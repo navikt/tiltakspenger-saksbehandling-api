@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.json.deserialize
  * https://github.com/navikt/kabal-api/blob/main/src/main/kotlin/no/nav/klage/oppgave/domain/kafka/BehandlingEvent.kt
  * https://github.com/navikt/kabal-api/blob/main/docs/schema/behandling-events.json
  *
- * Konsumeres av [KabalKlagehendelserConsumer].
+ * Konsumeres av [KlageinstansKlagehendelseConsumer].
  * Kun ment brukt i innlesingsfasen. Egen DTO per type når vi senere knytter hendelsen til en sak.
  */
 data class EnkelKabalKlagehendelseDTO(

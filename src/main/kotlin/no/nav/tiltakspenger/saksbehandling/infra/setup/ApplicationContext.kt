@@ -25,8 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.DataSourceSetup
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClientImpl
-import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.OversendKlageTilKlageinstansJobb
-import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.KabalKlagehendelserConsumer
+import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.KlageinstansKlagehendelseConsumer
 import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
@@ -242,7 +241,7 @@ open class ApplicationContext(
     }
 
     open val kabalKlagehendelseConsumer by lazy {
-        KabalKlagehendelserConsumer(
+        KlageinstansKlagehendelseConsumer(
             klagehendelseRepo = klagebehandlingContext.klagehendelseRepo,
             clock = clock,
         )

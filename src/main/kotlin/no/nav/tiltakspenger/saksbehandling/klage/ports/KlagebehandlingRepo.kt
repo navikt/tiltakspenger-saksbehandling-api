@@ -5,11 +5,13 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OversendtKlageTilKabalMetadata
 
 interface KlagebehandlingRepo {
     fun lagreKlagebehandling(klagebehandling: Klagebehandling, sessionContext: SessionContext? = null)
 
+    fun hentForKlagebehandlingId(klagebehandlingId: KlagebehandlingId): Klagebehandling?
     fun hentForRammebehandlingId(rammebehandlingId: BehandlingId): Klagebehandling?
 
     /** Egen funksjon for at saksbehandlerne ikke skal gå i beina på hverandre. */

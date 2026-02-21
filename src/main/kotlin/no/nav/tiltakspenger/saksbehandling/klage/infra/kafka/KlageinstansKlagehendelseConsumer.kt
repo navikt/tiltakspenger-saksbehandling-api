@@ -16,7 +16,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import java.time.Clock
 import java.time.LocalDateTime
 
-class KabalKlagehendelserConsumer(
+class KlageinstansKlagehendelseConsumer(
     private val klagehendelseRepo: KlagehendelseRepo,
     topic: String = "klage.behandling-events.v1",
     groupId: String = KAFKA_CONSUMER_GROUP_ID,

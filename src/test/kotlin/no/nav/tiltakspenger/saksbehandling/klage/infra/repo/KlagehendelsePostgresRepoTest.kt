@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
-import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klagehendelse
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.NyKlagehendelse
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -20,7 +20,7 @@ class KlagehendelsePostgresRepoTest {
             )
             repo.lagreNyHendelse(klagehendelse, null)
             tac.sessionFactory.withSession {
-                KlagehendelsePostgresRepo.hentHendelse(klagehendelse.klagehendelseId, it) shouldBe Klagehendelse(
+                KlagehendelsePostgresRepo.hentHendelse(klagehendelse.klagehendelseId, it) shouldBe Klageinstanshendelse(
                     klagehendelseId = klagehendelse.klagehendelseId,
                     opprettet = LocalDateTime.parse("2025-05-01T01:02:04.456789"),
                     sistEndret = LocalDateTime.parse("2025-05-01T01:02:04.456789"),
