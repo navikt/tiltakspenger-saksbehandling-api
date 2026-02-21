@@ -1,0 +1,1 @@
+ALTER TABLE klagehendelse RENAME COLUMN klage_id TO klagebehandling_id;

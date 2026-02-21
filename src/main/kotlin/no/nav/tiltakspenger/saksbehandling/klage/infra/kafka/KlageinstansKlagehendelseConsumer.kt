@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.kafka
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.kafka.Consumer
 import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
@@ -16,7 +17,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import java.time.Clock
 import java.time.LocalDateTime
 
-class KabalKlagehendelserConsumer(
+class KlageinstansKlagehendelseConsumer(
     private val klagehendelseRepo: KlagehendelseRepo,
     topic: String = "klage.behandling-events.v1",
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
@@ -59,11 +60,17 @@ class KabalKlagehendelserConsumer(
                 return null
             }
             log.info { "Mottatt klagehendelse fra Kabal med key $key - lagrer hendelse: $enkelKabalKlagehendelseDTO" }
+            val nå = nå(clock)
             val nyKlagehendelse = NyKlagehendelse(
                 eksternKlagehendelseId = enkelKabalKlagehendelseDTO.eventId,
-                opprettet = LocalDateTime.now(clock),
+                opprettet = nå,
+                sistEndret = nå,
                 key = key,
+                // Bekrefter at det er JSON og formaterer den.
                 value = objectMapper.writeValueAsString(objectMapper.readTree(value)),
+                sakId = null,
+                // Selv om vi potensielt kunne utledet klagebehandlingId fra kabalReferanse, så ønsker vi ikke feile parsing av denne på dette stadiet.
+                klagebehandlingId = null,
             )
             lagreNyHendelse(nyKlagehendelse)
             return nyKlagehendelse.klagehendelseId

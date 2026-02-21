@@ -26,6 +26,10 @@ class KlagebehandlingFakeRepo : KlagebehandlingRepo {
         data.get()[klagebehandling.id] = klagebehandling
     }
 
+    override fun hentForKlagebehandlingId(klagebehandlingId: KlagebehandlingId): Klagebehandling? {
+        return data.get()[klagebehandlingId]
+    }
+
     override fun hentForRammebehandlingId(rammebehandlingId: BehandlingId): Klagebehandling? {
         return data.get().values.singleOrNullOrThrow { it.rammebehandlingId == rammebehandlingId }
     }

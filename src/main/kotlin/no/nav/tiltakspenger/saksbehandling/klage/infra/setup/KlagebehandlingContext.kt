@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient
 import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.DistribuerKlagebrevJobb
 import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.JournalførKlagebrevJobb
+import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.KnyttKlageinstansHendelseTilKlagebehandlingJobb
 import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.OversendKlageTilKlageinstansJobb
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehendelsePostgresRepo
@@ -79,7 +80,13 @@ open class KlagebehandlingContext(
     open val kabalClient: KabalClient by lazy {
         KabalHttpClient(
             baseUrl = Configuration.kabalUrl,
-            getToken = { texasClient.getSystemToken(Configuration.kabalScope, IdentityProvider.AZUREAD, rewriteAudienceTarget = false) },
+            getToken = {
+                texasClient.getSystemToken(
+                    Configuration.kabalScope,
+                    IdentityProvider.AZUREAD,
+                    rewriteAudienceTarget = false,
+                )
+            },
             clock = clock,
         )
     }
@@ -153,6 +160,15 @@ open class KlagebehandlingContext(
             klagevedtakRepo = klagevedtakRepo,
             klagebehandlingRepo = klagebehandlingRepo,
             clock = clock,
+        )
+    }
+
+    open val knyttKlageinstansHendelseTilKlagebehandlingJobb by lazy {
+        KnyttKlageinstansHendelseTilKlagebehandlingJobb(
+            klagehendelseRepo = klagehendelseRepo,
+            klagebehandlingRepo = klagebehandlingRepo,
+            clock = clock,
+            sessionFactory = sessionFactory,
         )
     }
     open val vurderKlagebehandlingService by lazy {
