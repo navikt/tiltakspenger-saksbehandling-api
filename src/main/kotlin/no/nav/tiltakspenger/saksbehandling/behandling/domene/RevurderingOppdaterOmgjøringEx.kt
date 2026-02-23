@@ -37,7 +37,7 @@ fun Revurdering.oppdaterOmgjøring(
                 Omgjøringsresultat.OmgjøringOpphør.hjemlerSomMåHaFritekst.contains(it)
             }
 
-            if (måHaFritekst && fritekstTilVedtaksbrev == null) {
+            if (måHaFritekst && kommando.fritekstTilVedtaksbrev == null) {
                 return KanIkkeOppdatereOmgjøring.MåHaFritekstForValgteHjemler(kommando.valgteHjemler).left()
             }
 
