@@ -49,11 +49,12 @@ class OppdaterBeregningOgSimuleringService(
         return if (behandlingId.erBehandlingId()) {
             val behandling = sak.hentRammebehandling(behandlingId.toBehandlingId())!!
 
-            oppdaterBeregningOgSimuleringForRammebehandling(
+            hentOppdatertBeregningOgSimuleringForRammebehandling(
                 sak = sak,
                 behandling = behandling,
                 saksbehandlerEllerBeslutter = saksbehandler,
-            ).map { (oppdatertSak, oppdatertBehandling) ->
+            ).map { (oppdatertSak, oppdatertBehandling, oppdatertSimulering) ->
+                lagreRammebehandling(oppdatertBehandling, oppdatertSimulering)
                 (oppdatertSak to oppdatertBehandling.left())
             }
         } else {
@@ -64,11 +65,11 @@ class OppdaterBeregningOgSimuleringService(
         }
     }
 
-    suspend fun oppdaterBeregningOgSimuleringForRammebehandling(
+    suspend fun hentOppdatertBeregningOgSimuleringForRammebehandling(
         sak: Sak,
         behandling: Rammebehandling,
         saksbehandlerEllerBeslutter: Saksbehandler,
-    ): Either<KunneIkkeSimulere, Pair<Sak, Rammebehandling>> {
+    ): Either<KunneIkkeSimulere, Triple<Sak, Rammebehandling, SimuleringMedMetadata?>> {
         if (behandling.erUnderBehandling) {
             require(saksbehandlerEllerBeslutter.navIdent == behandling.saksbehandler) {
                 "Kan kun oppdatere simulering på en behandling dersom saksbehandler som ber om det er den samme som er satt på behandlingen"
@@ -105,16 +106,22 @@ class OppdaterBeregningOgSimuleringService(
         val oppdatertBehandling = behandling.oppdaterUtbetaling(utbetalingOgSimulering?.first)
         val oppdatertSak = sak.oppdaterRammebehandling(oppdatertBehandling)
 
+        return Triple(
+            oppdatertSak,
+            oppdatertBehandling,
+            utbetalingOgSimulering?.second,
+        ).right()
+    }
+
+    private fun lagreRammebehandling(behandling: Rammebehandling, simulering: SimuleringMedMetadata?) {
         sessionFactory.withTransactionContext { tx ->
-            rammebehandlingRepo.lagre(oppdatertBehandling, tx)
+            rammebehandlingRepo.lagre(behandling, tx)
             rammebehandlingRepo.oppdaterSimuleringMetadata(
                 behandling.id,
-                utbetalingOgSimulering?.second?.originalResponseBody,
+                simulering?.originalResponseBody,
                 tx,
             )
         }
-
-        return (oppdatertSak to oppdatertBehandling).right()
     }
 
     private suspend fun Sak.oppdaterMeldekortbehandling(

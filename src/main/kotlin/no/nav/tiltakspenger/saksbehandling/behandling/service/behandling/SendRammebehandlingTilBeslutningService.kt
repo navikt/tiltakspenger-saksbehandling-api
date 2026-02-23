@@ -39,7 +39,7 @@ class SendRammebehandlingTilBeslutningService(
                 .left()
         }
 
-        val (_, behandlingMedOppdatertSimulering) = oppdaterBeregningOgSimuleringService.oppdaterBeregningOgSimuleringForRammebehandling(
+        val (_, behandlingMedOppdatertSimulering) = oppdaterBeregningOgSimuleringService.hentOppdatertBeregningOgSimuleringForRammebehandling(
             sak,
             behandling,
             kommando.saksbehandler,
