@@ -206,46 +206,26 @@ private sealed interface Resultat {
 private fun TiltakstypeSomGirRett.mapStønadstype(): StønadTypeTiltakspenger =
     when (this) {
         TiltakstypeSomGirRett.ARBEIDSFORBEREDENDE_TRENING -> StønadTypeTiltakspenger.ARBEIDSFORBEREDENDE_TRENING
-
         TiltakstypeSomGirRett.ARBEIDSRETTET_REHABILITERING -> StønadTypeTiltakspenger.ARBEIDSRETTET_REHABILITERING
-
         TiltakstypeSomGirRett.ARBEIDSTRENING -> StønadTypeTiltakspenger.ARBEIDSTRENING
-
         TiltakstypeSomGirRett.AVKLARING -> StønadTypeTiltakspenger.AVKLARING
-
         TiltakstypeSomGirRett.DIGITAL_JOBBKLUBB -> StønadTypeTiltakspenger.DIGITAL_JOBBKLUBB
-
         TiltakstypeSomGirRett.ENKELTPLASS_AMO -> StønadTypeTiltakspenger.ENKELTPLASS_AMO
-
         TiltakstypeSomGirRett.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG -> StønadTypeTiltakspenger.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG
-
-        // Vi venter på klassekoder for å kunne utbetale på de nye tiltakstypene og bruker den mindre spesifikke koden inntil de nye er på plass
-        // https://trello.com/c/Xcbb0swL/1865-bestille-nye-klassekoder-av-os-for-de-nye-tiltaksvariantene
-        TiltakstypeSomGirRett.GRUPPE_AMO,
-        TiltakstypeSomGirRett.ARBEIDSMARKEDSOPPLAERING,
-        TiltakstypeSomGirRett.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
-        TiltakstypeSomGirRett.STUDIESPESIALISERING,
-        -> StønadTypeTiltakspenger.GRUPPE_AMO
-
-        TiltakstypeSomGirRett.GRUPPE_VGS_OG_HØYERE_YRKESFAG,
-        TiltakstypeSomGirRett.FAG_OG_YRKESOPPLAERING,
-        TiltakstypeSomGirRett.HOYERE_YRKESFAGLIG_UTDANNING,
-        -> StønadTypeTiltakspenger.GRUPPE_VGS_OG_HØYERE_YRKESFAG
-
+        TiltakstypeSomGirRett.GRUPPE_AMO -> StønadTypeTiltakspenger.GRUPPE_AMO
+        TiltakstypeSomGirRett.ARBEIDSMARKEDSOPPLAERING -> StønadTypeTiltakspenger.ARBEIDSMARKEDSOPPLÆRING_AMO
+        TiltakstypeSomGirRett.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> StønadTypeTiltakspenger.NORSKOPPLÆRING_GRUNNLEGGENDE_FERDIGHETER
+        TiltakstypeSomGirRett.STUDIESPESIALISERING -> StønadTypeTiltakspenger.STUDIESPESIALISERING
+        TiltakstypeSomGirRett.GRUPPE_VGS_OG_HØYERE_YRKESFAG -> StønadTypeTiltakspenger.GRUPPE_VGS_OG_HØYERE_YRKESFAG
+        TiltakstypeSomGirRett.FAG_OG_YRKESOPPLAERING -> StønadTypeTiltakspenger.FAG_OG_YRKESOPPLÆRING
+        TiltakstypeSomGirRett.HOYERE_YRKESFAGLIG_UTDANNING -> StønadTypeTiltakspenger.FAGSKOLE
         TiltakstypeSomGirRett.HØYERE_UTDANNING -> StønadTypeTiltakspenger.HØYERE_UTDANNING
-
         TiltakstypeSomGirRett.INDIVIDUELL_JOBBSTØTTE -> StønadTypeTiltakspenger.INDIVIDUELL_JOBBSTØTTE
-
         TiltakstypeSomGirRett.INDIVIDUELL_KARRIERESTØTTE_UNG -> StønadTypeTiltakspenger.INDIVIDUELL_KARRIERESTØTTE_UNG
-
         TiltakstypeSomGirRett.JOBBKLUBB -> StønadTypeTiltakspenger.JOBBKLUBB
-
         TiltakstypeSomGirRett.OPPFØLGING -> StønadTypeTiltakspenger.OPPFØLGING
-
         TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_NAV -> StønadTypeTiltakspenger.UTVIDET_OPPFØLGING_I_NAV
-
         TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_OPPLÆRING -> StønadTypeTiltakspenger.UTVIDET_OPPFØLGING_I_OPPLÆRING
-
         TiltakstypeSomGirRett.FORSØK_OPPLÆRING_LENGRE_VARIGHET -> StønadTypeTiltakspenger.FORSØK_OPPLÆRING_LENGRE_VARIGHET
     }
 
