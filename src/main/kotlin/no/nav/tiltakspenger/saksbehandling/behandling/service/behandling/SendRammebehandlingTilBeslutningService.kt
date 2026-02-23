@@ -31,8 +31,9 @@ class SendRammebehandlingTilBeslutningService(
     suspend fun sendTilBeslutning(
         kommando: SendBehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeRammebehandlingTilBeslutter, Pair<Sak, Rammebehandling>> {
+        val behandlingId = kommando.behandlingId
         val sak = sakService.hentForSakId(kommando.sakId)
-        val behandling = sak.hentRammebehandling(kommando.behandlingId)!!
+        val behandling = sak.hentRammebehandling(behandlingId)!!
 
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
             return KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler)
@@ -41,7 +42,7 @@ class SendRammebehandlingTilBeslutningService(
 
         val (_, behandlingMedOppdatertSimulering) = oppdaterBeregningOgSimuleringService.hentOppdatertBeregningOgSimuleringForRammebehandling(
             sak,
-            behandling,
+            behandlingId,
             kommando.saksbehandler,
         ).getOrElse {
             return KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeilet(it).left()

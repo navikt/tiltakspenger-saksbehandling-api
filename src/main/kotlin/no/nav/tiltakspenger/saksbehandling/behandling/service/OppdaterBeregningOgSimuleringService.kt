@@ -47,11 +47,9 @@ class OppdaterBeregningOgSimuleringService(
         val sak: Sak = sakService.hentForSakId(sakId)
 
         return if (behandlingId.erBehandlingId()) {
-            val behandling = sak.hentRammebehandling(behandlingId.toBehandlingId())!!
-
             hentOppdatertBeregningOgSimuleringForRammebehandling(
                 sak = sak,
-                behandling = behandling,
+                behandlingId = behandlingId.toBehandlingId(),
                 saksbehandlerEllerBeslutter = saksbehandler,
             ).map { (oppdatertSak, oppdatertBehandling, oppdatertSimulering) ->
                 lagreRammebehandling(oppdatertBehandling, oppdatertSimulering)
@@ -67,9 +65,11 @@ class OppdaterBeregningOgSimuleringService(
 
     suspend fun hentOppdatertBeregningOgSimuleringForRammebehandling(
         sak: Sak,
-        behandling: Rammebehandling,
+        behandlingId: BehandlingId,
         saksbehandlerEllerBeslutter: Saksbehandler,
     ): Either<KunneIkkeSimulere, Triple<Sak, Rammebehandling, SimuleringMedMetadata?>> {
+        val behandling = sak.hentRammebehandling(behandlingId)!!
+
         if (behandling.erUnderBehandling) {
             require(saksbehandlerEllerBeslutter.navIdent == behandling.saksbehandler) {
                 "Kan kun oppdatere simulering på en behandling dersom saksbehandler som ber om det er den samme som er satt på behandlingen"

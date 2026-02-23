@@ -79,7 +79,7 @@ class IverksettRammebehandlingService(
 
         val (_, behandlingMedOppdatertSimulering) = this@IverksettRammebehandlingService.oppdaterBeregningOgSimuleringService.hentOppdatertBeregningOgSimuleringForRammebehandling(
             sak,
-            behandling,
+            rammebehandlingId,
             beslutter,
         ).getOrElse {
             return KanIkkeIverksetteBehandling.SimuleringFeilet(it).left()
