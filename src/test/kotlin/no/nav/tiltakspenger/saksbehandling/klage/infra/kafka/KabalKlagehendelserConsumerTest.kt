@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.kafka
 
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -13,9 +14,11 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshen
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.`OmgjøringskravbehandlingAvsluttet`.`OmgjøringskravbehandlingAvsluttetUtfall`
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.NyKlagehendelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOpprettholdKlagebehandling
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
+import kotlin.collections.first
 
 class KabalKlagehendelserConsumerTest {
 
@@ -91,6 +94,24 @@ class KabalKlagehendelserConsumerTest {
                     ),
                 )
             }
+            hentSakForSaksnummer(tac = tac, saksnummer = klagebehandling.saksnummer)!!
+                .getJSONArray("klageBehandlinger")
+                .getJSONObject(0)
+                .getJSONArray("klageinstanshendelser")
+                .getJSONObject(0).toString().shouldEqualJson(
+                    """
+                    {
+                      "klagebehandlingId": "${klagebehandling.id}",
+                      "klagehendelseId": "$klagehendelseId",
+                      "utfall": "$utfall",
+                      "opprettet": "2025-05-01T01:02:43.456789",
+                      "sistEndret": "2025-05-01T01:02:44.456789",
+                      "eksternKlagehendelseId": "0f4ea0c2-8b44-4266-a1c3-801006b06280",
+                      "avsluttetTidspunkt": "2025-01-01T01:02:03.456789",
+                      "journalpostreferanser": ["123","456"]
+                    }
+                    """.trimIndent(),
+                )
         }
     }
 

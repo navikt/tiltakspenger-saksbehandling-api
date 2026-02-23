@@ -52,7 +52,8 @@ class TaKlagebehandlingRouteTest {
                   "iverksattOpprettholdelseTidspunkt": null,
                   "journalføringstidspunktInnstillingsbrev": null,
                   "distribusjonstidspunktInnstillingsbrev": null,
-                  "oversendtKlageinstansenTidspunkt": null
+                  "oversendtKlageinstansenTidspunkt": null,
+                  "klageinstanshendelser": null
                 }
                 """.trimIndent(),
             )
@@ -104,7 +105,8 @@ class TaKlagebehandlingRouteTest {
                   "iverksattOpprettholdelseTidspunkt": null,
                   "journalføringstidspunktInnstillingsbrev": null,
                   "distribusjonstidspunktInnstillingsbrev": null,
-                  "oversendtKlageinstansenTidspunkt": null
+                  "oversendtKlageinstansenTidspunkt": null,
+                  "klageinstanshendelser": null
                 }
                 """.trimIndent(),
             )

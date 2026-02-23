@@ -57,7 +57,8 @@ class GjenopptaKlagebehandlingRouteTest {
                   "iverksattOpprettholdelseTidspunkt": null,
                   "journalføringstidspunktInnstillingsbrev": null,
                   "distribusjonstidspunktInnstillingsbrev": null,
-                  "oversendtKlageinstansenTidspunkt": null
+                  "oversendtKlageinstansenTidspunkt": null,
+                  "klageinstanshendelser": null
                 }
                 """.trimIndent(),
             )

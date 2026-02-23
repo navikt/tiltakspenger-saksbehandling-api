@@ -53,7 +53,8 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                   "iverksattOpprettholdelseTidspunkt": null,
                   "journalføringstidspunktInnstillingsbrev": null,
                   "distribusjonstidspunktInnstillingsbrev": null,
-                  "oversendtKlageinstansenTidspunkt": null
+                  "oversendtKlageinstansenTidspunkt": null,
+                  "klageinstanshendelser": null
                 }
                 """.trimIndent(),
             )
@@ -114,7 +115,8 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                   "iverksattOpprettholdelseTidspunkt": null,
                   "journalføringstidspunktInnstillingsbrev": null,
                   "distribusjonstidspunktInnstillingsbrev": null,
-                  "oversendtKlageinstansenTidspunkt": null
+                  "oversendtKlageinstansenTidspunkt": null,
+                  "klageinstanshendelser": []
                 }
                 """.trimIndent(),
             )

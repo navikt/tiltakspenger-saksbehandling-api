@@ -81,7 +81,8 @@ class OpprettKlagebehandlingRouteTest {
                      "iverksattOpprettholdelseTidspunkt": "2025-01-01T01:02:39.456789",
                      "journalføringstidspunktInnstillingsbrev": null,
                      "distribusjonstidspunktInnstillingsbrev": null,
-                     "oversendtKlageinstansenTidspunkt": null
+                     "oversendtKlageinstansenTidspunkt": null,
+                     "klageinstanshendelser": []
                    }
                 """.trimIndent(),
             )

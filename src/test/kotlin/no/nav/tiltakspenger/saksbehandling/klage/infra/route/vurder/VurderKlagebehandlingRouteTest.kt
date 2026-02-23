@@ -63,7 +63,8 @@ class VurderKlagebehandlingRouteTest {
                   "iverksattOpprettholdelseTidspunkt": null,
                   "journalføringstidspunktInnstillingsbrev": null,
                   "distribusjonstidspunktInnstillingsbrev": null,
-                  "oversendtKlageinstansenTidspunkt": null
+                  "oversendtKlageinstansenTidspunkt": null,
+                  "klageinstanshendelser": null
                 }
                 """.trimIndent(),
             )
@@ -122,7 +123,8 @@ class VurderKlagebehandlingRouteTest {
                    "iverksattOpprettholdelseTidspunkt": null,
                    "journalføringstidspunktInnstillingsbrev": null,
                    "distribusjonstidspunktInnstillingsbrev": null,
-                   "oversendtKlageinstansenTidspunkt": null
+                   "oversendtKlageinstansenTidspunkt": null,
+                   "klageinstanshendelser": []
                 }
                 """.trimIndent(),
             )
@@ -184,7 +186,8 @@ class VurderKlagebehandlingRouteTest {
                   "iverksattOpprettholdelseTidspunkt": null,
                   "journalføringstidspunktInnstillingsbrev": null,
                   "distribusjonstidspunktInnstillingsbrev": null,
-                  "oversendtKlageinstansenTidspunkt": null
+                  "oversendtKlageinstansenTidspunkt": null,
+                  "klageinstanshendelser": null
                 }
                 """.trimIndent(),
             )
