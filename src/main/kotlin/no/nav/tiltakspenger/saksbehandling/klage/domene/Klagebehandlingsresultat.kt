@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.O
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderOmgjørKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
@@ -56,6 +57,7 @@ sealed interface Klagebehandlingsresultat {
         override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean {
             return status == UNDER_BEHANDLING && !brevtekst.isNullOrEmpty()
         }
+
         override fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus) = false
 
         fun oppdaterBrevtekst(
@@ -95,6 +97,7 @@ sealed interface Klagebehandlingsresultat {
             if (status != UNDER_BEHANDLING || rammebehandlingId == null) return false
             return null
         }
+
         override fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus) = false
 
         override val erKnyttetTilRammebehandling = rammebehandlingId != null
@@ -122,6 +125,7 @@ sealed interface Klagebehandlingsresultat {
         val distribusjonIdInnstillingsbrev: DistribusjonId?,
         val distribusjonstidspunktInnstillingsbrev: LocalDateTime?,
         val oversendtKlageinstansenTidspunkt: LocalDateTime?,
+        val klageinstanshendelser: Klageinstanshendelser,
     ) : Klagebehandlingsresultat {
 
         override val erKnyttetTilRammebehandling = false
@@ -135,6 +139,7 @@ sealed interface Klagebehandlingsresultat {
             // TODO jah: Legg til den etter vi har mappet klageinstans-hendelsen.
             return false
         }
+
         override fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus): Boolean {
             return status == UNDER_BEHANDLING && !brevtekst.isNullOrEmpty() && iverksattOpprettholdelseTidspunkt == null
         }
@@ -186,6 +191,10 @@ sealed interface Klagebehandlingsresultat {
             )
         }
 
+        fun leggTilKlageinstanshendelse(hendelse: Klageinstanshendelse): Opprettholdt {
+            return copy(klageinstanshendelser = klageinstanshendelser.leggTil(hendelse))
+        }
+
         companion object {
             fun create(hjemler: Klagehjemler): Opprettholdt {
                 return Opprettholdt(
@@ -198,6 +207,7 @@ sealed interface Klagebehandlingsresultat {
                     journalføringstidspunktInnstillingsbrev = null,
                     distribusjonIdInnstillingsbrev = null,
                     distribusjonstidspunktInnstillingsbrev = null,
+                    klageinstanshendelser = Klageinstanshendelser.empty(),
                 )
             }
         }

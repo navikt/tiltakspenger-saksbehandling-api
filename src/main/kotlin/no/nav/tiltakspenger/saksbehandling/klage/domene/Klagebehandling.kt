@@ -22,6 +22,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.NyKlagehendelse
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -147,6 +149,14 @@ data class Klagebehandling(
         }
         return this.copy(
             resultat = resultat.oppdaterInnstillingsbrevDistribusjon(distribusjonId, tidspunkt),
+        )
+    }
+
+    fun leggTilKlageinstanshendelse(hendelse: Klageinstanshendelse, sistEndret: LocalDateTime): Klagebehandling {
+        // TODO jah: Basert på hendelsestypen, må vi sende tilbake en handling til klagebehandlingen for å oppdatere tilstanden.
+        return this.copy(
+            resultat = (resultat as Klagebehandlingsresultat.Opprettholdt).leggTilKlageinstanshendelse(hendelse),
+            sistEndret = sistEndret,
         )
     }
 

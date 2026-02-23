@@ -42,6 +42,11 @@ class KlagebehandlingPostgresRepo(
         }
     }
 
+    override fun hentForKlagebehandlingId(klagebehandlingId: KlagebehandlingId): Klagebehandling? {
+        return sessionFactory.withSession { session ->
+            hentOrNull(klagebehandlingId, session)
+        }
+    }
     override fun hentForRammebehandlingId(rammebehandlingId: BehandlingId): Klagebehandling? {
         return sessionFactory.withSession { session ->
             session.run(

@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse
 
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import java.time.LocalDateTime
 
 /**
@@ -9,7 +11,18 @@ import java.time.LocalDateTime
 data class NyKlagehendelse(
     val klagehendelseId: KlagehendelseId = KlagehendelseId.random(),
     val opprettet: LocalDateTime,
+    val sistEndret: LocalDateTime,
     val eksternKlagehendelseId: String,
     val key: String,
     val value: String,
-)
+    val sakId: SakId?,
+    val klagebehandlingId: KlagebehandlingId?,
+) {
+    fun leggTilSakidOgKlagebehandlingId(sakId: SakId, klagebehandlingId: KlagebehandlingId, sistEndret: LocalDateTime): NyKlagehendelse {
+        return this.copy(
+            sakId = sakId,
+            klagebehandlingId = klagebehandlingId,
+            sistEndret = sistEndret,
+        )
+    }
+}
