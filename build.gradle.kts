@@ -70,7 +70,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$prometeusVersion")
 
     // Auth
-    api("com.auth0:java-jwt:4.5.0")
+    api("com.auth0:java-jwt:4.5.1")
     api("com.auth0:jwks-rsa:0.23.0")
 
     // DB
