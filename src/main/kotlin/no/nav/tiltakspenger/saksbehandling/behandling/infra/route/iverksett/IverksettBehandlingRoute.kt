@@ -63,7 +63,7 @@ fun Route.iverksettRammebehandlingRoute(
                             )
 
                             KanIkkeIverksetteBehandling.KunneIkkeHenteNavkontorForUtbetaling -> call.respond500InternalServerError(
-                                "Kunne hente navkontor for utbetaling",
+                                "Kunne ikke hente navkontor for utbetaling",
                                 "kunne_ikke_hente_navkontor_for_utbetaling",
                             )
                         }

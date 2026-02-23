@@ -99,7 +99,7 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStat
     )
 
     KanIkkeSendeRammebehandlingTilBeslutter.KunneIkkeHenteNavkontorForUtbetaling -> HttpStatusCode.InternalServerError to ErrorJson(
-        "Kunne hente navkontor for utbetaling",
+        "Kunne ikke hente navkontor for utbetaling",
         "kunne_ikke_hente_navkontor_for_utbetaling",
     )
 }

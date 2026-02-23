@@ -77,7 +77,7 @@ class IverksettRammebehandlingService(
             ).left()
         }
 
-        val (_, behandlingMedOppdatertSimulering) = this@IverksettRammebehandlingService.oppdaterBeregningOgSimuleringService.hentOppdatertBeregningOgSimuleringForRammebehandling(
+        val (_, behandlingMedOppdatertSimulering) = oppdaterBeregningOgSimuleringService.hentOppdatertBeregningOgSimuleringForRammebehandling(
             sak,
             rammebehandlingId,
             beslutter,
