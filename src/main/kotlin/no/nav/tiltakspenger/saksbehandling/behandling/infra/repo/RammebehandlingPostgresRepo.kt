@@ -36,7 +36,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.t
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraBehandling
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilRammebehandlingUtbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
@@ -357,6 +359,26 @@ class RammebehandlingPostgresRepo(
 
             val innvilgelsesperioder = stringOrNull("innvilgelsesperioder")?.tilInnvilgelsesperioder()
 
+            // TODO abn: husk å optimaliser dette før merge, burde ikke hente ut alle meldeperiodekjedene for alle behandlinger :|
+            val meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(
+                sakId = sakId,
+                session = session,
+            )
+
+            val utbetaling = stringOrNull("beregning")?.let {
+                BehandlingUtbetaling(
+                    beregning = Beregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
+                    navkontor = Navkontor(
+                        kontornummer = string("navkontor"),
+                        kontornavn = stringOrNull("navkontor_navn"),
+                    ),
+                    simulering = stringOrNull("simulering")?.toSimuleringFraDbJson(meldeperiodekjeder),
+                )
+            }
+
+            val utbetalingskontroll = stringOrNull("utbetalingskontroll")
+                ?.tilRammebehandlingUtbetalingskontroll(id, meldeperiodekjeder)
+
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
                     val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
@@ -407,21 +429,8 @@ class RammebehandlingPostgresRepo(
                         klagebehandling = stringOrNull("klagebehandling_id")?.let {
                             KlagebehandlingPostgresRepo.hentOrNull(KlagebehandlingId.fromString(it), session)
                         },
-                        utbetaling = stringOrNull("beregning")?.let {
-                            BehandlingUtbetaling(
-                                beregning = Beregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
-                                navkontor = Navkontor(
-                                    kontornummer = string("navkontor"),
-                                    kontornavn = stringOrNull("navkontor_navn"),
-                                ),
-                                simulering = stringOrNull("simulering")?.toSimuleringFraDbJson(
-                                    MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(
-                                        sakId = sakId,
-                                        session = session,
-                                    ),
-                                ),
-                            )
-                        },
+                        utbetaling = utbetaling,
+                        utbetalingskontroll = utbetalingskontroll,
                     )
                 }
 
@@ -489,21 +498,8 @@ class RammebehandlingPostgresRepo(
                         klagebehandling = stringOrNull("klagebehandling_id")?.let {
                             KlagebehandlingPostgresRepo.hentOrNull(KlagebehandlingId.fromString(it), session)
                         },
-                        utbetaling = stringOrNull("beregning")?.let {
-                            BehandlingUtbetaling(
-                                beregning = Beregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
-                                navkontor = Navkontor(
-                                    kontornummer = string("navkontor"),
-                                    kontornavn = stringOrNull("navkontor_navn"),
-                                ),
-                                simulering = stringOrNull("simulering")?.toSimuleringFraDbJson(
-                                    MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(
-                                        sakId = sakId,
-                                        session = session,
-                                    ),
-                                ),
-                            )
-                        },
+                        utbetaling = utbetaling,
+                        utbetalingskontroll = utbetalingskontroll,
                     )
                 }
             }
@@ -555,6 +551,7 @@ class RammebehandlingPostgresRepo(
                 manuelt_behandles_grunner,
                 beregning,
                 simulering,
+                utbetalingskontroll,
                 navkontor,
                 navkontor_navn,
                 har_valgt_stans_fra_første_dag_som_gir_rett,
@@ -593,6 +590,7 @@ class RammebehandlingPostgresRepo(
                 to_jsonb(:manuelt_behandles_grunner::jsonb),
                 to_jsonb(:beregning::jsonb),
                 to_jsonb(:simulering::jsonb),
+                to_jsonb(:utbetalingskontroll::jsonb),
                 :navkontor,
                 :navkontor_navn,
                 :har_valgt_stans_fra_forste_dag_som_gir_rett,
@@ -634,6 +632,7 @@ class RammebehandlingPostgresRepo(
                 beregning = to_jsonb(:beregning::jsonb),
                 simulering = to_jsonb(:simulering::jsonb),
                 simulering_metadata = CASE WHEN :simulering::varchar IS NULL THEN NULL ELSE simulering_metadata END,
+                utbetalingskontroll = to_jsonb(:utbetalingskontroll::jsonb),
                 navkontor = :navkontor,
                 navkontor_navn = :navkontor_navn,
                 har_valgt_stans_fra_første_dag_som_gir_rett = :har_valgt_stans_fra_forste_dag_som_gir_rett,
@@ -768,6 +767,7 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "manuelt_behandles_grunner" to manueltBehandlesGrunner?.toDbJson(),
         "beregning" to this.utbetaling?.beregning?.tilBeregningerDbJson(),
         "simulering" to this.utbetaling?.simulering?.toDbJson(),
+        "utbetalingskontroll" to this.utbetalingskontroll?.tilDbJson(),
         "navkontor" to this.utbetaling?.navkontor?.kontornummer,
         "navkontor_navn" to this.utbetaling?.navkontor?.kontornavn,
         "klagebehandling_id" to this.klagebehandling?.id?.toString(),

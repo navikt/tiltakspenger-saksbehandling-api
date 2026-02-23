@@ -3,18 +3,30 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 
-fun BehandlingUtbetaling.validerKanIverksetteUtbetaling(forrigeBeregnedeUtbetaling: BehandlingUtbetaling?): Either<KanIkkeIverksetteUtbetaling, Unit> {
-    if (forrigeBeregnedeUtbetaling?.simulering.harEndringer(this.simulering)) {
-        return KanIkkeIverksetteUtbetaling.SimuleringHarEndringer.left()
-    }
-
+fun MeldekortBehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
     return simulering.validerKanIverksetteUtbetaling()
 }
 
-fun MeldekortBehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
+fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
+    val simulering = this.utbetaling?.simulering
+    val kontrollSimulering = this.utbetalingskontroll?.simulering
+
+    if (!simulering.erLik(kontrollSimulering)) {
+        return KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer.left()
+    }
+
+    // Hvis beregnet utbetaling er null (og kontrollen også var null), er alt ok
+    if (this.utbetaling == null) {
+        return Unit.right()
+    }
+
+    if (simulering == null) {
+        return KanIkkeIverksetteUtbetaling.SimuleringMangler.left()
+    }
+
     return simulering.validerKanIverksetteUtbetaling()
 }
 
@@ -36,6 +48,22 @@ fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbeta
     }
 }
 
+private fun Simulering?.erLik(other: Simulering?): Boolean {
+    if (this == null && other == null) {
+        return true
+    }
+
+    if (this is Simulering.IngenEndring && other is Simulering.IngenEndring) {
+        return true
+    }
+
+    if (this is Simulering.Endring && other is Simulering.Endring) {
+        return this.simuleringPerMeldeperiode == other.simuleringPerMeldeperiode
+    }
+
+    return false
+}
+
 // Vi har ikke lov til å justere utbetalinger på tvers av meldeperioder
 private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(): Boolean {
     return simuleringPerMeldeperiode.any { meldeperiode ->
@@ -52,25 +80,9 @@ private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(
     }
 }
 
-private fun Simulering?.harEndringer(ny: Simulering?): Boolean {
-    if (this == null && ny == null) {
-        return false
-    }
-
-    if (this is Simulering.IngenEndring && ny is Simulering.IngenEndring) {
-        return false
-    }
-
-    if (this is Simulering.Endring && ny is Simulering.Endring) {
-        return this.simuleringPerMeldeperiode != ny.simuleringPerMeldeperiode
-    }
-
-    return true
-}
-
 enum class KanIkkeIverksetteUtbetaling {
     SimuleringMangler,
     FeilutbetalingStøttesIkke,
     JusteringStøttesIkke,
-    SimuleringHarEndringer,
+    KontrollSimuleringHarEndringer,
 }

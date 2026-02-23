@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOve
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -111,6 +112,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     val omgjørRammevedtak: OmgjørRammevedtak
 
     val utbetaling: BehandlingUtbetaling?
+    val utbetalingskontroll: Utbetalingskontroll?
 
     val klagebehandling: Klagebehandling?
 
@@ -712,6 +714,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     /** Oppdaterer beregning og simulering for utbetaling */
     fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?): Rammebehandling
+    fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?): Rammebehandling
 
     fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling
 }

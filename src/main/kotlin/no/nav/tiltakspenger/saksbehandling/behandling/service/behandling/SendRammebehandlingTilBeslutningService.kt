@@ -32,6 +32,7 @@ class SendRammebehandlingTilBeslutningService(
         kommando: SendBehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeRammebehandlingTilBeslutter, Pair<Sak, Rammebehandling>> {
         val behandlingId = kommando.behandlingId
+
         val sak = sakService.hentForSakId(kommando.sakId)
         val behandling = sak.hentRammebehandling(behandlingId)!!
 
@@ -40,7 +41,7 @@ class SendRammebehandlingTilBeslutningService(
                 .left()
         }
 
-        val (_, behandlingMedOppdatertSimulering) = oppdaterBeregningOgSimuleringService.hentOppdatertBeregningOgSimuleringForRammebehandling(
+        val (_, behandlingMedUtbetalingskontroll) = oppdaterBeregningOgSimuleringService.oppdaterUtbetalingskontroll(
             sak,
             behandlingId,
             kommando.saksbehandler,
@@ -48,14 +49,13 @@ class SendRammebehandlingTilBeslutningService(
             return KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeilet(it).left()
         }
 
-        behandlingMedOppdatertSimulering.utbetaling?.also { utbetaling ->
-            utbetaling.validerKanIverksetteUtbetaling(behandling.utbetaling).onLeft {
-                logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${kommando.behandlingId} / $it" }
-                return KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingStøttesIkke(it).left()
-            }
+        behandlingMedUtbetalingskontroll.validerKanIverksetteUtbetaling().onLeft {
+            logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${kommando.behandlingId} / $it" }
+            rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
+            return KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingStøttesIkke(it).left()
         }
 
-        return behandlingMedOppdatertSimulering.tilBeslutning(
+        return behandlingMedUtbetalingskontroll.tilBeslutning(
             kommando = kommando,
             clock = clock,
         ).map {

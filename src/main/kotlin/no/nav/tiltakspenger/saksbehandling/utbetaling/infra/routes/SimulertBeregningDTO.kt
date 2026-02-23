@@ -216,6 +216,6 @@ private fun KanIkkeIverksetteUtbetaling.tilDTO(): SimulertBeregningDTO.KanIkkeIv
         KanIkkeIverksetteUtbetaling.SimuleringMangler -> SimulertBeregningDTO.KanIkkeIverksetteUtbetalingDTO.SimuleringMangler
         KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke -> SimulertBeregningDTO.KanIkkeIverksetteUtbetalingDTO.FeilutbetalingStøttesIkke
         KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> SimulertBeregningDTO.KanIkkeIverksetteUtbetalingDTO.JusteringStøttesIkke
-        KanIkkeIverksetteUtbetaling.SimuleringHarEndringer -> SimulertBeregningDTO.KanIkkeIverksetteUtbetalingDTO.SimuleringHarEndringer
+        KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer -> SimulertBeregningDTO.KanIkkeIverksetteUtbetalingDTO.SimuleringHarEndringer
     }
 }

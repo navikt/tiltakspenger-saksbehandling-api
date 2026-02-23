@@ -77,7 +77,7 @@ class IverksettRammebehandlingService(
             ).left()
         }
 
-        val (_, behandlingMedOppdatertSimulering) = oppdaterBeregningOgSimuleringService.hentOppdatertBeregningOgSimuleringForRammebehandling(
+        val (_, behandlingMedUtbetalingskontroll) = oppdaterBeregningOgSimuleringService.oppdaterUtbetalingskontroll(
             sak,
             rammebehandlingId,
             beslutter,
@@ -85,11 +85,10 @@ class IverksettRammebehandlingService(
             return KanIkkeIverksetteBehandling.SimuleringFeilet(it).left()
         }
 
-        behandlingMedOppdatertSimulering.utbetaling?.also { utbetaling ->
-            utbetaling.validerKanIverksetteUtbetaling(behandling.utbetaling).onLeft {
-                logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - $rammebehandlingId / $it" }
-                return KanIkkeIverksetteBehandling.UtbetalingStøttesIkke(it).left()
-            }
+        behandlingMedUtbetalingskontroll.validerKanIverksetteUtbetaling().onLeft {
+            logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - $rammebehandlingId / $it" }
+            rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
+            return KanIkkeIverksetteBehandling.UtbetalingStøttesIkke(it).left()
         }
 
         val attestering = Attestering(

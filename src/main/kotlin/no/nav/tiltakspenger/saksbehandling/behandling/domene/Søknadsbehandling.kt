@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
@@ -64,6 +65,7 @@ data class Søknadsbehandling(
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
     override val utbetaling: BehandlingUtbetaling?,
+    override val utbetalingskontroll: Utbetalingskontroll?,
     override val klagebehandling: Klagebehandling?,
 ) : Rammebehandling {
 
@@ -204,9 +206,16 @@ data class Søknadsbehandling(
 
     override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?): Søknadsbehandling {
         require(this.erUnderBehandlingEllerBeslutning) {
-            "Forventet at behandlingen var under behandling eller beslutning, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
+            "Forventet at behandlingen var under behandling eller beslutning ved oppdatering av utbetaling, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
         }
         return this.copy(utbetaling = oppdatertUtbetaling)
+    }
+
+    override fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?): Rammebehandling {
+        require(this.erUnderBehandlingEllerBeslutning) {
+            "Forventet at behandlingen var under behandling eller beslutning ved oppdatering av utbetalingskontroll, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
+        }
+        return this.copy(utbetalingskontroll = oppdatertKontroll)
     }
 
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling {
@@ -286,6 +295,7 @@ data class Søknadsbehandling(
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,
+                utbetalingskontroll = null,
                 klagebehandling = klagebehandling?.oppdaterRammebehandlingId(
                     rammebehandlingId = søknadsbehandlingId,
                     saksbehandler = saksbehandler,
@@ -336,6 +346,7 @@ data class Søknadsbehandling(
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,
+                utbetalingskontroll = null,
                 klagebehandling = null,
             )
         }

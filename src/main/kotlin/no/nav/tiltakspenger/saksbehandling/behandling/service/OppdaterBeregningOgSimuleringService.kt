@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnOpphør
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingStans
@@ -47,12 +48,10 @@ class OppdaterBeregningOgSimuleringService(
         val sak: Sak = sakService.hentForSakId(sakId)
 
         return if (behandlingId.erBehandlingId()) {
-            hentOppdatertBeregningOgSimuleringForRammebehandling(
-                sak = sak,
+            sak.oppdaterRammebehandling(
                 behandlingId = behandlingId.toBehandlingId(),
                 saksbehandlerEllerBeslutter = saksbehandler,
-            ).map { (oppdatertSak, oppdatertBehandling, oppdatertSimulering) ->
-                lagreRammebehandling(oppdatertBehandling, oppdatertSimulering)
+            ).map { (oppdatertSak, oppdatertBehandling) ->
                 (oppdatertSak to oppdatertBehandling.left())
             }
         } else {
@@ -63,13 +62,71 @@ class OppdaterBeregningOgSimuleringService(
         }
     }
 
-    suspend fun hentOppdatertBeregningOgSimuleringForRammebehandling(
+    suspend fun oppdaterUtbetalingskontroll(
         sak: Sak,
         behandlingId: BehandlingId,
         saksbehandlerEllerBeslutter: Saksbehandler,
-    ): Either<KunneIkkeSimulere, Triple<Sak, Rammebehandling, SimuleringMedMetadata?>> {
+    ): Either<KunneIkkeSimulere, Pair<Sak, Rammebehandling>> {
         val behandling = sak.hentRammebehandling(behandlingId)!!
 
+        val beregningOgSimulering = sak.beregnOgSimulerRammebehandling(
+            behandling = behandling,
+            saksbehandlerEllerBeslutter = saksbehandlerEllerBeslutter,
+        ).getOrElse { return it.left() }
+
+        val utbetalingskontroll: Utbetalingskontroll? = beregningOgSimulering?.let {
+            Utbetalingskontroll(
+                beregning = it.first,
+                simulering = it.second.simulering,
+            )
+        }
+
+        val oppdatertBehandling = behandling.oppdaterUtbetalingskontroll(utbetalingskontroll)
+        val oppdatertSak = sak.oppdaterRammebehandling(oppdatertBehandling)
+
+        return (oppdatertSak to oppdatertBehandling).right()
+    }
+
+    private suspend fun Sak.oppdaterRammebehandling(
+        behandlingId: BehandlingId,
+        saksbehandlerEllerBeslutter: Saksbehandler,
+    ): Either<KunneIkkeSimulere, Pair<Sak, Rammebehandling>> {
+        val behandling = this.hentRammebehandling(behandlingId)!!
+
+        val beregningOgSimulering = this.beregnOgSimulerRammebehandling(
+            behandling = behandling,
+            saksbehandlerEllerBeslutter = saksbehandlerEllerBeslutter,
+        ).getOrElse { return it.left() }
+
+        val oppdatertUtbetaling = beregningOgSimulering?.let {
+            BehandlingUtbetaling(
+                beregning = it.first,
+                simulering = it.second.simulering,
+                navkontor = this.behandlinger.sisteNavkontor!!,
+            )
+        }
+
+        val oppdatertBehandling = behandling.oppdaterUtbetaling(
+            oppdatertUtbetaling = oppdatertUtbetaling,
+        )
+        val oppdatertSak = this.oppdaterRammebehandling(oppdatertBehandling)
+
+        sessionFactory.withTransactionContext { tx ->
+            rammebehandlingRepo.lagre(oppdatertBehandling, tx)
+            rammebehandlingRepo.oppdaterSimuleringMetadata(
+                oppdatertBehandling.id,
+                beregningOgSimulering?.second?.originalResponseBody,
+                tx,
+            )
+        }
+
+        return (oppdatertSak to oppdatertBehandling).right()
+    }
+
+    private suspend fun Sak.beregnOgSimulerRammebehandling(
+        behandling: Rammebehandling,
+        saksbehandlerEllerBeslutter: Saksbehandler,
+    ): Either<KunneIkkeSimulere, Pair<Beregning, SimuleringMedMetadata>?> {
         if (behandling.erUnderBehandling) {
             require(saksbehandlerEllerBeslutter.navIdent == behandling.saksbehandler) {
                 "Kan kun oppdatere simulering på en behandling dersom saksbehandler som ber om det er den samme som er satt på behandlingen"
@@ -82,46 +139,24 @@ class OppdaterBeregningOgSimuleringService(
             throw IllegalStateException("Rammebehandling må være under behandling eller beslutning for at simulering skal kunne oppdateres")
         }
 
-        val utbetalingOgSimulering: Pair<BehandlingUtbetaling, SimuleringMedMetadata>? =
-            sak.beregnRammebehandling(behandling)?.let { beregning ->
-                val navkontor = sak.behandlinger.sisteNavkontor!!
+        val beregning = this.beregnRammebehandling(behandling) ?: return null.right()
 
-                val simulering = simulerService.simulerSøknadsbehandlingEllerRevurdering(
+        val simulering: SimuleringMedMetadata =
+            beregning.let { beregning ->
+                val navkontor = this.behandlinger.sisteNavkontor!!
+
+                simulerService.simulerSøknadsbehandlingEllerRevurdering(
                     behandling = behandling,
                     beregning = beregning,
-                    forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
-                    meldeperiodeKjeder = sak.meldeperiodeKjeder,
+                    forrigeUtbetaling = this.utbetalinger.lastOrNull(),
+                    meldeperiodeKjeder = this.meldeperiodeKjeder,
                     saksbehandler = saksbehandlerEllerBeslutter.navIdent,
                     brukersNavkontor = { navkontor },
-                    kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort,
+                    kanSendeInnHelgForMeldekort = this.kanSendeInnHelgForMeldekort,
                 ).getOrElse { return it.left() }
-
-                BehandlingUtbetaling(
-                    beregning = beregning,
-                    navkontor = navkontor,
-                    simulering = simulering.simulering,
-                ) to simulering
             }
 
-        val oppdatertBehandling = behandling.oppdaterUtbetaling(utbetalingOgSimulering?.first)
-        val oppdatertSak = sak.oppdaterRammebehandling(oppdatertBehandling)
-
-        return Triple(
-            oppdatertSak,
-            oppdatertBehandling,
-            utbetalingOgSimulering?.second,
-        ).right()
-    }
-
-    private fun lagreRammebehandling(behandling: Rammebehandling, simulering: SimuleringMedMetadata?) {
-        sessionFactory.withTransactionContext { tx ->
-            rammebehandlingRepo.lagre(behandling, tx)
-            rammebehandlingRepo.oppdaterSimuleringMetadata(
-                behandling.id,
-                simulering?.originalResponseBody,
-                tx,
-            )
-        }
+        return (beregning to simulering).right()
     }
 
     private suspend fun Sak.oppdaterMeldekortbehandling(

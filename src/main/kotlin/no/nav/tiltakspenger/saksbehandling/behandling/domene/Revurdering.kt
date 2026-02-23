@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderin
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
@@ -56,6 +57,7 @@ data class Revurdering(
     override val resultat: Revurderingsresultat,
     override val begrunnelseVilkårsvurdering: Begrunnelse?,
     override val utbetaling: BehandlingUtbetaling?,
+    override val utbetalingskontroll: Utbetalingskontroll?,
     override val klagebehandling: Klagebehandling?,
 ) : Rammebehandling {
 
@@ -176,9 +178,16 @@ data class Revurdering(
 
     override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?): Revurdering {
         require(this.erUnderBehandlingEllerBeslutning) {
-            "Forventet at behandlingen var under behandling eller beslutning, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
+            "Forventet at behandlingen var under behandling eller beslutning ved oppdatering av utbetaling, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
         }
         return this.copy(utbetaling = oppdatertUtbetaling)
+    }
+
+    override fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?): Rammebehandling {
+        require(this.erUnderBehandlingEllerBeslutning) {
+            "Forventet at behandlingen var under behandling eller beslutning ved oppdatering av utbetalingskontroll, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
+        }
+        return this.copy(utbetalingskontroll = oppdatertKontroll)
     }
 
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling {
@@ -291,6 +300,7 @@ data class Revurdering(
                 venterTil = null,
                 begrunnelseVilkårsvurdering = null,
                 utbetaling = null,
+                utbetalingskontroll = null,
                 klagebehandling = klagebehandling,
             )
         }
