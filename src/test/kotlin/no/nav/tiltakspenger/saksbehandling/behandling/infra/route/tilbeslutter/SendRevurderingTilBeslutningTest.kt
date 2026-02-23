@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -44,7 +44,7 @@ class SendRevurderingTilBeslutningTest {
                 behandlingId = revurdering.id,
                 begrunnelseVilkårsvurdering = null,
                 fritekstTilVedtaksbrev = null,
-                valgteHjemler = setOf(HjemmelForStansEllerOpphør.Alder),
+                valgteHjemler = setOf(HjemmelForStans.Alder),
                 stansFraOgMed = stansFraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
             )

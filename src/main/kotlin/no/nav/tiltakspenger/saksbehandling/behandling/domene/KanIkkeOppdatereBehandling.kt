@@ -19,5 +19,5 @@ sealed interface KanIkkeOppdatereOmgjøring : KanIkkeOppdatereBehandling {
     data object VedtaksperiodeMåInneholdeInnvilgelsesperiodene : KanIkkeOppdatereOmgjøring
     data object KanIkkeOpphøreVedtakUtenGjeldendeInnvilgelse : KanIkkeOppdatereOmgjøring
     data class UgyldigPeriodeForOpphør(val årsak: String) : KanIkkeOppdatereOmgjøring
-    data class MåHaFritekstForValgteHjemler(val hjemler: NonEmptySet<HjemmelForStansEllerOpphør>) : KanIkkeOppdatereOmgjøring
+    data class MåHaFritekstForValgteHjemler(val hjemler: NonEmptySet<HjemmelForOpphør>) : KanIkkeOppdatereOmgjøring
 }

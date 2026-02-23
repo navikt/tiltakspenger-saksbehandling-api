@@ -5,7 +5,7 @@ import arrow.core.NonEmptySet
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
@@ -24,7 +24,7 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
      * @param harValgtStansFraFørsteDagSomGirRett Dersom saksbehandler har valgt at det skal stanses fra første dag som gir rett. Vil være null når man oppretter stansen.
      */
     data class Stans(
-        val valgtHjemmel: NonEmptySet<HjemmelForStansEllerOpphør>?,
+        val valgtHjemmel: NonEmptySet<HjemmelForStans>?,
         val harValgtStansFraFørsteDagSomGirRett: Boolean?,
         val stansperiode: Periode?,
         override val omgjørRammevedtak: OmgjørRammevedtak,

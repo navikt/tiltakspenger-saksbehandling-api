@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.satser.Satser.Companion.sats
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -173,7 +173,7 @@ class UtbetalingerIT {
                 behandlingId = revurdering.id,
                 fritekstTilVedtaksbrev = "lol",
                 begrunnelseVilkårsvurdering = "what",
-                valgteHjemler = setOf(HjemmelForStansEllerOpphør.Alder),
+                valgteHjemler = setOf(HjemmelForStans.Alder),
                 stansFraOgMed = vedtaksperiode.fraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
@@ -231,7 +231,7 @@ class UtbetalingerIT {
                 behandlingId = revurdering.id,
                 fritekstTilVedtaksbrev = "lol",
                 begrunnelseVilkårsvurdering = "what",
-                valgteHjemler = setOf(HjemmelForStansEllerOpphør.Alder),
+                valgteHjemler = setOf(HjemmelForStans.Alder),
                 stansFraOgMed = vedtaksperiode.fraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
             )

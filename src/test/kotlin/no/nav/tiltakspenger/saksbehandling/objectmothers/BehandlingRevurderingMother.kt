@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterOmgjøringKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
@@ -100,7 +100,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             tom = vedtaksperiode.tilOgMed,
             clock = clock,
         ),
-        valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør> = nonEmptySetOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: NonEmptySet<HjemmelForStans> = nonEmptySetOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         stansFraOgMed: LocalDate?,
         førsteDagSomGirRett: LocalDate,
         sisteDagSomGirRett: LocalDate,
@@ -153,7 +153,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             tom = vedtaksperiode.tilOgMed,
             clock = clock,
         ),
-        valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør> = nonEmptySetOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: NonEmptySet<HjemmelForStans> = nonEmptySetOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         attestering: Attestering = godkjentAttestering(beslutter, clock),
         stansFraOgMed: LocalDate?,
         førsteDagSomGirRett: LocalDate,

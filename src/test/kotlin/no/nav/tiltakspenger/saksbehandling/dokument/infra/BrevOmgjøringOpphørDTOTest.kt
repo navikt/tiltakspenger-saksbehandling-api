@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import org.junit.jupiter.api.Test
@@ -34,7 +34,7 @@ class BrevOmgjøringOpphørDTOTest {
                 forhåndsvisning = true,
                 vedtaksdato = 1.april(2025),
                 vedtaksperiode = vedtaksperiode,
-                valgteHjemler = nonEmptySetOf(HjemmelForStansEllerOpphør.Introduksjonsprogrammet),
+                valgteHjemler = nonEmptySetOf(HjemmelForOpphør.Introduksjonsprogrammet),
                 harOpphørtBarnetillegg = false,
             )
 
@@ -85,7 +85,7 @@ class BrevOmgjøringOpphørDTOTest {
                 forhåndsvisning = true,
                 vedtaksdato = 1.april(2025),
                 vedtaksperiode = vedtaksperiode,
-                valgteHjemler = nonEmptySetOf(HjemmelForStansEllerOpphør.Introduksjonsprogrammet),
+                valgteHjemler = nonEmptySetOf(HjemmelForOpphør.Introduksjonsprogrammet),
                 harOpphørtBarnetillegg = true,
             )
 

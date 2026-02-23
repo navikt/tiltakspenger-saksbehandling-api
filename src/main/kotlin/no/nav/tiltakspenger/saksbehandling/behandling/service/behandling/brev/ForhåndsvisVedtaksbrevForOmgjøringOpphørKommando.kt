@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 
 data class ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando(
     override val sakId: SakId,
@@ -16,5 +16,5 @@ data class ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando(
     override val saksbehandler: Saksbehandler,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val vedtaksperiode: Periode,
-    val valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+    val valgteHjemler: NonEmptySet<HjemmelForOpphør>,
 ) : ForhåndsvisVedtaksbrevForRevurderingKommando

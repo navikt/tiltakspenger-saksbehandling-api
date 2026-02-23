@@ -26,7 +26,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val correlationId: CorrelationId,
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-        val valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+        val valgteHjemler: NonEmptySet<HjemmelForStans>,
         val stansFraOgMed: ValgtStansFraOgMed,
     ) : OppdaterRevurderingKommando {
 
@@ -107,7 +107,7 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val vedtaksperiode: Periode,
-        val valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+        val valgteHjemler: NonEmptySet<HjemmelForOpphør>,
     ) : OppdaterOmgjøringKommando
 
     data class OmgjøringIkkeValgt(

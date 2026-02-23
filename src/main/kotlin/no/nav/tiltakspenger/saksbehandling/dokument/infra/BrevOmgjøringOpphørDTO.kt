@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.person.Navn
@@ -63,7 +63,7 @@ suspend fun genererOpphørBrev(
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
     vedtaksperiode: Periode,
-    valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+    valgteHjemler: NonEmptySet<HjemmelForOpphør>,
     tilleggstekst: FritekstTilVedtaksbrev? = null,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
@@ -101,11 +101,11 @@ suspend fun genererOpphørBrev(
     ).let { serialize(it) }
 }
 
-private fun HjemmelForStansEllerOpphør.tilTekst(medBarnetillegg: Boolean): String? {
+private fun HjemmelForOpphør.tilTekst(medBarnetillegg: Boolean): String? {
     val tiltakspengerOgKanskjeBarnetillegg = "tiltakspenger${if (medBarnetillegg) " og barnetillegg" else ""}"
 
     return when (this) {
-        HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak ->
+        HjemmelForOpphør.DeltarIkkePåArbeidsmarkedstiltak ->
             """
                 Vilkåret om deltakelse i arbeidsmarkedstiltak er ikke oppfylt i denne perioden.
                 
@@ -114,7 +114,7 @@ private fun HjemmelForStansEllerOpphør.tilTekst(medBarnetillegg: Boolean): Stri
                 Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften § 2.
             """.trimIndent()
 
-        HjemmelForStansEllerOpphør.Livsoppholdytelser ->
+        HjemmelForOpphør.Livsoppholdytelser ->
             """
                 Du har rett til annen pengestøtte til livsopphold i denne perioden.
                 
@@ -123,21 +123,21 @@ private fun HjemmelForStansEllerOpphør.tilTekst(medBarnetillegg: Boolean): Stri
                 Dette kommer frem av arbeidsmarkedsloven § 13 første ledd, forskrift om tiltakspenger § 7 første ledd.
             """.trimIndent()
 
-        HjemmelForStansEllerOpphør.Kvalifiseringsprogrammet ->
+        HjemmelForOpphør.Kvalifiseringsprogrammet ->
             """
                 Du er deltaker i kvalifiseringsprogram i denne perioden. Deltakere i kvalifiseringsprogram, har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
                 
                 Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
             """.trimIndent()
 
-        HjemmelForStansEllerOpphør.Introduksjonsprogrammet ->
+        HjemmelForOpphør.Introduksjonsprogrammet ->
             """
                 Du er deltaker i introduksjonsprogram denne perioden. Deltakere i introduksjonsprogram, har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
                 
                 Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
             """.trimIndent()
 
-        HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør ->
+        HjemmelForOpphør.LønnFraTiltaksarrangør ->
             """
                 Du mottar lønn fra tiltaksarrangøren for tiden i arbeidsmarkedstiltaket for denne perioden.
                 
@@ -146,7 +146,7 @@ private fun HjemmelForStansEllerOpphør.tilTekst(medBarnetillegg: Boolean): Stri
                 Dette kommer frem av tiltakspengeforskriften § 8.
             """.trimIndent()
 
-        HjemmelForStansEllerOpphør.LønnFraAndre ->
+        HjemmelForOpphør.LønnFraAndre ->
             """
                 Du mottar i denne perioden lønn for arbeid som er en del av tiltaksdeltakelsen. Du har derfor dekning av utgifter til livsopphold.
                 
@@ -157,7 +157,7 @@ private fun HjemmelForStansEllerOpphør.tilTekst(medBarnetillegg: Boolean): Stri
                 Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften § 8 andre ledd.
             """.trimIndent()
 
-        HjemmelForStansEllerOpphør.Institusjonsopphold ->
+        HjemmelForOpphør.Institusjonsopphold ->
             """
                 Du oppholder deg på en institusjon med gratis opphold, mat og drikke i denne perioden.
                 
@@ -166,7 +166,7 @@ private fun HjemmelForStansEllerOpphør.tilTekst(medBarnetillegg: Boolean): Stri
                 Det er gjort unntak for opphold i barnevernsinstitusjoner. Dette kommer frem av tiltakspengeforskriften § 9.
             """.trimIndent()
 
-        HjemmelForStansEllerOpphør.IkkeLovligOpphold ->
+        HjemmelForOpphør.IkkeLovligOpphold ->
             """
                 I denne perioden har du ikke lovlig opphold i Norge.
                 
@@ -176,8 +176,8 @@ private fun HjemmelForStansEllerOpphør.tilTekst(medBarnetillegg: Boolean): Stri
             """.trimIndent()
 
         // Saksbehandler må bruke fritekst for disse hjemlene
-        HjemmelForStansEllerOpphør.Alder,
-        HjemmelForStansEllerOpphør.FremmetForSent,
+        HjemmelForOpphør.Alder,
+        HjemmelForOpphør.FremmetForSent,
         -> null
     }
 }

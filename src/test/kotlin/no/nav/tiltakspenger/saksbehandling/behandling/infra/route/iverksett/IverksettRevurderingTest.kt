@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -51,7 +51,7 @@ internal class IverksettRevurderingTest {
                 behandlingId = revurdering.id,
                 begrunnelseVilkårsvurdering = null,
                 fritekstTilVedtaksbrev = null,
-                valgteHjemler = setOf(HjemmelForStansEllerOpphør.Alder),
+                valgteHjemler = setOf(HjemmelForStans.Alder),
                 stansFraOgMed = rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode!!.fraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
@@ -155,7 +155,7 @@ internal class IverksettRevurderingTest {
                 behandlingId = revurdering.id,
                 begrunnelseVilkårsvurdering = null,
                 fritekstTilVedtaksbrev = null,
-                valgteHjemler = setOf(HjemmelForStansEllerOpphør.Alder),
+                valgteHjemler = setOf(HjemmelForStans.Alder),
                 stansFraOgMed = rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode!!.fraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
             )

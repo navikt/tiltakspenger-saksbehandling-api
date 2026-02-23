@@ -4,8 +4,8 @@ import arrow.core.nonEmptySetOf
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import org.junit.jupiter.api.Test
 
 class ValgtHjemmelForStansDbTest {
@@ -13,14 +13,14 @@ class ValgtHjemmelForStansDbTest {
     @Test
     fun `deserialiserer ValgtHjemmelForStans`() {
         """["STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK"]""".tilHjemmelForStans() shouldBe listOf(
-            DeltarIkkePåArbeidsmarkedstiltak,
+            HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak,
         )
     }
 
     @Test
     fun `deserialiserer ValgtHjemmelForOpphør`() {
         """["OPPHØR_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK"]""".tilHjemmelForOpphør() shouldBe listOf(
-            DeltarIkkePåArbeidsmarkedstiltak,
+            HjemmelForOpphør.DeltarIkkePåArbeidsmarkedstiltak,
         )
     }
 
@@ -32,8 +32,8 @@ class ValgtHjemmelForStansDbTest {
     @Test
     fun `deserialiserer flere ValgtHjemmelForStans`() {
         """["STANS_ALDER", "STANS_INSTITUSJONSOPPHOLD"]""".tilHjemmelForStans() shouldBe listOf(
-            HjemmelForStansEllerOpphør.Alder,
-            HjemmelForStansEllerOpphør.Institusjonsopphold,
+            HjemmelForStans.Alder,
+            HjemmelForStans.Institusjonsopphold,
         )
     }
 
@@ -54,12 +54,12 @@ class ValgtHjemmelForStansDbTest {
 
     @Test
     fun `serialiserer liste med ValgtHjemmelForStans`() {
-        nonEmptySetOf(DeltarIkkePåArbeidsmarkedstiltak).toHjemmelForStansDbJson() shouldBe """["STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK"]"""
+        nonEmptySetOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak).toHjemmelForStansDbJson() shouldBe """["STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK"]"""
     }
 
     @Test
     fun `serialiserer liste med ValgtHjemmelForOpphør`() {
-        nonEmptySetOf(DeltarIkkePåArbeidsmarkedstiltak).toHjemmelForOpphørDbJson() shouldBe """["OPPHØR_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK"]"""
+        nonEmptySetOf(HjemmelForOpphør.FremmetForSent).toHjemmelForOpphørDbJson() shouldBe """["OPPHØR_FREMMET_FOR_SENT"]"""
     }
 
     @Test

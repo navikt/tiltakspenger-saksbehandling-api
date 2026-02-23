@@ -18,7 +18,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -279,7 +280,7 @@ class PdfgenHttpClient(
         saksnummer: Saksnummer,
         sakId: SakId,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+        valgteHjemler: NonEmptySet<HjemmelForStans>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -450,7 +451,7 @@ class PdfgenHttpClient(
         saksnummer: Saksnummer,
         sakId: SakId,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+        valgteHjemler: NonEmptySet<HjemmelForOpphør>,
         vedtaksperiode: Periode,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(

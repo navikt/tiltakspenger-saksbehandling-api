@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansEllerOpphørDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -30,7 +30,7 @@ internal class ForhåndsvisStansVedtaksbrevTest {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 vedtaksperiode = null,
                 stansFraOgMed = 1.februar(2025),
-                valgteHjemler = listOf(HjemmelForStansEllerOpphørDTO.LønnFraAndre),
+                valgteHjemler = listOf(HjemmelForStansDTO.LønnFraAndre),
                 barnetillegg = null,
                 resultat = RammebehandlingResultatTypeDTO.STANS,
                 avslagsgrunner = null,

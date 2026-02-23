@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.person.Navn
@@ -34,7 +34,7 @@ interface GenererVedtaksbrevForOpphørKlient {
         saksnummer: Saksnummer,
         sakId: SakId,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+        valgteHjemler: NonEmptySet<HjemmelForOpphør>,
         vedtaksperiode: Periode,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

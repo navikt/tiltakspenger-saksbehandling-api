@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.person.Navn
@@ -61,7 +61,7 @@ suspend fun genererStansbrev(
     stansperiode: Periode,
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
-    valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+    valgteHjemler: NonEmptySet<HjemmelForStans>,
     tilleggstekst: FritekstTilVedtaksbrev? = null,
     harStansetBarnetillegg: Boolean,
 ): String {
@@ -91,9 +91,9 @@ suspend fun genererStansbrev(
     ).let { serialize(it) }
 }
 
-private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
+private fun HjemmelForStans.tekstUtenBarnetillegg(): String {
     return when (this) {
-        HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak ->
+        HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak ->
             """
                 du ikke lenger deltar på arbeidsmarkedstiltak.
 
@@ -102,35 +102,35 @@ private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
                 Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 2.
             """
 
-        HjemmelForStansEllerOpphør.Alder ->
+        HjemmelForStans.Alder ->
             """
                 du ikke har fylt 18 år. Du må ha fylt 18 år for å ha rett til å få tiltakspenger. 
 
                 Det kommer frem av tiltakspengeforskriften § 3.
             """
 
-        HjemmelForStansEllerOpphør.Livsoppholdytelser ->
+        HjemmelForStans.Livsoppholdytelser ->
             """
                 du mottar en annen pengestøtte til livsopphold. Deltakere som har rett til andre pengestøtter til livsopphold, har ikke samtidig rett til å få tiltakspenger. 
                 
                 Dette kommer frem av arbeidsmarkedsloven § 13 første ledd og tiltakspengeforskriften § 7 første ledd.
             """
 
-        HjemmelForStansEllerOpphør.Kvalifiseringsprogrammet ->
+        HjemmelForStans.Kvalifiseringsprogrammet ->
             """
                 du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram, har ikke rett til tiltakspenger. 
                 
                 Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.                 
             """
 
-        HjemmelForStansEllerOpphør.Introduksjonsprogrammet ->
+        HjemmelForStans.Introduksjonsprogrammet ->
             """
                 du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger.
                 
                 Dette kommer frem av tiltakspengeforskriften § 7 og 3 tredje ledd.
             """
 
-        HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør ->
+        HjemmelForStans.LønnFraTiltaksarrangør ->
             """
                 du mottar lønn fra tiltaksarrangør for tiden i arbeidsmarkedstiltaket. 
 
@@ -139,7 +139,7 @@ private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
                 Dette kommer frem av tiltakspengeforskriften § 8.
             """
 
-        HjemmelForStansEllerOpphør.LønnFraAndre ->
+        HjemmelForStans.LønnFraAndre ->
             """
                 du mottar lønn for arbeid som er en del av tiltaksdeltakelsen og du derfor har dekning av utgifter til livsopphold.
                 
@@ -150,7 +150,7 @@ private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
                 Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 8 andre ledd.
             """
 
-        HjemmelForStansEllerOpphør.Institusjonsopphold ->
+        HjemmelForStans.Institusjonsopphold ->
             """                	
                 du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
                 
@@ -159,7 +159,7 @@ private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
                 Det er gjort unntak for opphold i  barneverns-institusjoner.  Dette kommer frem av tiltakspengeforskriften § 9. 
             """
 
-        HjemmelForStansEllerOpphør.IkkeLovligOpphold ->
+        HjemmelForStans.IkkeLovligOpphold ->
             """
                 du i denne perioden ikke har lovlig opphold i Norge. 
                 
@@ -167,14 +167,12 @@ private fun HjemmelForStansEllerOpphør.tekstUtenBarnetillegg(): String {
                 
                 Dette kommer frem av arbeidsmarkedsloven § 2.                
             """
-
-        HjemmelForStansEllerOpphør.FremmetForSent -> throw IllegalArgumentException("$this er ikke gyldig hjemmel for stans")
     }.trimIndent()
 }
 
-private fun HjemmelForStansEllerOpphør.tekstMedBarnetillegg(): String {
+private fun HjemmelForStans.tekstMedBarnetillegg(): String {
     return when (this) {
-        HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak ->
+        HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak ->
             """
                 du må være deltaker i et arbeidsmarkedstiltak for å ha rett til tiltakspenger og barnetillegg.
                 
@@ -183,35 +181,35 @@ private fun HjemmelForStansEllerOpphør.tekstMedBarnetillegg(): String {
                 Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 2.
             """
 
-        HjemmelForStansEllerOpphør.Alder ->
+        HjemmelForStans.Alder ->
             """
                 du ikke har fylt 18 år. Du må ha fylt 18 år for å ha rett til å få tiltakspenger og barnetillegg. 
 
                 Det kommer frem av tiltakspengeforskriften § 3.
             """
 
-        HjemmelForStansEllerOpphør.Livsoppholdytelser ->
+        HjemmelForStans.Livsoppholdytelser ->
             """
                 du mottar en annen pengestøtte til livsopphold. Deltakere som har rett til andre pengestøtter til livsopphold har ikke samtidig rett til å få tiltakspenger og barnetillegg.
                 
                 Dette kommer frem av arbeidsmarkedsloven § 13 første ledd, forskrift om tiltakspenger § 7 første ledd.
             """
 
-        HjemmelForStansEllerOpphør.Kvalifiseringsprogrammet ->
+        HjemmelForStans.Kvalifiseringsprogrammet ->
             """
                 du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram, har ikke rett til tiltakspenger og barnetillegg.
                 
                 Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.             
             """
 
-        HjemmelForStansEllerOpphør.Introduksjonsprogrammet ->
+        HjemmelForStans.Introduksjonsprogrammet ->
             """
                 du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger og barnetillegg.
                 
                 Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
             """
 
-        HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør ->
+        HjemmelForStans.LønnFraTiltaksarrangør ->
             """
                 du mottar lønn fra tiltaksarrangør for tiden i arbeidsmarkedstiltaket 
                 
@@ -220,7 +218,7 @@ private fun HjemmelForStansEllerOpphør.tekstMedBarnetillegg(): String {
                 Dette kommer frem av tiltakspengeforskriften § 8.
             """
 
-        HjemmelForStansEllerOpphør.LønnFraAndre ->
+        HjemmelForStans.LønnFraAndre ->
             """
                 du mottar lønn for arbeid som er en del av tiltaksdeltakelsen og du derfor har dekning av utgifter til livsopphold.
                 
@@ -231,7 +229,7 @@ private fun HjemmelForStansEllerOpphør.tekstMedBarnetillegg(): String {
                 Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften § 3, § 8 andre ledd.
             """
 
-        HjemmelForStansEllerOpphør.Institusjonsopphold ->
+        HjemmelForStans.Institusjonsopphold ->
             """                	
                 du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
                 
@@ -240,7 +238,7 @@ private fun HjemmelForStansEllerOpphør.tekstMedBarnetillegg(): String {
                 Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften §3, §9.
             """
 
-        HjemmelForStansEllerOpphør.IkkeLovligOpphold ->
+        HjemmelForStans.IkkeLovligOpphold ->
             """
                 du i denne perioden ikke har lovlig opphold i Norge. 
                 
@@ -248,7 +246,5 @@ private fun HjemmelForStansEllerOpphør.tekstMedBarnetillegg(): String {
                 
                 Dette kommer frem av arbeidsmarkedsloven § 2.                
             """
-
-        HjemmelForStansEllerOpphør.FremmetForSent -> throw IllegalArgumentException("$this er ikke gyldig hjemmel for stans")
     }.trimIndent()
 }

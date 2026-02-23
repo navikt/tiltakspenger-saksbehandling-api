@@ -12,7 +12,8 @@ import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansEllerOpphørDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForOpphørDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.HjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperioderDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilKommando
@@ -124,7 +125,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
         val fritekst: String?,
         val harValgtStansFraFørsteDagSomGirRett: Boolean?,
         val stansFraOgMed: LocalDate?,
-        val valgteHjemler: List<HjemmelForStansEllerOpphørDTO>,
+        val valgteHjemler: List<HjemmelForStansDTO>,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
@@ -170,7 +171,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     data class OmgjøringOpphør(
         val fritekst: String?,
         val vedtaksperiode: PeriodeDTO,
-        val valgteHjemler: List<HjemmelForStansEllerOpphørDTO>,
+        val valgteHjemler: List<HjemmelForOpphørDTO>,
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
@@ -185,7 +186,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
                 saksbehandler = saksbehandler,
                 fritekstTilVedtaksbrev = fritekst?.toFritekstTilVedtaksbrev(),
                 vedtaksperiode = vedtaksperiode.toDomain(),
-                valgteHjemler = valgteHjemler.toDomain().toNonEmptySetOrThrow(),
+                valgteHjemler = valgteHjemler.toDomain(),
             )
         }
     }

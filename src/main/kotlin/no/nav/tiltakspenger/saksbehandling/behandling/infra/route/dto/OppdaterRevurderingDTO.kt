@@ -57,7 +57,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
     data class Stans(
         override val begrunnelseVilkårsvurdering: String? = null,
         override val fritekstTilVedtaksbrev: String? = null,
-        val valgteHjemler: List<HjemmelForStansEllerOpphørDTO>,
+        val valgteHjemler: List<HjemmelForStansDTO>,
         val harValgtStansFraFørsteDagSomGirRett: Boolean,
         val stansFraOgMed: LocalDate?,
     ) : OppdaterRevurderingDTO {
@@ -125,7 +125,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
         val vedtaksperiode: PeriodeDTO,
-        val valgteHjemler: List<HjemmelForStansEllerOpphørDTO>,
+        val valgteHjemler: List<HjemmelForOpphørDTO>,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.OMGJØRING_OPPHØR
 
@@ -143,7 +143,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.create(it) },
                 vedtaksperiode = vedtaksperiode.toDomain(),
-                valgteHjemler = valgteHjemler.toDomain().toNonEmptySetOrThrow(),
+                valgteHjemler = valgteHjemler.toDomain(),
             )
         }
     }

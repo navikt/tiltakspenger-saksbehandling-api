@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import arrow.core.NonEmptyList
-import arrow.core.toNonEmptyListOrThrow
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
@@ -49,7 +48,7 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
     }
 
     data class Stans(
-        val valgtHjemmelHarIkkeRettighet: List<HjemmelForStansEllerOpphørDTO>,
+        val valgtHjemmelHarIkkeRettighet: List<HjemmelForStansDTO>,
         val harValgtStansFraFørsteDagSomGirRett: Boolean?,
     ) : RevurderingResultatDTO {
         override val resultat = RammebehandlingResultatTypeDTO.STANS
@@ -66,7 +65,7 @@ sealed interface RevurderingResultatDTO : RammebehandlingResultatDTO {
 
     data class OmgjøringOpphør(
         val omgjørVedtak: String,
-        val valgteHjemler: NonEmptyList<HjemmelForStansEllerOpphørDTO>,
+        val valgteHjemler: NonEmptySet<HjemmelForOpphørDTO>,
     ) : RevurderingResultatDTO {
         override val resultat = RammebehandlingResultatTypeDTO.OMGJØRING_OPPHØR
     }
@@ -104,7 +103,7 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
         )
 
         is Revurderingsresultat.Stans -> Stans(
-            valgtHjemmelHarIkkeRettighet = valgtHjemmel?.tilHjemmelForStansEllerOpphørDTO() ?: emptyList(),
+            valgtHjemmelHarIkkeRettighet = valgtHjemmel?.tilHjemmelForStansDTO() ?: emptyList(),
             harValgtStansFraFørsteDagSomGirRett = harValgtStansFraFørsteDagSomGirRett,
         )
 
@@ -116,7 +115,7 @@ fun Revurderingsresultat.tilRevurderingResultatDTO(): RevurderingResultatDTO {
 
         is Omgjøringsresultat.OmgjøringOpphør -> OmgjøringOpphør(
             omgjørVedtak = omgjortVedtak.rammevedtakId.toString(),
-            valgteHjemler = valgteHjemler.tilHjemmelForStansEllerOpphørDTO().toNonEmptyListOrThrow(),
+            valgteHjemler = valgteHjemler.tilHjemmelForOpphørDTO(),
         )
 
         is Omgjøringsresultat.OmgjøringIkkeValgt -> OmgjøringIkkeValgt(

@@ -5,7 +5,7 @@ import arrow.core.NonEmptySet
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat.IkkeValgt
@@ -91,7 +91,7 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
     data class OmgjøringOpphør(
         override val vedtaksperiode: Periode,
         override val omgjørRammevedtak: OmgjørRammevedtak,
-        val valgteHjemler: NonEmptySet<HjemmelForStansEllerOpphør>,
+        val valgteHjemler: NonEmptySet<HjemmelForOpphør>,
     ) : Omgjøringsresultat {
         override val innvilgelsesperioder = null
         override val barnetillegg = null
@@ -110,9 +110,9 @@ sealed interface Omgjøringsresultat : Revurderingsresultat {
         }
 
         companion object {
-            val hjemlerSomMåHaFritekst: Set<HjemmelForStansEllerOpphør> = setOf(
-                HjemmelForStansEllerOpphør.FremmetForSent,
-                HjemmelForStansEllerOpphør.Alder,
+            val hjemlerSomMåHaFritekst: Set<HjemmelForOpphør> = setOf(
+                HjemmelForOpphør.FremmetForSent,
+                HjemmelForOpphør.Alder,
             )
         }
     }

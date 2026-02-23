@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
@@ -136,18 +136,17 @@ private fun Revurdering.toValgteHjemlerHarIkkeRettighetListe(): List<DatadelingH
 private fun Søknadsbehandling.toValgteHjemlerHarIkkeRettighetListe(): List<DatadelingHjemmelHarIkkeRettighet> =
     (this.resultat as Søknadsbehandlingsresultat.Avslag).avslagsgrunner.map { it.toValgtHjemmelHarIkkeRettighetString() }
 
-private fun HjemmelForStansEllerOpphør.toValgtHjemmelHarIkkeRettighetString(): DatadelingHjemmelHarIkkeRettighet =
+private fun HjemmelForStans.toValgtHjemmelHarIkkeRettighetString(): DatadelingHjemmelHarIkkeRettighet =
     when (this) {
-        HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak -> DatadelingHjemmelHarIkkeRettighet.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
-        HjemmelForStansEllerOpphør.Alder -> DatadelingHjemmelHarIkkeRettighet.ALDER
-        HjemmelForStansEllerOpphør.Institusjonsopphold -> DatadelingHjemmelHarIkkeRettighet.INSTITUSJONSOPPHOLD
-        HjemmelForStansEllerOpphør.Introduksjonsprogrammet -> DatadelingHjemmelHarIkkeRettighet.INTRODUKSJONSPROGRAMMET
-        HjemmelForStansEllerOpphør.Kvalifiseringsprogrammet -> DatadelingHjemmelHarIkkeRettighet.KVALIFISERINGSPROGRAMMET
-        HjemmelForStansEllerOpphør.Livsoppholdytelser -> DatadelingHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER
-        HjemmelForStansEllerOpphør.LønnFraAndre -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_ANDRE
-        HjemmelForStansEllerOpphør.LønnFraTiltaksarrangør -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR
-        HjemmelForStansEllerOpphør.IkkeLovligOpphold -> DatadelingHjemmelHarIkkeRettighet.IKKE_LOVLIG_OPPHOLD
-        HjemmelForStansEllerOpphør.FremmetForSent -> DatadelingHjemmelHarIkkeRettighet.FREMMET_FOR_SENT
+        HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak -> DatadelingHjemmelHarIkkeRettighet.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
+        HjemmelForStans.Alder -> DatadelingHjemmelHarIkkeRettighet.ALDER
+        HjemmelForStans.Institusjonsopphold -> DatadelingHjemmelHarIkkeRettighet.INSTITUSJONSOPPHOLD
+        HjemmelForStans.Introduksjonsprogrammet -> DatadelingHjemmelHarIkkeRettighet.INTRODUKSJONSPROGRAMMET
+        HjemmelForStans.Kvalifiseringsprogrammet -> DatadelingHjemmelHarIkkeRettighet.KVALIFISERINGSPROGRAMMET
+        HjemmelForStans.Livsoppholdytelser -> DatadelingHjemmelHarIkkeRettighet.LIVSOPPHOLDSYTELSER
+        HjemmelForStans.LønnFraAndre -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_ANDRE
+        HjemmelForStans.LønnFraTiltaksarrangør -> DatadelingHjemmelHarIkkeRettighet.LONN_FRA_TILTAKSARRANGOR
+        HjemmelForStans.IkkeLovligOpphold -> DatadelingHjemmelHarIkkeRettighet.IKKE_LOVLIG_OPPHOLD
     }
 
 private fun Avslagsgrunnlag.toValgtHjemmelHarIkkeRettighetString(): DatadelingHjemmelHarIkkeRettighet =

@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
@@ -208,7 +208,7 @@ interface OppdaterRammebehandlingBuilder {
         sakId: SakId,
         behandlingId: BehandlingId,
         vedtaksperiode: Periode,
-        valgteHjemler: Set<HjemmelForStansEllerOpphør> = setOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: Set<HjemmelForStans> = setOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
@@ -267,7 +267,7 @@ interface OppdaterRammebehandlingBuilder {
         fritekstTilVedtaksbrev: String? = null,
         stansFraOgMed: LocalDate? = null,
         harValgtStansFraFørsteDagSomGirRett: Boolean = stansFraOgMed == null,
-        valgteHjemler: Set<HjemmelForStansEllerOpphør> = setOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: Set<HjemmelForStans> = setOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, String> {

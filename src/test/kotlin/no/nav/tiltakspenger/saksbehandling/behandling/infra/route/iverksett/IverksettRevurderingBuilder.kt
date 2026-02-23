@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStansEllerOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
@@ -132,7 +132,7 @@ interface IverksettRevurderingBuilder {
             saksbehandler = saksbehandler,
             begrunnelseVilkårsvurdering = null,
             fritekstTilVedtaksbrev = null,
-            valgteHjemler = setOf(HjemmelForStansEllerOpphør.Alder),
+            valgteHjemler = setOf(HjemmelForStans.Alder),
             stansFraOgMed = stansFraOgMed,
             harValgtStansFraFørsteDagSomGirRett = false,
         )
@@ -349,7 +349,7 @@ interface IverksettRevurderingBuilder {
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
         stansFraOgMed: LocalDate? = null,
         harValgtStansFraFørsteDagSomGirRett: Boolean = stansFraOgMed == null,
-        valgteHjemler: Set<HjemmelForStansEllerOpphør> = setOf(HjemmelForStansEllerOpphør.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: Set<HjemmelForStans> = setOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, revurdering, _) = startRevurderingStans(
             tac = tac,
