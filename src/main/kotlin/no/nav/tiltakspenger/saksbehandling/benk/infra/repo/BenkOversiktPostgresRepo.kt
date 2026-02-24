@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
@@ -38,6 +39,7 @@ class BenkOversiktPostgresRepo(
                 'KLAR_TIL_BEHANDLING' as status,
                 null                  as saksbehandler,
                 null                  as beslutter,
+                null                  as resultat,
                 null::boolean         as erSattPåVent,
                 null                  as sattPåVentBegrunnelse,
                 null::date            as sattPåVentFrist,
@@ -60,6 +62,7 @@ class BenkOversiktPostgresRepo(
                 b.status            as status,
                 b.saksbehandler     as saksbehandler,
                 b.beslutter         as beslutter,
+                b.resultat          as resultat,
                 (b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean  as erSattPåVent,
                 b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as sattPåVentBegrunnelse,
                 (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
@@ -82,6 +85,7 @@ class BenkOversiktPostgresRepo(
                 b.status        as status,
                 b.saksbehandler as saksbehandler,
                 b.beslutter     as beslutter,
+                b.resultat      as resultat,
                 (b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean as erSattPåVent,
                 b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'  as sattPåVentBegrunnelse,
                 (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
@@ -103,6 +107,7 @@ class BenkOversiktPostgresRepo(
                 m.status              as status,
                 m.saksbehandler       as saksbehandler,
                 m.beslutter           as beslutter,
+                null                  as resultat,
                 null::boolean         as erSattPåVent,
                 null                  as sattPåVentBegrunnelse,
                 null::date            as sattPåVentFrist,
@@ -153,6 +158,7 @@ class BenkOversiktPostgresRepo(
                 'KLAR_TIL_BEHANDLING'          as status,
                 null                           as saksbehandler,
                 null                           as beslutter,
+                null                           as resultat,
                 null::boolean                  as erSattPåVent,
                 null                           as sattPåVentBegrunnelse,
                 null::date                     as sattPåVentFrist,
@@ -176,6 +182,7 @@ class BenkOversiktPostgresRepo(
                 k.status          as status,
                 k.saksbehandler   as saksbehandler,
                 null              as beslutter,
+                null                  as resultat,
                 (k.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean  as erSattPåVent,
                 k.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as sattPåVentBegrunnelse,
                 (k.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
@@ -274,6 +281,7 @@ class BenkOversiktPostgresRepo(
                     val erSattPåVent = row.booleanOrNull("erSattPåVent") ?: false
                     val sattPåVentBegrunnelse = row.stringOrNull("sattPåVentBegrunnelse")
                     val sattPåVentFrist = row.localDateOrNull("sattPåVentFrist")
+                    val resultat = row.stringOrNull("resultat")?.let { RammebehandlingResultatTypeDTO.valueOf(it) }
 
                     BehandlingssamendragMedCount(
                         Behandlingssammendrag(
@@ -290,6 +298,7 @@ class BenkOversiktPostgresRepo(
                             erSattPåVent = erSattPåVent,
                             sattPåVentBegrunnelse = sattPåVentBegrunnelse,
                             sattPåVentFrist = sattPåVentFrist,
+                            resultat = resultat,
                         ),
                         totalAntall = count,
                     )

@@ -116,6 +116,7 @@ class BenkOversiktFakeRepo(
                 sattPåVentBegrunnelse = behandling.ventestatus.sattPåVentBegrunnelse,
                 sattPåVentFrist = behandling.ventestatus.sattPåVentFrist,
                 sistEndret = behandling.sistEndret,
+                resultat = null,
             )
         }
     }
@@ -135,6 +136,7 @@ class BenkOversiktFakeRepo(
             sattPåVentBegrunnelse = null,
             sattPåVentFrist = null,
             sistEndret = null,
+            resultat = null,
         )
     }
 
@@ -168,6 +170,7 @@ class BenkOversiktFakeRepo(
                 sattPåVentBegrunnelse = null,
                 sattPåVentFrist = null,
                 sistEndret = it.sistEndret,
+                resultat = null,
             )
         }
     }
@@ -220,6 +223,7 @@ class BenkOversiktFakeRepo(
                 sattPåVentBegrunnelse = null,
                 sattPåVentFrist = null,
                 sistEndret = it.sistEndret,
+                resultat = null,
             )
         }
     }

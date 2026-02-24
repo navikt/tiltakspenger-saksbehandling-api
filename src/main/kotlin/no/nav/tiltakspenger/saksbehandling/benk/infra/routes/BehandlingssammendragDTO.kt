@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.routes
 
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
+
 data class BehandlingssammendragDTO(
     val sakId: String,
     val fnr: String,
@@ -14,6 +16,7 @@ data class BehandlingssammendragDTO(
     val erSattPåVent: Boolean,
     val sattPåVentBegrunnelse: String?,
     val sattPåVentFrist: String?,
+    val resultat: RammebehandlingResultatTypeDTO?,
 )
 
 enum class BehandlingssammendragTypeDTO {

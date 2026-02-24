@@ -52,6 +52,7 @@ class BenkOversiktServiceTest {
                 sistEndret = null,
                 sattPåVentBegrunnelse = null,
                 sattPåVentFrist = null,
+                resultat = null,
             )
             val bs2HarIkkeTilgang = Behandlingssammendrag(
                 sakId = SakId.random(),
@@ -67,6 +68,7 @@ class BenkOversiktServiceTest {
                 sistEndret = null,
                 sattPåVentBegrunnelse = null,
                 sattPåVentFrist = null,
+                resultat = null,
             )
 
             val tilganger = mapOf(bs1HarTilgang.fnr to true, bs2HarIkkeTilgang.fnr to false)

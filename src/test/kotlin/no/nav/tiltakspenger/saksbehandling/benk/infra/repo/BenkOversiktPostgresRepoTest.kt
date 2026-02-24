@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
@@ -101,6 +102,7 @@ class BenkOversiktPostgresRepoTest {
                 sattPåVentBegrunnelse = null,
                 sattPåVentFrist = null,
                 sistEndret = null,
+                resultat = null,
             )
         }
     }
@@ -154,6 +156,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakKlarTilBeslutning.id,
@@ -169,6 +172,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakUnderBeslutning.id,
@@ -184,6 +188,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                 )
             }
         }
@@ -220,6 +225,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = RammebehandlingResultatTypeDTO.STANS,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakRevurderingTilBeslutning.id,
@@ -235,6 +241,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = RammebehandlingResultatTypeDTO.STANS,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakMedRevurderingUnderBeslutning.id,
@@ -250,6 +257,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = RammebehandlingResultatTypeDTO.STANS,
                 )
             }
         }
@@ -289,6 +297,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = null,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sak1MedMeldekortForEnAnnenPeriode.id,
@@ -304,6 +313,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = null,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sak2.id,
@@ -319,6 +329,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = null,
                 )
             }
         }
@@ -353,6 +364,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
                     sistEndret = null,
+                    resultat = null,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakMedOpprettetMeldekortBehandling.id,
@@ -368,6 +380,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
                     sistEndret = opprettetMeldekortbehandling.sistEndret,
+                    resultat = null,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakMedMeldekortbehandlingTilBeslutning.id,
@@ -383,6 +396,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
                     sistEndret = meldekortbehandlingTilBeslutning.sistEndret,
+                    resultat = null,
                 )
             }
         }
@@ -423,6 +437,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = null,
                 ),
             )
 
@@ -466,6 +481,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = null,
                 ),
             )
 
@@ -494,6 +510,7 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
+                    resultat = null,
                 ),
             )
 
@@ -589,6 +606,7 @@ class BenkOversiktPostgresRepoTest {
                 sattPåVentBegrunnelse = null,
                 sattPåVentFrist = null,
                 sistEndret = klagebehandling.sistEndret,
+                resultat = null,
             )
             actual.last() shouldBe Behandlingssammendrag(
                 sakId = klagebehandlingPåVent.sakId,
@@ -604,6 +622,7 @@ class BenkOversiktPostgresRepoTest {
                 sattPåVentBegrunnelse = "persisterOpprettetKlagebehandlingTilVurdering",
                 sattPåVentFrist = 13.februar(2026),
                 sistEndret = klagebehandlingPåVent.sistEndret,
+                resultat = null,
             )
         }
     }
