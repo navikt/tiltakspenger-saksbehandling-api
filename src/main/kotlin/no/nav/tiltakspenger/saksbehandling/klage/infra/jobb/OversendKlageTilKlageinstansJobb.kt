@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.jobb
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentJournalpostIdForVedtakId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandlingerSomSkalOversendesKlageinstansen
@@ -9,11 +11,15 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppdaterOver
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 
 class OversendKlageTilKlageinstansJobb(
     private val klagebehandlingRepo: KlagebehandlingRepo,
     private val sakService: SakService,
     private val kabalClient: KabalClient,
+    private val statistikkSakService: StatistikkSakService,
+    private val statistikkSakRepo: StatistikkSakRepo,
+    private val sessionFactory: SessionFactory,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -36,10 +42,18 @@ class OversendKlageTilKlageinstansJobb(
                         }
                         // Left skal logges i klienten.
                         kabalClient.oversend(klagebehandling, journalpostIdVedtak).onRight {
-                            klagebehandlingRepo.markerOversendtTilKlageinstans(
-                                klagebehandling = klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(it.oversendtTidspunkt),
-                                metadata = it,
-                            )
+                            val statistikk =
+                                statistikkSakService.genererSaksstatistikkForKlagebehandlingOversendtTilKabal(
+                                    klagebehandling,
+                                )
+
+                            sessionFactory.withTransactionContext { tx ->
+                                klagebehandlingRepo.markerOversendtTilKlageinstans(
+                                    klagebehandling = klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(it.oversendtTidspunkt),
+                                    metadata = it,
+                                )
+                                statistikkSakRepo.lagre(statistikk, tx)
+                            }
                         }
                     }.onFailure { e ->
                         logger.error(e) {

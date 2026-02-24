@@ -29,6 +29,12 @@ object MetricRegister {
         .withoutExemplars()
         .register()
 
+    val STARTET_BEHANDLING_KLAGE: Counter = Counter.builder()
+        .name("${METRICS_NS}_startet_behandling_klage_count")
+        .help("Antall startede klagebehandlinger")
+        .withoutExemplars()
+        .register()
+
     val SOKNAD_BEHANDLET_DELVIS_AUTOMATISK: Counter = Counter.builder()
         .name("${METRICS_NS}_soknad_behandlet_delvis_automatisk_count")
         .help("Antall søknader som er behandlet delvis automatisk")

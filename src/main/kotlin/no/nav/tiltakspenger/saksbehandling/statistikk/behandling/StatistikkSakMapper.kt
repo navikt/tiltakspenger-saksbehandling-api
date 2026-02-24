@@ -11,6 +11,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -61,10 +66,10 @@ fun genererSaksstatistikkForRammevedtak(
         resultatBegrunnelse = null,
 
         // skal være -5 for kode 6
-        opprettetAv = if (gjelderKode6) "-5" else "system",
-        saksbehandler = if (gjelderKode6) "-5" else behandling.saksbehandler,
-        ansvarligBeslutter = if (gjelderKode6) "-5" else behandling.beslutter,
-        ansvarligenhet = if (gjelderKode6) "-5" else "0387",
+        opprettetAv = maskerHvisStrengtFortrolig(gjelderKode6, "system"),
+        saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, behandling.saksbehandler),
+        ansvarligBeslutter = maskerHvisStrengtFortrolig(gjelderKode6, behandling.beslutter),
+        ansvarligenhet = maskerHvisStrengtFortrolig(gjelderKode6, "0387"),
 
         tilbakekrevingsbeløp = null,
         funksjonellPeriodeFom = null,
@@ -113,11 +118,12 @@ fun genererSaksstatistikkForBehandling(
             null
         },
         resultatBegrunnelse = null,
+
         // skal være -5 for kode 6
-        opprettetAv = if (gjelderKode6) "-5" else "system",
-        saksbehandler = if (gjelderKode6) "-5" else behandling.saksbehandler,
-        ansvarligBeslutter = if (gjelderKode6) "-5" else behandling.beslutter,
-        ansvarligenhet = if (gjelderKode6) "-5" else "0387",
+        opprettetAv = maskerHvisStrengtFortrolig(gjelderKode6, "system"),
+        saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, behandling.saksbehandler),
+        ansvarligBeslutter = maskerHvisStrengtFortrolig(gjelderKode6, behandling.beslutter),
+        ansvarligenhet = maskerHvisStrengtFortrolig(gjelderKode6, "0387"),
 
         tilbakekrevingsbeløp = null,
         funksjonellPeriodeFom = null,
@@ -128,9 +134,98 @@ fun genererSaksstatistikkForBehandling(
     )
 }
 
+fun genererSaksstatistikkForKlagebehandling(
+    behandling: Klagebehandling,
+    gjelderKode6: Boolean,
+    versjon: String,
+    clock: Clock,
+    hendelse: String,
+): StatistikkSakDTO {
+    return StatistikkSakDTO(
+        sakId = behandling.sakId.toString(),
+        saksnummer = behandling.saksnummer.toString(),
+        behandlingId = behandling.id.toString(),
+        relatertBehandlingId = behandling.resultat!!.rammebehandlingId.toString(),
+        fnr = behandling.fnr.verdi,
+        mottattTidspunkt = behandling.klagensJournalpostOpprettet,
+        registrertTidspunkt = behandling.opprettet,
+        ferdigBehandletTidspunkt = behandling.avbrutt?.tidspunkt,
+        vedtakTidspunkt = null,
+        endretTidspunkt = behandling.sistEndret,
+        utbetaltTidspunkt = null,
+        tekniskTidspunkt = nå(clock),
+        søknadsformat = behandling.formkrav.innsendingskilde.toStatistikkFormat(),
+        forventetOppstartTidspunkt = null,
+        behandlingType = StatistikkBehandlingType.KLAGE,
+        behandlingStatus = if (behandling.erAvbrutt) {
+            StatistikkBehandlingStatus.AVSLUTTET
+        } else if (behandling.ventestatus.erSattPåVent) {
+            StatistikkBehandlingStatus.VENTENDE_SAKER
+        } else {
+            when (behandling.status) {
+                Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> StatistikkBehandlingStatus.KLAR_TIL_BEHANDLING
+
+                Klagebehandlingsstatus.UNDER_BEHANDLING -> StatistikkBehandlingStatus.UNDER_BEHANDLING
+
+                Klagebehandlingsstatus.OVERSENDT -> StatistikkBehandlingStatus.OVERSENDT_KA
+
+                Klagebehandlingsstatus.AVBRUTT,
+                Klagebehandlingsstatus.VEDTATT,
+                -> throw IllegalStateException("Statistikk anser behandlingen som avsluttet når den er oversendt til KA.")
+
+                Klagebehandlingsstatus.OPPRETTHOLDT -> throw IllegalStateException("Vi sender ikke statistikk på at en sak venter på å bli plukket opp av jobben som sender klager til klageinstansen.")
+            }
+        },
+        behandlingResultat = if (behandling.erAvbrutt) {
+            StatistikkBehandlingResultat.AVBRUTT
+        } else {
+            when (behandling.resultat) {
+                is Klagebehandlingsresultat.Omgjør -> StatistikkBehandlingResultat.MEDHOLD
+                is Klagebehandlingsresultat.Opprettholdt -> StatistikkBehandlingResultat.OPPRETTHOLDT
+                is Klagebehandlingsresultat.Avvist -> StatistikkBehandlingResultat.AVVIST
+            }
+        },
+        resultatBegrunnelse = if (behandling.resultat is Klagebehandlingsresultat.Omgjør) behandling.resultat.årsak.tilResultatBegrunnelse().name else null,
+        // skal være -5 for kode 6
+        opprettetAv = maskerHvisStrengtFortrolig(gjelderKode6, "system"),
+        saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, behandling.saksbehandler),
+        ansvarligBeslutter = null,
+        ansvarligenhet = maskerHvisStrengtFortrolig(gjelderKode6, "0387"),
+
+        tilbakekrevingsbeløp = null,
+        funksjonellPeriodeFom = null,
+        funksjonellPeriodeTom = null,
+        versjon = versjon,
+        hendelse = hendelse,
+        behandlingAarsak = StatistikkBehandlingAarsak.KLAGE,
+    )
+}
+
+fun maskerHvisStrengtFortrolig(
+    erStrengtFortrolig: Boolean,
+    verdi: String?,
+): String? {
+    return if (verdi != null) {
+        return maskerHvisStrengtFortrolig(erStrengtFortrolig, verdi)
+    } else {
+        verdi
+    }
+}
+
+fun maskerHvisStrengtFortrolig(
+    erStrengtFortrolig: Boolean,
+    verdi: String,
+): String {
+    return if (erStrengtFortrolig) {
+        "-5"
+    } else {
+        verdi
+    }
+}
+
 private fun Rammebehandling.getSoknadsformat(): StatistikkFormat {
     return when (this) {
-        is Søknadsbehandling -> this.søknad.søknadstype.toSøknadsformat()
+        is Søknadsbehandling -> this.søknad.søknadstype.toStatistikkFormat()
         is Revurdering -> StatistikkFormat.DIGITAL
     }
 }
@@ -188,13 +283,30 @@ private fun HjemmelForOpphør.toBehandlingAarsak() =
         HjemmelForOpphør.FremmetForSent -> StatistikkBehandlingAarsak.FREMMET_FOR_SENT
     }
 
-private fun Søknadstype.toSøknadsformat(): StatistikkFormat =
+private fun Søknadstype.toStatistikkFormat(): StatistikkFormat =
     when (this) {
         Søknadstype.DIGITAL -> StatistikkFormat.DIGITAL
         Søknadstype.PAPIR_SKJEMA -> StatistikkFormat.PAPIR_SKJEMA
         Søknadstype.PAPIR_FRIHAND -> StatistikkFormat.PAPIR_FRIHAND
         Søknadstype.MODIA -> StatistikkFormat.MODIA
         Søknadstype.ANNET -> StatistikkFormat.ANNET
+    }
+
+private fun KlageInnsendingskilde.toStatistikkFormat() =
+    when (this) {
+        KlageInnsendingskilde.DIGITAL -> StatistikkFormat.DIGITAL
+        KlageInnsendingskilde.PAPIR -> StatistikkFormat.PAPIR
+        KlageInnsendingskilde.MODIA -> StatistikkFormat.MODIA
+        KlageInnsendingskilde.ANNET -> StatistikkFormat.ANNET
+    }
+
+private fun KlageOmgjøringsårsak.tilResultatBegrunnelse() =
+    when (this) {
+        KlageOmgjøringsårsak.FEIL_LOVANVENDELSE -> StatistikkResultatBegrunnelse.FEIL_LOVANVENDELSE
+        KlageOmgjøringsårsak.FEIL_REGELVERKSFORSTAAELSE -> StatistikkResultatBegrunnelse.FEIL_REGELVERKSFORSTAAELSE
+        KlageOmgjøringsårsak.FEIL_ELLER_ENDRET_FAKTA -> StatistikkResultatBegrunnelse.FEIL_ELLER_ENDRET_FAKTA
+        KlageOmgjøringsårsak.PROSESSUELL_FEIL -> StatistikkResultatBegrunnelse.PROSESSUELL_FEIL
+        KlageOmgjøringsårsak.ANNET -> StatistikkResultatBegrunnelse.ANNET
     }
 
 private fun Behandlingsarsak.toStatistikkBehandlingAarsak(): StatistikkBehandlingAarsak {
