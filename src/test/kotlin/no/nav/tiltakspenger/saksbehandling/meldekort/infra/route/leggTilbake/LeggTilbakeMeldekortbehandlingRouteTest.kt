@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.leggTilbake
 
-import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgLeggTilbake

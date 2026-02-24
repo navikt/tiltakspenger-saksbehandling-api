@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent
 
-import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres

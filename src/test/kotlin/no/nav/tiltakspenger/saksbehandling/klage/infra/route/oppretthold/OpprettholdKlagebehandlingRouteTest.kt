@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppretthold
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
@@ -25,7 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class OpprettholdKlagebehandlingRouteTest {
     @Test

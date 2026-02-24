@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
@@ -8,8 +7,6 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
-import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
-import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
@@ -18,8 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopp
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgGjenopptaKlagebehandlingMedRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
 

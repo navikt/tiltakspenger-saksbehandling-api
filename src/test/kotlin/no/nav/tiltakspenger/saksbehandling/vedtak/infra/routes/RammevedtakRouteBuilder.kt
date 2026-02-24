@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes
 import io.kotest.assertions.json.FieldComparison
 import io.kotest.assertions.json.NumberFormat
 import io.kotest.assertions.json.PropertyOrder
-import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.toDTO

@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdater
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke

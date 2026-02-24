@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.tiltakspenger.libs.dato.april

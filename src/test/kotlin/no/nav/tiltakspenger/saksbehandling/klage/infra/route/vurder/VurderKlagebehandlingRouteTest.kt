@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar

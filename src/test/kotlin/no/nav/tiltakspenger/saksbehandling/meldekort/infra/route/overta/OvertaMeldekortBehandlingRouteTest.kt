@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.overta
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
