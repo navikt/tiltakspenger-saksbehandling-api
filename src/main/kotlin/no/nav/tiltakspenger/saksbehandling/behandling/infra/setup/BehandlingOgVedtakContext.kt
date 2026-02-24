@@ -287,6 +287,7 @@ open class BehandlingOgVedtakContext(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             simulerService = simulerService,
             sessionFactory = sessionFactory,
+            clock = clock,
         )
     }
 }

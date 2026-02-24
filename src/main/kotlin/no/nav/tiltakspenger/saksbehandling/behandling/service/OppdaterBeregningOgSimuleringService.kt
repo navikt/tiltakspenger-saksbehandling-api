@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
+import java.time.Clock
 
 class OppdaterBeregningOgSimuleringService(
     val sakService: SakService,
@@ -35,6 +36,7 @@ class OppdaterBeregningOgSimuleringService(
     val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     val simulerService: SimulerService,
     val sessionFactory: SessionFactory,
+    val clock: Clock,
 ) {
     /**
      * Oppdaterer beregning og simuleringen av utbetaling på en åpen behandling som er under behandling eller beslutning
@@ -81,7 +83,10 @@ class OppdaterBeregningOgSimuleringService(
             )
         }
 
-        val oppdatertBehandling = behandling.oppdaterUtbetalingskontroll(utbetalingskontroll)
+        val oppdatertBehandling = behandling.oppdaterUtbetalingskontroll(
+            oppdatertKontroll = utbetalingskontroll,
+            clock = clock,
+        )
         val oppdatertSak = sak.oppdaterRammebehandling(oppdatertBehandling)
 
         return (oppdatertSak to oppdatertBehandling).right()
@@ -108,6 +113,7 @@ class OppdaterBeregningOgSimuleringService(
 
         val oppdatertBehandling = behandling.oppdaterUtbetaling(
             oppdatertUtbetaling = oppdatertUtbetaling,
+            clock = clock,
         )
         val oppdatertSak = this.oppdaterRammebehandling(oppdatertBehandling)
 

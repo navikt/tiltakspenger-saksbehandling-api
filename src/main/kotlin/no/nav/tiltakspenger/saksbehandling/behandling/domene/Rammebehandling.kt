@@ -713,8 +713,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     }
 
     /** Oppdaterer beregning og simulering for utbetaling */
-    fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?): Rammebehandling
-    fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?): Rammebehandling
+    fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?, clock: Clock): Rammebehandling
+    fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?, clock: Clock): Rammebehandling
 
     fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling
 }

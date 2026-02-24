@@ -204,18 +204,24 @@ data class Søknadsbehandling(
         return resultat?.erFerdigutfylt(saksopplysninger) ?: false
     }
 
-    override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?): Søknadsbehandling {
+    override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?, clock: Clock): Rammebehandling {
         require(this.erUnderBehandling) {
             "Forventet at behandlingen var under behandling ved oppdatering av utbetaling, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
         }
-        return this.copy(utbetaling = oppdatertUtbetaling)
+        return this.copy(
+            utbetaling = oppdatertUtbetaling,
+            sistEndret = nå(clock),
+        )
     }
 
-    override fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?): Rammebehandling {
+    override fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?, clock: Clock): Rammebehandling {
         require(this.erUnderBehandlingEllerBeslutning) {
             "Forventet at behandlingen var under behandling eller beslutning ved oppdatering av utbetalingskontroll, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
         }
-        return this.copy(utbetalingskontroll = oppdatertKontroll)
+        return this.copy(
+            utbetalingskontroll = oppdatertKontroll,
+            sistEndret = nå(clock),
+        )
     }
 
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling {
