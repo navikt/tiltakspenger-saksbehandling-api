@@ -145,7 +145,7 @@ fun genererSaksstatistikkForKlagebehandling(
         sakId = behandling.sakId.toString(),
         saksnummer = behandling.saksnummer.toString(),
         behandlingId = behandling.id.toString(),
-        relatertBehandlingId = behandling.resultat!!.rammebehandlingId.toString(),
+        relatertBehandlingId = behandling.resultat?.rammebehandlingId.toString(),
         fnr = behandling.fnr.verdi,
         mottattTidspunkt = behandling.klagensJournalpostOpprettet,
         registrertTidspunkt = behandling.opprettet,
@@ -183,6 +183,7 @@ fun genererSaksstatistikkForKlagebehandling(
                 is Klagebehandlingsresultat.Omgjør -> StatistikkBehandlingResultat.MEDHOLD
                 is Klagebehandlingsresultat.Opprettholdt -> StatistikkBehandlingResultat.OPPRETTHOLDT
                 is Klagebehandlingsresultat.Avvist -> StatistikkBehandlingResultat.AVVIST
+                null -> null
             }
         },
         resultatBegrunnelse = if (behandling.resultat is Klagebehandlingsresultat.Omgjør) behandling.resultat.årsak.tilResultatBegrunnelse().name else null,
