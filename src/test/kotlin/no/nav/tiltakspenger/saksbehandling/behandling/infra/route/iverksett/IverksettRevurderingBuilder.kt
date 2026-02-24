@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -294,6 +295,7 @@ interface IverksettRevurderingBuilder {
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         vedtaksperiode: Periode? = null,
+        valgteHjemler: Set<HjemmelForOpphør> = setOf(HjemmelForOpphør.DeltarIkkePåArbeidsmarkedstiltak),
         fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
         begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
     ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
@@ -312,6 +314,7 @@ interface IverksettRevurderingBuilder {
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
             saksbehandler = saksbehandler,
             vedtaksperiode = vedtaksperiode ?: revurdering.vedtaksperiode!!,
+            valgteHjemler = valgteHjemler,
         )
 
         sendRevurderingTilBeslutningForBehandlingId(

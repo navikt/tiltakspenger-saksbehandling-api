@@ -3,14 +3,30 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 
-fun BehandlingUtbetaling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
+fun MeldekortBehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
     return simulering.validerKanIverksetteUtbetaling()
 }
 
-fun MeldekortBehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
+fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
+    val simulering = this.utbetaling?.simulering
+    val kontrollSimulering = this.utbetalingskontroll?.simulering
+
+    if (!simulering.erLik(kontrollSimulering)) {
+        return KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer.left()
+    }
+
+    // Hvis beregnet utbetaling er null (og kontrollen også var null), er alt ok
+    if (this.utbetaling == null) {
+        return Unit.right()
+    }
+
+    if (simulering == null) {
+        return KanIkkeIverksetteUtbetaling.SimuleringMangler.left()
+    }
+
     return simulering.validerKanIverksetteUtbetaling()
 }
 
@@ -30,6 +46,22 @@ fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbeta
 
         null -> KanIkkeIverksetteUtbetaling.SimuleringMangler.left()
     }
+}
+
+private fun Simulering?.erLik(other: Simulering?): Boolean {
+    if (this == null && other == null) {
+        return true
+    }
+
+    if (this is Simulering.IngenEndring && other is Simulering.IngenEndring) {
+        return true
+    }
+
+    if (this is Simulering.Endring && other is Simulering.Endring) {
+        return this.simuleringPerMeldeperiode == other.simuleringPerMeldeperiode
+    }
+
+    return false
 }
 
 // Vi har ikke lov til å justere utbetalinger på tvers av meldeperioder
@@ -52,4 +84,5 @@ enum class KanIkkeIverksetteUtbetaling {
     SimuleringMangler,
     FeilutbetalingStøttesIkke,
     JusteringStøttesIkke,
+    KontrollSimuleringHarEndringer,
 }

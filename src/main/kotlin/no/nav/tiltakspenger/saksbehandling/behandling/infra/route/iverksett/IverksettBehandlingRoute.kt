@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
 
 fun Route.iverksettRammebehandlingRoute(
     iverksettRammebehandlingService: IverksettRammebehandlingService,
@@ -48,10 +49,9 @@ fun Route.iverksettRammebehandlingRoute(
                                 behandlingenEiesAvAnnenSaksbehandler(it.eiesAvBeslutter),
                             )
 
-                            KanIkkeIverksetteBehandling.KanIkkeHaUtbetaling -> call.respond400BadRequest(
-                                melding = "Behandling med utbetaling kan ikke iverksettes på nåværende tidspunkt",
-                                kode = "støtter_ikke_utbetaling",
-                            )
+                            is KanIkkeIverksetteBehandling.UtbetalingFeil -> call.respondJson(it.feil.tilErrorJson())
+
+                            is KanIkkeIverksetteBehandling.SimuleringFeil -> call.respondJson(it.feil.tilSimuleringErrorJson())
                         }
                     },
                     { (sak) ->

@@ -21,6 +21,4 @@ data class BehandlingUtbetaling(
             simulering = simulering,
         )
     }
-
-    fun oppdaterSimulering(nySimulering: Simulering?) = copy(simulering = nySimulering)
 }

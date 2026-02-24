@@ -246,7 +246,7 @@ class UtbetalingerIT {
             @Language("JSON")
             val expected = """
                 {
-                  "melding": "Behandling med feilutbetaling støttes ikke på nåværende tidspunkt",
+                  "melding": "Behandling med feilutbetaling støttes ikke på nåværende tidspunkt.",
                   "kode": "støtter_ikke_feilutbetaling"
                 }                
             """.trimIndent()
@@ -290,7 +290,7 @@ class UtbetalingerIT {
             @Language("JSON")
             val expected = """
                 {
-                  "melding": "Behandling med feilutbetaling støttes ikke på nåværende tidspunkt",
+                  "melding": "Behandling med feilutbetaling støttes ikke på nåværende tidspunkt.",
                   "kode": "støtter_ikke_feilutbetaling"
                 }                
             """.trimIndent()

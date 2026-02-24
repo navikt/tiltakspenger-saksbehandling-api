@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilUtbetalingErrorJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
 
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutning"
 
@@ -81,10 +81,12 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStat
         "må_være_under_behandling_eller_automatisk",
     )
 
-    is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingStøttesIkke -> this.feil.tilUtbetalingErrorJson()
-
     KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent -> HttpStatusCode.BadRequest to ErrorJson(
         "Behandlingen er satt på vent",
         "behandlingen_er_pa_vent",
     )
+
+    is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> this.feil.tilErrorJson()
+
+    is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil -> this.feil.tilSimuleringErrorJson()
 }

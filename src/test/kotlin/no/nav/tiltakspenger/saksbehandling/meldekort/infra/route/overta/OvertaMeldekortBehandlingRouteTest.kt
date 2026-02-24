@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.overta
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgOverta
@@ -16,7 +16,7 @@ class OvertaMeldekortBehandlingRouteTest {
             val (_, _, _, meldekortbehandling, json) = this.iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgOverta(
                 tac,
             )!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                     {
                       "begrunnelse": null,

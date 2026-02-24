@@ -20,11 +20,13 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilHjemmelForOpphørDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.medQuotes
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -208,7 +210,7 @@ interface OppdaterRammebehandlingBuilder {
         sakId: SakId,
         behandlingId: BehandlingId,
         vedtaksperiode: Periode,
-        valgteHjemler: Set<HjemmelForStans> = setOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: Set<HjemmelForOpphør> = setOf(HjemmelForOpphør.DeltarIkkePåArbeidsmarkedstiltak),
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
@@ -219,7 +221,7 @@ interface OppdaterRammebehandlingBuilder {
             {
               "resultat": "OMGJØRING_OPPHØR",
               "vedtaksperiode": ${serialize(vedtaksperiode.toDTO())},
-              "valgteHjemler": [${valgteHjemler.joinToString(",") { it.tilDTO().toString().medQuotes() }}],
+              "valgteHjemler": [${valgteHjemler.joinToString(",") { it.tilHjemmelForOpphørDTO().toString().medQuotes() }}],
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()}
             }

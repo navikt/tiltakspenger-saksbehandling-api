@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderin
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
@@ -29,7 +30,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 import java.time.LocalDate
@@ -57,6 +57,7 @@ data class Revurdering(
     override val resultat: Revurderingsresultat,
     override val begrunnelseVilkårsvurdering: Begrunnelse?,
     override val utbetaling: BehandlingUtbetaling?,
+    override val utbetalingskontroll: Utbetalingskontroll?,
     override val klagebehandling: Klagebehandling?,
 ) : Rammebehandling {
 
@@ -175,9 +176,24 @@ data class Revurdering(
         )
     }
 
-    override fun oppdaterSimulering(nySimulering: Simulering?): Revurdering {
-        require(this.erUnderBehandling) { "Forventet at behandlingen var under behandling, men var: ${this.status} for sakId: $sakId og behandlingId: $id" }
-        return this.copy(utbetaling = utbetaling!!.oppdaterSimulering(nySimulering))
+    override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?, clock: Clock): Rammebehandling {
+        require(this.erUnderBehandling) {
+            "Forventet at behandlingen var under behandling ved oppdatering av utbetaling, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
+        }
+        return this.copy(
+            utbetaling = oppdatertUtbetaling,
+            sistEndret = nå(clock),
+        )
+    }
+
+    override fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?, clock: Clock): Rammebehandling {
+        require(this.erUnderBehandlingEllerBeslutning) {
+            "Forventet at behandlingen var under behandling eller beslutning ved oppdatering av utbetalingskontroll, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
+        }
+        return this.copy(
+            utbetalingskontroll = oppdatertKontroll,
+            sistEndret = nå(clock),
+        )
     }
 
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling {
@@ -290,6 +306,7 @@ data class Revurdering(
                 venterTil = null,
                 begrunnelseVilkårsvurdering = null,
                 utbetaling = null,
+                utbetalingskontroll = null,
                 klagebehandling = klagebehandling,
             )
         }

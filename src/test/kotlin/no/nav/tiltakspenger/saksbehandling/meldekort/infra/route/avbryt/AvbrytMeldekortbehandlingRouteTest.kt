@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.avbryt
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgAvbrytMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgAvbrytMeldekortbehandling
@@ -20,7 +20,7 @@ class AvbrytMeldekortbehandlingRouteTest {
             val (_, _, _, avbruttMeldekortbehandling, json) = this.iverksettSøknadsbehandlingOgAvbrytMeldekortbehandling(
                 tac = tac,
             )!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                     {
                       "begrunnelse": null,

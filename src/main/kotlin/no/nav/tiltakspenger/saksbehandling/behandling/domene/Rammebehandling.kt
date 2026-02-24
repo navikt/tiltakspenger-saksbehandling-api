@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOve
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -48,7 +49,6 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -100,8 +100,9 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     val erUnderAutomatiskBehandling: Boolean get() = status == UNDER_AUTOMATISK_BEHANDLING
     val erUnderBehandling: Boolean get() = status == UNDER_BEHANDLING || status == UNDER_AUTOMATISK_BEHANDLING
-    val erKlarTilEllerUnderBeslutning: Boolean get() =
-        status == KLAR_TIL_BESLUTNING || status == UNDER_BESLUTNING
+    val erUnderBeslutning: Boolean get() = status == UNDER_BESLUTNING
+    val erUnderBehandlingEllerBeslutning: Boolean get() = erUnderBehandling || erUnderBeslutning
+
     override val erAvbrutt: Boolean get() = status == AVBRUTT
     val erVedtatt: Boolean get() = status == VEDTATT
     override val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
@@ -111,6 +112,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     val omgjørRammevedtak: OmgjørRammevedtak
 
     val utbetaling: BehandlingUtbetaling?
+    val utbetalingskontroll: Utbetalingskontroll?
 
     val klagebehandling: Klagebehandling?
 
@@ -710,6 +712,9 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         }
     }
 
-    fun oppdaterSimulering(nySimulering: Simulering?): Rammebehandling
+    /** Oppdaterer beregning og simulering for utbetaling */
+    fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?, clock: Clock): Rammebehandling
+    fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?, clock: Clock): Rammebehandling
+
     fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling
 }

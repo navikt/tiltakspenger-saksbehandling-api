@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -9,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
@@ -17,6 +19,7 @@ import java.time.Clock
 
 class SendRammebehandlingTilBeslutningService(
     private val sakService: SakService,
+    private val oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
@@ -28,29 +31,31 @@ class SendRammebehandlingTilBeslutningService(
     suspend fun sendTilBeslutning(
         kommando: SendBehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeRammebehandlingTilBeslutter, Pair<Sak, Rammebehandling>> {
-        val sak = sakService.hentForSakId(
-            sakId = kommando.sakId,
-        )
+        val behandlingId = kommando.behandlingId
 
-        val behandling = sak.hentRammebehandling(kommando.behandlingId)
-
-        requireNotNull(behandling) {
-            "Fant ikke behandlingen ${kommando.behandlingId} på sak ${kommando.sakId}"
-        }
-
-        behandling.utbetaling?.also { utbetaling ->
-            utbetaling.validerKanIverksetteUtbetaling().onLeft {
-                logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${kommando.behandlingId} / $it" }
-                return KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingStøttesIkke(it).left()
-            }
-        }
+        val sak = sakService.hentForSakId(kommando.sakId)
+        val behandling = sak.hentRammebehandling(behandlingId)!!
 
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
             return KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler)
                 .left()
         }
 
-        return behandling.tilBeslutning(
+        val (_, behandlingMedUtbetalingskontroll) = oppdaterBeregningOgSimuleringService.oppdaterUtbetalingskontroll(
+            sak,
+            behandlingId,
+            kommando.saksbehandler,
+        ).getOrElse {
+            return KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil(it).left()
+        }
+
+        behandlingMedUtbetalingskontroll.validerKanIverksetteUtbetaling().onLeft {
+            logger.error { "Utbetaling på behandlingen har et resultat som ikke kan sendes til beslutning - ${kommando.behandlingId} / $it" }
+            rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
+            return KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil(it).left()
+        }
+
+        return behandlingMedUtbetalingskontroll.tilBeslutning(
             kommando = kommando,
             clock = clock,
         ).map {

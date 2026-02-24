@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta
 
-import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandling
 import org.junit.jupiter.api.Test
@@ -17,7 +17,7 @@ class TaKlagebehandlingRouteTest {
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgTaKlagebehandling(
                 tac = tac,
             )!!
-            json.get("klageBehandlinger").first().toString().shouldEqualJson(
+            json.get("klageBehandlinger").first().toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "id": "${klagebehandling.id}",
@@ -70,7 +70,7 @@ class TaKlagebehandlingRouteTest {
                 saksbehandlerKlagebehandling = saksbehandler,
                 saksbehandlerSomTar = saksbehandler,
             )!!
-            json.get("klageBehandlinger").first().toString().shouldEqualJson(
+            json.get("klageBehandlinger").first().toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "id": "${klagebehandling.id}",

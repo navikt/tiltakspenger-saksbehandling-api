@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.februar
@@ -8,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -59,7 +59,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 avbrutt = null,
                 ventestatus = Ventestatus(),
             )
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
               {
               "id": "${rammebehandlingMedKlagebehandling.id}",
@@ -230,7 +230,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 avbrutt = null,
                 ventestatus = Ventestatus(),
             )
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
               {
               "id": "${rammebehandlingMedKlagebehandling.id}",
@@ -325,7 +325,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 avbrutt = null,
                 ventestatus = Ventestatus(),
             )
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "id": "${rammebehandlingMedKlagebehandling.id}",

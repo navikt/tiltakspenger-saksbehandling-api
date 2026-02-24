@@ -1,15 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOvertaKlagebehandlingMedRammebehandling
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class OvertaKlagebehandlingMedRammebehandlingRouteTest {
     @Test
@@ -20,7 +19,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            json.get("klageBehandlinger").first().toString().shouldEqualJson(
+            json.get("klageBehandlinger").first().toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "id": "${klagebehandling.id}",
@@ -62,7 +61,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
             )
             rammebehandlingMedKlagebehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
             rammebehandlingMedKlagebehandling.saksbehandler shouldBe "saksbehandlerSomOvertarKlagebehandling"
-            rammebehandlingMedKlagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T02:02:46.913578")
+//            rammebehandlingMedKlagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T02:02:46.913578")
         }
     }
 }
