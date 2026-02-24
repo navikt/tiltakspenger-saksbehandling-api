@@ -245,9 +245,6 @@ open class KlagebehandlingContext(
         OpprettholdKlagebehandlingService(
             sakService = sakService,
             klagebehandlingRepo = klagebehandlingRepo,
-            statistikkSakService = statistikkSakService,
-            statistikkSakRepo = statistikkSakRepo,
-            sessionFactory = sessionFactory,
         )
     }
 
