@@ -55,8 +55,8 @@ class LokalKabalHendelseService(
             eksternKlagehendelseId = "lokal-kabal-${command.type}-${command.utfall}-${command.klagebehandlingId}",
             key = "lokal-kabal-${command.type}-${command.utfall}-${command.klagebehandlingId}",
             value = manuellHendelse,
-            sakId = klagebehandling.sakId,
-            klagebehandlingId = klagebehandling.id,
+            sakId = null,
+            klagebehandlingId = null,
         )
 
         klagehendelsePostgresRepo.lagreNyHendelse(nyHendelse)
