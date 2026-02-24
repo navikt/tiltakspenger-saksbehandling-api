@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
@@ -129,6 +130,66 @@ class StatistikkSakService(
             versjon = gitHash,
             clock = clock,
             hendelse = "søknad_behandlet_på_nytt",
+        )
+    }
+
+    suspend fun genererSaksstatistikkForOpprettetKlagebehandling(
+        behandling: Klagebehandling,
+    ): StatistikkSakDTO {
+        return genererSaksstatistikkForKlagebehandling(
+            behandling = behandling,
+            gjelderKode6 = gjelderKode6(behandling.fnr),
+            versjon = gitHash,
+            clock = clock,
+            hendelse = "opprettet_klagebehandling",
+        )
+    }
+
+    suspend fun genererSaksstatistikkForAvsluttetKlagebehandling(
+        behandling: Klagebehandling,
+    ): StatistikkSakDTO {
+        return genererSaksstatistikkForKlagebehandling(
+            behandling = behandling,
+            gjelderKode6 = gjelderKode6(behandling.fnr),
+            versjon = gitHash,
+            clock = clock,
+            hendelse = "avsluttet_klagebehandling",
+        )
+    }
+
+    suspend fun genererSaksstatistikkForKlagebehandlingSattPåVent(
+        behandling: Klagebehandling,
+    ): StatistikkSakDTO {
+        return genererSaksstatistikkForKlagebehandling(
+            behandling = behandling,
+            gjelderKode6 = gjelderKode6(behandling.fnr),
+            versjon = gitHash,
+            clock = clock,
+            hendelse = "klagebehandling_satt_på_vent",
+        )
+    }
+
+    suspend fun genererSaksstatistikkForGjenopptattKlagebehandling(
+        behandling: Klagebehandling,
+    ): StatistikkSakDTO {
+        return genererSaksstatistikkForKlagebehandling(
+            behandling = behandling,
+            gjelderKode6 = gjelderKode6(behandling.fnr),
+            versjon = gitHash,
+            clock = clock,
+            hendelse = "klagebehandling_gjenopptatt",
+        )
+    }
+
+    suspend fun genererSaksstatistikkForKlagebehandlingOversendtTilKabal(
+        behandling: Klagebehandling,
+    ): StatistikkSakDTO {
+        return genererSaksstatistikkForKlagebehandling(
+            behandling = behandling,
+            gjelderKode6 = gjelderKode6(behandling.fnr),
+            versjon = gitHash,
+            clock = clock,
+            hendelse = "klagebehandling_iverksatt",
         )
     }
 

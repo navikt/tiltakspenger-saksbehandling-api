@@ -24,7 +24,7 @@ class GjenopptaKlagebehandlingRouteTest {
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678911",
                   "opprettet": "2025-01-01T01:02:36.456789",
-                  "sistEndret": "2025-01-01T01:02:52.456789",
+                  "sistEndret": "2025-01-01T01:02:54.456789",
                   "iverksattTidspunkt": null,
                   "saksbehandler": "saksbehandlerKlagebehandling",
                   "journalpostId": "12345",
@@ -48,7 +48,7 @@ class GjenopptaKlagebehandlingRouteTest {
                   "rammebehandlingId": null,
                   "ventestatus": {
                     "sattPåVentAv": "saksbehandlerKlagebehandling",
-                    "tidspunkt": "2025-01-01T01:02:52.456789",
+                    "tidspunkt": "2025-01-01T01:02:54.456789",
                     "begrunnelse": "",
                     "erSattPåVent": false,
                     "frist": null

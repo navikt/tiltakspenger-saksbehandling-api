@@ -84,13 +84,19 @@ enum class StatistikkBehandlingResultat {
     FORLENGELSE,
     AVBRUTT,
     OPPHØRT,
+    AVVIST,
+    MEDHOLD,
+    OPPRETTHOLDT,
 }
 
 enum class StatistikkBehandlingStatus {
+    KLAR_TIL_BEHANDLING,
     UNDER_BEHANDLING,
     UNDER_BESLUTNING,
     FERDIG_BEHANDLET,
+    OVERSENDT_KA,
     AVSLUTTET,
+    VENTENDE_SAKER,
 }
 
 // FØRSTEGANGSBEHANDLING skal ikke brukes mer, men beholdes fordi den finnes i databasen
@@ -123,4 +129,14 @@ enum class StatistikkBehandlingAarsak {
     SOKNADSBEHANDLING_FRA_ARENA,
     OVERLAPPENDE_TILTAK_I_ARENA,
     OVERFORT_FRA_ARENA,
+
+    KLAGE,
+}
+
+enum class StatistikkResultatBegrunnelse {
+    FEIL_LOVANVENDELSE,
+    FEIL_REGELVERKSFORSTAAELSE,
+    FEIL_ELLER_ENDRET_FAKTA,
+    PROSESSUELL_FEIL,
+    ANNET,
 }

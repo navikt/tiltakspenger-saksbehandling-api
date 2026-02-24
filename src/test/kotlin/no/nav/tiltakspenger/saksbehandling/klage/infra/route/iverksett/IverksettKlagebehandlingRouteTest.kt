@@ -43,12 +43,12 @@ class IverksettKlagebehandlingRouteTest {
             val klagebehandling = klagevedtak.behandling
             val expectedKlagevedtak = Klagevedtak(
                 id = klagevedtak.id,
-                opprettet = LocalDateTime.parse("2025-01-01T01:02:10.456789"),
+                opprettet = LocalDateTime.parse("2025-01-01T01:02:11.456789"),
                 behandling = klagebehandling,
                 journalpostId = JournalpostId("1"),
-                journalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:12.456789"),
+                journalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:13.456789"),
                 distribusjonId = DistribusjonId("1"),
-                distribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:13.456789"),
+                distribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:14.456789"),
                 vedtaksdato = LocalDate.parse("2025-01-01"),
                 sendtTilDatadeling = null,
             )
@@ -65,7 +65,7 @@ class IverksettKlagebehandlingRouteTest {
                      "saksnummer": "${sak.saksnummer}",
                      "fnr": "12345678911",
                      "opprettet": "2025-01-01T01:02:07.456789",
-                     "sistEndret": "2025-01-01T01:02:09.456789",
+                     "sistEndret": "2025-01-01T01:02:10.456789",
                      "saksbehandler": "saksbehandlerKlagebehandling",
                      "journalpostId": "12345",
                      "journalpostOpprettet": "2025-01-01T01:02:06.456789",
@@ -88,7 +88,7 @@ class IverksettKlagebehandlingRouteTest {
                      "avbrutt": null,
                      "kanIverksetteVedtak": false,
                      "kanIverksetteOpprettholdelse": false,
-                     "iverksattTidspunkt": "2025-01-01T01:02:09.456789",
+                     "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
                      "årsak": null,
                      "begrunnelse": null,
                      "rammebehandlingId": null,
@@ -110,9 +110,9 @@ class IverksettKlagebehandlingRouteTest {
                         """
                     {
                       "klagebehandlingId": "${klagebehandling.id}",
-                      "journalføringstidspunkt": "2025-01-01T01:02:12.456789",
-                      "opprettet": "2025-01-01T01:02:10.456789",
-                      "distribusjonstidspunkt": "2025-01-01T01:02:13.456789",
+                      "journalføringstidspunkt": "2025-01-01T01:02:13.456789",
+                      "opprettet": "2025-01-01T01:02:11.456789",
+                      "distribusjonstidspunkt": "2025-01-01T01:02:14.456789",
                       "distribusjonId": "1",
                       "sakId": "${sak.id}",
                       "klagevedtakId": "${klagevedtak.id}",
@@ -271,8 +271,8 @@ class IverksettKlagebehandlingRouteTest {
                 beslutter = beslutter,
             )!!
             rammevedtak.klagebehandling!!.also {
-                it.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:51.456789")
-                it.iverksattTidspunkt shouldBe LocalDateTime.parse("2025-01-01T01:02:51.456789")
+                it.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:52.456789")
+                it.iverksattTidspunkt shouldBe LocalDateTime.parse("2025-01-01T01:02:52.456789")
                 it.status shouldBe Klagebehandlingsstatus.VEDTATT
                 it.kanIverksetteVedtak shouldBe false
                 it.erVedtatt shouldBe true

@@ -31,5 +31,9 @@ interface KlagebehandlingRepo {
     fun hentSakerSomSkalOversendesKlageinstansen(limit: Int = 10): List<SakId>
 
     /** Egen funksjon for ikke å ha metadataene i [no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Opprettholdt] */
-    fun markerOversendtTilKlageinstans(klagebehandling: Klagebehandling, metadata: OversendtKlageTilKabalMetadata)
+    fun markerOversendtTilKlageinstans(
+        klagebehandling: Klagebehandling,
+        metadata: OversendtKlageTilKabalMetadata,
+        sessionContext: SessionContext? = null,
+    )
 }

@@ -191,8 +191,9 @@ class KlagebehandlingPostgresRepo(
     override fun markerOversendtTilKlageinstans(
         klagebehandling: Klagebehandling,
         metadata: OversendtKlageTilKabalMetadata,
+        sessionContext: SessionContext?,
     ) {
-        sessionFactory.withTransaction { tx ->
+        return sessionFactory.withSession(sessionContext) { tx ->
             tx.run(
                 sqlQuery(
                     """

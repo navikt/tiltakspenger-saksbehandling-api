@@ -17,7 +17,7 @@ suspend fun Sak.gjenopptaKlagebehandling(
     kommando: GjenopptaKlagebehandlingKommando,
     clock: Clock,
     gjenopptaRammebehandling: suspend (GjenopptaRammebehandlingKommando) -> Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>>,
-    lagreKlagebehandling: (Klagebehandling, SessionContext?) -> Unit,
+    lagreKlagebehandling: suspend (Klagebehandling) -> Unit,
 ): Either<KanIkkeGjenopptaKlagebehandling, Triple<Sak, Klagebehandling, Rammebehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let {
         val rammebehandling = it.rammebehandlingId?.let { this.hentRammebehandling(it) }
@@ -36,6 +36,6 @@ suspend fun Sak.gjenopptaKlagebehandling(
         it.gjenopptaKlagebehandling(kommando, clock).map {
             val oppdatertSak = this.oppdaterKlagebehandling(it)
             Triple(oppdatertSak, it, null)
-        }.onRight { lagreKlagebehandling(it.second, null) }
+        }.onRight { lagreKlagebehandling(it.second) }
     }
 }

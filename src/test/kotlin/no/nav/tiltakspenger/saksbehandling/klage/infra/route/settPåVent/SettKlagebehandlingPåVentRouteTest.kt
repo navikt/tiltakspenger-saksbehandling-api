@@ -24,7 +24,7 @@ class SettKlagebehandlingPåVentRouteTest {
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678911",
                   "opprettet": "2025-01-01T01:02:36.456789",
-                  "sistEndret": "2025-01-01T01:02:37.456789",
+                  "sistEndret": "2025-01-01T01:02:38.456789",
                   "iverksattTidspunkt": null,
                   "saksbehandler": null,
                   "journalpostId": "12345",
@@ -48,7 +48,7 @@ class SettKlagebehandlingPåVentRouteTest {
                   "rammebehandlingId": null,
                   "ventestatus": {
                     "sattPåVentAv": "saksbehandlerKlagebehandling",
-                    "tidspunkt": "2025-01-01T01:02:37.456789",
+                    "tidspunkt": "2025-01-01T01:02:38.456789",
                     "begrunnelse": "begrunnelse for å sette klage på vent",
                     "erSattPåVent": true,
                     "frist": "2025-01-14"

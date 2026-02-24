@@ -31,7 +31,7 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678911",
                   "opprettet": "2025-01-01T01:02:36.456789",
-                  "sistEndret": "2025-01-01T01:02:46.456789",
+                  "sistEndret": "2025-01-01T01:02:47.456789",
                   "iverksattTidspunkt": null,
                   "saksbehandler": null,
                   "journalpostId": "12345",

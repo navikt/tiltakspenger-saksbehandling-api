@@ -20,7 +20,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            val expectedSistEndret = LocalDateTime.parse("2025-01-01T01:03:03.456789")
+            val expectedSistEndret = LocalDateTime.parse("2025-01-01T01:03:04.456789")
             json.get("klageBehandlinger").first().toString().shouldEqualJson(
                 """
                 {

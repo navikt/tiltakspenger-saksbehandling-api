@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehandlingKommando
@@ -8,13 +10,17 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKla
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.avbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 
 class AvbrytKlagebehandlingService(
     private val sakService: SakService,
     private val clock: java.time.Clock,
     private val klagebehandlingRepo: KlagebehandlingRepo,
+    private val statistikkSakService: StatistikkSakService,
+    private val statistikkSakRepo: StatistikkSakRepo,
+    private val sessionFactory: SessionFactory,
 ) {
-    fun avbrytKlagebehandling(
+    suspend fun avbrytKlagebehandling(
         kommando: AvbrytKlagebehandlingKommando,
     ): Either<KanIkkeAvbryteKlagebehandling, Pair<Sak, Klagebehandling>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
@@ -22,7 +28,12 @@ class AvbrytKlagebehandlingService(
             kommando = kommando,
             clock = clock,
         ).onRight {
-            klagebehandlingRepo.lagreKlagebehandling(it.second)
+            val statistikk = statistikkSakService.genererSaksstatistikkForAvsluttetKlagebehandling(it.second)
+
+            sessionFactory.withTransactionContext { tx ->
+                klagebehandlingRepo.lagreKlagebehandling(it.second)
+                statistikkSakRepo.lagre(statistikk, tx)
+            }
         }
     }
 }
