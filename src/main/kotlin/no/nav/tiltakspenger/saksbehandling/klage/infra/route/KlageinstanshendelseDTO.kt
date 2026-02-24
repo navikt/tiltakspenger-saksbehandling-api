@@ -19,6 +19,7 @@ sealed interface KlageinstanshendelseDTO {
     val eksternKlagehendelseId: String
     val avsluttetTidspunkt: LocalDateTime?
     val journalpostreferanser: List<String>
+    val hendelsestype: String
 
     data class KlagebehandlingAvsluttetDTO(
         override val klagehendelseId: String,
@@ -29,7 +30,9 @@ sealed interface KlageinstanshendelseDTO {
         override val avsluttetTidspunkt: LocalDateTime,
         override val journalpostreferanser: List<String>,
         val utfall: KlagehendelseKlagebehandlingAvsluttetUtfallDto,
-    ) : KlageinstanshendelseDTO
+    ) : KlageinstanshendelseDTO {
+        override val hendelsestype: String = "KLAGEBEHANDLING_AVSLUTTET"
+    }
 
     data class OmgjøringskravbehandlingAvsluttetDTO(
         override val klagehendelseId: String,
@@ -40,7 +43,9 @@ sealed interface KlageinstanshendelseDTO {
         override val avsluttetTidspunkt: LocalDateTime,
         override val journalpostreferanser: List<String>,
         val utfall: OmgjøringskravbehandlingAvsluttetUtfallDto,
-    ) : KlageinstanshendelseDTO
+    ) : KlageinstanshendelseDTO {
+        override val hendelsestype: String = "OMGJOERINGSKRAVBEHANDLING_AVSLUTTET"
+    }
 
     data class BehandlingFeilregistrertDTO(
         override val klagehendelseId: String,
@@ -54,7 +59,9 @@ sealed interface KlageinstanshendelseDTO {
         val årsak: String,
         val navIdent: String,
         val type: KlagehendelseFeilregistrertTypeDto,
-    ) : KlageinstanshendelseDTO
+    ) : KlageinstanshendelseDTO {
+        override val hendelsestype: String = "BEHANDLING_FEILREGISTRERT"
+    }
 
     enum class KlagehendelseKlagebehandlingAvsluttetUtfallDto {
         TRUKKET,

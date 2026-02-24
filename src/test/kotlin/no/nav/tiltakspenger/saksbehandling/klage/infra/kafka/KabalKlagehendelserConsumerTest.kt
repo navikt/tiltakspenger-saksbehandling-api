@@ -108,7 +108,8 @@ class KabalKlagehendelserConsumerTest {
                       "sistEndret": "2025-05-01T01:02:44.456789",
                       "eksternKlagehendelseId": "0f4ea0c2-8b44-4266-a1c3-801006b06280",
                       "avsluttetTidspunkt": "2025-01-01T01:02:03.456789",
-                      "journalpostreferanser": ["123","456"]
+                      "journalpostreferanser": ["123","456"],
+                      "hendelsestype": "KLAGEBEHANDLING_AVSLUTTET"
                     }
                     """.trimIndent(),
                 )
