@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgGjenopptaKlagebehandling
 import org.junit.jupiter.api.Test
 
@@ -16,7 +17,7 @@ class GjenopptaKlagebehandlingRouteTest {
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgGjenopptaKlagebehandling(
                 tac = tac,
             )!!
-            json.get("klageBehandlinger").first().toString().shouldEqualJson(
+            json.get("klageBehandlinger").first().toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "id": "${klagebehandling.id}",

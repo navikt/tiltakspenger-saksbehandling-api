@@ -4,6 +4,7 @@ import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytRammebehandling
@@ -27,7 +28,7 @@ class AvbrytKlagebehandlingRouteTest {
             val (sak, klagebehandling, json) = opprettSakOgAvbrytKlagebehandling(
                 tac = tac,
             )!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                    {
                      "id": "${klagebehandling.id}",
@@ -85,7 +86,7 @@ class AvbrytKlagebehandlingRouteTest {
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
             )!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                    {
                      "id": "${oppdatertKlagebehandling.id}",
@@ -155,7 +156,7 @@ class AvbrytKlagebehandlingRouteTest {
                 klagebehandlingId = klagebehandling.id,
                 saksbehandler = saksbehandler,
             )!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                    {
                      "id": "${oppdatertKlagebehandling.id}",

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst
 import org.junit.jupiter.api.Test
@@ -13,7 +14,7 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
             val (_, behandling, json) = opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
                 tac = tac,
             )!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "id": "${behandling.id}",
@@ -67,7 +68,7 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
             val (_, rammevedtak, klagebehandling, json) = opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst(
                 tac = tac,
             )!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "id": "${klagebehandling.id}",

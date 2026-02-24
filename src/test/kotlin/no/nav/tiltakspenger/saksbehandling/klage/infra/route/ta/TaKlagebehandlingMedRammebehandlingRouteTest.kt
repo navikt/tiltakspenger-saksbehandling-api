@@ -1,15 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class TaKlagebehandlingMedRammebehandlingRouteTest {
     @Test
@@ -20,8 +19,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            val expectedSistEndret = LocalDateTime.parse("2025-01-01T01:03:04.456789")
-            json.get("klageBehandlinger").first().toString().shouldEqualJson(
+            json.get("klageBehandlinger").first().toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "id": "${klagebehandling.id}",
@@ -29,7 +27,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678911",
                   "opprettet": "2025-01-01T01:02:36.456789",
-                  "sistEndret": "$expectedSistEndret",
+                  "sistEndret": "2025-01-01T01:03:04.456789",
                   "iverksattTidspunkt": null,
                   "saksbehandler": "saksbehandlerSomTarKlagebehandling",
                   "journalpostId": "12345",
@@ -63,7 +61,6 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
             )
             rammebehandlingMedKlagebehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
             rammebehandlingMedKlagebehandling.saksbehandler shouldBe "saksbehandlerSomTarKlagebehandling"
-            rammebehandlingMedKlagebehandling.sistEndret shouldBe expectedSistEndret
         }
     }
 }

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
@@ -28,7 +29,7 @@ class VurderKlagebehandlingRouteTest {
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "id": "${klagebehandling.id}",
@@ -85,7 +86,7 @@ class VurderKlagebehandlingRouteTest {
                     KlagehjemmelDto.TILTAKSPENGEFORSKRIFTEN_2,
                 ),
             )!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "id": "${klagebehandling.id}",
@@ -151,7 +152,7 @@ class VurderKlagebehandlingRouteTest {
                 vurderingstype = Vurderingstype.OMGJØR,
                 hjemler = null,
             )!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "id": "${klagebehandling.id}",

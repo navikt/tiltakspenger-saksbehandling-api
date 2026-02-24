@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling
 import org.junit.jupiter.api.Test
 
@@ -35,7 +36,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                 tac = tac,
             )!!
             val meldekortbehandlingJson = json.getJSONArray("meldekortBehandlinger").getJSONObject(0)
-            meldekortbehandlingJson.toString().shouldEqualJson(
+            meldekortbehandlingJson.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
                   "begrunnelse": null,

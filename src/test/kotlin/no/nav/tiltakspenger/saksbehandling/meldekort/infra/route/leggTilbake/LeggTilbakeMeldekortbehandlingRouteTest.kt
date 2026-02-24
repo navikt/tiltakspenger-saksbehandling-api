@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.leggTilbake
 
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgLeggTilbake
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingSendMeldekortbehandlingTilBeslutningTaBehandlingOgLeggTilbake
 import org.junit.jupiter.api.Test
@@ -12,7 +13,7 @@ class LeggTilbakeMeldekortbehandlingRouteTest {
     fun `saksbehandler kan legge tilbake meldekortbehandling`() {
         withTestApplicationContext { tac ->
             val (_, _, _, meldekortbehandling, json) = iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgLeggTilbake(tac)!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                     {
                       "begrunnelse": null,

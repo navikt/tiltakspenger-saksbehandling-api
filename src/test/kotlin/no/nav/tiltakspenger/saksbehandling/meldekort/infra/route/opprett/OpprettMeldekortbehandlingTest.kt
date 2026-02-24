@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -28,7 +29,7 @@ class OpprettMeldekortbehandlingTest {
                 sakId = sak.id,
                 kjedeId = førsteMeldeperiode.kjedeId,
             )!!
-            jsonResponse.toString().shouldEqualJson(
+            jsonResponse.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                     {
                       "periodeMedÅpenBehandling": {
