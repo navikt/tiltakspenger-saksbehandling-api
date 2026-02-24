@@ -167,13 +167,13 @@ fun genererSaksstatistikkForKlagebehandling(
 
                 Klagebehandlingsstatus.UNDER_BEHANDLING -> StatistikkBehandlingStatus.UNDER_BEHANDLING
 
-                Klagebehandlingsstatus.OVERSENDT -> StatistikkBehandlingStatus.OVERSENDT_KA
+                Klagebehandlingsstatus.OPPRETTHOLDT -> StatistikkBehandlingStatus.OVERSENDT_KA
 
                 Klagebehandlingsstatus.AVBRUTT,
                 Klagebehandlingsstatus.VEDTATT,
                 -> throw IllegalStateException("Statistikk anser behandlingen som avsluttet når den er oversendt til KA.")
 
-                Klagebehandlingsstatus.OPPRETTHOLDT -> throw IllegalStateException("Vi sender ikke statistikk på at en sak venter på å bli plukket opp av jobben som sender klager til klageinstansen.")
+                Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException("Vi sender ikke statistikk på at en sak venter på å bli plukket opp av jobben som sender klager til klageinstansen.")
             }
         },
         behandlingResultat = if (behandling.erAvbrutt) {

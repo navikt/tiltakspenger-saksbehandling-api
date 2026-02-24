@@ -47,7 +47,7 @@ class IverksattOpprettholdelseJobberTest {
                 forventetJournalpostId = JournalpostId("2"),
                 forventetJournalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:03.456789"),
                 forventetDistribusjonId = DistribusjonId("2"),
-                forventetDistribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:41.456789"),
+                forventetDistribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:42.456789"),
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
             tac.klagebehandlingContext.klagebehandlingRepo.hentInnstillingsbrevSomSkalDistribueres().size shouldBe 0
@@ -62,8 +62,8 @@ class IverksattOpprettholdelseJobberTest {
                 forventetJournalpostId = JournalpostId("2"),
                 forventetJournalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:03.456789"),
                 forventetDistribusjonId = DistribusjonId("2"),
-                forventetDistribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:41.456789"),
-                forventetOversendtKlageinstansenTidspunkt = LocalDateTime.parse("2025-01-01T01:02:42.456789"),
+                forventetDistribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:42.456789"),
+                forventetOversendtKlageinstansenTidspunkt = LocalDateTime.parse("2025-01-01T01:02:43.456789"),
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
             tac.klagebehandlingContext.klagebehandlingRepo.hentSakerSomSkalOversendesKlageinstansen().size shouldBe 0
@@ -74,7 +74,7 @@ class IverksattOpprettholdelseJobberTest {
     private fun verifiserResultat(
         tac: TestApplicationContext,
         id: KlagebehandlingId,
-        forventetIverksattTidspunkt: LocalDateTime? = LocalDateTime.parse("2025-01-01T01:02:39.456789"),
+        forventetIverksattTidspunkt: LocalDateTime? = LocalDateTime.parse("2025-01-01T01:02:40.456789"),
         forventetBrevdato: LocalDate? = null,
         forventetJournalpostId: JournalpostId? = null,
         forventetJournalføringstidspunkt: LocalDateTime? = null,

@@ -33,7 +33,7 @@ class KabalKlagehendelserConsumerTest {
 
     @Test
     fun `avsluttet omgjøringskravbehandling hendelse`() {
-        `OmgjøringskravbehandlingAvsluttetUtfall`.entries.forEach {
+        OmgjøringskravbehandlingAvsluttetUtfall.entries.forEach {
             testOmgjøringskravbehandlingAvsluttet(
                 utfall = it,
             )
@@ -75,7 +75,7 @@ class KabalKlagehendelserConsumerTest {
                 kildeReferanse = kildeReferanse,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                sistEndret = LocalDateTime.parse("2025-05-01T01:02:44.456789"),
+                sistEndret = LocalDateTime.parse("2025-05-01T01:02:46.456789"),
             )
             tac.klagebehandlingContext.klagebehandlingRepo.hentForKlagebehandlingId(klagebehandling.id)!!.also {
                 val resultat = it.resultat as Klagebehandlingsresultat.Opprettholdt
@@ -83,8 +83,8 @@ class KabalKlagehendelserConsumerTest {
                     listOf(
                         Klageinstanshendelse.KlagebehandlingAvsluttet(
                             klagehendelseId = klagehendelseId,
-                            opprettet = LocalDateTime.parse("2025-05-01T01:02:43.456789"),
-                            sistEndret = LocalDateTime.parse("2025-05-01T01:02:44.456789"),
+                            opprettet = LocalDateTime.parse("2025-05-01T01:02:45.456789"),
+                            sistEndret = LocalDateTime.parse("2025-05-01T01:02:46.456789"),
                             eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
                             avsluttetTidspunkt = LocalDateTime.parse("2025-01-01T01:02:03.456789"),
                             utfall = utfall,
@@ -104,8 +104,8 @@ class KabalKlagehendelserConsumerTest {
                       "klagebehandlingId": "${klagebehandling.id}",
                       "klagehendelseId": "$klagehendelseId",
                       "utfall": "$utfall",
-                      "opprettet": "2025-05-01T01:02:43.456789",
-                      "sistEndret": "2025-05-01T01:02:44.456789",
+                      "opprettet": "2025-05-01T01:02:45.456789",
+                      "sistEndret": "2025-05-01T01:02:46.456789",
                       "eksternKlagehendelseId": "0f4ea0c2-8b44-4266-a1c3-801006b06280",
                       "avsluttetTidspunkt": "2025-01-01T01:02:03.456789",
                       "journalpostreferanser": ["123","456"],
@@ -122,10 +122,10 @@ class KabalKlagehendelserConsumerTest {
         kildeReferanse: String = "klage_01KJ36CZA345ZM2QWMBVWH8NN8",
         sakId: SakId? = null,
         klagebehandlingId: KlagebehandlingId? = null,
-        sistEndret: LocalDateTime = LocalDateTime.parse("2025-05-01T01:02:43.456789"),
+        sistEndret: LocalDateTime = LocalDateTime.parse("2025-05-01T01:02:45.456789"),
     ): NyKlagehendelse = NyKlagehendelse(
         klagehendelseId = klagehendelseId,
-        opprettet = LocalDateTime.parse("2025-05-01T01:02:43.456789"),
+        opprettet = LocalDateTime.parse("2025-05-01T01:02:45.456789"),
         sistEndret = sistEndret,
         eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
         key = "some-unused-uuid",
@@ -135,7 +135,7 @@ class KabalKlagehendelserConsumerTest {
     )
 
     private fun testOmgjøringskravbehandlingAvsluttet(
-        utfall: `OmgjøringskravbehandlingAvsluttetUtfall`,
+        utfall: OmgjøringskravbehandlingAvsluttetUtfall,
     ) {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val klagehendelseRepo = tac.klagebehandlingContext.klagehendelseRepo
@@ -163,7 +163,7 @@ class KabalKlagehendelserConsumerTest {
                 kildeReferanse = kildeReferanse,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                sistEndret = LocalDateTime.parse("2025-05-01T01:02:44.456789"),
+                sistEndret = LocalDateTime.parse("2025-05-01T01:02:46.456789"),
             )
             tac.klagebehandlingContext.klagebehandlingRepo.hentForKlagebehandlingId(klagebehandling.id)!!.also {
                 val resultat = it.resultat as Klagebehandlingsresultat.Opprettholdt
@@ -171,8 +171,8 @@ class KabalKlagehendelserConsumerTest {
                     listOf(
                         Klageinstanshendelse.`OmgjøringskravbehandlingAvsluttet`(
                             klagehendelseId = klagehendelseId,
-                            opprettet = LocalDateTime.parse("2025-05-01T01:02:43.456789"),
-                            sistEndret = LocalDateTime.parse("2025-05-01T01:02:44.456789"),
+                            opprettet = LocalDateTime.parse("2025-05-01T01:02:45.456789"),
+                            sistEndret = LocalDateTime.parse("2025-05-01T01:02:46.456789"),
                             eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
                             avsluttetTidspunkt = LocalDateTime.parse("2025-01-01T01:02:03.456789"),
                             utfall = utfall,
@@ -191,10 +191,10 @@ class KabalKlagehendelserConsumerTest {
         kildeReferanse: String = "klage_01KJ36CZA345ZM2QWMBVWH8NN8",
         sakId: SakId? = null,
         klagebehandlingId: KlagebehandlingId? = null,
-        sistEndret: LocalDateTime = LocalDateTime.parse("2025-05-01T01:02:43.456789"),
+        sistEndret: LocalDateTime = LocalDateTime.parse("2025-05-01T01:02:45.456789"),
     ): NyKlagehendelse = NyKlagehendelse(
         klagehendelseId = klagehendelseId,
-        opprettet = LocalDateTime.parse("2025-05-01T01:02:43.456789"),
+        opprettet = LocalDateTime.parse("2025-05-01T01:02:45.456789"),
         sistEndret = sistEndret,
         eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
         key = "some-unused-uuid",
@@ -232,7 +232,7 @@ class KabalKlagehendelserConsumerTest {
                 kildeReferanse = kildeReferanse,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                sistEndret = LocalDateTime.parse("2025-05-01T01:02:44.456789"),
+                sistEndret = LocalDateTime.parse("2025-05-01T01:02:46.456789"),
             )
             tac.klagebehandlingContext.klagebehandlingRepo.hentForKlagebehandlingId(klagebehandling.id)!!.also {
                 val resultat = it.resultat as Klagebehandlingsresultat.Opprettholdt
@@ -241,8 +241,8 @@ class KabalKlagehendelserConsumerTest {
                         Klageinstanshendelse.BehandlingFeilregistrert(
                             klagehendelseId = klagehendelseId,
                             klagebehandlingId = klagebehandling.id,
-                            opprettet = LocalDateTime.parse("2025-05-01T01:02:43.456789"),
-                            sistEndret = LocalDateTime.parse("2025-05-01T01:02:44.456789"),
+                            opprettet = LocalDateTime.parse("2025-05-01T01:02:45.456789"),
+                            sistEndret = LocalDateTime.parse("2025-05-01T01:02:46.456789"),
                             eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
                             feilregistrertTidspunkt = LocalDateTime.parse("2025-01-01T01:02:03.456789"),
                             årsak = "Årsaken til at behandlingen endte opp som feilregistrert.",
@@ -261,10 +261,10 @@ class KabalKlagehendelserConsumerTest {
         kildeReferanse: String = "klage_01KJ36CZA345ZM2QWMBVWH8NN8",
         sakId: SakId? = null,
         klagebehandlingId: KlagebehandlingId? = null,
-        sistEndret: LocalDateTime = LocalDateTime.parse("2025-05-01T01:02:43.456789"),
+        sistEndret: LocalDateTime = LocalDateTime.parse("2025-05-01T01:02:45.456789"),
     ): NyKlagehendelse = NyKlagehendelse(
         klagehendelseId = klagehendelseId,
-        opprettet = LocalDateTime.parse("2025-05-01T01:02:43.456789"),
+        opprettet = LocalDateTime.parse("2025-05-01T01:02:45.456789"),
         sistEndret = sistEndret,
         eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
         key = "some-unused-uuid",

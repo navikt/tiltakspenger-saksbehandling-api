@@ -25,7 +25,7 @@ class OvertaKlagebehandlingRouteTest {
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678911",
                   "opprettet": "2025-01-01T01:02:36.456789",
-                  "sistEndret": "2025-01-01T01:02:37.456789",
+                  "sistEndret": "2025-01-01T01:02:38.456789",
                   "iverksattTidspunkt": null,
                   "saksbehandler": "saksbehandlerSomOvertar",
                   "journalpostId": "12345",

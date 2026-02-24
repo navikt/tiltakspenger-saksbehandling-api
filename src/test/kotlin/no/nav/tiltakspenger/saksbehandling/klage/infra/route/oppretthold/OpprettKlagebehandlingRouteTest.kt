@@ -41,7 +41,7 @@ class OpprettKlagebehandlingRouteTest {
                      "saksnummer": "${sak.saksnummer}",
                      "fnr": "12345678911",
                      "opprettet": "2025-01-01T01:02:36.456789",
-                     "sistEndret": "2025-01-01T01:02:39.456789",
+                     "sistEndret": "2025-01-01T01:02:40.456789",
                      "saksbehandler": "saksbehandlerKlagebehandling",
                      "journalpostId": "12345",
                      "journalpostOpprettet": "2025-01-01T01:02:35.456789",
@@ -78,7 +78,7 @@ class OpprettKlagebehandlingRouteTest {
                      "rammebehandlingId": null,
                      "ventestatus": null,
                      "hjemler": ["ARBEIDSMARKEDSLOVEN_17"],
-                     "iverksattOpprettholdelseTidspunkt": "2025-01-01T01:02:39.456789",
+                     "iverksattOpprettholdelseTidspunkt": "2025-01-01T01:02:40.456789",
                      "journalføringstidspunktInnstillingsbrev": null,
                      "distribusjonstidspunktInnstillingsbrev": null,
                      "oversendtKlageinstansenTidspunkt": null,
@@ -234,8 +234,8 @@ class OpprettKlagebehandlingRouteTest {
                 beslutter = beslutter,
             )!!
             rammevedtak.klagebehandling!!.also {
-                it.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:51.456789")
-                it.iverksattTidspunkt shouldBe LocalDateTime.parse("2025-01-01T01:02:51.456789")
+                it.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:52.456789")
+                it.iverksattTidspunkt shouldBe LocalDateTime.parse("2025-01-01T01:02:52.456789")
                 it.status shouldBe Klagebehandlingsstatus.VEDTATT
                 it.kanIverksetteVedtak shouldBe false
                 it.erVedtatt shouldBe true

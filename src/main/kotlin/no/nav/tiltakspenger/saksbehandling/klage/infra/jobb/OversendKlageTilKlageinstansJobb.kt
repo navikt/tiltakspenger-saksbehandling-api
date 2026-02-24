@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.jobb
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -42,17 +43,20 @@ class OversendKlageTilKlageinstansJobb(
                         }
                         // Left skal logges i klienten.
                         kabalClient.oversend(klagebehandling, journalpostIdVedtak).onRight {
-                            val statistikk =
-                                statistikkSakService.genererSaksstatistikkForKlagebehandlingOversendtTilKabal(
-                                    klagebehandling,
-                                )
-
                             sessionFactory.withTransactionContext { tx ->
                                 klagebehandlingRepo.markerOversendtTilKlageinstans(
                                     klagebehandling = klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(it.oversendtTidspunkt),
                                     metadata = it,
                                 )
-                                statistikkSakRepo.lagre(statistikk, tx)
+                                // TODO: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
+                                @Suppress("RunBlockingInSuspendFunction")
+                                runBlocking {
+                                    val statistikk =
+                                        statistikkSakService.genererSaksstatistikkForKlagebehandlingOversendtTilKabal(
+                                            klagebehandling,
+                                        )
+                                    statistikkSakRepo.lagre(statistikk, tx)
+                                }
                             }
                         }
                     }.onFailure { e ->

@@ -37,7 +37,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                   "saksnummer": "${sak.saksnummer}",
                   "fnr": "12345678911",
                   "opprettet": "2025-01-01T01:02:36.456789",
-                  "sistEndret": "2025-01-01T01:02:46.456789",
+                  "sistEndret": "2025-01-01T01:02:47.456789",
                   "iverksattTidspunkt": null,
                   "saksbehandler": null,
                   "journalpostId": "12345",
@@ -61,7 +61,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                   "rammebehandlingId": "${rammebehandlingMedKlagebehandling.id}",
                   "ventestatus": {
                     "sattPåVentAv": "saksbehandlerKlagebehandling",
-                    "tidspunkt": "2025-01-01T01:02:46.456789",
+                    "tidspunkt": "2025-01-01T01:02:47.456789",
                     "begrunnelse": "begrunnelse for å sette klage på vent",
                     "erSattPåVent": true,
                     "frist": "2025-01-14"
@@ -80,7 +80,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
             rammebehandlingMedKlagebehandling.ventestatus shouldBe Ventestatus(
                 listOf(
                     VentestatusHendelse(
-                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:45.456789"),
+                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:46.456789"),
                         endretAv = "saksbehandlerKlagebehandling",
                         begrunnelse = "begrunnelse for å sette klage på vent",
                         erSattPåVent = true,
@@ -89,7 +89,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                     ),
                 ),
             )
-            rammebehandlingMedKlagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:47.456789")
+            rammebehandlingMedKlagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:48.456789")
         }
     }
 
@@ -144,18 +144,18 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
     },
     "ytelser": [],
     "tiltakspengevedtakFraArena": [],
-    "oppslagstidspunkt": "2025-01-01T01:02:39.456789"
+    "oppslagstidspunkt": "2025-01-01T01:02:40.456789"
   },
   "attesteringer": [],
   "vedtaksperiode": null,
   "fritekstTilVedtaksbrev": null,
   "begrunnelseVilkårsvurdering": null,
   "avbrutt": null,
-  "sistEndret": "2025-01-01T01:02:47.456789",
+  "sistEndret": "2025-01-01T01:02:48.456789",
   "iverksattTidspunkt": null,
   "ventestatus": {
     "sattPåVentAv": "saksbehandlerKlagebehandling",
-    "tidspunkt": "2025-01-01T01:02:45.456789",
+    "tidspunkt": "2025-01-01T01:02:46.456789",
     "begrunnelse": "Begrunnelse for å sette rammebehandling på vent",
     "erSattPåVent": true,
     "frist": null
@@ -250,7 +250,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
             klagebehandling.ventestatus shouldBe Ventestatus(
                 listOf(
                     VentestatusHendelse(
-                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:46.456789"),
+                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:47.456789"),
                         endretAv = "saksbehandlerKlagebehandling",
                         begrunnelse = "Begrunnelse for å sette rammebehandling på vent",
                         erSattPåVent = true,
@@ -259,7 +259,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                     ),
                 ),
             )
-            klagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:46.456789")
+            klagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:47.456789")
         }
     }
 }
