@@ -39,6 +39,7 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val iverksattTidspunkt: LocalDateTime?
     val ventestatus: VentestatusHendelseDTO?
     val utbetaling: BehandlingUtbetalingDTO?
+    val utbetalingskontroll: UtbetalingskontrollDTO?
     val klagebehandlingId: String?
 }
 
@@ -60,6 +61,7 @@ data class SøknadsbehandlingDTO(
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
+    override val utbetalingskontroll: UtbetalingskontrollDTO?,
     override val klagebehandlingId: String?,
     @param:JsonUnwrapped val resultatDTO: SøknadsbehandlingResultatDTO,
     val søknad: SøknadDTO,
@@ -90,6 +92,7 @@ data class RevurderingDTO(
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     override val utbetaling: BehandlingUtbetalingDTO?,
+    override val utbetalingskontroll: UtbetalingskontrollDTO?,
     override val klagebehandlingId: String?,
     @param:JsonUnwrapped val resultatDTO: RevurderingResultatDTO,
 ) : RammebehandlingDTO,
@@ -151,6 +154,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
+        utbetalingskontroll = utbetalingskontroll?.tilDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilSøknadsbehandlingResultatDTO(),
         kanInnvilges = this.kanInnvilges,
         klagebehandlingId = this.klagebehandling?.id?.toString(),
@@ -180,6 +184,7 @@ fun Revurdering.tilRevurderingDTO(
         iverksattTidspunkt = this.iverksattTidspunkt,
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
+        utbetalingskontroll = utbetalingskontroll?.tilDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilRevurderingResultatDTO(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
     )

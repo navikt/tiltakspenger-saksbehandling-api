@@ -48,22 +48,6 @@ fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbeta
     }
 }
 
-private fun Simulering?.erLik(other: Simulering?): Boolean {
-    if (this == null && other == null) {
-        return true
-    }
-
-    if (this is Simulering.IngenEndring && other is Simulering.IngenEndring) {
-        return true
-    }
-
-    if (this is Simulering.Endring && other is Simulering.Endring) {
-        return this.simuleringPerMeldeperiode == other.simuleringPerMeldeperiode
-    }
-
-    return false
-}
-
 // Vi har ikke lov til å justere utbetalinger på tvers av meldeperioder
 private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(): Boolean {
     return simuleringPerMeldeperiode.any { meldeperiode ->

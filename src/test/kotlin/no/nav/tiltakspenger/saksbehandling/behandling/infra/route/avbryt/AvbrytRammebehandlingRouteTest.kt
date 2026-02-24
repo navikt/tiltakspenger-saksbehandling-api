@@ -1,13 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.avbryt
 
 import io.kotest.assertions.json.shouldEqualJson
-import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgAvbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
 import org.junit.jupiter.api.Test
 
@@ -151,6 +145,7 @@ class AvbrytRammebehandlingRouteTest {
   "iverksattTidspunkt": null,
   "ventestatus": null,
   "utbetaling": null,
+  "utbetalingskontroll": null,
   "resultat": "IKKE_VALGT",
   "søknad": {
     "id": "${søknad.id}",

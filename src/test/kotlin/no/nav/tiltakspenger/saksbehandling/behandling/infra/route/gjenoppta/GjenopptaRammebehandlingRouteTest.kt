@@ -61,7 +61,7 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
     "frist": null
   },
   "utbetaling": null,
-  "klagebehandlingId": null,
+  "utbetalingskontroll": null,
   "resultat": "IKKE_VALGT",
   "søknad": {
     "id": "${søknad.id}",

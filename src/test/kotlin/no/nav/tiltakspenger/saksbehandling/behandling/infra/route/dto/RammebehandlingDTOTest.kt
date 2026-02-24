@@ -155,6 +155,7 @@ class RammebehandlingDTOTest {
           "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
           "ventestatus": null,
           "utbetaling": null,
+          "utbetalingskontroll": null,
           "innvilgelsesperioder": [
             {
               "periode": {
@@ -365,6 +366,7 @@ class RammebehandlingDTOTest {
               "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
               "ventestatus": null,
               "utbetaling": null,
+              "utbetalingskontroll": null,
               "avslagsgrunner": [
                 "DeltarIkkePåArbeidsmarkedstiltak"
               ],
@@ -545,6 +547,7 @@ class RammebehandlingDTOTest {
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
+              "utbetalingskontroll": null,
               "resultat": "IKKE_VALGT",
               "søknad": {
                 "id": "soknad_01K8QWMR32C2X5Y5T4N945BF9V",
@@ -722,6 +725,7 @@ class RammebehandlingDTOTest {
           "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
           "ventestatus": null,
           "utbetaling": null,
+          "utbetalingskontroll": null,
           "innvilgelsesperioder": [
             {
               "periode": {
@@ -846,6 +850,7 @@ class RammebehandlingDTOTest {
               "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
               "ventestatus": null,
               "utbetaling": null,
+              "utbetalingskontroll": null,
               "valgtHjemmelHarIkkeRettighet": [
                 "DeltarIkkePåArbeidsmarkedstiltak"
               ],
@@ -985,6 +990,7 @@ class RammebehandlingDTOTest {
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
+              "utbetalingskontroll": null,
               "klagebehandlingId": null,
               "omgjørVedtak": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
               "resultat": "OMGJØRING_IKKE_VALGT",

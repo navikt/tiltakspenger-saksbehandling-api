@@ -105,6 +105,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
+              "utbetalingskontroll": null,
               "resultat": "IKKE_VALGT",
               "søknad": {
                 "id": "${rammebehandlingMedKlagebehandling.søknad.id}",
@@ -276,6 +277,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "iverksattTidspunkt": null,
               "ventestatus": null,
               "utbetaling": null,
+              "utbetalingskontroll": null,
               "innvilgelsesperioder": null,
               "barnetillegg": null,
               "resultat": "REVURDERING_INNVILGELSE",
@@ -370,6 +372,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                   "iverksattTidspunkt": null,
                   "ventestatus": null,
                   "utbetaling": null,
+                  "utbetalingskontroll": null,
                   "klagebehandlingId": "${klagebehandling.id}",
                   "omgjørVedtak": "${sak.vedtaksliste.rammevedtaksliste.first().id}",
                   "resultat": "OMGJØRING_IKKE_VALGT",

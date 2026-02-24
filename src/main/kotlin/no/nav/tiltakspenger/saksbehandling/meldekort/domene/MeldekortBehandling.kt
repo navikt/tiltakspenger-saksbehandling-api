@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningMedSimulering
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -177,12 +178,18 @@ sealed interface MeldekortBehandling : AttesterbarBehandling {
         }
     }
 
-    sealed interface Behandlet : MeldekortBehandling {
+    sealed interface Behandlet :
+        MeldekortBehandling,
+        BeregningMedSimulering {
         override val beregning: Beregning
         override val beløpTotal: Int get() = beregning.totalBeløp
         override val ordinærBeløp: Int get() = beregning.ordinærBeløp
         override val barnetilleggBeløp: Int get() = beregning.barnetilleggBeløp
         override val rammevedtak: List<VedtakId> get() = super.rammevedtak!!
+
+        override fun toSimulertBeregning(beregninger: MeldeperiodeBeregningerVedtatt): SimulertBeregning {
+            return super<BeregningMedSimulering>.toSimulertBeregning(beregninger)
+        }
 
         /**
          *  Perioden for beregningen av meldekortet.

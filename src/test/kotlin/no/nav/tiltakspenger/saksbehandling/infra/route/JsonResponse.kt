@@ -5,13 +5,14 @@ import io.kotest.assertions.json.equalJson
 import io.kotest.assertions.json.shouldContainJsonKeyValue
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.should
+import org.intellij.lang.annotations.Language
 
 infix fun String.harKode(forventetKode: String) {
     this.shouldContainJsonKeyValue("kode", forventetKode)
 }
 
 // Tilsvarer Kotest sin shouldEqualJson, med ignorerer verdier der både actual og expected er en datetime string
-fun String.shouldEqualJsonIgnoringTimestamps(expected: String): String {
+fun String.shouldEqualJsonIgnoringTimestamps(@Language("JSON") expected: String): String {
     return this.replaceTimestamps().shouldEqualJson(expected.replaceTimestamps())
 }
 

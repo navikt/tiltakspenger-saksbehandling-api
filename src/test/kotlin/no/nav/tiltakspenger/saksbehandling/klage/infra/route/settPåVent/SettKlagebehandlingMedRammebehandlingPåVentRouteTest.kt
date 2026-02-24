@@ -158,6 +158,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
     "frist": null
   },
   "utbetaling": null,
+  "utbetalingskontroll": null,
   "klagebehandlingId": "${klagebehandling.id}",
   "resultat": "IKKE_VALGT",
   "søknad": {

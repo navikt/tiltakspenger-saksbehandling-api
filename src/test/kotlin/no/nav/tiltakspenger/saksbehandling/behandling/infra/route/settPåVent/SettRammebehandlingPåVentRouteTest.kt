@@ -62,6 +62,7 @@ class SettRammebehandlingPåVentRouteTest {
     "frist": "${søknadsbehandling.ventestatus.sattPåVentFrist}"
   },
   "utbetaling": null,
+  "utbetalingskontroll": null,
   "resultat": "IKKE_VALGT",
   "søknad": {
     "id": "${søknad.id}",

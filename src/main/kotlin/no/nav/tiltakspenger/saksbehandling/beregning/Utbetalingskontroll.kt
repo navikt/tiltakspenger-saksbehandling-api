@@ -8,6 +8,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
  *  TODO abn: denne burde også benyttes for meldekortbehandlinger
  * */
 data class Utbetalingskontroll(
-    val beregning: Beregning,
-    val simulering: Simulering,
-)
+    override val beregning: Beregning,
+    override val simulering: Simulering,
+) : BeregningMedSimulering
