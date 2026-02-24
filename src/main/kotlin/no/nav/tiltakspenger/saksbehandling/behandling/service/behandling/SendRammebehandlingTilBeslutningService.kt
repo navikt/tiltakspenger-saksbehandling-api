@@ -50,7 +50,7 @@ class SendRammebehandlingTilBeslutningService(
         }
 
         behandlingMedUtbetalingskontroll.validerKanIverksetteUtbetaling().onLeft {
-            logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${kommando.behandlingId} / $it" }
+            logger.error { "Utbetaling på behandlingen har et resultat som ikke kan sendes til beslutning - ${kommando.behandlingId} / $it" }
             rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
             return KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil(it).left()
         }

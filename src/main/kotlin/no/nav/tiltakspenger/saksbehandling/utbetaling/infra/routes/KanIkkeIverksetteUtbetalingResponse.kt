@@ -7,17 +7,17 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUt
 fun KanIkkeIverksetteUtbetaling.tilErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
         KanIkkeIverksetteUtbetaling.SimuleringMangler -> HttpStatusCode.InternalServerError to ErrorJson(
-            "Simulering mangler - Behandlinger med utbetaling må simuleres for å kunne gå videre med behandlingen",
+            "Simulering mangler - Behandlinger med utbetaling må simuleres for å kunne gå videre.",
             "må_simuleres",
         )
 
         KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke -> HttpStatusCode.BadRequest to ErrorJson(
-            "Behandling med feilutbetaling støttes ikke på nåværende tidspunkt",
+            "Behandling med feilutbetaling støttes ikke på nåværende tidspunkt.",
             "støtter_ikke_feilutbetaling",
         )
 
         KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> HttpStatusCode.BadRequest to ErrorJson(
-            "Behandling med justering på tvers av måneder eller meldeperioder støttes ikke på nåværende tidspunkt",
+            "Behandling med justering på tvers av måneder eller meldeperioder støttes ikke på nåværende tidspunkt.",
             "støtter_ikke_justering",
         )
 
