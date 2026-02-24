@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostFakeClient
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalClientFake
+import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.LokalKabalHendelseService
 import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
@@ -288,6 +289,11 @@ class LocalApplicationContext(
             override val kabalClient: KabalClient = KabalClientFake(clock)
         }
     }
+    val lokalKabalHendelseService = LokalKabalHendelseService(
+        klagePostgresRepo = klagebehandlingContext.klagebehandlingRepo,
+        klagehendelsePostgresRepo = klagebehandlingContext.klagehendelseRepo,
+        clock = clock,
+    )
 
     init {
         val sakRepo = sakContext.sakRepo

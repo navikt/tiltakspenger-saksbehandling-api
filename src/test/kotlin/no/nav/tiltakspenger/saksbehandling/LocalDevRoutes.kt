@@ -8,8 +8,12 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.respondOk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenererLokalKabalHendelseCommand
+import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.LokalHendelseUtfall
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper.tilDomenePdl
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySakMedNySøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySøknadForFnr
@@ -17,6 +21,8 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySøknadForFnr
 internal const val DEV_ROUTE = "/dev"
 
 internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
+    val applicationContext = applicationContext as LocalApplicationContext
+
     data class NySøknadBody(
         val fnr: String?,
         val deltakelsesperiode: PeriodeDbJson?,
@@ -64,6 +70,25 @@ internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
                 )
                 call.respondText(saksnummer.verdi)
             }
+        }
+    }
+
+    data class NyKlagehendelseBody(
+        val klagebehandlingId: String,
+        val type: String,
+        val utfall: String,
+    )
+
+    post("$DEV_ROUTE/klage/hendelse") {
+        call.withBody<NyKlagehendelseBody> { body ->
+            applicationContext.lokalKabalHendelseService.genererHendelse(
+                command = GenererLokalKabalHendelseCommand(
+                    type = body.type,
+                    utfall = LokalHendelseUtfall.valueOf(body.utfall),
+                    klagebehandlingId = KlagebehandlingId.fromString(body.klagebehandlingId),
+                ),
+            )
+            call.respondOk()
         }
     }
 }
