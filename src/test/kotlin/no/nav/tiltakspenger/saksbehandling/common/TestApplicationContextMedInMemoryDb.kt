@@ -315,6 +315,8 @@ class TestApplicationContextMedInMemoryDb(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
+            statistikkSakRepo = statistikkContext.statistikkSakRepo,
+            statistikkSakService = statistikkContext.statistikkSakService,
             texasClient = texasClient,
         ) {
             override val klagebehandlingRepo = klagebehandlingFakeRepo

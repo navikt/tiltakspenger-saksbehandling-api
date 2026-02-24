@@ -96,6 +96,7 @@ class KlagebehandlingFakeRepo : KlagebehandlingRepo {
     override fun markerOversendtTilKlageinstans(
         klagebehandling: Klagebehandling,
         metadata: OversendtKlageTilKabalMetadata,
+        sessionContext: SessionContext?,
     ) {
         data.get()[klagebehandling.id] = klagebehandling
     }

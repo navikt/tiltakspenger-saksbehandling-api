@@ -66,10 +66,10 @@ fun genererSaksstatistikkForRammevedtak(
         resultatBegrunnelse = null,
 
         // skal være -5 for kode 6
-        opprettetAv = maskerHvisStrengtFortrolig(gjelderKode6, "system"),
+        opprettetAv = maskerHvisStrengtFortroligStrict(gjelderKode6, "system"),
         saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, behandling.saksbehandler),
         ansvarligBeslutter = maskerHvisStrengtFortrolig(gjelderKode6, behandling.beslutter),
-        ansvarligenhet = maskerHvisStrengtFortrolig(gjelderKode6, "0387"),
+        ansvarligenhet = maskerHvisStrengtFortroligStrict(gjelderKode6, "0387"),
 
         tilbakekrevingsbeløp = null,
         funksjonellPeriodeFom = null,
@@ -120,10 +120,10 @@ fun genererSaksstatistikkForBehandling(
         resultatBegrunnelse = null,
 
         // skal være -5 for kode 6
-        opprettetAv = maskerHvisStrengtFortrolig(gjelderKode6, "system"),
+        opprettetAv = maskerHvisStrengtFortroligStrict(gjelderKode6, "system"),
         saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, behandling.saksbehandler),
         ansvarligBeslutter = maskerHvisStrengtFortrolig(gjelderKode6, behandling.beslutter),
-        ansvarligenhet = maskerHvisStrengtFortrolig(gjelderKode6, "0387"),
+        ansvarligenhet = maskerHvisStrengtFortroligStrict(gjelderKode6, "0387"),
 
         tilbakekrevingsbeløp = null,
         funksjonellPeriodeFom = null,
@@ -187,10 +187,10 @@ fun genererSaksstatistikkForKlagebehandling(
         },
         resultatBegrunnelse = if (behandling.resultat is Klagebehandlingsresultat.Omgjør) behandling.resultat.årsak.tilResultatBegrunnelse().name else null,
         // skal være -5 for kode 6
-        opprettetAv = maskerHvisStrengtFortrolig(gjelderKode6, "system"),
+        opprettetAv = maskerHvisStrengtFortroligStrict(gjelderKode6, "system"),
         saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, behandling.saksbehandler),
         ansvarligBeslutter = null,
-        ansvarligenhet = maskerHvisStrengtFortrolig(gjelderKode6, "0387"),
+        ansvarligenhet = maskerHvisStrengtFortroligStrict(gjelderKode6, "0387"),
 
         tilbakekrevingsbeløp = null,
         funksjonellPeriodeFom = null,
@@ -206,13 +206,13 @@ fun maskerHvisStrengtFortrolig(
     verdi: String?,
 ): String? {
     return if (verdi != null) {
-        return maskerHvisStrengtFortrolig(erStrengtFortrolig, verdi)
+        return maskerHvisStrengtFortroligStrict(erStrengtFortrolig, verdi)
     } else {
         verdi
     }
 }
 
-fun maskerHvisStrengtFortrolig(
+fun maskerHvisStrengtFortroligStrict(
     erStrengtFortrolig: Boolean,
     verdi: String,
 ): String {
