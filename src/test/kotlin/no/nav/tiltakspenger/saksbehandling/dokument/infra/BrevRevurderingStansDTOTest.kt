@@ -51,7 +51,7 @@ class BrevRevurderingStansDTOTest {
                   "forhandsvisning": true,
                   "stansFraOgMedDato": "1. januar 2023",
                   "valgtHjemmelTekst": [
-                    "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 og 3 tredje ledd."
+                    "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
                   ],
                   "barnetillegg": false,
                   "kontor": "Nav Tiltakspenger"
@@ -97,7 +97,7 @@ class BrevRevurderingStansDTOTest {
                   "forhandsvisning": true,
                   "stansFraOgMedDato": "1. januar 2023",
                   "valgtHjemmelTekst": [
-                        "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger og barnetillegg.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
+                        "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger og barnetillegg.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
                   ],
                   "barnetillegg": true,
                   "kontor": "Nav Tiltakspenger"
