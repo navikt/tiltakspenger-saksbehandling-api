@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.infra.http
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.apache.Apache
+import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -17,14 +17,14 @@ import java.time.Duration
 
 private const val SIXTY_SECONDS = 60L
 
-fun httpClientApache(timeout: Long = SIXTY_SECONDS) = HttpClient(Apache).config(timeout)
+fun httpClientApache(timeout: Long = SIXTY_SECONDS) = HttpClient(Apache5).config(timeout)
 
 fun httpClientGeneric(
     engine: HttpClientEngine?,
     timeout: Long = SIXTY_SECONDS,
 ) = engine
     ?.let { HttpClient(engine).config(timeout) }
-    ?: HttpClient(Apache).config(timeout)
+    ?: HttpClient(Apache5).config(timeout)
 
 fun httpClientWithRetry(timeout: Long = SIXTY_SECONDS) =
     httpClientApache(timeout).also { httpClient ->
