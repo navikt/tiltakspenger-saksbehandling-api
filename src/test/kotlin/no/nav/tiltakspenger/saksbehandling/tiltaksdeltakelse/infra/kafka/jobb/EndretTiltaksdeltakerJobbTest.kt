@@ -48,6 +48,7 @@ import java.util.UUID
 class EndretTiltaksdeltakerJobbTest {
     private val startRevurderingService = mockk<StartRevurderingService>()
     private val leggTilbakeBehandlingService = mockk<LeggTilbakeRammebehandlingService>()
+    private val endretTiltaksdeltakerBehandlingService = EndretTiltaksdeltakerBehandlingService(startRevurderingService, leggTilbakeBehandlingService)
     private val oppgaveKlient = mockk<OppgaveKlient>()
     private val oppgaveId = OppgaveId("50")
 
@@ -76,8 +77,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                    leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -128,8 +128,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                    leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -176,8 +175,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                    leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -249,8 +247,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                    leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -325,8 +322,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                    leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -379,7 +375,7 @@ class EndretTiltaksdeltakerJobbTest {
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, forlengelse, deltakelsesmengde - oppretter oppgave`() {
+    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, forlengelse, deltakelsesmengde - oppretter oppgave og revurdering`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
@@ -391,8 +387,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                    leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -417,6 +412,20 @@ class EndretTiltaksdeltakerJobbTest {
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
                     ),
+                )
+                val revurdering = ObjectMother.nyOpprettetRevurderingInnvilgelse(
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    fnr = fnr,
+                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+                )
+                coEvery { startRevurderingService.startRevurdering(any()) } returns Pair(
+                    sak,
+                    revurdering,
+                )
+                coEvery { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) } returns Pair(
+                    sak,
+                    revurdering.copy(saksbehandler = null, status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
                     id = id,
@@ -444,8 +453,14 @@ class EndretTiltaksdeltakerJobbTest {
                             "- Deltakelsen har blitt forlenget",
                     )
                 }
-                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-                coVerify(exactly = 0) { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) }
+                coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.INNVILGELSE }) }
+                coVerify(exactly = 1) {
+                    leggTilbakeBehandlingService.leggTilbakeBehandling(
+                        sak.id,
+                        any(),
+                        AUTOMATISK_SAKSBEHANDLER,
+                    )
+                }
             }
         }
     }
@@ -463,8 +478,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                    leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -614,8 +628,7 @@ class EndretTiltaksdeltakerJobbTest {
                         oppgaveKlient = oppgaveKlient,
                         rammebehandlingRepo = behandlingRepo,
                         clock = testDataHelper.clock,
-                        startRevurderingService = startRevurderingService,
-                        leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                        endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                     )
                     val (sakMedFørstegangsvedtak, vedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
@@ -675,8 +688,7 @@ class EndretTiltaksdeltakerJobbTest {
                         oppgaveKlient = oppgaveKlient,
                         rammebehandlingRepo = behandlingRepo,
                         clock = testDataHelper.clock,
-                        startRevurderingService = startRevurderingService,
-                        leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                        endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                     )
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
@@ -764,8 +776,7 @@ class EndretTiltaksdeltakerJobbTest {
                         oppgaveKlient = oppgaveKlient,
                         rammebehandlingRepo = behandlingRepo,
                         clock = testDataHelper.clock,
-                        startRevurderingService = startRevurderingService,
-                        leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                        endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                     )
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterRammevedtakAvslag(
                         sakId = sak.id,
@@ -856,8 +867,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                    leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -929,8 +939,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                    leggTilbakeBehandlingService = leggTilbakeBehandlingService,
+                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
