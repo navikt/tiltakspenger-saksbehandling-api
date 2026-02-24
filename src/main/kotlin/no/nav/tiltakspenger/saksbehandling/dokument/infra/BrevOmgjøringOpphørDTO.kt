@@ -118,21 +118,21 @@ private fun HjemmelForOpphør.tilTekst(medBarnetillegg: Boolean): String? {
             """
                 Du har rett til annen pengestøtte til livsopphold i denne perioden.
                 
-                Deltakere som har rett til andre pengestøtter til livsopphold, har ikke samtidig rett til å få $tiltakspengerOgKanskjeBarnetillegg.
+                Deltakere som har rett til andre pengestøtter til livsopphold har ikke samtidig rett til å få $tiltakspengerOgKanskjeBarnetillegg.
                 
                 Dette kommer frem av arbeidsmarkedsloven § 13 første ledd, forskrift om tiltakspenger § 7 første ledd.
             """.trimIndent()
 
         HjemmelForOpphør.Kvalifiseringsprogrammet ->
             """
-                Du er deltaker i kvalifiseringsprogram i denne perioden. Deltakere i kvalifiseringsprogram, har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
+                Du er deltaker i kvalifiseringsprogram i denne perioden. Deltakere i kvalifiseringsprogram har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
                 
                 Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
             """.trimIndent()
 
         HjemmelForOpphør.Introduksjonsprogrammet ->
             """
-                Du er deltaker i introduksjonsprogram denne perioden. Deltakere i introduksjonsprogram, har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
+                Du er deltaker i introduksjonsprogram denne perioden. Deltakere i introduksjonsprogram har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
                 
                 Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
             """.trimIndent()
@@ -141,7 +141,7 @@ private fun HjemmelForOpphør.tilTekst(medBarnetillegg: Boolean): String? {
             """
                 Du mottar lønn fra tiltaksarrangøren for tiden i arbeidsmarkedstiltaket for denne perioden.
                 
-                Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket, har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
+                Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
                 
                 Dette kommer frem av tiltakspengeforskriften § 8.
             """.trimIndent()
@@ -161,7 +161,7 @@ private fun HjemmelForOpphør.tilTekst(medBarnetillegg: Boolean): String? {
             """
                 Du oppholder deg på en institusjon med gratis opphold, mat og drikke i denne perioden.
                 
-                Deltakere som har opphold i institusjon med gratis opphold, mat og drikke under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
+                Deltakere som har opphold i institusjon med gratis opphold, mat og drikke under gjennomføringen av arbeidsmarkedstiltaket har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
                 
                 Det er gjort unntak for opphold i barnevernsinstitusjoner. Dette kommer frem av tiltakspengeforskriften § 9.
             """.trimIndent()

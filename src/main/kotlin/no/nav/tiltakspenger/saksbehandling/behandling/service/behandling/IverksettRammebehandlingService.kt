@@ -29,7 +29,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
-import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -66,10 +65,6 @@ class IverksettRammebehandlingService(
         val sak: Sak = sakService.hentForSakId(sakId)
         // TODO jah: Mye som kan flyttes ut av service her
         val behandling: Rammebehandling = sak.hentRammebehandling(rammebehandlingId)!!
-
-        if (behandling.resultat is Omgjøringsresultat.OmgjøringOpphør && Configuration.isProd()) {
-            throw IllegalArgumentException("Iverksetting av omgjøring til opphør er ikke aktivert i prod")
-        }
 
         if (behandling.beslutter != beslutter.navIdent) {
             return KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter(
