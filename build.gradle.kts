@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val kotlinxCoroutinesVersion = "1.10.2"
 val kotestVersion = "6.1.3"
-val felleslibVersion = "0.0.689"
+val felleslibVersion = "0.0.697"
 val mockkVersion = "1.14.9"
 val ktorVersion = "3.4.0"
 val testContainersVersion = "2.0.3"
@@ -38,7 +38,7 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:texas:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:satser:$felleslibVersion")
 
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.14")
+    implementation("io.github.oshai:kotlin-logging-jvm:8.0.01")
     implementation("ch.qos.logback:logback-classic:1.5.32")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -62,7 +62,7 @@ dependencies {
 
     // Http
     implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-apache:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache5:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
     implementation("io.ktor:ktor-http:$ktorVersion")
@@ -70,7 +70,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$prometeusVersion")
 
     // Auth
-    api("com.auth0:java-jwt:4.5.0")
+    api("com.auth0:java-jwt:4.5.1")
     api("com.auth0:jwks-rsa:0.23.0")
 
     // DB
