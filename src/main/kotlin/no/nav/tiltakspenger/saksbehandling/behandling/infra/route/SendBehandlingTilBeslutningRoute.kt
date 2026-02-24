@@ -81,12 +81,12 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStat
         "må_være_under_behandling_eller_automatisk",
     )
 
-    is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> this.feil.tilErrorJson()
-
     KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent -> HttpStatusCode.BadRequest to ErrorJson(
         "Behandlingen er satt på vent",
         "behandlingen_er_pa_vent",
     )
 
-    is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil -> this.underliggende.tilSimuleringErrorJson()
+    is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> this.feil.tilErrorJson()
+
+    is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil -> this.feil.tilSimuleringErrorJson()
 }

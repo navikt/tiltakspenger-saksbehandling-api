@@ -5,7 +5,6 @@ import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -50,19 +49,9 @@ fun Route.iverksettRammebehandlingRoute(
                                 behandlingenEiesAvAnnenSaksbehandler(it.eiesAvBeslutter),
                             )
 
-                            KanIkkeIverksetteBehandling.KanIkkeHaUtbetaling -> call.respond400BadRequest(
-                                "Behandling med utbetaling kan ikke iverksettes på nåværende tidspunkt",
-                                "støtter_ikke_utbetaling",
-                            )
+                            is KanIkkeIverksetteBehandling.UtbetalingFeil -> call.respondJson(it.feil.tilErrorJson())
 
-                            is KanIkkeIverksetteBehandling.UtbetalingStøttesIkke -> call.respondJson(it.feil.tilErrorJson())
-
-                            is KanIkkeIverksetteBehandling.SimuleringFeilet -> call.respondJson(it.underliggende.tilSimuleringErrorJson())
-
-                            KanIkkeIverksetteBehandling.KunneIkkeHenteNavkontorForUtbetaling -> call.respond500InternalServerError(
-                                "Kunne ikke hente navkontor for utbetaling",
-                                "kunne_ikke_hente_navkontor_for_utbetaling",
-                            )
+                            is KanIkkeIverksetteBehandling.SimuleringFeil -> call.respondJson(it.feil.tilSimuleringErrorJson())
                         }
                     },
                     { (sak) ->

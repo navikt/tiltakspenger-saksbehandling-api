@@ -82,13 +82,13 @@ class IverksettRammebehandlingService(
             rammebehandlingId,
             beslutter,
         ).getOrElse {
-            return KanIkkeIverksetteBehandling.SimuleringFeilet(it).left()
+            return KanIkkeIverksetteBehandling.SimuleringFeil(it).left()
         }
 
         behandlingMedUtbetalingskontroll.validerKanIverksetteUtbetaling().onLeft {
             logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - $rammebehandlingId / $it" }
             rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
-            return KanIkkeIverksetteBehandling.UtbetalingStøttesIkke(it).left()
+            return KanIkkeIverksetteBehandling.UtbetalingFeil(it).left()
         }
 
         val attestering = Attestering(

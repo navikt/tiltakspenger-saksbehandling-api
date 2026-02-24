@@ -8,5 +8,5 @@ sealed interface KanIkkeSendeRammebehandlingTilBeslutter {
     data object MåVæreUnderBehandlingEllerAutomatisk : KanIkkeSendeRammebehandlingTilBeslutter
     data object ErPaVent : KanIkkeSendeRammebehandlingTilBeslutter
     data class UtbetalingFeil(val feil: KanIkkeIverksetteUtbetaling) : KanIkkeSendeRammebehandlingTilBeslutter
-    data class SimuleringFeil(val underliggende: KunneIkkeSimulere) : KanIkkeSendeRammebehandlingTilBeslutter
+    data class SimuleringFeil(val feil: KunneIkkeSimulere) : KanIkkeSendeRammebehandlingTilBeslutter
 }
