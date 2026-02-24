@@ -103,7 +103,7 @@ open class KlagebehandlingContext(
             klagebehandlingRepo = klagebehandlingRepo,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
-            sessionFactory = sessionFactory as PostgresSessionFactory,
+            sessionFactory = sessionFactory,
         )
     }
 
@@ -122,7 +122,7 @@ open class KlagebehandlingContext(
             klagebehandlingRepo = klagebehandlingRepo,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
-            sessionFactory = sessionFactory as PostgresSessionFactory,
+            sessionFactory = sessionFactory,
         )
     }
 
@@ -226,7 +226,7 @@ open class KlagebehandlingContext(
             klagebehandlingRepo = klagebehandlingRepo,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
-            sessionFactory = sessionFactory as PostgresSessionFactory,
+            sessionFactory = sessionFactory,
             clock = clock,
         )
     }
@@ -237,7 +237,7 @@ open class KlagebehandlingContext(
             klagebehandlingRepo = klagebehandlingRepo,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
-            sessionFactory = sessionFactory as PostgresSessionFactory,
+            sessionFactory = sessionFactory,
             clock = clock,
         )
     }
@@ -247,7 +247,7 @@ open class KlagebehandlingContext(
             klagebehandlingRepo = klagebehandlingRepo,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
-            sessionFactory = sessionFactory as PostgresSessionFactory,
+            sessionFactory = sessionFactory,
         )
     }
 
@@ -258,7 +258,7 @@ open class KlagebehandlingContext(
             kabalClient = kabalClient,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
-            sessionFactory = sessionFactory as PostgresSessionFactory,
+            sessionFactory = sessionFactory,
         )
     }
 }
