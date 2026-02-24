@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehan
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
-class OpprettKlagebehandlingRouteTest {
+class OpprettholdKlagebehandlingRouteTest {
     @Test
     fun `kan opprettholde klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
