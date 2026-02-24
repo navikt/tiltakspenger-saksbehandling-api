@@ -6,9 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 sealed interface KanIkkeSendeRammebehandlingTilBeslutter {
     data class BehandlingenEiesAvAnnenSaksbehandler(val eiesAvSaksbehandler: String?) : KanIkkeSendeRammebehandlingTilBeslutter
     data object MåVæreUnderBehandlingEllerAutomatisk : KanIkkeSendeRammebehandlingTilBeslutter
-    data class UtbetalingStøttesIkke(val feil: KanIkkeIverksetteUtbetaling) : KanIkkeSendeRammebehandlingTilBeslutter
     data object ErPaVent : KanIkkeSendeRammebehandlingTilBeslutter
-    data class SimuleringFeilet(val underliggende: KunneIkkeSimulere) : KanIkkeSendeRammebehandlingTilBeslutter
-    data object SimuleringEndret : KanIkkeSendeRammebehandlingTilBeslutter
-    data object KunneIkkeHenteNavkontorForUtbetaling : KanIkkeSendeRammebehandlingTilBeslutter
+    data class UtbetalingFeil(val feil: KanIkkeIverksetteUtbetaling) : KanIkkeSendeRammebehandlingTilBeslutter
+    data class SimuleringFeil(val underliggende: KunneIkkeSimulere) : KanIkkeSendeRammebehandlingTilBeslutter
 }

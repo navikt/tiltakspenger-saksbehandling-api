@@ -177,8 +177,8 @@ data class Revurdering(
     }
 
     override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?): Revurdering {
-        require(this.erUnderBehandlingEllerBeslutning) {
-            "Forventet at behandlingen var under behandling eller beslutning ved oppdatering av utbetaling, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
+        require(this.erUnderBehandling) {
+            "Forventet at behandlingen var under behandling ved oppdatering av utbetaling, men var: ${this.status} for sakId: $sakId og behandlingId: $id"
         }
         return this.copy(utbetaling = oppdatertUtbetaling)
     }

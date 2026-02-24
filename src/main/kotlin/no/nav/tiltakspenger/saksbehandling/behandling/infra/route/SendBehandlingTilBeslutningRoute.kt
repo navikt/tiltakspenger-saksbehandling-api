@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilUtbetalingErrorJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
 
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutning"
 
@@ -81,25 +81,12 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStat
         "må_være_under_behandling_eller_automatisk",
     )
 
-    is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingStøttesIkke -> this.feil.tilUtbetalingErrorJson()
+    is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> this.feil.tilErrorJson()
 
     KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent -> HttpStatusCode.BadRequest to ErrorJson(
         "Behandlingen er satt på vent",
         "behandlingen_er_pa_vent",
     )
 
-    KanIkkeSendeRammebehandlingTilBeslutter.SimuleringEndret -> HttpStatusCode.Conflict to ErrorJson(
-        "Simulering av utbetaling har endret seg. Se over beregning og simulering på nytt og prøv igjen.",
-        "simulering_endret",
-    )
-
-    is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeilet -> HttpStatusCode.InternalServerError to ErrorJson(
-        "Kunne ikke simulere: ${this.underliggende}",
-        "simulering_feilet",
-    )
-
-    KanIkkeSendeRammebehandlingTilBeslutter.KunneIkkeHenteNavkontorForUtbetaling -> HttpStatusCode.InternalServerError to ErrorJson(
-        "Kunne ikke hente navkontor for utbetaling",
-        "kunne_ikke_hente_navkontor_for_utbetaling",
-    )
+    is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil -> this.underliggende.tilSimuleringErrorJson()
 }

@@ -1,12 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.UlidBase
-import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -20,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import java.time.Clock
 
 private const val OPPDATER_SIMULERING_PATH = "/sak/{sakId}/behandling/{behandlingId}/oppdaterSimulering"
@@ -50,31 +47,7 @@ fun Route.oppdaterSimuleringRoute(
                 saksbehandler = saksbehandler,
             ).fold(
                 ifLeft = {
-                    when (it) {
-                        KunneIkkeSimulere.Stengt -> call.respondJson(
-                            status = HttpStatusCode.ServiceUnavailable,
-                            value = ErrorJson(
-                                "Økonomisystemet er stengt. Typisk åpningstider er mellom 6 og 21 på hverdager og visse lørdager.",
-                                "økonomisystemet_er_stengt",
-                            ),
-                        )
-
-                        KunneIkkeSimulere.UkjentFeil -> call.respondJson(
-                            status = HttpStatusCode.InternalServerError,
-                            value = ErrorJson(
-                                "Ukjent feil ved simulering",
-                                "ukjent_feil_ved_simulering",
-                            ),
-                        )
-
-                        KunneIkkeSimulere.Timeout -> call.respondJson(
-                            status = HttpStatusCode.RequestTimeout,
-                            value = ErrorJson(
-                                "Tjenesten for simulering svarte ikke (time-out). Du kan prøve igjen.",
-                                "timeout_ved_simulering",
-                            ),
-                        )
-                    }
+                    call.respondJson(it.tilSimuleringErrorJson())
                 },
                 ifRight = { (sak, behandling) ->
                     behandling.fold(

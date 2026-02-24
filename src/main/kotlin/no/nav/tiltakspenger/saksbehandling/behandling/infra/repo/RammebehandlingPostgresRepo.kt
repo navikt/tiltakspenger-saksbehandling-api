@@ -359,11 +359,12 @@ class RammebehandlingPostgresRepo(
 
             val innvilgelsesperioder = stringOrNull("innvilgelsesperioder")?.tilInnvilgelsesperioder()
 
-            // TODO abn: husk å optimaliser dette før merge, burde ikke hente ut alle meldeperiodekjedene for alle behandlinger :|
-            val meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(
-                sakId = sakId,
-                session = session,
-            )
+            val meldeperiodekjeder by lazy {
+                MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(
+                    sakId = sakId,
+                    session = session,
+                )
+            }
 
             val utbetaling = stringOrNull("beregning")?.let {
                 BehandlingUtbetaling(

@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilUtbetalingErrorJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
 
 fun Route.iverksettRammebehandlingRoute(
     iverksettRammebehandlingService: IverksettRammebehandlingService,
@@ -55,12 +55,9 @@ fun Route.iverksettRammebehandlingRoute(
                                 "støtter_ikke_utbetaling",
                             )
 
-                            is KanIkkeIverksetteBehandling.UtbetalingStøttesIkke -> call.respondJson(it.feil.tilUtbetalingErrorJson())
+                            is KanIkkeIverksetteBehandling.UtbetalingStøttesIkke -> call.respondJson(it.feil.tilErrorJson())
 
-                            is KanIkkeIverksetteBehandling.SimuleringFeilet -> call.respond500InternalServerError(
-                                "Kunne ikke simulere: ${it.underliggende}",
-                                "simulering_feilet",
-                            )
+                            is KanIkkeIverksetteBehandling.SimuleringFeilet -> call.respondJson(it.underliggende.tilSimuleringErrorJson())
 
                             KanIkkeIverksetteBehandling.KunneIkkeHenteNavkontorForUtbetaling -> call.respond500InternalServerError(
                                 "Kunne ikke hente navkontor for utbetaling",

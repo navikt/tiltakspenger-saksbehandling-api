@@ -63,7 +63,7 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 @Language("JSON")
                 val expectedResponse = """
                 {
-                    "melding": "Simulering av utbetaling har endret seg siden behandlingen ble sendt til beslutning.",
+                    "melding": "Kontrollsimuleringen har endringer sammenlignet med forrige simulering.",
                     "kode": "simulering_endret"                        
                 }
                 """.trimIndent()
@@ -140,7 +140,7 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 @Language("JSON")
                 val expectedResponse = """
                 {
-                    "melding": "Simulering av utbetaling har endret seg siden behandlingen ble sendt til beslutning.",
+                    "melding": "Kontrollsimuleringen har endringer sammenlignet med forrige simulering.",
                     "kode": "simulering_endret"                        
                 }
                 """.trimIndent()
@@ -203,7 +203,7 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 @Language("JSON")
                 val expectedResponse = """
                 {
-                    "melding": "Simulering av utbetaling har endret seg siden behandlingen ble sendt til beslutning.",
+                    "melding": "Kontrollsimuleringen har endringer sammenlignet med forrige simulering.",
                     "kode": "simulering_endret"                        
                 }
                 """.trimIndent()

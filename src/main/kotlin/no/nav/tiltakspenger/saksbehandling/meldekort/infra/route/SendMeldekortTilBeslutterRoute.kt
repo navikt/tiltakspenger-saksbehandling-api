@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekor
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutterService
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilUtbetalingErrorJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
 import java.time.Clock
 
 fun Route.sendMeldekortTilBeslutterRoute(
@@ -58,7 +58,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
 
                             is KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
 
-                            is KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(valueAndStatus = it.feil.tilUtbetalingErrorJson())
+                            is KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(valueAndStatus = it.feil.tilErrorJson())
                         }
                     },
                     ifRight = {

@@ -98,7 +98,7 @@ class IverksettRammebehandlingService(
             tidspunkt = nå(clock),
         )
         // Denne validerer saksbehandler
-        val iverksattRammebehandling = behandling.iverksett(
+        val iverksattRammebehandling = behandlingMedUtbetalingskontroll.iverksett(
             utøvendeBeslutter = beslutter,
             attestering = attestering,
             correlationId = correlationId,

@@ -4,10 +4,10 @@ import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 
-fun KanIkkeIverksetteUtbetaling.tilUtbetalingErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+fun KanIkkeIverksetteUtbetaling.tilErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
         KanIkkeIverksetteUtbetaling.SimuleringMangler -> HttpStatusCode.InternalServerError to ErrorJson(
-            "Behandling med utbetaling må simuleres for å kunne sende til beslutning",
+            "Simulering mangler - Behandlinger med utbetaling må simuleres for å kunne gå videre med behandlingen",
             "må_simuleres",
         )
 
@@ -22,7 +22,7 @@ fun KanIkkeIverksetteUtbetaling.tilUtbetalingErrorJson(): Pair<HttpStatusCode, E
         )
 
         KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer -> HttpStatusCode.Conflict to ErrorJson(
-            "Simulering av utbetaling har endret seg siden behandlingen ble sendt til beslutning.",
+            "Kontrollsimuleringen har endringer sammenlignet med forrige simulering.",
             "simulering_endret",
         )
     }

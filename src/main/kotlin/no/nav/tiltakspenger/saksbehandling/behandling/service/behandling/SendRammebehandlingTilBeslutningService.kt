@@ -46,13 +46,13 @@ class SendRammebehandlingTilBeslutningService(
             behandlingId,
             kommando.saksbehandler,
         ).getOrElse {
-            return KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeilet(it).left()
+            return KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil(it).left()
         }
 
         behandlingMedUtbetalingskontroll.validerKanIverksetteUtbetaling().onLeft {
             logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${kommando.behandlingId} / $it" }
             rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
-            return KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingStøttesIkke(it).left()
+            return KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil(it).left()
         }
 
         return behandlingMedUtbetalingskontroll.tilBeslutning(
