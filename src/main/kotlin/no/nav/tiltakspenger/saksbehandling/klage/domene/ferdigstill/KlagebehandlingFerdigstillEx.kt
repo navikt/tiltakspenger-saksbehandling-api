@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import java.time.Clock
 
 fun Klagebehandling.ferdigstill(
@@ -28,8 +27,7 @@ fun Klagebehandling.ferdigstill(
         return KunneIkkeFerdigstilleKlagebehandling.KreverUtfallFraKlageinstans.left()
     }
 
-    val sisteHendelse = this.resultat.klageinstanshendelser.last()
-    if (sisteHendelse is Klageinstanshendelse.KlagebehandlingAvsluttet && (sisteHendelse.utfall == Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.OPPHEVET || sisteHendelse.utfall == Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD || sisteHendelse.utfall == Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.DELVIS_MEDHOLD || sisteHendelse.utfall == Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.UGUNST)) {
+    if (!kanFerdigstilleUtenNyRammebehandling) {
         return KunneIkkeFerdigstilleKlagebehandling.UtfallFraKlageinstansSkalFøreTilNyRammebehandling.left()
     }
 

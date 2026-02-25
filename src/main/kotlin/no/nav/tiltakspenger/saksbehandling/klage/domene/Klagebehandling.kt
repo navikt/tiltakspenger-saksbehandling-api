@@ -84,6 +84,15 @@ data class Klagebehandling(
     val erKnyttetTilRammebehandling: Boolean = resultat?.erKnyttetTilRammebehandling == true
     val rammebehandlingId: BehandlingId? = resultat?.rammebehandlingId
 
+    val sisteHendelse = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.klageinstanshendelser?.lastOrNull()
+    val kanFerdigstilleUtenNyRammebehandling = sisteHendelse is Klageinstanshendelse.KlagebehandlingAvsluttet &&
+        (
+            sisteHendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.OPPHEVET &&
+                sisteHendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD &&
+                sisteHendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.DELVIS_MEDHOLD &&
+                sisteHendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.UGUNST
+            )
+
     /**
      * Siden vi i alle tilfeller genererer brevet på nytt, må vi skille på om vi skal akseptere forhåndsvisningens parametre eller ikke.
      * Etter vi har passert et visst punkt i behandlingen, skal ikke saksbehandler kunne påvirke innholdet i brevet lenger.
