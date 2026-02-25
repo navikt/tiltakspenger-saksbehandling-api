@@ -73,9 +73,21 @@ fun Route.ferdigstillKlagebehandlingRoute(
 
 fun KunneIkkeFerdigstilleKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
-        KunneIkkeFerdigstilleKlagebehandling.KreverUtfallFraKlageinstans -> TODO()
+        KunneIkkeFerdigstilleKlagebehandling.KreverUtfallFraKlageinstans -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "krever_utfall_fra_klageinstans",
+                "Klagebehandlingen må ha et utfall fra klageinstansen for å kunne ferdigstilles",
+            ),
+        )
 
-        KunneIkkeFerdigstilleKlagebehandling.ResultatMåVæreOpprettholdt -> TODO()
+        KunneIkkeFerdigstilleKlagebehandling.ResultatMåVæreOpprettholdt -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "resultat_må_være_opprettholdt",
+                "Klagebehandlingen må ha resultat opprettholdt for å kunne ferdigstilles",
+            ),
+        )
 
         is KunneIkkeFerdigstilleKlagebehandling.SaksbehandlerMismatch -> Pair(
             HttpStatusCode.BadRequest,
@@ -84,6 +96,12 @@ fun KunneIkkeFerdigstilleKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatus
             ),
         )
 
-        KunneIkkeFerdigstilleKlagebehandling.UtfallFraKlageinstansSkalFøreTilNyRammebehandling -> TODO()
+        KunneIkkeFerdigstilleKlagebehandling.UtfallFraKlageinstansSkalFøreTilNyRammebehandling -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "utfall_fra_klageinstans_skal_føre_til_ny_rammebehandling",
+                "Klagebehandlingen har et utfall fra klageinstansen som skal føre til ny rammebehandling, og kan derfor ikke ferdigstilles",
+            ),
+        )
     }
 }
