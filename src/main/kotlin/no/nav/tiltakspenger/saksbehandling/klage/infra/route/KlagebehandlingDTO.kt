@@ -42,7 +42,7 @@ data class KlagebehandlingDTO(
     val kanIverksetteVedtak: Boolean?,
     val kanIverksetteOpprettholdelse: Boolean,
     val årsak: String?,
-    val hjemler: List<KlagehjemmelDto>?,
+    val hjemler: List<KlagehjemmelDto>,
     val begrunnelse: String?,
     val rammebehandlingId: String?,
     val ventestatus: VentestatusHendelseDTO?,
@@ -50,7 +50,7 @@ data class KlagebehandlingDTO(
     val journalføringstidspunktInnstillingsbrev: LocalDateTime?,
     val distribusjonstidspunktInnstillingsbrev: LocalDateTime?,
     val oversendtKlageinstansenTidspunkt: LocalDateTime?,
-    val klageinstanshendelser: List<KlageinstanshendelseDTO>?,
+    val klageinstanshendelser: List<KlageinstanshendelseDTO>,
 ) {
     data class TittelOgTekstDTO(
         val tittel: String,
@@ -95,12 +95,12 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     begrunnelse = (resultat as? Klagebehandlingsresultat.Omgjør)?.begrunnelse?.verdi,
     rammebehandlingId = (resultat as? Klagebehandlingsresultat.Omgjør)?.rammebehandlingId?.toString(),
     ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
-    hjemler = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.hjemler?.toKlagehjemmelDto(),
+    hjemler = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.hjemler?.toKlagehjemmelDto() ?: emptyList(),
     innsendingsdato = this.formkrav.innsendingsdato,
     innsendingskilde = this.formkrav.innsendingskilde.toDto(),
     iverksattOpprettholdelseTidspunkt = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.iverksattOpprettholdelseTidspunkt,
     journalføringstidspunktInnstillingsbrev = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.journalføringstidspunktInnstillingsbrev,
     distribusjonstidspunktInnstillingsbrev = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.distribusjonstidspunktInnstillingsbrev,
     oversendtKlageinstansenTidspunkt = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.oversendtKlageinstansenTidspunkt,
-    klageinstanshendelser = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.klageinstanshendelser?.toDTO(),
+    klageinstanshendelser = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.klageinstanshendelser?.toDTO() ?: emptyList(),
 )

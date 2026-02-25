@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 fun String.shouldBeKlagebehandlingDTO(
     ignorerTidspunkt: Boolean = true,
     sakId: SakId,
-    saksnummer: Saksnummer,
+    saksnummer: Saksnummer = Saksnummer("202501011001"),
     klagebehandlingId: KlagebehandlingId,
     opprettet: LocalDateTime = LocalDateTime.parse("2025-01-01T01:02:07.456789"),
     sistEndret: LocalDateTime = LocalDateTime.parse("2025-01-01T01:02:07.456789"),
@@ -20,7 +20,7 @@ fun String.shouldBeKlagebehandlingDTO(
     journalpostId: String = "12345",
     journalpostOpprettet: LocalDateTime = LocalDateTime.parse("2025-01-01T01:02:06.456789"),
     status: String = "UNDER_BEHANDLING",
-    resultat: String = "AVVIST",
+    resultat: String? = null,
     vedtakDetKlagesPå: String? = null,
     erKlagerPartISaken: Boolean = true,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
@@ -31,18 +31,18 @@ fun String.shouldBeKlagebehandlingDTO(
     innsendingskilde: String = "DIGITAL",
     brevtekst: List<Any> = emptyList(),
     avbrutt: String? = null,
-    kanIverksetteVedtak: Boolean = false,
+    kanIverksetteVedtak: Boolean? = false,
     kanIverksetteOpprettholdelse: Boolean = false,
     årsak: String? = null,
     begrunnelse: String? = null,
     rammebehandlingId: String? = null,
     ventestatus: String? = null,
-    hjemler: String? = null,
+    hjemler: List<String> = emptyList(),
     iverksattOpprettholdelseTidspunkt: String? = null,
     journalføringstidspunktInnstillingsbrev: String? = null,
     distribusjonstidspunktInnstillingsbrev: String? = null,
     oversendtKlageinstansenTidspunkt: String? = null,
-    klageinstanshendelser: String? = null,
+    klageinstanshendelser: List<String> = emptyList(),
 ) {
     val expected =
         """
@@ -58,7 +58,7 @@ fun String.shouldBeKlagebehandlingDTO(
          "journalpostId": "$journalpostId",
          "journalpostOpprettet": "$journalpostOpprettet",
          "status": "$status",
-         "resultat": "$resultat",
+         "resultat": ${resultat.toJsonValue()},
          "vedtakDetKlagesPå": ${vedtakDetKlagesPå.toJsonValue()},
          "erKlagerPartISaken": $erKlagerPartISaken,
          "klagesDetPåKonkreteElementerIVedtaket": $klagesDetPåKonkreteElementerIVedtaket,
@@ -68,19 +68,19 @@ fun String.shouldBeKlagebehandlingDTO(
          "innsendingsdato": "$innsendingsdato",
          "innsendingskilde": "$innsendingskilde",
          "brevtekst": ${if (brevtekst.isEmpty()) "[]" else brevtekst.toString()},
-         "avbrutt": ${avbrutt.toJsonValue()},
+         "avbrutt": $avbrutt,
          "kanIverksetteVedtak": $kanIverksetteVedtak,
          "kanIverksetteOpprettholdelse": $kanIverksetteOpprettholdelse,
          "årsak": ${årsak.toJsonValue()},
          "begrunnelse": ${begrunnelse.toJsonValue()},
          "rammebehandlingId": ${rammebehandlingId.toJsonValue()},
-         "ventestatus": ${ventestatus.toJsonValue()},
-         "hjemler": ${hjemler.toJsonValue()},
+         "ventestatus": $ventestatus,
+         "hjemler": [ ${hjemler.joinToString{ "\"$it\""}} ],
          "iverksattOpprettholdelseTidspunkt": ${iverksattOpprettholdelseTidspunkt.toJsonValue()},
          "journalføringstidspunktInnstillingsbrev": ${journalføringstidspunktInnstillingsbrev.toJsonValue()},
          "distribusjonstidspunktInnstillingsbrev": ${distribusjonstidspunktInnstillingsbrev.toJsonValue()},
          "oversendtKlageinstansenTidspunkt": ${oversendtKlageinstansenTidspunkt.toJsonValue()},
-         "klageinstanshendelser": ${klageinstanshendelser.toJsonValue()}
+         "klageinstanshendelser": [ ${klageinstanshendelser.joinToString{ "\"$it\""}} ]
        }
         """.trimIndent()
     if (ignorerTidspunkt) {
