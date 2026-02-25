@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 private data class SimuleringDbJson(
     val simulering: SimuleringEndringDbJson?,
     val type: Type,
-    val simuleringstidspunkt: LocalDateTime?,
+    val simuleringstidspunkt: LocalDateTime,
 ) {
     init {
         if (type == Type.ENDRING) {
@@ -30,7 +30,7 @@ private data class SimuleringDbJson(
 
     fun toDomain(hentMeldeperiodekjederForSakId: MeldeperiodeKjeder): Simulering {
         return when (type) {
-            Type.ENDRING -> simulering!!.toEndring(hentMeldeperiodekjederForSakId, this.simuleringstidspunkt)
+            Type.ENDRING -> simulering!!.toEndring(hentMeldeperiodekjederForSakId, simuleringstidspunkt)
             Type.INGEN_ENDRING -> Simulering.IngenEndring(simuleringstidspunkt)
         }
     }
@@ -104,7 +104,7 @@ private data class SimuleringEndringDbJson(
 
     fun toEndring(
         meldeperiodeKjeder: MeldeperiodeKjeder,
-        simuleringstidspunkt: LocalDateTime?,
+        simuleringstidspunkt: LocalDateTime,
     ): Simulering.Endring {
         return Simulering.Endring(
             datoBeregnet = this.datoBeregnet,

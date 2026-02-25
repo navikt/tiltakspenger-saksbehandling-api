@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.UtbetalingskontrollDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilUtbetalingskontrollDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
@@ -154,7 +156,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
-        utbetalingskontroll = utbetalingskontroll?.tilDTO(utbetaling, beregninger),
+        utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilSøknadsbehandlingResultatDTO(),
         kanInnvilges = this.kanInnvilges,
         klagebehandlingId = this.klagebehandling?.id?.toString(),
@@ -184,7 +186,7 @@ fun Revurdering.tilRevurderingDTO(
         iverksattTidspunkt = this.iverksattTidspunkt,
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
-        utbetalingskontroll = utbetalingskontroll?.tilDTO(utbetaling, beregninger),
+        utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilRevurderingResultatDTO(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
     )

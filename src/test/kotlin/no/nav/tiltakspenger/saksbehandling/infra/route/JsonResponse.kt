@@ -11,12 +11,12 @@ infix fun String.harKode(forventetKode: String) {
     this.shouldContainJsonKeyValue("kode", forventetKode)
 }
 
-// Tilsvarer Kotest sin shouldEqualJson, med ignorerer verdier der både actual og expected er en datetime string
+// Tilsvarer Kotest sin shouldEqualJson, men ignorerer verdier der både actual og expected er en datetime string
 fun String.shouldEqualJsonIgnoringTimestamps(@Language("JSON") expected: String): String {
     return this.replaceTimestamps().shouldEqualJson(expected.replaceTimestamps())
 }
 
-// Tilsvarer Kotest sin shouldEqualJson, med ignorerer verdier der både actual og expected er en datetime string
+// Tilsvarer Kotest sin shouldEqualJson, men ignorerer verdier der både actual og expected er en datetime string
 fun String.shouldEqualJsonIgnoringTimestamps(configureAndProvideExpected: CompareJsonOptions.() -> String): String {
     val options = CompareJsonOptions()
     val expected = options.configureAndProvideExpected().replaceTimestamps()
