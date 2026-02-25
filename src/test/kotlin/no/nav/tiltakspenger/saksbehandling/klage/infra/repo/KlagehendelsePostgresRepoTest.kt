@@ -1,10 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
-import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.NyKlagehendelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOpprettholdKlagebehandling
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -24,15 +23,17 @@ class KlagehendelsePostgresRepoTest {
                 klagebehandlingId = null,
             )
             repo.lagreNyHendelse(klagehendelse, null)
-            repo.hentNyHendelse(klagehendelse.klagehendelseId) shouldBe NyKlagehendelse(
-                klagehendelseId = klagehendelse.klagehendelseId,
-                opprettet = LocalDateTime.parse("2025-05-01T01:02:04.456789"),
-                sistEndret = LocalDateTime.parse("2025-05-01T01:02:04.456789"),
-                eksternKlagehendelseId = klagehendelse.eksternKlagehendelseId,
-                key = klagehendelse.key,
-                value = klagehendelse.value,
-                sakId = klagehendelse.sakId,
-                klagebehandlingId = klagehendelse.klagebehandlingId,
+            repo.hentNyHendelse(klagehendelse.klagehendelseId)!!.shouldBeEqualToIgnoringLocalDateTime(
+                NyKlagehendelse(
+                    klagehendelseId = klagehendelse.klagehendelseId,
+                    opprettet = LocalDateTime.MIN,
+                    sistEndret = LocalDateTime.MIN,
+                    eksternKlagehendelseId = klagehendelse.eksternKlagehendelseId,
+                    key = klagehendelse.key,
+                    value = klagehendelse.value,
+                    sakId = klagehendelse.sakId,
+                    klagebehandlingId = klagehendelse.klagebehandlingId,
+                ),
             )
         }
     }

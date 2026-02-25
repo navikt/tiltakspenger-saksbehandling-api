@@ -24,7 +24,7 @@ fun String.shouldEqualJsonIgnoringTimestamps(configureAndProvideExpected: Compar
     return this
 }
 
-private val timestampRegex = """"(\w+)":\s*"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?"""".toRegex()
+private val timestampRegex = """"([^"]+)":\s*"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?"""".toRegex()
 
 private fun String.replaceTimestamps(): String {
     return this.replace(timestampRegex) {

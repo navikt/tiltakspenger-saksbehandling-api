@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
@@ -11,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.Vurderingstype
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
@@ -37,46 +37,19 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                     journalpostId = JournalpostId("123456"),
                     vedtakDetKlagesPå = VedtakId.fromString("vedtak_01KEYFMDNGXAFAYW1CD1X47CND"),
                 )!!
-            json.toString().shouldEqualJson(
-                """
-                {
-                  "id": "${klagebehandling.id}",
-                  "sakId": "${sak.id}",
-                  "saksnummer": "${sak.saksnummer}",
-                  "fnr": "12345678912",
-                  "opprettet": "2025-01-01T01:02:07.456789",
-                  "sistEndret": "2025-01-01T01:02:10.456789",
-                  "iverksattTidspunkt": null,
-                  "saksbehandler": "saksbehandlerKlagebehandling",
-                  "journalpostId": "123456",
-                  "journalpostOpprettet": "2025-01-01T01:02:09.456789",
-                  "status": "UNDER_BEHANDLING",
-                  "resultat": "AVVIST",
-                  "vedtakDetKlagesPå": "vedtak_01KEYFMDNGXAFAYW1CD1X47CND",
-                  "erKlagerPartISaken": false,
-                  "klagesDetPåKonkreteElementerIVedtaket": false,
-                  "erKlagefristenOverholdt": false,
-                  "erUnntakForKlagefrist": "NEI",
-                  "erKlagenSignert": false,
-                  "innsendingsdato": "2026-02-16",
-                  "innsendingskilde": "DIGITAL",
-                  "brevtekst": [],
-                  "avbrutt": null,
-                  "kanIverksetteVedtak": false,
-                  "kanIverksetteOpprettholdelse": false,
-                  "årsak": null,
-                  "begrunnelse": null,
-                  "rammebehandlingId": null,
-                  "ventestatus": null,
-                  "hjemler": null,
-                  "iverksattOpprettholdelseTidspunkt": null,
-                  "journalføringstidspunktInnstillingsbrev": null,
-                  "distribusjonstidspunktInnstillingsbrev": null,
-                  "oversendtKlageinstansenTidspunkt": null,
-                  "klageinstanshendelser": null,
-                  "ferdigstiltTidspunkt": null
-                }
-                """.trimIndent(),
+            json.toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                klagebehandlingId = klagebehandling.id,
+                fnr = "12345678912",
+                journalpostId = "123456",
+                resultat = "AVVIST",
+                vedtakDetKlagesPå = "vedtak_01KEYFMDNGXAFAYW1CD1X47CND",
+                erKlagerPartISaken = false,
+                klagesDetPåKonkreteElementerIVedtaket = false,
+                erKlagefristenOverholdt = false,
+                erUnntakForKlagefrist = "NEI",
+                erKlagenSignert = false,
             )
         }
     }
@@ -86,7 +59,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val fnr = Fnr.fromString("12345678912")
-            val (sak, klagebehandling, json) = opprettSakOgOppdaterKlagebehandlingFormkrav(
+            val (sak, klagebehandling, _) = opprettSakOgOppdaterKlagebehandlingFormkrav(
                 tac = tac,
                 fnr = fnr,
                 erKlagerPartISaken = true,
@@ -108,7 +81,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 hjemler = null,
             )!!
 
-            oppdaterKlagebehandlingFormkravForSakId(
+            val (_, _, json) = oppdaterKlagebehandlingFormkravForSakId(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -119,48 +92,21 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 erUnntakForKlagefrist = KlagefristUnntakSvarord.JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN,
                 journalpostId = JournalpostId("123456"),
                 vedtakDetKlagesPå = VedtakId.fromString("vedtak_01KEYFMDNGXAFAYW1CD1X47CND"),
-                forventetJsonBody = {
-                    //language=json
-                    """{
-                  "id": "${klagebehandling.id}",
-                  "sakId": "${sak.id}",
-                  "saksnummer": "${sak.saksnummer}",
-                  "fnr": "12345678912",
-                  "opprettet": "2025-01-01T01:02:07.456789",
-                  "sistEndret": "2025-01-01T01:02:13.456789",
-                  "iverksattTidspunkt": null,
-                  "saksbehandler": "saksbehandlerKlagebehandling",
-                  "journalpostId": "123456",
-                  "journalpostOpprettet": "2025-01-01T01:02:12.456789",
-                  "status": "UNDER_BEHANDLING",
-                  "resultat": "OMGJØR",
-                  "vedtakDetKlagesPå": "vedtak_01KEYFMDNGXAFAYW1CD1X47CND",
-                  "erKlagerPartISaken": true,
-                  "klagesDetPåKonkreteElementerIVedtaket": true,
-                  "erKlagefristenOverholdt": false,
-                  "erUnntakForKlagefrist": "JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN",
-                  "erKlagenSignert": true,
-                  "innsendingsdato": "2026-02-16",
-                  "innsendingskilde": "DIGITAL",
-                  "brevtekst": [],
-                  "avbrutt": null,
-                  "kanIverksetteVedtak": false,
-                  "kanIverksetteOpprettholdelse": false,
-                  "årsak": "FEIL_LOVANVENDELSE",
-                  "begrunnelse": "Begrunnelse for omgjøring",
-                  "rammebehandlingId": null,
-                  "ventestatus": null,
-                  "hjemler": null,
-                  "iverksattOpprettholdelseTidspunkt": null,
-                  "journalføringstidspunktInnstillingsbrev": null,
-                  "distribusjonstidspunktInnstillingsbrev": null,
-                  "oversendtKlageinstansenTidspunkt": null,
-                  "klageinstanshendelser": null,
-                  "ferdigstiltTidspunkt": null
-                }
-                    """.trimIndent()
-                },
+
             )!!
+            json.toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                klagebehandlingId = klagebehandling.id,
+                fnr = "12345678912",
+                journalpostId = "123456",
+                resultat = "OMGJØR",
+                vedtakDetKlagesPå = "vedtak_01KEYFMDNGXAFAYW1CD1X47CND",
+                erKlagefristenOverholdt = false,
+                erUnntakForKlagefrist = "JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN",
+                årsak = "FEIL_LOVANVENDELSE",
+                begrunnelse = "Begrunnelse for omgjøring",
+            )
         }
     }
 

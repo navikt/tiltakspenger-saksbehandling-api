@@ -7,9 +7,9 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
-import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettKlagebehandlingForSakId
@@ -32,59 +32,21 @@ class OpprettholdKlagebehandlingRouteTest {
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val (sak, klagebehandling, json) = opprettSakOgOpprettholdKlagebehandling(tac = tac)!!
             val rammevedtakDetKlagesPå = sak.rammevedtaksliste.first()
-            json.toString().shouldEqualJsonIgnoringTimestamps(
-                """
-                   {
-                     "id": "${klagebehandling.id}",
-                     "sakId": "${sak.id}",
-                     "saksnummer": "${sak.saksnummer}",
-                     "fnr": "12345678911",
-                     "opprettet": "2025-01-01T01:02:36.456789",
-                     "sistEndret": "2025-01-01T01:02:40.456789",
-                     "saksbehandler": "saksbehandlerKlagebehandling",
-                     "journalpostId": "12345",
-                     "journalpostOpprettet": "2025-01-01T01:02:35.456789",
-                     "status": "OPPRETTHOLDT",
-                     "resultat": "OPPRETTHOLDT",
-                     "vedtakDetKlagesPå": "${rammevedtakDetKlagesPå.id}",
-                     "erKlagerPartISaken": true,
-                     "klagesDetPåKonkreteElementerIVedtaket": true,
-                     "erKlagefristenOverholdt": true,
-                     "erUnntakForKlagefrist": null,
-                     "erKlagenSignert": true,
-                     "innsendingsdato": "2026-02-16",
-                     "innsendingskilde": "DIGITAL",
-                     "brevtekst": [
-                       {
-                         "tittel": "Hva klagesaken gjelder",
-                         "tekst": "Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"
-                       },
-                       {
-                         "tittel": "Klagers anførsler",
-                         "tekst": "<saksbehandler fyller ut>"
-                       },
-                       {
-                         "tittel": "Vurdering av klagen",
-                         "tekst": "<saksbehandler fyller ut>"
-                       }
-                     ],
-                     "avbrutt": null,
-                     "kanIverksetteVedtak": false,
-                     "kanIverksetteOpprettholdelse": false,
-                     "iverksattTidspunkt": null,
-                     "årsak": null,
-                     "begrunnelse": null,
-                     "rammebehandlingId": null,
-                     "ventestatus": null,
-                     "hjemler": ["ARBEIDSMARKEDSLOVEN_17"],
-                     "iverksattOpprettholdelseTidspunkt": "2025-01-01T01:02:40.456789",
-                     "journalføringstidspunktInnstillingsbrev": null,
-                     "distribusjonstidspunktInnstillingsbrev": null,
-                     "oversendtKlageinstansenTidspunkt": null,
-                     "klageinstanshendelser": [],
-                     "ferdigstiltTidspunkt": null
-                   }
-                """.trimIndent(),
+            json.toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                klagebehandlingId = klagebehandling.id,
+                fnr = "12345678911",
+                status = "OPPRETTHOLDT",
+                resultat = "OPPRETTHOLDT",
+                vedtakDetKlagesPå = "${rammevedtakDetKlagesPå.id}",
+                brevtekst = listOf(
+                    """{"tittel": "Hva klagesaken gjelder","tekst": "Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
+                    """{"tittel": "Klagers anførsler","tekst": "<saksbehandler fyller ut>"}""",
+                    """{"tittel": "Vurdering av klagen","tekst": "<saksbehandler fyller ut>"}""",
+                ),
+                hjemler = listOf("ARBEIDSMARKEDSLOVEN_17"),
+                iverksattOpprettholdelseTidspunkt = true,
             )
         }
     }
@@ -234,8 +196,6 @@ class OpprettholdKlagebehandlingRouteTest {
                 beslutter = beslutter,
             )!!
             rammevedtak.klagebehandling!!.also {
-//                it.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:52.456789")
-//                it.iverksattTidspunkt shouldBe LocalDateTime.parse("2025-01-01T01:02:52.456789")
                 it.status shouldBe Klagebehandlingsstatus.VEDTATT
                 it.kanIverksetteVedtak shouldBe false
                 it.erVedtatt shouldBe true

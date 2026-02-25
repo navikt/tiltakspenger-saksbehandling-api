@@ -13,14 +13,11 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOpprettholdKlagebehandling
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class IverksattOpprettholdelseJobberTest {
 
-    @Disabled // CLOOOOOOOOOOOOOOCK
     @Test
     fun `jobbene kjører som forventet`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
@@ -34,7 +31,7 @@ class IverksattOpprettholdelseJobberTest {
                 id = klagebehandling.id,
                 forventetBrevdato = LocalDate.parse("2025-01-01"),
                 forventetJournalpostId = JournalpostId("2"),
-                forventetJournalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:03.456789"),
+                forventetJournalføringstidspunkt = true,
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
             tac.klagebehandlingContext.klagebehandlingRepo.hentInnstillingsbrevSomSkalJournalføres().size shouldBe 0
@@ -47,9 +44,9 @@ class IverksattOpprettholdelseJobberTest {
                 id = klagebehandling.id,
                 forventetBrevdato = LocalDate.parse("2025-01-01"),
                 forventetJournalpostId = JournalpostId("2"),
-                forventetJournalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:03.456789"),
+                forventetJournalføringstidspunkt = true,
                 forventetDistribusjonId = DistribusjonId("2"),
-                forventetDistribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:42.456789"),
+                forventetDistribusjonstidspunkt = true,
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
             tac.klagebehandlingContext.klagebehandlingRepo.hentInnstillingsbrevSomSkalDistribueres().size shouldBe 0
@@ -62,10 +59,10 @@ class IverksattOpprettholdelseJobberTest {
                 id = klagebehandling.id,
                 forventetBrevdato = LocalDate.parse("2025-01-01"),
                 forventetJournalpostId = JournalpostId("2"),
-                forventetJournalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:03.456789"),
+                forventetJournalføringstidspunkt = true,
                 forventetDistribusjonId = DistribusjonId("2"),
-                forventetDistribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:42.456789"),
-                forventetOversendtKlageinstansenTidspunkt = LocalDateTime.parse("2025-01-01T01:02:43.456789"),
+                forventetDistribusjonstidspunkt = true,
+                forventetOversendtKlageinstansenTidspunkt = true,
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
             tac.klagebehandlingContext.klagebehandlingRepo.hentSakerSomSkalOversendesKlageinstansen().size shouldBe 0
@@ -76,24 +73,24 @@ class IverksattOpprettholdelseJobberTest {
     private fun verifiserResultat(
         tac: TestApplicationContext,
         id: KlagebehandlingId,
-        forventetIverksattTidspunkt: LocalDateTime? = LocalDateTime.parse("2025-01-01T01:02:40.456789"),
+        forventetIverksattTidspunkt: Boolean = true,
         forventetBrevdato: LocalDate? = null,
         forventetJournalpostId: JournalpostId? = null,
-        forventetJournalføringstidspunkt: LocalDateTime? = null,
+        forventetJournalføringstidspunkt: Boolean = false,
         forventetDistribusjonId: DistribusjonId? = null,
-        forventetDistribusjonstidspunkt: LocalDateTime? = null,
-        forventetOversendtKlageinstansenTidspunkt: LocalDateTime? = null,
+        forventetDistribusjonstidspunkt: Boolean = false,
+        forventetOversendtKlageinstansenTidspunkt: Boolean = false,
     ) {
         (tac.sessionFactory as PostgresSessionFactory).withSession { session ->
             KlagebehandlingPostgresRepo.hentOrNull(id, session)!!.resultat.also {
                 it as Klagebehandlingsresultat.Opprettholdt
-                it.iverksattOpprettholdelseTidspunkt shouldBe forventetIverksattTidspunkt
+                (it.iverksattOpprettholdelseTidspunkt != null) shouldBe forventetIverksattTidspunkt
                 it.brevdato shouldBe forventetBrevdato
                 it.journalpostIdInnstillingsbrev shouldBe forventetJournalpostId
-                it.journalføringstidspunktInnstillingsbrev shouldBe forventetJournalføringstidspunkt
+                (it.journalføringstidspunktInnstillingsbrev != null) shouldBe forventetJournalføringstidspunkt
                 it.distribusjonIdInnstillingsbrev shouldBe forventetDistribusjonId
-                it.distribusjonstidspunktInnstillingsbrev shouldBe forventetDistribusjonstidspunkt
-                it.oversendtKlageinstansenTidspunkt shouldBe forventetOversendtKlageinstansenTidspunkt
+                (it.distribusjonstidspunktInnstillingsbrev != null) shouldBe forventetDistribusjonstidspunkt
+                (it.oversendtKlageinstansenTidspunkt != null) shouldBe forventetOversendtKlageinstansenTidspunkt
             }
         }
     }

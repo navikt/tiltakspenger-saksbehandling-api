@@ -7,14 +7,20 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptaRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgGjenopptaKlagebehandlingMedRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
 
@@ -26,100 +32,68 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            json.toString().shouldEqualJsonIgnoringTimestamps(
-                """
-                {
-                  "id": "${klagebehandling.id}",
-                  "sakId": "${sak.id}",
-                  "saksnummer": "${sak.saksnummer}",
-                  "fnr": "12345678911",
-                  "opprettet": "2025-01-01T01:02:36.456789",
-                  "sistEndret": "2025-01-01T01:03:06.456789",
-                  "iverksattTidspunkt": null,
-                  "saksbehandler": "saksbehandlerKlagebehandling",
-                  "journalpostId": "12345",
-                  "journalpostOpprettet": "2025-01-01T01:02:35.456789",
-                  "status": "UNDER_BEHANDLING",
-                  "resultat": "OMGJØR",
-                  "vedtakDetKlagesPå": "${sak.rammevedtaksliste.first().id}",
-                  "erKlagerPartISaken": true,
-                  "klagesDetPåKonkreteElementerIVedtaket": true,
-                  "erKlagefristenOverholdt": true,
-                  "erUnntakForKlagefrist": null,
-                  "erKlagenSignert": true,
-                  "innsendingsdato": "2026-02-16",
-                  "innsendingskilde": "DIGITAL",
-                  "brevtekst": [],
-                  "avbrutt": null,
-                  "kanIverksetteVedtak": null,
-                  "kanIverksetteOpprettholdelse": false,
-                  "årsak": "PROSESSUELL_FEIL",
-                  "begrunnelse": "Begrunnelse for omgjøring",
-                  "rammebehandlingId": "${rammebehandlingMedKlagebehandling.id}",
-                  "ventestatus": {
-                    "sattPåVentAv": "saksbehandlerKlagebehandling",
-                    "tidspunkt": "2025-01-01T01:03:06.456789",
-                    "begrunnelse": "",
-                    "erSattPåVent": false,
-                    "frist": null
-                  },
-                  "hjemler": null,
-                  "iverksattOpprettholdelseTidspunkt": null,
-                  "journalføringstidspunktInnstillingsbrev": null,
-                  "distribusjonstidspunktInnstillingsbrev": null,
-                  "oversendtKlageinstansenTidspunkt": null,
-                  "klageinstanshendelser": null,
-                  "ferdigstiltTidspunkt": null
-                }
-                """.trimIndent(),
+            json.toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                fnr = "12345678911",
+                saksbehandler = "saksbehandlerKlagebehandling",
+                resultat = "OMGJØR",
+                vedtakDetKlagesPå = sak.rammevedtaksliste.first().id.toString(),
+                status = "UNDER_BEHANDLING",
+                kanIverksetteVedtak = null,
+                årsak = "PROSESSUELL_FEIL",
+                begrunnelse = "Begrunnelse for omgjøring",
+                rammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
+                ventestatus = """{"sattPåVentAv": "saksbehandlerKlagebehandling","tidspunkt": "TIMESTAMP","begrunnelse": "","erSattPåVent": false,"frist": null}""",
+            )
+            klagebehandling.ventestatus.shouldBeEqualToIgnoringLocalDateTime(
+                Ventestatus(
+                    listOf(
+                        VentestatusHendelse(
+                            tidspunkt = LocalDateTime.MIN,
+                            endretAv = "saksbehandlerKlagebehandling",
+                            begrunnelse = "begrunnelse for å sette klage på vent",
+                            erSattPåVent = true,
+                            status = "UNDER_BEHANDLING",
+                            frist = 14.januar(2025),
+                        ),
+                        VentestatusHendelse(
+                            tidspunkt = LocalDateTime.MIN.plusSeconds(1),
+                            endretAv = "saksbehandlerKlagebehandling",
+                            begrunnelse = "",
+                            erSattPåVent = false,
+                            status = "KLAR_TIL_BEHANDLING",
+                            frist = null,
+                        ),
+                    ),
+                ),
             )
 
-            // Trenger vi disse?
-//            klagebehandling.ventestatus shouldBe Ventestatus(
-//                listOf(
-//                    VentestatusHendelse(
-//                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:47.456789"),
-//                        endretAv = "saksbehandlerKlagebehandling",
-//                        begrunnelse = "begrunnelse for å sette klage på vent",
-//                        erSattPåVent = true,
-//                        status = "UNDER_BEHANDLING",
-//                        frist = 14.januar(2025),
-//                    ),
-//                    VentestatusHendelse(
-//                        tidspunkt = LocalDateTime.parse("2025-01-01T01:03:06.456789"),
-//                        endretAv = "saksbehandlerKlagebehandling",
-//                        begrunnelse = "",
-//                        erSattPåVent = false,
-//                        status = "KLAR_TIL_BEHANDLING",
-//                        frist = null,
-//                    ),
-//                ),
-//            )
             rammebehandlingMedKlagebehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
             rammebehandlingMedKlagebehandling.saksbehandler shouldBe "saksbehandlerKlagebehandling"
 
-            // Trenger vi disse?
-//            rammebehandlingMedKlagebehandling.ventestatus shouldBe Ventestatus(
-//                listOf(
-//                    VentestatusHendelse(
-//                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:46.456789"),
-//                        endretAv = "saksbehandlerKlagebehandling",
-//                        begrunnelse = "begrunnelse for å sette klage på vent",
-//                        erSattPåVent = true,
-//                        status = "UNDER_BEHANDLING",
-//                        frist = LocalDate.parse("2025-01-14"),
-//                    ),
-//                    VentestatusHendelse(
-//                        tidspunkt = LocalDateTime.parse("2025-01-01T01:03:05.456789"),
-//                        endretAv = "saksbehandlerKlagebehandling",
-//                        begrunnelse = "",
-//                        erSattPåVent = false,
-//                        status = "KLAR_TIL_BEHANDLING",
-//                        frist = null,
-//                    ),
-//                ),
-//            )
-//            rammebehandlingMedKlagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:03:05.456789")
+            rammebehandlingMedKlagebehandling.ventestatus.shouldBeEqualToIgnoringLocalDateTime(
+                Ventestatus(
+                    listOf(
+                        VentestatusHendelse(
+                            tidspunkt = LocalDateTime.MIN,
+                            endretAv = "saksbehandlerKlagebehandling",
+                            begrunnelse = "begrunnelse for å sette klage på vent",
+                            erSattPåVent = true,
+                            status = "UNDER_BEHANDLING",
+                            frist = LocalDate.parse("2025-01-14"),
+                        ),
+                        VentestatusHendelse(
+                            tidspunkt = LocalDateTime.MIN.plusSeconds(1),
+                            endretAv = "saksbehandlerKlagebehandling",
+                            begrunnelse = "",
+                            erSattPåVent = false,
+                            status = "KLAR_TIL_BEHANDLING",
+                            frist = null,
+                        ),
+                    ),
+                ),
+            )
         }
     }
 
@@ -140,6 +114,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
             )!!
 
             val klagebehandling = oppdatertRammebehandlingMedKlagebehandling.klagebehandling!!
+
             json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
@@ -174,18 +149,18 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
     },
     "ytelser": [],
     "tiltakspengevedtakFraArena": [],
-    "oppslagstidspunkt": "2025-01-01T01:03:07.456789"
+    "oppslagstidspunkt": "TIMESTAMP"
   },
   "attesteringer": [],
   "vedtaksperiode": null,
   "fritekstTilVedtaksbrev": null,
   "begrunnelseVilkårsvurdering": null,
   "avbrutt": null,
-  "sistEndret": "2025-01-01T01:03:05.456789",
+  "sistEndret": "TIMESTAMP",
   "iverksattTidspunkt": null,
   "ventestatus": {
     "sattPåVentAv": "saksbehandlerKlagebehandling",
-    "tidspunkt": "2025-01-01T01:03:05.456789",
+    "tidspunkt": "TIMESTAMP",
     "begrunnelse": "",
     "erSattPåVent": false,
     "frist": null
@@ -211,8 +186,8 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
     "manueltSattTiltak": null,
     "søknadstype": "DIGITAL",
     "barnetillegg": [],
-    "opprettet": "2023-01-01T00:00:00",
-    "tidsstempelHosOss": "2023-01-01T00:00:00",
+    "opprettet": "TIMESTAMP",
+    "tidsstempelHosOss": "TIMESTAMP",
     "antallVedlegg": 0,
     "avbrutt": null,
     "kanInnvilges": true,
@@ -278,28 +253,28 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
             )
             klagebehandling.status shouldBe Klagebehandlingsstatus.UNDER_BEHANDLING
             klagebehandling.saksbehandler shouldBe "saksbehandlerKlagebehandling"
-            // Trenger vi disse?
-//            klagebehandling.ventestatus shouldBe Ventestatus(
-//                listOf(
-//                    VentestatusHendelse(
-//                        tidspunkt = LocalDateTime.parse("2025-01-01T01:02:47.456789"),
-//                        endretAv = "saksbehandlerKlagebehandling",
-//                        begrunnelse = "begrunnelse for å sette klage på vent",
-//                        erSattPåVent = true,
-//                        status = "UNDER_BEHANDLING",
-//                        frist = 14.januar(2025),
-//                    ),
-//                    VentestatusHendelse(
-//                        tidspunkt = LocalDateTime.parse("2025-01-01T01:03:06.456789"),
-//                        endretAv = "saksbehandlerKlagebehandling",
-//                        begrunnelse = "",
-//                        erSattPåVent = false,
-//                        status = "KLAR_TIL_BEHANDLING",
-//                        frist = null,
-//                    ),
-//                ),
-//            )
-//            klagebehandling.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:03:06.456789")
+            klagebehandling.ventestatus.shouldBeEqualToIgnoringLocalDateTime(
+                Ventestatus(
+                    listOf(
+                        VentestatusHendelse(
+                            tidspunkt = LocalDateTime.MIN,
+                            endretAv = "saksbehandlerKlagebehandling",
+                            begrunnelse = "begrunnelse for å sette klage på vent",
+                            erSattPåVent = true,
+                            status = "UNDER_BEHANDLING",
+                            frist = 14.januar(2025),
+                        ),
+                        VentestatusHendelse(
+                            tidspunkt = LocalDateTime.MIN.plusSeconds(1),
+                            endretAv = "saksbehandlerKlagebehandling",
+                            begrunnelse = "",
+                            erSattPåVent = false,
+                            status = "KLAR_TIL_BEHANDLING",
+                            frist = null,
+                        ),
+                    ),
+                ),
+            )
         }
     }
 }
