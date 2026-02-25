@@ -46,9 +46,9 @@ class IverksettKlagebehandlingRouteTest {
                 opprettet = LocalDateTime.parse("2025-01-01T01:02:11.456789"),
                 behandling = klagebehandling,
                 journalpostId = JournalpostId("1"),
-                journalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:13.456789"),
+                journalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:14.456789"),
                 distribusjonId = DistribusjonId("1"),
-                distribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:14.456789"),
+                distribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:15.456789"),
                 vedtaksdato = LocalDate.parse("2025-01-01"),
                 sendtTilDatadeling = null,
             )
@@ -110,9 +110,9 @@ class IverksettKlagebehandlingRouteTest {
                         """
                     {
                       "klagebehandlingId": "${klagebehandling.id}",
-                      "journalføringstidspunkt": "2025-01-01T01:02:13.456789",
+                      "journalføringstidspunkt": "2025-01-01T01:02:14.456789",
                       "opprettet": "2025-01-01T01:02:11.456789",
-                      "distribusjonstidspunkt": "2025-01-01T01:02:14.456789",
+                      "distribusjonstidspunkt": "2025-01-01T01:02:15.456789",
                       "distribusjonId": "1",
                       "sakId": "${sak.id}",
                       "klagevedtakId": "${klagevedtak.id}",

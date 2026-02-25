@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
@@ -189,7 +190,18 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "klagebehandling_iverksatt",
+            hendelse = "klagebehandling_oversendt_ka",
+        )
+    }
+
+    suspend fun genererSaksstatistikkIverksattAvvistKlagebehandling(
+        behandling: Klagevedtak,
+    ): StatistikkSakDTO {
+        return genererSaksstatistikkForKlagevedtak(
+            vedtak = behandling,
+            gjelderKode6 = gjelderKode6(behandling.fnr),
+            versjon = gitHash,
+            clock = clock,
         )
     }
 

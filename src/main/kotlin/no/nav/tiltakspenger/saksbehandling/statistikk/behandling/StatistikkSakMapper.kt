@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
@@ -164,15 +165,10 @@ fun genererSaksstatistikkForKlagebehandling(
         } else {
             when (behandling.status) {
                 Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> StatistikkBehandlingStatus.KLAR_TIL_BEHANDLING
-
                 Klagebehandlingsstatus.UNDER_BEHANDLING -> StatistikkBehandlingStatus.UNDER_BEHANDLING
-
                 Klagebehandlingsstatus.OPPRETTHOLDT -> StatistikkBehandlingStatus.OVERSENDT_KA
-
-                Klagebehandlingsstatus.AVBRUTT,
-                Klagebehandlingsstatus.VEDTATT,
-                -> throw IllegalStateException("Statistikk anser behandlingen som avsluttet når den er oversendt til KA.")
-
+                Klagebehandlingsstatus.AVBRUTT -> StatistikkBehandlingStatus.AVSLUTTET
+                Klagebehandlingsstatus.VEDTATT -> StatistikkBehandlingStatus.FERDIG_BEHANDLET
                 Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException("Vi sender ikke statistikk på at en sak venter på å bli plukket opp av jobben som sender klager til klageinstansen.")
             }
         },
@@ -198,6 +194,66 @@ fun genererSaksstatistikkForKlagebehandling(
         funksjonellPeriodeTom = null,
         versjon = versjon,
         hendelse = hendelse,
+        behandlingAarsak = StatistikkBehandlingAarsak.KLAGE,
+    )
+}
+
+fun genererSaksstatistikkForKlagevedtak(
+    vedtak: Klagevedtak,
+    gjelderKode6: Boolean,
+    versjon: String,
+    clock: Clock,
+): StatistikkSakDTO {
+    val behandling = vedtak.behandling
+    return StatistikkSakDTO(
+        sakId = vedtak.behandling.sakId.toString(),
+        saksnummer = behandling.saksnummer.toString(),
+        behandlingId = behandling.id.toString(),
+        relatertBehandlingId = behandling.resultat?.rammebehandlingId?.toString(),
+        fnr = behandling.fnr.verdi,
+        mottattTidspunkt = behandling.klagensJournalpostOpprettet,
+        registrertTidspunkt = behandling.opprettet,
+        ferdigBehandletTidspunkt = vedtak.opprettet,
+        vedtakTidspunkt = vedtak.opprettet,
+        endretTidspunkt = vedtak.opprettet,
+        utbetaltTidspunkt = null,
+        tekniskTidspunkt = nå(clock),
+        søknadsformat = behandling.formkrav.innsendingskilde.toStatistikkFormat(),
+        forventetOppstartTidspunkt = null,
+        behandlingType = StatistikkBehandlingType.KLAGE,
+        behandlingStatus = when (behandling.status) {
+            Klagebehandlingsstatus.KLAR_TIL_BEHANDLING,
+            Klagebehandlingsstatus.UNDER_BEHANDLING,
+            Klagebehandlingsstatus.OPPRETTHOLDT,
+            Klagebehandlingsstatus.OVERSENDT,
+            -> throw IllegalStateException("Klagevedtaket må ende opp i en endelig status.")
+
+            Klagebehandlingsstatus.AVBRUTT -> StatistikkBehandlingStatus.AVSLUTTET
+
+            Klagebehandlingsstatus.VEDTATT -> StatistikkBehandlingStatus.FERDIG_BEHANDLET
+        },
+        behandlingResultat = if (behandling.erAvbrutt) {
+            StatistikkBehandlingResultat.AVBRUTT
+        } else {
+            when (behandling.resultat) {
+                is Klagebehandlingsresultat.Omgjør -> StatistikkBehandlingResultat.MEDHOLD
+                is Klagebehandlingsresultat.Opprettholdt -> StatistikkBehandlingResultat.OPPRETTHOLDT
+                is Klagebehandlingsresultat.Avvist -> StatistikkBehandlingResultat.AVVIST
+                null -> null
+            }
+        },
+        resultatBegrunnelse = if (behandling.resultat is Klagebehandlingsresultat.Omgjør) behandling.resultat.årsak.tilResultatBegrunnelse().name else null,
+        // skal være -5 for kode 6
+        opprettetAv = maskerHvisStrengtFortroligStrict(gjelderKode6, "system"),
+        saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, behandling.saksbehandler),
+        ansvarligBeslutter = null,
+        ansvarligenhet = maskerHvisStrengtFortroligStrict(gjelderKode6, "0387"),
+
+        tilbakekrevingsbeløp = null,
+        funksjonellPeriodeFom = null,
+        funksjonellPeriodeTom = null,
+        versjon = versjon,
+        hendelse = "iverksatt_klagebehandling",
         behandlingAarsak = StatistikkBehandlingAarsak.KLAGE,
     )
 }
