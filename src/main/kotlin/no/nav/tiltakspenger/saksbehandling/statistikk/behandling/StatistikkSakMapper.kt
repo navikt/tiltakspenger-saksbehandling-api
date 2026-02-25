@@ -145,7 +145,7 @@ fun genererSaksstatistikkForKlagebehandling(
         sakId = behandling.sakId.toString(),
         saksnummer = behandling.saksnummer.toString(),
         behandlingId = behandling.id.toString(),
-        relatertBehandlingId = behandling.resultat?.rammebehandlingId.toString(),
+        relatertBehandlingId = behandling.resultat?.rammebehandlingId?.toString(),
         fnr = behandling.fnr.verdi,
         mottattTidspunkt = behandling.klagensJournalpostOpprettet,
         registrertTidspunkt = behandling.opprettet,
