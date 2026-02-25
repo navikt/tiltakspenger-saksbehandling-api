@@ -57,6 +57,7 @@ class BenkOversiktFakeRepo(
         BehandlingssammendragStatus.UNDER_BEHANDLING -> Rammebehandlingsstatus.UNDER_BEHANDLING
         BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
         BehandlingssammendragStatus.UNDER_BESLUTNING -> Rammebehandlingsstatus.UNDER_BESLUTNING
+        BehandlingssammendragStatus.KLAR_TIL_FERDIGSTILLING -> throw IllegalArgumentException("KLAR_TIL_FERDIGSTILLING er ikke en behandlingsstatus for rammebehandling")
     }
 
     private fun Behandlingstype.toBehandlingssammendragType(): BehandlingssammendragType = when (this) {
@@ -181,6 +182,7 @@ class BenkOversiktFakeRepo(
         BehandlingssammendragStatus.UNDER_BEHANDLING -> MeldekortBehandlingStatus.UNDER_BEHANDLING
         BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
         BehandlingssammendragStatus.UNDER_BESLUTNING -> MeldekortBehandlingStatus.UNDER_BESLUTNING
+        BehandlingssammendragStatus.KLAR_TIL_FERDIGSTILLING -> throw IllegalStateException("KLAR_TIL_FERDIGSTILLING er ikke en tillatt status for meldekortbehandling")
     }
 
     private fun MeldekortBehandlingStatus.toBehandlingssamendragStatus(): BehandlingssammendragStatus = when (this) {
@@ -234,6 +236,7 @@ class BenkOversiktFakeRepo(
         BehandlingssammendragStatus.UNDER_BEHANDLING -> Klagebehandlingsstatus.UNDER_BEHANDLING
         BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> throw IllegalStateException("KLAR_TIL_BESLUTNING er ikke en tillatt status for klagebehandling")
         BehandlingssammendragStatus.UNDER_BESLUTNING -> throw IllegalStateException("UNDER_BESLUTNING er ikke en tillatt status for klagebehandling")
+        BehandlingssammendragStatus.KLAR_TIL_FERDIGSTILLING -> Klagebehandlingsstatus.OVERSENDT
     }
 
     private fun Klagebehandlingsstatus.toBehandlingssamendragStatus(): BehandlingssammendragStatus = when (this) {
@@ -245,6 +248,7 @@ class BenkOversiktFakeRepo(
         Klagebehandlingsstatus.VEDTATT,
         Klagebehandlingsstatus.OPPRETTHOLDT,
         Klagebehandlingsstatus.OVERSENDT,
+        Klagebehandlingsstatus.FERDIGSTILLT,
         -> throw IllegalStateException("Klagebehandling med status $this skal ikke være åpen")
     }
 }

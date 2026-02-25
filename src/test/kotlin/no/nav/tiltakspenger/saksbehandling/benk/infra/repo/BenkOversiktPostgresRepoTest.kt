@@ -36,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttRevurderin
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvsluttetMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterBrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterFerdigstiltKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
@@ -48,6 +49,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetKlagebeh
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetKlagebehandlingTilVurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOversendtKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOversendtKlagebehandlingMedSvarFraKA
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingStansTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingStansUnderBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
@@ -587,11 +590,14 @@ class BenkOversiktPostgresRepoTest {
             val (_, klagebehandlingPåVent) = testDataHelper.persisterOpprettetKlagebehandlingTilVurdering(
                 settPåVent = true,
             )
+            testDataHelper.persisterOversendtKlagebehandling()
+            val (_, oversendtKlagebehandlingMedSvarFraKA) = testDataHelper.persisterOversendtKlagebehandlingMedSvarFraKA()
+            testDataHelper.persisterFerdigstiltKlagebehandling()
 
             val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
-            totalAntall shouldBe 2
-            actual.size shouldBe 2
+            totalAntall shouldBe 3
+            actual.size shouldBe 3
             actual.first() shouldBe Behandlingssammendrag(
                 sakId = klagebehandling.sakId,
                 fnr = klagebehandling.fnr,
@@ -608,7 +614,7 @@ class BenkOversiktPostgresRepoTest {
                 sistEndret = klagebehandling.sistEndret,
                 resultat = null,
             )
-            actual.last() shouldBe Behandlingssammendrag(
+            actual[1] shouldBe Behandlingssammendrag(
                 sakId = klagebehandlingPåVent.sakId,
                 fnr = klagebehandlingPåVent.fnr,
                 saksnummer = klagebehandlingPåVent.saksnummer,
@@ -622,6 +628,22 @@ class BenkOversiktPostgresRepoTest {
                 sattPåVentBegrunnelse = "persisterOpprettetKlagebehandlingTilVurdering",
                 sattPåVentFrist = 13.februar(2026),
                 sistEndret = klagebehandlingPåVent.sistEndret,
+                resultat = null,
+            )
+            actual.last() shouldBe Behandlingssammendrag(
+                sakId = oversendtKlagebehandlingMedSvarFraKA.sakId,
+                fnr = oversendtKlagebehandlingMedSvarFraKA.fnr,
+                saksnummer = oversendtKlagebehandlingMedSvarFraKA.saksnummer,
+                startet = oversendtKlagebehandlingMedSvarFraKA.opprettet,
+                kravtidspunkt = null,
+                behandlingstype = BehandlingssammendragType.KLAGEBEHANDLING,
+                status = BehandlingssammendragStatus.KLAR_TIL_FERDIGSTILLING,
+                saksbehandler = oversendtKlagebehandlingMedSvarFraKA.saksbehandler,
+                beslutter = null,
+                erSattPåVent = false,
+                sattPåVentBegrunnelse = null,
+                sattPåVentFrist = null,
+                sistEndret = oversendtKlagebehandlingMedSvarFraKA.sistEndret,
                 resultat = null,
             )
         }
