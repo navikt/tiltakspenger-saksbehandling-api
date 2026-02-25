@@ -28,4 +28,10 @@ enum class Klagebehandlingsstatus {
      *
      * */
     OVERSENDT,
+
+    /**
+     * Vi har mottatt et svar fra klageinstansen, og resultatet av skal ikke føre til noen videre behandling.
+     * Saksbeahndler bare bekrefter at de har mottatt svaret, og at klagebehandlingen er ferdigstilt.
+     */
+    FERDIGSTILT,
 }

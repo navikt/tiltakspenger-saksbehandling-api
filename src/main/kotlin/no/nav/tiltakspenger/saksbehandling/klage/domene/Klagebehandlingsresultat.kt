@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.FERDIGSTILT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OPPRETTHOLDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
@@ -50,7 +51,7 @@ sealed interface Klagebehandlingsresultat {
             return when (status) {
                 UNDER_BEHANDLING -> false
                 KLAR_TIL_BEHANDLING, AVBRUTT, VEDTATT -> true
-                OPPRETTHOLDT, OVERSENDT -> throw IllegalStateException("$status er en ugyldig status for Avvist klage.")
+                OPPRETTHOLDT, OVERSENDT, FERDIGSTILT -> throw IllegalStateException("$status er en ugyldig status for Avvist klage.")
             }
         }
 
@@ -150,7 +151,7 @@ sealed interface Klagebehandlingsresultat {
             if (journalpostIdInnstillingsbrev != null) return true
             return when (status) {
                 UNDER_BEHANDLING -> false
-                KLAR_TIL_BEHANDLING, AVBRUTT, OPPRETTHOLDT, OVERSENDT -> true
+                KLAR_TIL_BEHANDLING, AVBRUTT, OPPRETTHOLDT, OVERSENDT, FERDIGSTILT -> true
                 VEDTATT -> throw IllegalStateException("$status er en ugyldig status for Avvist klage. TODO jah: vi legger til denne statusen når vi håndterer svaret fra klageinstansen.")
             }
         }

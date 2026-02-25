@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.V
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
-import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.NyKlagehendelse
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -243,6 +242,39 @@ data class Klagebehandling(
                 }
                 require(!resultat.brevtekst.isNullOrEmpty()) {
                     "Klagebehandling til oversending må ha brevtekst satt. $loggkontekst"
+                }
+            }
+
+            Klagebehandlingsstatus.FERDIGSTILT -> {
+                require(iverksattTidspunkt == null) {
+                    "Klagebehandling som er $status kan ikke ha iverksattTidspunkt satt. $loggkontekst"
+                }
+                require(resultat is Klagebehandlingsresultat.Opprettholdt) {
+                    "Oversendt klagebehandling må ha resultat som opprettholdt satt. $loggkontekst"
+                }
+                require(resultat.iverksattOpprettholdelseTidspunkt != null) {
+                    "Klagebehandling til oversending må ha skalOversendesTidspunkt satt. $loggkontekst"
+                }
+                require(resultat.oversendtKlageinstansenTidspunkt != null) {
+                    "Klagebehandling som er oversendt må ha oversendtTidspunkt satt. $loggkontekst"
+                }
+                require(!resultat.brevtekst.isNullOrEmpty()) {
+                    "Klagebehandling til oversending må ha brevtekst satt. $loggkontekst"
+                }
+                require(resultat.klageinstanshendelser.isNotEmpty()) {
+                    "Klagebehandling som er $status må ha klageinstanshendelser med minst 1 element. $loggkontekst"
+                }
+                if (resultat.klageinstanshendelser.last() is Klageinstanshendelse.KlagebehandlingAvsluttet) {
+                    val sisteKlageinstanshendelse =
+                        resultat.klageinstanshendelser.last() as Klageinstanshendelse.KlagebehandlingAvsluttet
+                    require(
+                        sisteKlageinstanshendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.OPPHEVET &&
+                            sisteKlageinstanshendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD &&
+                            sisteKlageinstanshendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.DELVIS_MEDHOLD &&
+                            sisteKlageinstanshendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.UGUNST,
+                    ) {
+                        "Dersom siste klageinstanshendelse er KlagebehandlingAvsluttet, kan ikke utfallet være [OPPHEVET, MEDHOLD, DELVIS_MEDHOLD, UGUNST]. Disse skal føre til en ny behandling som skal ferdigstille klagen. $loggkontekst"
+                    }
                 }
             }
         }

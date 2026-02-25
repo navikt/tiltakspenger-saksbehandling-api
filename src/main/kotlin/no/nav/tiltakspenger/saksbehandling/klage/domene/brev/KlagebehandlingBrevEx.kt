@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.FERDIGSTILT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OPPRETTHOLDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
@@ -38,7 +39,7 @@ suspend fun Klagebehandling.genererBrev(
         KLAR_TIL_BEHANDLING -> "-"
         UNDER_BEHANDLING -> this.saksbehandler!!
         AVBRUTT -> this.saksbehandler ?: "-"
-        VEDTATT, OPPRETTHOLDT, OVERSENDT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
+        VEDTATT, OPPRETTHOLDT, OVERSENDT, FERDIGSTILT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
     }
     val erSaksbehandlerPåBehandlingen = this.erSaksbehandlerPåBehandlingen(kommando.saksbehandler)
     val tilleggstekst: Brevtekster = when (status) {
@@ -104,7 +105,7 @@ suspend fun Klagebehandling.genererBrev(
             false,
         )
 
-        OPPRETTHOLDT, OVERSENDT -> genererKlageInnstillingsbrev(
+        OPPRETTHOLDT, OVERSENDT, FERDIGSTILT -> genererKlageInnstillingsbrev(
             saksnummer,
             fnr,
             saksbehandler!!,
