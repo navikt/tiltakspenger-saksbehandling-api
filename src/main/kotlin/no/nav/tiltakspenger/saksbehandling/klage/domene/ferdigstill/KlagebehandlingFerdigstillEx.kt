@@ -15,12 +15,10 @@ fun Klagebehandling.ferdigstill(
     clock: Clock,
 ): Either<KunneIkkeFerdigstilleKlagebehandling, Klagebehandling> {
     if (!erSaksbehandlerPåBehandlingen(command.saksbehandler)) {
-        if (!erSaksbehandlerPåBehandlingen(command.saksbehandler)) {
-            return KunneIkkeFerdigstilleKlagebehandling.SaksbehandlerMismatch(
-                forventetSaksbehandler = this.saksbehandler,
-                faktiskSaksbehandler = command.saksbehandler.navIdent,
-            ).left()
-        }
+        return KunneIkkeFerdigstilleKlagebehandling.SaksbehandlerMismatch(
+            forventetSaksbehandler = this.saksbehandler,
+            faktiskSaksbehandler = command.saksbehandler.navIdent,
+        ).left()
     }
 
     if (this.resultat !is Klagebehandlingsresultat.Opprettholdt) {

@@ -33,7 +33,7 @@ fun Route.ferdigstillKlagebehandlingRoute(
     val logger = KotlinLogging.logger {}
 
     patch(PATH) {
-        logger.debug { "Mottatt put-request på '$PATH' - Ferdigstiller klagebehandling" }
+        logger.debug { "Mottatt patch-request på '$PATH' - Ferdigstiller klagebehandling" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@patch
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@patch
         call.withSakId { sakId ->
@@ -76,16 +76,16 @@ fun KunneIkkeFerdigstilleKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatus
         KunneIkkeFerdigstilleKlagebehandling.KreverUtfallFraKlageinstans -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
-                "krever_utfall_fra_klageinstans",
-                "Klagebehandlingen må ha et utfall fra klageinstansen for å kunne ferdigstilles",
+                kode = "krever_utfall_fra_klageinstans",
+                melding = "Klagebehandlingen må ha et utfall fra klageinstansen for å kunne ferdigstilles",
             ),
         )
 
         KunneIkkeFerdigstilleKlagebehandling.ResultatMåVæreOpprettholdt -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
-                "resultat_må_være_opprettholdt",
-                "Klagebehandlingen må ha resultat opprettholdt for å kunne ferdigstilles",
+                kode = "resultat_må_være_opprettholdt",
+                melding = "Klagebehandlingen må ha resultat opprettholdt for å kunne ferdigstilles",
             ),
         )
 
@@ -99,8 +99,8 @@ fun KunneIkkeFerdigstilleKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatus
         KunneIkkeFerdigstilleKlagebehandling.UtfallFraKlageinstansSkalFøreTilNyRammebehandling -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
-                "utfall_fra_klageinstans_skal_føre_til_ny_rammebehandling",
-                "Klagebehandlingen har et utfall fra klageinstansen som skal føre til ny rammebehandling, og kan derfor ikke ferdigstilles",
+                kode = "utfall_fra_klageinstans_skal_føre_til_ny_rammebehandling",
+                melding = "Klagebehandlingen har et utfall fra klageinstansen som skal føre til ny rammebehandling, og kan derfor ikke ferdigstilles",
             ),
         )
     }
