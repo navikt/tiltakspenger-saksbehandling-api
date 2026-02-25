@@ -103,7 +103,7 @@ class UtbetalingRepoImplTest {
                 MeldekortvedtakPostgresRepo.hentForSakId(sak.id, it).single().utbetaling.status shouldBe null
             }
 
-            val forsøk0 = Forsøkshistorikk.opprett(
+            Forsøkshistorikk.opprett(
                 forrigeForsøk = null,
                 antallForsøk = 0,
                 clock = fixedClock,

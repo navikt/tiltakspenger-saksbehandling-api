@@ -47,7 +47,7 @@ internal class OppdaterRammebehandlingSaksopplysningerTest {
                     internDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.value.first().internDeltakelseId,
                 ),
             )
-            val (oppdatertSak, oppdatertBehandling, responseJson) = oppdaterSaksopplysningerForBehandlingId(
+            val (_, oppdatertBehandling, _) = oppdaterSaksopplysningerForBehandlingId(
                 tac,
                 sak.id,
                 behandling.id,
