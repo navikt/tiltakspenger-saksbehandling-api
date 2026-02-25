@@ -148,6 +148,8 @@ open class KlagebehandlingContext(
             clock = clock,
             klagebehandlingRepo = klagebehandlingRepo,
             klagevedtakRepo = klagevedtakRepo,
+            statistikkSakService = statistikkSakService,
+            statistikkSakRepo = statistikkSakRepo,
             sessionFactory = sessionFactory,
         )
     }
