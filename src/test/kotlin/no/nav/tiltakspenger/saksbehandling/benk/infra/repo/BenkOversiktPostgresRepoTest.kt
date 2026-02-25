@@ -36,7 +36,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttRevurderin
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvsluttetMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterBrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterFerdigstiltKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
@@ -592,7 +591,6 @@ class BenkOversiktPostgresRepoTest {
             )
             testDataHelper.persisterOversendtKlagebehandling()
             val (_, oversendtKlagebehandlingMedSvarFraKA) = testDataHelper.persisterOversendtKlagebehandlingMedSvarFraKA()
-            testDataHelper.persisterFerdigstiltKlagebehandling()
 
             val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 

@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.oppdaterBrevtekst
-import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.ferdigstill
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.KlagehendelseId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OpprettholdKlagebehandlingKommando
@@ -32,7 +31,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.SettKlagebeh
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderOpprettholdKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.vurder
-import no.nav.tiltakspenger.saksbehandling.klage.service.FerdigstillKlagebehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -286,43 +284,4 @@ internal fun TestDataHelper.persisterOversendtKlagebehandlingMedSvarFraKA(
     oppdatertSak.behandlinger.klagebehandlinger.single() shouldBe oversendtKlagebehandlingMedSvarFraKA
 
     return Pair(oppdatertSak, oversendtKlagebehandlingMedSvarFraKA)
-}
-
-internal fun TestDataHelper.persisterFerdigstiltKlagebehandling(
-    sakId: SakId = SakId.random(),
-    klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
-    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
-    fnr: Fnr = Fnr.random(),
-    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    sak: Sak = ObjectMother.nySak(
-        sakId = sakId,
-        fnr = fnr,
-        saksnummer = saksnummer,
-    ),
-): Pair<Sak, Klagebehandling> {
-    val (_, klagebehandling) = this.persisterOversendtKlagebehandlingMedSvarFraKA(
-        sakId = sakId,
-        klagebehandlingId = klagebehandlingId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        saksbehandler = saksbehandler,
-        sak = sak,
-    )
-
-    val ferdigstiltKlagebehandling = klagebehandling.ferdigstill(
-        command = FerdigstillKlagebehandlingCommand(
-            sakId = klagebehandling.sakId,
-            klagebehandlingId = klagebehandling.id,
-            saksbehandler = saksbehandler,
-            correlationId = CorrelationId.generate(),
-        ),
-        clock = clock,
-    )
-
-    this.klagebehandlingRepo.lagreKlagebehandling(ferdigstiltKlagebehandling)
-
-    val oppdatertSak = sakRepo.hentForSakId(sakId)!!
-    oppdatertSak.behandlinger.klagebehandlinger.single() shouldBe ferdigstiltKlagebehandling
-
-    return Pair(oppdatertSak, ferdigstiltKlagebehandling)
 }
