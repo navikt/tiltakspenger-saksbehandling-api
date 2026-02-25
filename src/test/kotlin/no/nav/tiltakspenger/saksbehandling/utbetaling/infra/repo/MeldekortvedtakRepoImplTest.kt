@@ -16,7 +16,7 @@ class MeldekortvedtakRepoImplTest {
     fun `kan lagre og hente`() {
         val tidspunkt = nå(fixedClock)
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (sak, _, meldekortvedtak, meldekort) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
+            val (sak, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
