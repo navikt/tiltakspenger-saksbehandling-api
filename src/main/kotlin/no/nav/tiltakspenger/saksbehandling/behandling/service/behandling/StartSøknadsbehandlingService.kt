@@ -34,7 +34,7 @@ class StartSøknadsbehandlingService(
         correlationId: CorrelationId,
     ): Søknadsbehandling {
         val pdlPerson = personKlient.hentEnkelPerson(soknad.fnr)
-        if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland) {
+        if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland || pdlPerson.fortrolig) {
             logger.info { "Person har adressebeskyttelse, oppretter oppgave" }
             oppgaveKlient.opprettOppgave(
                 fnr = soknad.fnr,
