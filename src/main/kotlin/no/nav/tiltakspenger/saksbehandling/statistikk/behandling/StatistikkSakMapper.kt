@@ -170,7 +170,6 @@ fun genererSaksstatistikkForKlagebehandling(
                 Klagebehandlingsstatus.AVBRUTT -> StatistikkBehandlingStatus.AVSLUTTET
                 Klagebehandlingsstatus.VEDTATT -> StatistikkBehandlingStatus.FERDIG_BEHANDLET
                 Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException("Vi sender ikke statistikk på at en sak venter på å bli plukket opp av jobben som sender klager til klageinstansen.")
-
                 Klagebehandlingsstatus.FERDIGSTILT -> throw IllegalStateException("Vi sender ikke statistikk på at en sak er ferdigstilt, da det i praksis ikke finnes noen forskjell på ferdigstilt og oversendt til KA. Vi anser saken som avsluttet når den er oversendt til KA.")
             }
         },
@@ -233,6 +232,8 @@ fun genererSaksstatistikkForKlagevedtak(
             Klagebehandlingsstatus.AVBRUTT -> StatistikkBehandlingStatus.AVSLUTTET
 
             Klagebehandlingsstatus.VEDTATT -> StatistikkBehandlingStatus.FERDIG_BEHANDLET
+
+            Klagebehandlingsstatus.FERDIGSTILT -> throw IllegalStateException("${behandling.status} er ikke en status som brukes for et klagevedtak. Dette skjedde for klagebehandling ${behandling.id}")
         },
         behandlingResultat = if (behandling.erAvbrutt) {
             StatistikkBehandlingResultat.AVBRUTT
