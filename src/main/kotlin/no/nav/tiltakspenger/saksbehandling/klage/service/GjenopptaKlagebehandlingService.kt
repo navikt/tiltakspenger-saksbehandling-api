@@ -31,7 +31,7 @@ class GjenopptaKlagebehandlingService(
         return sak.gjenopptaKlagebehandling(
             kommando = kommando,
             clock = clock,
-            gjenopptaRammebehandling = gjenopptaRammebehandlingService::gjenopptaBehandling,
+            gjenopptaRammebehandling = gjenopptaRammebehandlingService::gjenopptaBehandlingFraKlage,
             lagreKlagebehandling = ::lagreKlageOgStatistikk,
         )
     }

@@ -23,7 +23,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "opprettet_behandling",
+            hendelse = StatistikkHendelse.OPPRETTET_BEHANDLING,
         )
     }
 
@@ -35,7 +35,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "opprettet_revurdering",
+            hendelse = StatistikkHendelse.OPPRETTET_REVURDERING,
         )
     }
 
@@ -58,7 +58,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "sendt_til_beslutter",
+            hendelse = StatistikkHendelse.SENDT_TIL_BESLUTTER,
         )
     }
 
@@ -70,7 +70,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "underkjent_behandling",
+            hendelse = StatistikkHendelse.UNDERKJENT_BEHANDLING,
         )
     }
 
@@ -82,7 +82,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "oppdatert_saksbehandler_beslutter",
+            hendelse = StatistikkHendelse.OPPDATERT_SAKSBEHANDLER_BESLUTTER,
         )
     }
 
@@ -94,7 +94,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "avsluttet_behandling",
+            hendelse = StatistikkHendelse.AVSLUTTET_BEHANDLING,
         )
     }
 
@@ -106,7 +106,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "behandling_satt_på_vent",
+            hendelse = StatistikkHendelse.BEHANDLING_SATT_PA_VENT,
         )
     }
 
@@ -118,7 +118,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "behandling_gjenopptatt",
+            hendelse = StatistikkHendelse.BEHANDLING_GJENOPPTATT,
         )
     }
 
@@ -130,7 +130,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "søknad_behandlet_på_nytt",
+            hendelse = StatistikkHendelse.SOKNAD_BEHANDLET_PA_NYTT,
         )
     }
 
@@ -142,7 +142,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "opprettet_klagebehandling",
+            hendelse = StatistikkHendelse.OPPRETTET_BEHANDLING,
         )
     }
 
@@ -154,7 +154,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "avsluttet_klagebehandling",
+            hendelse = StatistikkHendelse.AVSLUTTET_BEHANDLING,
         )
     }
 
@@ -166,7 +166,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "klagebehandling_satt_på_vent",
+            hendelse = StatistikkHendelse.BEHANDLING_SATT_PA_VENT,
         )
     }
 
@@ -178,7 +178,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "klagebehandling_gjenopptatt",
+            hendelse = StatistikkHendelse.BEHANDLING_GJENOPPTATT,
         )
     }
 
@@ -190,7 +190,7 @@ class StatistikkSakService(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
-            hendelse = "klagebehandling_oversendt_ka",
+            hendelse = StatistikkHendelse.OVERSENDT_KA,
         )
     }
 

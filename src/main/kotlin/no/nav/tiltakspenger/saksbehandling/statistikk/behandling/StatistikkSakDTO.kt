@@ -96,7 +96,6 @@ enum class StatistikkBehandlingStatus {
     FERDIG_BEHANDLET,
     OVERSENDT_KA,
     AVSLUTTET,
-    VENTENDE_SAKER,
 }
 
 // FØRSTEGANGSBEHANDLING skal ikke brukes mer, men beholdes fordi den finnes i databasen
@@ -139,4 +138,18 @@ enum class StatistikkResultatBegrunnelse {
     FEIL_ELLER_ENDRET_FAKTA,
     PROSESSUELL_FEIL,
     ANNET,
+}
+
+enum class StatistikkHendelse(val value: String) {
+    OPPRETTET_BEHANDLING("opprettet_behandling"),
+    OPPRETTET_REVURDERING("opprettet_revurdering"),
+    SENDT_TIL_BESLUTTER("sendt_til_beslutter"),
+    UNDERKJENT_BEHANDLING("underkjent_behandling"),
+    OPPDATERT_SAKSBEHANDLER_BESLUTTER("oppdatert_saksbehandler_beslutter"),
+    AVSLUTTET_BEHANDLING("avsluttet_behandling"),
+    IVERKSATT_BEHANDLING("iverksatt_behandling"),
+    BEHANDLING_SATT_PA_VENT("behandling_satt_på_vent"),
+    BEHANDLING_GJENOPPTATT("behandling_gjenopptatt"),
+    SOKNAD_BEHANDLET_PA_NYTT("søknad_behandlet_på_nytt"),
+    OVERSENDT_KA("klagebehandling_oversendt_ka"),
 }

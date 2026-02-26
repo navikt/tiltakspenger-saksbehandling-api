@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkHendelse
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.genererSaksstatistikkForBehandling
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -217,7 +218,7 @@ class PersonhendelseServiceTest {
                         gjelderKode6 = false,
                         versjon = "1",
                         clock = Clock.system(zoneIdOslo),
-                        hendelse = "opprettet_behandling",
+                        hendelse = StatistikkHendelse.OPPRETTET_BEHANDLING,
                     ),
                 )
                 val personhendelse = getPersonhendelse(
@@ -289,7 +290,7 @@ class PersonhendelseServiceTest {
                         gjelderKode6 = false,
                         versjon = "1",
                         clock = Clock.system(zoneIdOslo),
-                        hendelse = "opprettet_behandling",
+                        hendelse = StatistikkHendelse.OPPRETTET_BEHANDLING,
                     ),
                 )
                 val personhendelse = getPersonhendelse(

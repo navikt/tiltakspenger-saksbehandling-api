@@ -73,7 +73,8 @@ class RammebehandlingService(
 
             val statistikk = statistikkSakService.genererStatistikkForUnderkjennBehandling(it)
 
-            lagreMedStatistikk(it, statistikk)
+            // Genererer ikke statistikk for klage, fordi underkjennelse av rammebehandlingen underkjenner ikke klagebehandlingen.
+            lagreMedStatistikk(behandling = it, statistikk = statistikk, klageStatistikk = null)
 
             oppdatertSak to it
         }.right()
@@ -85,6 +86,7 @@ class RammebehandlingService(
     fun lagreMedStatistikk(
         behandling: Rammebehandling,
         statistikk: StatistikkSakDTO,
+        klageStatistikk: StatistikkSakDTO?,
         tx: TransactionContext? = null,
     ) {
         require(behandling.id.toString() == statistikk.behandlingId) {
@@ -98,6 +100,9 @@ class RammebehandlingService(
         sessionFactory.withTransactionContext(tx) { tx ->
             rammebehandlingRepo.lagre(behandling, tx)
             statistikkSakRepo.lagre(statistikk, tx)
+            if (klageStatistikk != null) {
+                statistikkSakRepo.lagre(klageStatistikk, tx)
+            }
         }
     }
 }
