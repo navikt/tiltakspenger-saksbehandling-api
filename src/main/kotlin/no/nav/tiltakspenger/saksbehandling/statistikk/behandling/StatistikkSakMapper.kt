@@ -76,7 +76,7 @@ fun genererSaksstatistikkForRammevedtak(
         funksjonellPeriodeFom = null,
         funksjonellPeriodeTom = null,
         versjon = versjon,
-        hendelse = "iverksatt_behandling",
+        hendelse = StatistikkHendelse.IVERKSATT_BEHANDLING.value,
         behandlingAarsak = behandling.getBehandlingAarsak(),
     )
 }
@@ -86,7 +86,7 @@ fun genererSaksstatistikkForBehandling(
     gjelderKode6: Boolean,
     versjon: String,
     clock: Clock,
-    hendelse: String,
+    hendelse: StatistikkHendelse,
 ): StatistikkSakDTO {
     val erSøknadsbehandling = behandling is Søknadsbehandling
 
@@ -130,7 +130,7 @@ fun genererSaksstatistikkForBehandling(
         funksjonellPeriodeFom = null,
         funksjonellPeriodeTom = null,
         versjon = versjon,
-        hendelse = hendelse,
+        hendelse = hendelse.value,
         behandlingAarsak = behandling.getBehandlingAarsak(),
     )
 }
@@ -140,7 +140,7 @@ fun genererSaksstatistikkForKlagebehandling(
     gjelderKode6: Boolean,
     versjon: String,
     clock: Clock,
-    hendelse: String,
+    hendelse: StatistikkHendelse,
 ): StatistikkSakDTO {
     return StatistikkSakDTO(
         sakId = behandling.sakId.toString(),
@@ -160,8 +160,6 @@ fun genererSaksstatistikkForKlagebehandling(
         behandlingType = StatistikkBehandlingType.KLAGE,
         behandlingStatus = if (behandling.erAvbrutt) {
             StatistikkBehandlingStatus.AVSLUTTET
-        } else if (behandling.ventestatus.erSattPåVent) {
-            StatistikkBehandlingStatus.VENTENDE_SAKER
         } else {
             when (behandling.status) {
                 Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> StatistikkBehandlingStatus.KLAR_TIL_BEHANDLING
@@ -194,7 +192,7 @@ fun genererSaksstatistikkForKlagebehandling(
         funksjonellPeriodeFom = null,
         funksjonellPeriodeTom = null,
         versjon = versjon,
-        hendelse = hendelse,
+        hendelse = hendelse.value,
         behandlingAarsak = StatistikkBehandlingAarsak.KLAGE,
     )
 }
@@ -256,7 +254,7 @@ fun genererSaksstatistikkForKlagevedtak(
         funksjonellPeriodeFom = null,
         funksjonellPeriodeTom = null,
         versjon = versjon,
-        hendelse = "iverksatt_klagebehandling",
+        hendelse = StatistikkHendelse.IVERKSATT_BEHANDLING.value,
         behandlingAarsak = StatistikkBehandlingAarsak.KLAGE,
     )
 }

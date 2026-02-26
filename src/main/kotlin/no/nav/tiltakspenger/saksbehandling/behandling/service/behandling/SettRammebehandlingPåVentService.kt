@@ -17,6 +17,19 @@ class SettRammebehandlingPåVentService(
 
     suspend fun settBehandlingPåVent(
         kommando: SettRammebehandlingPåVentKommando,
+    ): Pair<Sak, Rammebehandling> = settBehandlingPåVentInternal(kommando, genererKlageStatistikk = true)
+
+    /**
+     * Brukes når klagebehandlingen setter rammebehandlingen på vent.
+     * Klagebehandlingen håndterer sin egen statistikk, så vi genererer ikke klagestatistikk her.
+     */
+    suspend fun settBehandlingPåVentFraKlage(
+        kommando: SettRammebehandlingPåVentKommando,
+    ): Pair<Sak, Rammebehandling> = settBehandlingPåVentInternal(kommando, genererKlageStatistikk = false)
+
+    private suspend fun settBehandlingPåVentInternal(
+        kommando: SettRammebehandlingPåVentKommando,
+        genererKlageStatistikk: Boolean,
     ): Pair<Sak, Rammebehandling> {
         val (sak, behandling) = behandlingService.hentSakOgBehandling(
             sakId = kommando.sakId,
@@ -26,15 +39,22 @@ class SettRammebehandlingPåVentService(
         return behandling.settPåVent(
             kommando = kommando,
             clock = clock,
-        ).let {
-            val oppdaterSak = sak.oppdaterRammebehandling(it)
+        ).let { behandling ->
+            val oppdaterSak = sak.oppdaterRammebehandling(behandling)
 
             behandlingService.lagreMedStatistikk(
-                it,
-                statistikkSakService.genererStatistikkForBehandlingSattPåVent(it),
+                behandling = behandling,
+                statistikk = statistikkSakService.genererStatistikkForBehandlingSattPåVent(behandling),
+                klageStatistikk = if (genererKlageStatistikk) {
+                    behandling.klagebehandling?.let {
+                        statistikkSakService.genererSaksstatistikkForKlagebehandlingSattPåVent(it)
+                    }
+                } else {
+                    null
+                },
             )
 
-            oppdaterSak to it
+            oppdaterSak to behandling
         }
     }
 }

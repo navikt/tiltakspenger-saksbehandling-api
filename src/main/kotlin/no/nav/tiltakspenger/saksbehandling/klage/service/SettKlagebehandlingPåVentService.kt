@@ -31,7 +31,7 @@ class SettKlagebehandlingPåVentService(
         return sak.settKlagebehandlingPåVent(
             kommando = kommando,
             clock = clock,
-            settRammebehandlingPåVent = settRammebehandlingPåVentService::settBehandlingPåVent,
+            settRammebehandlingPåVent = settRammebehandlingPåVentService::settBehandlingPåVentFraKlage,
             lagreKlagebehandling = klagebehandlingRepo::lagreKlagebehandling,
         ).onRight {
             val statistikk = statistikkSakService.genererSaksstatistikkForKlagebehandlingSattPåVent(it.second)

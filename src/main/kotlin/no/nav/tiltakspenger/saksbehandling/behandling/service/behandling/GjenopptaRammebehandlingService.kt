@@ -2,10 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -26,6 +22,21 @@ class GjenopptaRammebehandlingService(
 
     suspend fun gjenopptaBehandling(
         kommando: GjenopptaRammebehandlingKommando,
+    ): Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>> =
+        gjenopptaBehandlingInternal(kommando, genererKlageStatistikk = true)
+
+    /**
+     * Brukes når klagebehandlingen gjenopptar rammebehandlingen.
+     * Klagebehandlingen håndterer sin egen statistikk, så vi genererer ikke klagestatistikk her.
+     */
+    suspend fun gjenopptaBehandlingFraKlage(
+        kommando: GjenopptaRammebehandlingKommando,
+    ): Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>> =
+        gjenopptaBehandlingInternal(kommando, genererKlageStatistikk = false)
+
+    private suspend fun gjenopptaBehandlingInternal(
+        kommando: GjenopptaRammebehandlingKommando,
+        genererKlageStatistikk: Boolean,
     ): Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>> {
         val (sakId, behandlingId, saksbehandler, correlationId) = kommando
         val (sak, behandling) = behandlingService.hentSakOgBehandling(sakId, behandlingId)
@@ -48,14 +59,21 @@ class GjenopptaRammebehandlingService(
 
         return behandling.gjenoppta(kommando, clock, hentSaksopplysninger).mapLeft {
             KunneIkkeGjenopptaBehandling.FeilVedOppdateringAvSaksopplysninger(it)
-        }.map {
-            val oppdatertSak = sak.oppdaterRammebehandling(it)
+        }.map { behandling ->
+            val oppdatertSak = sak.oppdaterRammebehandling(behandling)
 
             behandlingService.lagreMedStatistikk(
-                it,
-                statistikkSakService.genererStatistikkForGjenopptattBehandling(it),
+                behandling,
+                statistikkSakService.genererStatistikkForGjenopptattBehandling(behandling),
+                klageStatistikk = if (genererKlageStatistikk) {
+                    behandling.klagebehandling?.let {
+                        statistikkSakService.genererSaksstatistikkForGjenopptattKlagebehandling(it)
+                    }
+                } else {
+                    null
+                },
             )
-            oppdatertSak to it
+            oppdatertSak to behandling
         }
     }
 }

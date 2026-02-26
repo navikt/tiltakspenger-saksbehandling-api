@@ -42,7 +42,13 @@ class AvbrytSøknadOgBehandlingService(
                 søknadService.lagreAvbruttSøknad(it, tx)
             }
             behandlingOgStatistikk.also {
-                behandlingService.lagreMedStatistikk(it.first, it.second, tx)
+                behandlingService.lagreMedStatistikk(
+                    behandling = it.first,
+                    statistikk = it.second,
+                    // Potensielt tilhørende klage blir ikke avbrutt av dette, så vi genererer ikke statistikk
+                    klageStatistikk = null,
+                    tx = tx,
+                )
             }
             sakService.oppdaterSkalSendesTilMeldekortApi(
                 sakId = sak.id,
