@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
@@ -57,50 +58,19 @@ class IverksettKlagebehandlingRouteTest {
                 KlagevedtakPostgresRepo.hentForSakId(sak.id, it).single() shouldBe expectedKlagevedtak
             }
 
-            json.toString().shouldEqualJson(
-                """
-                   {
-                     "id": "${klagebehandling.id}",
-                     "sakId": "${sak.id}",
-                     "saksnummer": "${sak.saksnummer}",
-                     "fnr": "12345678911",
-                     "opprettet": "2025-01-01T01:02:07.456789",
-                     "sistEndret": "2025-01-01T01:02:10.456789",
-                     "saksbehandler": "saksbehandlerKlagebehandling",
-                     "journalpostId": "12345",
-                     "journalpostOpprettet": "2025-01-01T01:02:06.456789",
-                     "status": "IVERKSATT",
-                     "resultat": "AVVIST",
-                     "vedtakDetKlagesPå": null,
-                     "erKlagerPartISaken": true,
-                     "klagesDetPåKonkreteElementerIVedtaket": true,
-                     "erKlagefristenOverholdt": true,
-                     "erUnntakForKlagefrist": null,
-                     "erKlagenSignert": true,
-                     "innsendingsdato": "2026-02-16",
-                     "innsendingskilde": "DIGITAL",
-                     "brevtekst": [
-                        {
-                          "tittel": "Avvisning av klage",
-                          "tekst": "Din klage er dessverre avvist."
-                        }
-                      ],
-                     "avbrutt": null,
-                     "kanIverksetteVedtak": false,
-                     "kanIverksetteOpprettholdelse": false,
-                     "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
-                     "årsak": null,
-                     "begrunnelse": null,
-                     "rammebehandlingId": null,
-                     "ventestatus": null,
-                     "hjemler": null,
-                     "iverksattOpprettholdelseTidspunkt": null,
-                     "journalføringstidspunktInnstillingsbrev": null,
-                     "distribusjonstidspunktInnstillingsbrev": null,
-                     "oversendtKlageinstansenTidspunkt": null,
-                     "klageinstanshendelser": null
-                   }
-                """.trimIndent(),
+            json.toString().shouldBeKlagebehandlingDTO(
+                ignorerTidspunkt = false,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                klagebehandlingId = klagebehandling.id,
+                sistEndret = LocalDateTime.parse("2025-01-01T01:02:10.456789"),
+                fnr = "12345678911",
+                iverksattTidspunkt = "2025-01-01T01:02:10.456789",
+                status = "IVERKSATT",
+                resultat = "AVVIST",
+                brevtekst = listOf("""{"tittel": "Avvisning av klage","tekst": "Din klage er dessverre avvist."}"""),
+                hjemler = null,
+                klageinstanshendelser = null,
             )
             hentSakForSaksnummer(tac = tac, saksnummer = klagebehandling.saksnummer)!!.getJSONArray("alleKlagevedtak")
                 .also {

@@ -16,7 +16,7 @@ fun String.shouldBeKlagebehandlingDTO(
     sistEndret: LocalDateTime = LocalDateTime.parse("2025-01-01T01:02:07.456789"),
     fnr: String = "12345678912",
     iverksattTidspunkt: String? = null,
-    saksbehandler: String = "saksbehandlerKlagebehandling",
+    saksbehandler: String? = "saksbehandlerKlagebehandling",
     journalpostId: String = "12345",
     journalpostOpprettet: LocalDateTime = LocalDateTime.parse("2025-01-01T01:02:06.456789"),
     status: String = "UNDER_BEHANDLING",
@@ -37,12 +37,12 @@ fun String.shouldBeKlagebehandlingDTO(
     begrunnelse: String? = null,
     rammebehandlingId: String? = null,
     ventestatus: String? = null,
-    hjemler: List<String> = emptyList(),
+    hjemler: List<String>? = emptyList(),
     iverksattOpprettholdelseTidspunkt: String? = null,
     journalføringstidspunktInnstillingsbrev: String? = null,
     distribusjonstidspunktInnstillingsbrev: String? = null,
     oversendtKlageinstansenTidspunkt: String? = null,
-    klageinstanshendelser: List<String> = emptyList(),
+    klageinstanshendelser: List<String>? = emptyList(),
 ) {
     val expected =
         """
@@ -54,7 +54,7 @@ fun String.shouldBeKlagebehandlingDTO(
          "opprettet": "$opprettet",
          "sistEndret": "$sistEndret",
          "iverksattTidspunkt": ${iverksattTidspunkt.toJsonValue()},
-         "saksbehandler": "$saksbehandler",
+         "saksbehandler": ${saksbehandler.toJsonValue()},
          "journalpostId": "$journalpostId",
          "journalpostOpprettet": "$journalpostOpprettet",
          "status": "$status",
@@ -75,12 +75,12 @@ fun String.shouldBeKlagebehandlingDTO(
          "begrunnelse": ${begrunnelse.toJsonValue()},
          "rammebehandlingId": ${rammebehandlingId.toJsonValue()},
          "ventestatus": $ventestatus,
-         "hjemler": [ ${hjemler.joinToString{ "\"$it\""}} ],
+         "hjemler": ${hjemler?.let { "[ ${it.joinToString { "\"$it\"" }} ]" } ?: "null"},
          "iverksattOpprettholdelseTidspunkt": ${iverksattOpprettholdelseTidspunkt.toJsonValue()},
          "journalføringstidspunktInnstillingsbrev": ${journalføringstidspunktInnstillingsbrev.toJsonValue()},
          "distribusjonstidspunktInnstillingsbrev": ${distribusjonstidspunktInnstillingsbrev.toJsonValue()},
          "oversendtKlageinstansenTidspunkt": ${oversendtKlageinstansenTidspunkt.toJsonValue()},
-         "klageinstanshendelser": [ ${klageinstanshendelser.joinToString{ "\"$it\""}} ]
+         "klageinstanshendelser": ${klageinstanshendelser?.let { "[ ${it.joinToString { "\"$it\"" }} ]" } ?: "null"}
        }
         """.trimIndent()
     if (ignorerTidspunkt) {
