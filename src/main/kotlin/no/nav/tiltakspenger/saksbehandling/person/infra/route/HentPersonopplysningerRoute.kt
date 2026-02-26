@@ -27,7 +27,7 @@ fun Route.hentPersonRoute(
         call.withSakId { sakId ->
             val correlationId = call.correlationId()
             krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-            sakService.hentEnkelPersonForSakId(sakId, correlationId).map {
+            sakService.hentEnkelPersonMedSkjermingForSakId(sakId, correlationId).map {
                 it.toEnkelPersonDTO()
             }.fold(
                 {

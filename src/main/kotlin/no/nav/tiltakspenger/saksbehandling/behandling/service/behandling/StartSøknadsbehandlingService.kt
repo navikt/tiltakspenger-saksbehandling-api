@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
@@ -33,9 +34,9 @@ class StartSøknadsbehandlingService(
         soknad: InnvilgbarSøknad,
         correlationId: CorrelationId,
     ): Søknadsbehandling {
-        val pdlPerson = personKlient.hentEnkelPerson(soknad.fnr)
-        if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland || pdlPerson.fortrolig) {
-            logger.info { "Person har adressebeskyttelse, oppretter oppgave" }
+        val pdlPerson = sakService.hentEnkelPersonMedSkjermingForSakId(soknad.sakId, correlationId).getOrThrow()
+        if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland || pdlPerson.fortrolig || pdlPerson.skjermet) {
+            logger.info { "Person har adressebeskyttelse eller er skjermet, oppretter oppgave i Gosys" }
             oppgaveKlient.opprettOppgave(
                 fnr = soknad.fnr,
                 journalpostId = JournalpostId(soknad.journalpostId),

@@ -88,7 +88,7 @@ class SakService(
     /**
      * Merk at denne ikke skal sjekke om saksbehandler har tilgang til personen.
      */
-    suspend fun hentEnkelPersonForSakId(
+    suspend fun hentEnkelPersonMedSkjermingForSakId(
         sakId: SakId,
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming> {

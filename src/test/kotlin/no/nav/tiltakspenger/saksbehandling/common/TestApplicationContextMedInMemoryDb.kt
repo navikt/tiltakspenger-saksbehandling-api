@@ -40,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonFakeRepo
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
@@ -112,6 +113,7 @@ class TestApplicationContextMedInMemoryDb(
         BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortBehandlingFakeRepo, klagebehandlingFakeRepo)
     private val tiltaksdeltakerFakeRepo = TiltaksdeltakerFakeRepo()
     private val fakeNavIdentClient = FakeNavIdentClient()
+    private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
 
     override val jwtGenerator: JwtGenerator = JwtGenerator()
 
@@ -224,7 +226,7 @@ class TestApplicationContextMedInMemoryDb(
         object : SakContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
-            fellesSkjermingsklient = personContext.fellesSkjermingsklient,
+            fellesSkjermingsklient = fellesFakeSkjermingsklient,
             profile = Profile.LOCAL,
             clock = clock,
         ) {
