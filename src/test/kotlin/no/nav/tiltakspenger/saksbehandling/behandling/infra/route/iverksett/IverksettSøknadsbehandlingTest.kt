@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
@@ -109,7 +110,10 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext { tac ->
             val saksbehandler = saksbehandler()
             val beslutter = ObjectMother.beslutter()
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac, saksbehandler = saksbehandler)
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac,
+                saksbehandler = saksbehandler,
+            )
             val behandlingId = behandling.id
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -130,14 +134,9 @@ class IverksettSøknadsbehandlingTest {
                 behandlingId,
                 ObjectMother.beslutter(navIdent = "B999999"),
                 forventetStatus = HttpStatusCode.BadRequest,
-                // language=JSON
-                forventetJsonBody = """
-                    {
-                      "melding" : "Du kan ikke utføre handlinger på en behandling som ikke er tildelt deg. Behandlingen er tildelt B12345",
-                      "kode" : "behandling_eies_av_annen_saksbehandler"
-                    }
-                """.trimIndent(),
-            ) shouldBe null
+            ) {
+                it harKode "behandling_eies_av_annen_saksbehandler"
+            } shouldBe null
         }
     }
 
@@ -146,7 +145,10 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext { tac ->
             val saksbehandler = saksbehandler()
             val beslutter = ObjectMother.beslutter()
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac, saksbehandler = saksbehandler)
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac,
+                saksbehandler = saksbehandler,
+            )
             val behandlingId = behandling.id
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -167,14 +169,9 @@ class IverksettSøknadsbehandlingTest {
                 behandlingId = behandlingId,
                 beslutter = saksbehandler,
                 forventetStatus = HttpStatusCode.Forbidden,
-                // language=JSON
-                forventetJsonBody = """
-                    {
-                      "melding" : "Saksbehandler Z12345 mangler rollen BESLUTTER. Saksbehandlers roller: Saksbehandlerroller(value=[SAKSBEHANDLER])",
-                      "kode" : "tilgang_nektet_krev_rolle"
-                    }
-                """.trimIndent(),
-            ) shouldBe null
+            ) {
+                it harKode "tilgang_nektet_krev_rolle"
+            } shouldBe null
         }
     }
 }

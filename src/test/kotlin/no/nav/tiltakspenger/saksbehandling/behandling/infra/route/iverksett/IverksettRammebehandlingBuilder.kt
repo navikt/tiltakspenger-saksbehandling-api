@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
@@ -34,8 +33,8 @@ interface IverksettRammebehandlingBuilder {
         behandlingId: BehandlingId,
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
         utførJobber: Boolean = true,
+        medJsonBody: ((jsonBody: String) -> Unit)? = null,
     ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = beslutter,
@@ -55,8 +54,8 @@ interface IverksettRammebehandlingBuilder {
             ) {
                 status shouldBe forventetStatus
             }
-            if (forventetJsonBody != null) {
-                bodyAsText.shouldEqualJson(forventetJsonBody)
+            if (medJsonBody != null) {
+                medJsonBody(bodyAsText)
             }
             if (status != HttpStatusCode.OK) return null
             if (utførJobber) {

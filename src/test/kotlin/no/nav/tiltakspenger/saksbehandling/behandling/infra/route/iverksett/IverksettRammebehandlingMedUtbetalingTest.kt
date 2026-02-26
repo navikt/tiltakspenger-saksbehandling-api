@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
@@ -15,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
-import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 
 class IverksettRammebehandlingMedUtbetalingTest {
@@ -60,21 +60,14 @@ class IverksettRammebehandlingMedUtbetalingTest {
                     harValgtStansFraFørsteDagSomGirRett = true,
                 )
 
-                @Language("JSON")
-                val expectedResponse = """
-                {
-                    "melding": "Kontrollsimuleringen har endringer sammenlignet med forrige simulering.",
-                    "kode": "simulering_endret"                        
-                }
-                """.trimIndent()
-
                 iverksettForBehandlingId(
                     tac = tac,
                     sakId = sak.id,
                     behandlingId = omgjøring.id,
                     forventetStatus = HttpStatusCode.Conflict,
-                    forventetJsonBody = expectedResponse,
-                )
+                ) {
+                    it harKode "simulering_endret"
+                }
 
                 // Skal ikke fungere ved gjentatte forsøk heller!
                 iverksettForBehandlingId(
@@ -82,8 +75,9 @@ class IverksettRammebehandlingMedUtbetalingTest {
                     sakId = sak.id,
                     behandlingId = omgjøring.id,
                     forventetStatus = HttpStatusCode.Conflict,
-                    forventetJsonBody = expectedResponse,
-                )
+                ) {
+                    it harKode "simulering_endret"
+                }
             }
         }
     }
@@ -137,21 +131,14 @@ class IverksettRammebehandlingMedUtbetalingTest {
                     ),
                 )
 
-                @Language("JSON")
-                val expectedResponse = """
-                {
-                    "melding": "Kontrollsimuleringen har endringer sammenlignet med forrige simulering.",
-                    "kode": "simulering_endret"                        
-                }
-                """.trimIndent()
-
                 iverksettForBehandlingId(
                     tac = tac,
                     sakId = sak.id,
                     behandlingId = omgjøring.id,
                     forventetStatus = HttpStatusCode.Conflict,
-                    forventetJsonBody = expectedResponse,
-                )
+                ) {
+                    it harKode "simulering_endret"
+                }
             }
         }
     }
@@ -200,21 +187,14 @@ class IverksettRammebehandlingMedUtbetalingTest {
                     rammevedtakIdSomOmgjøres = søknadvedtak.id,
                 )
 
-                @Language("JSON")
-                val expectedResponse = """
-                {
-                    "melding": "Kontrollsimuleringen har endringer sammenlignet med forrige simulering.",
-                    "kode": "simulering_endret"                        
-                }
-                """.trimIndent()
-
                 iverksettForBehandlingId(
                     tac = tac,
                     sakId = sak.id,
                     behandlingId = omgjøring.id,
                     forventetStatus = HttpStatusCode.Conflict,
-                    forventetJsonBody = expectedResponse,
-                )
+                ) {
+                    it harKode "simulering_endret"
+                }
             }
         }
     }

@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
@@ -21,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -37,7 +37,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRe
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.IverksettV2Dto
-import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
@@ -243,15 +242,7 @@ class UtbetalingerIT {
                 forventetStatus = HttpStatusCode.BadRequest,
             )
 
-            @Language("JSON")
-            val expected = """
-                {
-                  "melding": "Behandling med feilutbetaling støttes ikke på nåværende tidspunkt.",
-                  "kode": "støtter_ikke_feilutbetaling"
-                }                
-            """.trimIndent()
-
-            bodyAsText shouldEqualJson expected
+            bodyAsText harKode "støtter_ikke_feilutbetaling"
 
             tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
         }
@@ -287,15 +278,7 @@ class UtbetalingerIT {
                 forventetStatus = HttpStatusCode.BadRequest,
             )
 
-            @Language("JSON")
-            val expected = """
-                {
-                  "melding": "Behandling med feilutbetaling støttes ikke på nåværende tidspunkt.",
-                  "kode": "støtter_ikke_feilutbetaling"
-                }                
-            """.trimIndent()
-
-            bodyAsText shouldEqualJson expected
+            bodyAsText harKode "støtter_ikke_feilutbetaling"
 
             tac.behandlingContext.rammebehandlingRepo.hent(omgjøring.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
         }

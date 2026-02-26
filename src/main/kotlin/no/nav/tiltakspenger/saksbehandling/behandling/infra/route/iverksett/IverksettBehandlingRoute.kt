@@ -49,9 +49,17 @@ fun Route.iverksettRammebehandlingRoute(
                                 behandlingenEiesAvAnnenSaksbehandler(it.eiesAvBeslutter),
                             )
 
-                            is KanIkkeIverksetteBehandling.UtbetalingFeil -> call.respondJson(it.feil.tilErrorJson())
-
                             is KanIkkeIverksetteBehandling.SimuleringFeil -> call.respondJson(it.feil.tilSimuleringErrorJson())
+
+                            is KanIkkeIverksetteBehandling.UtbetalingFeil -> call.respondJson(
+                                it.feil.tilErrorJson().let { (status, errorJson) ->
+                                    status to ErrorMedData(
+                                        melding = errorJson.melding,
+                                        kode = errorJson.kode,
+                                        data = it.sak.tilRammebehandlingDTO(it.behandling.id),
+                                    )
+                                },
+                            )
                         }
                     },
                     { (sak) ->
@@ -70,3 +78,10 @@ fun Route.iverksettRammebehandlingRoute(
         }
     }
 }
+
+// TODO: flytt denne til libs
+private data class ErrorMedData<T>(
+    val melding: String,
+    val kode: String,
+    val data: T? = null,
+)

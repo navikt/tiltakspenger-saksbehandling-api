@@ -83,7 +83,13 @@ class IverksettRammebehandlingService(
         behandlingMedUtbetalingskontroll.validerKanIverksetteUtbetaling().onLeft {
             logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - $rammebehandlingId / $it" }
             rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
-            return KanIkkeIverksetteBehandling.UtbetalingFeil(it).left()
+            val oppdaterSak = sak.oppdaterRammebehandling(behandlingMedUtbetalingskontroll)
+
+            return KanIkkeIverksetteBehandling.UtbetalingFeil(
+                it,
+                oppdaterSak,
+                behandlingMedUtbetalingskontroll,
+            ).left()
         }
 
         val attestering = Attestering(

@@ -52,7 +52,15 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
                         correlationId = correlationId,
                     ),
                 ).onLeft {
-                    call.respondJson(valueAndStatus = it.toErrorJson())
+                    when (it) {
+                        is KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler,
+                        KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent,
+                        KanIkkeSendeRammebehandlingTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk,
+                        is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil,
+                        -> call.respondJson(valueAndStatus = it.toErrorJson())
+
+                        is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> call.respondJson(it.toErrorJson())
+                    }
                 }.onRight { (sak, behandling) ->
                     auditService.logMedBehandlingId(
                         behandlingId = behandlingId,
@@ -71,7 +79,14 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
     }
 }
 
-private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+// TODO: flytt denne til libs
+private data class ErrorMedData<T>(
+    val melding: String,
+    val kode: String,
+    val data: T? = null,
+)
+
+private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStatusCode, Any> = when (this) {
     is KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
         this.eiesAvSaksbehandler,
     )
@@ -86,7 +101,13 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStat
         "behandlingen_er_pa_vent",
     )
 
-    is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> this.feil.tilErrorJson()
-
     is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil -> this.feil.tilSimuleringErrorJson()
+
+    is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> this.feil.tilErrorJson().let { (status, errorJson) ->
+        status to ErrorMedData(
+            melding = errorJson.melding,
+            kode = errorJson.kode,
+            data = this.sak.tilRammebehandlingDTO(this.behandling.id),
+        )
+    }
 }
