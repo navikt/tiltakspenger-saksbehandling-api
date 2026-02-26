@@ -51,6 +51,7 @@ data class KlagebehandlingDTO(
     val distribusjonstidspunktInnstillingsbrev: LocalDateTime?,
     val oversendtKlageinstansenTidspunkt: LocalDateTime?,
     val klageinstanshendelser: List<KlageinstanshendelseDTO>?,
+    val ferdigstiltTidspunkt: LocalDateTime?,
 ) {
     data class TittelOgTekstDTO(
         val tittel: String,
@@ -103,4 +104,5 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     distribusjonstidspunktInnstillingsbrev = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.distribusjonstidspunktInnstillingsbrev,
     oversendtKlageinstansenTidspunkt = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.oversendtKlageinstansenTidspunkt,
     klageinstanshendelser = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.klageinstanshendelser?.toDTO(),
+    ferdigstiltTidspunkt = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.ferdigstiltTidspunkt,
 )

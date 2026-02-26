@@ -43,6 +43,7 @@ fun String.shouldBeKlagebehandlingDTO(
     distribusjonstidspunktInnstillingsbrev: String? = null,
     oversendtKlageinstansenTidspunkt: String? = null,
     klageinstanshendelser: String? = null,
+    ferdigstiltTidspunkt: String? = null,
 ) {
     val expected =
         """
@@ -80,7 +81,8 @@ fun String.shouldBeKlagebehandlingDTO(
          "journalføringstidspunktInnstillingsbrev": ${journalføringstidspunktInnstillingsbrev.toJsonValue()},
          "distribusjonstidspunktInnstillingsbrev": ${distribusjonstidspunktInnstillingsbrev.toJsonValue()},
          "oversendtKlageinstansenTidspunkt": ${oversendtKlageinstansenTidspunkt.toJsonValue()},
-         "klageinstanshendelser": ${klageinstanshendelser.toJsonValue()}
+         "klageinstanshendelser": ${klageinstanshendelser.toJsonValue()},
+            "ferdigstiltTidspunkt": ${ferdigstiltTidspunkt.toJsonValue()}
        }
         """.trimIndent()
     if (ignorerTidspunkt) {

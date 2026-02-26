@@ -127,6 +127,7 @@ sealed interface Klagebehandlingsresultat {
         val distribusjonstidspunktInnstillingsbrev: LocalDateTime?,
         val oversendtKlageinstansenTidspunkt: LocalDateTime?,
         val klageinstanshendelser: Klageinstanshendelser,
+        val ferdigstiltTidspunkt: LocalDateTime?,
     ) : Klagebehandlingsresultat {
 
         override val erKnyttetTilRammebehandling = false
@@ -196,6 +197,16 @@ sealed interface Klagebehandlingsresultat {
             return copy(klageinstanshendelser = klageinstanshendelser.leggTil(hendelse))
         }
 
+        fun oppdaterFerdigstiltTidspunkt(ferdigstiltTidspunkt: LocalDateTime): Klagebehandlingsresultat {
+            require(
+                this.ferdigstiltTidspunkt == null &&
+                    klageinstanshendelser.isNotEmpty(),
+            ) {
+                "Kan kun sette ferdigstiltTidspunkt én gang, og må ha mottatt minst én klageinstanshendelse for å kunne oppdatere ferdigstiltTidspunkt"
+            }
+            return this.copy(ferdigstiltTidspunkt = ferdigstiltTidspunkt)
+        }
+
         companion object {
             fun create(hjemler: Klagehjemler): Opprettholdt {
                 return Opprettholdt(
@@ -209,6 +220,7 @@ sealed interface Klagebehandlingsresultat {
                     distribusjonIdInnstillingsbrev = null,
                     distribusjonstidspunktInnstillingsbrev = null,
                     klageinstanshendelser = Klageinstanshendelser.empty(),
+                    ferdigstiltTidspunkt = null,
                 )
             }
         }

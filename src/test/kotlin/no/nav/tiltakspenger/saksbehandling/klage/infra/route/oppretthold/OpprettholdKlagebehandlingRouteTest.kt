@@ -81,7 +81,8 @@ class OpprettholdKlagebehandlingRouteTest {
                      "journalføringstidspunktInnstillingsbrev": null,
                      "distribusjonstidspunktInnstillingsbrev": null,
                      "oversendtKlageinstansenTidspunkt": null,
-                     "klageinstanshendelser": []
+                     "klageinstanshendelser": [],
+                     "ferdigstiltTidspunkt": null
                    }
                 """.trimIndent(),
             )

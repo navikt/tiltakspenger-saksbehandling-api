@@ -32,6 +32,7 @@ private data class KlagebehandlingsresultatDbJson(
     val distribusjonIdInnstillingsbrev: String?,
     val distribusjonstidspunktInnstillingsbrev: LocalDateTime?,
     val klageinstanshendelser: List<KlageinstanshendelseDb>,
+    val ferdigstiltTidspunkt: LocalDateTime?,
 
     // TODO jah: Flytt avvisningsbrevtekst hit fra klagebehandlingstabellen
 ) {
@@ -66,6 +67,7 @@ private data class KlagebehandlingsresultatDbJson(
                 distribusjonstidspunktInnstillingsbrev = distribusjonstidspunktInnstillingsbrev,
                 oversendtKlageinstansenTidspunkt = oversendtKlageinstansenTidspunkt,
                 klageinstanshendelser = Klageinstanshendelser(klageinstanshendelser.map { it.toDomain() }),
+                ferdigstiltTidspunkt = ferdigstiltTidspunkt,
             )
         }
     }
@@ -90,6 +92,7 @@ fun Klagebehandlingsresultat.toDbJson(): String {
         distribusjonIdInnstillingsbrev = (this as? Opprettholdt)?.distribusjonIdInnstillingsbrev?.toString(),
         distribusjonstidspunktInnstillingsbrev = (this as? Opprettholdt)?.distribusjonstidspunktInnstillingsbrev,
         klageinstanshendelser = (this as? Opprettholdt)?.klageinstanshendelser?.toDb() ?: emptyList(),
+        ferdigstiltTidspunkt = (this as? Opprettholdt)?.ferdigstiltTidspunkt,
     ).let { serialize(it) }
 }
 

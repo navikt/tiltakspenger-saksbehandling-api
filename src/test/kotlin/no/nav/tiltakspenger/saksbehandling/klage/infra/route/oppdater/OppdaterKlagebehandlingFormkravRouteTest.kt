@@ -73,7 +73,8 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                   "journalføringstidspunktInnstillingsbrev": null,
                   "distribusjonstidspunktInnstillingsbrev": null,
                   "oversendtKlageinstansenTidspunkt": null,
-                  "klageinstanshendelser": null
+                  "klageinstanshendelser": null,
+                  "ferdigstiltTidspunkt": null
                 }
                 """.trimIndent(),
             )
@@ -154,7 +155,8 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                   "journalføringstidspunktInnstillingsbrev": null,
                   "distribusjonstidspunktInnstillingsbrev": null,
                   "oversendtKlageinstansenTidspunkt": null,
-                  "klageinstanshendelser": null
+                  "klageinstanshendelser": null,
+                  "ferdigstiltTidspunkt": null
                 }
                     """.trimIndent()
                 },

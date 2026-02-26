@@ -31,9 +31,11 @@ fun Klagebehandling.ferdigstill(
         return KunneIkkeFerdigstilleKlagebehandling.UtfallFraKlageinstansSkalFøreTilNyRammebehandling.left()
     }
 
+    val ferdigstiltTidspunkt = nå(clock)
     return this.copy(
         status = Klagebehandlingsstatus.FERDIGSTILT,
-        sistEndret = nå(clock),
+        sistEndret = ferdigstiltTidspunkt,
+        resultat = this.resultat.oppdaterFerdigstiltTidspunkt(ferdigstiltTidspunkt),
     ).right()
 }
 

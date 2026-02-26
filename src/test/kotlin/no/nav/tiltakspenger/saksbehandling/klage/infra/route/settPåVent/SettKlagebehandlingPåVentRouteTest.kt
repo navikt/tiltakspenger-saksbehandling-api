@@ -58,7 +58,8 @@ class SettKlagebehandlingPåVentRouteTest {
                   "journalføringstidspunktInnstillingsbrev": null,
                   "distribusjonstidspunktInnstillingsbrev": null,
                   "oversendtKlageinstansenTidspunkt": null,
-                  "klageinstanshendelser": null
+                  "klageinstanshendelser": null,
+                  "ferdigstiltTidspunkt": null
                 }
                 """.trimIndent(),
             )

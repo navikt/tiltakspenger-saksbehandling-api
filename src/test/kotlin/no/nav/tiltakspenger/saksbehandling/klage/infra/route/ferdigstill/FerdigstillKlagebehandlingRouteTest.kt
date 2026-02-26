@@ -86,7 +86,8 @@ class FerdigstillKlagebehandlingRouteTest {
                           "utfall": "STADFESTELSE",
                           "hendelsestype": "KLAGEBEHANDLING_AVSLUTTET"
                         }
-                      ]
+                      ],
+                      "ferdigstiltTidspunkt": "TIMESTAMP"
                 }
                 """.trimIndent(),
             )
