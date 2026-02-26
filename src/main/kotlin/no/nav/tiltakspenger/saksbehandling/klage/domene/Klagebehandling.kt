@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.FERDIGSTILT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OPPRETTHOLDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
@@ -58,6 +59,7 @@ data class Klagebehandling(
     val erKlarTilBehandling: Boolean = status == KLAR_TIL_BEHANDLING
     override val erAvbrutt: Boolean = status == AVBRUTT
     val erVedtatt: Boolean = status == VEDTATT
+    val erFerdigstilt: Boolean = status == FERDIGSTILT
 
     /** Dersom klagen er oversendt til klageinstansen eller etterfølgende status. */
     @Suppress("unused")
@@ -65,7 +67,7 @@ data class Klagebehandling(
 
     /** Dersom vi har journalført+distribuert innstillingsbrevet og ikke allerede har sendt klagen til klageinstansen */
     val kanOversendeKlageinstans: Boolean = resultat?.kanOversendeKlageinstans == true
-    override val erAvsluttet: Boolean = erAvbrutt || erVedtatt
+    override val erAvsluttet: Boolean = erAvbrutt || erVedtatt || erFerdigstilt
     val erÅpen: Boolean = !erAvsluttet
     val erAvvisning: Boolean = resultat is Klagebehandlingsresultat.Avvist
 
@@ -254,7 +256,7 @@ data class Klagebehandling(
                 }
             }
 
-            Klagebehandlingsstatus.FERDIGSTILT -> {
+            FERDIGSTILT -> {
                 require(iverksattTidspunkt == null) {
                     "Klagebehandling som er $status kan ikke ha iverksattTidspunkt satt. $loggkontekst"
                 }
