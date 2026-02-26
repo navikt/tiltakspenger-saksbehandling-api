@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.S
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendSøknadsbehandlingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.UnderkjennRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.AvbrytKlagebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ferdigstill.FerdigstillKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.forhåndsvis.ForhåndsvisBrevKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.GjenopptaKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.GjenopptaKlagebehandlingMedRammebehandlingBuilder
@@ -101,4 +102,5 @@ object RouteBehandlingBuilder :
     OvertaMeldekortbehandlingBuilder,
     IverksettMeldekortbehandlingBuilder,
     UnderkjennMeldekortbehandlingBuilder,
-    ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder
+    ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder,
+    FerdigstillKlagebehandlingBuilder

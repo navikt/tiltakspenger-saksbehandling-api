@@ -131,7 +131,7 @@ data class Behandlinger(
 
                 Klagebehandlingsstatus.VEDTATT -> require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT)
 
-                Klagebehandlingsstatus.AVBRUTT, Klagebehandlingsstatus.OPPRETTHOLDT, Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException(
+                Klagebehandlingsstatus.AVBRUTT, Klagebehandlingsstatus.OPPRETTHOLDT, Klagebehandlingsstatus.OVERSENDT, Klagebehandlingsstatus.FERDIGSTILT -> throw IllegalStateException(
                     "En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling",
                 )
             }

@@ -9,6 +9,7 @@ enum class KlagestatustypeDto {
     IVERKSATT,
     OPPRETTHOLDT,
     OVERSENDT,
+    FERDIGSTILT,
     ;
 
     companion object {
@@ -25,6 +26,8 @@ enum class KlagestatustypeDto {
             Klagebehandlingsstatus.OPPRETTHOLDT -> OPPRETTHOLDT
 
             Klagebehandlingsstatus.OVERSENDT -> OVERSENDT
+
+            Klagebehandlingsstatus.FERDIGSTILT -> FERDIGSTILT
         }
     }
 }

@@ -32,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagehendelseRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.FerdigstillKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.GjenopptaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettAvvistKlagebehandlingService
@@ -258,6 +259,13 @@ open class KlagebehandlingContext(
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
             sessionFactory = sessionFactory,
+        )
+    }
+
+    open val ferdigstillKlagebehandlingService by lazy {
+        FerdigstillKlagebehandlingService(
+            klagebehandlingRepo = klagebehandlingRepo,
+            clock = clock,
         )
     }
 }
