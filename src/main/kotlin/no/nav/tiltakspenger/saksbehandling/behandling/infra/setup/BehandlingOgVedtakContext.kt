@@ -39,7 +39,6 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonskli
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
-import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
@@ -70,7 +69,6 @@ open class BehandlingOgVedtakContext(
     sokosUtbetaldataClient: SokosUtbetaldataClient,
     navkontorService: NavkontorService,
     simulerService: SimulerService,
-    personKlient: PersonKlient,
     oppgaveKlient: OppgaveKlient,
     tiltakspengerArenaClient: TiltakspengerArenaClient,
     tiltaksdeltakerRepo: TiltaksdeltakerRepo,
@@ -101,7 +99,6 @@ open class BehandlingOgVedtakContext(
             hentSaksopplysingerService = hentSaksopplysingerService,
             clock = clock,
             statistikkSakService = statistikkSakService,
-            personKlient = personKlient,
             oppgaveKlient = oppgaveKlient,
         )
     }
