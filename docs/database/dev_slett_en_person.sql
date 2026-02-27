@@ -20,5 +20,6 @@ personhendelsez AS (DELETE FROM personhendelse WHERE sak_id IN (SELECT id FROM s
 identhendelsez AS (DELETE FROM identhendelse WHERE sak_id IN (SELECT id FROM sakz) returning id),
 tiltaksdeltaker_kafkaz AS (DELETE FROM tiltaksdeltaker_kafka WHERE sak_id IN (SELECT id FROM sakz)),
 klagebehandlingz AS (DELETE FROM klagebehandling WHERE sak_id IN (SELECT id FROM sakz)),
-klagehendelsez AS (DELETE FROM klagehendelse WHERE sak_id IN (SELECT id FROM sakz))
+klagehendelsez AS (DELETE FROM klagehendelse WHERE sak_id IN (SELECT id FROM sakz)),
+klagevedtakz AS (DELETE FROM klagevedtak WHERE sak_id IN (SELECT id FROM sakz))
 SELECT id FROM sakz;
