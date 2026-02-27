@@ -43,6 +43,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                   "attesteringer": [],
                   "saksbehandler": "Z12345",
                   "opprettet": "2025-05-01T01:02:26.456789",
+                  "kanIkkeIverksetteUtbetaling": null,
                   "type": "FØRSTE_BEHANDLING",
                   "meldeperiodeId": "${meldekortbehandling.meldeperiode.id}",
                   "beregning": {
@@ -726,8 +727,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                         "før": null,
                         "nå": 2682
                       }
-                    },
-                    "utbetalingValideringsfeil": null
+                    }
                   },
                   "brukersMeldekortId": "null",
                   "navkontor": "0220",

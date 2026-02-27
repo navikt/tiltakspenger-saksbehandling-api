@@ -32,7 +32,6 @@ data class SimulertBeregningDTO(
     val simulerteBeløp: SimulerteBeløp?,
     val simuleringResultat: SimuleringResultatDTO,
     val beregning: BeregningerSummertDTO,
-    val utbetalingValideringsfeil: KanIkkeIverksetteUtbetalingDTO?,
 ) {
 
     enum class Behandlingstype {
@@ -86,13 +85,6 @@ data class SimulertBeregningDTO(
         INGEN_ENDRING,
         IKKE_SIMULERT,
     }
-
-    enum class KanIkkeIverksetteUtbetalingDTO {
-        SimuleringMangler,
-        FeilutbetalingStøttesIkke,
-        JusteringStøttesIkke,
-        SimuleringHarEndringer,
-    }
 }
 
 fun SimulertBeregning.toSimulertBeregningDTO(): SimulertBeregningDTO {
@@ -110,7 +102,6 @@ fun SimulertBeregning.toSimulertBeregningDTO(): SimulertBeregningDTO {
         simulerteBeløp = this.simuleringsdager?.tilSimulerteBeløpDTO(),
         beregning = this.beregning.tilBeregningerSummertDTO(this.forrigeBeregning),
         simuleringResultat = this.simuleringResultat.tilDTO(),
-        utbetalingValideringsfeil = this.utbetalingValideringsfeil?.tilDTO(),
     )
 }
 
@@ -208,14 +199,5 @@ private fun SimulertBeregning.SimuleringResultat.tilDTO(): SimulertBeregningDTO.
         SimulertBeregning.SimuleringResultat.ENDRING -> SimulertBeregningDTO.SimuleringResultatDTO.ENDRING
         SimulertBeregning.SimuleringResultat.INGEN_ENDRING -> SimulertBeregningDTO.SimuleringResultatDTO.INGEN_ENDRING
         SimulertBeregning.SimuleringResultat.IKKE_SIMULERT -> SimulertBeregningDTO.SimuleringResultatDTO.IKKE_SIMULERT
-    }
-}
-
-private fun KanIkkeIverksetteUtbetaling.tilDTO(): SimulertBeregningDTO.KanIkkeIverksetteUtbetalingDTO {
-    return when (this) {
-        KanIkkeIverksetteUtbetaling.SimuleringMangler -> SimulertBeregningDTO.KanIkkeIverksetteUtbetalingDTO.SimuleringMangler
-        KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke -> SimulertBeregningDTO.KanIkkeIverksetteUtbetalingDTO.FeilutbetalingStøttesIkke
-        KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> SimulertBeregningDTO.KanIkkeIverksetteUtbetalingDTO.JusteringStøttesIkke
-        KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer -> SimulertBeregningDTO.KanIkkeIverksetteUtbetalingDTO.SimuleringHarEndringer
     }
 }

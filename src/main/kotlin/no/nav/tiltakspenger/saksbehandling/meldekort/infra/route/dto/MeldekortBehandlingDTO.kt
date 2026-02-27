@@ -14,7 +14,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.KanIkkeIverksetteUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingsstatusDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.tilKanIkkeIverksetteUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimulertBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.toSimulertBeregningDTO
@@ -42,6 +45,7 @@ data class MeldekortBehandlingDTO(
     val beregning: MeldekortBeregningDTO?,
     val avbrutt: AvbruttDTO?,
     val simulertBeregning: SimulertBeregningDTO?,
+    val kanIkkeIverksetteUtbetaling: KanIkkeIverksetteUtbetalingDTO?,
     val tekstTilVedtaksbrev: String?,
 )
 
@@ -75,6 +79,8 @@ fun MeldekortBehandling.tilMeldekortBehandlingDTO(
         beregning = beregning?.tilMeldekortBeregningDTO(),
         avbrutt = avbrutt?.toAvbruttDTO(),
         simulertBeregning = this.toSimulertBeregning(beregninger)?.toSimulertBeregningDTO(),
+        kanIkkeIverksetteUtbetaling = this.validerKanIverksetteUtbetaling().leftOrNull()
+            ?.tilKanIkkeIverksetteUtbetalingDTO(),
         tekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
     )
 }

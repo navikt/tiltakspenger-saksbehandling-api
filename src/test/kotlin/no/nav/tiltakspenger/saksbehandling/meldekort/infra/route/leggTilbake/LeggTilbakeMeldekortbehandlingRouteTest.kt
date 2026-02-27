@@ -20,6 +20,7 @@ class LeggTilbakeMeldekortbehandlingRouteTest {
                       "attesteringer": [],
                       "saksbehandler": null,
                       "opprettet": "2025-05-01T01:02:26.456789",
+                      "kanIkkeIverksetteUtbetaling": "SimuleringMangler",
                       "type": "FØRSTE_BEHANDLING",
                       "meldeperiodeId": "${meldekortbehandling.meldeperiode.id}",
                       "beregning": null,

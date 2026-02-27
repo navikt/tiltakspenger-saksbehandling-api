@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import java.time.LocalDateTime
 
 sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
@@ -155,7 +156,11 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
-        utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
+        utbetaling = utbetaling?.tilDTO(
+            utbetalingsstatus,
+            beregninger,
+            this.validerKanIverksetteUtbetaling().leftOrNull(),
+        ),
         utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilSøknadsbehandlingResultatDTO(),
         kanInnvilges = this.kanInnvilges,
@@ -185,7 +190,11 @@ fun Revurdering.tilRevurderingDTO(
         sistEndret = this.sistEndret,
         iverksattTidspunkt = this.iverksattTidspunkt,
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
-        utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger),
+        utbetaling = utbetaling?.tilDTO(
+            utbetalingsstatus,
+            beregninger,
+            this.validerKanIverksetteUtbetaling().leftOrNull(),
+        ),
         utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilRevurderingResultatDTO(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
