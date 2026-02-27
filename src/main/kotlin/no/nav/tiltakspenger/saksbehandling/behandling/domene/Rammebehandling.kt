@@ -106,7 +106,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     override val erAvbrutt: Boolean get() = status == AVBRUTT
     val erVedtatt: Boolean get() = status == VEDTATT
     override val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
-
+    val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
     val saksopplysningsperiode: Periode? get() = saksopplysninger.periode
 
     val omgjørRammevedtak: OmgjørRammevedtak

@@ -93,6 +93,7 @@ private fun Behandlingssammendrag.toDTO() = BehandlingssammendragDTO(
     sattPåVentBegrunnelse = sattPåVentBegrunnelse,
     sattPåVentFrist = sattPåVentFrist?.toString(),
     resultat = resultat,
+    erUnderkjent = erUnderkjent,
 )
 
 private fun BehandlingssammendragStatus.toBehandlingssammendragStatusDto(): BehandlingssammendragStatusDto =
