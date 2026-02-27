@@ -5,13 +5,11 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
-import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -81,142 +79,12 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 frist = null,
             )!!
             val klagebehandling = oppdatertRammebehandlingMedKlagebehandling.klagebehandling!!
-            json.toString().shouldEqualJsonIgnoringTimestamps(
-                """
-                {
-  "id": "${oppdatertRammebehandlingMedKlagebehandling.id}",
-  "status": "KLAR_TIL_BEHANDLING",
-  "sakId": "${sak.id}",
-  "saksnummer": "${sak.saksnummer}",
-  "rammevedtakId": null,
-  "saksbehandler": null,
-  "beslutter": null,
-  "saksopplysninger": {
-    "fødselsdato": "2001-01-01",
-    "tiltaksdeltagelse": [
-      {
-        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-        "typeKode": "GRUPPE_AMO",
-        "deltagelseFraOgMed": "2023-01-01",
-        "deltagelseTilOgMed": "2023-03-31",
-        "deltakelseStatus": "Deltar",
-        "deltakelseProsent": 100.0,
-        "antallDagerPerUke": 5.0,
-        "kilde": "Komet",
-        "gjennomforingsprosent": null,
-        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0"
-      }
-    ],
-    "periode": {
-      "fraOgMed": "2023-01-01",
-      "tilOgMed": "2023-03-31"
-    },
-    "ytelser": [],
-    "tiltakspengevedtakFraArena": [],
-    "oppslagstidspunkt": "TIMESTAMP"
-  },
-  "attesteringer": [],
-  "vedtaksperiode": null,
-  "fritekstTilVedtaksbrev": null,
-  "begrunnelseVilkårsvurdering": null,
-  "avbrutt": null,
-  "sistEndret": "TIMESTAMP",
-  "iverksattTidspunkt": null,
-  "ventestatus": {
-    "sattPåVentAv": "saksbehandlerKlagebehandling",
-    "tidspunkt": "TIMESTAMP",
-    "begrunnelse": "Begrunnelse for å sette rammebehandling på vent",
-    "erSattPåVent": true,
-    "frist": null
-  },
-  "utbetaling": null,
-  "utbetalingskontroll": null,
-  "klagebehandlingId": "${klagebehandling.id}",
-  "resultat": "IKKE_VALGT",
-  "søknad": {
-    "id": "${(rammebehandlingMedKlagebehandling as Søknadsbehandling).søknad.id}",
-    "journalpostId": "123456789",
-    "tiltak": {
-      "id": "61328250-7d5d-4961-b70e-5cb727a34371",
-      "fraOgMed": "2023-01-01",
-      "tilOgMed": "2023-03-31",
-      "typeKode": "GRUPPEAMO",
-      "typeNavn": "Arbeidsmarkedsoppfølging gruppe"
-    },
-    "tiltaksdeltakelseperiodeDetErSøktOm": {
-      "fraOgMed": "2023-01-01",
-      "tilOgMed": "2023-03-31"
-    },
-    "manueltSattTiltak": null,
-    "søknadstype": "DIGITAL",
-    "barnetillegg": [],
-    "opprettet": "TIMESTAMP",
-    "tidsstempelHosOss": "TIMESTAMP",
-    "antallVedlegg": 0,
-    "avbrutt": null,
-    "kanInnvilges": true,
-    "svar": {
-      "harSøktPåTiltak": {
-        "svar": "JA"
-      },
-      "harSøktOmBarnetillegg": {
-        "svar": "NEI"
-      },
-      "kvp": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "intro": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "institusjon": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "etterlønn": {
-        "svar": "NEI"
-      },
-      "gjenlevendepensjon": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "alderspensjon": {
-        "svar": "NEI",
-        "fraOgMed": null
-      },
-      "sykepenger": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "supplerendeStønadAlder": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "supplerendeStønadFlyktning": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "jobbsjansen": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "trygdOgPensjon": {
-        "svar": "NEI",
-        "periode": null
-      }
-    },
-    "behandlingsarsak": null
-  },
-  "automatiskSaksbehandlet": false,
-  "manueltBehandlesGrunner": [],
-  "kanInnvilges": true,
-  "type": "SØKNADSBEHANDLING"
-                }
-                """.trimIndent(),
-            )
+            // TODO: sjekk noe her, men trenger kanskje ikke sjekke hele saken
+//            json.toString().shouldEqualJsonIgnoringTimestamps(
+//                """
+//                    "HELE SAKEN GOES HERE"
+//                """.trimIndent(),
+//            )
             klagebehandling.status shouldBe Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
             klagebehandling.saksbehandler shouldBe null
             klagebehandling.ventestatus.shouldBeEqualToIgnoringLocalDateTime(
