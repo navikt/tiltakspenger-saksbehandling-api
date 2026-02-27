@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
-import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytRammebehandling
@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgIverksettKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import org.junit.jupiter.api.Test
 
 /**
@@ -27,50 +28,16 @@ class AvbrytKlagebehandlingRouteTest {
             val (sak, klagebehandling, json) = opprettSakOgAvbrytKlagebehandling(
                 tac = tac,
             )!!
-            json.toString().shouldEqualJsonIgnoringTimestamps(
-                """
-                   {
-                     "id": "${klagebehandling.id}",
-                     "sakId": "${sak.id}",
-                     "saksnummer": "${sak.saksnummer}",
-                     "fnr": "12345678911",
-                     "opprettet": "2025-05-01T01:02:07.456789",
-                     "sistEndret": "2025-05-01T01:02:09.456789",
-                     "iverksattTidspunkt": null,
-                     "saksbehandler": "saksbehandlerKlagebehandling",
-                     "journalpostId": "12345",
-                     "journalpostOpprettet": "2025-05-01T01:02:06.456789",
-                     "status": "AVBRUTT",
-                     "resultat": "AVVIST",
-                     "vedtakDetKlagesPå": null,
-                     "erKlagerPartISaken": true,
-                     "klagesDetPåKonkreteElementerIVedtaket": true,
-                     "erKlagefristenOverholdt": true,
-                     "erUnntakForKlagefrist": null,
-                     "erKlagenSignert": true,
-                     "innsendingsdato": "2026-02-16",
-                     "innsendingskilde": "DIGITAL",
-                     "brevtekst": [],
-                     "avbrutt": {
-                          "avbruttAv": "saksbehandlerKlagebehandling",
-                          "avbruttTidspunkt": "2025-05-01T01:02:10.456789",
-                          "begrunnelse": "begrunnelse for avbryt klagebehandling"
-                     },
-                     "kanIverksetteVedtak": false,
-                     "kanIverksetteOpprettholdelse": false,
-                     "årsak": null,
-                     "begrunnelse": null,
-                     "rammebehandlingId": null,
-                     "ventestatus": null,
-                     "hjemler": null,
-                     "iverksattOpprettholdelseTidspunkt": null,
-                     "journalføringstidspunktInnstillingsbrev": null,
-                     "distribusjonstidspunktInnstillingsbrev": null,
-                     "oversendtKlageinstansenTidspunkt": null,
-                     "klageinstanshendelser": null,
-                     "ferdigstiltTidspunkt": null
-                   }
-                """.trimIndent(),
+            json.toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksnummer = Saksnummer("202505011001"),
+                fnr = "12345678911",
+                saksbehandler = "saksbehandlerKlagebehandling",
+                resultat = "AVVIST",
+                vedtakDetKlagesPå = null,
+                status = "AVBRUTT",
+                avbrutt = """{"avbruttAv": "saksbehandlerKlagebehandling","avbruttTidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for avbryt klagebehandling"}""",
             )
         }
     }
@@ -81,55 +48,23 @@ class AvbrytKlagebehandlingRouteTest {
             val (sak, _, rammevedtak, klagebehandling, _) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!
-            val (_, oppdatertKlagebehandling, json) = avbrytKlagebehandling(
+            val (_, _, json) = avbrytKlagebehandling(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
             )!!
-            json.toString().shouldEqualJsonIgnoringTimestamps(
-                """
-                   {
-                     "id": "${oppdatertKlagebehandling.id}",
-                     "sakId": "${sak.id}",
-                     "saksnummer": "${sak.saksnummer}",
-                     "fnr": "12345678911",
-                     "opprettet": "2025-05-01T01:02:36.456789",
-                     "sistEndret": "2025-05-01T01:02:39.456789",
-                     "iverksattTidspunkt": null,
-                     "saksbehandler": "saksbehandlerKlagebehandling",
-                     "journalpostId": "12345",
-                     "journalpostOpprettet": "2025-05-01T01:02:35.456789",
-                     "status": "AVBRUTT",
-                     "resultat": "OMGJØR",
-                     "vedtakDetKlagesPå": "${rammevedtak.id}",
-                     "erKlagerPartISaken": true,
-                     "klagesDetPåKonkreteElementerIVedtaket": true,
-                     "erKlagefristenOverholdt": true,
-                     "erUnntakForKlagefrist": null,
-                     "erKlagenSignert": true,
-                     "innsendingsdato": "2026-02-16",
-                     "innsendingskilde": "DIGITAL",
-                     "brevtekst": [],
-                     "avbrutt": {
-                          "avbruttAv": "saksbehandlerKlagebehandling",
-                          "avbruttTidspunkt": "2025-05-01T01:02:40.456789",
-                          "begrunnelse": "begrunnelse for avbryt klagebehandling"
-                     },
-                     "kanIverksetteVedtak": false,
-                     "kanIverksetteOpprettholdelse": false,
-                     "årsak": "PROSESSUELL_FEIL",
-                     "begrunnelse": "Begrunnelse for omgjøring",
-                     "rammebehandlingId": null,
-                     "ventestatus": null,
-                     "hjemler": null,
-                     "iverksattOpprettholdelseTidspunkt": null,
-                     "journalføringstidspunktInnstillingsbrev": null,
-                     "distribusjonstidspunktInnstillingsbrev": null,
-                     "oversendtKlageinstansenTidspunkt": null,
-                     "klageinstanshendelser": null,
-                     "ferdigstiltTidspunkt": null
-                   }
-                """.trimIndent(),
+            json.toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksnummer = Saksnummer("202505011001"),
+                fnr = "12345678911",
+                saksbehandler = "saksbehandlerKlagebehandling",
+                resultat = "OMGJØR",
+                vedtakDetKlagesPå = "${rammevedtak.id}",
+                status = "AVBRUTT",
+                årsak = "PROSESSUELL_FEIL",
+                begrunnelse = "Begrunnelse for omgjøring",
+                avbrutt = """{"avbruttAv": "saksbehandlerKlagebehandling","avbruttTidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for avbryt klagebehandling"}""",
             )
         }
     }
@@ -151,56 +86,24 @@ class AvbrytKlagebehandlingRouteTest {
                 rammebehandlingId = rammebehandlingMedklagebehandling.id,
                 saksbehandler = saksbehandler,
             )!!
-            val (_, oppdatertKlagebehandling, json) = avbrytKlagebehandling(
+            val (_, _, json) = avbrytKlagebehandling(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
                 saksbehandler = saksbehandler,
             )!!
-            json.toString().shouldEqualJsonIgnoringTimestamps(
-                """
-                   {
-                     "id": "${oppdatertKlagebehandling.id}",
-                     "sakId": "${sak.id}",
-                     "saksnummer": "${sak.saksnummer}",
-                     "fnr": "12345678911",
-                     "opprettet": "2025-05-01T01:02:36.456789",
-                     "sistEndret": "2025-05-01T01:03:02.456789",
-                     "iverksattTidspunkt": null,
-                     "saksbehandler": "Z12345",
-                     "journalpostId": "12345",
-                     "journalpostOpprettet": "2025-05-01T01:02:35.456789",
-                     "status": "AVBRUTT",
-                     "resultat": "OMGJØR",
-                     "vedtakDetKlagesPå": "${sak.rammevedtaksliste.single().id}",
-                     "erKlagerPartISaken": true,
-                     "klagesDetPåKonkreteElementerIVedtaket": true,
-                     "erKlagefristenOverholdt": true,
-                     "erUnntakForKlagefrist": null,
-                     "erKlagenSignert": true,
-                     "innsendingsdato": "2026-02-16",
-                     "innsendingskilde": "DIGITAL",
-                     "brevtekst": [],
-                     "avbrutt": {
-                          "avbruttAv": "Z12345",
-                          "avbruttTidspunkt": "2025-05-01T01:03:03.456789",
-                          "begrunnelse": "begrunnelse for avbryt klagebehandling"
-                     },
-                     "kanIverksetteVedtak": false,
-                     "kanIverksetteOpprettholdelse": false,
-                     "årsak": "PROSESSUELL_FEIL",
-                     "begrunnelse": "Begrunnelse for omgjøring",
-                     "rammebehandlingId": null,
-                     "ventestatus": null,
-                     "hjemler": null,
-                     "iverksattOpprettholdelseTidspunkt": null,
-                     "journalføringstidspunktInnstillingsbrev": null,
-                     "distribusjonstidspunktInnstillingsbrev": null,
-                     "oversendtKlageinstansenTidspunkt": null,
-                     "klageinstanshendelser": null,
-                     "ferdigstiltTidspunkt": null
-                   }
-                """.trimIndent(),
+            json.toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksnummer = Saksnummer("202505011001"),
+                fnr = "12345678911",
+                saksbehandler = "Z12345",
+                resultat = "OMGJØR",
+                vedtakDetKlagesPå = sak.rammevedtaksliste.single().id.toString(),
+                status = "AVBRUTT",
+                årsak = "PROSESSUELL_FEIL",
+                begrunnelse = "Begrunnelse for omgjøring",
+                avbrutt = """{"avbruttAv": "Z12345","avbruttTidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for avbryt klagebehandling"}""",
             )
         }
     }

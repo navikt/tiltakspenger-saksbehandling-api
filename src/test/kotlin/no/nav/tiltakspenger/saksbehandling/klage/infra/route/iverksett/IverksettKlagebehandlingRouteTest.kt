@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett
 
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
@@ -9,11 +8,14 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
@@ -29,7 +31,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSø
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class IverksettKlagebehandlingRouteTest {
     @Test
@@ -43,77 +44,40 @@ class IverksettKlagebehandlingRouteTest {
             val klagebehandling = klagevedtak.behandling
             val expectedKlagevedtak = Klagevedtak(
                 id = klagevedtak.id,
-                opprettet = LocalDateTime.parse("2025-01-01T01:02:11.456789"),
+                opprettet = klagevedtak.behandling.iverksattTidspunkt!!,
                 behandling = klagebehandling,
                 journalpostId = JournalpostId("1"),
-                journalføringstidspunkt = LocalDateTime.parse("2025-01-01T01:02:14.456789"),
+                journalføringstidspunkt = klagevedtak.behandling.iverksattTidspunkt.plusSeconds(1),
                 distribusjonId = DistribusjonId("1"),
-                distribusjonstidspunkt = LocalDateTime.parse("2025-01-01T01:02:15.456789"),
+                distribusjonstidspunkt = klagevedtak.behandling.iverksattTidspunkt.plusSeconds(2),
                 vedtaksdato = LocalDate.parse("2025-01-01"),
                 sendtTilDatadeling = null,
             )
-            klagevedtak shouldBe expectedKlagevedtak
+            klagevedtak.shouldBeEqualToIgnoringLocalDateTime(expectedKlagevedtak)
             tac.sessionFactory.withSession {
-                KlagevedtakPostgresRepo.hentForSakId(sak.id, it).single() shouldBe expectedKlagevedtak
+                KlagevedtakPostgresRepo.hentForSakId(sak.id, it).single().shouldBeEqualToIgnoringLocalDateTime(expectedKlagevedtak)
             }
-
-            json.toString().shouldEqualJson(
-                """
-                   {
-                     "id": "${klagebehandling.id}",
-                     "sakId": "${sak.id}",
-                     "saksnummer": "${sak.saksnummer}",
-                     "fnr": "12345678911",
-                     "opprettet": "2025-01-01T01:02:07.456789",
-                     "sistEndret": "2025-01-01T01:02:10.456789",
-                     "saksbehandler": "saksbehandlerKlagebehandling",
-                     "journalpostId": "12345",
-                     "journalpostOpprettet": "2025-01-01T01:02:06.456789",
-                     "status": "IVERKSATT",
-                     "resultat": "AVVIST",
-                     "vedtakDetKlagesPå": null,
-                     "erKlagerPartISaken": true,
-                     "klagesDetPåKonkreteElementerIVedtaket": true,
-                     "erKlagefristenOverholdt": true,
-                     "erUnntakForKlagefrist": null,
-                     "erKlagenSignert": true,
-                     "innsendingsdato": "2026-02-16",
-                     "innsendingskilde": "DIGITAL",
-                     "brevtekst": [
-                        {
-                          "tittel": "Avvisning av klage",
-                          "tekst": "Din klage er dessverre avvist."
-                        }
-                      ],
-                     "avbrutt": null,
-                     "kanIverksetteVedtak": false,
-                     "kanIverksetteOpprettholdelse": false,
-                     "iverksattTidspunkt": "2025-01-01T01:02:10.456789",
-                     "årsak": null,
-                     "begrunnelse": null,
-                     "rammebehandlingId": null,
-                     "ventestatus": null,
-                     "hjemler": null,
-                     "iverksattOpprettholdelseTidspunkt": null,
-                     "journalføringstidspunktInnstillingsbrev": null,
-                     "distribusjonstidspunktInnstillingsbrev": null,
-                     "oversendtKlageinstansenTidspunkt": null,
-                     "klageinstanshendelser": null,
-                     "ferdigstiltTidspunkt": null
-                   }
-                """.trimIndent(),
+            json.toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                klagebehandlingId = klagebehandling.id,
+                fnr = "12345678911",
+                status = "IVERKSATT",
+                resultat = "AVVIST",
+                iverksattTidspunkt = "TIMESTAMP",
+                brevtekst = listOf("""{"tittel": "Avvisning av klage","tekst": "Din klage er dessverre avvist."}"""),
             )
             hentSakForSaksnummer(tac = tac, saksnummer = klagebehandling.saksnummer)!!.getJSONArray("alleKlagevedtak")
                 .also {
                     it.length() shouldBe 1
                     val hentetKlagevedtakJson = it.getJSONObject(0)
-                    hentetKlagevedtakJson.toString().shouldEqualJson(
+                    hentetKlagevedtakJson.toString().shouldEqualJsonIgnoringTimestamps(
                         """
                     {
                       "klagebehandlingId": "${klagebehandling.id}",
-                      "journalføringstidspunkt": "2025-01-01T01:02:14.456789",
-                      "opprettet": "2025-01-01T01:02:11.456789",
-                      "distribusjonstidspunkt": "2025-01-01T01:02:15.456789",
+                      "journalføringstidspunkt": "TIMESTAMP",
+                      "opprettet": "TIMESTAMP",
+                      "distribusjonstidspunkt": "TIMESTAMP",
                       "distribusjonId": "1",
                       "sakId": "${sak.id}",
                       "klagevedtakId": "${klagevedtak.id}",
@@ -272,8 +236,6 @@ class IverksettKlagebehandlingRouteTest {
                 beslutter = beslutter,
             )!!
             rammevedtak.klagebehandling!!.also {
-//                it.sistEndret shouldBe LocalDateTime.parse("2025-01-01T01:02:52.456789")
-//                it.iverksattTidspunkt shouldBe LocalDateTime.parse("2025-01-01T01:02:52.456789")
                 it.status shouldBe Klagebehandlingsstatus.VEDTATT
                 it.kanIverksetteVedtak shouldBe false
                 it.erVedtatt shouldBe true

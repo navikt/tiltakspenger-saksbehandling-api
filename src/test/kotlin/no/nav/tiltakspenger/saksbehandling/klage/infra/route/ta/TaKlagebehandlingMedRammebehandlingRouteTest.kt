@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
-import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling
 import org.junit.jupiter.api.Test
 
@@ -19,46 +19,18 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            json.get("klageBehandlinger").first().toString().shouldEqualJsonIgnoringTimestamps(
-                """
-                {
-                  "id": "${klagebehandling.id}",
-                  "sakId": "${sak.id}",
-                  "saksnummer": "${sak.saksnummer}",
-                  "fnr": "12345678911",
-                  "opprettet": "2025-01-01T01:02:36.456789",
-                  "sistEndret": "2025-01-01T01:03:04.456789",
-                  "iverksattTidspunkt": null,
-                  "saksbehandler": "saksbehandlerSomTarKlagebehandling",
-                  "journalpostId": "12345",
-                  "journalpostOpprettet": "2025-01-01T01:02:35.456789",
-                  "status": "UNDER_BEHANDLING",
-                  "resultat": "OMGJØR",
-                  "vedtakDetKlagesPå": "${sak.rammevedtaksliste.first().id}",
-                  "erKlagerPartISaken": true,
-                  "klagesDetPåKonkreteElementerIVedtaket": true,
-                  "erKlagefristenOverholdt": true,
-                  "erUnntakForKlagefrist": null,
-                  "erKlagenSignert": true,
-                  "innsendingsdato": "2026-02-16",
-                  "innsendingskilde": "DIGITAL",
-                  "brevtekst": [],
-                  "avbrutt": null,
-                  "kanIverksetteVedtak": null,
-                  "kanIverksetteOpprettholdelse": false,
-                  "årsak": "PROSESSUELL_FEIL",
-                  "begrunnelse": "Begrunnelse for omgjøring",
-                  "rammebehandlingId": "${rammebehandlingMedKlagebehandling.id}",
-                  "ventestatus": null,
-                  "hjemler": null,
-                  "iverksattOpprettholdelseTidspunkt": null,
-                  "journalføringstidspunktInnstillingsbrev": null,
-                  "distribusjonstidspunktInnstillingsbrev": null,
-                  "oversendtKlageinstansenTidspunkt": null,
-                  "klageinstanshendelser": null,
-                  "ferdigstiltTidspunkt": null
-                }
-                """.trimIndent(),
+            json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                klagebehandlingId = klagebehandling.id,
+                fnr = "12345678911",
+                saksbehandler = "saksbehandlerSomTarKlagebehandling",
+                resultat = "OMGJØR",
+                vedtakDetKlagesPå = "${sak.rammevedtaksliste.first().id}",
+                kanIverksetteVedtak = null,
+                årsak = "PROSESSUELL_FEIL",
+                begrunnelse = "Begrunnelse for omgjøring",
+                rammebehandlingId = "${rammebehandlingMedKlagebehandling.id}",
             )
             rammebehandlingMedKlagebehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
             rammebehandlingMedKlagebehandling.saksbehandler shouldBe "saksbehandlerSomTarKlagebehandling"

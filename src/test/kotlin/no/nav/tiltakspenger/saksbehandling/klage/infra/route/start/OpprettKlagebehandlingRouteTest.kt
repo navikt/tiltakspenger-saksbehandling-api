@@ -20,6 +20,8 @@ class OpprettKlagebehandlingRouteTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
+                resultat = "AVVIST",
+                status = "UNDER_BEHANDLING",
             )
         }
     }
