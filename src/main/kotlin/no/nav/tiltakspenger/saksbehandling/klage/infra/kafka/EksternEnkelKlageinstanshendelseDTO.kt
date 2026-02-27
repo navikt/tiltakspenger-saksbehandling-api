@@ -14,7 +14,7 @@ data class EnkelKabalKlagehendelseDTO(
     val eventId: String,
     /** Beskrivelse: Ekstern id for klage. Skal stemme overens med id sendt inn. */
     val kildeReferanse: String,
-    /** Kilden som sendte inn klagen/anken. Skal stemme overens med kilde sendt inn. Siden alle ytelsene som er koblet på Kabal havner her, vil kun TIL_TIP være interessant for oss. */
+    /** Kilden som sendte inn klagen/anken. Skal stemme overens med kilde sendt inn. Siden alle ytelsene som er koblet på Kabal havner her, vil kun TILTAKSPENGER være interessant for oss. */
     val kilde: String,
     /** Intern referanse fra kabal. Kan i fremtiden brukes for å hente data om vedtak fra Kabal (se Swagger doc) */
     val kabalReferanse: String,
@@ -25,7 +25,7 @@ data class EnkelKabalKlagehendelseDTO(
     val type: String,
 
 ) {
-    val aktuellKilde = "TIL_TIP"
+    val aktuellKilde = "TILTAKSPENGER"
     val erAktuell: Boolean = kilde == aktuellKilde
 }
 
