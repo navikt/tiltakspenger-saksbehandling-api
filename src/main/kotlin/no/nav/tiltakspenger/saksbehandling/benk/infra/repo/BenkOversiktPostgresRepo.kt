@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
@@ -43,7 +44,8 @@ class BenkOversiktPostgresRepo(
                 null::boolean         as erSattPåVent,
                 null                  as sattPåVentBegrunnelse,
                 null::date            as sattPåVentFrist,
-                null::timestamp with time zone as sist_endret
+                null::timestamp with time zone as sist_endret,
+                null::jsonb           as attesteringer
             from søknad sø
                 join sak sa on sø.sak_id = sa.id
             where 
@@ -66,7 +68,8 @@ class BenkOversiktPostgresRepo(
                 (b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean  as erSattPåVent,
                 b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as sattPåVentBegrunnelse,
                 (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
-                b.sist_endret       as sist_endret
+                b.sist_endret       as sist_endret,
+                b.attesteringer     as attesteringer
             from behandling b
                 join søknad s on s.id = b.soknad_id
                 join sak sa on b.sak_id = sa.id
@@ -89,7 +92,8 @@ class BenkOversiktPostgresRepo(
                 (b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean as erSattPåVent,
                 b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'  as sattPåVentBegrunnelse,
                 (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
-                b.sist_endret   as sist_endret
+                b.sist_endret   as sist_endret,
+                b.attesteringer as attesteringer
             from behandling b
                 join sak sa on b.sak_id = sa.id
             where b.behandlingstype = 'REVURDERING'
@@ -111,7 +115,8 @@ class BenkOversiktPostgresRepo(
                 null::boolean         as erSattPåVent,
                 null                  as sattPåVentBegrunnelse,
                 null::date            as sattPåVentFrist,
-                m.sist_endret as sist_endret
+                m.sist_endret         as sist_endret,
+                m.attesteringer       as attesteringer
             from meldekortbehandling m
                 join sak s on m.sak_id = s.id
             where m.avbrutt is null
@@ -162,7 +167,8 @@ class BenkOversiktPostgresRepo(
                 null::boolean                  as erSattPåVent,
                 null                           as sattPåVentBegrunnelse,
                 null::date                     as sattPåVentFrist,
-                null::timestamp with time zone as sist_endret
+                null::timestamp with time zone as sist_endret,
+                null::jsonb                    as attesteringer
             from meldekort_bruker mbr
             join sak s on mbr.sak_id = s.id
             join meldekortMetadata mdk on mbr.id = mdk.meldekortId
@@ -174,25 +180,26 @@ class BenkOversiktPostgresRepo(
         """
 
         const val ÅPNE_KLAGER = """
-            select k.sak_id          as sakId,
-                s.fnr             as fnr,
-                s.saksnummer      as saksnummer,
-                k.opprettet       as startet,
-                'KLAGEBEHANDLING' as behandlingstype,
+            select k.sak_id             as sakId,
+                s.fnr                   as fnr,
+                s.saksnummer            as saksnummer,
+                k.opprettet             as startet,
+                'KLAGEBEHANDLING'       as behandlingstype,
                 CASE
                   WHEN (resultat -> 'klageinstanshendelser' is not null
                         and jsonb_array_length(resultat -> 'klageinstanshendelser') > 0 
                         and status = 'OVERSENDT')
                             THEN 'KLAR_TIL_FERDIGSTILLING'
                     ELSE k.status
-                END          as status,
-                k.saksbehandler   as saksbehandler,
-                null              as beslutter,
-                null                  as resultat,
-                (k.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean  as erSattPåVent,
-                k.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as sattPåVentBegrunnelse,
-                (k.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
-                k.sist_endret     as sist_endret
+                END                     as status,
+                k.saksbehandler         as saksbehandler,
+                null                    as beslutter,
+                null                    as resultat,
+                (k.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean   as erSattPåVent,
+                k.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'               as sattPåVentBegrunnelse,
+                (k.ventestatus->'ventestatusHendelser'->-1->>'frist')::date             as sattPåVentFrist,
+                k.sist_endret           as sist_endret,
+                null::jsonb             as attesteringer
             from klagebehandling k
                 join sak s on k.sak_id = s.id
             where (k.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING'))
@@ -290,6 +297,8 @@ class BenkOversiktPostgresRepo(
                     val sattPåVentBegrunnelse = row.stringOrNull("sattPåVentBegrunnelse")
                     val sattPåVentFrist = row.localDateOrNull("sattPåVentFrist")
                     val resultat = row.stringOrNull("resultat")?.let { RammebehandlingResultatTypeDTO.valueOf(it) }
+                    val erUnderkjent =
+                        row.stringOrNull("attesteringer")?.toAttesteringer()?.any { it.isUnderkjent() } ?: false
 
                     BehandlingssamendragMedCount(
                         Behandlingssammendrag(
@@ -306,6 +315,7 @@ class BenkOversiktPostgresRepo(
                             erSattPåVent = erSattPåVent,
                             sattPåVentBegrunnelse = sattPåVentBegrunnelse,
                             sattPåVentFrist = sattPåVentFrist,
+                            erUnderkjent = erUnderkjent,
                             resultat = resultat,
                         ),
                         totalAntall = count,

@@ -118,6 +118,7 @@ class BenkOversiktFakeRepo(
                 sattPåVentFrist = behandling.ventestatus.sattPåVentFrist,
                 sistEndret = behandling.sistEndret,
                 resultat = null,
+                erUnderkjent = behandling.erUnderkjent,
             )
         }
     }
@@ -138,6 +139,7 @@ class BenkOversiktFakeRepo(
             sattPåVentFrist = null,
             sistEndret = null,
             resultat = null,
+            erUnderkjent = false,
         )
     }
 
@@ -172,6 +174,7 @@ class BenkOversiktFakeRepo(
                 sattPåVentFrist = null,
                 sistEndret = it.sistEndret,
                 resultat = null,
+                erUnderkjent = it.erUnderkjent,
             )
         }
     }
@@ -226,6 +229,7 @@ class BenkOversiktFakeRepo(
                 sattPåVentFrist = null,
                 sistEndret = it.sistEndret,
                 resultat = null,
+                erUnderkjent = false,
             )
         }
     }

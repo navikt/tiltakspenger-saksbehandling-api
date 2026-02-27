@@ -30,6 +30,7 @@ class BehandlingssammendragTest {
                 sattPåVentBegrunnelse = null,
                 sattPåVentFrist = null,
                 sistEndret = null,
+                erUnderkjent = false,
                 resultat = null,
             )
         }
@@ -49,6 +50,7 @@ class BehandlingssammendragTest {
                 sattPåVentBegrunnelse = null,
                 sattPåVentFrist = null,
                 sistEndret = null,
+                erUnderkjent = false,
                 resultat = null,
             )
         }
@@ -71,6 +73,7 @@ class BehandlingssammendragTest {
                 sattPåVentBegrunnelse = null,
                 sattPåVentFrist = null,
                 sistEndret = null,
+                erUnderkjent = false,
                 resultat = null,
             )
         }
@@ -90,6 +93,7 @@ class BehandlingssammendragTest {
                 sattPåVentBegrunnelse = null,
                 sattPåVentFrist = null,
                 sistEndret = null,
+                erUnderkjent = false,
                 resultat = null,
             )
         }

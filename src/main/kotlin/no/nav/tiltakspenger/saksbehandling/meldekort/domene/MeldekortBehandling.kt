@@ -105,6 +105,7 @@ sealed interface MeldekortBehandling : AttesterbarBehandling {
     val rammevedtak: List<VedtakId>? get() = meldeperiode.rammevedtak.verdier.distinct()
 
     val erKorrigering: Boolean get() = type == MeldekortBehandlingType.KORRIGERING
+    val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
 
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     fun erÅpen(): Boolean = !erAvsluttet

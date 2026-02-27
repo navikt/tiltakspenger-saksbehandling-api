@@ -26,6 +26,7 @@ data class Behandlingssammendrag(
     val erSattPåVent: Boolean,
     val sattPåVentBegrunnelse: String?,
     val sattPåVentFrist: LocalDate?,
+    val erUnderkjent: Boolean,
     val resultat: RammebehandlingResultatTypeDTO?,
 ) {
     init {
