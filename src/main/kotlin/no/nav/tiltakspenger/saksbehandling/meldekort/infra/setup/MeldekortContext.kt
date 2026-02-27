@@ -30,7 +30,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortBehandli
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
-import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
@@ -52,7 +51,6 @@ open class MeldekortContext(
     sakRepo: SakRepo,
     clock: Clock,
     simulerService: SimulerService,
-    personKlient: PersonKlient,
     statistikkMeldekortRepo: StatistikkMeldekortRepo,
     genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
     navIdentClient: NavIdentClient,
@@ -116,7 +114,7 @@ open class MeldekortContext(
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,
             simulerService = simulerService,
-            personKlient = personKlient,
+            sakService = sakService,
             oppgaveKlient = oppgaveKlient,
             statistikkMeldekortRepo = statistikkMeldekortRepo,
         )

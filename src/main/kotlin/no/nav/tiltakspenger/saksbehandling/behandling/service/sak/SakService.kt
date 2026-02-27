@@ -94,6 +94,13 @@ class SakService(
     ): Either<KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming> {
         // Merk at denne IKKE skal sjekke tilgang til person, siden informasjonen skal vise til saksbehandleren, slik at hen skjønner at hen ikke kan behandle denne saken uten de riktige rollene.
         val fnr = sakRepo.hentFnrForSakId(sakId)!!
+        return hentEnkelPersonMedSkjermingForFnr(fnr, correlationId)
+    }
+
+    suspend fun hentEnkelPersonMedSkjermingForFnr(
+        fnr: Fnr,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming> {
         val erSkjermet = fellesSkjermingsklient.erSkjermetPerson(fnr, correlationId)
             .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotSkjerming.left() }
         val person = personService.hentEnkelPersonFnr(fnr)

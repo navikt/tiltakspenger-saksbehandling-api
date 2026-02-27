@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import java.time.Clock
@@ -25,7 +24,6 @@ class StartSøknadsbehandlingService(
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
-    private val personKlient: PersonKlient,
     private val oppgaveKlient: OppgaveKlient,
 ) {
     val logger = KotlinLogging.logger {}
