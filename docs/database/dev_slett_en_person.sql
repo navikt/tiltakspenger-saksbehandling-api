@@ -1,5 +1,5 @@
 WITH
-sakz AS (DELETE FROM sak RETURNING id),
+sakz AS (DELETE FROM sak WHERE id = :sak_id RETURNING id),
 behandlingz AS (DELETE FROM behandling WHERE sak_id IN (SELECT id FROM sakz) returning soknad_id),
 søknadz AS (DELETE FROM søknad WHERE sak_id IN (SELECT id FROM sakz) OR id in (select soknad_id from behandlingz) returning id),
 søknad_barnetilleggz AS (DELETE FROM søknad_barnetillegg WHERE søknad_id IN (SELECT id FROM søknadz)),
@@ -18,5 +18,7 @@ statistikk_stonadz AS (DELETE FROM statistikk_stonad WHERE sak_id IN (SELECT id 
 statistikk_sakz AS (DELETE FROM statistikk_sak WHERE sak_id IN (SELECT id FROM sakz) returning id),
 personhendelsez AS (DELETE FROM personhendelse WHERE sak_id IN (SELECT id FROM sakz) returning id),
 identhendelsez AS (DELETE FROM identhendelse WHERE sak_id IN (SELECT id FROM sakz) returning id),
-tiltaksdeltaker_kafkaz AS (DELETE FROM tiltaksdeltaker_kafka WHERE sak_id IN (SELECT id FROM sakz))
+tiltaksdeltaker_kafkaz AS (DELETE FROM tiltaksdeltaker_kafka WHERE sak_id IN (SELECT id FROM sakz)),
+klagebehandlingz AS (DELETE FROM klagebehandling WHERE sak_id IN (SELECT id FROM sakz)),
+klagehendelsez AS (DELETE FROM klagehendelse WHERE sak_id IN (SELECT id FROM sakz))
 SELECT id FROM sakz;
