@@ -670,7 +670,7 @@ class RammebehandlingPostgresRepo(
                     select b.*,sak.saksnummer,sak.fnr
                     from behandling b
                     join sak on sak.id = b.sak_id
-                    where b.sendt_til_datadeling is null or b.sendt_til_datadeling < b.sist_endret
+                    where (b.sendt_til_datadeling is null or b.sendt_til_datadeling < b.sist_endret) and sak.sendt_til_datadeling is not null
                     order by b.opprettet
                     limit :limit
                     """.trimIndent(),
