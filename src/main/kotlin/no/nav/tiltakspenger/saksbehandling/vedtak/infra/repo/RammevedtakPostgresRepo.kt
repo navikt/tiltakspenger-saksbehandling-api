@@ -201,10 +201,11 @@ class RammevedtakPostgresRepo(
             session.run(
                 queryOf(
                     """
-                    select *
-                    from rammevedtak
-                    where sendt_til_datadeling is null
-                    order by opprettet
+                    select rv.*
+                    from rammevedtak rv
+                    join sak s on s.id = rv.sak_id
+                    where rv.sendt_til_datadeling is null and s.sendt_til_datadeling is not null
+                    order by rv.opprettet
                     limit $limit
                     """.trimIndent(),
                 ).map { row ->

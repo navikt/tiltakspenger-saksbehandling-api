@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
@@ -18,6 +19,10 @@ class RammevedtakPostgresRepoTest {
     fun `henter vedtak for datadeling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, rammevedtak, _, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort()
+            testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 1
+            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling().size shouldBe 0
+            testDataHelper.sakRepo.markerSendtTilDatadeling(rammevedtak.sakId, nå(testDataHelper.clock))
+            testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 0
             testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling() shouldBe listOf(rammevedtak)
         }
     }
@@ -26,6 +31,10 @@ class RammevedtakPostgresRepoTest {
     fun `henter avslagsvedtak for datadeling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, rammevedtak) = testDataHelper.persisterRammevedtakAvslag()
+            testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 1
+            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling().size shouldBe 0
+            testDataHelper.sakRepo.markerSendtTilDatadeling(rammevedtak.sakId, nå(testDataHelper.clock))
+            testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 0
             testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling() shouldBe listOf(rammevedtak)
         }
     }

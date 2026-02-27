@@ -210,7 +210,9 @@ class SakPostgresRepo(
                 session.run(
                     sqlQuery(
                         """
-                            select * from sak where skal_sende_meldeperioder_til_datadeling = true
+                            select * 
+                            from sak
+                            where skal_sende_meldeperioder_til_datadeling = true and sendt_til_datadeling is not null
                         """,
                     ).map { row ->
                         row.toSak(sessionContext)

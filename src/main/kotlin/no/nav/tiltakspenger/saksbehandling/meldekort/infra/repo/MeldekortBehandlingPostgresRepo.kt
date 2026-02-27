@@ -401,7 +401,7 @@ class MeldekortBehandlingPostgresRepo(
                           s.saksnummer
                         from meldekortbehandling m
                         join sak s on s.id = m.sak_id
-                        where m.behandling_sendt_til_datadeling is null or m.behandling_sendt_til_datadeling < m.sist_endret
+                        where (m.behandling_sendt_til_datadeling is null or m.behandling_sendt_til_datadeling < m.sist_endret) and s.sendt_til_datadeling is not null
                         order by m.opprettet
                         limit $limit
                     """.trimIndent(),

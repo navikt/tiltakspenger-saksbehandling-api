@@ -106,7 +106,7 @@ class MeldekortvedtakPostgresRepo(
                     select v.*, s.saksnummer, s.fnr 
                     from meldekortvedtak v
                     join sak s on s.id = v.sak_id
-                    where v.journalpost_id is not null and v.sendt_til_datadeling is null
+                    where v.journalpost_id is not null and v.sendt_til_datadeling is null and s.sendt_til_datadeling is not null
                     limit :limit
                     """,
                     "limit" to limit,

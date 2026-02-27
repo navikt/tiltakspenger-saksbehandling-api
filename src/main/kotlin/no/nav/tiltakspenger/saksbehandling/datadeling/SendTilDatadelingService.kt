@@ -37,8 +37,8 @@ class SendTilDatadelingService(
         sendGodkjenteMeldekort()
     }
 
-    private suspend fun sendSak() {
-        Either.catch {
+    private suspend fun sendSak(): Either<Throwable, Unit> {
+        return Either.catch {
             sakRepo.hentSakerTilDatadeling().forEach { sakDb ->
                 val correlationId = CorrelationId.generate()
                 Either.catch {
