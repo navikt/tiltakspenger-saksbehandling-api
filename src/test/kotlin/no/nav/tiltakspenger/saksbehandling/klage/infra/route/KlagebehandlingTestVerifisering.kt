@@ -52,33 +52,61 @@ fun String.shouldBeKlagebehandlingDTO(
          "sistEndret": "TIMESTAMP",
          "iverksattTidspunkt": ${iverksattTidspunkt.toJsonValue()},
          "saksbehandler": ${saksbehandler.toJsonValue()},
-         "journalpostId": "$journalpostId",
-         "journalpostOpprettet": "TIMESTAMP",
+         "klagensJournalpostId": "$journalpostId",
+         "klagensJournalpostOpprettet": "TIMESTAMP",
          "status": "$status",
-         "resultat": ${resultat.toJsonValue()},
-         "vedtakDetKlagesPå": ${vedtakDetKlagesPå.toJsonValue()},
-         "erKlagerPartISaken": $erKlagerPartISaken,
-         "klagesDetPåKonkreteElementerIVedtaket": $klagesDetPåKonkreteElementerIVedtaket,
-         "erKlagefristenOverholdt": $erKlagefristenOverholdt,
-         "erUnntakForKlagefrist": ${erUnntakForKlagefrist.toJsonValue()},
-         "erKlagenSignert": $erKlagenSignert,
-         "innsendingsdato": "$innsendingsdato",
-         "innsendingskilde": "$innsendingskilde",
-         "brevtekst": ${if (brevtekst.isEmpty()) "[]" else "[${brevtekst.joinToString()}]"},
+         "resultat": ${
+            when (resultat) {
+                "OPPRETTHOLDT" -> """
+                    {
+                      "brevtekst": ${if (brevtekst.isEmpty()) "[]" else "[${brevtekst.joinToString()}]"},
+                      "hjemler": [ ${hjemler.joinToString { "\"$it\"" }} ],
+                      "iverksattOpprettholdelseTidspunkt": ${if (iverksattOpprettholdelseTidspunkt) "\"TIMESTAMP\"" else "null"},
+                      "journalføringstidspunktInnstillingsbrev":  ${if (journalføringstidspunktInnstillingsbrev) "\"TIMESTAMP\"" else "null"},
+                      "distribusjonstidspunktInnstillingsbrev": ${if (distribusjonstidspunktInnstillingsbrev) "\"TIMESTAMP\"" else "null"},
+                      "oversendtKlageinstansenTidspunkt": ${if (oversendtKlageinstansenTidspunkt) "\"TIMESTAMP\"" else "null"},
+                      "klageinstanshendelser": [ ${klageinstanshendelser.joinToString()} ],
+                      "ferdigstiltTidspunkt": ${if (ferdigstiltTidspunkt) "\"TIMESTAMP\"" else "null"},
+                      "type": "OPPRETTHOLDT"
+                    }
+                """.trimIndent()
+
+                "AVVIST" -> """
+                    {
+                      "type": "AVVIST",
+                      "brevtekst": ${if (brevtekst.isEmpty()) "[]" else "[${brevtekst.joinToString()}]"}
+                    }
+                """.trimIndent()
+
+                "OMGJØR" -> """
+                    {
+                      "type": "OMGJØR",
+                      "årsak": ${årsak.toJsonValue()},
+                      "begrunnelse": ${begrunnelse.toJsonValue()},
+                      "rammebehandlingId": ${rammebehandlingId.toJsonValue()},
+                      "brevtekst": ${if (brevtekst.isEmpty()) "[]" else "[${brevtekst.joinToString()}]"}
+                    }
+                """.trimIndent()
+
+                null -> "null"
+
+                else -> throw IllegalArgumentException("Ugyldig resultat: $resultat")
+            }
+        },
          "avbrutt": $avbrutt,
          "kanIverksetteVedtak": $kanIverksetteVedtak,
          "kanIverksetteOpprettholdelse": $kanIverksetteOpprettholdelse,
-         "årsak": ${årsak.toJsonValue()},
-         "begrunnelse": ${begrunnelse.toJsonValue()},
-         "rammebehandlingId": ${rammebehandlingId.toJsonValue()},
          "ventestatus": $ventestatus,
-         "hjemler": [ ${hjemler.joinToString { "\"$it\"" }} ],
-         "iverksattOpprettholdelseTidspunkt": ${if (iverksattOpprettholdelseTidspunkt) "\"TIMESTAMP\"" else "null"},
-         "journalføringstidspunktInnstillingsbrev":  ${if (journalføringstidspunktInnstillingsbrev) "\"TIMESTAMP\"" else "null"},
-         "distribusjonstidspunktInnstillingsbrev": ${if (distribusjonstidspunktInnstillingsbrev) "\"TIMESTAMP\"" else "null"},
-         "oversendtKlageinstansenTidspunkt": ${if (oversendtKlageinstansenTidspunkt) "\"TIMESTAMP\"" else "null"},
-         "klageinstanshendelser": [ ${klageinstanshendelser.joinToString()} ],
-         "ferdigstiltTidspunkt": ${if (ferdigstiltTidspunkt) "\"TIMESTAMP\"" else "null"}
+         "formkrav": {
+           "vedtakDetKlagesPå": ${vedtakDetKlagesPå.toJsonValue()},
+           "erKlagerPartISaken": $erKlagerPartISaken,
+           "klagesDetPåKonkreteElementerIVedtaket": $klagesDetPåKonkreteElementerIVedtaket,
+           "erKlagefristenOverholdt": $erKlagefristenOverholdt,
+           "erUnntakForKlagefrist": ${erUnntakForKlagefrist.toJsonValue()},
+           "erKlagenSignert": $erKlagenSignert,
+           "innsendingsdato": "$innsendingsdato",
+           "innsendingskilde": "$innsendingskilde"
+         }
        }
         """.trimIndent()
     if (ignorerTidspunkt) {

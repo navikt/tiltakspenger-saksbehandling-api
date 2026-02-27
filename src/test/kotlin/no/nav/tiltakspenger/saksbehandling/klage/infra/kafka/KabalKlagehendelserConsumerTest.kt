@@ -101,6 +101,7 @@ class KabalKlagehendelserConsumerTest {
             hentSakForSaksnummer(tac = tac, saksnummer = klagebehandling.saksnummer)!!
                 .getJSONArray("klageBehandlinger")
                 .getJSONObject(0)
+                .getJSONObject("resultat")
                 .getJSONArray("klageinstanshendelser")
                 .getJSONObject(0).toString().shouldEqualJsonIgnoringTimestamps(
                     """

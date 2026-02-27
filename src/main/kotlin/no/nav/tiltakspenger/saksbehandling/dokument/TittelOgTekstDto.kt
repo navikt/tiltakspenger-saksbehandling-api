@@ -7,11 +7,13 @@ data class TittelOgTekstDTO(
     val tekst: String,
 )
 
-fun List<TittelOgTekst>.toBrevDtoList(): List<TittelOgTekstDTO> =
-    this.map { it.toBrevDto() }
+fun List<TittelOgTekst>.toDTO(): List<TittelOgTekstDTO> {
+    return this.map { it.toDto() }
+}
 
-fun TittelOgTekst.toBrevDto(): TittelOgTekstDTO =
-    TittelOgTekstDTO(
+fun TittelOgTekst.toDto(): TittelOgTekstDTO {
+    return TittelOgTekstDTO(
         tittel = this.tittel.value,
         tekst = this.tekst.value,
     )
+}
