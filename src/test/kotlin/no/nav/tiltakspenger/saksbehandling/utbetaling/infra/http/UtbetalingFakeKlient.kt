@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -24,9 +25,11 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
+import java.time.Clock
 
 class UtbetalingFakeKlient(
     private val sakFakeRepo: SakRepo,
+    private val clock: Clock = fixedClock,
 ) : Utbetalingsklient {
     override suspend fun iverksett(
         utbetaling: VedtattUtbetaling,
@@ -61,6 +64,6 @@ class UtbetalingFakeKlient(
         meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         val sak = sakFakeRepo.hentForSakId(sakId)!!
-        return sak.genererSimuleringFraBeregning(beregning = beregning).right()
+        return sak.genererSimuleringFraBeregning(beregning = beregning, clock = clock).right()
     }
 }

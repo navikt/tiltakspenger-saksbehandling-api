@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJsonMedData
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -53,7 +54,7 @@ fun Route.iverksettRammebehandlingRoute(
 
                             is KanIkkeIverksetteBehandling.UtbetalingFeil -> call.respondJson(
                                 it.feil.tilErrorJson().let { (status, errorJson) ->
-                                    status to ErrorMedData(
+                                    status to ErrorJsonMedData(
                                         melding = errorJson.melding,
                                         kode = errorJson.kode,
                                         data = it.sak.tilRammebehandlingDTO(it.behandling.id),
@@ -78,10 +79,3 @@ fun Route.iverksettRammebehandlingRoute(
         }
     }
 }
-
-// TODO: flytt denne til libs
-private data class ErrorMedData<T>(
-    val melding: String,
-    val kode: String,
-    val data: T? = null,
-)

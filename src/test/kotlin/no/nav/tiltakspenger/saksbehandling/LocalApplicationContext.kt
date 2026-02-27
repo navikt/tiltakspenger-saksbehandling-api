@@ -187,7 +187,7 @@ class LocalApplicationContext(
             clock = clock,
         ) {}
     }
-    private val utbetalingFakeKlient = UtbetalingFakeKlient(sakContext.sakRepo)
+    private val utbetalingFakeKlient = UtbetalingFakeKlient(sakContext.sakRepo, clock)
     override val meldekortContext by lazy {
         object : MeldekortContext(
             sessionFactory = sessionFactory,

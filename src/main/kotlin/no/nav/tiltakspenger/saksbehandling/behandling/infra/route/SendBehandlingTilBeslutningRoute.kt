@@ -6,6 +6,7 @@ import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJsonMedData
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -79,13 +80,6 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
     }
 }
 
-// TODO: flytt denne til libs
-private data class ErrorMedData<T>(
-    val melding: String,
-    val kode: String,
-    val data: T? = null,
-)
-
 private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStatusCode, Any> = when (this) {
     is KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
         this.eiesAvSaksbehandler,
@@ -104,7 +98,7 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStat
     is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil -> this.feil.tilSimuleringErrorJson()
 
     is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> this.feil.tilErrorJson().let { (status, errorJson) ->
-        status to ErrorMedData(
+        status to ErrorJsonMedData(
             melding = errorJson.melding,
             kode = errorJson.kode,
             data = this.sak.tilRammebehandlingDTO(this.behandling.id),
