@@ -132,7 +132,7 @@ class KabalKlagehendelserConsumerTest {
         sistEndret = LocalDateTime.MIN,
         eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
         key = "some-unused-uuid",
-        value = """{"type":"KLAGEBEHANDLING_AVSLUTTET","kilde":"TIL_TIP","eventId":"0f4ea0c2-8b44-4266-a1c3-801006b06280","detaljer":{"klagebehandlingAvsluttet":{"utfall":"$utfall","avsluttet":"2025-01-01T01:02:03.456789","journalpostReferanser":[123,456]}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
+        value = """{"type":"KLAGEBEHANDLING_AVSLUTTET","kilde":"TILTAKSPENGER","eventId":"0f4ea0c2-8b44-4266-a1c3-801006b06280","detaljer":{"klagebehandlingAvsluttet":{"utfall":"$utfall","avsluttet":"2025-01-01T01:02:03.456789","journalpostReferanser":[123,456]}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
         sakId = sakId,
         klagebehandlingId = klagebehandlingId,
     )
@@ -205,7 +205,7 @@ class KabalKlagehendelserConsumerTest {
         sistEndret = LocalDateTime.MIN,
         eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
         key = "some-unused-uuid",
-        value = """{"type":"OMGJOERINGSKRAVBEHANDLING_AVSLUTTET","kilde":"TIL_TIP","eventId":"0f4ea0c2-8b44-4266-a1c3-801006b06280","detaljer":{"omgjoeringskravbehandlingAvsluttet":{"utfall":"$utfall","avsluttet":"2025-01-01T01:02:03.456789","journalpostReferanser":[123,456]}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
+        value = """{"type":"OMGJOERINGSKRAVBEHANDLING_AVSLUTTET","kilde":"TILTAKSPENGER","eventId":"0f4ea0c2-8b44-4266-a1c3-801006b06280","detaljer":{"omgjoeringskravbehandlingAvsluttet":{"utfall":"$utfall","avsluttet":"2025-01-01T01:02:03.456789","journalpostReferanser":[123,456]}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
         sakId = sakId,
         klagebehandlingId = klagebehandlingId,
     )
@@ -279,7 +279,7 @@ class KabalKlagehendelserConsumerTest {
         sistEndret = LocalDateTime.MIN,
         eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
         key = "some-unused-uuid",
-        value = """{"type":"BEHANDLING_FEILREGISTRERT","kilde":"TIL_TIP","eventId":"0f4ea0c2-8b44-4266-a1c3-801006b06280","detaljer":{"behandlingFeilregistrertDetaljer":{"type":"$type","reason":"Årsaken til at behandlingen endte opp som feilregistrert.","navIdent":"Z123456","feilregistrert":"2025-01-01T01:02:03.456789"}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
+        value = """{"type":"BEHANDLING_FEILREGISTRERT","kilde":"TILTAKSPENGER","eventId":"0f4ea0c2-8b44-4266-a1c3-801006b06280","detaljer":{"behandlingFeilregistrertDetaljer":{"type":"$type","reason":"Årsaken til at behandlingen endte opp som feilregistrert.","navIdent":"Z123456","feilregistrert":"2025-01-01T01:02:03.456789"}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
         sakId = sakId,
         klagebehandlingId = klagebehandlingId,
     )
