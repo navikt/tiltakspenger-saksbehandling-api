@@ -298,7 +298,7 @@ class BenkOversiktPostgresRepo(
                     val sattPåVentFrist = row.localDateOrNull("sattPåVentFrist")
                     val resultat = row.stringOrNull("resultat")?.let { RammebehandlingResultatTypeDTO.valueOf(it) }
                     val erUnderkjent =
-                        row.stringOrNull("attesteringer")?.toAttesteringer()?.any { it.isUnderkjent() } ?: false
+                        row.stringOrNull("attesteringer")?.toAttesteringer()?.lastOrNull()?.isUnderkjent() ?: false
 
                     BehandlingssamendragMedCount(
                         Behandlingssammendrag(
