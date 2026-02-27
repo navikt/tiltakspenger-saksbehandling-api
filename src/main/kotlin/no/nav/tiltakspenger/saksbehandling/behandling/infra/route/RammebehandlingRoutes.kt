@@ -53,7 +53,7 @@ fun Route.rammebehandlingRoutes(
     overtaRammebehandlingRoute(overtaBehandlingService, auditService, tilgangskontrollService)
     leggTilbakeRammebehandlingRoute(auditService, leggTilbakeBehandlingService, tilgangskontrollService)
     oppdaterRammebehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
-    settRammebehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService)
+    settRammebehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService, clock)
     gjenopptaRammebehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService)
     oppdaterSimuleringRoute(oppdaterBeregningOgSimuleringService, auditService, tilgangskontrollService, clock)
 }

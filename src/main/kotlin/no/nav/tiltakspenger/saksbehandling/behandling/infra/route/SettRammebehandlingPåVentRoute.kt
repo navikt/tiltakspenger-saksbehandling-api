@@ -22,6 +22,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 import java.time.LocalDate
 
 private const val SETT_BEHANDLING_PÅ_VENT_PATH = "/sak/{sakId}/behandling/{behandlingId}/pause"
@@ -47,6 +49,7 @@ fun Route.settRammebehandlingPåVentRoute(
     auditService: AuditService,
     settBehandlingPåVentService: SettRammebehandlingPåVentService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     post(SETT_BEHANDLING_PÅ_VENT_PATH) {
@@ -71,7 +74,7 @@ fun Route.settRammebehandlingPåVentRoute(
                             correlationId = correlationId,
                         )
 
-                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                        call.respondJson(value = sak.toSakDTO(clock))
                     }
                 }
             }
