@@ -17,6 +17,7 @@ data class BehandlingssammendragDTO(
     val sattPåVentBegrunnelse: String?,
     val sattPåVentFrist: String?,
     val resultat: RammebehandlingResultatTypeDTO?,
+    val erUnderkjent: Boolean,
 )
 
 enum class BehandlingssammendragTypeDTO {
