@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 
 fun MeldekortBehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
-    return simulering.validerKanIverksetteUtbetaling()
+    return if (beregning == null) Unit.right() else simulering.validerKanIverksetteUtbetaling()
 }
 
 fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {

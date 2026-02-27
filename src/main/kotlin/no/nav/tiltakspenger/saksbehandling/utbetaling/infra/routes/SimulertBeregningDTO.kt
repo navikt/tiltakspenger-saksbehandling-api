@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Beregninge
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortDagStatusDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning
