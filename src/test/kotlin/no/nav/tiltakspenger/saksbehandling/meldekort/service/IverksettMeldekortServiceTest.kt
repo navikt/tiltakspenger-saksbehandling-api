@@ -20,6 +20,7 @@ internal class IverksettMeldekortServiceTest {
             val sakId = sak.id
             tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
                 sak.meldekortbehandlinger[1].tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),
+                tac.clock,
             )
             tac.meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
                 sakId = sakId,

@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.meldeperiode
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringerForDag
@@ -78,7 +79,7 @@ class ValiderKanIverksetteUtbetalingTest {
                     Pair(periodeInnenforSammeMåned.tilOgMed, -1337),
                 ),
             ),
-        ).validerKanIverksetteUtbetaling()
+        ).validerKanIverksetteUtbetaling(saksbehandler().navIdent)
 
         resultat.shouldBe(Unit.right())
     }
@@ -93,7 +94,7 @@ class ValiderKanIverksetteUtbetalingTest {
                     Pair(periodeInnenforSammeMåned.fraOgMed.plusDays(1), -1337),
                 ),
             ),
-        ).validerKanIverksetteUtbetaling()
+        ).validerKanIverksetteUtbetaling(saksbehandler().navIdent)
 
         resultat.shouldBe(Unit.right())
     }
@@ -113,7 +114,7 @@ class ValiderKanIverksetteUtbetalingTest {
                     Pair(periodePåTversAvMåned.fraOgMed.plusDays(1), -1337),
                 ),
             ),
-        ).validerKanIverksetteUtbetaling()
+        ).validerKanIverksetteUtbetaling(saksbehandler().navIdent)
 
         resultat.shouldBe(KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left())
     }
@@ -128,7 +129,7 @@ class ValiderKanIverksetteUtbetalingTest {
                     Pair(periodePåTversAvMåned.tilOgMed, -1337),
                 ),
             ),
-        ).validerKanIverksetteUtbetaling()
+        ).validerKanIverksetteUtbetaling(saksbehandler().navIdent)
 
         resultat.shouldBe(KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left())
     }

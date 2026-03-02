@@ -19,12 +19,12 @@ class OppdaterMeldekortService(
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
     private val simulerService: SimulerService,
-    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
 
     suspend fun oppdaterMeldekort(
         kommando: OppdaterMeldekortKommando,
+        clock: Clock,
     ): Either<KanIkkeOppdatereMeldekort, Pair<Sak, MeldekortUnderBehandling>> {
         val sak = hentSak(kommando)
         return sak.oppdaterMeldekort(

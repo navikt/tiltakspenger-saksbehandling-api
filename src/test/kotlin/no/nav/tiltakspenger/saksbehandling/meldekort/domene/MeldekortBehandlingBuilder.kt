@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehand
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilSendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.time.Clock
 
 suspend fun TestApplicationContext.nyOpprettetMeldekortbehandling(
     sakId: SakId,
@@ -28,6 +29,7 @@ suspend fun TestApplicationContext.oppdatertMeldekortbehandling(
     sakId: SakId,
     saksbehandler: Saksbehandler = saksbehandler(),
     kjedeId: MeldeperiodeKjedeId,
+    clock: Clock = this.clock,
 ): Pair<Sak, MeldekortBehandling> {
     val (_, opprettet) = nyOpprettetMeldekortbehandling(
         sakId = sakId,
@@ -37,6 +39,7 @@ suspend fun TestApplicationContext.oppdatertMeldekortbehandling(
 
     return meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
         kommando = opprettet.tilOppdaterMeldekortKommando(saksbehandler),
+        clock = clock,
     ).getOrFail()
 }
 
@@ -44,6 +47,7 @@ suspend fun TestApplicationContext.meldekortbehandlingKlarTilBeslutning(
     sakId: SakId,
     kjedeId: MeldeperiodeKjedeId,
     saksbehandler: Saksbehandler = saksbehandler(),
+    clock: Clock = this.clock,
 ): Pair<Sak, MeldekortBehandletManuelt> {
     val (_, opprettet) = oppdatertMeldekortbehandling(
         sakId = sakId,
@@ -53,6 +57,7 @@ suspend fun TestApplicationContext.meldekortbehandlingKlarTilBeslutning(
 
     return meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
         opprettet.tilSendMeldekortTilBeslutterKommando(saksbehandler),
+        clock,
     ).getOrFail()
 }
 

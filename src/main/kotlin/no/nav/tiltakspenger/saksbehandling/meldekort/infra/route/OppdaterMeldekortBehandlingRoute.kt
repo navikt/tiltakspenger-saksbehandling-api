@@ -44,13 +44,16 @@ fun Route.oppdaterMeldekortBehandlingRoute(
                     krevSaksbehandlerRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                     val correlationId = call.correlationId()
-                    val kommando = body.toDomain(
-                        saksbehandler = saksbehandler,
-                        meldekortId = meldekortId,
-                        sakId = sakId,
-                        correlationId = correlationId,
-                    )
-                    oppdaterMeldekortService.oppdaterMeldekort(kommando).fold(
+
+                    oppdaterMeldekortService.oppdaterMeldekort(
+                        kommando = body.toDomain(
+                            saksbehandler = saksbehandler,
+                            meldekortId = meldekortId,
+                            sakId = sakId,
+                            correlationId = correlationId,
+                        ),
+                        clock = clock,
+                    ).fold(
                         ifLeft = {
                             respondWithError(it)
                         },

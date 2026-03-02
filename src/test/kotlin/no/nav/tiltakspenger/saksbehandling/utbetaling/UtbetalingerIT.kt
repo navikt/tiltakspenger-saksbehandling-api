@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling
 
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
@@ -17,10 +16,8 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.satser.Satser.Companion.sats
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -28,16 +25,13 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdel
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingForSakId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.IverksettV2Dto
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class UtbetalingerIT {
@@ -152,12 +146,12 @@ class UtbetalingerIT {
     }
 
     @Test
-    @Disabled
     fun `Feilutbetaling ved stans over utbetalt periode`() {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(
                 innvilgelsesperiode = vedtaksperiode,
                 fnr = Fnr.fromString("12345678911"),
+                clock = fixedClockAt(vedtaksperiode.tilOgMed),
             )
 
             val (_, revurdering, _) = startRevurderingForSakId(
@@ -184,7 +178,7 @@ class UtbetalingerIT {
             )
             taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
 
-            val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)!!
+            val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id, utførJobber = false)!!
 
             oppdatertSak.utbetalinger shouldBe listOf(
                 oppdatertSak.meldekortvedtaksliste.first().utbetaling,
@@ -205,84 +199,6 @@ class UtbetalingerIT {
                 // Sender tom liste med utbetalinger når hele sakens periode stanses
                 iverksettDto.vedtak.utbetalinger.shouldBeEmpty()
             }
-        }
-    }
-
-    // TODO: fjern denne og enable den forrige når feilutbetaling støttes igjen
-    @Test
-    @Disabled
-    fun `Behandling med feilutbetaling ved stans over utbetalt periode skal ikke kunne sendes til beslutning`() {
-        val clock = TikkendeKlokke(fixedClockAt(1.desember(2025)))
-        withTestApplicationContext(clock = clock) { tac ->
-            val sak = tac.førsteMeldekortIverksatt(
-                innvilgelsesperiode = vedtaksperiode,
-                fnr = Fnr.fromString("12345678911"),
-            )
-
-            val (_, revurdering, _) = startRevurderingForSakId(
-                tac = tac,
-                sakId = sak.id,
-                type = RevurderingsresultatType.STANS,
-            )!!
-
-            oppdaterRevurderingStans(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = revurdering.id,
-                fritekstTilVedtaksbrev = "lol",
-                begrunnelseVilkårsvurdering = "what",
-                valgteHjemler = setOf(HjemmelForStans.Alder),
-                stansFraOgMed = vedtaksperiode.fraOgMed,
-                harValgtStansFraFørsteDagSomGirRett = false,
-            )
-
-            val bodyAsText = sendRevurderingTilBeslutningForBehandlingId(
-                tac,
-                sak.id,
-                revurdering.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-            )
-
-            bodyAsText harKode "støtter_ikke_feilutbetaling"
-
-            tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
-        }
-    }
-
-    // TODO: see above
-    @Test
-    @Disabled
-    fun `Behandling med feilutbetaling ved opphør over utbetalt periode skal ikke kunne sendes til beslutning`() {
-        val clock = TikkendeKlokke(fixedClockAt(1.desember(2025)))
-        withTestApplicationContext(clock = clock) { tac ->
-            val sak = tac.førsteMeldekortIverksatt(
-                innvilgelsesperiode = vedtaksperiode,
-                fnr = Fnr.fromString("12345678911"),
-            )
-
-            val (_, omgjøring) = startRevurderingOmgjøring(
-                tac = tac,
-                sakId = sak.id,
-                rammevedtakIdSomOmgjøres = sak.rammevedtaksliste.first().id,
-            )!!
-
-            oppdaterOmgjøringOpphør(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = omgjøring.id,
-                vedtaksperiode = vedtaksperiode,
-            )
-
-            val bodyAsText = sendRevurderingTilBeslutningForBehandlingId(
-                tac,
-                sak.id,
-                omgjøring.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-            )
-
-            bodyAsText harKode "støtter_ikke_feilutbetaling"
-
-            tac.behandlingContext.rammebehandlingRepo.hent(omgjøring.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
         }
     }
 }

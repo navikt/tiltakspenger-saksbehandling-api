@@ -19,12 +19,12 @@ import java.time.Clock
 class SendMeldekortTilBeslutterService(
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
-    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
 
     fun sendMeldekortTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
+        clock: Clock,
     ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<Sak, MeldekortBehandletManuelt>> {
         val sak = hentSak(kommando)
         sakService

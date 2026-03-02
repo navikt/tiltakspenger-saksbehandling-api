@@ -46,6 +46,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                         sakId = sakId,
                         correlationId = correlationId,
                     ),
+                    clock = clock,
                 ).fold(
                     ifLeft = {
                         when (it) {
@@ -58,7 +59,9 @@ fun Route.sendMeldekortTilBeslutterRoute(
 
                             is KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
 
-                            is KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(valueAndStatus = it.feil.tilErrorJson())
+                            is KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(
+                                valueAndStatus = it.feil.tilErrorJson(),
+                            )
                         }
                     },
                     ifRight = {

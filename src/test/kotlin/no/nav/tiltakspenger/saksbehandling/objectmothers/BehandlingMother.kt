@@ -845,6 +845,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOppdatert(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
+    clock: Clock = this.clock,
 ): Sak {
     val tac = this
     val sak = meldekortBehandlingOpprettet(
@@ -857,6 +858,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOppdatert(
         sak.meldekortbehandlinger.first().tilOppdaterMeldekortKommando(
             saksbehandler,
         ),
+        clock,
     )
     return this.sakContext.sakService.hentForSakId(
         sak.id,
@@ -871,6 +873,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
+    clock: Clock = this.clock,
 ): Sak {
     val tac = this
     val sak = meldekortBehandlingOppdatert(
@@ -878,11 +881,13 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
+        clock = clock,
     )
     tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
         sak.meldekortbehandlinger.first().tilSendMeldekortTilBeslutterKommando(
             saksbehandler,
         ),
+        clock,
     ).getOrFail()
     return this.sakContext.sakService.hentForSakId(sak.id)
 }
@@ -898,6 +903,7 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
     correlationId: CorrelationId = CorrelationId.generate(),
+    clock: Clock = this.clock,
 ): Sak {
     val tac = this
     val sak = meldekortTilBeslutter(
@@ -905,6 +911,7 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
+        clock = clock,
     )
     val meldekortId = sak.meldekortbehandlinger.first().id
     tac.meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
@@ -930,6 +937,7 @@ suspend fun TestApplicationContext.andreMeldekortOpprettet(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
+    clock: Clock = this.clock,
 ): Sak {
     val tac = this
     val sak = førsteMeldekortIverksatt(
@@ -947,6 +955,7 @@ suspend fun TestApplicationContext.andreMeldekortOpprettet(
 
     tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
         kommando = meldekortbehandling.tilOppdaterMeldekortKommando(saksbehandler),
+        clock = clock,
     )
 
     return this.sakContext.sakService.hentForSakId(sak.id)

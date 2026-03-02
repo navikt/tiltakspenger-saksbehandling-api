@@ -143,7 +143,7 @@ interface UtbetalingMother : MotherOfAllMothers {
 suspend fun medTillattFeilutbetaling(block: suspend () -> Unit) {
     mockkStatic("no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ValiderKanIverksetteUtbetalingKt")
     try {
-        every { any<Simulering.Endring>().validerKanIverksetteUtbetaling() } returns Unit.right()
+        every { any<Simulering.Endring>().validerKanIverksetteUtbetaling(any()) } returns Unit.right()
         block()
     } finally {
         unmockkStatic("no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ValiderKanIverksetteUtbetalingKt")

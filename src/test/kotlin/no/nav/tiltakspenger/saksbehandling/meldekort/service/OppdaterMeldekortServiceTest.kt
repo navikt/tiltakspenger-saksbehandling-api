@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKom
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
+import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.meldekortBehandlingOpprettet
 import org.junit.jupiter.api.Test
@@ -50,6 +51,7 @@ internal class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                         ),
+                        clock,
                     )
                 }.message shouldBe "Et meldekort må være 14 dager, men var 1"
             }
@@ -96,6 +98,7 @@ internal class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                         ),
+                        clock,
                     )
                 }.message shouldBe "Meldekortet må starte på en mandag"
             }
@@ -143,6 +146,7 @@ internal class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                         ),
+                        clock,
                     )
                 }.message shouldBe "Et meldekort må være 14 dager, men var 15"
             }
@@ -189,6 +193,7 @@ internal class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                         ),
+                        clock,
                     )
                 }.message shouldContain "Kan ikke endre dag til IKKE_RETT_TIL_TILTAKSPENGER"
             }
@@ -236,6 +241,7 @@ internal class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                         ),
+                        clock,
                     )
                 }.message.shouldContain("Kan ikke endre dag fra IKKE_RETT_TIL_TILTAKSPENGER.")
             }
@@ -280,6 +286,7 @@ internal class OppdaterMeldekortServiceTest {
                         begrunnelse = null,
                         fritekstTilVedtaksbrev = null,
                     ),
+                    clock,
                 ).getOrFail()
             }
         }

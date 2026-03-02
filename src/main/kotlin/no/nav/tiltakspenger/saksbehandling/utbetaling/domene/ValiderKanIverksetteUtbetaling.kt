@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 
 fun MeldekortBehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
-    return if (beregning == null) Unit.right() else simulering.validerKanIverksetteUtbetaling()
+    return if (beregning == null) Unit.right() else simulering.validerKanIverksetteUtbetaling(saksbehandler)
 }
 
 fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
@@ -28,13 +28,13 @@ fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUt
         return KanIkkeIverksetteUtbetaling.SimuleringMangler.left()
     }
 
-    return simulering.validerKanIverksetteUtbetaling()
+    return simulering.validerKanIverksetteUtbetaling(saksbehandler)
 }
 
-fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
+fun Simulering?.validerKanIverksetteUtbetaling(saksbehandlerIdent: String?): Either<KanIkkeIverksetteUtbetaling, Unit> {
     return when (this) {
         is Simulering.Endring -> {
-            if (Configuration.isProd() && harFeilutbetaling()) {
+            if (Configuration.isProd() && harFeilutbetaling() && !kanBehandleMedFeilutbetaling.contains(saksbehandlerIdent)) {
                 KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke.left()
             } else if (harJusteringPåTversAvMeldeperioderEllerMåneder()) {
                 KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left()
@@ -68,6 +68,12 @@ private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(
 private fun Simulering.Endring.harFeilutbetaling(): Boolean {
     return totalFeilutbetaling != 0 || totalMotpostering != 0
 }
+
+private val kanBehandleMedFeilutbetaling = setOf(
+    "P160694",
+    "T133324",
+    "V109821",
+)
 
 enum class KanIkkeIverksetteUtbetaling {
     SimuleringMangler,
