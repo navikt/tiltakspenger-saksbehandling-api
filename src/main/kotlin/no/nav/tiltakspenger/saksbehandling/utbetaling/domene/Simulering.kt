@@ -197,7 +197,7 @@ fun Simulering?.erLik(other: Simulering?): Boolean {
 
     if (this is Simulering.Endring && other is Simulering.Endring) {
         if (this.simuleringPerMeldeperiode.size != other.simuleringPerMeldeperiode.size) {
-            logger.info { "Simuleringene har ulikt antall meldeperioder - ${this.simuleringPerMeldeperiode.size} / ${other.simuleringPerMeldeperiode.size}" }
+            logger.debug { "Simuleringene har ulikt antall meldeperioder - ${this.simuleringPerMeldeperiode.size} / ${other.simuleringPerMeldeperiode.size}" }
             return false
         }
 
@@ -206,26 +206,26 @@ fun Simulering?.erLik(other: Simulering?): Boolean {
         }
     }
 
-    logger.info { "Simuleringene har ulike klasse-instansieringer - ${this?.let { it::class.simpleName } ?: "null"} / ${other?.let { it::class.simpleName } ?: "null"}" }
+    logger.debug { "Simuleringene har ulike klasse-instansieringer - ${this?.let { it::class.simpleName } ?: "null"} / ${other?.let { it::class.simpleName } ?: "null"}" }
 
     return false
 }
 
 private fun SimuleringForMeldeperiode.erLik(other: SimuleringForMeldeperiode): Boolean {
     if (this.meldeperiode.id != other.meldeperiode.id) {
-        logger.info { "Simuleringene har ulike meldeperioder - ${this.meldeperiode.id} / ${other.meldeperiode.id}" }
+        logger.debug { "Simuleringene har ulike meldeperioder - ${this.meldeperiode.id} / ${other.meldeperiode.id}" }
         return false
     }
 
     if (this.simuleringsdager.size != other.simuleringsdager.size) {
-        logger.info { "Simuleringene har ulikt antall simuleringsdager - ${this.simuleringsdager.size} / ${other.simuleringsdager.size}" }
+        logger.debug { "Simuleringene har ulikt antall simuleringsdager - ${this.simuleringsdager.size} / ${other.simuleringsdager.size}" }
         return false
     }
 
     return this.simuleringsdager.zip(other.simuleringsdager).all { (dagA, dagB) ->
         dagA.erLik(dagB).also {
             if (!it) {
-                logger.info {
+                logger.debug {
                     "Simuleringene har ulikheter mellom simuleringsdager for meldeperiode ${this.meldeperiode.id}: $dagA / $dagB"
                 }
             }
@@ -235,40 +235,12 @@ private fun SimuleringForMeldeperiode.erLik(other: SimuleringForMeldeperiode): B
 
 // Sjekker ikke om posteringene er like, kun totalbeløpene for hver dag
 private fun Simuleringsdag.erLik(other: Simuleringsdag): Boolean {
-    logger.info { "Sjekker om simuleringsdager er like - ${this.dato} / ${other.dato}" }
-
-    if (!this.dato.isEqual(other.dato)) {
-        logger.info { "Simuleringsdagene har ulike datoer - ${this.dato} / ${other.dato}" }
-        return false
-    }
-    if (this.tidligereUtbetalt != other.tidligereUtbetalt) {
-        logger.info { "Simuleringsdagene har ulik tidligereUtbetalt - ${this.tidligereUtbetalt} / ${other.tidligereUtbetalt}" }
-        return false
-    }
-    if (this.nyUtbetaling != other.nyUtbetaling) {
-        logger.info { "Simuleringsdagene har ulik nyUtbetaling - ${this.nyUtbetaling} / ${other.nyUtbetaling}" }
-        return false
-    }
-    if (this.totalEtterbetaling != other.totalEtterbetaling) {
-        logger.info { "Simuleringsdagene har ulik totalEtterbetaling - ${this.totalEtterbetaling} / ${other.totalEtterbetaling}" }
-        return false
-    }
-    if (this.totalFeilutbetaling != other.totalFeilutbetaling) {
-        logger.info { "Simuleringsdagene har ulik totalFeilutbetaling - ${this.totalFeilutbetaling} / ${other.totalFeilutbetaling}" }
-        return false
-    }
-    if (this.totalMotpostering != other.totalMotpostering) {
-        logger.info { "Simuleringsdagene har ulik totalMotpostering - ${this.totalMotpostering} / ${other.totalMotpostering}" }
-        return false
-    }
-    if (this.totalTrekk != other.totalTrekk) {
-        logger.info { "Simuleringsdagene har ulik totalTrekk - ${this.totalTrekk} / ${other.totalTrekk}" }
-        return false
-    }
-    if (this.totalJustering != other.totalJustering) {
-        logger.info { "Simuleringsdagene har ulik totalJustering - ${this.totalJustering} / ${other.totalJustering}" }
-        return false
-    }
-
-    return true
+    return this.dato.isEqual(other.dato) &&
+        this.tidligereUtbetalt == other.tidligereUtbetalt &&
+        this.nyUtbetaling == other.nyUtbetaling &&
+        this.totalEtterbetaling == other.totalEtterbetaling &&
+        this.totalFeilutbetaling == other.totalFeilutbetaling &&
+        this.totalMotpostering == other.totalMotpostering &&
+        this.totalTrekk == other.totalTrekk &&
+        this.totalJustering == other.totalJustering
 }
