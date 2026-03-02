@@ -235,16 +235,40 @@ private fun SimuleringForMeldeperiode.erLik(other: SimuleringForMeldeperiode): B
 
 // Sjekker ikke om posteringene er like, kun totalbeløpene for hver dag
 private fun Simuleringsdag.erLik(other: Simuleringsdag): Boolean {
+    logger.info { "Sjekker om simuleringsdager er like - ${this.dato} / ${other.dato}" }
+
     if (!this.dato.isEqual(other.dato)) {
         logger.info { "Simuleringsdagene har ulike datoer - ${this.dato} / ${other.dato}" }
         return false
     }
+    if (this.tidligereUtbetalt != other.tidligereUtbetalt) {
+        logger.info { "Simuleringsdagene har ulik tidligereUtbetalt - ${this.tidligereUtbetalt} / ${other.tidligereUtbetalt}" }
+        return false
+    }
+    if (this.nyUtbetaling != other.nyUtbetaling) {
+        logger.info { "Simuleringsdagene har ulik nyUtbetaling - ${this.nyUtbetaling} / ${other.nyUtbetaling}" }
+        return false
+    }
+    if (this.totalEtterbetaling != other.totalEtterbetaling) {
+        logger.info { "Simuleringsdagene har ulik totalEtterbetaling - ${this.totalEtterbetaling} / ${other.totalEtterbetaling}" }
+        return false
+    }
+    if (this.totalFeilutbetaling != other.totalFeilutbetaling) {
+        logger.info { "Simuleringsdagene har ulik totalFeilutbetaling - ${this.totalFeilutbetaling} / ${other.totalFeilutbetaling}" }
+        return false
+    }
+    if (this.totalMotpostering != other.totalMotpostering) {
+        logger.info { "Simuleringsdagene har ulik totalMotpostering - ${this.totalMotpostering} / ${other.totalMotpostering}" }
+        return false
+    }
+    if (this.totalTrekk != other.totalTrekk) {
+        logger.info { "Simuleringsdagene har ulik totalTrekk - ${this.totalTrekk} / ${other.totalTrekk}" }
+        return false
+    }
+    if (this.totalJustering != other.totalJustering) {
+        logger.info { "Simuleringsdagene har ulik totalJustering - ${this.totalJustering} / ${other.totalJustering}" }
+        return false
+    }
 
-    return this.tidligereUtbetalt == other.tidligereUtbetalt &&
-        this.nyUtbetaling == other.nyUtbetaling &&
-        this.totalEtterbetaling == other.totalEtterbetaling &&
-        this.totalFeilutbetaling == other.totalFeilutbetaling &&
-        this.totalMotpostering == other.totalMotpostering &&
-        this.totalTrekk == other.totalTrekk &&
-        this.totalJustering == other.totalJustering
+    return true
 }
