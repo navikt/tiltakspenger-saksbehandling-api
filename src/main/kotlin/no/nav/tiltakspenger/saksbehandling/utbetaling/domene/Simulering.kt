@@ -44,6 +44,10 @@ sealed interface Simulering {
             simuleringPerMeldeperiode.any { it.harJustering }
         }
 
+        val harFeilutbetaling: Boolean by lazy {
+            totalFeilutbetaling != 0 || totalMotpostering != 0
+        }
+
         override fun hentDag(dato: LocalDate): Simuleringsdag? {
             return simuleringPerMeldeperiode
                 .flatMap { it.simuleringsdager }

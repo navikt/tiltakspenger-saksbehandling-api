@@ -71,4 +71,16 @@ object MetricRegister {
         .help("Antall iverksatte behandlinger")
         .withoutExemplars()
         .register()
+
+    val IVERKSATT_RAMMEBEHANDLING_MED_FEILUTBETALING: Counter = Counter.builder()
+        .name("${METRICS_NS}_behandling_med_feilutbetaling_count")
+        .help("Antall rammebehandlinger iverksatt med feilutbetaling")
+        .withoutExemplars()
+        .register()
+
+    val IVERKSATT_MELDEKORT_MED_FEILUTBETALING: Counter = Counter.builder()
+        .name("${METRICS_NS}_meldekort_med_feilutbetaling_count")
+        .help("Antall meldekort iverksatt med feilutbetaling")
+        .withoutExemplars()
+        .register()
 }

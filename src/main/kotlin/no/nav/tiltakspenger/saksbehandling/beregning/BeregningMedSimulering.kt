@@ -14,4 +14,14 @@ interface BeregningMedSimulering {
             simulering = simulering,
         )
     }
+
+    fun harFeilutbetaling(): Boolean {
+        return when (simulering) {
+            is Simulering.Endring -> (simulering as Simulering.Endring).harFeilutbetaling
+
+            is Simulering.IngenEndring,
+            null,
+            -> false
+        }
+    }
 }

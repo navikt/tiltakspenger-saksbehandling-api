@@ -239,11 +239,19 @@ class IverksettRammebehandlingService(
                     tx,
                 )
             }
+
             // TODO jah: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
             runBlocking {
-                tx.onSuccess { MetricRegister.IVERKSATT_BEHANDLING.inc() }
+                tx.onSuccess {
+                    MetricRegister.IVERKSATT_BEHANDLING.inc()
+
+                    if (rammevedtak.rammebehandling.utbetaling?.harFeilutbetaling() == true) {
+                        MetricRegister.IVERKSATT_RAMMEBEHANDLING_MED_FEILUTBETALING.inc()
+                    }
+                }
             }
         }
+
         return sakOppdatertMedMeldekortbehandlinger
     }
 }

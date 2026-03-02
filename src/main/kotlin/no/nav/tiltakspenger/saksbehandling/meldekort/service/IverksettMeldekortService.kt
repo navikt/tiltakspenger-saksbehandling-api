@@ -2,8 +2,10 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
 import arrow.core.left
+import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
@@ -60,6 +62,14 @@ class IverksettMeldekortService(
                 meldekortBehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
                 meldekortvedtakRepo.lagre(meldekortvedtak, tx)
                 statistikkMeldekortRepo.lagre(iverksattMeldekortbehandling.tilStatistikkMeldekortDTO(clock), tx)
+
+                runBlocking {
+                    tx.onSuccess {
+                        if (meldekortvedtak.meldekortBehandling.harFeilutbetaling()) {
+                            MetricRegister.IVERKSATT_MELDEKORT_MED_FEILUTBETALING.inc()
+                        }
+                    }
+                }
             }
             sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
                 .leggTilMeldekortvedtak(meldekortvedtak) to iverksattMeldekortbehandling
