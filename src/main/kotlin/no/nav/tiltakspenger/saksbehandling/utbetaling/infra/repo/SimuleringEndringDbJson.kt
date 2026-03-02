@@ -191,7 +191,7 @@ private fun Simulering.Endring.toDbJson(): SimuleringEndringDbJson {
                         nyUtbetaling = dag.nyUtbetaling,
                         totalEtterbetaling = dag.totalEtterbetaling,
                         totalFeilutbetaling = dag.totalFeilutbetaling,
-                        totalMotpostering = dag.totalFeilutbetaling,
+                        totalMotpostering = dag.totalMotpostering,
                         totalTrekk = dag.totalTrekk,
                         totalJustering = dag.totalJustering,
                         harJustering = dag.harJustering,
