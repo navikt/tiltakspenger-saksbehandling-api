@@ -202,13 +202,7 @@ fun Simulering?.erLik(other: Simulering?): Boolean {
         }
 
         return this.simuleringPerMeldeperiode.zip(other.simuleringPerMeldeperiode).all { (a, b) ->
-            a.erLik(b).also {
-                if (!it) {
-                    logger.info {
-                        "Simuleringene har ulikheter mellom meldeperioder: $a / $b"
-                    }
-                }
-            }
+            a.erLik(b)
         }
     }
 
@@ -241,7 +235,7 @@ private fun SimuleringForMeldeperiode.erLik(other: SimuleringForMeldeperiode): B
 
 // Sjekker ikke om posteringene er like, kun totalbeløpene for hver dag
 private fun Simuleringsdag.erLik(other: Simuleringsdag): Boolean {
-    return this.dato == other.dato &&
+    return this.dato.isEqual(other.dato) &&
         this.tidligereUtbetalt == other.tidligereUtbetalt &&
         this.nyUtbetaling == other.nyUtbetaling &&
         this.totalEtterbetaling == other.totalEtterbetaling &&
