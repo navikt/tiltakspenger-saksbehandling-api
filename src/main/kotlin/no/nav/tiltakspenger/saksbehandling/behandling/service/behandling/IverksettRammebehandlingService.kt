@@ -246,6 +246,7 @@ class IverksettRammebehandlingService(
                     MetricRegister.IVERKSATT_BEHANDLING.inc()
 
                     if (rammevedtak.rammebehandling.utbetaling?.harFeilutbetaling() == true) {
+                        logger.warn { "Rammebehandling med feilutbetaling har blitt iverksatt - Behandling-id ${rammevedtak.rammebehandling.id} - vedtak-id: ${rammevedtak.id} - sak-id: ${rammevedtak.sakId}" }
                         MetricRegister.IVERKSATT_RAMMEBEHANDLING_MED_FEILUTBETALING.inc()
                     }
                 }

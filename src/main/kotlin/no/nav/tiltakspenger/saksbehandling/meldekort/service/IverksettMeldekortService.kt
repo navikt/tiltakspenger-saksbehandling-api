@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
 import arrow.core.left
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -31,6 +32,8 @@ class IverksettMeldekortService(
     private val clock: Clock,
     private val statistikkMeldekortRepo: StatistikkMeldekortRepo,
 ) {
+    private val logger = KotlinLogging.logger { }
+
     fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
     ): Either<KanIkkeIverksetteMeldekort, Pair<Sak, MeldekortBehandling>> {
@@ -66,6 +69,7 @@ class IverksettMeldekortService(
                 runBlocking {
                     tx.onSuccess {
                         if (meldekortvedtak.meldekortBehandling.harFeilutbetaling()) {
+                            logger.warn { "Meldekort med feilutbetaling har blitt iverksatt - Meldekort-id $meldekortId - sak-id: $sakId" }
                             MetricRegister.IVERKSATT_MELDEKORT_MED_FEILUTBETALING.inc()
                         }
                     }
