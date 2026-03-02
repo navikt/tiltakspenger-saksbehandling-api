@@ -235,8 +235,12 @@ private fun SimuleringForMeldeperiode.erLik(other: SimuleringForMeldeperiode): B
 
 // Sjekker ikke om posteringene er like, kun totalbeløpene for hver dag
 private fun Simuleringsdag.erLik(other: Simuleringsdag): Boolean {
-    return this.dato.isEqual(other.dato) &&
-        this.tidligereUtbetalt == other.tidligereUtbetalt &&
+    if (!this.dato.isEqual(other.dato)) {
+        logger.info { "Simuleringsdagene har ulike datoer - ${this.dato} / ${other.dato}" }
+        return false
+    }
+
+    return this.tidligereUtbetalt == other.tidligereUtbetalt &&
         this.nyUtbetaling == other.nyUtbetaling &&
         this.totalEtterbetaling == other.totalEtterbetaling &&
         this.totalFeilutbetaling == other.totalFeilutbetaling &&
