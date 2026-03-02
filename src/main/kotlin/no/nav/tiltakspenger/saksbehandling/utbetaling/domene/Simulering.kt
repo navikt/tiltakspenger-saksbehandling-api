@@ -196,8 +196,57 @@ fun Simulering?.erLik(other: Simulering?): Boolean {
     }
 
     if (this is Simulering.Endring && other is Simulering.Endring) {
-        return this.simuleringPerMeldeperiode == other.simuleringPerMeldeperiode
+        if (this.simuleringPerMeldeperiode.size != other.simuleringPerMeldeperiode.size) {
+            logger.info { "Simuleringene har ulikt antall meldeperioder - ${this.simuleringPerMeldeperiode.size} / ${other.simuleringPerMeldeperiode.size}" }
+            return false
+        }
+
+        return this.simuleringPerMeldeperiode.zip(other.simuleringPerMeldeperiode).all { (a, b) ->
+            a.erLik(b).also {
+                if (!it) {
+                    logger.info {
+                        "Simuleringene har ulikheter mellom meldeperioder: $a / $b"
+                    }
+                }
+            }
+        }
     }
 
+    logger.info { "Simuleringene har ulike klasse-instansieringer - ${this?.let { it::class.simpleName } ?: "null"} / ${other?.let { it::class.simpleName } ?: "null"}" }
+
     return false
+}
+
+private fun SimuleringForMeldeperiode.erLik(other: SimuleringForMeldeperiode): Boolean {
+    if (this.meldeperiode.id != other.meldeperiode.id) {
+        logger.info { "Simuleringene har ulike meldeperioder - ${this.meldeperiode.id} / ${other.meldeperiode.id}" }
+        return false
+    }
+
+    if (this.simuleringsdager.size != other.simuleringsdager.size) {
+        logger.info { "Simuleringene har ulikt antall simuleringsdager - ${this.simuleringsdager.size} / ${other.simuleringsdager.size}" }
+        return false
+    }
+
+    return this.simuleringsdager.zip(other.simuleringsdager).all { (dagA, dagB) ->
+        dagA.erLik(dagB).also {
+            if (!it) {
+                logger.info {
+                    "Simuleringene har ulikheter mellom simuleringsdager for meldeperiode ${this.meldeperiode.id}: $dagA / $dagB"
+                }
+            }
+        }
+    }
+}
+
+// Sjekker ikke om posteringene er like, kun totalbeløpene for hver dag
+private fun Simuleringsdag.erLik(other: Simuleringsdag): Boolean {
+    return this.dato == other.dato &&
+        this.tidligereUtbetalt == other.tidligereUtbetalt &&
+        this.nyUtbetaling == other.nyUtbetaling &&
+        this.totalEtterbetaling == other.totalEtterbetaling &&
+        this.totalFeilutbetaling == other.totalFeilutbetaling &&
+        this.totalMotpostering == other.totalMotpostering &&
+        this.totalTrekk == other.totalTrekk &&
+        this.totalJustering == other.totalJustering
 }
