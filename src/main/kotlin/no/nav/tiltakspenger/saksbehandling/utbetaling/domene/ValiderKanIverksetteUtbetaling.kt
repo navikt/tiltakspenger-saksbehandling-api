@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 
 fun MeldekortBehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
@@ -33,7 +34,7 @@ fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUt
 fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
     return when (this) {
         is Simulering.Endring -> {
-            if ((totalFeilutbetaling != 0 || totalMotpostering != 0)) {
+            if (Configuration.isProd() && harFeilutbetaling()) {
                 KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke.left()
             } else if (harJusteringPåTversAvMeldeperioderEllerMåneder()) {
                 KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left()
@@ -62,6 +63,10 @@ private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(
                 dagerForMåned.sumOf { it.totalJustering } != 0
             }
     }
+}
+
+private fun Simulering.Endring.harFeilutbetaling(): Boolean {
+    return totalFeilutbetaling != 0 || totalMotpostering != 0
 }
 
 enum class KanIkkeIverksetteUtbetaling {

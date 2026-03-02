@@ -18,6 +18,8 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -27,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import java.time.Clock
 import java.time.LocalDate
 
 /**
@@ -40,16 +43,18 @@ interface SettRammebehandlingPåVentBuilder {
      */
     suspend fun ApplicationTestBuilder.opprettSøknadsbehandlingOgSettPåVent(
         tac: TestApplicationContext,
+        clock: Clock = fixedClock,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        frist: LocalDate = LocalDate.now(),
+        frist: LocalDate = 1.januar(2026),
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Tuple4<Sak, Søknad, Rammebehandling?, SakDTOJson>? {
         val (sak, _, søknadsbehandling) = this.opprettSøknadsbehandlingUnderBehandling(
             tac = tac,
             saksbehandler = saksbehandler,
             fnr = fnr,
+            clock = clock,
         )
         return settRammebehandlingPåVent(
             tac = tac,

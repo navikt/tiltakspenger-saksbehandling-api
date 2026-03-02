@@ -210,6 +210,7 @@ class UtbetalingerIT {
 
     // TODO: fjern denne og enable den forrige når feilutbetaling støttes igjen
     @Test
+    @Disabled
     fun `Behandling med feilutbetaling ved stans over utbetalt periode skal ikke kunne sendes til beslutning`() {
         val clock = TikkendeKlokke(fixedClockAt(1.desember(2025)))
         withTestApplicationContext(clock = clock) { tac ->
@@ -250,6 +251,7 @@ class UtbetalingerIT {
 
     // TODO: see above
     @Test
+    @Disabled
     fun `Behandling med feilutbetaling ved opphør over utbetalt periode skal ikke kunne sendes til beslutning`() {
         val clock = TikkendeKlokke(fixedClockAt(1.desember(2025)))
         withTestApplicationContext(clock = clock) { tac ->

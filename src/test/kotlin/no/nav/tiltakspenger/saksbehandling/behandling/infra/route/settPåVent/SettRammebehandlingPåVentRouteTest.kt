@@ -33,7 +33,7 @@ class SettRammebehandlingPåVentRouteTest {
                             begrunnelse = "Begrunnelse for å sette rammebehandling på vent",
                             erSattPåVent = true,
                             status = "UNDER_BEHANDLING",
-                            frist = LocalDate.parse("2026-02-27"),
+                            frist = LocalDate.parse("2026-01-01"),
                         ),
                     ),
                 ),
