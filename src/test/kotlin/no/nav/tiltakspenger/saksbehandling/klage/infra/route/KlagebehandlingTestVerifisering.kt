@@ -83,8 +83,7 @@ fun String.shouldBeKlagebehandlingDTO(
                       "type": "OMGJØR",
                       "årsak": ${årsak.toJsonValue()},
                       "begrunnelse": ${begrunnelse.toJsonValue()},
-                      "rammebehandlingId": ${rammebehandlingId.toJsonValue()},
-                      "brevtekst": ${if (brevtekst.isEmpty()) "[]" else "[${brevtekst.joinToString()}]"}
+                      "rammebehandlingId": ${rammebehandlingId.toJsonValue()}
                     }
                 """.trimIndent()
 

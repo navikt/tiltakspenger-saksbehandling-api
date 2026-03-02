@@ -25,9 +25,17 @@ enum class Klagebehandlingsstatus {
      * Vi har journalført+distribuert innstillingsbrevet og oversendt klagen til klageinstansen.
      * Fra saksbehenandler sitt perspektiv, merk at vi anser behandlingen som "avsluttet", frem til klageinstansen har iverksatt ett vedtak.
      * Så denne statusen skal ikke vises i benken.
-     *
-     * */
+     */
     OVERSENDT,
+
+    /**
+     * Vi har mottatt et svar fra klageinstansen.
+     * Basert på hendelsestypen, har vi 3 mulige scenarioer:
+     * 1. Klagebehandlingen er allerede ferdigstilt uten at førsteinstansen skal utføre flere handlinger. Saksbehandler bekrefter at de har mottatt svaret og ferdigstiller behandlingen.
+     * 2. Vedtaket fra klageinstansen krever videre behandling i førsteinstansen, en omgjøring.
+     * 3. RETUR. Innstillingsbrevet er ikke godt nok utredet. Saksbehandler må sende mer informasjon til klageinstansen, setter behandlingen tilbake til [OVERSENDT] og vi avventer en ny hendelse.
+     */
+    MOTTATT_FRA_KLAGEINSTANS,
 
     /**
      * Vi har mottatt et svar fra klageinstansen, og resultatet av skal ikke føre til noen videre behandling.

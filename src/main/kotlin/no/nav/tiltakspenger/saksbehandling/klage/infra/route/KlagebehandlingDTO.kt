@@ -78,16 +78,14 @@ fun KlageFormkrav.toDTO(): KlageFormkravDTO = KlageFormkravDTO(
 sealed interface KlagebehandlingsresultatDTO {
 
     val type: KlageresultatstypeDto
-    val brevtekst: List<TittelOgTekstDTO>
 
     data class Avvist(
-        override val brevtekst: List<TittelOgTekstDTO>,
+        val brevtekst: List<TittelOgTekstDTO>,
     ) : KlagebehandlingsresultatDTO {
         override val type = KlageresultatstypeDto.AVVIST
     }
 
     data class Omgjør(
-        override val brevtekst: List<TittelOgTekstDTO>,
         val årsak: String,
         val begrunnelse: String,
         val rammebehandlingId: String?,
@@ -96,7 +94,7 @@ sealed interface KlagebehandlingsresultatDTO {
     }
 
     data class Opprettholdt(
-        override val brevtekst: List<TittelOgTekstDTO>,
+        val brevtekst: List<TittelOgTekstDTO>,
         val hjemler: List<KlagehjemmelDto>,
         val iverksattOpprettholdelseTidspunkt: LocalDateTime?,
         val journalføringstidspunktInnstillingsbrev: LocalDateTime?,
@@ -138,7 +136,6 @@ fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): Klagebehandlingsr
         )
 
         is Klagebehandlingsresultat.Omgjør -> KlagebehandlingsresultatDTO.Omgjør(
-            brevtekst = brevtekstDTO,
             årsak = årsak.name,
             begrunnelse = begrunnelse.verdi,
             rammebehandlingId = rammebehandlingId?.toString(),

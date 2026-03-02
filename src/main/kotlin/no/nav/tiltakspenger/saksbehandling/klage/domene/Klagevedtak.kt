@@ -67,5 +67,8 @@ data class Klagevedtak(
         require(behandling.resultat is Klagebehandlingsresultat.Avvist) {
             "Klagevedtak kan kun opprettes for klagebehandlinger med resultat Avvist, men var ${behandling.resultat}. Ved medhold/omgjøring eies klagebehandlingen av rammevedtaket. sakId=$sakId, saksnummer=$saksnummer, vedtakId=$id, behandlingId=${behandling.id}, resultat=${behandling.resultat}."
         }
+        require(behandling.status == Klagebehandlingsstatus.VEDTATT) {
+            "Klagevedtak kan kun opprettes for klagebehandlinger med status VEDTATT, men var ${behandling.status}. sakId=$sakId, saksnummer=$saksnummer, vedtakId=$id, behandlingId=${behandling.id}, status=${behandling.status}."
+        }
     }
 }

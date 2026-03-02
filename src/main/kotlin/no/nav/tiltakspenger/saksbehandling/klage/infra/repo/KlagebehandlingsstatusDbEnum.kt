@@ -6,12 +6,11 @@ private enum class KlagebehandlingsstatusDbEnum {
     KLAR_TIL_BEHANDLING,
     UNDER_BEHANDLING,
     AVBRUTT,
-
-    // TODO jah: Lag en migrering fra IVERKSATT TIL VEDTATT samtidig som du endrer denne.
-    IVERKSATT,
+    VEDTATT,
     OPPRETTHOLDT,
     OVERSENDT,
     FERDIGSTILT,
+    MOTTATT_FRA_KLAGEINSTANS,
     ;
 
     fun toDomain(): Klagebehandlingsstatus {
@@ -19,10 +18,11 @@ private enum class KlagebehandlingsstatusDbEnum {
             KLAR_TIL_BEHANDLING -> Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
             UNDER_BEHANDLING -> Klagebehandlingsstatus.UNDER_BEHANDLING
             AVBRUTT -> Klagebehandlingsstatus.AVBRUTT
-            IVERKSATT -> Klagebehandlingsstatus.VEDTATT
+            VEDTATT -> Klagebehandlingsstatus.VEDTATT
             OPPRETTHOLDT -> Klagebehandlingsstatus.OPPRETTHOLDT
             OVERSENDT -> Klagebehandlingsstatus.OVERSENDT
             FERDIGSTILT -> Klagebehandlingsstatus.FERDIGSTILT
+            MOTTATT_FRA_KLAGEINSTANS -> Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS
         }
     }
 }
@@ -32,10 +32,11 @@ fun Klagebehandlingsstatus.toDbEnum(): String {
         Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> KlagebehandlingsstatusDbEnum.KLAR_TIL_BEHANDLING
         Klagebehandlingsstatus.UNDER_BEHANDLING -> KlagebehandlingsstatusDbEnum.UNDER_BEHANDLING
         Klagebehandlingsstatus.AVBRUTT -> KlagebehandlingsstatusDbEnum.AVBRUTT
-        Klagebehandlingsstatus.VEDTATT -> KlagebehandlingsstatusDbEnum.IVERKSATT
+        Klagebehandlingsstatus.VEDTATT -> KlagebehandlingsstatusDbEnum.VEDTATT
         Klagebehandlingsstatus.OVERSENDT -> KlagebehandlingsstatusDbEnum.OVERSENDT
         Klagebehandlingsstatus.OPPRETTHOLDT -> KlagebehandlingsstatusDbEnum.OPPRETTHOLDT
         Klagebehandlingsstatus.FERDIGSTILT -> KlagebehandlingsstatusDbEnum.FERDIGSTILT
+        Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> KlagebehandlingsstatusDbEnum.MOTTATT_FRA_KLAGEINSTANS
     }.name
 }
 

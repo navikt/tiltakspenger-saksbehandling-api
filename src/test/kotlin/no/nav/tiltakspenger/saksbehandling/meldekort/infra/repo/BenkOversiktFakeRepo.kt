@@ -248,6 +248,8 @@ class BenkOversiktFakeRepo(
 
         Klagebehandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
 
+        Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> BehandlingssammendragStatus.KLAR_TIL_FERDIGSTILLING
+
         Klagebehandlingsstatus.AVBRUTT,
         Klagebehandlingsstatus.VEDTATT,
         Klagebehandlingsstatus.OPPRETTHOLDT,

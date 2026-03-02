@@ -134,6 +134,8 @@ data class Behandlinger(
                 Klagebehandlingsstatus.AVBRUTT, Klagebehandlingsstatus.OPPRETTHOLDT, Klagebehandlingsstatus.OVERSENDT, Klagebehandlingsstatus.FERDIGSTILT -> throw IllegalStateException(
                     "En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling",
                 )
+
+                Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> TODO()
             }
         }
         // Siden [Rammebehandling] er "eieren" av relasjonen til [Klagebehandling], sjekker vi statusen i initen til implementasjonene av [Rammebehandling].

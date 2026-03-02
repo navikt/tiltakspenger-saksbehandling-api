@@ -93,6 +93,9 @@ enum class StatistikkBehandlingStatus {
     KLAR_TIL_BEHANDLING,
     UNDER_BEHANDLING,
     UNDER_BESLUTNING,
+    UNDERKJENT_BESLUTNING,
+
+    /** Gjelder f.eks. klager som ikke er eller har vært oversendt til klageinstansen */
     FERDIG_BEHANDLET,
     OVERSENDT_KA,
     AVSLUTTET,

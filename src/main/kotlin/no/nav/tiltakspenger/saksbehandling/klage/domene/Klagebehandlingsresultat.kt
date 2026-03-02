@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.FERDIGSTILT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OPPRETTHOLDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
@@ -51,7 +52,7 @@ sealed interface Klagebehandlingsresultat {
             return when (status) {
                 UNDER_BEHANDLING -> false
                 KLAR_TIL_BEHANDLING, AVBRUTT, VEDTATT -> true
-                OPPRETTHOLDT, OVERSENDT, FERDIGSTILT -> throw IllegalStateException("$status er en ugyldig status for Avvist klage.")
+                OPPRETTHOLDT, OVERSENDT, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS -> throw IllegalStateException("$status er en ugyldig status for Avvist klage.")
             }
         }
 
@@ -148,12 +149,10 @@ sealed interface Klagebehandlingsresultat {
 
         /** Merk at generering av brev kan feile i tilstandene KLAR_TIL_BEHANDLING og AVBRUTT hvis [brevtekst] er null. */
         override fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean {
-            // Safe guard i tilfelle vi finner på å endre statusen tilbake til UNDER_BEHANDLING etter vi har fått svaret fra klageinstansen.
-            if (journalpostIdInnstillingsbrev != null) return true
             return when (status) {
                 UNDER_BEHANDLING -> false
-                KLAR_TIL_BEHANDLING, AVBRUTT, OPPRETTHOLDT, OVERSENDT, FERDIGSTILT -> true
-                VEDTATT -> throw IllegalStateException("$status er en ugyldig status for Avvist klage. TODO jah: vi legger til denne statusen når vi håndterer svaret fra klageinstansen.")
+                KLAR_TIL_BEHANDLING, AVBRUTT, OPPRETTHOLDT, OVERSENDT, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS -> true
+                VEDTATT -> throw IllegalStateException("$status er en ugyldig status for Opprettholdt klage. Bruk FERDIGSTILT.")
             }
         }
 

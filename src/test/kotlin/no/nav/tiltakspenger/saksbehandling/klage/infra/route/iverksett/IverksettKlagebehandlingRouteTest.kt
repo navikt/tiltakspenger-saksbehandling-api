@@ -62,7 +62,7 @@ class IverksettKlagebehandlingRouteTest {
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
                 fnr = "12345678911",
-                status = "IVERKSATT",
+                status = "VEDTATT",
                 resultat = "AVVIST",
                 iverksattTidspunkt = "TIMESTAMP",
                 brevtekst = listOf("""{"tittel": "Avvisning av klage","tekst": "Din klage er dessverre avvist."}"""),

@@ -49,7 +49,6 @@ fun genererSaksstatistikkForRammevedtak(
         // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende søknadsbehandling sin første innvilget fraOgMed eller null?
         forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.vedtaksperiode?.fraOgMed else null,
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.SØKNADSBEHANDLING else StatistikkBehandlingType.REVURDERING,
-        // TODO jah: I følge confluence-dokken så finner jeg ikke dette feltet. Burde det heller vært AVSLUTTET?
         behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,
         behandlingResultat = when (vedtak.rammebehandlingsresultat) {
             // I førsteomgang mapper vi bare delvis til innvilgelse.
@@ -70,6 +69,7 @@ fun genererSaksstatistikkForRammevedtak(
         opprettetAv = maskerHvisStrengtFortroligStrict(gjelderKode6, "system"),
         saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, behandling.saksbehandler),
         ansvarligBeslutter = maskerHvisStrengtFortrolig(gjelderKode6, behandling.beslutter),
+        // TODO jah: Er 0383 for egen ansatt.
         ansvarligenhet = maskerHvisStrengtFortroligStrict(gjelderKode6, "0387"),
 
         tilbakekrevingsbeløp = null,
@@ -167,8 +167,9 @@ fun genererSaksstatistikkForKlagebehandling(
                 Klagebehandlingsstatus.OPPRETTHOLDT -> StatistikkBehandlingStatus.OVERSENDT_KA
                 Klagebehandlingsstatus.AVBRUTT -> StatistikkBehandlingStatus.AVSLUTTET
                 Klagebehandlingsstatus.VEDTATT -> StatistikkBehandlingStatus.FERDIG_BEHANDLET
-                Klagebehandlingsstatus.OVERSENDT -> throw IllegalStateException("Vi sender ikke statistikk på at en sak venter på å bli plukket opp av jobben som sender klager til klageinstansen.")
-                Klagebehandlingsstatus.FERDIGSTILT -> throw IllegalStateException("Vi sender ikke statistikk på at en sak er ferdigstilt, da det i praksis ikke finnes noen forskjell på ferdigstilt og oversendt til KA. Vi anser saken som avsluttet når den er oversendt til KA.")
+                Klagebehandlingsstatus.OVERSENDT -> StatistikkBehandlingStatus.OVERSENDT_KA
+                Klagebehandlingsstatus.FERDIGSTILT -> StatistikkBehandlingStatus.FERDIG_BEHANDLET
+                Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> StatistikkBehandlingStatus.UNDER_BEHANDLING
             }
         },
         behandlingResultat = if (behandling.erAvbrutt) {
@@ -220,36 +221,15 @@ fun genererSaksstatistikkForKlagevedtak(
         søknadsformat = behandling.formkrav.innsendingskilde.toStatistikkFormat(),
         forventetOppstartTidspunkt = null,
         behandlingType = StatistikkBehandlingType.KLAGE,
-        behandlingStatus = when (behandling.status) {
-            Klagebehandlingsstatus.KLAR_TIL_BEHANDLING,
-            Klagebehandlingsstatus.UNDER_BEHANDLING,
-            Klagebehandlingsstatus.OPPRETTHOLDT,
-            Klagebehandlingsstatus.OVERSENDT,
-            -> throw IllegalStateException("Klagevedtaket må ende opp i en endelig status.")
-
-            Klagebehandlingsstatus.AVBRUTT -> StatistikkBehandlingStatus.AVSLUTTET
-
-            Klagebehandlingsstatus.VEDTATT -> StatistikkBehandlingStatus.FERDIG_BEHANDLET
-
-            Klagebehandlingsstatus.FERDIGSTILT -> throw IllegalStateException("${behandling.status} er ikke en status som brukes for et klagevedtak. Dette skjedde for klagebehandling ${behandling.id}")
-        },
-        behandlingResultat = if (behandling.erAvbrutt) {
-            StatistikkBehandlingResultat.AVBRUTT
-        } else {
-            when (behandling.resultat) {
-                is Klagebehandlingsresultat.Omgjør -> StatistikkBehandlingResultat.MEDHOLD
-                is Klagebehandlingsresultat.Opprettholdt -> StatistikkBehandlingResultat.OPPRETTHOLDT
-                is Klagebehandlingsresultat.Avvist -> StatistikkBehandlingResultat.AVVIST
-                null -> null
-            }
-        },
-        resultatBegrunnelse = if (behandling.resultat is Klagebehandlingsresultat.Omgjør) behandling.resultat.årsak.tilResultatBegrunnelse().name else null,
+        behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,
+        behandlingResultat = StatistikkBehandlingResultat.AVVIST,
+        resultatBegrunnelse = null,
         // skal være -5 for kode 6
         opprettetAv = maskerHvisStrengtFortroligStrict(gjelderKode6, "system"),
         saksbehandler = maskerHvisStrengtFortrolig(gjelderKode6, behandling.saksbehandler),
         ansvarligBeslutter = null,
+        // TODO jah: Er 0383 for egen ansatt.
         ansvarligenhet = maskerHvisStrengtFortroligStrict(gjelderKode6, "0387"),
-
         tilbakekrevingsbeløp = null,
         funksjonellPeriodeFom = null,
         funksjonellPeriodeTom = null,

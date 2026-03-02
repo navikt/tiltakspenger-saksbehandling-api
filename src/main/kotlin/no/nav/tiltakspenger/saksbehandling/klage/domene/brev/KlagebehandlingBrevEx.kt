@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.FERDIGSTILT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OPPRETTHOLDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
@@ -39,7 +40,7 @@ suspend fun Klagebehandling.genererBrev(
         KLAR_TIL_BEHANDLING -> "-"
         UNDER_BEHANDLING -> this.saksbehandler!!
         AVBRUTT -> this.saksbehandler ?: "-"
-        VEDTATT, OPPRETTHOLDT, OVERSENDT, FERDIGSTILT -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
+        VEDTATT, OPPRETTHOLDT, OVERSENDT, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
     }
     val erSaksbehandlerPåBehandlingen = this.erSaksbehandlerPåBehandlingen(kommando.saksbehandler)
     val tilleggstekst: Brevtekster = when (status) {
@@ -90,28 +91,34 @@ suspend fun Klagebehandling.genererBrev(
             Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id
         """.trimIndent()
     }
+    return when (resultat) {
+        is Klagebehandlingsresultat.Avvist -> {
+            require(status == VEDTATT) {
+                "Ved generering av endelig avvisningsbrev må klagebehandlingen være vedtatt. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+            }
+            genererAvvisningsbrev(
+                saksnummer,
+                fnr,
+                saksbehandler!!,
+                resultat.brevtekst!!,
+                false,
+            )
+        }
 
-    return when (status) {
-        KLAR_TIL_BEHANDLING,
-        UNDER_BEHANDLING,
-        AVBRUTT,
-        -> throw IllegalStateException("Ved generering av endelig brev må klagebehandlingen enten være vedtatt eller oversendt. Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id")
+        is Klagebehandlingsresultat.Opprettholdt -> {
+            require(status in listOf(OPPRETTHOLDT, OVERSENDT, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS)) {
+                "Ved generering av endelig innstillingsbrev må klagebehandlingen være oversendt til klageinstansen. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+            }
+            genererKlageInnstillingsbrev(
+                saksnummer,
+                fnr,
+                saksbehandler!!,
+                resultat.brevtekst!!,
+                false,
+                this.formkrav.innsendingsdato,
+            )
+        }
 
-        VEDTATT -> genererAvvisningsbrev(
-            saksnummer,
-            fnr,
-            saksbehandler!!,
-            (resultat as Klagebehandlingsresultat.Avvist).brevtekst!!,
-            false,
-        )
-
-        OPPRETTHOLDT, OVERSENDT, FERDIGSTILT -> genererKlageInnstillingsbrev(
-            saksnummer,
-            fnr,
-            saksbehandler!!,
-            (resultat as Klagebehandlingsresultat.Opprettholdt).brevtekst!!,
-            false,
-            this.formkrav.innsendingsdato,
-        )
+        is Klagebehandlingsresultat.Omgjør, null -> throw IllegalStateException("Ingen resultat og omgjør er ikke en gyldig tilstand for klagebehandlingsresultat ved generering av brev. Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id")
     }
 }
