@@ -69,7 +69,7 @@ class IverksettMeldekortService(
                 runBlocking {
                     tx.onSuccess {
                         if (meldekortvedtak.meldekortBehandling.harFeilutbetaling()) {
-                            logger.warn { "Meldekort med feilutbetaling har blitt iverksatt - Meldekort-id $meldekortId - sak-id: $sakId" }
+                            logger.warn { "Meldekort med feilutbetaling har blitt iverksatt - Meldekort-id $meldekortId - vedtak-id: ${meldekortvedtak.id} - sak-id: $sakId" }
                             MetricRegister.IVERKSATT_MELDEKORT_MED_FEILUTBETALING.inc()
                         }
                     }

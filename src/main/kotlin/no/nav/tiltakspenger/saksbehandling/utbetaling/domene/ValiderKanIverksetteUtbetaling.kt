@@ -34,7 +34,10 @@ fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUt
 fun Simulering?.validerKanIverksetteUtbetaling(saksbehandlerIdent: String?): Either<KanIkkeIverksetteUtbetaling, Unit> {
     return when (this) {
         is Simulering.Endring -> {
-            if (Configuration.isProd() && this.harFeilutbetaling && !saksbehandlereSomKanBehandleMedFeilutbetaling.contains(saksbehandlerIdent)) {
+            if (Configuration.isProd() && this.harFeilutbetaling && !saksbehandlereSomKanBehandleMedFeilutbetaling.contains(
+                    saksbehandlerIdent,
+                )
+            ) {
                 KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke.left()
             } else if (harJusteringPåTversAvMeldeperioderEllerMåneder()) {
                 KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left()
@@ -69,6 +72,7 @@ private val saksbehandlereSomKanBehandleMedFeilutbetaling = setOf(
     "P160694",
     "T133324",
     "V109821",
+    "J104708",
 )
 
 enum class KanIkkeIverksetteUtbetaling {

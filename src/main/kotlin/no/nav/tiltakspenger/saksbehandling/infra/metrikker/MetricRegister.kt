@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.infra.metrikker
 
 import io.prometheus.metrics.core.metrics.Counter
 
-const val METRICS_NS = "tpts_saksbehandlingapi"
+private const val METRICS_NS = "tpts_saksbehandlingapi"
 
 object MetricRegister {
     val MOTTATT_SOKNAD: Counter = Counter.builder()
