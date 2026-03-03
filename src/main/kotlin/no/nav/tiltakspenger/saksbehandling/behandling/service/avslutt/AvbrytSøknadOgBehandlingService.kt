@@ -11,8 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Rammebe
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkSakDTO
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -20,7 +20,7 @@ class AvbrytSøknadOgBehandlingService(
     private val sakService: SakService,
     private val søknadService: SøknadService,
     private val behandlingService: RammebehandlingService,
-    private val statistikkSakService: StatistikkSakService,
+    private val saksstatistikkService: SaksstatistikkService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) {
@@ -34,7 +34,7 @@ class AvbrytSøknadOgBehandlingService(
         )
 
         val behandlingOgStatistikk: Pair<Rammebehandling, StatistikkSakDTO> = avbruttBehandling.let {
-            it to statistikkSakService.genererStatistikkForAvsluttetBehandling(it)
+            it to saksstatistikkService.genererStatistikkForAvsluttetBehandling(it)
         }
 
         sessionFactory.withTransactionContext { tx ->

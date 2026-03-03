@@ -7,12 +7,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import java.time.Clock
 
@@ -20,10 +20,10 @@ class StartSøknadsbehandlingService(
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
     private val rammebehandlingRepo: RammebehandlingRepo,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val clock: Clock,
-    private val statistikkSakService: StatistikkSakService,
+    private val saksstatistikkService: SaksstatistikkService,
     private val oppgaveKlient: OppgaveKlient,
 ) {
     val logger = KotlinLogging.logger {}
@@ -50,13 +50,13 @@ class StartSøknadsbehandlingService(
             clock = clock,
         )
 
-        val statistikk = statistikkSakService.genererStatistikkForSøknadsbehandling(
+        val statistikk = saksstatistikkService.genererStatistikkForSøknadsbehandling(
             behandling = behandling,
         )
 
         sessionFactory.withTransactionContext { tx ->
             rammebehandlingRepo.lagre(behandling, tx)
-            statistikkSakRepo.lagre(statistikk, tx)
+            saksstatistikkRepo.lagre(statistikk, tx)
             sakService.oppdaterSkalSendesTilMeldekortApi(
                 sakId = soknad.sakId,
                 skalSendesTilMeldekortApi = true,

@@ -24,8 +24,8 @@ import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkHendelse
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.genererSaksstatistikkForBehandling
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkHendelse
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -213,8 +213,7 @@ class PersonhendelseServiceTest {
                     ),
                 )
                 statistikkSakRepo.lagre(
-                    genererSaksstatistikkForBehandling(
-                        behandling = behandling,
+                    behandling.genererSaksstatistikk(
                         gjelderKode6 = false,
                         versjon = "1",
                         clock = Clock.system(zoneIdOslo),
@@ -285,8 +284,7 @@ class PersonhendelseServiceTest {
                     ),
                 )
                 statistikkSakRepo.lagre(
-                    genererSaksstatistikkForBehandling(
-                        behandling = behandling,
+                    behandling.genererSaksstatistikk(
                         gjelderKode6 = false,
                         versjon = "1",
                         clock = Clock.system(zoneIdOslo),

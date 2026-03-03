@@ -2,7 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav
 
 enum class KlageInnsendingskilde {
     DIGITAL,
-    PAPIR,
+    PAPIR_SKJEMA,
+    PAPIR_FRIHAND,
     MODIA,
     ANNET,
 }

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
+package no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -7,10 +7,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 
-class StatistikkSakService(
+class SaksstatistikkService(
     private val personKlient: PersonKlient,
     private val gitHash: String,
     private val clock: Clock,
@@ -18,8 +20,7 @@ class StatistikkSakService(
     suspend fun genererStatistikkForSøknadsbehandling(
         behandling: Søknadsbehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForBehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -30,8 +31,7 @@ class StatistikkSakService(
     suspend fun genererStatistikkForRevurdering(
         behandling: Revurdering,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForBehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -42,8 +42,7 @@ class StatistikkSakService(
     suspend fun genererStatistikkForRammevedtak(
         rammevedtak: Rammevedtak,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForRammevedtak(
-            vedtak = rammevedtak,
+        return rammevedtak.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(rammevedtak.fnr),
             versjon = gitHash,
             clock = clock,
@@ -53,8 +52,7 @@ class StatistikkSakService(
     suspend fun genererStatistikkForSendTilBeslutter(
         behandling: Rammebehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForBehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -65,8 +63,7 @@ class StatistikkSakService(
     suspend fun genererStatistikkForUnderkjennBehandling(
         behandling: Rammebehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForBehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -77,8 +74,7 @@ class StatistikkSakService(
     suspend fun genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(
         behandling: Rammebehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForBehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -89,8 +85,7 @@ class StatistikkSakService(
     suspend fun genererStatistikkForAvsluttetBehandling(
         behandling: Rammebehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForBehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -101,8 +96,7 @@ class StatistikkSakService(
     suspend fun genererStatistikkForBehandlingSattPåVent(
         behandling: Rammebehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForBehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -113,8 +107,7 @@ class StatistikkSakService(
     suspend fun genererStatistikkForGjenopptattBehandling(
         behandling: Rammebehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForBehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -125,8 +118,7 @@ class StatistikkSakService(
     suspend fun genererStatistikkForSøknadSomBehandlesPåNytt(
         behandling: Søknadsbehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForBehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -137,8 +129,7 @@ class StatistikkSakService(
     suspend fun genererSaksstatistikkForOpprettetKlagebehandling(
         behandling: Klagebehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForKlagebehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -149,8 +140,7 @@ class StatistikkSakService(
     suspend fun genererSaksstatistikkForAvsluttetKlagebehandling(
         behandling: Klagebehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForKlagebehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -161,8 +151,7 @@ class StatistikkSakService(
     suspend fun genererSaksstatistikkForKlagebehandlingSattPåVent(
         behandling: Klagebehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForKlagebehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -173,8 +162,7 @@ class StatistikkSakService(
     suspend fun genererSaksstatistikkForGjenopptattKlagebehandling(
         behandling: Klagebehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForKlagebehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -185,8 +173,7 @@ class StatistikkSakService(
     suspend fun genererSaksstatistikkForKlagebehandlingOversendtTilKabal(
         behandling: Klagebehandling,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForKlagebehandling(
-            behandling = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
@@ -197,8 +184,7 @@ class StatistikkSakService(
     suspend fun genererSaksstatistikkIverksattAvvistKlagebehandling(
         behandling: Klagevedtak,
     ): StatistikkSakDTO {
-        return genererSaksstatistikkForKlagevedtak(
-            vedtak = behandling,
+        return behandling.genererSaksstatistikk(
             gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,

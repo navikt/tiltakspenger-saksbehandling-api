@@ -5,7 +5,5 @@ enum class Søknadstype {
     PAPIR_SKJEMA,
     PAPIR_FRIHAND,
     MODIA,
-
-    // Dekker cases hvor ingen av de andre typene passer.
     ANNET,
 }

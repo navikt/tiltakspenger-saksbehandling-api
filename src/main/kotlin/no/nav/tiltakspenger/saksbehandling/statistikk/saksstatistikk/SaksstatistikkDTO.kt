@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
+package no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk
 
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -67,9 +67,7 @@ data class StatistikkSakDTO(
     val ansvarligenhet: String,
 )
 
-// PAPIR skal ikke brukes mer, men beholdes fordi den finnes i databasen
 enum class StatistikkFormat {
-    PAPIR,
     DIGITAL,
     PAPIR_SKJEMA,
     PAPIR_FRIHAND,

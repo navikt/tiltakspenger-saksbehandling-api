@@ -25,8 +25,8 @@ import no.nav.tiltakspenger.saksbehandling.person.Personident
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseDto
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.genererSaksstatistikkForRammevedtak
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.genererStønadsstatistikkForRammevedtak
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -65,7 +65,7 @@ class IdenthendelseJobbTest {
                     identhendelseKafkaProducer = identhendelseKafkaProducer,
                     sakRepo = sakRepo,
                     søknadRepo = søknadRepo,
-                    statistikkSakRepo = statistikkSakRepo,
+                    saksstatistikkRepo = statistikkSakRepo,
                     statistikkStønadRepo = statistikkStønadRepo,
                     statistikkMeldekortRepo = statistikkMeldekortRepo,
                     sessionFactory = testDataHelper.sessionFactory,
@@ -93,8 +93,7 @@ class IdenthendelseJobbTest {
                     ),
                 )
                 statistikkSakRepo.lagre(
-                    genererSaksstatistikkForRammevedtak(
-                        vedtak = vedtak,
+                    vedtak.genererSaksstatistikk(
                         gjelderKode6 = false,
                         versjon = "1",
                         clock = Clock.system(zoneIdOslo),
@@ -156,7 +155,7 @@ class IdenthendelseJobbTest {
                     identhendelseKafkaProducer = identhendelseKafkaProducer,
                     sakRepo = sakRepo,
                     søknadRepo = søknadRepo,
-                    statistikkSakRepo = statistikkSakRepo,
+                    saksstatistikkRepo = statistikkSakRepo,
                     statistikkStønadRepo = statistikkStønadRepo,
                     statistikkMeldekortRepo = statistikkMeldekortRepo,
                     sessionFactory = testDataHelper.sessionFactory,
@@ -184,8 +183,7 @@ class IdenthendelseJobbTest {
                     ),
                 )
                 statistikkSakRepo.lagre(
-                    genererSaksstatistikkForRammevedtak(
-                        vedtak = vedtak,
+                    vedtak.genererSaksstatistikk(
                         gjelderKode6 = false,
                         versjon = "1",
                         clock = Clock.system(zoneIdOslo),
@@ -241,7 +239,7 @@ class IdenthendelseJobbTest {
                     identhendelseKafkaProducer = identhendelseKafkaProducer,
                     sakRepo = sakRepo,
                     søknadRepo = søknadRepo,
-                    statistikkSakRepo = statistikkSakRepo,
+                    saksstatistikkRepo = statistikkSakRepo,
                     statistikkStønadRepo = statistikkStønadRepo,
                     statistikkMeldekortRepo = statistikkMeldekortRepo,
                     sessionFactory = testDataHelper.sessionFactory,

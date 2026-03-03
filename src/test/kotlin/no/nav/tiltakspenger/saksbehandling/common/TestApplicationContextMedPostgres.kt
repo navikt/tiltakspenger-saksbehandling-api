@@ -174,7 +174,7 @@ class TestApplicationContextMedPostgres(
             sessionFactory = sessionFactory,
             meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
-            statistikkSakRepo = statistikkContext.statistikkSakRepo,
+            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,
             genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevKlient,
@@ -187,7 +187,7 @@ class TestApplicationContextMedPostgres(
             sakService = sakContext.sakService,
             tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient,
             clock = clock,
-            statistikkSakService = statistikkContext.statistikkSakService,
+            saksstatistikkService = statistikkContext.saksstatistikkService,
             sokosUtbetaldataClient = sokosUtbetaldataFakeClient,
             navkontorService = navkontorService,
             simulerService = utbetalingContext.simulerService,
@@ -215,8 +215,8 @@ class TestApplicationContextMedPostgres(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
-            statistikkSakRepo = statistikkContext.statistikkSakRepo,
-            statistikkSakService = statistikkContext.statistikkSakService,
+            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
+            saksstatistikkService = statistikkContext.saksstatistikkService,
             texasClient = texasClient,
         ) {
             override val kabalClient = kabalClientFake

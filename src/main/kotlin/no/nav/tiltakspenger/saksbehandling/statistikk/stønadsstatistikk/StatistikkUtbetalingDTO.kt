@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
+package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
 
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling

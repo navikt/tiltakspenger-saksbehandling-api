@@ -4,8 +4,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.tilStatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.genererStønadsstatistikkForRammevedtak
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.tilStatistikk
 import org.junit.jupiter.api.Test
 
 class StatistikkStonadPostgresRepoTest {

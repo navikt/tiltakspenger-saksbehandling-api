@@ -5,12 +5,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import java.time.Clock
 
 class SettRammebehandlingPåVentService(
     private val behandlingService: RammebehandlingService,
-    private val statistikkSakService: StatistikkSakService,
+    private val saksstatistikkService: SaksstatistikkService,
     private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
@@ -44,10 +44,10 @@ class SettRammebehandlingPåVentService(
 
             behandlingService.lagreMedStatistikk(
                 behandling = behandling,
-                statistikk = statistikkSakService.genererStatistikkForBehandlingSattPåVent(behandling),
+                statistikk = saksstatistikkService.genererStatistikkForBehandlingSattPåVent(behandling),
                 klageStatistikk = if (genererKlageStatistikk) {
                     behandling.klagebehandling?.let {
-                        statistikkSakService.genererSaksstatistikkForKlagebehandlingSattPåVent(it)
+                        saksstatistikkService.genererSaksstatistikkForKlagebehandlingSattPåVent(it)
                     }
                 } else {
                     null

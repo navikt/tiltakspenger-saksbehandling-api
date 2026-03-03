@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
@@ -33,7 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_IKKE_BEHANDLET_AUTOMATISK
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -43,8 +43,8 @@ import java.time.LocalDate
 
 class DelautomatiskBehandlingService(
     private val rammebehandlingRepo: RammebehandlingRepo,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val sessionFactory: SessionFactory,
     private val sakService: SakService,
     private val navkontorService: NavkontorService,
@@ -208,11 +208,11 @@ class DelautomatiskBehandlingService(
         oppdatertBehandling.tilBeslutning(tilBeslutningKommando, clock).mapLeft {
             throw IllegalStateException("Kunne ikke sende behandling med id ${behandling.id} til beslutning fordi: ${it::class.simpleName}")
         }.map {
-            val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
+            val statistikk = saksstatistikkService.genererStatistikkForSendTilBeslutter(it)
             sessionFactory.withTransactionContext { tx ->
                 rammebehandlingRepo.lagre(it, tx)
                 rammebehandlingRepo.oppdaterSimuleringMetadata(it.id, simuleringMedMetadata?.originalResponseBody, tx)
-                statistikkSakRepo.lagre(statistikk, tx)
+                saksstatistikkRepo.lagre(statistikk, tx)
             }
         }
         log.info { "Behandling med id ${behandling.id} er sendt til beslutning, correlationId $correlationId" }
@@ -224,10 +224,10 @@ class DelautomatiskBehandlingService(
         correlationId: CorrelationId,
     ) {
         behandling.tilManuellBehandling(manueltBehandlesGrunner, clock).also {
-            val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
+            val statistikk = saksstatistikkService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
             sessionFactory.withTransactionContext { tx ->
                 rammebehandlingRepo.lagre(it, tx)
-                statistikkSakRepo.lagre(statistikk, tx)
+                saksstatistikkRepo.lagre(statistikk, tx)
             }
         }
         manueltBehandlesGrunner.forEach {

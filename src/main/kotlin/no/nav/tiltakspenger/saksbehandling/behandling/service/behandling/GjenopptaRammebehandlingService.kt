@@ -9,13 +9,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import java.time.Clock
 
 class GjenopptaRammebehandlingService(
     private val behandlingService: RammebehandlingService,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
-    private val statistikkSakService: StatistikkSakService,
+    private val saksstatistikkService: SaksstatistikkService,
     private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
@@ -64,10 +64,10 @@ class GjenopptaRammebehandlingService(
 
             behandlingService.lagreMedStatistikk(
                 behandling,
-                statistikkSakService.genererStatistikkForGjenopptattBehandling(behandling),
+                saksstatistikkService.genererStatistikkForGjenopptattBehandling(behandling),
                 klageStatistikk = if (genererKlageStatistikk) {
                     behandling.klagebehandling?.let {
-                        statistikkSakService.genererSaksstatistikkForGjenopptattKlagebehandling(it)
+                        saksstatistikkService.genererSaksstatistikkForGjenopptattKlagebehandling(it)
                     }
                 } else {
                     null

@@ -4,14 +4,16 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsending
 
 enum class KlageInnsendingskildeDto {
     DIGITAL,
-    PAPIR,
+    PAPIR_SKJEMA,
+    PAPIR_FRIHAND,
     MODIA,
     ANNET,
     ;
 
     fun toDomain(): KlageInnsendingskilde = when (this) {
         DIGITAL -> KlageInnsendingskilde.DIGITAL
-        PAPIR -> KlageInnsendingskilde.PAPIR
+        PAPIR_SKJEMA -> KlageInnsendingskilde.PAPIR_SKJEMA
+        PAPIR_FRIHAND -> KlageInnsendingskilde.PAPIR_FRIHAND
         MODIA -> KlageInnsendingskilde.MODIA
         ANNET -> KlageInnsendingskilde.ANNET
     }
@@ -19,7 +21,8 @@ enum class KlageInnsendingskildeDto {
     companion object {
         fun KlageInnsendingskilde.toDto(): KlageInnsendingskildeDto = when (this) {
             KlageInnsendingskilde.DIGITAL -> DIGITAL
-            KlageInnsendingskilde.PAPIR -> PAPIR
+            KlageInnsendingskilde.PAPIR_SKJEMA -> PAPIR_SKJEMA
+            KlageInnsendingskilde.PAPIR_FRIHAND -> PAPIR_FRIHAND
             KlageInnsendingskilde.MODIA -> MODIA
             KlageInnsendingskilde.ANNET -> ANNET
         }

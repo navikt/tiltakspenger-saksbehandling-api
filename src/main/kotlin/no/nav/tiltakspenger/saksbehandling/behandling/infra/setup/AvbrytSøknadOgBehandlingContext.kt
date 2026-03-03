@@ -5,14 +5,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import java.time.Clock
 
 open class AvbrytSøknadOgBehandlingContext(
     sakService: SakService,
     søknadService: SøknadService,
     behandlingService: RammebehandlingService,
-    statistikkSakService: StatistikkSakService,
+    saksstatistikkService: SaksstatistikkService,
     sessionFactory: SessionFactory,
     clock: Clock,
 ) {
@@ -21,7 +21,7 @@ open class AvbrytSøknadOgBehandlingContext(
             sakService = sakService,
             søknadService = søknadService,
             behandlingService = behandlingService,
-            statistikkSakService = statistikkSakService,
+            saksstatistikkService = saksstatistikkService,
             sessionFactory = sessionFactory,
             clock = clock,
         )

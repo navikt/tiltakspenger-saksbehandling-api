@@ -1,14 +1,14 @@
 @file:Suppress("UnusedImport")
 
-package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
+package no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk
 
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 
-class StatistikkSakFakeRepo : StatistikkSakRepo {
+class SaksstatistikkFakeRepo : SaksstatistikkRepo {
     private val data = Atomic(mutableMapOf<SakId, StatistikkSakDTO>())
 
     override fun lagre(dto: StatistikkSakDTO, context: TransactionContext?) {

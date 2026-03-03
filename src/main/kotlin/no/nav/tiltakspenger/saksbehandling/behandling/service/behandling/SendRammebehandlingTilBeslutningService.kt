@@ -9,11 +9,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import java.time.Clock
 
@@ -22,8 +22,8 @@ class SendRammebehandlingTilBeslutningService(
     private val oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val sessionFactory: SessionFactory,
 ) {
     private val logger = KotlinLogging.logger { }
@@ -69,11 +69,11 @@ class SendRammebehandlingTilBeslutningService(
         ).map {
             val oppdaterSak = sak.oppdaterRammebehandling(it)
 
-            val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
+            val statistikk = saksstatistikkService.genererStatistikkForSendTilBeslutter(it)
 
             sessionFactory.withTransactionContext { tx ->
                 rammebehandlingRepo.lagre(it, tx)
-                statistikkSakRepo.lagre(statistikk, tx)
+                saksstatistikkRepo.lagre(statistikk, tx)
             }
 
             oppdaterSak to it

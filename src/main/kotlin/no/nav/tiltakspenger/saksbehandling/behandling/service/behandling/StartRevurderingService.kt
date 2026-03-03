@@ -6,10 +6,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import java.time.Clock
 
 class StartRevurderingService(
@@ -17,8 +17,8 @@ class StartRevurderingService(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val clock: Clock,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val sessionFactory: SessionFactory,
 ) {
     val logger = KotlinLogging.logger { }
@@ -48,12 +48,12 @@ class StartRevurderingService(
             },
         )
 
-        val statistikk = statistikkSakService.genererStatistikkForRevurdering(revurdering)
+        val statistikk = saksstatistikkService.genererStatistikkForRevurdering(revurdering)
 
         return sessionFactory.withTransactionContext { transactionContext ->
             sessionFactory.withTransactionContext(transactionContext) { tx ->
                 rammebehandlingRepo.lagre(revurdering, tx)
-                statistikkSakRepo.lagre(statistikk, tx)
+                saksstatistikkRepo.lagre(statistikk, tx)
             }
             Pair(oppdatertSak, revurdering)
         }

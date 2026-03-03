@@ -4,7 +4,7 @@ import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentJournalpostIdForVedtakId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandlingerSomSkalOversendesKlageinstansen
@@ -12,14 +12,14 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppdaterOver
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 
 class OversendKlageTilKlageinstansJobb(
     private val klagebehandlingRepo: KlagebehandlingRepo,
     private val sakService: SakService,
     private val kabalClient: KabalClient,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val sessionFactory: SessionFactory,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -52,10 +52,10 @@ class OversendKlageTilKlageinstansJobb(
                                 @Suppress("RunBlockingInSuspendFunction")
                                 runBlocking {
                                     val statistikk =
-                                        statistikkSakService.genererSaksstatistikkForKlagebehandlingOversendtTilKabal(
+                                        saksstatistikkService.genererSaksstatistikkForKlagebehandlingOversendtTilKabal(
                                             klagebehandling,
                                         )
-                                    statistikkSakRepo.lagre(statistikk, tx)
+                                    saksstatistikkRepo.lagre(statistikk, tx)
                                 }
                             }
                         }

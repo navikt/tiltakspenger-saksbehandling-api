@@ -4,7 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseDto
@@ -18,7 +18,7 @@ class IdenthendelseJobb(
     private val identhendelseKafkaProducer: IdenthendelseKafkaProducer,
     private val sakRepo: SakRepo,
     private val søknadRepo: SøknadRepo,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
     private val statistikkMeldekortRepo: StatistikkMeldekortRepo,
     private val sessionFactory: SessionFactory,
@@ -55,7 +55,7 @@ class IdenthendelseJobb(
         sessionFactory.withTransactionContext { tx ->
             sakRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
             søknadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
-            statistikkSakRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
+            saksstatistikkRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
             statistikkStønadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
             statistikkMeldekortRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
         }

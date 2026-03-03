@@ -8,16 +8,16 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import java.time.Clock
 
 class LeggTilbakeRammebehandlingService(
     private val behandlingService: RammebehandlingService,
     private val rammebehandlingRepo: RammebehandlingRepo,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) {
@@ -35,13 +35,13 @@ class LeggTilbakeRammebehandlingService(
 
         return behandling.leggTilbakeBehandling(saksbehandler, clock).let {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
-            val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
+            val statistikk = saksstatistikkService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
             when (it.status) {
                 Rammebehandlingsstatus.KLAR_TIL_BEHANDLING, Rammebehandlingsstatus.KLAR_TIL_BESLUTNING -> {
                     sessionFactory.withTransactionContext { tx ->
                         rammebehandlingRepo.lagre(it, tx)
-                        statistikkSakRepo.lagre(statistikk, tx)
+                        saksstatistikkRepo.lagre(statistikk, tx)
                     }
                 }
 

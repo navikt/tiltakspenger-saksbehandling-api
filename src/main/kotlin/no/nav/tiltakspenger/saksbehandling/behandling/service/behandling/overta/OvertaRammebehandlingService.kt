@@ -7,18 +7,18 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.OvertaRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import java.time.Clock
 
 class OvertaRammebehandlingService(
     private val rammebehandlingService: RammebehandlingService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val sessionFactory: SessionFactory,
 ) {
 
@@ -32,7 +32,7 @@ class OvertaRammebehandlingService(
 
         return behandling.overta(saksbehandler, kommando.correlationId, clock).map {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
-            val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
+            val statistikk = saksstatistikkService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
             sessionFactory.withTransactionContext { tx ->
                 when (it.status) {
@@ -62,7 +62,7 @@ class OvertaRammebehandlingService(
                     require(harOvertatt) {
                         "Oppdatering av saksbehandler i db feilet ved ta behandling for $behandlingId"
                     }
-                    statistikkSakRepo.lagre(statistikk, tx)
+                    saksstatistikkRepo.lagre(statistikk, tx)
                 }
             }
 

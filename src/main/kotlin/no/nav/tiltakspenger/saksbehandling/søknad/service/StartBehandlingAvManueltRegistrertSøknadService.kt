@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvManueltRegistrertSøknadCommand
 import java.time.Clock
@@ -28,8 +28,8 @@ class StartBehandlingAvManueltRegistrertSøknadService(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val søknadRepo: SøknadRepo,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val journalpostService: ValiderJournalpostService,
     private val personService: PersonService,
     private val sessionFactory: SessionFactory,
@@ -105,14 +105,14 @@ class StartBehandlingAvManueltRegistrertSøknadService(
             klagebehandling = null,
         )
 
-        val opprettetBehandlingStatistikk = statistikkSakService.genererStatistikkForSøknadsbehandling(
+        val opprettetBehandlingStatistikk = saksstatistikkService.genererStatistikkForSøknadsbehandling(
             behandling = søknadsbehandling,
         )
 
         sessionFactory.withTransactionContext { tx ->
             søknadRepo.lagre(manueltRegistrertSøknad, tx)
             rammebehandlingRepo.lagre(søknadsbehandling, tx)
-            statistikkSakRepo.lagre(opprettetBehandlingStatistikk, tx)
+            saksstatistikkRepo.lagre(opprettetBehandlingStatistikk, tx)
             sakService.oppdaterSkalSendesTilMeldekortApi(
                 sakId = sak.id,
                 skalSendesTilMeldekortApi = true,

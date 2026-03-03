@@ -1,6 +1,6 @@
 @file:Suppress("UnusedImport")
 
-package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
+package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
 
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.Fnr

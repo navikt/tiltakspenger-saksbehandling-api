@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
+package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
 
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO.OmgjørRammevedtakStatistikk
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO.OmgjøringsgradStatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadDTO.OmgjørRammevedtakStatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadDTO.OmgjøringsgradStatistikk
 import java.time.LocalDate
 import java.util.UUID
 

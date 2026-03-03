@@ -48,9 +48,9 @@ import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortFakeRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadFakeRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkFakeRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
@@ -90,7 +90,7 @@ class TestApplicationContextMedInMemoryDb(
     private val meldekortvedtakFakeRepo = MeldekortvedtakFakeRepo(utbetalingFakeRepo)
     private val klagevedtakFakeRepo = KlagevedtakFakeRepo()
     private val statistikkStønadFakeRepo = StatistikkStønadFakeRepo()
-    private val statistikkSakFakeRepo = StatistikkSakFakeRepo()
+    private val statistikkSakFakeRepo = SaksstatistikkFakeRepo()
     private val statistikkMeldekortFakeRepo = StatistikkMeldekortFakeRepo()
     private val meldekortBehandlingFakeRepo = MeldekortBehandlingFakeRepo()
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
@@ -189,7 +189,7 @@ class TestApplicationContextMedInMemoryDb(
     override val statistikkContext by lazy {
         object : StatistikkContext(sessionFactory, personFakeKlient, gitHash, clock) {
             override val statistikkStønadRepo = statistikkStønadFakeRepo
-            override val statistikkSakRepo = statistikkSakFakeRepo
+            override val saksstatistikkRepo = statistikkSakFakeRepo
             override val statistikkMeldekortRepo = statistikkMeldekortFakeRepo
         }
     }
@@ -201,8 +201,8 @@ class TestApplicationContextMedInMemoryDb(
             hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
             sakService = sakContext.sakService,
             personService = personContext.personService,
-            statistikkSakService = statistikkContext.statistikkSakService,
-            statistikkSakRepo = statistikkContext.statistikkSakRepo,
+            saksstatistikkService = statistikkContext.saksstatistikkService,
+            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
             clock = clock,
             safJournalpostClient = safJournalpostFakeClient,
             personKlient = personFakeKlient,
@@ -271,7 +271,7 @@ class TestApplicationContextMedInMemoryDb(
             sessionFactory = sessionFactory,
             meldekortBehandlingRepo = meldekortBehandlingFakeRepo,
             meldeperiodeRepo = meldeperiodeFakeRepo,
-            statistikkSakRepo = statistikkSakFakeRepo,
+            saksstatistikkRepo = statistikkSakFakeRepo,
             statistikkStønadRepo = statistikkStønadFakeRepo,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,
             genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevKlient,
@@ -284,7 +284,7 @@ class TestApplicationContextMedInMemoryDb(
             sakService = sakContext.sakService,
             tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient,
             clock = clock,
-            statistikkSakService = statistikkContext.statistikkSakService,
+            saksstatistikkService = statistikkContext.saksstatistikkService,
             sokosUtbetaldataClient = sokosUtbetaldataFakeClient,
             navkontorService = navkontorService,
             simulerService = utbetalingContext.simulerService,
@@ -315,8 +315,8 @@ class TestApplicationContextMedInMemoryDb(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
-            statistikkSakRepo = statistikkContext.statistikkSakRepo,
-            statistikkSakService = statistikkContext.statistikkSakService,
+            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
+            saksstatistikkService = statistikkContext.saksstatistikkService,
             texasClient = texasClient,
         ) {
             override val klagebehandlingRepo = klagebehandlingFakeRepo

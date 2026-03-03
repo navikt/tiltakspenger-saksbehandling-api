@@ -8,17 +8,17 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import java.time.Clock
 
 class TaRammebehandlingService(
     private val behandlingService: RammebehandlingService,
     private val rammebehandlingRepo: RammebehandlingRepo,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val sessionFactory: SessionFactory,
-    private val statistikkSakService: StatistikkSakService,
+    private val saksstatistikkService: SaksstatistikkService,
     private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
@@ -32,7 +32,7 @@ class TaRammebehandlingService(
 
         return behandling.taBehandling(saksbehandler, clock).let {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
-            val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
+            val statistikk = saksstatistikkService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
             sessionFactory.withTransactionContext { tx ->
                 require(
@@ -42,7 +42,7 @@ class TaRammebehandlingService(
                         else -> throw IllegalStateException("Vi havnet i en ugyldig tilstand etter vi tok behandlingen - behandlingId: ${it.id}, status: ${it.status}")
                     },
                 ) { "Oppdatering av saksbehandler i db feilet ved ta behandling for $behandlingId" }
-                statistikkSakRepo.lagre(statistikk, tx)
+                saksstatistikkRepo.lagre(statistikk, tx)
             }
             oppdatertSak to it
         }

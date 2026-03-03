@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
+package no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk
 
 import kotliquery.Row
 import kotliquery.TransactionalSession
@@ -7,8 +7,9 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import org.intellij.lang.annotations.Language
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Denne tabellen brukes for å dele data med DVH. Se DTO-klassen for lenke til grensesnitt.
@@ -21,9 +22,9 @@ import org.intellij.lang.annotations.Language
  *
  * Vår dokumentasjon: docs/statistikk/resending_team_sak.md
  */
-internal class StatistikkSakPostgresRepo(
+internal class SaksstatistikkPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) : StatistikkSakRepo {
+) : SaksstatistikkRepo {
     override fun lagre(dto: StatistikkSakDTO, context: TransactionContext?) {
         sessionFactory.withTransaction(context) { tx ->
             lagre(dto, tx)
@@ -47,7 +48,8 @@ internal class StatistikkSakPostgresRepo(
         }
     }
 
-    // Denne brukes kun for tester
+    /** OBS: Skal kun brukes for tester */
+    @TestOnly
     override fun hent(sakId: SakId): List<StatistikkSakDTO> = sessionFactory.withSession {
         it.run(
             queryOf(
@@ -59,8 +61,7 @@ internal class StatistikkSakPostgresRepo(
                 mapOf(
                     "sak_id" to sakId.toString(),
                 ),
-            ).map { row -> row.toStatistikkSakDTO() }
-                .asList,
+            ).map { row -> row.toStatistikkSakDTO() }.asList,
         )
     }
 

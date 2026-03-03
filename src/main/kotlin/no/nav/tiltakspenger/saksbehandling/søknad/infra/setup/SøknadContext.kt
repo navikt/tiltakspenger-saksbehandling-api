@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.setup
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvManueltRegistrertSøknadService
 import java.time.Clock
@@ -23,8 +23,8 @@ open class SøknadContext(
     hentSaksopplysingerService: HentSaksopplysingerService,
     sakService: SakService,
     personService: PersonService,
-    statistikkSakRepo: StatistikkSakRepo,
-    statistikkSakService: StatistikkSakService,
+    saksstatistikkRepo: SaksstatistikkRepo,
+    saksstatistikkService: SaksstatistikkService,
     clock: Clock,
     safJournalpostClient: SafJournalpostClient,
     personKlient: PersonKlient,
@@ -44,8 +44,8 @@ open class SøknadContext(
             hentSaksopplysingerService = hentSaksopplysingerService,
             personService = personService,
             sakService = sakService,
-            statistikkSakRepo = statistikkSakRepo,
-            statistikkSakService = statistikkSakService,
+            saksstatistikkRepo = saksstatistikkRepo,
+            saksstatistikkService = saksstatistikkService,
             søknadRepo = søknadRepo,
             journalpostService = validerJournalpostService,
             clock = clock,

@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehandlingKommando
@@ -10,14 +10,14 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKla
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.avbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 
 class AvbrytKlagebehandlingService(
     private val sakService: SakService,
     private val clock: java.time.Clock,
     private val klagebehandlingRepo: KlagebehandlingRepo,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val sessionFactory: SessionFactory,
 ) {
     suspend fun avbrytKlagebehandling(
@@ -28,11 +28,11 @@ class AvbrytKlagebehandlingService(
             kommando = kommando,
             clock = clock,
         ).onRight {
-            val statistikk = statistikkSakService.genererSaksstatistikkForAvsluttetKlagebehandling(it.second)
+            val statistikk = saksstatistikkService.genererSaksstatistikkForAvsluttetKlagebehandling(it.second)
 
             sessionFactory.withTransactionContext { tx ->
                 klagebehandlingRepo.lagreKlagebehandling(it.second)
-                statistikkSakRepo.lagre(statistikk, tx)
+                saksstatistikkRepo.lagre(statistikk, tx)
             }
         }
     }

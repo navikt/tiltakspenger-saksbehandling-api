@@ -15,13 +15,13 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkSakDTO
 import java.time.Clock
 
 class RammebehandlingService(
@@ -29,8 +29,8 @@ class RammebehandlingService(
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -71,7 +71,7 @@ class RammebehandlingService(
         return behandling.underkjenn(beslutter, attestering, clock).let {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
 
-            val statistikk = statistikkSakService.genererStatistikkForUnderkjennBehandling(it)
+            val statistikk = saksstatistikkService.genererStatistikkForUnderkjennBehandling(it)
 
             // Genererer ikke statistikk for klage, fordi underkjennelse av rammebehandlingen underkjenner ikke klagebehandlingen.
             lagreMedStatistikk(behandling = it, statistikk = statistikk, klageStatistikk = null)
@@ -99,9 +99,9 @@ class RammebehandlingService(
 
         sessionFactory.withTransactionContext(tx) { tx ->
             rammebehandlingRepo.lagre(behandling, tx)
-            statistikkSakRepo.lagre(statistikk, tx)
+            saksstatistikkRepo.lagre(statistikk, tx)
             if (klageStatistikk != null) {
-                statistikkSakRepo.lagre(klageStatistikk, tx)
+                saksstatistikkRepo.lagre(klageStatistikk, tx)
             }
         }
     }

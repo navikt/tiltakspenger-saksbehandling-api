@@ -6,7 +6,7 @@ import arrow.core.right
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.STARTET_BEHANDLING_KLAGE
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
@@ -18,15 +18,15 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettKlagebeha
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.opprett
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 
 class OpprettKlagebehandlingService(
     private val sakService: SakService,
     private val clock: java.time.Clock,
     private val validerJournalpostService: ValiderJournalpostService,
     private val klagebehandlingRepo: KlagebehandlingRepo,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val sessionFactory: SessionFactory,
 ) {
     suspend fun opprettKlagebehandling(
@@ -51,11 +51,11 @@ class OpprettKlagebehandlingService(
         )
 
         val oppdatertSak = sak.leggTilKlagebehandling(klagebehandling)
-        val statistikk = statistikkSakService.genererSaksstatistikkForOpprettetKlagebehandling(klagebehandling)
+        val statistikk = saksstatistikkService.genererSaksstatistikkForOpprettetKlagebehandling(klagebehandling)
 
         sessionFactory.withTransactionContext { tx ->
             klagebehandlingRepo.lagreKlagebehandling(klagebehandling, tx)
-            statistikkSakRepo.lagre(statistikk, tx)
+            saksstatistikkRepo.lagre(statistikk, tx)
 
             // TODO: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
             @Suppress("RunBlockingInSuspendFunction")

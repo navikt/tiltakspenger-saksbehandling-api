@@ -1,8 +1,8 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
+package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
 
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.VedtakStatistikkResultat.Companion.toVedtakStatistikkResultat
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.VedtakStatistikkResultat.Companion.toVedtakStatistikkResultat
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.util.UUID
 

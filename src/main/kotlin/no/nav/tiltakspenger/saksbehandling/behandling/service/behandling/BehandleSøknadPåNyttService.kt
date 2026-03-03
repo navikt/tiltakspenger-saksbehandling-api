@@ -8,11 +8,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.StartSøknadsbehandlingPåNyttKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.startSøknadsbehandlingPåNytt
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import java.time.Clock
 
 class BehandleSøknadPåNyttService(
@@ -20,8 +20,8 @@ class BehandleSøknadPåNyttService(
     private val sakService: SakService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val sessionFactory: SessionFactory,
 ) {
     val logger = KotlinLogging.logger { }
@@ -35,8 +35,8 @@ class BehandleSøknadPåNyttService(
         val (oppdatertSak, søknadsbehandling, statistikk) = sak.startSøknadsbehandlingPåNytt(
             kommando = kommando,
             clock = clock,
-            genererStatistikkForSøknadsbehandling = statistikkSakService::genererStatistikkForSøknadsbehandling,
-            genererStatistikkForSøknadSomBehandlesPåNytt = statistikkSakService::genererStatistikkForSøknadSomBehandlesPåNytt,
+            genererStatistikkForSøknadsbehandling = saksstatistikkService::genererStatistikkForSøknadsbehandling,
+            genererStatistikkForSøknadSomBehandlesPåNytt = saksstatistikkService::genererStatistikkForSøknadSomBehandlesPåNytt,
             hentSaksopplysninger = { fnr, correlationId, tiltaksdeltakelserDetErSøktTiltakspengerFor, aktuelleTiltaksdeltakelserForBehandlingen, inkluderOverlappendeTiltaksdeltakelserDetErSøktOm ->
                 hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
                     fnr = fnr,
@@ -50,7 +50,7 @@ class BehandleSøknadPåNyttService(
         )
         sessionFactory.withTransactionContext(transactionContext) { tx ->
             rammebehandlingRepo.lagre(søknadsbehandling, tx)
-            statistikk.forEach { statistikkSakRepo.lagre(it, tx) }
+            statistikk.forEach { saksstatistikkRepo.lagre(it, tx) }
             sakService.oppdaterSkalSendesTilMeldekortApi(
                 sakId = sak.id,
                 skalSendesTilMeldekortApi = true,

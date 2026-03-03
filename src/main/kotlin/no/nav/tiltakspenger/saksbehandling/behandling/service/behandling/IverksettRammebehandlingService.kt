@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -32,10 +32,10 @@ import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkSakDTO
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadDTO
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.genererStønadsstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
@@ -47,11 +47,11 @@ class IverksettRammebehandlingService(
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val meldeperiodeRepo: MeldeperiodeRepo,
     private val sessionFactory: SessionFactory,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
     private val sakService: SakService,
     private val clock: Clock,
-    private val statistikkSakService: StatistikkSakService,
+    private val saksstatistikkService: SaksstatistikkService,
     private val oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
 ) {
     private val logger = KotlinLogging.logger { }
@@ -107,7 +107,7 @@ class IverksettRammebehandlingService(
         )
         val (oppdatertSak, vedtak) = sak.opprettRammevedtak(iverksattRammebehandling, clock)
 
-        val sakStatistikk = statistikkSakService.genererStatistikkForRammevedtak(
+        val sakStatistikk = saksstatistikkService.genererStatistikkForRammevedtak(
             rammevedtak = vedtak,
         )
         val stønadStatistikk = if (vedtak.rammebehandlingsresultat is Søknadsbehandlingsresultat.Avslag) {
@@ -147,7 +147,7 @@ class IverksettRammebehandlingService(
             is Søknadsbehandlingsresultat.Avslag -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
                 val klageStatistikk = rammevedtak.rammebehandling.klagebehandling?.let {
-                    statistikkSakService.genererSaksstatistikkForAvsluttetKlagebehandling(it)
+                    saksstatistikkService.genererSaksstatistikkForAvsluttetKlagebehandling(it)
                 }
                 sessionFactory.withTransactionContext { tx ->
                     // Obs: Dersom du endrer eller legger til noe her som angår klage, merk at du må gjøre tilsvarende i [no.nav.tiltakspenger.saksbehandling.klage.service.IverksettAvvistKlagebehandlingService]
@@ -159,9 +159,9 @@ class IverksettRammebehandlingService(
                         sessionContext = tx,
                     )
                     rammevedtakRepo.lagre(rammevedtak, tx)
-                    statistikkSakRepo.lagre(sakStatistikk, tx)
+                    saksstatistikkRepo.lagre(sakStatistikk, tx)
                     if (klageStatistikk != null) {
-                        statistikkSakRepo.lagre(klageStatistikk, tx)
+                        saksstatistikkRepo.lagre(klageStatistikk, tx)
                     }
                     // TODO jah: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
                     runBlocking {
@@ -209,7 +209,7 @@ class IverksettRammebehandlingService(
         val tidligereVedtak = sakOppdatertMedMeldekortbehandlinger.rammevedtaksliste
 
         val klageStatistikk = rammevedtak.rammebehandling.klagebehandling?.let {
-            statistikkSakService.genererSaksstatistikkForAvsluttetKlagebehandling(it)
+            saksstatistikkService.genererSaksstatistikkForAvsluttetKlagebehandling(it)
         }
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
@@ -223,10 +223,10 @@ class IverksettRammebehandlingService(
                 sessionContext = tx,
             )
             rammevedtakRepo.lagre(rammevedtak, tx)
-            statistikkSakRepo.lagre(sakStatistikk, tx)
+            saksstatistikkRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
             if (klageStatistikk != null) {
-                statistikkSakRepo.lagre(klageStatistikk, tx)
+                saksstatistikkRepo.lagre(klageStatistikk, tx)
             }
             meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.

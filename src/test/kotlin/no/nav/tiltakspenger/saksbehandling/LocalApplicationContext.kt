@@ -226,7 +226,7 @@ class LocalApplicationContext(
             sessionFactory = sessionFactory,
             meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
-            statistikkSakRepo = statistikkContext.statistikkSakRepo,
+            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,
             genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
@@ -239,7 +239,7 @@ class LocalApplicationContext(
             sakService = sakContext.sakService,
             tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient,
             clock = clock,
-            statistikkSakService = statistikkContext.statistikkSakService,
+            saksstatistikkService = statistikkContext.saksstatistikkService,
             sokosUtbetaldataClient = sokosUtbetaldataClient,
             navkontorService = navkontorService,
             simulerService = utbetalingContext.simulerService,
@@ -282,8 +282,8 @@ class LocalApplicationContext(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
-            statistikkSakRepo = statistikkContext.statistikkSakRepo,
-            statistikkSakService = statistikkContext.statistikkSakService,
+            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
+            saksstatistikkService = statistikkContext.saksstatistikkService,
             texasClient = texasClient,
         ) {
             override val kabalClient: KabalClient = KabalClientFake(clock)

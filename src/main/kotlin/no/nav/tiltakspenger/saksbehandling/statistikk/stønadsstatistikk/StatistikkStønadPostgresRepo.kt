@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
+package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
 
 import kotliquery.Row
 import kotliquery.TransactionalSession

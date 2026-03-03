@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettAvvisningKommando
@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksettAvvis
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import java.time.Clock
 
 class IverksettAvvistKlagebehandlingService(
@@ -19,8 +19,8 @@ class IverksettAvvistKlagebehandlingService(
     private val clock: Clock,
     private val klagebehandlingRepo: KlagebehandlingRepo,
     private val klagevedtakRepo: KlagevedtakRepo,
-    private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
+    private val saksstatistikkService: SaksstatistikkService,
+    private val saksstatistikkRepo: SaksstatistikkRepo,
     private val sessionFactory: SessionFactory,
 ) {
     /**
@@ -32,13 +32,13 @@ class IverksettAvvistKlagebehandlingService(
     ): Either<KanIkkeIverksetteKlagebehandling, Pair<Sak, Klagevedtak>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
         return sak.iverksettAvvistKlagebehandling(kommando, clock).onRight {
-            val statistikk = statistikkSakService.genererSaksstatistikkIverksattAvvistKlagebehandling(it.second)
+            val statistikk = saksstatistikkService.genererSaksstatistikkIverksattAvvistKlagebehandling(it.second)
 
             sessionFactory.withTransactionContext { transactionContext ->
                 // Obs: Dersom du endrer eller legger til noe her, merk at det kan hende du må gjøre tilsvarende i [no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService] Eksempel kan være statistikk, metrikker.
                 klagebehandlingRepo.lagreKlagebehandling(it.second.behandling, transactionContext)
                 klagevedtakRepo.lagreVedtak(it.second, transactionContext)
-                statistikkSakRepo.lagre(statistikk, transactionContext)
+                saksstatistikkRepo.lagre(statistikk, transactionContext)
             }
         }
     }
