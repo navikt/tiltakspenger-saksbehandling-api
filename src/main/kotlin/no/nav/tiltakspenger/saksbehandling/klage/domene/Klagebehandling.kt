@@ -86,15 +86,7 @@ data class Klagebehandling(
      */
     val erKnyttetTilRammebehandling: Boolean = resultat?.erKnyttetTilRammebehandling == true
     val rammebehandlingId: BehandlingId? = resultat?.rammebehandlingId
-
-    val sisteHendelse = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.klageinstanshendelser?.lastOrNull()
-    val kanFerdigstilleUtenNyRammebehandling = sisteHendelse is Klageinstanshendelse.KlagebehandlingAvsluttet &&
-        (
-            sisteHendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.OPPHEVET &&
-                sisteHendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD &&
-                sisteHendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.DELVIS_MEDHOLD &&
-                sisteHendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.UGUNST
-            )
+    val skalVæreKnyttetTilRammebehandling = resultat?.skalVæreKnyttetTilRammebehandling
 
     /**
      * Siden vi i alle tilfeller genererer brevet på nytt, må vi skille på om vi skal akseptere forhåndsvisningens parametre eller ikke.
@@ -293,18 +285,6 @@ data class Klagebehandling(
                 }
                 require(resultat.klageinstanshendelser.isNotEmpty()) {
                     "Klagebehandling som er $status må ha klageinstanshendelser med minst 1 element. $loggkontekst"
-                }
-                if (resultat.klageinstanshendelser.last() is Klageinstanshendelse.KlagebehandlingAvsluttet) {
-                    val sisteKlageinstanshendelse =
-                        resultat.klageinstanshendelser.last() as Klageinstanshendelse.KlagebehandlingAvsluttet
-                    require(
-                        sisteKlageinstanshendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.OPPHEVET &&
-                            sisteKlageinstanshendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD &&
-                            sisteKlageinstanshendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.DELVIS_MEDHOLD &&
-                            sisteKlageinstanshendelse.utfall != Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.UGUNST,
-                    ) {
-                        "Dersom siste klageinstanshendelse er KlagebehandlingAvsluttet, kan ikke utfallet være [OPPHEVET, MEDHOLD, DELVIS_MEDHOLD, UGUNST]. Disse skal føre til en ny behandling som skal ferdigstille klagen. $loggkontekst"
-                    }
                 }
             }
         }

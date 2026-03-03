@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderOmgjørKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
@@ -21,6 +22,7 @@ import java.time.LocalDateTime
 
 sealed interface Klagebehandlingsresultat {
 
+    val skalVæreKnyttetTilRammebehandling: Boolean
     val rammebehandlingId: BehandlingId?
     val brevtekst: Brevtekster?
 
@@ -34,6 +36,15 @@ sealed interface Klagebehandlingsresultat {
     fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean
 
     /**
+     * @param klagebehandlingId - kun brukt for logging
+     */
+    fun oppdaterRammebehandlingId(
+        rammebehandlingId: BehandlingId,
+        tidspunkt: LocalDateTime,
+        klagebehandlingId: KlagebehandlingId,
+    ): Klagebehandlingsresultat
+
+    /**
      * Merk at en avvisning ikke er det samme som et avslag.
      * Det er et vedtak som kan klages på.
      */
@@ -42,6 +53,7 @@ sealed interface Klagebehandlingsresultat {
     ) : Klagebehandlingsresultat {
 
         override val erKnyttetTilRammebehandling = false
+        override val skalVæreKnyttetTilRammebehandling: Boolean = false
         override val rammebehandlingId = null
         override val kanOversendeKlageinstans = false
         override val harJournalførtInnstillingsbrev = false
@@ -54,6 +66,14 @@ sealed interface Klagebehandlingsresultat {
                 KLAR_TIL_BEHANDLING, AVBRUTT, VEDTATT -> true
                 OPPRETTHOLDT, OVERSENDT, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS -> throw IllegalStateException("$status er en ugyldig status for Avvist klage.")
             }
+        }
+
+        override fun oppdaterRammebehandlingId(
+            rammebehandlingId: BehandlingId,
+            tidspunkt: LocalDateTime,
+            klagebehandlingId: KlagebehandlingId,
+        ): Avvist {
+            throw IllegalStateException("Avvist klage kan ikke knyttes til rammebehandling. Dette skjedde for klagebehandlingId=$klagebehandlingId")
         }
 
         override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean {
@@ -86,10 +106,17 @@ sealed interface Klagebehandlingsresultat {
     ) : Klagebehandlingsresultat {
         override val kanOversendeKlageinstans = false
         override val brevtekst = null
+        override val skalVæreKnyttetTilRammebehandling: Boolean = true
 
         override fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean {
             throw IllegalStateException("Omgjort klage skal ikke generere brev, så denne funksjonen skal ikke brukes.")
         }
+
+        override fun oppdaterRammebehandlingId(
+            rammebehandlingId: BehandlingId,
+            tidspunkt: LocalDateTime,
+            klagebehandlingId: KlagebehandlingId,
+        ): Omgjør = this.copy(rammebehandlingId = rammebehandlingId)
 
         override val harJournalførtInnstillingsbrev = false
         override val harDistribuertInnstillingsbrev = false
@@ -129,14 +156,25 @@ sealed interface Klagebehandlingsresultat {
         val oversendtKlageinstansenTidspunkt: LocalDateTime?,
         val klageinstanshendelser: Klageinstanshendelser,
         val ferdigstiltTidspunkt: LocalDateTime?,
+        override val rammebehandlingId: BehandlingId?,
     ) : Klagebehandlingsresultat {
 
-        override val erKnyttetTilRammebehandling = false
-        override val rammebehandlingId = null
+        override val erKnyttetTilRammebehandling = rammebehandlingId != null
         override val harJournalførtInnstillingsbrev: Boolean = journalpostIdInnstillingsbrev != null
         override val harDistribuertInnstillingsbrev: Boolean = distribusjonIdInnstillingsbrev != null
         override val kanOversendeKlageinstans =
             harJournalførtInnstillingsbrev && oversendtKlageinstansenTidspunkt == null
+        val sisteKlageinstanshendelse = klageinstanshendelser.lastOrNull()
+
+        override val skalVæreKnyttetTilRammebehandling: Boolean =
+            sisteKlageinstanshendelse is Klageinstanshendelse.KlagebehandlingAvsluttet && (
+                listOf(
+                    KlagehendelseKlagebehandlingAvsluttetUtfall.OPPHEVET,
+                    KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD,
+                    KlagehendelseKlagebehandlingAvsluttetUtfall.DELVIS_MEDHOLD,
+                    KlagehendelseKlagebehandlingAvsluttetUtfall.UGUNST,
+                ).contains(sisteKlageinstanshendelse.utfall)
+                )
 
         override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean {
             // TODO jah: Legg til den etter vi har mappet klageinstans-hendelsen.
@@ -154,6 +192,19 @@ sealed interface Klagebehandlingsresultat {
                 KLAR_TIL_BEHANDLING, AVBRUTT, OPPRETTHOLDT, OVERSENDT, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS -> true
                 VEDTATT -> throw IllegalStateException("$status er en ugyldig status for Opprettholdt klage. Bruk FERDIGSTILT.")
             }
+        }
+
+        override fun oppdaterRammebehandlingId(
+            rammebehandlingId: BehandlingId,
+            tidspunkt: LocalDateTime,
+            klagebehandlingId: KlagebehandlingId,
+        ): Opprettholdt {
+            require(
+                this.ferdigstiltTidspunkt == null && klageinstanshendelser.isNotEmpty(),
+            ) {
+                "Kan kun sette ferdigstiltTidspunkt én gang, og må ha mottatt minst én klageinstanshendelse for å kunne oppdatere ferdigstiltTidspunkt"
+            }
+            return this.copy(rammebehandlingId = rammebehandlingId, ferdigstiltTidspunkt = tidspunkt)
         }
 
         fun oppdaterBrevtekst(brevtekst: Brevtekster): Opprettholdt = this.copy(brevtekst = brevtekst)
@@ -198,8 +249,7 @@ sealed interface Klagebehandlingsresultat {
 
         fun oppdaterFerdigstiltTidspunkt(ferdigstiltTidspunkt: LocalDateTime): Klagebehandlingsresultat {
             require(
-                this.ferdigstiltTidspunkt == null &&
-                    klageinstanshendelser.isNotEmpty(),
+                this.ferdigstiltTidspunkt == null && klageinstanshendelser.isNotEmpty(),
             ) {
                 "Kan kun sette ferdigstiltTidspunkt én gang, og må ha mottatt minst én klageinstanshendelse for å kunne oppdatere ferdigstiltTidspunkt"
             }
@@ -220,6 +270,7 @@ sealed interface Klagebehandlingsresultat {
                     distribusjonstidspunktInnstillingsbrev = null,
                     klageinstanshendelser = Klageinstanshendelser.empty(),
                     ferdigstiltTidspunkt = null,
+                    rammebehandlingId = null,
                 )
             }
         }

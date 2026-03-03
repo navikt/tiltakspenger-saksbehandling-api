@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.ferdigstill
 
+import arrow.core.Tuple4
 import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -12,14 +14,17 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.KlagehendelseId
@@ -30,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenerererKlageinsta
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOpprettholdKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import org.json.JSONObject
 import java.util.UUID
 
 interface FerdigstillKlagebehandlingBuilder {
@@ -117,6 +123,104 @@ interface FerdigstillKlagebehandlingBuilder {
 
             return Triple(
                 oppdatertSak,
+                oppdatertSak.hentKlagebehandling(klagebehandlingId),
+                jsonObject,
+            )
+        }
+    }
+
+    /** 1. Oppretter ny sak
+     *  2. Starter klagebehandling til opprettholdelse
+     *  3. Oppdaterer brevtekst
+     *  4. Opprettholder (emulerer journalføring, distribuering av vedtaksbrev, oversendelse til klageinstansen, og utfall fra klageinstansen)
+     *  5. Oppretter ny rammebehandling og samtidigig ferdigstiller klagebehandling
+     */
+    suspend fun ApplicationTestBuilder.opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling(
+        tac: TestApplicationContext,
+        fnr: Fnr = ObjectMother.gyldigFnr(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        utførJobber: Boolean = true,
+        hendelseGenerering: (
+            sak: Sak,
+            klagebehandling: Klagebehandling,
+        ) -> String = { sak, klagebehandling ->
+            GenerererKlageinstanshendelse.avsluttetJson(
+                eventId = UUID.randomUUID().toString(),
+                kildeReferanse = klagebehandling.id.toString(),
+                kabalReferanse = UUID.randomUUID().toString(),
+                avsluttetTidspunkt = nå(tac.clock).toString(),
+                utfall = Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.STADFESTELSE,
+                journalpostReferanser = emptyList(),
+            )
+        },
+    ): Tuple4<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson>? {
+        val (sak, klagebehandling) = this.opprettSakOgOpprettholdKlagebehandling(
+            tac = tac,
+            saksbehandler = saksbehandler,
+            fnr = fnr,
+        ) ?: return null
+
+        if (utførJobber) {
+            tac.mottaHendelseFraKlageinstansen(hendelseGenerering(sak, klagebehandling))
+            tac.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelser()
+        }
+
+        return ferdigstillKlagebehandlingOgOpprettNyRammebehandling(
+            tac = tac,
+            sakId = sak.id,
+            klagebehandlingId = klagebehandling.id,
+            saksbehandler = saksbehandler,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        )
+    }
+
+    /**
+     * @param søknadId - må oppgis hvis behandlingstype er SØKNADSBEHANDLING_INNVILGELSE
+     */
+    suspend fun ApplicationTestBuilder.ferdigstillKlagebehandlingOgOpprettNyRammebehandling(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        klagebehandlingId: KlagebehandlingId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        behandlingstype: String = "REVURDERING_OMGJØRING",
+        søknadId: String? = null,
+    ): Tuple4<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson>? {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
+        tac.leggTilBruker(jwt, saksbehandler)
+        defaultRequest(
+            HttpMethod.Post,
+            url {
+                protocol = URLProtocol.HTTPS
+                path("/sak/$sakId/klage/$klagebehandlingId/opprettRammebehandling")
+            },
+            jwt = jwt,
+        ) {
+            //language=json
+            this.setBody("""{"type": "$behandlingstype", "søknadId": ${søknadId?.let { "\"it\"" }}}""".trimIndent())
+        }.apply {
+            val bodyAsText = this.bodyAsText()
+            withClue(
+                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
+            ) {
+                if (forventetStatus != null) status shouldBe forventetStatus
+            }
+
+            if (forventetJsonBody != null) {
+                bodyAsText.shouldEqualJson(forventetJsonBody)
+            }
+            if (status != HttpStatusCode.OK) return null
+            val jsonObject: RammebehandlingDTOJson = JSONObject(bodyAsText)
+            val behandlingId = BehandlingId.fromString(jsonObject.get("id").toString())
+            val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+
+            return Tuple4(
+                oppdatertSak,
+                oppdatertSak.hentRammebehandling(behandlingId)!!,
                 oppdatertSak.hentKlagebehandling(klagebehandlingId),
                 jsonObject,
             )

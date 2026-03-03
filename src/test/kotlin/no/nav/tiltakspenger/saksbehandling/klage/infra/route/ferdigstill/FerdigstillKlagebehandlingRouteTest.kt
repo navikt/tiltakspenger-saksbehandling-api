@@ -1,17 +1,22 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.ferdigstill
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenerererKlageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -64,19 +69,13 @@ class FerdigstillKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `Avsluttet hendelse + visse utfall skal ikke ferdigstilles (ugunst i denne testen)`() {
+    fun `Avsluttet hendelse + visse utfall skal ikke ferdigstilles uten en opprettet rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             opprettSakOgFerdigstillKlagebehandling(
                 tac = tac,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
-                    """{
-                           "kode": "utfall_fra_klageinstans_skal_føre_til_ny_rammebehandling",
-                           "melding": "Klagebehandlingen har et utfall fra klageinstansen som skal føre til ny rammebehandling, og kan derfor ikke ferdigstilles"
-                     }
-                    """.trimIndent()
-                },
+                forventetStatus = HttpStatusCode.InternalServerError,
+                forventetJsonBody = { """{"kode": "server_feil","melding": "Noe gikk galt på serversiden"}""" },
                 hendelseGenerering = { _, klagebehandling ->
                     GenerererKlageinstanshendelse.avsluttetJson(
                         eventId = UUID.randomUUID().toString(),
@@ -87,6 +86,25 @@ class FerdigstillKlagebehandlingRouteTest {
                     )
                 },
             ) shouldBe null
+        }
+    }
+
+    @Test
+    fun `Ferdigstiller avsluttet hendelse (medhold) med ny revurdering-omgjøring`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling(
+                tac = tac,
+            )!!
+
+            rammebehandlingJson.toString().shouldBeEqualToIgnoringLocalDateTime(
+                """{"avbrutt":null,"attesteringer":[],"saksnummer":"${sak.saksnummer}","saksbehandler":"saksbehandlerKlagebehandling","utbetalingskontroll":null,"iverksattTidspunkt":null,"vedtaksperiode":null,"fritekstTilVedtaksbrev":null,"resultat":"OMGJØRING_IKKE_VALGT","type":"REVURDERING","beslutter":null,"begrunnelseVilkårsvurdering":null,"klagebehandlingId":"${klagebehandling.id}","utbetaling":null,"ventestatus":null,"omgjørVedtak":"${klagebehandling.formkrav.vedtakDetKlagesPå!!}","saksopplysninger":{"oppslagstidspunkt":"2025-01-01T01:02:52.456789","tiltaksdeltagelse":[{"typeKode":"GRUPPE_AMO","gjennomforingsprosent":null,"eksternDeltagelseId":"61328250-7d5d-4961-b70e-5cb727a34371","gjennomføringId":"358f6fe9-ebbe-4f7d-820f-2c0f04055c23","antallDagerPerUke":5,"deltakelseStatus":"Deltar","typeNavn":"Arbeidsmarkedsoppfølging gruppe","deltagelseFraOgMed":"2023-01-01","deltagelseTilOgMed":"2023-03-31","kilde":"Komet","internDeltakelseId":"tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0","deltakelseProsent":100}],"fødselsdato":"2001-01-01","ytelser":[],"tiltakspengevedtakFraArena":[],"periode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"}},"rammevedtakId":null,"sistEndret":"2025-01-01T01:02:51.456789","sakId":"${sak.id}","id":"${rammebehandling.id}","status":"UNDER_BEHANDLING"}""".trimIndent(),
+            )
+
+            klagebehandling.rammebehandlingId shouldBe rammebehandling.id
+            klagebehandling.status shouldBe Klagebehandlingsstatus.FERDIGSTILT
+            klagebehandling.resultat.shouldBeInstanceOf<Klagebehandlingsresultat.Opprettholdt>()
+            klagebehandling.resultat.ferdigstiltTidspunkt.shouldNotBeNull()
         }
     }
 }

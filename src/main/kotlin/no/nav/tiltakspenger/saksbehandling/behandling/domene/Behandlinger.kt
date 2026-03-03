@@ -131,9 +131,11 @@ data class Behandlinger(
 
                 Klagebehandlingsstatus.VEDTATT -> require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT)
 
-                Klagebehandlingsstatus.AVBRUTT, Klagebehandlingsstatus.OPPRETTHOLDT, Klagebehandlingsstatus.OVERSENDT, Klagebehandlingsstatus.FERDIGSTILT -> throw IllegalStateException(
+                Klagebehandlingsstatus.AVBRUTT -> throw IllegalStateException(
                     "En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling",
                 )
+
+                Klagebehandlingsstatus.OPPRETTHOLDT, Klagebehandlingsstatus.OVERSENDT, Klagebehandlingsstatus.FERDIGSTILT -> Unit
 
                 Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> TODO()
             }

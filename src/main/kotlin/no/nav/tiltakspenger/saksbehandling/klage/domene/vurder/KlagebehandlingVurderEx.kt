@@ -12,7 +12,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Omgjør
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Opprettholdt
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import java.time.Clock
 import java.time.LocalDateTime
@@ -69,21 +71,22 @@ fun Klagebehandling.oppdaterRammebehandlingId(
     saksbehandler: Saksbehandler,
     sistEndret: LocalDateTime,
 ): Klagebehandling {
-    require(resultat is Omgjør) {
-        "Resultatet må være Omgjør, men var $resultat. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+    require(resultat != null && resultat !is Klagebehandlingsresultat.Avvist) {
+        "Resultatet var null men forventet at den var definert. Dette skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
-    require(status == UNDER_BEHANDLING) {
+    require(status == UNDER_BEHANDLING || status == OVERSENDT) {
         "Klagebehandling må være i status UNDER_BEHANDLING for at man kan knytte den til en rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
     require(erSaksbehandlerPåBehandlingen(saksbehandler))
     return this.copy(
-        resultat = resultat.oppdaterRammebehandlingId(rammebehandlingId),
+        resultat = resultat.oppdaterRammebehandlingId(rammebehandlingId, sistEndret, this.id),
         sistEndret = sistEndret,
+        status = when (resultat) {
+            is Omgjør -> status
+            is Opprettholdt -> Klagebehandlingsstatus.FERDIGSTILT
+        },
     )
 }
-fun Omgjør.oppdaterRammebehandlingId(
-    rammebehandlingId: BehandlingId,
-): Omgjør = this.copy(rammebehandlingId = rammebehandlingId)
 
 fun Klagebehandling.fjernRammebehandlingId(
     rammebehandlingId: BehandlingId,

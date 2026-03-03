@@ -95,13 +95,5 @@ fun KunneIkkeFerdigstilleKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatus
                 this.forventetSaksbehandler,
             ),
         )
-
-        KunneIkkeFerdigstilleKlagebehandling.UtfallFraKlageinstansSkalFøreTilNyRammebehandling -> Pair(
-            HttpStatusCode.BadRequest,
-            ErrorJson(
-                kode = "utfall_fra_klageinstans_skal_føre_til_ny_rammebehandling",
-                melding = "Klagebehandlingen har et utfall fra klageinstansen som skal føre til ny rammebehandling, og kan derfor ikke ferdigstilles",
-            ),
-        )
     }
 }

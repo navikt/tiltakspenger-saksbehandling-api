@@ -626,7 +626,10 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 }
                 // Vi kan ikke kreve at resultatet er satt dersom den har vært underkjent, siden hentOpplysninger kan resette saksoplysninger og implisitt resultatet.
                 if (klagebehandling != null) {
-                    require(klagebehandling!!.status == Klagebehandlingsstatus.UNDER_BEHANDLING) {
+                    require(
+                        (klagebehandling!!.resultat is Klagebehandlingsresultat.Omgjør && klagebehandling!!.status == Klagebehandlingsstatus.UNDER_BEHANDLING) ||
+                            (klagebehandling!!.resultat is Klagebehandlingsresultat.Opprettholdt && klagebehandling!!.status == Klagebehandlingsstatus.FERDIGSTILT),
+                    ) {
                         "Klagebehandling knyttet til en rammebehandling som er UNDER_BEHANDLING må ha status UNDER_BEHANDLING, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                     }
                 }
@@ -703,8 +706,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             require(saksbehandler == klagebehandling!!.saksbehandler) {
                 "Klagebehandlingens saksbehandler må være lik behandlingens saksbehandler. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
             }
-            require(klagebehandling!!.resultat is Klagebehandlingsresultat.Omgjør) {
-                "Klagebehandlingens resultat må være Omgjør når den er knyttet til en rammebehandling som ikke er avbrutt. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+            require(klagebehandling!!.resultat is Klagebehandlingsresultat.Omgjør || klagebehandling!!.resultat is Klagebehandlingsresultat.Opprettholdt) {
+                "Klagebehandlingens resultat må være Omgjør/Opprettholdt når den er knyttet til en rammebehandling som ikke er avbrutt. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
             }
             require(klagebehandling!!.rammebehandlingId == this.id) {
                 "Klagebehandlingens rammebehandlingId må være lik behandlingens id. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"

@@ -27,11 +27,12 @@ fun Klagebehandling.ferdigstill(
         return KunneIkkeFerdigstilleKlagebehandling.KreverUtfallFraKlageinstans.left()
     }
 
-    if (!kanFerdigstilleUtenNyRammebehandling) {
-        return KunneIkkeFerdigstilleKlagebehandling.UtfallFraKlageinstansSkalFøreTilNyRammebehandling.left()
+    if (this.skalVæreKnyttetTilRammebehandling == true) {
+        throw IllegalStateException("Klagebehandling med id ${this.id} sak ${this.sakId} skal ferdigstilles ved å opprette ny rammbehandling")
     }
 
     val ferdigstiltTidspunkt = nå(clock)
+
     return this.copy(
         status = Klagebehandlingsstatus.FERDIGSTILT,
         sistEndret = ferdigstiltTidspunkt,
@@ -44,5 +45,4 @@ sealed interface KunneIkkeFerdigstilleKlagebehandling {
 
     data object ResultatMåVæreOpprettholdt : KunneIkkeFerdigstilleKlagebehandling
     data object KreverUtfallFraKlageinstans : KunneIkkeFerdigstilleKlagebehandling
-    data object UtfallFraKlageinstansSkalFøreTilNyRammebehandling : KunneIkkeFerdigstilleKlagebehandling
 }

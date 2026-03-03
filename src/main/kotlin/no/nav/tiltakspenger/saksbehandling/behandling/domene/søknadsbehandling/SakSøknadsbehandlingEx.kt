@@ -3,8 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling
 import arrow.core.Nel
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
@@ -25,6 +23,7 @@ suspend fun Sak.startSøknadsbehandlingPåNytt(
 ): Triple<Sak, Søknadsbehandling, Nel<StatistikkSakDTO>> {
     val søknad: Søknad = søknader.single { it.id == kommando.søknadId }
     val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let { this.hentKlagebehandling(it) }
+
     return Søknadsbehandling.opprett(
         sak = this,
         søknadsbehandlingId = kommando.søknadsbehandlingId,
