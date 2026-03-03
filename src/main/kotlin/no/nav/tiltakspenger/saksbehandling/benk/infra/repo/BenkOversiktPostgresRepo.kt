@@ -186,9 +186,7 @@ class BenkOversiktPostgresRepo(
                 k.opprettet             as startet,
                 'KLAGEBEHANDLING'       as behandlingstype,
                 CASE
-                  WHEN (resultat -> 'klageinstanshendelser' is not null
-                        and jsonb_array_length(resultat -> 'klageinstanshendelser') > 0 
-                        and status = 'OVERSENDT')
+                  WHEN status = 'MOTTATT_FRA_KLAGEINSTANS'
                             THEN 'KLAR_TIL_FERDIGSTILLING'
                     ELSE k.status
                 END                     as status,
@@ -202,9 +200,7 @@ class BenkOversiktPostgresRepo(
                 null::jsonb             as attesteringer
             from klagebehandling k
                 join sak s on k.sak_id = s.id
-            where (k.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING'))
-               OR (resultat -> 'klageinstanshendelser' is not null
-                and jsonb_array_length(resultat -> 'klageinstanshendelser') > 0 and status = 'OVERSENDT')
+            where k.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'MOTTATT_FRA_KLAGEINSTANS')
         """
     }
 
