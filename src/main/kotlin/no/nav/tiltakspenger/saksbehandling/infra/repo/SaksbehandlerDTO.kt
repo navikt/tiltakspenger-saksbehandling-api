@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.infra.repo
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 
-internal data class SaksbehandlerDTO(
+data class SaksbehandlerDTO(
     val navIdent: String,
     val brukernavn: String,
     val epost: String,
@@ -25,7 +25,7 @@ internal data class SaksbehandlerDTO(
     }
 }
 
-internal fun Saksbehandler.toSaksbehandlerDTO(): SaksbehandlerDTO =
+fun Saksbehandler.toSaksbehandlerDTO(): SaksbehandlerDTO =
     SaksbehandlerDTO(
         navIdent = navIdent,
         brukernavn = brukernavn,
@@ -33,12 +33,18 @@ internal fun Saksbehandler.toSaksbehandlerDTO(): SaksbehandlerDTO =
         roller = roller.map { it.toRolleDTO() },
     )
 
-internal fun Saksbehandlerrolle.toRolleDTO(): SaksbehandlerDTO.RolleDTO =
+private fun Saksbehandlerrolle.toRolleDTO(): SaksbehandlerDTO.RolleDTO =
     when (this) {
         Saksbehandlerrolle.SAKSBEHANDLER -> SaksbehandlerDTO.RolleDTO.SAKSBEHANDLER
-        Saksbehandlerrolle.FORTROLIG_ADRESSE -> SaksbehandlerDTO.RolleDTO.FORTROLIG_ADRESSE
-        Saksbehandlerrolle.STRENGT_FORTROLIG_ADRESSE -> SaksbehandlerDTO.RolleDTO.STRENGT_FORTROLIG_ADRESSE
-        Saksbehandlerrolle.SKJERMING -> SaksbehandlerDTO.RolleDTO.SKJERMING
-        Saksbehandlerrolle.DRIFT -> SaksbehandlerDTO.RolleDTO.DRIFT
+
         Saksbehandlerrolle.BESLUTTER -> SaksbehandlerDTO.RolleDTO.BESLUTTER
+
+        Saksbehandlerrolle.DRIFT -> SaksbehandlerDTO.RolleDTO.DRIFT
+
+        // Disse rollene har vi ikke noe forhold til lengre, tilgangskontroll skjer via tilgangsmaskinen
+        Saksbehandlerrolle.FORTROLIG_ADRESSE -> SaksbehandlerDTO.RolleDTO.FORTROLIG_ADRESSE
+
+        Saksbehandlerrolle.STRENGT_FORTROLIG_ADRESSE -> SaksbehandlerDTO.RolleDTO.STRENGT_FORTROLIG_ADRESSE
+
+        Saksbehandlerrolle.SKJERMING -> SaksbehandlerDTO.RolleDTO.SKJERMING
     }

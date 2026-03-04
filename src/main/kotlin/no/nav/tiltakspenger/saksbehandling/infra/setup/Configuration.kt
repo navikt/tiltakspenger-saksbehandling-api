@@ -29,9 +29,6 @@ object Configuration {
             "SERVICEUSER_TPTS_PASSWORD" to System.getenv("SERVICEUSER_TPTS_PASSWORD"),
             "ROLE_SAKSBEHANDLER" to System.getenv("ROLE_SAKSBEHANDLER"),
             "ROLE_BESLUTTER" to System.getenv("ROLE_BESLUTTER"),
-            "ROLE_FORTROLIG" to System.getenv("ROLE_FORTROLIG"),
-            "ROLE_STRENGT_FORTROLIG" to System.getenv("ROLE_STRENGT_FORTROLIG"),
-            "ROLE_SKJERMING" to System.getenv("ROLE_SKJERMING"),
             "ROLE_DRIFT" to System.getenv("ROLE_DRIFT"),
             "logback.configurationFile" to "logback.xml",
             "ELECTOR_PATH" to System.getenv("ELECTOR_PATH"),
@@ -50,9 +47,6 @@ object Configuration {
                 "logback.configurationFile" to "logback.local.xml",
                 "ROLE_SAKSBEHANDLER" to "1b3a2c4d-d620-4fcf-a29b-a6cdadf29680",
                 "ROLE_BESLUTTER" to "79985315-b2de-40b8-a740-9510796993c6",
-                "ROLE_FORTROLIG" to "ea930b6b-9397-44d9-b9e6-f4cf527a632a",
-                "ROLE_STRENGT_FORTROLIG" to "5ef775f2-61f8-4283-bf3d-8d03f428aa14",
-                "ROLE_SKJERMING" to "dbe4ad45-320b-4e9a-aaa1-73cca4ee124d",
                 "ROLE_DRIFT" to "c511113e-5b22-49e7-b9c4-eeb23b01f518",
                 "PDL_SCOPE" to "localhost",
                 "PDL_ENDPOINT_URL" to "http://host.docker.internal:8091/graphql",
@@ -219,12 +213,6 @@ object Configuration {
         listOf(
             AdRolle(Saksbehandlerrolle.SAKSBEHANDLER, config()[Key("ROLE_SAKSBEHANDLER", stringType)]),
             AdRolle(Saksbehandlerrolle.BESLUTTER, config()[Key("ROLE_BESLUTTER", stringType)]),
-            AdRolle(Saksbehandlerrolle.FORTROLIG_ADRESSE, config()[Key("ROLE_FORTROLIG", stringType)]),
-            AdRolle(
-                Saksbehandlerrolle.STRENGT_FORTROLIG_ADRESSE,
-                config()[Key("ROLE_STRENGT_FORTROLIG", stringType)],
-            ),
-            AdRolle(Saksbehandlerrolle.SKJERMING, config()[Key("ROLE_SKJERMING", stringType)]),
             AdRolle(Saksbehandlerrolle.DRIFT, config()[Key("ROLE_DRIFT", stringType)]),
         )
 
