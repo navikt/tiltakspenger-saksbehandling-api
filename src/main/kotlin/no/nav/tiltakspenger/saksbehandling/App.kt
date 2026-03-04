@@ -83,7 +83,7 @@ internal fun start(
     val jobber: TaskExecutor = TaskExecutor.startJob(
         initialDelay = if (isNais) 1.minutes else 1.seconds,
         runCheckFactory = runCheckFactory,
-        tasks = listOf<suspend () -> Any>(
+        tasks = listOfNotNull<suspend () -> Any>(
             { applicationContext.delautomatiskSoknadsbehandlingJobb.opprettBehandlingForNyeSoknader() },
             { applicationContext.delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk() },
             { applicationContext.utbetalingContext.journalførMeldekortvedtakService.journalfør() },
@@ -98,6 +98,15 @@ internal fun start(
             { applicationContext.klagebehandlingContext.distribuerKlagebrevJobb.distribuerAvvisningsbrev() },
             { applicationContext.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev() },
 
+            { applicationContext.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans() },
+
+            // holder denne kun på lokal + dev til vi får testet OK
+            if (!Configuration.isProd()) {
+                { applicationContext.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelser() }
+            } else {
+                null
+            },
+
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },
             { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock) },
         ).let {
@@ -110,7 +119,6 @@ internal fun start(
                         { applicationContext.personhendelseJobb.opprettOppgaveForPersonhendelser() },
                         { applicationContext.personhendelseJobb.opprydning() },
                         { applicationContext.identhendelseJobb.behandleIdenthendelser() },
-                        { applicationContext.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans() },
                     ),
                 )
             } else {
