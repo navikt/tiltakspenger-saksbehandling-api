@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
+import arrow.core.Tuple4
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
@@ -14,6 +15,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -35,7 +37,7 @@ interface IverksettRammebehandlingBuilder {
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         utførJobber: Boolean = true,
         medJsonBody: ((jsonBody: String) -> Unit)? = null,
-    ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson>? {
+    ): Tuple4<Sak, Rammevedtak, Rammebehandling, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = beslutter,
         )
@@ -67,7 +69,8 @@ interface IverksettRammebehandlingBuilder {
             }
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val rammevedtak = sak.vedtaksliste.hentRammevedtakForBehandlingId(behandlingId)
-            return Triple(sak, rammevedtak, JSONObject(bodyAsText))
+            val rammebehandling = sak.rammebehandlinger.hentRammebehandling(behandlingId)!!
+            return Tuple4(sak, rammevedtak, rammebehandling, JSONObject(bodyAsText))
         }
     }
 }

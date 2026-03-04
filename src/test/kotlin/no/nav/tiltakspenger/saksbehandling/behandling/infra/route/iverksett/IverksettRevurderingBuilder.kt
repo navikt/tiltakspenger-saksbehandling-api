@@ -85,7 +85,7 @@ interface IverksettRevurderingBuilder {
 
         taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
 
-        val (oppdatertSak, rammevedtakRevurdering, jsonResponse) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtakRevurdering, _, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
@@ -146,7 +146,7 @@ interface IverksettRevurderingBuilder {
 
         taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
 
-        val (oppdatertSak, rammevedtakRevurdering, jsonResponse) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtakRevurdering, _, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
@@ -209,7 +209,7 @@ interface IverksettRevurderingBuilder {
 
         taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter)
 
-        val (oppdatertSak, rammevedtakRevurdering, jsonResponse) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtakRevurdering, _, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
@@ -270,7 +270,7 @@ interface IverksettRevurderingBuilder {
 
         taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
 
-        val (oppdatertSak, rammevedtak, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtak, _, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
@@ -325,7 +325,7 @@ interface IverksettRevurderingBuilder {
 
         taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
 
-        val (oppdatertSak, rammevedtak, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtak, _, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
@@ -381,7 +381,7 @@ interface IverksettRevurderingBuilder {
 
         taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter)
 
-        val (oppdatertSak, rammevedtak, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtak, _, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
@@ -434,7 +434,7 @@ interface IverksettRevurderingBuilder {
 
         taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
 
-        val (oppdatertSak, rammevedtak, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtak, _, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,

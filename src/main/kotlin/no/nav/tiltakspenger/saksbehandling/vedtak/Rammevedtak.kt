@@ -261,13 +261,12 @@ data class Rammevedtak(
 
 fun Sak.opprettRammevedtak(
     rammebehandling: Rammebehandling,
-
     clock: Clock,
 ): Pair<Sak, Rammevedtak> {
     val klagebehandling: Klagebehandling? = rammebehandling.klagebehandling
     require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
     if (klagebehandling != null) {
-        require(klagebehandling.status == Klagebehandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
+        require(klagebehandling.status == Klagebehandlingsstatus.VEDTATT || klagebehandling.status == Klagebehandlingsstatus.FERDIGSTILT) { "Krever at klagebehandling har status VEDTATT/FERDIGSTILT når vi skal opprette et vedtak. Feilen skjedde for sak ${this.id}, rammebehandling: ${rammebehandling.id}, tilknyttet klagebehandling: ${klagebehandling.id}" }
         require(klagebehandling.rammebehandlingId == rammebehandling.id) {
             "Klagebehandling må være knyttet til rammebehandlingen når vi skal opprette et vedtak."
         }
@@ -313,7 +312,7 @@ fun Sak.opprettRammevedtak(
         brevJson = null,
     )
 
-    val oppdatertSak = this.leggTilRammevedtak(vedtak)
+    val oppdatertSak = this.leggTilRammevedtak(vedtak).oppdaterRammebehandling(rammebehandling)
 
     return oppdatertSak to vedtak
 }

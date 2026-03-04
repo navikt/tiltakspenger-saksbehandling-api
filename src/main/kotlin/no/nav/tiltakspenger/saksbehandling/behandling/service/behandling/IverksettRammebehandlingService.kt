@@ -115,7 +115,7 @@ class IverksettRammebehandlingService(
         } else {
             genererStønadsstatistikkForRammevedtak(vedtak)
         }
-        val doubleOppdatertSak = when (behandling) {
+        val doubleOppdatertSak = when (iverksattRammebehandling) {
             is Revurdering -> oppdatertSak.iverksettRammebehandling(
                 rammevedtak = vedtak,
                 sakStatistikk = sakStatistikk,

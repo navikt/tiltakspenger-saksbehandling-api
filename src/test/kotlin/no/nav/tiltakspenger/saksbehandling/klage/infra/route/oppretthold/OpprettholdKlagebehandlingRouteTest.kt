@@ -189,7 +189,7 @@ class OpprettholdKlagebehandlingRouteTest {
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = beslutter,
             )
-            val (_, rammevedtak, json) = iverksettForBehandlingId(
+            val (_, rammevedtak, _, json) = iverksettForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,

@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
@@ -45,7 +46,6 @@ interface FerdigstillKlagebehandlingBuilder {
      *  4. Opprettholder (emulerer journalføring, distribuering av vedtaksbrev, oversendelse til klageinstansen, og utfall fra klageinstansen)
      *  5. Ferdigstiller klagebehandling
      */
-
     suspend fun ApplicationTestBuilder.opprettSakOgFerdigstillKlagebehandling(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
@@ -134,6 +134,10 @@ interface FerdigstillKlagebehandlingBuilder {
      *  3. Oppdaterer brevtekst
      *  4. Opprettholder (emulerer journalføring, distribuering av vedtaksbrev, oversendelse til klageinstansen, og utfall fra klageinstansen)
      *  5. Oppretter ny rammebehandling og samtidigig ferdigstiller klagebehandling
+     *
+     *  Dersom ny rammebehandling er en søknadsbehandling, brukes eksisterende søknad på saken.
+     *
+     * @param behandlingstype En av: [SØKNADSBEHANDLING_INNVILGELSE, REVURDERING_INNVILGELSE, REVURDERING_OMGJØRING]
      */
     suspend fun ApplicationTestBuilder.opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling(
         tac: TestApplicationContext,
@@ -155,12 +159,20 @@ interface FerdigstillKlagebehandlingBuilder {
                 journalpostReferanser = emptyList(),
             )
         },
+        behandlingstype: String = "REVURDERING_OMGJØRING",
     ): Tuple4<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson>? {
         val (sak, klagebehandling) = this.opprettSakOgOpprettholdKlagebehandling(
             tac = tac,
             saksbehandler = saksbehandler,
             fnr = fnr,
         ) ?: return null
+
+        val søknadId = if (behandlingstype == "SØKNADSBEHANDLING_INNVILGELSE") {
+            tac.søknadContext.søknadRepo.hentSøknaderForFnr(fnr)
+                .single().id
+        } else {
+            null
+        }
 
         if (utførJobber) {
             tac.mottaHendelseFraKlageinstansen(hendelseGenerering(sak, klagebehandling))
@@ -174,6 +186,8 @@ interface FerdigstillKlagebehandlingBuilder {
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
+            behandlingstype = behandlingstype,
+            søknadId = søknadId,
         )
     }
 
@@ -188,7 +202,7 @@ interface FerdigstillKlagebehandlingBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
         behandlingstype: String = "REVURDERING_OMGJØRING",
-        søknadId: String? = null,
+        søknadId: SøknadId? = null,
     ): Tuple4<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
@@ -201,7 +215,7 @@ interface FerdigstillKlagebehandlingBuilder {
             jwt = jwt,
         ) {
             //language=json
-            this.setBody("""{"type": "$behandlingstype", "søknadId": ${søknadId?.let { "\"it\"" }}}""".trimIndent())
+            this.setBody("""{"type": "$behandlingstype", "søknadId": ${søknadId?.let { "\"$it\"" }}}""".trimIndent())
         }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(

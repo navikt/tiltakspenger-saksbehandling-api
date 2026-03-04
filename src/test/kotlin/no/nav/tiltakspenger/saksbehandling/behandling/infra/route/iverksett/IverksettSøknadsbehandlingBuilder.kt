@@ -52,7 +52,7 @@ interface IverksettSøknadsbehandlingBuilder {
             saksbehandler = saksbehandler,
         )
         taBehandling(tac, sak.id, behandlingId, beslutter)
-        val (oppdatertSak, rammevedtak, jsonResponse) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtak, _, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = behandlingId,
@@ -80,7 +80,7 @@ interface IverksettSøknadsbehandlingBuilder {
             tiltaksdeltakelse = tiltaksdeltakelse,
         )
         taBehandling(tac, sak.id, søknadsbehandling.id, beslutter)
-        val (oppdatertSak, rammevedtakSøknadsbehandling, jsonResponse) = iverksettForBehandlingId(
+        val (oppdatertSak, rammevedtakSøknadsbehandling, _, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = søknadsbehandling.id,

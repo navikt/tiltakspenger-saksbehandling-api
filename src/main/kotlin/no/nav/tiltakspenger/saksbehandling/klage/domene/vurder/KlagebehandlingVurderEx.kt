@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Opprettholdt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import java.time.Clock
 import java.time.LocalDateTime
@@ -74,8 +73,8 @@ fun Klagebehandling.oppdaterRammebehandlingId(
     require(resultat != null && resultat !is Klagebehandlingsresultat.Avvist) {
         "Resultatet var null men forventet at den var definert. Dette skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
-    require(status == UNDER_BEHANDLING || status == OVERSENDT) {
-        "Klagebehandling må være i status UNDER_BEHANDLING for at man kan knytte den til en rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+    require(status == UNDER_BEHANDLING || status == Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS) {
+        "Klagebehandling må være i status UNDER_BEHANDLING/MOTTAT_FRA_KLAGEINSTANS for at man kan knytte den til en rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
     require(erSaksbehandlerPåBehandlingen(saksbehandler))
     return this.copy(

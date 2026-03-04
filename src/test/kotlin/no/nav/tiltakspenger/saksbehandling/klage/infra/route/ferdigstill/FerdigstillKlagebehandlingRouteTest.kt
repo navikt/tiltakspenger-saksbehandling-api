@@ -7,6 +7,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
@@ -15,8 +16,18 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenerererKlageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -90,7 +101,7 @@ class FerdigstillKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `Ferdigstiller avsluttet hendelse (medhold) med ny revurdering-omgjøring`() {
+    fun `Ferdigstiller avsluttet hendelse (medhold) og starter revurdering-omgjøring`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling(
@@ -105,6 +116,146 @@ class FerdigstillKlagebehandlingRouteTest {
             klagebehandling.status shouldBe Klagebehandlingsstatus.FERDIGSTILT
             klagebehandling.resultat.shouldBeInstanceOf<Klagebehandlingsresultat.Opprettholdt>()
             klagebehandling.resultat.ferdigstiltTidspunkt.shouldNotBeNull()
+        }
+    }
+
+    @Test
+    fun `ferdigstiller klagebehandling og iverksetter søknadsbehandling`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, rammebehandling, klagebehandling) = opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling(
+                tac = tac,
+                behandlingstype = "SØKNADSBEHANDLING_INNVILGELSE",
+            )!!
+
+            val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
+            oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                saksbehandler = saksbehandler,
+            )
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                saksbehandler = saksbehandler,
+            )
+            val beslutter = ObjectMother.beslutter()
+            taBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                saksbehandler = beslutter,
+            )
+            val (_, rammevedtak, iverksattRammebehandling, iverksattRammebehandlingJson) = iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                beslutter = beslutter,
+            )!!
+
+            iverksattRammebehandlingJson.toString().shouldBeEqualToIgnoringLocalDateTime(
+                //language=json
+                """{"attesteringer":[{"begrunnelse":null,"endretAv":"B12345","endretTidspunkt":"2025-01-01T01:03:05.456789","status":"GODKJENT"}],"saksnummer":"202501011001","utbetalingskontroll":null,"iverksattTidspunkt":"2025-01-01T01:03:06.456789","vedtaksperiode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"},"type":"SØKNADSBEHANDLING","utbetaling":null,"manueltBehandlesGrunner":[],"saksopplysninger":{"oppslagstidspunkt":"2025-01-01T01:02:52.456789","tiltaksdeltagelse":[{"typeKode":"GRUPPE_AMO","gjennomforingsprosent":null,"eksternDeltagelseId":"61328250-7d5d-4961-b70e-5cb727a34371","gjennomføringId":"358f6fe9-ebbe-4f7d-820f-2c0f04055c23","antallDagerPerUke":5,"deltakelseStatus":"Deltar","typeNavn":"Arbeidsmarkedsoppfølging gruppe","deltagelseFraOgMed":"2023-01-01","deltagelseTilOgMed":"2023-03-31","kilde":"Komet","internDeltakelseId":"tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0","deltakelseProsent":100}],"fødselsdato":"2001-01-01","ytelser":[],"tiltakspengevedtakFraArena":[],"periode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"}},"sakId":"${sak.id}","id":"${rammebehandling.id}","avbrutt":null,"saksbehandler":"saksbehandlerKlagebehandling","barnetillegg":{"begrunnelse":null,"perioder":[{"antallBarn":0,"periode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"}}]},"fritekstTilVedtaksbrev":null,"resultat":"INNVILGELSE","beslutter":"B12345","begrunnelseVilkårsvurdering":null,"klagebehandlingId":"${klagebehandling.id}","kanInnvilges":true,"ventestatus":null,"innvilgelsesperioder":[{"internDeltakelseId":"tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0","periode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"},"antallDagerPerMeldeperiode":10}],"rammevedtakId":"${rammevedtak.id}","sistEndret":"2025-01-01T01:03:06.456789","automatiskSaksbehandlet":false,"søknad":{"avbrutt":null,"svar":{"harSøktPåTiltak":{"svar":"JA"},"kvp":{"svar":"NEI","periode":null},"gjenlevendepensjon":{"svar":"NEI","periode":null},"harSøktOmBarnetillegg":{"svar":"NEI"},"sykepenger":{"svar":"NEI","periode":null},"etterlønn":{"svar":"NEI"},"institusjon":{"svar":"NEI","periode":null},"trygdOgPensjon":{"svar":"NEI","periode":null},"intro":{"svar":"NEI","periode":null},"supplerendeStønadAlder":{"svar":"NEI","periode":null},"jobbsjansen":{"svar":"NEI","periode":null},"alderspensjon":{"svar":"NEI","fraOgMed":null},"supplerendeStønadFlyktning":{"svar":"NEI","periode":null}},"tiltaksdeltakelseperiodeDetErSøktOm":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"},"barnetillegg":[],"opprettet":"2023-01-01T00:00:00","antallVedlegg":0,"tiltak":{"fraOgMed":"2023-01-01","typeKode":"GRUPPEAMO","tilOgMed":"2023-03-31","typeNavn":"Arbeidsmarkedsoppfølging gruppe","id":"61328250-7d5d-4961-b70e-5cb727a34371"},"manueltSattTiltak":null,"søknadstype":"DIGITAL","behandlingsarsak":null,"kanInnvilges":true,"tidsstempelHosOss":"2023-01-01T00:00:00","id":"${(iverksattRammebehandling as Søknadsbehandling).søknad.id}","journalpostId":"123456789"},"status":"VEDTATT"}""".trimIndent(),
+            )
+
+            // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage
+            hentSakForSaksnummer(tac, sak.saksnummer)!!
+        }
+    }
+
+    @Test
+    fun `ferdigstiller klagebehandling og iverksetter revurdering innvilgelse`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling(
+                tac = tac,
+                behandlingstype = "REVURDERING_INNVILGELSE",
+            )!!
+
+            val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
+            oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                saksbehandler = saksbehandler,
+            )
+            sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                saksbehandler = saksbehandler,
+            )
+            val beslutter = ObjectMother.beslutter()
+            taBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                saksbehandler = beslutter,
+            )
+            val (_, rammevedtak, iverksattRammebehandling, iverksattRammebehandlingJson) = iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                beslutter = beslutter,
+            )!!
+
+            iverksattRammebehandlingJson.toString().shouldBeEqualToIgnoringLocalDateTime(
+                //language=json
+                """{"avbrutt":null,"attesteringer":[{"begrunnelse":null,"endretAv":"B12345","endretTidspunkt":"2025-01-01T01:03:04.456789","status":"GODKJENT"}],"saksnummer":"202501011001","saksbehandler":"saksbehandlerKlagebehandling","utbetalingskontroll":null,"barnetillegg":{"begrunnelse":null,"perioder":[{"antallBarn":0,"periode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"}}]},"iverksattTidspunkt":"2025-01-01T01:03:05.456789","vedtaksperiode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"},"fritekstTilVedtaksbrev":null,"resultat":"REVURDERING_INNVILGELSE","type":"REVURDERING","beslutter":"B12345","begrunnelseVilkårsvurdering":null,"klagebehandlingId":"${klagebehandling.id}","utbetaling":null,"ventestatus":null,"innvilgelsesperioder":[{"internDeltakelseId":"tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0","periode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"},"antallDagerPerMeldeperiode":10}],"saksopplysninger":{"oppslagstidspunkt":"2025-01-01T01:02:52.456789","tiltaksdeltagelse":[{"typeKode":"GRUPPE_AMO","gjennomforingsprosent":null,"eksternDeltagelseId":"61328250-7d5d-4961-b70e-5cb727a34371","gjennomføringId":"358f6fe9-ebbe-4f7d-820f-2c0f04055c23","antallDagerPerUke":5,"deltakelseStatus":"Deltar","typeNavn":"Arbeidsmarkedsoppfølging gruppe","deltagelseFraOgMed":"2023-01-01","deltagelseTilOgMed":"2023-03-31","kilde":"Komet","internDeltakelseId":"tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0","deltakelseProsent":100}],"fødselsdato":"2001-01-01","ytelser":[],"tiltakspengevedtakFraArena":[],"periode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"}},"rammevedtakId":"${rammevedtak.id}","sistEndret":"2025-01-01T01:03:05.456789","sakId":"${sak.id}","id":"${iverksattRammebehandling.id}","status":"VEDTATT"}""".trimIndent(),
+            )
+
+            // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage
+            hentSakForSaksnummer(tac, sak.saksnummer)!!
+        }
+    }
+
+    @Test
+    fun `ferdigstiller klagebehandling og iverksetter revurdering omgjøring`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, rammebehandling, klagebehandling) = opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling(
+                tac = tac,
+            )!!
+
+            sak.vedtaksliste.alle.size shouldBe 1
+
+            val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                saksbehandler = saksbehandler,
+                vedtaksperiode = (sak.vedtaksliste.alle.first() as Rammevedtak).periode!!,
+            )
+            sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                saksbehandler = saksbehandler,
+            )
+            val beslutter = ObjectMother.beslutter()
+            taBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                saksbehandler = beslutter,
+            )
+            val (_, rammevedtak, iverksattRammebehandling, iverksattRammebehandlingJson) = iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                beslutter = beslutter,
+            )!!
+
+            iverksattRammebehandlingJson.toString().shouldBeEqualToIgnoringLocalDateTime(
+                //language=json
+                """{"avbrutt":null,"attesteringer":[{"begrunnelse":null,"endretAv":"B12345","endretTidspunkt":"2025-01-01T01:03:04.456789","status":"GODKJENT"}],"saksnummer":"202501011001","saksbehandler":"saksbehandlerKlagebehandling","utbetalingskontroll":null,"barnetillegg":{"begrunnelse":null,"perioder":[{"antallBarn":0,"periode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"}}]},"iverksattTidspunkt":"2025-01-01T01:03:05.456789","vedtaksperiode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"},"fritekstTilVedtaksbrev":null,"resultat":"OMGJØRING","type":"REVURDERING","beslutter":"B12345","begrunnelseVilkårsvurdering":null,"klagebehandlingId":"${klagebehandling.id}","utbetaling":null,"ventestatus":null,"innvilgelsesperioder":[{"internDeltakelseId":"tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0","periode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"},"antallDagerPerMeldeperiode":10}],"omgjørVedtak":"${klagebehandling.formkrav.vedtakDetKlagesPå!!}","saksopplysninger":{"oppslagstidspunkt":"2025-01-01T01:02:52.456789","tiltaksdeltagelse":[{"typeKode":"GRUPPE_AMO","gjennomforingsprosent":null,"eksternDeltagelseId":"61328250-7d5d-4961-b70e-5cb727a34371","gjennomføringId":"358f6fe9-ebbe-4f7d-820f-2c0f04055c23","antallDagerPerUke":5,"deltakelseStatus":"Deltar","typeNavn":"Arbeidsmarkedsoppfølging gruppe","deltagelseFraOgMed":"2023-01-01","deltagelseTilOgMed":"2023-03-31","kilde":"Komet","internDeltakelseId":"tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0","deltakelseProsent":100}],"fødselsdato":"2001-01-01","ytelser":[],"tiltakspengevedtakFraArena":[],"periode":{"fraOgMed":"2023-01-01","tilOgMed":"2023-03-31"}},"rammevedtakId":"${rammevedtak.id}","sistEndret":"2025-01-01T01:03:05.456789","sakId":"${sak.id}","id":"${rammebehandling.id}","status":"VEDTATT"}""".trimIndent(),
+            )
+
+            // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage
+            hentSakForSaksnummer(tac, sak.saksnummer)!!
         }
     }
 }

@@ -160,6 +160,7 @@ data class Klagebehandling(
         return this.copy(
             resultat = (resultat as Klagebehandlingsresultat.Opprettholdt).leggTilKlageinstanshendelse(hendelse),
             sistEndret = sistEndret,
+            status = MOTTATT_FRA_KLAGEINSTANS,
         )
     }
 
