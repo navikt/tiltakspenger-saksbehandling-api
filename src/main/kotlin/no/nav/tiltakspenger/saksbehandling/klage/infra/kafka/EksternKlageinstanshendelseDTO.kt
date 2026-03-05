@@ -39,7 +39,7 @@ private data class KlageinstanshendelseDto(
 
     data class OmgjoeringskravbehandlingAvsluttetDto(
         val avsluttet: String,
-        val utfall: String,
+        val utfall: OmgjøringskravbehandlingUtfall,
         val journalpostReferanser: List<String>,
     )
 
@@ -60,6 +60,11 @@ private data class KlageinstanshendelseDto(
         UGUNST,
         AVVIST,
         HENLAGT,
+    }
+
+    enum class OmgjøringskravbehandlingUtfall {
+        MEDHOLD_ETTER_FVL_35,
+        UGUNST,
     }
 
     enum class FeilregistrertType {
@@ -107,9 +112,7 @@ fun String.toKlageinstanshendelse(
                 eksternKlagehendelseId = dto.eventId,
                 avsluttetTidspunkt = LocalDateTime.parse(detaljer.avsluttet),
                 journalpostreferanser = detaljer.journalpostReferanser.map { JournalpostId(it) },
-                utfall = Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet.OmgjøringskravbehandlingAvsluttetUtfall.valueOf(
-                    detaljer.utfall,
-                ),
+                utfall = detaljer.utfall.toDomene(),
             )
         }
 
@@ -145,6 +148,12 @@ private fun KlageinstanshendelseDto.Utfall.toDomene(): KlagehendelseKlagebehandl
         KlageinstanshendelseDto.Utfall.HENLAGT -> KlagehendelseKlagebehandlingAvsluttetUtfall.HENLAGT
     }
 }
+
+private fun KlageinstanshendelseDto.OmgjøringskravbehandlingUtfall.toDomene(): Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet.OmgjøringskravbehandlingAvsluttetUtfall =
+    when (this) {
+        KlageinstanshendelseDto.OmgjøringskravbehandlingUtfall.MEDHOLD_ETTER_FVL_35 -> Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet.OmgjøringskravbehandlingAvsluttetUtfall.MEDHOLD_ETTER_FVL_35
+        KlageinstanshendelseDto.OmgjøringskravbehandlingUtfall.UGUNST -> Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet.OmgjøringskravbehandlingAvsluttetUtfall.UGUNST
+    }
 
 private fun KlageinstanshendelseDto.FeilregistrertType.toDomene(): KlagehendelseFeilregistrertType {
     return when (this) {

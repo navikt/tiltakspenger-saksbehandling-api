@@ -62,6 +62,7 @@ sealed interface Klageinstanshendelse {
     ) : Klageinstanshendelse {
         enum class OmgjøringskravbehandlingAvsluttetUtfall {
             MEDHOLD_ETTER_FVL_35,
+            UGUNST,
         }
     }
 

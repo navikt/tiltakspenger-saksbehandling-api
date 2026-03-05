@@ -77,6 +77,7 @@ sealed interface KlageinstanshendelseDTO {
 
     enum class OmgjøringskravbehandlingAvsluttetUtfallDto {
         MEDHOLD_ETTER_FVL_35,
+        UGUNST,
     }
 
     enum class KlagehendelseFeilregistrertTypeDto {
@@ -147,6 +148,7 @@ private fun KlagehendelseKlagebehandlingAvsluttetUtfall.toDTO(): KlagehendelseKl
 private fun OmgjøringskravbehandlingAvsluttetUtfall.toDTO(): OmgjøringskravbehandlingAvsluttetUtfallDto {
     return when (this) {
         OmgjøringskravbehandlingAvsluttetUtfall.MEDHOLD_ETTER_FVL_35 -> OmgjøringskravbehandlingAvsluttetUtfallDto.MEDHOLD_ETTER_FVL_35
+        OmgjøringskravbehandlingAvsluttetUtfall.UGUNST -> OmgjøringskravbehandlingAvsluttetUtfallDto.UGUNST
     }
 }
 

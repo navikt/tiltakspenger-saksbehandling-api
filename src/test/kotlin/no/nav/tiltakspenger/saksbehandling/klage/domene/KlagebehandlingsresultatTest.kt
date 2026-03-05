@@ -13,6 +13,21 @@ import org.junit.jupiter.api.Test
  * Denne er for å dekke de tilfellene som ikke dekkes av IT testene, som vi har lyst på mer kontroll på
  */
 class KlagebehandlingsresultatTest {
+
+    @Test
+    fun `AVVIST skal ikke være knyttet til rammebehandling`() {
+        val resultat = ObjectMother.klagebehandlingresultatAvvist()
+
+        resultat.skalVæreKnyttetTilRammebehandling shouldBe false
+    }
+
+    @Test
+    fun `OMGJØR skal alltid være knyttet til rammebehandling`() {
+        val resultat = ObjectMother.klagebehandlingresultatOmgjør()
+
+        resultat.skalVæreKnyttetTilRammebehandling shouldBe true
+    }
+
     @Test
     fun `visse avsluttet utfall skal knyttes til rammebehandling`() {
         KlagehendelseKlagebehandlingAvsluttetUtfall.entries.forEach { entry ->
@@ -35,7 +50,7 @@ class KlagebehandlingsresultatTest {
     }
 
     @Test
-    fun `omgjøring skal aldri være knyttet til rammebehandling`() {
+    fun `visse omgjørings utfall skal knyttes til rammebehandling`() {
         OmgjøringskravbehandlingAvsluttetUtfall.entries.forEach { entry ->
             val resultat = ObjectMother.klagebehandlingresultatOpprettholdt(
                 klageinstanshendelser = Klageinstanshendelser(
@@ -43,18 +58,27 @@ class KlagebehandlingsresultatTest {
                 ),
             )
 
-            resultat.skalVæreKnyttetTilRammebehandling shouldBe false
+            when (entry) {
+                OmgjøringskravbehandlingAvsluttetUtfall.MEDHOLD_ETTER_FVL_35 -> resultat.skalVæreKnyttetTilRammebehandling shouldBe false
+                OmgjøringskravbehandlingAvsluttetUtfall.UGUNST -> resultat.skalVæreKnyttetTilRammebehandling shouldBe true
+            }
         }
     }
 
     @Test
-    fun `feilregistrert skal aldri være knyttet til rammebehandling`() {
+    fun `feilregistrert typer skal ikke knyttes til rammebehandling`() {
         KlagehendelseFeilregistrertType.entries.forEach { entry ->
             val resultat = ObjectMother.klagebehandlingresultatOpprettholdt(
                 klageinstanshendelser = Klageinstanshendelser(listOf(klageinstanshendelseFeilregistrert(type = entry))),
             )
 
-            resultat.skalVæreKnyttetTilRammebehandling shouldBe false
+            when (entry) {
+                KlagehendelseFeilregistrertType.KLAGE -> resultat.skalVæreKnyttetTilRammebehandling shouldBe false
+                KlagehendelseFeilregistrertType.ANKE -> resultat.skalVæreKnyttetTilRammebehandling shouldBe false
+                KlagehendelseFeilregistrertType.ANKE_I_TRYGDERETTEN -> resultat.skalVæreKnyttetTilRammebehandling shouldBe false
+                KlagehendelseFeilregistrertType.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> resultat.skalVæreKnyttetTilRammebehandling shouldBe false
+                KlagehendelseFeilregistrertType.OMGJOERINGSKRAV -> resultat.skalVæreKnyttetTilRammebehandling shouldBe false
+            }
         }
     }
 }
