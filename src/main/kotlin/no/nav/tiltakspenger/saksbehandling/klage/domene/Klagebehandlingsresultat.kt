@@ -13,7 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.BehandlingFeilregistrert.KlagehendelseFeilregistrertType
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet.OmgjøringskravbehandlingAvsluttetUtfall
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderOmgjørKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
@@ -166,8 +168,10 @@ sealed interface Klagebehandlingsresultat {
             harJournalførtInnstillingsbrev && oversendtKlageinstansenTidspunkt == null
         val sisteKlageinstanshendelse = klageinstanshendelser.lastOrNull()
 
-        override val skalVæreKnyttetTilRammebehandling: Boolean =
-            sisteKlageinstanshendelse is Klageinstanshendelse.KlagebehandlingAvsluttet && (
+        override val skalVæreKnyttetTilRammebehandling = when (sisteKlageinstanshendelse) {
+            is Klageinstanshendelse.BehandlingFeilregistrert -> false
+
+            is Klageinstanshendelse.KlagebehandlingAvsluttet -> (
                 listOf(
                     KlagehendelseKlagebehandlingAvsluttetUtfall.OPPHEVET,
                     KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD,
@@ -175,6 +179,13 @@ sealed interface Klagebehandlingsresultat {
                     KlagehendelseKlagebehandlingAvsluttetUtfall.UGUNST,
                 ).contains(sisteKlageinstanshendelse.utfall)
                 )
+
+            is Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet -> listOf(OmgjøringskravbehandlingAvsluttetUtfall.UGUNST).contains(
+                sisteKlageinstanshendelse.utfall,
+            )
+
+            null -> false
+        }
 
         override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean {
             // TODO jah: Legg til den etter vi har mappet klageinstans-hendelsen.

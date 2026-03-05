@@ -121,6 +121,7 @@ enum class LokalHendelseUtfall {
     fun toOmgjoeringskravAvsluttetUtfall(): Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet.OmgjøringskravbehandlingAvsluttetUtfall =
         when (this) {
             MEDHOLD_ETTER_FVL_35 -> Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet.OmgjøringskravbehandlingAvsluttetUtfall.MEDHOLD_ETTER_FVL_35
+            UGUNST -> Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet.OmgjøringskravbehandlingAvsluttetUtfall.UGUNST
             else -> error("Utfall $this kan ikke konverteres til OmgjoeringskravbehandlingAvsluttetUtfall")
         }
 

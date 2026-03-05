@@ -35,8 +35,10 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.OpprettKlagebeha
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprett.opprett
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OpprettholdKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppretthold
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderOpprettholdKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.vurder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
@@ -132,6 +134,24 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         return iverksattOpprettholdt
             .oppdaterInnstillingsbrevJournalpost(LocalDate.now(fixedClock), innstillingsbrevJournalpostId, nå)
             .oppdaterInnstillingsbrevDistribusjon(DistribusjonId("distribusjonId"), nå)
+    }
+
+    fun klagebehandlingresultatAvvist(
+        brevtekster: Brevtekster? = null,
+    ): Klagebehandlingsresultat.Avvist {
+        return Klagebehandlingsresultat.Avvist(brevtekst = brevtekster)
+    }
+
+    fun klagebehandlingresultatOmgjør(
+        årsak: KlageOmgjøringsårsak = KlageOmgjøringsårsak.FEIL_LOVANVENDELSE,
+        begrunnelse: Begrunnelse = Begrunnelse.create("klagebehandlingresultatOmgjørt")!!,
+        rammebehandlingId: BehandlingId? = null,
+    ): Klagebehandlingsresultat.Omgjør {
+        return Klagebehandlingsresultat.Omgjør(
+            årsak = KlageOmgjøringsårsak.FEIL_LOVANVENDELSE,
+            begrunnelse = begrunnelse,
+            rammebehandlingId = rammebehandlingId,
+        )
     }
 
     fun klagebehandlingresultatOpprettholdt(

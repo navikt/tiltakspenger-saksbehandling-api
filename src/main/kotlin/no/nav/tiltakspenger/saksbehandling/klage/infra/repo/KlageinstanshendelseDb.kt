@@ -57,11 +57,13 @@ data class KlageinstanshendelseDb(
 
     enum class OmgjøringsUtfallDb {
         MEDHOLD_ETTER_FVL_35,
+        UGUNST,
         ;
 
         fun toDomain(): OmgjøringskravbehandlingAvsluttetUtfall {
             return when (this) {
                 MEDHOLD_ETTER_FVL_35 -> OmgjøringskravbehandlingAvsluttetUtfall.MEDHOLD_ETTER_FVL_35
+                UGUNST -> OmgjøringskravbehandlingAvsluttetUtfall.UGUNST
             }
         }
     }
@@ -163,6 +165,7 @@ fun Klageinstanshendelser.toDb(): List<KlageinstanshendelseDb> {
             omgjøringskravUtfall = (klageinstanshendelse as? Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet)?.utfall?.let {
                 when (it) {
                     OmgjøringskravbehandlingAvsluttetUtfall.MEDHOLD_ETTER_FVL_35 -> KlageinstanshendelseDb.OmgjøringsUtfallDb.MEDHOLD_ETTER_FVL_35
+                    OmgjøringskravbehandlingAvsluttetUtfall.UGUNST -> KlageinstanshendelseDb.OmgjøringsUtfallDb.UGUNST
                 }
             },
             feilregistrertTidspunkt = (klageinstanshendelse as? Klageinstanshendelse.BehandlingFeilregistrert)?.feilregistrertTidspunkt,

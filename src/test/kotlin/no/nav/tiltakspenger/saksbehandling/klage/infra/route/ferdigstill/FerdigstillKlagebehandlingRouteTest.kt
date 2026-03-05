@@ -227,7 +227,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,
                 saksbehandler = saksbehandler,
-                vedtaksperiode = (sak.vedtaksliste.alle.first() as Rammevedtak).periode!!,
+                vedtaksperiode = (sak.vedtaksliste.alle.first() as Rammevedtak).periode,
             )
             sendRevurderingTilBeslutningForBehandlingId(
                 tac = tac,
