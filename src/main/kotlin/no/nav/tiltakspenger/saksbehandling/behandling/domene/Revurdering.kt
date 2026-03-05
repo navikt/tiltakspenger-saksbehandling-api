@@ -207,7 +207,7 @@ data class Revurdering(
             revurderingId: BehandlingId = BehandlingId.random(),
             saksnummer: Saksnummer,
             fnr: Fnr,
-            saksbehandler: Saksbehandler,
+            saksbehandler: Saksbehandler?,
             saksopplysninger: Saksopplysninger,
             opprettet: LocalDateTime,
         ): Revurdering {
@@ -228,7 +228,7 @@ data class Revurdering(
             sakId: SakId,
             saksnummer: Saksnummer,
             fnr: Fnr,
-            saksbehandler: Saksbehandler,
+            saksbehandler: Saksbehandler?,
             saksopplysninger: Saksopplysninger,
             opprettet: LocalDateTime,
             klagebehandling: Klagebehandling?,
@@ -251,7 +251,7 @@ data class Revurdering(
          * @param omgjørRammevedtak Rammevedtaket som erstattes helt eller delvis
          */
         fun opprettOmgjøring(
-            saksbehandler: Saksbehandler,
+            saksbehandler: Saksbehandler?,
             saksopplysninger: Saksopplysninger,
             omgjørRammevedtak: Rammevedtak,
             klagebehandling: Klagebehandling?,
@@ -278,7 +278,7 @@ data class Revurdering(
             revurderingId: BehandlingId = BehandlingId.random(),
             saksnummer: Saksnummer,
             fnr: Fnr,
-            saksbehandler: Saksbehandler,
+            saksbehandler: Saksbehandler?,
             saksopplysninger: Saksopplysninger,
             opprettet: LocalDateTime,
             resultat: Revurderingsresultat,
@@ -290,7 +290,7 @@ data class Revurdering(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 status = UNDER_BEHANDLING,
-                saksbehandler = saksbehandler.navIdent,
+                saksbehandler = saksbehandler?.navIdent,
                 saksopplysninger = saksopplysninger,
                 opprettet = opprettet,
                 sistEndret = opprettet,

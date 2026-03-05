@@ -90,10 +90,6 @@ data class Sak(
         )
     }
 
-    val apneSoknadsbehandlinger = rammebehandlinger
-        .filterIsInstance<Søknadsbehandling>()
-        .filterNot { it.erAvsluttet }
-
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortbehandlinger.hentMeldekortBehandling(meldekortId)
     }
@@ -109,10 +105,12 @@ data class Sak(
         val avsluttedeSoknadsbehandlinger = rammebehandlinger
             .filterIsInstance<Søknadsbehandling>()
             .filter { it.erAvsluttet }
+
         val apneSoknader = søknader.filterNot { it.erAvbrutt }
+
         return apneSoknader.any { soknad ->
             avsluttedeSoknadsbehandlinger.find { it.søknad.id == soknad.id } == null ||
-                apneSoknadsbehandlinger.find { it.søknad.id == soknad.id } != null
+                rammebehandlinger.åpneSøknadsbehandlinger.find { it.søknad.id == soknad.id } != null
         }
     }
 

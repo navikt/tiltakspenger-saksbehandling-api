@@ -1,15 +1,19 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
+import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
@@ -22,7 +26,8 @@ class EndretTiltaksdeltakerJobb(
     private val oppgaveKlient: OppgaveKlient,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
-    private val endretTiltaksdeltakerBehandlingService: EndretTiltaksdeltakerBehandlingService,
+    private val startRevurderingService: StartRevurderingService,
+
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -33,54 +38,50 @@ class EndretTiltaksdeltakerJobb(
             )
 
             endredeDeltakere.forEach { deltaker ->
-                val deltakerId = deltaker.id
                 val sakId = deltaker.sakId
-                val internTiltaksdeltakerId = deltaker.tiltaksdeltakerId
+                val eksternDeltakerId = deltaker.id
+                val tiltaksdeltakerId = deltaker.tiltaksdeltakerId
 
                 Either.catch {
                     val sak = sakRepo.hentForSakId(sakId)!!
-                    val apneBehandlingerForDeltakelse = finnApneBehandlingerForDeltakelse(sak, internTiltaksdeltakerId)
-                    val automatiskeBehandlingerPaVent =
-                        apneBehandlingerForDeltakelse.filter { it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
 
-                    behandleAutomatiskeBehandlingerPaVentPaNytt(automatiskeBehandlingerPaVent, internTiltaksdeltakerId)
+                    val åpneSøknadsbehandlingerForDeltaker =
+                        sak.rammebehandlinger.åpneSøknadsbehandlinger.filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId }
 
-                    val apneManuelleBehandlinger =
-                        apneBehandlingerForDeltakelse.filter { !it.erUnderAutomatiskBehandling }
-                    val nyesteIverksatteBehandling =
-                        finnNyesteIverksatteBehandlingForDeltakelse(sak, internTiltaksdeltakerId)
+                    val (åpneAutomatiskeBehandlinger, åpneManuelleBehandlinger) = åpneSøknadsbehandlingerForDeltaker.partition { it.erUnderAutomatiskBehandling }
 
-                    if (nyesteIverksatteBehandling == null && apneManuelleBehandlinger.isEmpty()) {
-                        log.info { "Fant ingen åpen manuell behandling eller iverksatt behandling for sakId $sakId og ekstern deltakerId $deltakerId, sletter deltakerinnslag" }
-                        tiltaksdeltakerKafkaRepository.slett(deltakerId)
+                    åpneAutomatiskeBehandlinger.filter { it.ventestatus.erSattPåVent }.also {
+                        behandleAutomatiskeBehandlingerPaVentPaNytt(it, tiltaksdeltakerId)
+                    }
+
+                    val endringer = sak.finnEndringer(deltaker, åpneManuelleBehandlinger)
+
+                    if (endringer == null) {
+                        log.info { "Fant ingen endringer for sakId $sakId og ekstern deltakerId ${deltaker.id}" }
+                        tiltaksdeltakerKafkaRepository.slett(eksternDeltakerId)
                         return@forEach
                     }
 
-                    val endringer = finnEndringer(apneManuelleBehandlinger, nyesteIverksatteBehandling, deltaker)
-                    if (endringer.isNotEmpty()) {
-                        log.info { "Tiltaksdeltakelse $deltakerId er endret" }
-                        endretTiltaksdeltakerBehandlingService.opprettBehandling(
-                            harApneBehandlinger = apneManuelleBehandlinger.isNotEmpty(),
-                            endringer = endringer,
-                            nyesteVedtak = nyesteIverksatteBehandling?.let { sak.rammevedtaksliste.finnRammevedtakForBehandling(it.id) },
-                            sakId = sakId,
-                            deltakerId = deltakerId,
-                        )
-                        log.info { "Tiltaksdeltakelse $deltakerId er endret, oppretter oppgave" }
-                        val oppgaveId =
-                            oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                                sak.fnr,
-                                Oppgavebehov.ENDRET_TILTAKDELTAKER,
-                                endringer.getOppgaveTilleggstekst(),
-                            )
-                        tiltaksdeltakerKafkaRepository.lagreOppgaveId(deltakerId, oppgaveId)
-                        log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $deltakerId" }
-                    } else {
-                        log.info { "Tiltaksdeltakelse $deltakerId er ikke endret, sletter innslag" }
-                        tiltaksdeltakerKafkaRepository.slett(deltakerId)
+                    val revurderingType =
+                        sak.skalOppretteRevurderingType(tiltaksdeltakerId, endringer, åpneManuelleBehandlinger)
+                    if (revurderingType != null) {
+                        log.info { "Endringene for sakId $sakId og ekstern deltakerId ${deltaker.id} tilsier at det skal opprettes en revurdering av type $revurderingType" }
+                        sak.startRevurdering(revurderingType)
                     }
+
+                    log.info { "Tiltaksdeltakelse $eksternDeltakerId er endret, oppretter oppgave" }
+
+                    val oppgaveId =
+                        oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                            sak.fnr,
+                            Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                            endringer.getOppgaveTilleggstekst(),
+                        )
+                    tiltaksdeltakerKafkaRepository.lagreOppgaveId(eksternDeltakerId, oppgaveId)
+
+                    log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $eksternDeltakerId" }
                 }.onLeft {
-                    log.error(it) { "Feil ved opprettelse av oppgave for endret tiltaksdeltakelse (deltakelseId $deltakerId - sakId $sakId" }
+                    log.error(it) { "Feil ved opprettelse av oppgave for endret tiltaksdeltakelse (deltakelseId $eksternDeltakerId - sakId $sakId" }
                 }
             }
         }.onLeft {
@@ -116,25 +117,6 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
-    private fun finnApneBehandlingerForDeltakelse(
-        sak: Sak,
-        tiltaksdeltakerId: TiltaksdeltakerId,
-    ): List<Søknadsbehandling> {
-        return sak.apneSoknadsbehandlinger.filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId }
-    }
-
-    private fun finnNyesteIverksatteBehandlingForDeltakelse(
-        sak: Sak,
-        tiltaksdeltakerId: TiltaksdeltakerId,
-    ): Rammebehandling? {
-        val iverksatteBehandlingerForDeltakelse: Periodisering<Rammebehandling> =
-            sak.rammevedtaksliste.innvilgetTidslinje
-                .filter { it.verdi.rammebehandling.inneholderSaksopplysningerInternDeltakelseId(tiltaksdeltakerId) }
-                .map { it.verdi.rammebehandling }
-
-        return iverksatteBehandlingerForDeltakelse.verdier.maxByOrNull { it.iverksattTidspunkt!! }
-    }
-
     private fun behandleAutomatiskeBehandlingerPaVentPaNytt(
         automatiskeBehandlingerPaVent: List<Søknadsbehandling>,
         tiltaksdeltakerId: TiltaksdeltakerId,
@@ -150,32 +132,82 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
-    private fun finnEndringer(
-        apneManuelleBehandlinger: List<Søknadsbehandling>,
-        nyesteIverksatteBehandling: Rammebehandling?,
+    private fun Sak.finnEndringer(
         deltaker: TiltaksdeltakerKafkaDb,
-    ): List<TiltaksdeltakerEndring> {
-        val tidligstEndredeApneBehandling = apneManuelleBehandlinger.minByOrNull { it.sistEndret }
+        åpneManuelleBehandlinger: List<Søknadsbehandling>,
+    ): NonEmptyList<TiltaksdeltakerEndring>? {
+        val tiltaksdeltakerId = deltaker.tiltaksdeltakerId
 
-        return if (nyesteIverksatteBehandling != null) {
-            finnEndringerForBehandling(nyesteIverksatteBehandling, deltaker)
-        } else if (tidligstEndredeApneBehandling != null) {
-            finnEndringerForBehandling(tidligstEndredeApneBehandling, deltaker)
-        } else {
-            throw IllegalStateException("Skal ikke komme hit hvis det ikke finnes åpne eller iverksatte behandlinger")
+        val relevanteTiltaksdeltakelserFraVedtak = rammevedtaksliste.valgteTiltaksdeltakelser
+            .filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }.verdier
+            .distinctBy { it.internDeltakelseId }
+
+        val relevanteTiltaksdeltakelserFraÅpneBehandlinger = åpneManuelleBehandlinger
+            .mapNotNull { it.getTiltaksdeltakelse(tiltaksdeltakerId) }
+
+        val relevanteTiltaksdeltakelser =
+            relevanteTiltaksdeltakelserFraVedtak.plus(relevanteTiltaksdeltakelserFraÅpneBehandlinger)
+
+        if (relevanteTiltaksdeltakelser.isEmpty()) {
+            log.info { "Fant ingen vedtak eller åpne behandlinger med deltakelse $tiltaksdeltakerId (${deltaker.id}) på sakId $id" }
+            return null
+        }
+
+        return relevanteTiltaksdeltakelser
+            .flatMap { deltaker.finnEndringer(it, clock) }
+            .toNonEmptyListOrNull()
+    }
+
+    private fun Sak.skalOppretteRevurderingType(
+        deltakerId: TiltaksdeltakerId,
+        endringer: NonEmptyList<TiltaksdeltakerEndring>,
+        åpneManuelleBehandlinger: List<Søknadsbehandling>,
+    ): StartRevurderingType? {
+        if (!this.harFørstegangsvedtak || åpneManuelleBehandlinger.isNotEmpty()) {
+            log.info { "Oppretter ikke revurdering hvis det finnes åpne behandlinger eller vedtak mangler, tiltaksdeltakelse $deltakerId, sakId $id" }
+            return null
+        }
+
+        val idag = nå(clock).toLocalDate()
+
+        val harAndreTiltaksdeltakelserFremover = rammevedtaksliste.valgteTiltaksdeltakelser.filter {
+            it.periode.tilOgMed >= idag && it.verdi.internDeltakelseId != deltakerId
+        }.verdier.isNotEmpty()
+
+        return when {
+            TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE in endringer && !harAndreTiltaksdeltakelserFremover -> StartRevurderingType.STANS
+
+            TiltaksdeltakerEndring.FORLENGELSE in endringer -> StartRevurderingType.INNVILGELSE
+
+            // TODO: denne må forbedres for å håndtere omgjøring av flere vedtak
+//            endringer.any { it in endringerForOmgjøring } -> StartRevurderingType.OMGJØRING
+
+            else -> null
         }
     }
 
-    private fun finnEndringerForBehandling(
-        behandling: Rammebehandling,
-        deltaker: TiltaksdeltakerKafkaDb,
-    ): List<TiltaksdeltakerEndring> {
-        log.info { "Fant behandling ${behandling.id} for sakId ${behandling.sakId} og deltakerId ${deltaker.id}" }
-
-        val tiltaksdeltakelseFraBehandling = behandling.getTiltaksdeltakelse(
-            internDeltakelseId = deltaker.tiltaksdeltakerId,
+    private suspend fun Sak.startRevurdering(revurderingType: StartRevurderingType) {
+        val kommando = StartRevurderingKommando(
+            sakId = this.id,
+            correlationId = CorrelationId.generate(),
+            saksbehandler = null,
+            revurderingType = revurderingType,
+            vedtakIdSomOmgjøres = null,
+            klagebehandlingId = null,
         )
-            ?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id} på behandling ${behandling.id}, skal ikke kunne skje")
-        return deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling, clock = clock)
+
+        startRevurderingService.startRevurdering(kommando).also { (_, revurdering) ->
+            log.info { "Opprettet revurdering med id ${revurdering.id}" }
+        }
+    }
+
+    companion object {
+
+        private val endringerForOmgjøring = setOf(
+            TiltaksdeltakerEndring.ENDRET_STARTDATO,
+            TiltaksdeltakerEndring.ENDRET_SLUTTDATO,
+            TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE,
+            TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE,
+        )
     }
 }

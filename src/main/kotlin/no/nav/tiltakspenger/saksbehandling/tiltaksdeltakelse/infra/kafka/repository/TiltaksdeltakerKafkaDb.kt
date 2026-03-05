@@ -22,7 +22,8 @@ data class TiltaksdeltakerKafkaDb(
     val oppgaveSistSjekket: LocalDateTime?,
     val tiltaksdeltakerId: TiltaksdeltakerId,
 ) {
-    fun tiltaksdeltakelseErEndret(
+
+    fun finnEndringer(
         tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
         clock: Clock,
     ): List<TiltaksdeltakerEndring> {

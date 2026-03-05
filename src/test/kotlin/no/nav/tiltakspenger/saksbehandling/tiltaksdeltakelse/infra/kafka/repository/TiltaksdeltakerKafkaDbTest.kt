@@ -40,7 +40,7 @@ class TiltaksdeltakerKafkaDbTest {
         val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb()
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock) shouldBe emptyList()
     }
 
     @Test
@@ -49,7 +49,7 @@ class TiltaksdeltakerKafkaDbTest {
         val tiltaksdeltakerKafkaDb =
             getTiltaksdeltakerKafkaDb(fom = lagretTiltaksdeltakelse.deltakelseFraOgMed!!.minusDays(3))
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_STARTDATO)
+        tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_STARTDATO)
     }
 
     @Test
@@ -57,7 +57,7 @@ class TiltaksdeltakerKafkaDbTest {
         val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(tom = lagretTiltaksdeltakelse.deltakelseTilOgMed!!.plusMonths(1))
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.FORLENGELSE)
+        tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.FORLENGELSE)
     }
 
     @Test
@@ -65,7 +65,7 @@ class TiltaksdeltakerKafkaDbTest {
         val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(dagerPerUke = 1F)
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
+        tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
     }
 
     @Test
@@ -73,7 +73,7 @@ class TiltaksdeltakerKafkaDbTest {
         val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(deltakelsesprosent = 60F)
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
+        tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
     }
 
     @Test
@@ -82,7 +82,7 @@ class TiltaksdeltakerKafkaDbTest {
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(deltakelsesprosent = null)
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(deltakelseProsent = 0.0F)
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe emptyList()
     }
 
     @Test
@@ -98,7 +98,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.HarSluttet,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
+        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
     }
 
     @Test
@@ -114,7 +114,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Fullført,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe emptyList()
     }
 
     @Test
@@ -130,7 +130,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Deltar,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe emptyList()
     }
 
     @Test
@@ -146,7 +146,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Deltar,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.FORLENGELSE)
+        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.FORLENGELSE)
     }
 
     @Test
@@ -162,7 +162,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Fullført,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_STATUS)
+        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.ENDRET_STATUS)
     }
 
     @Test
@@ -172,7 +172,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Avbrutt,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
+        tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
     }
 
     @Test
@@ -183,7 +183,7 @@ class TiltaksdeltakerKafkaDbTest {
             dagerPerUke = 1F,
         )
 
-        val endringer = tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse, clock).sorted()
+        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).sorted()
         endringer.size shouldBe 2
         endringer.first() shouldBe TiltaksdeltakerEndring.FORLENGELSE
         endringer[1] shouldBe TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE
@@ -203,7 +203,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
         )
 
-        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.IKKE_AKTUELL_DELTAKELSE)
+        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.IKKE_AKTUELL_DELTAKELSE)
     }
 }
 
