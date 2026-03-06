@@ -200,13 +200,6 @@ data class Sak(
     fun oppdaterKanSendeInnHelgForMeldekort(kanSendeInnHelgForMeldekort: Boolean): Sak =
         this.copy(kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort)
 
-    /**
-     * Tar kun med vedtak som innvilger.
-     */
-    fun erRammevedtakGjeldendeForHeleSinPeriode(rammevedtakId: VedtakId): Boolean {
-        return hentRammevedtakForId(rammevedtakId).omgjortGrad == null
-    }
-
     // Et meldeperiode har ikke informasjon om tiltaksdeltakelsen, så vi må hente det fra rammevedtakene som gjelder for dette meldekortvedtaket.
     // Det er mulig at flere rammevedtak gjelder for samme meldekortvedtak, f.eks. ved revurdering.
     // Ved flere rammevedtak kan de inneholde de samme tiltaksdeltakelsene.

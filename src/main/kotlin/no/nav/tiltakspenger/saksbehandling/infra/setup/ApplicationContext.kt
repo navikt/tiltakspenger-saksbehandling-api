@@ -49,7 +49,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.EndretTiltaksdeltakerBehandlingService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
@@ -157,21 +156,14 @@ open class ApplicationContext(
         )
     }
 
-    open val endretTiltaksdeltakerBehandlingService: EndretTiltaksdeltakerBehandlingService by lazy {
-        EndretTiltaksdeltakerBehandlingService(
-            startRevurderingService = behandlingContext.startRevurderingService,
-            leggTilbakeBehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
-        )
-    }
-
     open val endretTiltaksdeltakerJobb by lazy {
         EndretTiltaksdeltakerJobb(
             tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
             sakRepo = sakContext.sakRepo,
             oppgaveKlient = oppgaveKlient,
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
+            startRevurderingService = behandlingContext.startRevurderingService,
             clock = clock,
-            endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
         )
     }
 

@@ -15,14 +15,12 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -47,14 +45,12 @@ import java.util.UUID
 
 class EndretTiltaksdeltakerJobbTest {
     private val startRevurderingService = mockk<StartRevurderingService>()
-    private val leggTilbakeBehandlingService = mockk<LeggTilbakeRammebehandlingService>()
-    private val endretTiltaksdeltakerBehandlingService = EndretTiltaksdeltakerBehandlingService(startRevurderingService, leggTilbakeBehandlingService)
     private val oppgaveKlient = mockk<OppgaveKlient>()
     private val oppgaveId = OppgaveId("50")
 
     @BeforeEach
     fun clearMockData() {
-        clearMocks(oppgaveKlient, startRevurderingService, leggTilbakeBehandlingService)
+        clearMocks(oppgaveKlient, startRevurderingService)
         coEvery {
             oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                 any(),
@@ -77,7 +73,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                    startRevurderingService = startRevurderingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -104,13 +100,12 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(testDataHelper.clock).minusMinutes(20),
                 )
 
-                endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
 
                 coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
                 coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-                coVerify(exactly = 0) { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) }
             }
         }
     }
@@ -128,7 +123,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                    startRevurderingService = startRevurderingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -151,12 +146,11 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(testDataHelper.clock).minusMinutes(20),
                 )
 
-                endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
                 coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
                 coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-                coVerify(exactly = 0) { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) }
             }
         }
     }
@@ -175,7 +169,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                    startRevurderingService = startRevurderingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -215,7 +209,7 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(testDataHelper.clock).minusMinutes(20),
                 )
 
-                endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
@@ -228,7 +222,6 @@ class EndretTiltaksdeltakerJobbTest {
                     )
                 }
                 coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-                coVerify(exactly = 0) { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) }
             }
         }
     }
@@ -247,7 +240,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                    startRevurderingService = startRevurderingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -298,12 +291,11 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(testDataHelper.clock).minusMinutes(20),
                 )
 
-                endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
                 coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
                 coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-                coVerify(exactly = 0) { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) }
                 behandlingRepo.hent(behandling.id).venterTil?.toLocalDate() shouldBe 1.januar(2025)
             }
         }
@@ -322,7 +314,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                    startRevurderingService = startRevurderingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -364,12 +356,11 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(testDataHelper.clock).minusMinutes(20),
                 )
 
-                endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
                 coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
                 coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-                coVerify(exactly = 0) { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) }
             }
         }
     }
@@ -387,7 +378,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                    startRevurderingService = startRevurderingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -423,10 +414,6 @@ class EndretTiltaksdeltakerJobbTest {
                     sak,
                     revurdering,
                 )
-                coEvery { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) } returns Pair(
-                    sak,
-                    revurdering.copy(saksbehandler = null, status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING),
-                )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
                     id = id,
                     sakId = sak.id,
@@ -440,33 +427,25 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(testDataHelper.clock).minusMinutes(20),
                 )
 
-                endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                coVerify(exactly = 1) {
+                oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+                coVerify(exactly = 0) {
                     oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                         any(),
                         any(),
-                        "- Endret deltakelsesmengde\n" +
-                            "- Deltakelsen har blitt forlenget",
+                        any(),
                     )
                 }
                 coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.INNVILGELSE }) }
-                coVerify(exactly = 1) {
-                    leggTilbakeBehandlingService.leggTilbakeBehandling(
-                        sak.id,
-                        any(),
-                        AUTOMATISK_SAKSBEHANDLER,
-                    )
-                }
             }
         }
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, avbrutt - oppretter oppgave og revurdering`() {
+    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, avbrutt - oppretter revurdering`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
@@ -478,7 +457,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                    startRevurderingService = startRevurderingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -514,10 +493,6 @@ class EndretTiltaksdeltakerJobbTest {
                     sak,
                     revurdering,
                 )
-                coEvery { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) } returns Pair(
-                    sak,
-                    revurdering.copy(saksbehandler = null, status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING),
-                )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
                     id = id,
                     sakId = sak.id,
@@ -532,26 +507,19 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(testDataHelper.clock).minusMinutes(20),
                 )
 
-                endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                coVerify(exactly = 1) {
+                oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+                coVerify(exactly = 0) {
                     oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                         any(),
                         any(),
-                        "Deltakelsen er avbrutt.",
+                        any(),
                     )
                 }
                 coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS }) }
-                coVerify(exactly = 1) {
-                    leggTilbakeBehandlingService.leggTilbakeBehandling(
-                        sak.id,
-                        any(),
-                        AUTOMATISK_SAKSBEHANDLER,
-                    )
-                }
             }
         }
     }
@@ -628,7 +596,7 @@ class EndretTiltaksdeltakerJobbTest {
                         oppgaveKlient = oppgaveKlient,
                         rammebehandlingRepo = behandlingRepo,
                         clock = testDataHelper.clock,
-                        endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                        startRevurderingService = startRevurderingService,
                     )
                     val (sakMedFørstegangsvedtak, vedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
@@ -657,7 +625,7 @@ class EndretTiltaksdeltakerJobbTest {
                         "melding",
                         nå(testDataHelper.clock).minusMinutes(20),
                     )
-                    endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+                    endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
                     val oppdatertTiltaksdeltakerKafkaDb =
                         tiltaksdeltakerKafkaRepository.hent(førsteSøknad.id.toString())
@@ -670,7 +638,6 @@ class EndretTiltaksdeltakerJobbTest {
                         )
                     }
                     coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-                    coVerify(exactly = 0) { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) }
                 }
             }
         }
@@ -688,7 +655,7 @@ class EndretTiltaksdeltakerJobbTest {
                         oppgaveKlient = oppgaveKlient,
                         rammebehandlingRepo = behandlingRepo,
                         clock = testDataHelper.clock,
-                        endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                        startRevurderingService = startRevurderingService,
                     )
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
@@ -718,10 +685,6 @@ class EndretTiltaksdeltakerJobbTest {
                         sak,
                         revurdering,
                     )
-                    coEvery { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) } returns Pair(
-                        sak,
-                        revurdering.copy(saksbehandler = null, status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING),
-                    )
 
                     tiltaksdeltakerKafkaRepository.lagre(
                         førsteTiltaksdeltakerKafkaDb,
@@ -734,30 +697,25 @@ class EndretTiltaksdeltakerJobbTest {
                         nå(testDataHelper.clock).minusMinutes(20),
                     )
 
-                    endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+                    endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
                     val førsteOppdatertTiltaksdeltakerKafkaDb =
                         tiltaksdeltakerKafkaRepository.hent(førsteSøknadstiltakId)
                     førsteOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                    førsteOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
+                    førsteOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
 
                     val andreOppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(andreSøknadstiltakId)
                     andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
 
-                    coVerify(exactly = 1) {
+                    coVerify(exactly = 0) {
                         oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                             any(),
                             any(),
-                            "Deltakelsen er avbrutt.",
+                            any(),
                         )
                     }
-                    coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS }) }
                     coVerify(exactly = 1) {
-                        leggTilbakeBehandlingService.leggTilbakeBehandling(
-                            sak.id,
-                            any(),
-                            AUTOMATISK_SAKSBEHANDLER,
-                        )
+                        startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS })
                     }
                 }
             }
@@ -776,7 +734,7 @@ class EndretTiltaksdeltakerJobbTest {
                         oppgaveKlient = oppgaveKlient,
                         rammebehandlingRepo = behandlingRepo,
                         clock = testDataHelper.clock,
-                        endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                        startRevurderingService = startRevurderingService,
                     )
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterRammevedtakAvslag(
                         sakId = sak.id,
@@ -806,10 +764,6 @@ class EndretTiltaksdeltakerJobbTest {
                         sak,
                         revurdering,
                     )
-                    coEvery { leggTilbakeBehandlingService.leggTilbakeBehandling(any(), any(), any()) } returns Pair(
-                        sak,
-                        revurdering.copy(saksbehandler = null, status = Rammebehandlingsstatus.KLAR_TIL_BEHANDLING),
-                    )
 
                     tiltaksdeltakerKafkaRepository.lagre(
                         førsteTiltaksdeltakerKafkaDb,
@@ -822,7 +776,7 @@ class EndretTiltaksdeltakerJobbTest {
                         nå(testDataHelper.clock).minusMinutes(20),
                     )
 
-                    endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+                    endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
                     val førsteOppdatertTiltaksdeltakerKafkaDb =
                         tiltaksdeltakerKafkaRepository.hent(førsteSøknadstiltakId)
@@ -830,22 +784,17 @@ class EndretTiltaksdeltakerJobbTest {
 
                     val andreOppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(andreSøknadstiltakId)
                     andreOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                    andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
+                    andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
 
-                    coVerify(exactly = 1) {
+                    coVerify(exactly = 0) {
                         oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                             any(),
                             any(),
-                            "Deltakelsen er avbrutt.",
+                            any(),
                         )
                     }
-                    coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS }) }
                     coVerify(exactly = 1) {
-                        leggTilbakeBehandlingService.leggTilbakeBehandling(
-                            sak.id,
-                            any(),
-                            AUTOMATISK_SAKSBEHANDLER,
-                        )
+                        startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS })
                     }
                 }
             }
@@ -867,7 +816,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                    startRevurderingService = startRevurderingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
@@ -939,7 +888,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveKlient = oppgaveKlient,
                     rammebehandlingRepo = behandlingRepo,
                     clock = testDataHelper.clock,
-                    endretTiltaksdeltakerBehandlingService = endretTiltaksdeltakerBehandlingService,
+                    startRevurderingService = startRevurderingService,
                 )
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()

@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
@@ -31,7 +32,7 @@ class EndretTiltaksdeltakerJobb(
 ) {
     private val log = KotlinLogging.logger {}
 
-    suspend fun opprettOppgaveForEndredeDeltakere() {
+    suspend fun opprettOppgaveEllerRevurderingForEndredeDeltakere() {
         Either.catch {
             val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgave(
                 sistOppdatertTidligereEnn = nå(clock).minusMinutes(15),
@@ -62,24 +63,29 @@ class EndretTiltaksdeltakerJobb(
                         return@forEach
                     }
 
-                    val revurderingType =
+                    val revurderingTypeOgVedtakId =
                         sak.skalOppretteRevurderingType(tiltaksdeltakerId, endringer, åpneManuelleBehandlinger)
-                    if (revurderingType != null) {
-                        log.info { "Endringene for sakId $sakId og ekstern deltakerId ${deltaker.id} tilsier at det skal opprettes en revurdering av type $revurderingType" }
-                        sak.startRevurdering(revurderingType)
+
+                    if (revurderingTypeOgVedtakId == null) {
+                        log.info { "Tiltaksdeltakelse $eksternDeltakerId er endret, oppretter oppgave" }
+
+                        val oppgaveId =
+                            oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                                sak.fnr,
+                                Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                                endringer.getOppgaveTilleggstekst(),
+                            )
+                        tiltaksdeltakerKafkaRepository.lagreOppgaveId(eksternDeltakerId, oppgaveId)
+
+                        log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $eksternDeltakerId" }
+                    } else {
+                        val (revurderingType, vedtakIdSomOmgjøres) = revurderingTypeOgVedtakId
+
+                        log.info {
+                            "Endringene for sakId $sakId og ekstern deltakerId ${deltaker.id} tilsier at det skal opprettes en revurdering av type $revurderingType"
+                        }
+                        sak.startRevurdering(revurderingType, vedtakIdSomOmgjøres)
                     }
-
-                    log.info { "Tiltaksdeltakelse $eksternDeltakerId er endret, oppretter oppgave" }
-
-                    val oppgaveId =
-                        oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                            sak.fnr,
-                            Oppgavebehov.ENDRET_TILTAKDELTAKER,
-                            endringer.getOppgaveTilleggstekst(),
-                        )
-                    tiltaksdeltakerKafkaRepository.lagreOppgaveId(eksternDeltakerId, oppgaveId)
-
-                    log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $eksternDeltakerId" }
                 }.onLeft {
                     log.error(it) { "Feil ved opprettelse av oppgave for endret tiltaksdeltakelse (deltakelseId $eksternDeltakerId - sakId $sakId" }
                 }
@@ -162,7 +168,7 @@ class EndretTiltaksdeltakerJobb(
         deltakerId: TiltaksdeltakerId,
         endringer: NonEmptyList<TiltaksdeltakerEndring>,
         åpneManuelleBehandlinger: List<Søknadsbehandling>,
-    ): StartRevurderingType? {
+    ): Pair<StartRevurderingType, VedtakId?>? {
         if (!this.harFørstegangsvedtak || åpneManuelleBehandlinger.isNotEmpty()) {
             log.info { "Oppretter ikke revurdering hvis det finnes åpne behandlinger eller vedtak mangler, tiltaksdeltakelse $deltakerId, sakId $id" }
             return null
@@ -174,25 +180,38 @@ class EndretTiltaksdeltakerJobb(
             it.periode.tilOgMed >= idag && it.verdi.internDeltakelseId != deltakerId
         }.verdier.isNotEmpty()
 
+        val vedtakMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.filter {
+            it.verdi.gjeldendeTiltaksdeltakelser.any { deltakelse -> deltakelse.verdi.internDeltakelseId == deltakerId }
+        }.verdier
+
+        if (vedtakMedRelevantTiltaksdeltakelse.isEmpty()) {
+            log.error { "Forventet minst ett vedtak med deltakerId $deltakerId på sak $id" }
+            return null
+        }
+
         return when {
-            TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE in endringer && !harAndreTiltaksdeltakelserFremover -> StartRevurderingType.STANS
+            TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE in endringer && !harAndreTiltaksdeltakelserFremover -> StartRevurderingType.STANS to null
 
-            TiltaksdeltakerEndring.FORLENGELSE in endringer -> StartRevurderingType.INNVILGELSE
+            TiltaksdeltakerEndring.FORLENGELSE in endringer -> StartRevurderingType.INNVILGELSE to null
 
-            // TODO: denne må forbedres for å håndtere omgjøring av flere vedtak
-//            endringer.any { it in endringerForOmgjøring } -> StartRevurderingType.OMGJØRING
+            endringer.any { it in endringerForOmgjøring } && vedtakMedRelevantTiltaksdeltakelse.size == 1 -> {
+                StartRevurderingType.OMGJØRING to vedtakMedRelevantTiltaksdeltakelse.single().id
+            }
 
             else -> null
         }
     }
 
-    private suspend fun Sak.startRevurdering(revurderingType: StartRevurderingType) {
+    private suspend fun Sak.startRevurdering(
+        revurderingType: StartRevurderingType,
+        vedtakIdSomOmgjøres: VedtakId? = null,
+    ) {
         val kommando = StartRevurderingKommando(
             sakId = this.id,
             correlationId = CorrelationId.generate(),
             saksbehandler = null,
             revurderingType = revurderingType,
-            vedtakIdSomOmgjøres = null,
+            vedtakIdSomOmgjøres = vedtakIdSomOmgjøres,
             klagebehandlingId = null,
         )
 

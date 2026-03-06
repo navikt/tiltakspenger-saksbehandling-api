@@ -12,6 +12,8 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.TomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -130,6 +132,12 @@ data class Rammevedtak(
         } else {
             innvilgelsesperioder?.perioder?.trekkFra(omgjortAvRammevedtak.perioder) ?: emptyList()
         }.leggSammen()
+    }
+
+    val gjeldendeTiltaksdeltakelser: Periodisering<Tiltaksdeltakelse> by lazy {
+        if (valgteTiltaksdeltakelser == null) return@lazy TomPeriodisering.instance()
+
+        valgteTiltaksdeltakelser.filter { gjeldendeInnvilgetPerioder.contains(it.periode) }
     }
 
     /**
