@@ -36,6 +36,7 @@ fun String.shouldBeKlagebehandlingDTO(
     hjemler: List<String> = emptyList(),
     iverksattOpprettholdelseTidspunkt: Boolean = false,
     journalføringstidspunktInnstillingsbrev: Boolean = false,
+    journalpostIdInnstillingsbrev: String? = null,
     distribusjonstidspunktInnstillingsbrev: Boolean = false,
     oversendtKlageinstansenTidspunkt: Boolean = false,
     klageinstanshendelser: List<String> = emptyList(),
@@ -67,6 +68,7 @@ fun String.shouldBeKlagebehandlingDTO(
                       "oversendtKlageinstansenTidspunkt": ${if (oversendtKlageinstansenTidspunkt) "\"TIMESTAMP\"" else "null"},
                       "klageinstanshendelser": [ ${klageinstanshendelser.joinToString()} ],
                       "ferdigstiltTidspunkt": ${if (ferdigstiltTidspunkt) "\"TIMESTAMP\"" else "null"},
+                      "journalpostIdInnstillingsbrev": ${journalpostIdInnstillingsbrev?.let { "\"$it\"" }},
                       "type": "OPPRETTHOLDT"
                     }
                 """.trimIndent()

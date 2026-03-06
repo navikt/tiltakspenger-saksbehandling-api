@@ -60,6 +60,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 distribusjonstidspunktInnstillingsbrev = true,
                 oversendtKlageinstansenTidspunkt = true,
                 ferdigstiltTidspunkt = true,
+                journalpostIdInnstillingsbrev = "2",
                 klageinstanshendelser = listOf(
                     """
                      {
