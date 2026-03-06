@@ -49,6 +49,7 @@ class ArenaDeltakerMapper {
             oppgaveId = null,
             oppgaveSistSjekket = null,
             tiltaksdeltakerId = tiltaksdeltakerId,
+            behandlingId = null,
         )
     }
 

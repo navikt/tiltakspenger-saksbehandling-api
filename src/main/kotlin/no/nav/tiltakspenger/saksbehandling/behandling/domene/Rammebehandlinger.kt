@@ -32,6 +32,10 @@ data class Rammebehandlinger(
 
     val åpneBehandlinger: List<Rammebehandling> by lazy { behandlinger.filterNot { it.erAvsluttet } }
 
+    val åpneSøknadsbehandlinger: List<Søknadsbehandling> by lazy {
+        åpneBehandlinger.filterIsInstance<Søknadsbehandling>()
+    }
+
     fun leggTilSøknadsbehandling(
         søknadsbehandling: Søknadsbehandling,
     ): Rammebehandlinger {

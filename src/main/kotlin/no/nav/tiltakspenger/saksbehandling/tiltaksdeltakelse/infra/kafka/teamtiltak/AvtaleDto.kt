@@ -100,6 +100,7 @@ data class AvtaleDto(
             oppgaveId = null,
             oppgaveSistSjekket = null,
             tiltaksdeltakerId = tiltaksdeltakerId,
+            behandlingId = null,
         )
 }
 
