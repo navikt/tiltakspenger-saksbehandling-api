@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
@@ -20,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
 import java.time.Clock
+import java.time.LocalDate
 
 class EndretTiltaksdeltakerJobb(
     private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
@@ -46,52 +46,40 @@ class EndretTiltaksdeltakerJobb(
                 Either.catch {
                     val sak = sakRepo.hentForSakId(sakId)!!
 
-                    val åpneSøknadsbehandlingerForDeltaker =
-                        sak.rammebehandlinger.åpneSøknadsbehandlinger.filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId }
+                    sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(tiltaksdeltakerId)
 
-                    val (åpneAutomatiskeBehandlinger, åpneManuelleBehandlinger) = åpneSøknadsbehandlingerForDeltaker.partition { it.erUnderAutomatiskBehandling }
-
-                    åpneAutomatiskeBehandlinger.filter { it.ventestatus.erSattPåVent }.also {
-                        behandleAutomatiskeBehandlingerPaVentPaNytt(it, tiltaksdeltakerId)
-                    }
-
-                    val endringer = sak.finnEndringer(deltaker, åpneManuelleBehandlinger)
+                    val endringer = sak.finnEndringer(deltaker)
 
                     if (endringer == null) {
-                        log.info { "Fant ingen endringer for sakId $sakId og ekstern deltakerId ${deltaker.id}" }
+                        log.info { "Fant ingen endringer for sakId $sakId og deltakerId $tiltaksdeltakerId / ${deltaker.id}" }
                         tiltaksdeltakerKafkaRepository.slett(eksternDeltakerId)
                         return@forEach
                     }
 
-                    val revurderingTypeOgVedtakId =
-                        sak.skalOppretteRevurderingType(tiltaksdeltakerId, endringer, åpneManuelleBehandlinger)
+                    val harOpprettetRevurdering = sak.opprettRevurderingHvisRelevant(
+                        tiltaksdeltakerId,
+                        endringer,
+                    )
 
-                    if (revurderingTypeOgVedtakId == null) {
-                        log.info { "Tiltaksdeltakelse $eksternDeltakerId er endret, oppretter oppgave" }
+                    if (!harOpprettetRevurdering) {
+                        log.info { "Tiltaksdeltakelse $eksternDeltakerId er endret uten å opprette revurdering, oppretter oppgave" }
 
-                        val oppgaveId =
-                            oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                                sak.fnr,
-                                Oppgavebehov.ENDRET_TILTAKDELTAKER,
-                                endringer.getOppgaveTilleggstekst(),
-                            )
+                        val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                            sak.fnr,
+                            Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                            endringer.getOppgaveTilleggstekst(),
+                        )
+
                         tiltaksdeltakerKafkaRepository.lagreOppgaveId(eksternDeltakerId, oppgaveId)
 
                         log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $eksternDeltakerId" }
-                    } else {
-                        val (revurderingType, vedtakIdSomOmgjøres) = revurderingTypeOgVedtakId
-
-                        log.info {
-                            "Endringene for sakId $sakId og ekstern deltakerId ${deltaker.id} tilsier at det skal opprettes en revurdering av type $revurderingType"
-                        }
-                        sak.startRevurdering(revurderingType, vedtakIdSomOmgjøres)
                     }
                 }.onLeft {
-                    log.error(it) { "Feil ved opprettelse av oppgave for endret tiltaksdeltakelse (deltakelseId $eksternDeltakerId - sakId $sakId" }
+                    log.error(it) { "Feil ved opprettelse av oppgave/revurdering for endret tiltaksdeltakelse (deltakelseId $eksternDeltakerId - sakId $sakId" }
                 }
             }
         }.onLeft {
-            log.error(it) { "Feil ved opprettelse av oppgaver for endret tiltaksdeltakelse" }
+            log.error(it) { "Feil ved opprettelse av oppgaver/revurderinger for endret tiltaksdeltakelse" }
         }
     }
 
@@ -123,39 +111,35 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
-    private fun behandleAutomatiskeBehandlingerPaVentPaNytt(
-        automatiskeBehandlingerPaVent: List<Søknadsbehandling>,
-        tiltaksdeltakerId: TiltaksdeltakerId,
-    ) {
-        automatiskeBehandlingerPaVent.forEach {
-            it.oppdaterVenterTil(
-                nyVenterTil = nå(clock).plusMinutes(15), // venter i 15 minutter i tilfelle det kommer flere endringer
-                clock = clock,
-            ).let { behandling ->
-                rammebehandlingRepo.lagre(behandling)
+    private fun Sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(tiltaksdeltakerId: TiltaksdeltakerId) {
+        rammebehandlinger.åpneSøknadsbehandlinger
+            .filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId && it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
+            .forEach {
+                it.oppdaterVenterTil(
+                    nyVenterTil = nå(clock).plusMinutes(15), // venter i 15 minutter i tilfelle det kommer flere endringer
+                    clock = clock,
+                ).let { behandling ->
+                    rammebehandlingRepo.lagre(behandling)
+                }
+                log.info { "Har oppdatert venterTil for automatisk behandling med id ${it.id} pga endring på deltaker med intern id $tiltaksdeltakerId" }
             }
-            log.info { "Har oppdatert venterTil for automatisk behandling med id ${it.id} pga endring på deltaker med intern id $tiltaksdeltakerId" }
-        }
     }
 
-    private fun Sak.finnEndringer(
-        deltaker: TiltaksdeltakerKafkaDb,
-        åpneManuelleBehandlinger: List<Søknadsbehandling>,
-    ): NonEmptyList<TiltaksdeltakerEndring>? {
+    private fun Sak.finnEndringer(deltaker: TiltaksdeltakerKafkaDb): NonEmptyList<TiltaksdeltakerEndring>? {
         val tiltaksdeltakerId = deltaker.tiltaksdeltakerId
 
         val relevanteTiltaksdeltakelserFraVedtak = rammevedtaksliste.valgteTiltaksdeltakelser
             .filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }.verdier
-            .distinctBy { it.internDeltakelseId }
 
-        val relevanteTiltaksdeltakelserFraÅpneBehandlinger = åpneManuelleBehandlinger
+        val relevanteTiltaksdeltakelserFraÅpneBehandlinger = rammebehandlinger.åpneBehandlinger
+            .filter { !it.erUnderAutomatiskBehandling }
             .mapNotNull { it.getTiltaksdeltakelse(tiltaksdeltakerId) }
 
-        val relevanteTiltaksdeltakelser =
-            relevanteTiltaksdeltakelserFraVedtak.plus(relevanteTiltaksdeltakelserFraÅpneBehandlinger)
+        val relevanteTiltaksdeltakelser = relevanteTiltaksdeltakelserFraVedtak
+            .plus(relevanteTiltaksdeltakelserFraÅpneBehandlinger)
+            .distinctBy { it.internDeltakelseId }
 
         if (relevanteTiltaksdeltakelser.isEmpty()) {
-            log.info { "Fant ingen vedtak eller åpne behandlinger med deltakelse $tiltaksdeltakerId (${deltaker.id}) på sakId $id" }
             return null
         }
 
@@ -164,21 +148,74 @@ class EndretTiltaksdeltakerJobb(
             .toNonEmptyListOrNull()
     }
 
-    private fun Sak.skalOppretteRevurderingType(
+    private suspend fun Sak.opprettRevurderingHvisRelevant(
         deltakerId: TiltaksdeltakerId,
         endringer: NonEmptyList<TiltaksdeltakerEndring>,
-        åpneManuelleBehandlinger: List<Søknadsbehandling>,
-    ): Pair<StartRevurderingType, VedtakId?>? {
-        if (!this.harFørstegangsvedtak || åpneManuelleBehandlinger.isNotEmpty()) {
-            log.info { "Oppretter ikke revurdering hvis det finnes åpne behandlinger eller vedtak mangler, tiltaksdeltakelse $deltakerId, sakId $id" }
-            return null
+    ): Boolean {
+        if (!this.harFørstegangsvedtak || this.rammebehandlinger.åpneBehandlinger.isNotEmpty()) {
+            log.info {
+                "Oppretter ikke revurdering hvis det finnes åpne behandlinger, eller førstegangsvedtak mangler, tiltaksdeltakelse $deltakerId, sakId $id"
+            }
+            return false
         }
 
-        val idag = nå(clock).toLocalDate()
+        return startStansHvisRelevant(deltakerId, endringer) ||
+            startForlengelseHvisRelevant(endringer) ||
+            startOmgjøringHvisRelevant(deltakerId, endringer)
+    }
 
-        val harAndreTiltaksdeltakelserFremover = rammevedtaksliste.valgteTiltaksdeltakelser.filter {
-            it.periode.tilOgMed >= idag && it.verdi.internDeltakelseId != deltakerId
-        }.verdier.isNotEmpty()
+    private suspend fun Sak.startStansHvisRelevant(
+        deltakerId: TiltaksdeltakerId,
+        endringer: NonEmptyList<TiltaksdeltakerEndring>,
+    ): Boolean {
+        if (endringer.none { it is TiltaksdeltakerEndring.AvbruttDeltakelse }) {
+            return false
+        }
+
+        val idag = LocalDate.now(clock)
+
+        // Vil ikke opprette stans dersom det også er innvilget for andre tiltaksdeltakelser
+        val harAndreTiltaksdeltakelserFremover by lazy {
+            rammevedtaksliste.valgteTiltaksdeltakelser.filter {
+                it.periode.tilOgMed >= idag && it.verdi.internDeltakelseId != deltakerId
+            }.verdier.isNotEmpty()
+        }
+
+        // Dersom det ikke finnes dager med rett i fremtiden, er sannsynligvis innvilgelsen stanset allerede
+        val harRettFremover = rammevedtaksliste.sisteDagSomGirRett?.let { it >= idag } ?: false
+
+        if (!harRettFremover || harAndreTiltaksdeltakelserFremover) {
+            return false
+        }
+
+        startRevurdering(StartRevurderingType.STANS)
+
+        return true
+    }
+
+    private suspend fun Sak.startForlengelseHvisRelevant(endringer: NonEmptyList<TiltaksdeltakerEndring>): Boolean {
+        val forlengelse =
+            endringer.filterIsInstance<TiltaksdeltakerEndring.Forlengelse>().singleOrNull() ?: return false
+
+        // Dersom det allerede er rett frem til ny sluttdato, så har forlengelsen sannsynligvis allerede blitt iverksatt
+        // TODO: vi kunne kanskje sjekke mot gjeldende vedtak i stedet for siste dag på hele saken, for de tilfellene
+        // der det finnes flere vedtak, og et annet vedtak enn det siste forlenges. Dette skjer sannsynligvis veldig sjelden (aldri?)
+        if (forlengelse.nySluttdato <= sisteDagSomGirRett) {
+            return false
+        }
+
+        startRevurdering(StartRevurderingType.INNVILGELSE)
+
+        return true
+    }
+
+    private suspend fun Sak.startOmgjøringHvisRelevant(
+        deltakerId: TiltaksdeltakerId,
+        endringer: NonEmptyList<TiltaksdeltakerEndring>,
+    ): Boolean {
+        if (endringer.none { it.erOmgjøringsendring() }) {
+            return false
+        }
 
         val vedtakMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.filter {
             it.verdi.gjeldendeTiltaksdeltakelser.any { deltakelse -> deltakelse.verdi.internDeltakelseId == deltakerId }
@@ -186,20 +223,18 @@ class EndretTiltaksdeltakerJobb(
 
         if (vedtakMedRelevantTiltaksdeltakelse.isEmpty()) {
             log.error { "Forventet minst ett vedtak med deltakerId $deltakerId på sak $id" }
-            return null
+            return false
         }
 
-        return when {
-            TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE in endringer && !harAndreTiltaksdeltakelserFremover -> StartRevurderingType.STANS to null
-
-            TiltaksdeltakerEndring.FORLENGELSE in endringer -> StartRevurderingType.INNVILGELSE to null
-
-            endringer.any { it in endringerForOmgjøring } && vedtakMedRelevantTiltaksdeltakelse.size == 1 -> {
-                StartRevurderingType.OMGJØRING to vedtakMedRelevantTiltaksdeltakelse.single().id
-            }
-
-            else -> null
+        // Dersom det er flere vedtak med denne deltakelsen, må saksbehandler selv ta stilling til hvilke som evt skal omgjøres
+        // TODO: Når vi støtter å omgjøre flere vedtak med en omgjøring, kan dette også gjøres automatisk her
+        if (vedtakMedRelevantTiltaksdeltakelse.size != 1) {
+            return false
         }
+
+        startRevurdering(StartRevurderingType.OMGJØRING, vedtakMedRelevantTiltaksdeltakelse.single().id)
+
+        return true
     }
 
     private suspend fun Sak.startRevurdering(
@@ -216,17 +251,20 @@ class EndretTiltaksdeltakerJobb(
         )
 
         startRevurderingService.startRevurdering(kommando).also { (_, revurdering) ->
-            log.info { "Opprettet revurdering med id ${revurdering.id}" }
+            log.info { "Opprettet revurdering $revurderingType med id ${revurdering.id}" }
         }
     }
 
     companion object {
 
-        private val endringerForOmgjøring = setOf(
-            TiltaksdeltakerEndring.ENDRET_STARTDATO,
-            TiltaksdeltakerEndring.ENDRET_SLUTTDATO,
-            TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE,
-            TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE,
-        )
+        private fun TiltaksdeltakerEndring.erOmgjøringsendring(): Boolean = when (this) {
+            is TiltaksdeltakerEndring.EndretStartdato,
+            is TiltaksdeltakerEndring.EndretSluttdato,
+            is TiltaksdeltakerEndring.EndretDeltakelsesprosent,
+            is TiltaksdeltakerEndring.AvbruttDeltakelse,
+            -> true
+
+            else -> false
+        }
     }
 }

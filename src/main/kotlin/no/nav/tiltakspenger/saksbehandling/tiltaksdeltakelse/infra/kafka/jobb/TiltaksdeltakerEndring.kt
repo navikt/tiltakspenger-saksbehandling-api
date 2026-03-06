@@ -1,13 +1,38 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
-enum class TiltaksdeltakerEndring(val beskrivelse: String) {
-    FORLENGELSE("Deltakelsen har blitt forlenget"),
-    AVBRUTT_DELTAKELSE("Deltakelsen er avbrutt"),
-    IKKE_AKTUELL_DELTAKELSE("Deltakelsen er ikke aktuell"),
-    ENDRET_SLUTTDATO("Endret sluttdato"),
-    ENDRET_STARTDATO("Endret startdato"),
-    ENDRET_DELTAKELSESMENGDE("Endret deltakelsesmengde"),
-    ENDRET_STATUS("Endret status"),
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import java.time.LocalDate
+
+sealed interface TiltaksdeltakerEndring {
+    val beskrivelse: String
+
+    data object AvbruttDeltakelse : TiltaksdeltakerEndring {
+        override val beskrivelse = "Deltakelsen er avbrutt"
+    }
+
+    data object IkkeAktuellDeltakelse : TiltaksdeltakerEndring {
+        override val beskrivelse = "Deltakelsen er ikke aktuell"
+    }
+
+    data class Forlengelse(val nySluttdato: LocalDate) : TiltaksdeltakerEndring {
+        override val beskrivelse = "Deltakelsen har blitt forlenget"
+    }
+
+    data class EndretSluttdato(val nySluttdato: LocalDate?) : TiltaksdeltakerEndring {
+        override val beskrivelse = "Endret sluttdato"
+    }
+
+    data class EndretStartdato(val nyStartdato: LocalDate?) : TiltaksdeltakerEndring {
+        override val beskrivelse = "Endret startdato"
+    }
+
+    data class EndretDeltakelsesprosent(val nyDeltakelsesprosent: Float?) : TiltaksdeltakerEndring {
+        override val beskrivelse = "Endret deltakelsesmengde"
+    }
+
+    data class EndretStatus(val nyStatus: TiltakDeltakerstatus) : TiltaksdeltakerEndring {
+        override val beskrivelse = "Endret status"
+    }
 }
 
 fun List<TiltaksdeltakerEndring>.getOppgaveTilleggstekst(): String? {
