@@ -1,42 +1,34 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.clearMocks
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
-import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetAutomatiskSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppgaveId
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.getTiltaksdeltakerKafkaDb
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -44,899 +36,611 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class EndretTiltaksdeltakerJobbTest {
-    private val startRevurderingService = mockk<StartRevurderingService>()
-    private val oppgaveKlient = mockk<OppgaveKlient>()
-    private val oppgaveId = OppgaveId("50")
-
-    @BeforeEach
-    fun clearMockData() {
-        clearMocks(oppgaveKlient, startRevurderingService)
-        coEvery {
-            oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                any(),
-                Oppgavebehov.ENDRET_TILTAKDELTAKER,
-                any(),
-            )
-        } returns oppgaveId
-    }
+    private val oppgaveId = oppgaveId()
 
     @Test
     fun `ingen opprettet behandling - sletter fra db`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            runBlocking {
-                val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                val sakRepo = testDataHelper.sakRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                    sakRepo = sakRepo,
-                    oppgaveKlient = oppgaveKlient,
-                    rammebehandlingRepo = behandlingRepo,
-                    clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                )
-                val id = UUID.randomUUID().toString()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val tiltaksdeltakerId = TiltaksdeltakerId.random()
-                testDataHelper.persisterSakOgSøknad(
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            id = id,
-                            tiltaksdeltakerId = tiltaksdeltakerId,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val tiltaksdeltakerKafkaDb =
-                    getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id, tiltaksdeltakerId = tiltaksdeltakerId)
-                tiltaksdeltakerKafkaRepository.lagre(
-                    tiltaksdeltakerKafkaDb,
-                    "melding",
-                    nå(testDataHelper.clock).minusMinutes(20),
-                )
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnr = Fnr.random()
+            val tiltaksdeltakerId = TiltaksdeltakerId.random()
+            val deltakelsesperiode = 5.januar(2025) til 5.mai(2025)
 
-                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = deltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
 
-                tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
+            // Opprett sak og søknad uten å starte behandling
+            val (sak) = opprettSakOgSøknad(
+                tac = tac,
+                fnr = fnr,
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
 
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
-                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-            }
+            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                sakId = sak.id,
+                tiltaksdeltakerId = tiltaksdeltakerId,
+            )
+
+            tac.tiltaksdeltakerKafkaRepository.lagre(
+                tiltaksdeltakerKafkaDb,
+                "melding",
+                nå(tac.clock).minusMinutes(20),
+            )
+
+            tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+
+            tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
         }
     }
 
     @Test
     fun `ingen behandling for endret deltaker - sletter fra db`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            runBlocking {
-                val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                val sakRepo = testDataHelper.sakRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                    sakRepo = sakRepo,
-                    oppgaveKlient = oppgaveKlient,
-                    rammebehandlingRepo = behandlingRepo,
-                    clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                )
-                val id = UUID.randomUUID().toString()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterOpprettetSøknadsbehandling(
-                    sakId = sak.id,
-                    saksnummer = sak.saksnummer,
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id)
-                tiltaksdeltakerKafkaRepository.lagre(
-                    tiltaksdeltakerKafkaDb,
-                    "melding",
-                    nå(testDataHelper.clock).minusMinutes(20),
-                )
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnr = Fnr.random()
+            val deltakelsesperiode = 5.januar(2025) til 5.mai(2025)
 
-                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = deltakelsesperiode,
+            )
 
-                tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
-                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-            }
+            val (sak) = opprettSøknadsbehandlingUnderBehandling(
+                tac = tac,
+                fnr = fnr,
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            // Opprett tiltaksdeltaker for en annen deltakerId enn den i behandlingen
+            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                sakId = sak.id,
+            )
+
+            tac.tiltaksdeltakerKafkaRepository.lagre(
+                tiltaksdeltakerKafkaDb,
+                "melding",
+                nå(tac.clock).minusMinutes(20),
+            )
+
+            tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+
+            tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
         }
     }
 
     @Test
     fun `åpen behandling for endret deltaker - oppretter oppgave, ikke revurdering`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            runBlocking {
-                val clock = TikkendeKlokke()
-                val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                val sakRepo = testDataHelper.sakRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                    sakRepo = sakRepo,
-                    oppgaveKlient = oppgaveKlient,
-                    rammebehandlingRepo = behandlingRepo,
-                    clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                )
-                val id = UUID.randomUUID().toString()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val tiltaksdeltakerId = TiltaksdeltakerId.random()
-                val deltakelseFom = LocalDate.now(clock).minusDays(2)
-                val deltakelsesTom = LocalDate.now(clock).plusMonths(3)
-                testDataHelper.persisterOpprettetSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            id = id,
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                            tiltaksdeltakerId = tiltaksdeltakerId,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-                    id = id,
-                    sakId = sak.id,
-                    deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
-                    fom = null,
-                    tom = null,
-                    tiltaksdeltakerId = tiltaksdeltakerId,
-                )
-                tiltaksdeltakerKafkaRepository.lagre(
-                    tiltaksdeltakerKafkaDb,
-                    "melding",
-                    nå(testDataHelper.clock).minusMinutes(20),
-                )
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnr = Fnr.random()
+            val tiltaksdeltakerId = TiltaksdeltakerId.random()
+            val deltakelseFom = LocalDate.now(tac.clock).minusDays(2)
+            val deltakelsesTom = LocalDate.now(tac.clock).plusMonths(3)
+            val deltakelsesperiode = deltakelseFom til deltakelsesTom
 
-                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = deltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
 
-                val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
-                oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                coVerify(exactly = 1) {
-                    oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                        any(),
-                        any(),
-                        "Deltakelsen er ikke aktuell.",
-                    )
-                }
-                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-            }
+            val (sak) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac = tac,
+                fnr = fnr,
+                tiltaksdeltakelse = tiltaksdeltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+            )
+
+            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                sakId = sak.id,
+                deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
+                fom = null,
+                tom = null,
+                tiltaksdeltakerId = tiltaksdeltakerId,
+            )
+            tac.tiltaksdeltakerKafkaRepository.lagre(
+                tiltaksdeltakerKafkaDb,
+                "melding",
+                nå(tac.clock).minusMinutes(20),
+            )
+
+            tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+
+            val oppdatertTiltaksdeltakerKafkaDb = tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id)
+            oppdatertTiltaksdeltakerKafkaDb.shouldNotBeNull()
+            oppdatertTiltaksdeltakerKafkaDb.oppgaveId shouldBe oppgaveId
+            oppdatertTiltaksdeltakerKafkaDb.behandlingId.shouldBeNull()
         }
     }
 
     @Test
     fun `åpen automatisk behandling for endret deltaker - oppdaterer venterTil, oppretter ikke oppgave`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            runBlocking {
-                val clock = TikkendeKlokke()
-                val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                val sakRepo = testDataHelper.sakRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                    sakRepo = sakRepo,
-                    oppgaveKlient = oppgaveKlient,
-                    rammebehandlingRepo = behandlingRepo,
-                    clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                )
-                val id = UUID.randomUUID().toString()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val tiltaksdeltakerId = TiltaksdeltakerId.random()
-                val deltakelseFom = LocalDate.now(clock).plusDays(2)
-                val deltakelsesTom = LocalDate.now(clock).plusMonths(3)
-                val (_, behandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            id = id,
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                            tiltaksdeltakerId = tiltaksdeltakerId,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val kommando = SettRammebehandlingPåVentKommando(
-                    sakId = behandling.sakId,
-                    rammebehandlingId = behandling.id,
-                    begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
-                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-                    venterTil = deltakelseFom.atStartOfDay(),
-                    frist = null,
-                )
-                val behandlingPaVent =
-                    behandling.settPåVent(kommando = kommando, clock = testDataHelper.clock) as Søknadsbehandling
-                behandlingRepo.lagre(behandlingPaVent)
-                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-                    id = id,
-                    sakId = sak.id,
-                    deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
-                    fom = null,
-                    tom = null,
-                    tiltaksdeltakerId = tiltaksdeltakerId,
-                )
-                tiltaksdeltakerKafkaRepository.lagre(
-                    tiltaksdeltakerKafkaDb,
-                    "melding",
-                    nå(testDataHelper.clock).minusMinutes(20),
-                )
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnr = Fnr.random()
+            val tiltaksdeltakerId = TiltaksdeltakerId.random()
 
-                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+            val deltakelseFom = LocalDate.now(tac.clock).plusDays(2)
+            val deltakelsesTom = LocalDate.now(tac.clock).plusMonths(3)
+            val deltakelsesperiode = deltakelseFom til deltakelsesTom
 
-                tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
-                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-                behandlingRepo.hent(behandling.id).venterTil?.toLocalDate() shouldBe 1.januar(2025)
-            }
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = deltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
+
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                tac = tac,
+                fnr = fnr,
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
+                begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
+                saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+                venterTil = deltakelseFom.atStartOfDay(),
+                frist = null,
+            )
+
+            val behandlingPaVent = behandling.settPåVent(kommando = kommando, clock = tac.clock) as Søknadsbehandling
+            tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
+
+            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                sakId = sak.id,
+                deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
+                fom = null,
+                tom = null,
+                tiltaksdeltakerId = tiltaksdeltakerId,
+            )
+            tac.tiltaksdeltakerKafkaRepository.lagre(
+                tiltaksdeltakerKafkaDb,
+                "melding",
+                nå(tac.clock).minusMinutes(20),
+            )
+
+            tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+
+            tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).venterTil?.toLocalDate() shouldBe 1.mai(2025)
         }
     }
 
     @Test
     fun `iverksatt behandling, ingen endring - sletter fra db`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            runBlocking {
-                val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                val sakRepo = testDataHelper.sakRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                    sakRepo = sakRepo,
-                    oppgaveKlient = oppgaveKlient,
-                    rammebehandlingRepo = behandlingRepo,
-                    clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                )
-                val id = UUID.randomUUID().toString()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val tiltaksdeltakerId = TiltaksdeltakerId.random()
-                val deltakelseFom = 5.januar(2025)
-                val deltakelsesTom = 5.mai(2025)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            id = id,
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                            tiltaksdeltakerId = tiltaksdeltakerId,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val tiltaksdeltakerKafkaDb =
-                    getTiltaksdeltakerKafkaDb(
-                        id = id,
-                        sakId = sak.id,
-                        fom = deltakelseFom,
-                        tom = deltakelsesTom,
-                        dagerPerUke = 5F,
-                        deltakelsesprosent = 100F,
-                        tiltaksdeltakerId = tiltaksdeltakerId,
-                    )
-                tiltaksdeltakerKafkaRepository.lagre(
-                    tiltaksdeltakerKafkaDb,
-                    "melding",
-                    nå(testDataHelper.clock).minusMinutes(20),
-                )
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnr = Fnr.random()
+            val tiltaksdeltakerId = TiltaksdeltakerId.random()
+            val deltakelseFom = 5.januar(2025)
+            val deltakelsesTom = 5.mai(2025)
+            val deltakelsesperiode = deltakelseFom til deltakelsesTom
 
-                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = deltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
 
-                tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
-                coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-            }
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = fnr,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                sakId = sak.id,
+                fom = deltakelseFom,
+                tom = deltakelsesTom,
+                dagerPerUke = 5F,
+                deltakelsesprosent = 100F,
+                tiltaksdeltakerId = tiltaksdeltakerId,
+            )
+            tac.tiltaksdeltakerKafkaRepository.lagre(
+                tiltaksdeltakerKafkaDb,
+                "melding",
+                nå(tac.clock).minusMinutes(20),
+            )
+
+            tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+
+            tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
         }
     }
 
     @Test
     fun `iverksatt behandling, forlengelse, deltakelsesmengde - oppretter revurdering`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            runBlocking {
-                val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                val sakRepo = testDataHelper.sakRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                    sakRepo = sakRepo,
-                    oppgaveKlient = oppgaveKlient,
-                    rammebehandlingRepo = behandlingRepo,
-                    clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                )
-                val id = UUID.randomUUID().toString()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val tiltaksdeltakerId = TiltaksdeltakerId.random()
-                val deltakelseFom = 5.januar(2025)
-                val deltakelsesTom = 5.mai(2025)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            id = id,
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                            tiltaksdeltakerId = tiltaksdeltakerId,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val revurdering = ObjectMother.nyOpprettetRevurderingInnvilgelse(
-                    sakId = sak.id,
-                    saksnummer = sak.saksnummer,
-                    fnr = fnr,
-                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-                )
-                coEvery { startRevurderingService.startRevurdering(any()) } returns Pair(
-                    sak,
-                    revurdering,
-                )
-                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-                    id = id,
-                    sakId = sak.id,
-                    fom = deltakelseFom,
-                    tom = deltakelsesTom.plusMonths(1),
-                    tiltaksdeltakerId = tiltaksdeltakerId,
-                )
-                tiltaksdeltakerKafkaRepository.lagre(
-                    tiltaksdeltakerKafkaDb,
-                    "melding",
-                    nå(testDataHelper.clock).minusMinutes(20),
-                )
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val deltakelseFom = 5.januar(2025)
+            val deltakelsesTom = 5.mai(2025)
+            val tiltaksdeltakerId = TiltaksdeltakerId.random()
 
-                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+            val deltakelsesperiode = deltakelseFom til deltakelsesTom
 
-                val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
-                oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
-                coVerify(exactly = 0) {
-                    oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                        any(),
-                        any(),
-                        any(),
-                    )
-                }
-                coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.INNVILGELSE }) }
-            }
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = deltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
+
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = Fnr.random(),
+                innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                sakId = sak.id,
+                fom = deltakelseFom,
+                tom = deltakelsesTom.plusMonths(1),
+                tiltaksdeltakerId = tiltaksdeltakerId,
+            )
+
+            tac.tiltaksdeltakerKafkaRepository.lagre(
+                tiltaksdeltakerKafkaDb,
+                "melding",
+                nå(tac.clock).minusMinutes(20),
+            )
+
+            tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+
+            val oppdatertTiltaksdeltakerKafkaDb = tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id)
+
+            val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
+
+            oppdatertTiltaksdeltakerKafkaDb.shouldNotBeNull()
+            oppdatertTiltaksdeltakerKafkaDb.oppgaveId.shouldBeNull()
+            oppdatertTiltaksdeltakerKafkaDb.behandlingId shouldBe sisteBehandling.id
         }
     }
 
     @Test
     fun `iverksatt behandling, avbrutt - oppretter revurdering`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            runBlocking {
-                val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                val sakRepo = testDataHelper.sakRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                    sakRepo = sakRepo,
-                    oppgaveKlient = oppgaveKlient,
-                    rammebehandlingRepo = behandlingRepo,
-                    clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                )
-                val id = UUID.randomUUID().toString()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val tiltaksdeltakerId = TiltaksdeltakerId.random()
-                val deltakelseFom = 5.januar(2025)
-                val deltakelsesTom = 5.mai(2025)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            id = id,
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                            tiltaksdeltakerId = tiltaksdeltakerId,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val revurdering = ObjectMother.nyOpprettetRevurderingStans(
-                    sakId = sak.id,
-                    saksnummer = sak.saksnummer,
-                    fnr = fnr,
-                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-                )
-                coEvery { startRevurderingService.startRevurdering(any()) } returns Pair(
-                    sak,
-                    revurdering,
-                )
-                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-                    id = id,
-                    sakId = sak.id,
-                    fom = deltakelseFom,
-                    tom = deltakelsesTom.minusDays(2),
-                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
-                    tiltaksdeltakerId = tiltaksdeltakerId,
-                )
-                tiltaksdeltakerKafkaRepository.lagre(
-                    tiltaksdeltakerKafkaDb,
-                    "melding",
-                    nå(testDataHelper.clock).minusMinutes(20),
-                )
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnr = Fnr.random()
+            val tiltaksdeltakerId = TiltaksdeltakerId.random()
+            val deltakelseFom = 5.januar(2025)
+            val deltakelsesTom = 5.mai(2025)
+            val deltakelsesperiode = deltakelseFom til deltakelsesTom
 
-                endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = deltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
 
-                val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
-                oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
-                coVerify(exactly = 0) {
-                    oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                        any(),
-                        any(),
-                        any(),
-                    )
-                }
-                coVerify(exactly = 1) { startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS }) }
-            }
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = fnr,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                sakId = sak.id,
+                fom = deltakelseFom,
+                tom = deltakelsesTom.minusDays(2),
+                deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                tiltaksdeltakerId = tiltaksdeltakerId,
+            )
+            tac.tiltaksdeltakerKafkaRepository.lagre(
+                tiltaksdeltakerKafkaDb,
+                "melding",
+                nå(tac.clock).minusMinutes(20),
+            )
+
+            tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+
+            val oppdatertTiltaksdeltakerKafkaDb = tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id)
+            oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
+            oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
         }
     }
 
     @Nested
     inner class `OpprettOppgaveForEndredeDeltakere - flere vedtak` {
-        val clock = TikkendeKlokke()
-        val fnr = Fnr.random()
-        val sak = ObjectMother.nySak(fnr = fnr)
-        private val førsteDeltakelseFom = 5.januar(2025)
-        private val førsteDeltakelsesTom = 5.mai(2025)
-        private val førsteSøknadstiltakId = UUID.randomUUID().toString()
-        private val forsteTiltaksdeltakerId = TiltaksdeltakerId.random()
-        private val førsteSøknadId = SøknadId.random()
-        private val førsteSøknad = ObjectMother.nyInnvilgbarSøknad(
-            clock = clock,
-            id = førsteSøknadId,
-            personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-            søknadstiltak = ObjectMother.søknadstiltak(
-                id = førsteSøknadstiltakId,
-                deltakelseFom = førsteDeltakelseFom,
-                deltakelseTom = førsteDeltakelsesTom,
-                tiltaksdeltakerId = forsteTiltaksdeltakerId,
-            ),
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-        )
-        private val andreDeltakelseFom = 10.mai(2025)
-        private val andreDeltakelsesTom = 11.juni(2025)
-        private val andreSøknadstiltakId = UUID.randomUUID().toString()
-        private val andreTiltaksdeltakerId = TiltaksdeltakerId.random()
-        private val andreSøknadId = SøknadId.random()
-        private val andreSøknad = ObjectMother.nyInnvilgbarSøknad(
-            clock = clock,
-            id = andreSøknadId,
-            personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-            søknadstiltak = ObjectMother.søknadstiltak(
-                id = andreSøknadstiltakId,
-                deltakelseFom = andreDeltakelseFom,
-                deltakelseTom = andreDeltakelsesTom,
-                tiltaksdeltakerId = andreTiltaksdeltakerId,
-            ),
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-        )
-        private val førsteTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-            id = førsteSøknadstiltakId,
-            sakId = sak.id,
-            fom = førsteDeltakelseFom,
-            tom = LocalDate.now(clock),
-            deltakerstatus = TiltakDeltakerstatus.Avbrutt,
-            tiltaksdeltakerId = forsteTiltaksdeltakerId,
-        )
-        private val andreTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-            id = andreSøknadstiltakId,
-            sakId = sak.id,
-            fom = andreDeltakelseFom,
-            tom = LocalDate.now(clock),
-            deltakerstatus = TiltakDeltakerstatus.Avbrutt,
-            tiltaksdeltakerId = andreTiltaksdeltakerId,
-        )
 
         @Test
         fun `innvilgelse + stans (over hele perioden) lager ikke oppgave eller revurdering`() {
-            withTestApplicationContext { }
-            withMigratedDb(runIsolated = true) { testDataHelper ->
-                runBlocking {
-                    val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                    val sakRepo = testDataHelper.sakRepo
-                    val behandlingRepo = testDataHelper.behandlingRepo
-                    val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                        tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                        sakRepo = sakRepo,
-                        oppgaveKlient = oppgaveKlient,
-                        rammebehandlingRepo = behandlingRepo,
-                        clock = testDataHelper.clock,
-                        startRevurderingService = startRevurderingService,
-                    )
-                    val (sakMedFørstegangsvedtak, vedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
-                        sakId = sak.id,
-                        fnr = fnr,
-                        deltakelseFom = førsteDeltakelseFom,
-                        deltakelseTom = førsteDeltakelsesTom,
-                        søknadId = førsteSøknadId,
-                        sak = sak,
-                        søknad = førsteSøknad,
-                    )
-                    testDataHelper.persisterIverksattRevurderingStans(
-                        sak = sakMedFørstegangsvedtak,
-                        stansFraOgMed = vedtak.fraOgMed,
-                    )
-                    val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-                        id = førsteSøknadstiltakId,
-                        sakId = sak.id,
-                        fom = førsteDeltakelseFom,
-                        tom = LocalDate.now(clock),
-                        deltakerstatus = TiltakDeltakerstatus.Avbrutt,
-                        tiltaksdeltakerId = forsteTiltaksdeltakerId,
-                    )
+            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+                val fnr = Fnr.random()
+                val førsteTiltaksdeltakerId = TiltaksdeltakerId.random()
+                val førsteDeltakelseFom = 5.januar(2025)
+                val førsteDeltakelsesTom = 5.mai(2025)
+                val førsteDeltakelsesperiode = førsteDeltakelseFom til førsteDeltakelsesTom
 
-                    tiltaksdeltakerKafkaRepository.lagre(
-                        tiltaksdeltakerKafkaDb,
-                        "melding",
-                        nå(testDataHelper.clock).minusMinutes(20),
-                    )
-                    endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+                val førsteTiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = førsteDeltakelsesperiode,
+                    internDeltakelseId = førsteTiltaksdeltakerId,
+                )
 
-                    val oppdatertTiltaksdeltakerKafkaDb =
-                        tiltaksdeltakerKafkaRepository.hent(førsteSøknad.id.toString())
-                    oppdatertTiltaksdeltakerKafkaDb shouldBe null
-                    coVerify(exactly = 0) {
-                        oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                            any(),
-                            any(),
-                            "Deltakelsen er avbrutt.",
-                        )
-                    }
-                    coVerify(exactly = 0) { startRevurderingService.startRevurdering(any()) }
-                }
+                val (sak, _, rammevedtak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    innvilgelsesperioder = innvilgelsesperioder(førsteDeltakelsesperiode, førsteTiltaksdeltakelse),
+                    tiltaksdeltakelse = førsteTiltaksdeltakelse,
+                )
+
+                iverksettRevurderingStans(
+                    tac = tac,
+                    sakId = sak.id,
+                    stansFraOgMed = rammevedtak.fraOgMed,
+                )
+
+                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                    sakId = sak.id,
+                    fom = førsteDeltakelseFom,
+                    tom = LocalDate.now(tac.clock),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = førsteTiltaksdeltakerId,
+                )
+
+                tac.tiltaksdeltakerKafkaRepository.lagre(
+                    tiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+
+                tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
             }
         }
 
         @Test
         fun `innvilgelse + avslag, oppretter stans ved avbrudd`() {
-            withMigratedDb(runIsolated = true) { testDataHelper ->
-                runBlocking {
-                    val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                    val sakRepo = testDataHelper.sakRepo
-                    val behandlingRepo = testDataHelper.behandlingRepo
-                    val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                        tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                        sakRepo = sakRepo,
-                        oppgaveKlient = oppgaveKlient,
-                        rammebehandlingRepo = behandlingRepo,
-                        clock = testDataHelper.clock,
-                        startRevurderingService = startRevurderingService,
-                    )
-                    val (sakMedFørstegangsvedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
-                        sakId = sak.id,
-                        fnr = fnr,
-                        deltakelseFom = førsteDeltakelseFom,
-                        deltakelseTom = førsteDeltakelsesTom,
-                        søknadId = førsteSøknadId,
-                        sak = sak,
-                        søknad = førsteSøknad,
-                    )
-                    testDataHelper.persisterRammevedtakAvslag(
-                        sakId = sakMedFørstegangsvedtak.id,
-                        fnr = fnr,
-                        deltakelseFom = andreDeltakelseFom,
-                        deltakelseTom = andreDeltakelsesTom,
-                        søknadId = andreSøknadId,
-                        sak = sakMedFørstegangsvedtak,
-                        søknad = andreSøknad,
-                    )
-                    val revurdering = ObjectMother.nyOpprettetRevurderingStans(
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                        fnr = fnr,
-                        saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-                    )
-                    coEvery { startRevurderingService.startRevurdering(any()) } returns Pair(
-                        sak,
-                        revurdering,
-                    )
+            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+                val fnr = Fnr.random()
+                val førsteTiltaksdeltakerId = TiltaksdeltakerId.random()
+                val førsteEksternId = UUID.randomUUID().toString()
+                val førsteDeltakelseFom = 5.januar(2025)
+                val førsteDeltakelsesTom = 5.mai(2025)
+                val førsteDeltakelsesperiode = førsteDeltakelseFom til førsteDeltakelsesTom
 
-                    tiltaksdeltakerKafkaRepository.lagre(
-                        førsteTiltaksdeltakerKafkaDb,
-                        "melding",
-                        nå(testDataHelper.clock).minusMinutes(20),
-                    )
-                    tiltaksdeltakerKafkaRepository.lagre(
-                        andreTiltaksdeltakerKafkaDb,
-                        "melding",
-                        nå(testDataHelper.clock).minusMinutes(20),
-                    )
+                val andreTiltaksdeltakerId = TiltaksdeltakerId.random()
+                val andreEksternId = UUID.randomUUID().toString()
+                val andreDeltakelseFom = 10.mai(2025)
+                val andreDeltakelsesTom = 11.juni(2025)
+                val andreDeltakelsesperiode = andreDeltakelseFom til andreDeltakelsesTom
 
-                    endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+                val førsteTiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = førsteDeltakelsesperiode,
+                    internDeltakelseId = førsteTiltaksdeltakerId,
+                    eksternTiltaksdeltakelseId = førsteEksternId,
+                )
 
-                    val førsteOppdatertTiltaksdeltakerKafkaDb =
-                        tiltaksdeltakerKafkaRepository.hent(førsteSøknadstiltakId)
-                    førsteOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                    førsteOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+                val andreTiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = andreDeltakelsesperiode,
+                    internDeltakelseId = andreTiltaksdeltakerId,
+                    eksternTiltaksdeltakelseId = andreEksternId,
+                )
 
-                    val andreOppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(andreSøknadstiltakId)
-                    andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
-                    førsteOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+                val (sak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    innvilgelsesperioder = innvilgelsesperioder(førsteDeltakelsesperiode, førsteTiltaksdeltakelse),
+                    tiltaksdeltakelse = førsteTiltaksdeltakelse,
+                )
 
-                    coVerify(exactly = 0) {
-                        oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                            any(),
-                            any(),
-                            any(),
-                        )
-                    }
-                    coVerify(exactly = 1) {
-                        startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS })
-                    }
-                }
+                iverksettSøknadsbehandling(
+                    tac = tac,
+                    sakId = sak.id,
+                    resultat = SøknadsbehandlingsresultatType.AVSLAG,
+                    innvilgelsesperioder = innvilgelsesperioder(andreDeltakelsesperiode, andreTiltaksdeltakelse),
+                    tiltaksdeltakelse = andreTiltaksdeltakelse,
+                )
+
+                val førsteTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                    id = førsteEksternId,
+                    sakId = sak.id,
+                    fom = førsteDeltakelseFom,
+                    tom = LocalDate.now(tac.clock),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = førsteTiltaksdeltakerId,
+                )
+                val andreTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                    id = andreEksternId,
+                    sakId = sak.id,
+                    fom = andreDeltakelseFom,
+                    tom = LocalDate.now(tac.clock),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = andreTiltaksdeltakerId,
+                )
+
+                tac.tiltaksdeltakerKafkaRepository.lagre(
+                    førsteTiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(tac.clock).minusMinutes(20),
+                )
+                tac.tiltaksdeltakerKafkaRepository.lagre(
+                    andreTiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+
+                val førsteOppdatertTiltaksdeltakerKafkaDb =
+                    tac.tiltaksdeltakerKafkaRepository.hent(førsteTiltaksdeltakerKafkaDb.id)
+                førsteOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
+                førsteOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+
+                val andreOppdatertTiltaksdeltakerKafkaDb =
+                    tac.tiltaksdeltakerKafkaRepository.hent(andreTiltaksdeltakerKafkaDb.id)
+                andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
             }
         }
 
         @Test
         fun `avslag + innvilgelse, oppretter stans ved avbrudd`() {
-            withMigratedDb(runIsolated = true) { testDataHelper ->
-                runBlocking {
-                    val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                    val sakRepo = testDataHelper.sakRepo
-                    val behandlingRepo = testDataHelper.behandlingRepo
-                    val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                        tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                        sakRepo = sakRepo,
-                        oppgaveKlient = oppgaveKlient,
-                        rammebehandlingRepo = behandlingRepo,
-                        clock = testDataHelper.clock,
-                        startRevurderingService = startRevurderingService,
-                    )
-                    val (sakMedFørstegangsvedtak) = testDataHelper.persisterRammevedtakAvslag(
-                        sakId = sak.id,
-                        fnr = fnr,
-                        deltakelseFom = førsteDeltakelseFom,
-                        deltakelseTom = førsteDeltakelsesTom,
-                        søknadId = førsteSøknadId,
-                        sak = sak,
-                        søknad = førsteSøknad,
-                    )
-                    testDataHelper.persisterIverksattSøknadsbehandling(
-                        sakId = sakMedFørstegangsvedtak.id,
-                        fnr = fnr,
-                        deltakelseFom = andreDeltakelseFom,
-                        deltakelseTom = andreDeltakelsesTom,
-                        søknadId = andreSøknadId,
-                        sak = sakMedFørstegangsvedtak,
-                        søknad = andreSøknad,
-                    )
-                    val revurdering = ObjectMother.nyOpprettetRevurderingStans(
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                        fnr = fnr,
-                        saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-                    )
-                    coEvery { startRevurderingService.startRevurdering(any()) } returns Pair(
-                        sak,
-                        revurdering,
-                    )
+            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+                val fnr = Fnr.random()
 
-                    tiltaksdeltakerKafkaRepository.lagre(
-                        førsteTiltaksdeltakerKafkaDb,
-                        "melding",
-                        nå(testDataHelper.clock).minusMinutes(20),
-                    )
-                    tiltaksdeltakerKafkaRepository.lagre(
-                        andreTiltaksdeltakerKafkaDb,
-                        "melding",
-                        nå(testDataHelper.clock).minusMinutes(20),
-                    )
+                val førsteTiltaksdeltakerId = TiltaksdeltakerId.random()
+                val førsteEksternId = UUID.randomUUID().toString()
+                val førsteDeltakelseFom = 5.januar(2025)
+                val førsteDeltakelsesTom = 5.mai(2025)
+                val førsteDeltakelsesperiode = førsteDeltakelseFom til førsteDeltakelsesTom
 
-                    endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+                val andreTiltaksdeltakerId = TiltaksdeltakerId.random()
+                val andreEksternId = UUID.randomUUID().toString()
+                val andreDeltakelseFom = 10.mai(2025)
+                val andreDeltakelsesTom = 11.juni(2025)
+                val andreDeltakelsesperiode = andreDeltakelseFom til andreDeltakelsesTom
 
-                    val førsteOppdatertTiltaksdeltakerKafkaDb =
-                        tiltaksdeltakerKafkaRepository.hent(førsteSøknadstiltakId)
-                    førsteOppdatertTiltaksdeltakerKafkaDb shouldBe null
+                val førsteTiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = førsteDeltakelsesperiode,
+                    internDeltakelseId = førsteTiltaksdeltakerId,
+                    eksternTiltaksdeltakelseId = førsteEksternId,
+                )
 
-                    val andreOppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(andreSøknadstiltakId)
-                    andreOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                    andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+                val andreTiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = andreDeltakelsesperiode,
+                    internDeltakelseId = andreTiltaksdeltakerId,
+                    eksternTiltaksdeltakelseId = andreEksternId,
+                )
 
-                    coVerify(exactly = 0) {
-                        oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                            any(),
-                            any(),
-                            any(),
-                        )
-                    }
-                    coVerify(exactly = 1) {
-                        startRevurderingService.startRevurdering(match { it.sakId == sak.id && it.revurderingType == StartRevurderingType.STANS })
-                    }
-                }
+                val (sak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    resultat = SøknadsbehandlingsresultatType.AVSLAG,
+                    tiltaksdeltakelse = førsteTiltaksdeltakelse,
+                )
+
+                iverksettSøknadsbehandling(
+                    tac = tac,
+                    sakId = sak.id,
+                    innvilgelsesperioder = innvilgelsesperioder(andreDeltakelsesperiode, andreTiltaksdeltakelse),
+                    tiltaksdeltakelse = andreTiltaksdeltakelse,
+                )
+
+                val førsteTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                    id = førsteEksternId,
+                    sakId = sak.id,
+                    fom = førsteDeltakelseFom,
+                    tom = førsteDeltakelsesTom,
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = førsteTiltaksdeltakerId,
+                )
+                val andreTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                    id = andreEksternId,
+                    sakId = sak.id,
+                    fom = andreDeltakelseFom,
+                    tom = andreDeltakelsesTom,
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = andreTiltaksdeltakerId,
+                )
+
+                tac.tiltaksdeltakerKafkaRepository.lagre(
+                    førsteTiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(tac.clock).minusMinutes(20),
+                )
+                tac.tiltaksdeltakerKafkaRepository.lagre(
+                    andreTiltaksdeltakerKafkaDb,
+                    "melding",
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+
+                val førsteOppdatertTiltaksdeltakerKafkaDb =
+                    tac.tiltaksdeltakerKafkaRepository.hent(førsteTiltaksdeltakerKafkaDb.id)
+                førsteOppdatertTiltaksdeltakerKafkaDb shouldBe null
+
+                val andreOppdatertTiltaksdeltakerKafkaDb =
+                    tac.tiltaksdeltakerKafkaRepository.hent(andreTiltaksdeltakerKafkaDb.id)
+                andreOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
+                andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
             }
         }
     }
 
     @Test
     fun `opprydning - opprettet oppgave, ikke ferdigstilt - oppdaterer sist sjekket`() {
-        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                val sakRepo = testDataHelper.sakRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                    sakRepo = sakRepo,
-                    oppgaveKlient = oppgaveKlient,
-                    rammebehandlingRepo = behandlingRepo,
-                    clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                )
-                val id = UUID.randomUUID().toString()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val tiltaksdeltakerId = TiltaksdeltakerId.random()
-                val deltakelseFom = 5.januar(2025)
-                val deltakelsesTom = 5.mai(2025)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    clock = clock,
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            id = id,
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                            tiltaksdeltakerId = tiltaksdeltakerId,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-                    id = id,
-                    sakId = sak.id,
-                    fom = deltakelseFom,
-                    tom = LocalDate.now(clock),
-                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
-                    oppgaveId = oppgaveId,
-                    oppgaveSistSjekket = null,
-                    tiltaksdeltakerId = tiltaksdeltakerId,
-                )
-                tiltaksdeltakerKafkaRepository.lagre(
-                    tiltaksdeltakerKafkaDb,
-                    "melding",
-                    nå(testDataHelper.clock).minusMinutes(20),
-                )
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            tac.oppgaveFakeKlient.erFerdigstiltResponse = false
 
-                endretTiltaksdeltakerJobb.opprydning()
+            val fnr = Fnr.random()
+            val tiltaksdeltakerId = TiltaksdeltakerId.random()
+            val deltakelseFom = 5.januar(2025)
+            val deltakelsesTom = 5.mai(2025)
+            val deltakelsesperiode = deltakelseFom til deltakelsesTom
 
-                val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
-                oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                oppdatertTiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe nå(
-                    testDataHelper.clock,
-                )
-                    .truncatedTo(ChronoUnit.MINUTES)
-                coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
-            }
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = deltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
+
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = fnr,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                sakId = sak.id,
+                fom = deltakelseFom,
+                tom = LocalDate.now(tac.clock),
+                deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                oppgaveId = oppgaveId,
+                oppgaveSistSjekket = null,
+                tiltaksdeltakerId = tiltaksdeltakerId,
+            )
+            tac.tiltaksdeltakerKafkaRepository.lagre(
+                tiltaksdeltakerKafkaDb,
+                "melding",
+                nå(tac.clock).minusMinutes(20),
+            )
+
+            tac.endretTiltaksdeltakerJobb.opprydning()
+
+            val oppdatertTiltaksdeltakerKafkaDb = tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id)
+            oppdatertTiltaksdeltakerKafkaDb.shouldNotBeNull()
+            oppdatertTiltaksdeltakerKafkaDb.oppgaveId shouldBe oppgaveId
+            oppdatertTiltaksdeltakerKafkaDb.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe nå(tac.clock).truncatedTo(
+                ChronoUnit.MINUTES,
+            )
         }
     }
 
     @Test
     fun `opprydning - opprettet oppgave, ferdigstilt - sletter fra db`() {
-        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns true
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
-                val sakRepo = testDataHelper.sakRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val endretTiltaksdeltakerJobb = EndretTiltaksdeltakerJobb(
-                    tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
-                    sakRepo = sakRepo,
-                    oppgaveKlient = oppgaveKlient,
-                    rammebehandlingRepo = behandlingRepo,
-                    clock = testDataHelper.clock,
-                    startRevurderingService = startRevurderingService,
-                )
-                val id = UUID.randomUUID().toString()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val tiltaksdeltakerId = TiltaksdeltakerId.random()
-                val deltakelseFom = 5.januar(2025)
-                val deltakelsesTom = 5.mai(2025)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    clock = clock,
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            id = id,
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                            tiltaksdeltakerId = tiltaksdeltakerId,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-                    id = id,
-                    sakId = sak.id,
-                    fom = deltakelseFom,
-                    tom = LocalDate.now(clock),
-                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
-                    oppgaveId = oppgaveId,
-                    oppgaveSistSjekket = nå(testDataHelper.clock).minusHours(2),
-                    tiltaksdeltakerId = tiltaksdeltakerId,
-                )
-                tiltaksdeltakerKafkaRepository.lagre(
-                    tiltaksdeltakerKafkaDb,
-                    "melding",
-                    nå(testDataHelper.clock).minusMinutes(20),
-                )
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            tac.oppgaveFakeKlient.erFerdigstiltResponse = true
 
-                endretTiltaksdeltakerJobb.opprydning()
+            val fnr = Fnr.random()
+            val tiltaksdeltakerId = TiltaksdeltakerId.random()
+            val deltakelseFom = 5.januar(2025)
+            val deltakelsesTom = 5.mai(2025)
+            val deltakelsesperiode = deltakelseFom til deltakelsesTom
 
-                tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-                coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
-            }
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = deltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
+
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = fnr,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                sakId = sak.id,
+                fom = deltakelseFom,
+                tom = LocalDate.now(tac.clock),
+                deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                oppgaveId = oppgaveId,
+                oppgaveSistSjekket = nå(tac.clock).minusHours(2),
+                tiltaksdeltakerId = tiltaksdeltakerId,
+            )
+            tac.tiltaksdeltakerKafkaRepository.lagre(
+                tiltaksdeltakerKafkaDb,
+                "melding",
+                nå(tac.clock).minusMinutes(20),
+            )
+
+            tac.endretTiltaksdeltakerJobb.opprydning()
+
+            tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
         }
     }
 }

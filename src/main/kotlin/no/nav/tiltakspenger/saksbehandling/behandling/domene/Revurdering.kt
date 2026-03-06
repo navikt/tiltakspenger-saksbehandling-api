@@ -289,7 +289,7 @@ data class Revurdering(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                status = UNDER_BEHANDLING,
+                status = if (saksbehandler != null) UNDER_BEHANDLING else KLAR_TIL_BEHANDLING,
                 saksbehandler = saksbehandler?.navIdent,
                 saksopplysninger = saksopplysninger,
                 opprettet = opprettet,

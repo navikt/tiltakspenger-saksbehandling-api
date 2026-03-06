@@ -249,7 +249,7 @@ class EndretTiltaksdeltakerJobb(
             klagebehandlingId = null,
         )
 
-        return startRevurderingService.startRevurdering(kommando).second
+        return startRevurderingService.startRevurdering(kommando, this).second
     }
 
     private fun TiltaksdeltakerEndring.erOmgjøringsendring(): Boolean = when (this) {
