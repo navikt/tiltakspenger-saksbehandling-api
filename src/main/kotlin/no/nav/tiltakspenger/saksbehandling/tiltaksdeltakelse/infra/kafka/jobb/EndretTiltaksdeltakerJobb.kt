@@ -7,6 +7,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
@@ -34,7 +35,7 @@ class EndretTiltaksdeltakerJobb(
 
     suspend fun opprettOppgaveEllerRevurderingForEndredeDeltakere() {
         Either.catch {
-            val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgave(
+            val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgaveEllerBehandling(
                 sistOppdatertTidligereEnn = nå(clock).minusMinutes(15),
             )
 
@@ -51,17 +52,17 @@ class EndretTiltaksdeltakerJobb(
                     val endringer = sak.finnEndringer(deltaker)
 
                     if (endringer == null) {
-                        log.info { "Fant ingen endringer for sakId $sakId og deltakerId $tiltaksdeltakerId / ${deltaker.id}" }
+                        log.info { "Fant ingen endringer for sakId $sakId og deltakerId $tiltaksdeltakerId / $eksternDeltakerId" }
                         tiltaksdeltakerKafkaRepository.slett(eksternDeltakerId)
                         return@forEach
                     }
 
-                    val harOpprettetRevurdering = sak.opprettRevurderingHvisRelevant(
+                    val revurdering = sak.opprettRevurderingHvisRelevant(
                         tiltaksdeltakerId,
                         endringer,
                     )
 
-                    if (!harOpprettetRevurdering) {
+                    if (revurdering == null) {
                         log.info { "Tiltaksdeltakelse $eksternDeltakerId er endret uten å opprette revurdering, oppretter oppgave" }
 
                         val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
@@ -73,9 +74,13 @@ class EndretTiltaksdeltakerJobb(
                         tiltaksdeltakerKafkaRepository.lagreOppgaveId(eksternDeltakerId, oppgaveId)
 
                         log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $eksternDeltakerId" }
+                    } else {
+                        tiltaksdeltakerKafkaRepository.lagreBehandlingId(eksternDeltakerId, revurdering.id)
+
+                        log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse $tiltaksdeltakerId / $eksternDeltakerId" }
                     }
                 }.onLeft {
-                    log.error(it) { "Feil ved opprettelse av oppgave/revurdering for endret tiltaksdeltakelse (deltakelseId $eksternDeltakerId - sakId $sakId" }
+                    log.error(it) { "Feil ved opprettelse av oppgave/revurdering for endret tiltaksdeltakelse (deltakelseId $eksternDeltakerId - sakId $sakId)" }
                 }
             }
         }.onLeft {
@@ -151,25 +156,25 @@ class EndretTiltaksdeltakerJobb(
     private suspend fun Sak.opprettRevurderingHvisRelevant(
         deltakerId: TiltaksdeltakerId,
         endringer: NonEmptyList<TiltaksdeltakerEndring>,
-    ): Boolean {
+    ): Revurdering? {
         if (!this.harFørstegangsvedtak || this.rammebehandlinger.åpneBehandlinger.isNotEmpty()) {
             log.info {
                 "Oppretter ikke revurdering hvis det finnes åpne behandlinger, eller førstegangsvedtak mangler - tiltaksdeltakelse $deltakerId, sakId $id"
             }
-            return false
+            return null
         }
 
-        return startStansHvisRelevant(deltakerId, endringer) ||
-            startForlengelseHvisRelevant(endringer) ||
-            startOmgjøringHvisRelevant(deltakerId, endringer)
+        return startStansHvisRelevant(deltakerId, endringer)
+            ?: startForlengelseHvisRelevant(endringer)
+            ?: startOmgjøringHvisRelevant(deltakerId, endringer)
     }
 
     private suspend fun Sak.startStansHvisRelevant(
         deltakerId: TiltaksdeltakerId,
         endringer: NonEmptyList<TiltaksdeltakerEndring>,
-    ): Boolean {
+    ): Revurdering? {
         if (endringer.none { it is TiltaksdeltakerEndring.AvbruttDeltakelse }) {
-            return false
+            return null
         }
 
         val idag = LocalDate.now(clock)
@@ -185,36 +190,32 @@ class EndretTiltaksdeltakerJobb(
         val harRettFremover = rammevedtaksliste.sisteDagSomGirRett?.let { it >= idag } ?: false
 
         if (!harRettFremover || harAndreTiltaksdeltakelserFremover) {
-            return false
+            return null
         }
 
-        startRevurdering(StartRevurderingType.STANS)
-
-        return true
+        return startRevurdering(StartRevurderingType.STANS)
     }
 
-    private suspend fun Sak.startForlengelseHvisRelevant(endringer: NonEmptyList<TiltaksdeltakerEndring>): Boolean {
+    private suspend fun Sak.startForlengelseHvisRelevant(endringer: NonEmptyList<TiltaksdeltakerEndring>): Revurdering? {
         val forlengelse =
-            endringer.filterIsInstance<TiltaksdeltakerEndring.Forlengelse>().singleOrNull() ?: return false
+            endringer.filterIsInstance<TiltaksdeltakerEndring.Forlengelse>().singleOrNull() ?: return null
 
         // Dersom det allerede er rett frem til ny sluttdato, så har forlengelsen sannsynligvis allerede blitt iverksatt
         // TODO: vi kunne kanskje sjekke mot gjeldende vedtak i stedet for siste dag på hele saken, for de tilfellene
         // der det finnes flere vedtak, og et annet vedtak enn det siste forlenges. Dette skjer sannsynligvis veldig sjelden (aldri?)
-        if (forlengelse.nySluttdato <= sisteDagSomGirRett) {
-            return false
+        if (sisteDagSomGirRett != null && forlengelse.nySluttdato <= sisteDagSomGirRett) {
+            return null
         }
 
-        startRevurdering(StartRevurderingType.INNVILGELSE)
-
-        return true
+        return startRevurdering(StartRevurderingType.INNVILGELSE)
     }
 
     private suspend fun Sak.startOmgjøringHvisRelevant(
         deltakerId: TiltaksdeltakerId,
         endringer: NonEmptyList<TiltaksdeltakerEndring>,
-    ): Boolean {
+    ): Revurdering? {
         if (endringer.none { it.erOmgjøringsendring() }) {
-            return false
+            return null
         }
 
         val vedtakMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.filter {
@@ -223,24 +224,22 @@ class EndretTiltaksdeltakerJobb(
 
         if (vedtakMedRelevantTiltaksdeltakelse.isEmpty()) {
             log.error { "Forventet minst ett vedtak med deltakerId $deltakerId på sak $id" }
-            return false
+            return null
         }
 
         // Dersom det er flere vedtak med denne deltakelsen, må saksbehandler selv ta stilling til hvilke som evt skal omgjøres
         // TODO: Når vi støtter å omgjøre flere vedtak med en omgjøring, kan dette også gjøres automatisk her
         if (vedtakMedRelevantTiltaksdeltakelse.size != 1) {
-            return false
+            return null
         }
 
-        startRevurdering(StartRevurderingType.OMGJØRING, vedtakMedRelevantTiltaksdeltakelse.single().id)
-
-        return true
+        return startRevurdering(StartRevurderingType.OMGJØRING, vedtakMedRelevantTiltaksdeltakelse.single().id)
     }
 
     private suspend fun Sak.startRevurdering(
         revurderingType: StartRevurderingType,
         vedtakIdSomOmgjøres: VedtakId? = null,
-    ) {
+    ): Revurdering {
         val kommando = StartRevurderingKommando(
             sakId = this.id,
             correlationId = CorrelationId.generate(),
@@ -250,15 +249,13 @@ class EndretTiltaksdeltakerJobb(
             klagebehandlingId = null,
         )
 
-        startRevurderingService.startRevurdering(kommando).also { (_, revurdering) ->
-            log.info { "Opprettet revurdering $revurderingType med id ${revurdering.id}" }
-        }
+        return startRevurderingService.startRevurdering(kommando).second
     }
 
     private fun TiltaksdeltakerEndring.erOmgjøringsendring(): Boolean = when (this) {
         is TiltaksdeltakerEndring.EndretStartdato,
         is TiltaksdeltakerEndring.EndretSluttdato,
-        is TiltaksdeltakerEndring.EndretDeltakelsesprosent,
+        is TiltaksdeltakerEndring.EndretDeltakelsesmengde,
         is TiltaksdeltakerEndring.AvbruttDeltakelse,
         -> true
 

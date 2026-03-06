@@ -26,7 +26,7 @@ sealed interface TiltaksdeltakerEndring {
         override val beskrivelse = "Endret startdato"
     }
 
-    data class EndretDeltakelsesprosent(val nyDeltakelsesprosent: Float?) : TiltaksdeltakerEndring {
+    data class EndretDeltakelsesmengde(val nyDeltakelsesprosent: Float?, val nyDagerPerUke: Float?) : TiltaksdeltakerEndring {
         override val beskrivelse = "Endret deltakelsesmengde"
     }
 

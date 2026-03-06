@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -10,6 +11,9 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ *  [behandlingId] Er satt dersom endringen førte til at det ble automatisk opprettet en revurdering
+ * */
 data class TiltaksdeltakerKafkaDb(
     val id: String,
     val deltakelseFraOgMed: LocalDate?,
@@ -21,6 +25,7 @@ data class TiltaksdeltakerKafkaDb(
     val oppgaveId: OppgaveId?,
     val oppgaveSistSjekket: LocalDateTime?,
     val tiltaksdeltakerId: TiltaksdeltakerId,
+    val behandlingId: BehandlingId?,
 ) {
 
     fun finnEndringer(
@@ -55,7 +60,7 @@ data class TiltaksdeltakerKafkaDb(
         }
 
         if (!sammeDeltakelsesprosent || !sammeAntallDagerPerUke) {
-            endringer.add(TiltaksdeltakerEndring.EndretDeltakelsesprosent(deltakelsesprosent))
+            endringer.add(TiltaksdeltakerEndring.EndretDeltakelsesmengde(deltakelsesprosent, dagerPerUke))
         }
 
         if (erForlengelse(sammeFom, tiltaksdeltakelseFraBehandling)) {

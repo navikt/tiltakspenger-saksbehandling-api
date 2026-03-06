@@ -198,6 +198,7 @@ class TiltaksdeltakerServiceTest {
                 oppgaveId = ObjectMother.oppgaveId(),
                 oppgaveSistSjekket = oppgaveSistSjekket,
                 tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
+                behandlingId = null,
             )
             tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb, "melding")
 
@@ -316,6 +317,7 @@ class TiltaksdeltakerServiceTest {
                 oppgaveId = ObjectMother.oppgaveId(),
                 oppgaveSistSjekket = oppgaveSistSjekket,
                 tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
+                behandlingId = null,
             )
             tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb, "melding")
 
@@ -437,6 +439,7 @@ class TiltaksdeltakerServiceTest {
                 oppgaveId = ObjectMother.oppgaveId(),
                 oppgaveSistSjekket = oppgaveSistSjekket,
                 tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
+                behandlingId = null,
             )
             tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb, "melding")
 

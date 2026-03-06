@@ -76,7 +76,7 @@ class TiltaksdeltakerKafkaDbTest {
 
         val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock)
         endringer shouldHaveSize 1
-        endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretDeltakelsesprosent>()
+        endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretDeltakelsesmengde>()
     }
 
     @Test
@@ -87,8 +87,8 @@ class TiltaksdeltakerKafkaDbTest {
 
         val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock)
         endringer shouldHaveSize 1
-        endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretDeltakelsesprosent>()
-        (endringer.first() as TiltaksdeltakerEndring.EndretDeltakelsesprosent).nyDeltakelsesprosent shouldBe nyDeltakelsesprosent
+        endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretDeltakelsesmengde>()
+        (endringer.first() as TiltaksdeltakerEndring.EndretDeltakelsesmengde).nyDeltakelsesprosent shouldBe nyDeltakelsesprosent
     }
 
     @Test
@@ -209,7 +209,7 @@ class TiltaksdeltakerKafkaDbTest {
         val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock)
         endringer.size shouldBe 2
         endringer.any { it is TiltaksdeltakerEndring.Forlengelse } shouldBe true
-        endringer.any { it is TiltaksdeltakerEndring.EndretDeltakelsesprosent } shouldBe true
+        endringer.any { it is TiltaksdeltakerEndring.EndretDeltakelsesmengde } shouldBe true
     }
 
     @Test
@@ -253,4 +253,5 @@ fun getTiltaksdeltakerKafkaDb(
         oppgaveId = oppgaveId,
         oppgaveSistSjekket = oppgaveSistSjekket,
         tiltaksdeltakerId = tiltaksdeltakerId,
+        behandlingId = null,
     )
