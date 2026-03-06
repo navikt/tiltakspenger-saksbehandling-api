@@ -154,7 +154,7 @@ class EndretTiltaksdeltakerJobb(
     ): Boolean {
         if (!this.harFørstegangsvedtak || this.rammebehandlinger.åpneBehandlinger.isNotEmpty()) {
             log.info {
-                "Oppretter ikke revurdering hvis det finnes åpne behandlinger, eller førstegangsvedtak mangler, tiltaksdeltakelse $deltakerId, sakId $id"
+                "Oppretter ikke revurdering hvis det finnes åpne behandlinger, eller førstegangsvedtak mangler - tiltaksdeltakelse $deltakerId, sakId $id"
             }
             return false
         }

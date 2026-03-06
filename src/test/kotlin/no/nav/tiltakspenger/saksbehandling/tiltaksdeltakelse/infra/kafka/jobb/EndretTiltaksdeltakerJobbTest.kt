@@ -61,7 +61,7 @@ class EndretTiltaksdeltakerJobbTest {
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - ingen opprettet behandling - sletter fra db`() {
+    fun `ingen opprettet behandling - sletter fra db`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
@@ -111,7 +111,7 @@ class EndretTiltaksdeltakerJobbTest {
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - ingen behandling for endret deltaker - sletter fra db`() {
+    fun `ingen behandling for endret deltaker - sletter fra db`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
@@ -156,7 +156,7 @@ class EndretTiltaksdeltakerJobbTest {
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - åpen behandling for endret deltaker - oppretter oppgave, ikke revurdering`() {
+    fun `åpen behandling for endret deltaker - oppretter oppgave, ikke revurdering`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val clock = TikkendeKlokke()
@@ -227,7 +227,7 @@ class EndretTiltaksdeltakerJobbTest {
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - åpen automatisk behandling for endret deltaker - oppdaterer venterTil, oppretter ikke oppgave`() {
+    fun `åpen automatisk behandling for endret deltaker - oppdaterer venterTil, oppretter ikke oppgave`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val clock = TikkendeKlokke()
@@ -302,7 +302,7 @@ class EndretTiltaksdeltakerJobbTest {
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, ingen endring - sletter fra db`() {
+    fun `iverksatt behandling, ingen endring - sletter fra db`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
@@ -366,7 +366,7 @@ class EndretTiltaksdeltakerJobbTest {
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, forlengelse, deltakelsesmengde - oppretter oppgave og revurdering`() {
+    fun `iverksatt behandling, forlengelse, deltakelsesmengde - oppretter revurdering`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
@@ -445,7 +445,7 @@ class EndretTiltaksdeltakerJobbTest {
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, avbrutt - oppretter revurdering`() {
+    fun `iverksatt behandling, avbrutt - oppretter revurdering`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
@@ -583,7 +583,7 @@ class EndretTiltaksdeltakerJobbTest {
         )
 
         @Test
-        fun `innvilgelse + stans (over hele perioden) lager ikke oppgave`() {
+        fun `innvilgelse + stans (over hele perioden) lager ikke oppgave eller revurdering`() {
             withTestApplicationContext { }
             withMigratedDb(runIsolated = true) { testDataHelper ->
                 runBlocking {
@@ -643,7 +643,7 @@ class EndretTiltaksdeltakerJobbTest {
         }
 
         @Test
-        fun `innvilgelse - avslag lager oppgave for innvilget`() {
+        fun `innvilgelse + avslag, oppretter stans ved avbrudd`() {
             withMigratedDb(runIsolated = true) { testDataHelper ->
                 runBlocking {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
@@ -706,6 +706,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                     val andreOppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(andreSøknadstiltakId)
                     andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
+                    førsteOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
 
                     coVerify(exactly = 0) {
                         oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
@@ -722,7 +723,7 @@ class EndretTiltaksdeltakerJobbTest {
         }
 
         @Test
-        fun `avslag - innvilgelse lager oppgave for innvilget`() {
+        fun `avslag + innvilgelse, oppretter stans ved avbrudd`() {
             withMigratedDb(runIsolated = true) { testDataHelper ->
                 runBlocking {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
