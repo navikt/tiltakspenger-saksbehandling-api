@@ -174,7 +174,7 @@ class EndretTiltaksdeltakerJobb(
 
         val idag = LocalDate.now(clock)
 
-        // Vil ikke opprette stans dersom det også er innvilget for andre tiltaksdeltakelser
+        // Oppretter ikke stans dersom det også er innvilget for andre tiltaksdeltakelser
         val harAndreTiltaksdeltakelserFremover by lazy {
             rammevedtaksliste.valgteTiltaksdeltakelser.filter {
                 it.periode.tilOgMed >= idag && it.verdi.internDeltakelseId != deltakerId
@@ -218,7 +218,7 @@ class EndretTiltaksdeltakerJobb(
         }
 
         val vedtakMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.filter {
-            it.verdi.gjeldendeTiltaksdeltakelser.any { deltakelse -> deltakelse.verdi.internDeltakelseId == deltakerId }
+            it.verdi.gjeldendeTiltaksdeltakelser.verdier.any { deltakelse -> deltakelse.internDeltakelseId == deltakerId }
         }.verdier
 
         if (vedtakMedRelevantTiltaksdeltakelse.isEmpty()) {
@@ -255,16 +255,13 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
-    companion object {
+    private fun TiltaksdeltakerEndring.erOmgjøringsendring(): Boolean = when (this) {
+        is TiltaksdeltakerEndring.EndretStartdato,
+        is TiltaksdeltakerEndring.EndretSluttdato,
+        is TiltaksdeltakerEndring.EndretDeltakelsesprosent,
+        is TiltaksdeltakerEndring.AvbruttDeltakelse,
+        -> true
 
-        private fun TiltaksdeltakerEndring.erOmgjøringsendring(): Boolean = when (this) {
-            is TiltaksdeltakerEndring.EndretStartdato,
-            is TiltaksdeltakerEndring.EndretSluttdato,
-            is TiltaksdeltakerEndring.EndretDeltakelsesprosent,
-            is TiltaksdeltakerEndring.AvbruttDeltakelse,
-            -> true
-
-            else -> false
-        }
+        else -> false
     }
 }
