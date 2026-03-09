@@ -133,7 +133,7 @@ class BehandleTilbakekrevingInfoBehovJobb(
             ),
             revurdering = TilbakekrevingRevurdering(
                 behandlingId = behov.kravgrunnlagReferanse,
-                årsak = TilbakekrevingInfoSvarDTO.TilbakekrevingRevurderingÅrsak.KORRIGERING,
+                årsak = TilbakekrevingInfoSvarDTO.TilbakekrevingRevurderingÅrsak.NYE_OPPLYSNINGER,
                 årsakTilFeilutbetaling = this.begrunnelseVilkårsvurdering?.verdi,
                 vedtaksdato = this.iverksattTidspunkt!!.toLocalDate(),
             ),

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record
 
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.Tilbakekrevingshendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingInfoSvarHendelse
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -17,8 +17,8 @@ data class TilbakekrevingInfoSvarDTO(
     override fun tilNyHendelse(
         key: String,
         clock: Clock,
-    ): Tilbakekrevingshendelse {
-        TODO("Not yet implemented")
+    ): TilbakekrevingInfoSvarHendelse? {
+        return null
     }
 
     override val hendelsestype = TilbakekrevingHendelsestypeDTO.fagsysteminfo_svar

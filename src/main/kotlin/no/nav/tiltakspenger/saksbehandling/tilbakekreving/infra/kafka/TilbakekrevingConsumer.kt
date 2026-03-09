@@ -46,6 +46,11 @@ class TilbakekrevingConsumer(
             throw it
         }
 
+        if (hendelse == null) {
+            logger.info { "Mottatt tilbakekrevingshendelse med key $key - Deserialisert til null, ignorerer" }
+            return
+        }
+
         logger.info { "Lagrer tilbakekrevingshendelse type ${hendelse.hendelsestype} med key $key" }
 
         val wasInserted = tilbakekrevingHendelseRepo.lagreNy(hendelse, key, value)
