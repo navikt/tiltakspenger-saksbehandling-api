@@ -84,7 +84,7 @@ class BehandleTilbakekrevingInfoBehovJobb(
                 val svarJson = serialize(svarDto)
 
                 logger.info { "Produserer svar på tilbakekreving info-behov ${behovHendelse.id} for sak ${sak.id} med kravgrunnlagReferanse ${behovHendelse.kravgrunnlagReferanse}" }
-                kafkaProducer.produce(topic, behovHendelse.id.uuidPart(), serialize(svarJson))
+                kafkaProducer.produce(topic, behovHendelse.id.uuidPart(), svarJson)
                 tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehov(behovHendelse.id, svarJson)
             }.onLeft {
                 logger.error(it) { "Feil ved behandling av tilbakekreving info-behov ${behovHendelse.id}" }
