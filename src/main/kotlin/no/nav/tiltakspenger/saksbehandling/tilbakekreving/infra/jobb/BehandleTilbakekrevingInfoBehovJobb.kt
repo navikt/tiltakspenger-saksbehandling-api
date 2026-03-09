@@ -69,7 +69,7 @@ class BehandleTilbakekrevingInfoBehovJobb(
 
                 logger.info { "Produserer svar på tilbakekreving info-behov for sak ${sak.id} med kravgrunnlagReferanse ${hendelse.kravgrunnlagReferanse}" }
 //                kafkaProducer.produce(topic, svarDto.id.toString(), serialize(svarJson))
-//                tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehov(svarDto.id, svarJson)
+                tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehov(svarDto.id, svarJson)
             }.onLeft {
                 logger.error(it) { "Feil ved behandling av tilbakekreving info-behov ${hendelse.id}" }
             }

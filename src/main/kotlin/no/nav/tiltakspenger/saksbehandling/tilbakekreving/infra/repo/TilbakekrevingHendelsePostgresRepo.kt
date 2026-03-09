@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingHendelsestype
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.Tilbakekrevingshendelse
@@ -49,7 +48,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     """.trimIndent(),
                     "id" to hendelse.id.toString(),
                     "opprettet" to hendelse.opprettet,
-                    "hendelse_type" to hendelse.hendelsestype,
+                    "hendelse_type" to hendelse.hendelsestype.toString(),
                     "ekstern_fagsak_id" to hendelse.eksternFagsakId,
                     "key" to key,
                     "value" to value,
