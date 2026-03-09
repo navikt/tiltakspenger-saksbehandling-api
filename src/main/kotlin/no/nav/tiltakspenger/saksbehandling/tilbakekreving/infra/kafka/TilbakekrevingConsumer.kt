@@ -18,7 +18,7 @@ class TilbakekrevingConsumer(
     private val tilbakekrevingHendelseRepo: TilbakekrevingHendelsePostgresRepo,
     private val clock: Clock,
     topic: String,
-    groupId: String = KAFKA_CONSUMER_GROUP_ID,
+    groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v2",
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
 ) : Consumer<String, String?> {
     private val logger = KotlinLogging.logger { }
