@@ -32,7 +32,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.reposit
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class EndretTiltaksdeltakerJobbTest {
@@ -548,99 +547,6 @@ class EndretTiltaksdeltakerJobbTest {
                 andreOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
             }
-        }
-    }
-
-    @Test
-    fun `opprydning - opprettet oppgave, ikke ferdigstilt - oppdaterer sist sjekket`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            tac.oppgaveFakeKlient.erFerdigstiltResponse = false
-
-            val fnr = Fnr.random()
-            val tiltaksdeltakerId = TiltaksdeltakerId.random()
-            val deltakelseFom = 5.januar(2025)
-            val deltakelsesTom = 5.mai(2025)
-            val deltakelsesperiode = deltakelseFom til deltakelsesTom
-
-            val tiltaksdeltakelse = tiltaksdeltakelse(
-                periode = deltakelsesperiode,
-                internDeltakelseId = tiltaksdeltakerId,
-            )
-
-            val (sak) = iverksettSøknadsbehandling(
-                tac = tac,
-                fnr = fnr,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
-                tiltaksdeltakelse = tiltaksdeltakelse,
-            )
-
-            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-                sakId = sak.id,
-                fom = deltakelseFom,
-                tom = LocalDate.now(tac.clock),
-                deltakerstatus = TiltakDeltakerstatus.Avbrutt,
-                oppgaveId = oppgaveId,
-                oppgaveSistSjekket = null,
-                tiltaksdeltakerId = tiltaksdeltakerId,
-            )
-            tac.tiltaksdeltakerKafkaRepository.lagre(
-                tiltaksdeltakerKafkaDb,
-                "melding",
-                nå(tac.clock).minusMinutes(20),
-            )
-
-            tac.endretTiltaksdeltakerJobb.opprydning()
-
-            val oppdatertTiltaksdeltakerKafkaDb = tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id)
-            oppdatertTiltaksdeltakerKafkaDb.shouldNotBeNull()
-            oppdatertTiltaksdeltakerKafkaDb.oppgaveId shouldBe oppgaveId
-            oppdatertTiltaksdeltakerKafkaDb.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe nå(tac.clock).truncatedTo(
-                ChronoUnit.MINUTES,
-            )
-        }
-    }
-
-    @Test
-    fun `opprydning - opprettet oppgave, ferdigstilt - sletter fra db`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            tac.oppgaveFakeKlient.erFerdigstiltResponse = true
-
-            val fnr = Fnr.random()
-            val tiltaksdeltakerId = TiltaksdeltakerId.random()
-            val deltakelseFom = 5.januar(2025)
-            val deltakelsesTom = 5.mai(2025)
-            val deltakelsesperiode = deltakelseFom til deltakelsesTom
-
-            val tiltaksdeltakelse = tiltaksdeltakelse(
-                periode = deltakelsesperiode,
-                internDeltakelseId = tiltaksdeltakerId,
-            )
-
-            val (sak) = iverksettSøknadsbehandling(
-                tac = tac,
-                fnr = fnr,
-                innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
-                tiltaksdeltakelse = tiltaksdeltakelse,
-            )
-
-            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-                sakId = sak.id,
-                fom = deltakelseFom,
-                tom = LocalDate.now(tac.clock),
-                deltakerstatus = TiltakDeltakerstatus.Avbrutt,
-                oppgaveId = oppgaveId,
-                oppgaveSistSjekket = nå(tac.clock).minusHours(2),
-                tiltaksdeltakerId = tiltaksdeltakerId,
-            )
-            tac.tiltaksdeltakerKafkaRepository.lagre(
-                tiltaksdeltakerKafkaDb,
-                "melding",
-                nå(tac.clock).minusMinutes(20),
-            )
-
-            tac.endretTiltaksdeltakerJobb.opprydning()
-
-            tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
         }
     }
 }

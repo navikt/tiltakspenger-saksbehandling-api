@@ -88,34 +88,6 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
-    suspend fun opprydning() {
-        Either.catch {
-            val deltakereMedOppgave = tiltaksdeltakerKafkaRepository.hentAlleMedOppgave()
-
-            deltakereMedOppgave.forEach {
-                val deltakerId = it.id
-                val oppgaveId = it.oppgaveId
-
-                Either.catch {
-                    if (oppgaveId != null) {
-                        val ferdigstilt = oppgaveKlient.erFerdigstilt(oppgaveId)
-                        if (ferdigstilt) {
-                            log.info { "Oppgave med id $oppgaveId er ferdigstilt, sletter innslag for tiltaksdeltakelse $deltakerId" }
-                            tiltaksdeltakerKafkaRepository.slett(deltakerId)
-                        } else {
-                            log.info { "Oppgave med id $oppgaveId er ikke ferdigstilt, oppdaterer sist sjekket for tiltaksdeltakelse $deltakerId" }
-                            tiltaksdeltakerKafkaRepository.oppdaterOppgaveSistSjekket(deltakerId)
-                        }
-                    }
-                }.onLeft {
-                    log.error(it) { "Feil ved opprydning av oppgave for tiltaksdeltakelse (deltakerId $deltakerId - oppgaveId $oppgaveId)" }
-                }
-            }
-        }.onLeft {
-            log.error(it) { "Feil ved opprydning av oppgaver for tiltaksdeltakelse" }
-        }
-    }
-
     private fun Sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(tiltaksdeltakerId: TiltaksdeltakerId) {
         rammebehandlinger.åpneSøknadsbehandlinger
             .filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId && it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
