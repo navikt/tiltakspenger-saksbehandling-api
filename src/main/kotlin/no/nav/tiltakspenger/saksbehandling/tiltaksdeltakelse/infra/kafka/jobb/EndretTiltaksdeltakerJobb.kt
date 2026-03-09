@@ -88,6 +88,7 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
+    // Antar at intensjonen her er at behandling skal tas av vent dersom tiltaksdeltakelsen endres
     private fun Sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(tiltaksdeltakerId: TiltaksdeltakerId) {
         rammebehandlinger.åpneSøknadsbehandlinger
             .filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId && it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
