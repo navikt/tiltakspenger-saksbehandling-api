@@ -48,7 +48,10 @@ class TilbakekrevingConsumer(
 
         logger.info { "Lagrer tilbakekrevingshendelse type ${hendelse.hendelsestype} med key $key" }
 
-        tilbakekrevingHendelseRepo.lagreNy(hendelse, key, value)
+        val wasInserted = tilbakekrevingHendelseRepo.lagreNy(hendelse, key, value)
+        if (!wasInserted) {
+            logger.info { "Tilbakekrevingshendelse med key $key er allerede mottatt - ignorerer duplikat" }
+        }
     }
 
     override fun run() = consumer.run()

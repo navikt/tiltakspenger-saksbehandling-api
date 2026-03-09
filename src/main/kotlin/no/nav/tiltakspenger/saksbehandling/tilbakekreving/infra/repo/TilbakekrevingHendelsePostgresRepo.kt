@@ -18,14 +18,17 @@ class TilbakekrevingHendelsePostgresRepo(
     private val clock: Clock,
 ) {
 
+    /**
+     * Lagrer en ny tilbakekrevingshendelse. Returnerer true hvis hendelsen ble lagret, false hvis den allerede eksisterer (duplikat).
+     */
     fun lagreNy(
         hendelse: Tilbakekrevingshendelse,
         key: String,
         value: String,
         sessionContext: SessionContext? = null,
-    ) {
-        sessionFactory.withSession(sessionContext) { session ->
-            session.run(
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { session ->
+            val rowsAffected = session.run(
                 sqlQuery(
                     """
                     INSERT INTO tilbakekreving_hendelse (
@@ -45,6 +48,7 @@ class TilbakekrevingHendelsePostgresRepo(
                         :key,
                         to_jsonb(:value::jsonb)
                     )
+                    ON CONFLICT (key) DO NOTHING
                     """.trimIndent(),
                     "id" to hendelse.id.toString(),
                     "opprettet" to hendelse.opprettet,
@@ -61,6 +65,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     },
                 ).asUpdate,
             )
+            rowsAffected > 0
         }
     }
 

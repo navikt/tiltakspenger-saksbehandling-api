@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingInfoBehovHendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingshendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record.TilbakekrevingInfoSvarDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record.TilbakekrevingInfoSvarDTO.TilbakekrevingMottaker
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record.TilbakekrevingInfoSvarDTO.TilbakekrevingRevurdering
@@ -74,7 +73,7 @@ class BehandleTilbakekrevingInfoBehovJobb(
                 }
 
                 if (svarDto == null) {
-                    logger.error { "Fant ingen behandling for beregningskids ${utbetaling.beregningKilde.id} i sak ${sak.id}" }
+                    logger.error { "Fant ingen behandling for beregningskilde ${utbetaling.beregningKilde.id} i sak ${sak.id}" }
                     tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehovFeil(
                         behovHendelse.id,
                         "Fant ikke behandling for utbetalingens beregningskilde",
@@ -85,7 +84,7 @@ class BehandleTilbakekrevingInfoBehovJobb(
                 val svarJson = serialize(svarDto)
 
                 logger.info { "Produserer svar på tilbakekreving info-behov ${behovHendelse.id} for sak ${sak.id} med kravgrunnlagReferanse ${behovHendelse.kravgrunnlagReferanse}" }
-//                kafkaProducer.produce(topic, svarDto.id.toString(), serialize(svarJson))
+                kafkaProducer.produce(topic, behovHendelse.id.uuidPart(), serialize(svarJson))
                 tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehov(behovHendelse.id, svarJson)
             }.onLeft {
                 logger.error(it) { "Feil ved behandling av tilbakekreving info-behov ${behovHendelse.id}" }
@@ -99,7 +98,6 @@ class BehandleTilbakekrevingInfoBehovJobb(
         }
 
         return TilbakekrevingInfoSvarDTO(
-            id = TilbakekrevingshendelseId.random(),
             eksternFagsakId = behov.eksternFagsakId,
             hendelseOpprettet = nå(clock),
             mottaker = TilbakekrevingMottaker(
@@ -128,7 +126,6 @@ class BehandleTilbakekrevingInfoBehovJobb(
 
     private fun Rammebehandling.tilSvarDTO(behov: TilbakekrevingInfoBehovHendelse): TilbakekrevingInfoSvarDTO {
         return TilbakekrevingInfoSvarDTO(
-            id = TilbakekrevingshendelseId.random(),
             eksternFagsakId = behov.eksternFagsakId,
             hendelseOpprettet = nå(clock),
             mottaker = TilbakekrevingMottaker(

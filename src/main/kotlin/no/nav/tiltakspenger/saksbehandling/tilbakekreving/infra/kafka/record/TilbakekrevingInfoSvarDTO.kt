@@ -1,13 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record
 
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.Tilbakekrevingshendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingshendelseId
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class TilbakekrevingInfoSvarDTO(
-    val id: TilbakekrevingshendelseId,
     override val eksternFagsakId: String,
     override val hendelseOpprettet: LocalDateTime,
     val mottaker: TilbakekrevingMottaker,
