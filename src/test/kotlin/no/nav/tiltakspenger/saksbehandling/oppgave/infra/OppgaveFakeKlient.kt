@@ -7,7 +7,9 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 
-class OppgaveFakeKlient : OppgaveKlient {
+class OppgaveFakeKlient(
+    var erFerdigstiltResponse: Boolean = true,
+) : OppgaveKlient {
     override suspend fun opprettOppgave(fnr: Fnr, journalpostId: JournalpostId, oppgavebehov: Oppgavebehov): OppgaveId {
         return ObjectMother.oppgaveId()
     }
@@ -24,6 +26,6 @@ class OppgaveFakeKlient : OppgaveKlient {
     }
 
     override suspend fun erFerdigstilt(oppgaveId: OppgaveId): Boolean {
-        return true
+        return erFerdigstiltResponse
     }
 }

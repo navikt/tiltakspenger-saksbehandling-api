@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -10,6 +11,9 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ *  [behandlingId] Er satt dersom endringen førte til at det ble automatisk opprettet en revurdering
+ * */
 data class TiltaksdeltakerKafkaDb(
     val id: String,
     val deltakelseFraOgMed: LocalDate?,
@@ -21,8 +25,10 @@ data class TiltaksdeltakerKafkaDb(
     val oppgaveId: OppgaveId?,
     val oppgaveSistSjekket: LocalDateTime?,
     val tiltaksdeltakerId: TiltaksdeltakerId,
+    val behandlingId: BehandlingId?,
 ) {
-    fun tiltaksdeltakelseErEndret(
+
+    fun finnEndringer(
         tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
         clock: Clock,
     ): List<TiltaksdeltakerEndring> {
@@ -44,32 +50,32 @@ data class TiltaksdeltakerKafkaDb(
         }
 
         if (erAvbruttDeltakelse(sammeStatus = sammeStatus, sammeTom = sammeTom, tiltaksdeltakelseFraBehandling, clock = clock)) {
-            endringer.add(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
+            endringer.add(TiltaksdeltakerEndring.AvbruttDeltakelse)
             return endringer
         }
 
         if (erIkkeAktuellDeltakelse(sammeStatus)) {
-            endringer.add(TiltaksdeltakerEndring.IKKE_AKTUELL_DELTAKELSE)
+            endringer.add(TiltaksdeltakerEndring.IkkeAktuellDeltakelse)
             return endringer
         }
 
         if (!sammeDeltakelsesprosent || !sammeAntallDagerPerUke) {
-            endringer.add(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
+            endringer.add(TiltaksdeltakerEndring.EndretDeltakelsesmengde(deltakelsesprosent, dagerPerUke))
         }
 
         if (erForlengelse(sammeFom, tiltaksdeltakelseFraBehandling)) {
-            endringer.add(TiltaksdeltakerEndring.FORLENGELSE)
+            endringer.add(TiltaksdeltakerEndring.Forlengelse(deltakelseTilOgMed!!))
             return endringer
         }
 
         if (!sammeFom) {
-            endringer.add(TiltaksdeltakerEndring.ENDRET_STARTDATO)
+            endringer.add(TiltaksdeltakerEndring.EndretStartdato(deltakelseFraOgMed))
         }
         if (!sammeTom) {
-            endringer.add(TiltaksdeltakerEndring.ENDRET_SLUTTDATO)
+            endringer.add(TiltaksdeltakerEndring.EndretSluttdato(deltakelseTilOgMed))
         }
         if (!sammeStatus) {
-            endringer.add(TiltaksdeltakerEndring.ENDRET_STATUS)
+            endringer.add(TiltaksdeltakerEndring.EndretStatus(deltakerstatus))
         }
 
         return endringer

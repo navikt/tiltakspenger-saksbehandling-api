@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 data class StartRevurderingKommando(
     val sakId: SakId,
     val correlationId: CorrelationId,
-    val saksbehandler: Saksbehandler,
+    val saksbehandler: Saksbehandler?,
     val revurderingType: StartRevurderingType,
     val vedtakIdSomOmgjøres: VedtakId?,
     val klagebehandlingId: KlagebehandlingId?,

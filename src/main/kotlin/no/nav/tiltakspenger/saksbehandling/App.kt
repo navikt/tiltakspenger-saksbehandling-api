@@ -113,8 +113,7 @@ internal fun start(
             if (Configuration.isNais()) {
                 it.plus(
                     listOf(
-                        { applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere() },
-                        { applicationContext.endretTiltaksdeltakerJobb.opprydning() },
+                        { applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere() },
                         { applicationContext.sendTilDatadelingService.send() },
                         { applicationContext.personhendelseJobb.opprettOppgaveForPersonhendelser() },
                         { applicationContext.personhendelseJobb.opprydning() },

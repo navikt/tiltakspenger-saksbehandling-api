@@ -34,6 +34,7 @@ data class DeltakerV1Dto(
             oppgaveId = null,
             oppgaveSistSjekket = null,
             tiltaksdeltakerId = tiltaksdeltakerId,
+            behandlingId = null,
         )
 
     private fun KometDeltakerStatusType.toTiltakDeltakerStatus(): TiltakDeltakerstatus =

@@ -90,10 +90,6 @@ data class Sak(
         )
     }
 
-    val apneSoknadsbehandlinger = rammebehandlinger
-        .filterIsInstance<Søknadsbehandling>()
-        .filterNot { it.erAvsluttet }
-
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortbehandlinger.hentMeldekortBehandling(meldekortId)
     }
@@ -109,10 +105,12 @@ data class Sak(
         val avsluttedeSoknadsbehandlinger = rammebehandlinger
             .filterIsInstance<Søknadsbehandling>()
             .filter { it.erAvsluttet }
+
         val apneSoknader = søknader.filterNot { it.erAvbrutt }
+
         return apneSoknader.any { soknad ->
             avsluttedeSoknadsbehandlinger.find { it.søknad.id == soknad.id } == null ||
-                apneSoknadsbehandlinger.find { it.søknad.id == soknad.id } != null
+                rammebehandlinger.åpneSøknadsbehandlinger.find { it.søknad.id == soknad.id } != null
         }
     }
 
@@ -201,13 +199,6 @@ data class Sak(
 
     fun oppdaterKanSendeInnHelgForMeldekort(kanSendeInnHelgForMeldekort: Boolean): Sak =
         this.copy(kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort)
-
-    /**
-     * Tar kun med vedtak som innvilger.
-     */
-    fun erRammevedtakGjeldendeForHeleSinPeriode(rammevedtakId: VedtakId): Boolean {
-        return hentRammevedtakForId(rammevedtakId).omgjortGrad == null
-    }
 
     // Et meldeperiode har ikke informasjon om tiltaksdeltakelsen, så vi må hente det fra rammevedtakene som gjelder for dette meldekortvedtaket.
     // Det er mulig at flere rammevedtak gjelder for samme meldekortvedtak, f.eks. ved revurdering.

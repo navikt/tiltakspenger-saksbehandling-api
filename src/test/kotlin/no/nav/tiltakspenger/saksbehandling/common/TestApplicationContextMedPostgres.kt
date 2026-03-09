@@ -85,7 +85,8 @@ class TestApplicationContextMedPostgres(
     override val veilarboppfolgingKlient = VeilarboppfolgingFakeKlient()
     override val navkontorService: NavkontorService = NavkontorService(veilarboppfolgingKlient)
 
-    override val oppgaveKlient: OppgaveKlient = OppgaveFakeKlient()
+    val oppgaveFakeKlient = OppgaveFakeKlient()
+    override val oppgaveKlient: OppgaveKlient = oppgaveFakeKlient
 
     override val safJournalpostClient: SafJournalpostClient by lazy {
         SafJournalpostFakeClient(clock)
