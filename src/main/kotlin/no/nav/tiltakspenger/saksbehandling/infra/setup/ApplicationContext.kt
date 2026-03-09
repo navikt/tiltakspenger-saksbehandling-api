@@ -46,6 +46,9 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.Personhen
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb.BehandleTilbakekrevingInfoBehovJobb
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
@@ -443,6 +446,30 @@ open class ApplicationContext(
             behandlingService = behandlingContext.rammebehandlingService,
             saksstatistikkService = statistikkContext.saksstatistikkService,
             sessionFactory = sessionFactory,
+            clock = clock,
+        )
+    }
+
+    val tilbakekrevingHendelseRepo by lazy {
+        TilbakekrevingHendelsePostgresRepo(
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+            clock = clock,
+        )
+    }
+
+    val tilbakekrevingConsumer by lazy {
+        TilbakekrevingConsumer(
+            topic = Configuration.tilbakekrevingTopic,
+            tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            clock = clock,
+        )
+    }
+
+    val tilbakekrevingInfoBehovSvarJobb by lazy {
+        BehandleTilbakekrevingInfoBehovJobb(
+            tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            sakService = sakContext.sakService,
+            topic = Configuration.tilbakekrevingTopic,
             clock = clock,
         )
     }

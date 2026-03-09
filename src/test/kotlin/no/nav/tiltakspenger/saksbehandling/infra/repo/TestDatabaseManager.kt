@@ -109,7 +109,8 @@ internal class TestDatabaseManager {
                   søknad_barnetillegg,
                   søknad,
                   utbetalingsvedtak,
-                  tiltaksdeltaker
+                  tiltaksdeltaker,
+                  tilbakekreving_hendelse
                 """.trimIndent(),
             ).asUpdate,
         )
