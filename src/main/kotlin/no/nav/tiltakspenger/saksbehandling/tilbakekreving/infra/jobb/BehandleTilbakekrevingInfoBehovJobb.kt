@@ -40,38 +40,55 @@ class BehandleTilbakekrevingInfoBehovJobb(
             return
         }
 
-        infoBehovHendelser.forEach { hendelse ->
+        infoBehovHendelser.forEach { behovHendelse ->
             Either.catch {
-                val sak = sakService.hentForSaksnummer(Saksnummer(hendelse.eksternFagsakId))
+                val sak =
+                    Either.catch { sakService.hentForSaksnummer(Saksnummer(behovHendelse.eksternFagsakId)) }.getOrElse {
+                        logger.error(it) { "Fant ingen sak for saksnummer/eksternFagsakId ${behovHendelse.eksternFagsakId} fra behovHendelse ${behovHendelse.id}" }
+                        tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehovFeil(
+                            behovHendelse.id,
+                            "Fant ikke sak for saksnummer",
+                        )
+                        return@forEach
+                    }
 
-                val utbetaling = sak.utbetalinger.hentUtbetalingForUuidPart(hendelse.kravgrunnlagReferanse)
+                val utbetaling = sak.utbetalinger.hentUtbetalingForUuidPart(behovHendelse.kravgrunnlagReferanse)
 
                 if (utbetaling == null) {
-                    logger.error { "Fant ingen utbetaling for kravgrunnlagReferanse/uuid ${hendelse.kravgrunnlagReferanse} i sak ${sak.id}" }
+                    logger.error { "Fant ingen utbetaling for kravgrunnlagReferanse/uuid ${behovHendelse.kravgrunnlagReferanse} i sak ${sak.id}" }
+                    tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehovFeil(
+                        behovHendelse.id,
+                        "Fant ikke utbetaling for kravgrunnlagReferanse",
+                    )
                     return@forEach
                 }
 
                 val svarDto = when (utbetaling.beregningKilde) {
                     is BeregningKilde.BeregningKildeMeldekort ->
                         sak.meldekortbehandlinger.hentMeldekortBehandling(utbetaling.beregningKilde.id)
-                            ?.tilSvarDTO(hendelse)
+                            ?.tilSvarDTO(behovHendelse)
 
                     is BeregningKilde.BeregningKildeBehandling ->
-                        sak.rammebehandlinger.hentRammebehandling(utbetaling.beregningKilde.id)?.tilSvarDTO(hendelse)
+                        sak.rammebehandlinger.hentRammebehandling(utbetaling.beregningKilde.id)
+                            ?.tilSvarDTO(behovHendelse)
                 }
 
                 if (svarDto == null) {
                     logger.error { "Fant ingen behandling for beregningskids ${utbetaling.beregningKilde.id} i sak ${sak.id}" }
+                    tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehovFeil(
+                        behovHendelse.id,
+                        "Fant ikke behandling for utbetalingens beregningskilde",
+                    )
                     return@forEach
                 }
 
                 val svarJson = serialize(svarDto)
 
-                logger.info { "Produserer svar på tilbakekreving info-behov for sak ${sak.id} med kravgrunnlagReferanse ${hendelse.kravgrunnlagReferanse}" }
+                logger.info { "Produserer svar på tilbakekreving info-behov ${behovHendelse.id} for sak ${sak.id} med kravgrunnlagReferanse ${behovHendelse.kravgrunnlagReferanse}" }
 //                kafkaProducer.produce(topic, svarDto.id.toString(), serialize(svarJson))
-                tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehov(svarDto.id, svarJson)
+                tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehov(behovHendelse.id, svarJson)
             }.onLeft {
-                logger.error(it) { "Feil ved behandling av tilbakekreving info-behov ${hendelse.id}" }
+                logger.error(it) { "Feil ved behandling av tilbakekreving info-behov ${behovHendelse.id}" }
             }
         }
     }

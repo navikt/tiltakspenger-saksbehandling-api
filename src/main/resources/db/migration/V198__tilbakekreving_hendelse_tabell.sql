@@ -1,3 +1,5 @@
+drop table if exists tilbakekreving_hendelse;
+
 create table tilbakekreving_hendelse (
     id varchar primary key,
     opprettet TIMESTAMPTZ not null,
@@ -9,5 +11,6 @@ create table tilbakekreving_hendelse (
     kravgrunnlag_referanse varchar null,
     svar jsonb null,
     sak_id varchar null REFERENCES sak (id),
-    behandlet TIMESTAMPTZ null
+    behandlet TIMESTAMPTZ null,
+    behandlet_feil varchar null
 );

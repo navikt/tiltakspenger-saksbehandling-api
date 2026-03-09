@@ -83,6 +83,25 @@ class TilbakekrevingHendelsePostgresRepo(
         }
     }
 
+    fun oppdaterBehandletInfoBehovFeil(hendelseId: TilbakekrevingshendelseId, feil: String) {
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    UPDATE tilbakekreving_hendelse
+                    SET
+                        behandlet = :behandlet,
+                        behandlet_feil = :behandlet_feil
+                    WHERE id = :id
+                    """.trimIndent(),
+                    "id" to hendelseId.toString(),
+                    "behandlet" to nå(clock),
+                    "behandlet_feil" to feil,
+                ).asUpdate,
+            )
+        }
+    }
+
     fun hentUbehandledeInfoBehov(): List<TilbakekrevingInfoBehovHendelse> {
         return sessionFactory.withSession { session ->
             session.run(
