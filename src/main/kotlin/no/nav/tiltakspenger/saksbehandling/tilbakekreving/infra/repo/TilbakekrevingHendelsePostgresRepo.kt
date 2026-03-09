@@ -93,7 +93,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     WHERE hendelse_type = :hendelse_type
                     AND behandlet IS NULL
                     """.trimIndent(),
-                    "hendelse_type" to TilbakekrevingHendelsestype.InfoBehov,
+                    "hendelse_type" to TilbakekrevingHendelsestype.InfoBehov.toString(),
                 ).map { row -> row.fromRow() as TilbakekrevingInfoBehovHendelse }.asList,
             )
         }
