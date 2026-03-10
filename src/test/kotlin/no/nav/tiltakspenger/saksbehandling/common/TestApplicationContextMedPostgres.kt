@@ -21,10 +21,12 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
+import no.nav.tiltakspenger.saksbehandling.journalføring.DokumentInfoIdGeneratorSerial
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorSerial
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
+import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostFakeClient
@@ -64,6 +66,7 @@ class TestApplicationContextMedPostgres(
 ) {
     @Suppress("MemberVisibilityCanBePrivate")
     val journalpostIdGenerator = JournalpostIdGeneratorSerial()
+    val dokumentInfoIdGeneratorGenerator = DokumentInfoIdGeneratorSerial()
 
     @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()
@@ -75,7 +78,8 @@ class TestApplicationContextMedPostgres(
     private val genererFakeVedtaksbrevKlient = GenererFakeVedtaksbrevKlient()
     private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
     private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
-    private val journalførFakeKlagevedtaksbrevKlient = JournalførFakeKlagevedtakKlient(journalpostIdGenerator)
+    private val journalførFakeKlagevedtaksbrevKlient =
+        JournalførFakeKlagevedtakKlient(journalpostIdGenerator, dokumentInfoIdGeneratorGenerator)
     private val dokumentdistribusjonsFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val meldekortApiFakeKlient = MeldekortApiFakeKlient()
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
@@ -90,6 +94,10 @@ class TestApplicationContextMedPostgres(
 
     override val safJournalpostClient: SafJournalpostClient by lazy {
         SafJournalpostFakeClient(clock)
+    }
+
+    override val hentJournalpostDokumentService: HentJournalpostDokumentService by lazy {
+        HentJournalpostDokumentService(safJournalpostClient)
     }
 
     override val personContext =
@@ -204,6 +212,7 @@ class TestApplicationContextMedPostgres(
             sakService = sakContext.sakService,
             clock = clock,
             validerJournalpostService = ValiderJournalpostService(safJournalpostClient, personFakeKlient),
+            hentJournalpostDokumentService = hentJournalpostDokumentService,
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
             genererKlagebrevKlient = genererFakeVedtaksbrevKlient,

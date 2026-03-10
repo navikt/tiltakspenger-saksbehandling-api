@@ -23,9 +23,11 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
+import no.nav.tiltakspenger.saksbehandling.journalføring.DokumentInfoIdGeneratorRandom
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorRandom
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
+import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostFakeClient
@@ -73,6 +75,7 @@ class LocalApplicationContext(
 
     @Suppress("MemberVisibilityCanBePrivate")
     val journalpostIdGenerator = JournalpostIdGeneratorRandom()
+    val dokumentInfoIdGenerator = DokumentInfoIdGeneratorRandom()
 
     @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()
@@ -128,6 +131,10 @@ class LocalApplicationContext(
             tilgangsmaskinClient = tilgangsmaskinFakeClient,
             sakService = sakContext.sakService,
         )
+    }
+
+    override val hentJournalpostDokumentService: HentJournalpostDokumentService by lazy {
+        HentJournalpostDokumentService(safJournalpostClient)
     }
 
     override val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingKlient) }
@@ -270,6 +277,7 @@ class LocalApplicationContext(
             sakService = sakContext.sakService,
             clock = clock,
             validerJournalpostService = ValiderJournalpostService(safJournalpostClient, personContext.personKlient),
+            hentJournalpostDokumentService = hentJournalpostDokumentService,
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
             genererKlagebrevKlient = dokumentContext.genererKlagebrevKlient,

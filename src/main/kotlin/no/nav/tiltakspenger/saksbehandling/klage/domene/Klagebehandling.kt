@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
@@ -14,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.FERDIGSTILT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
@@ -88,6 +90,8 @@ data class Klagebehandling(
     val rammebehandlingId: BehandlingId? = resultat?.rammebehandlingId
     val skalVæreKnyttetTilRammebehandling = resultat?.skalVæreKnyttetTilRammebehandling
 
+    val journalpostIdInnstillingsbrev: JournalpostId? = (resultat as? Klagebehandlingsresultat.Opprettholdt)?.journalpostIdInnstillingsbrev
+
     /**
      * Siden vi i alle tilfeller genererer brevet på nytt, må vi skille på om vi skal akseptere forhåndsvisningens parametre eller ikke.
      * Etter vi har passert et visst punkt i behandlingen, skal ikke saksbehandler kunne påvirke innholdet i brevet lenger.
@@ -133,13 +137,14 @@ data class Klagebehandling(
     fun oppdaterInnstillingsbrevJournalpost(
         brevdato: LocalDate,
         journalpostId: JournalpostId,
+        dokumentInfoId: NonEmptyList<DokumentInfoId>,
         tidspunkt: LocalDateTime,
     ): Klagebehandling {
         require(resultat is Klagebehandlingsresultat.Opprettholdt) {
             "Kun klagebehandlinger med resultat Opprettholdt kan journalføre innstillingsbrev. sakId=$sakId, saksnummer=$saksnummer, klagebehandlingId=$id"
         }
         return this.copy(
-            resultat = resultat.oppdaterInnstillingsbrevJournalpost(brevdato, journalpostId, tidspunkt),
+            resultat = resultat.oppdaterInnstillingsbrevJournalpost(brevdato, journalpostId, dokumentInfoId, tidspunkt),
         )
     }
 

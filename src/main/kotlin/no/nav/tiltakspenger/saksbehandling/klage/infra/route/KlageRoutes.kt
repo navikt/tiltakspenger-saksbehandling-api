@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.avbrytKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.forhåndsvisBrevKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.oppdaterTekstTilBrev
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.brev.visInnstillingsbrevKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ferdigstill.ferdigstillKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.oppdaterKlagebehandlingFormkravRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.gjenopptaKlagebehandlingRoute
@@ -32,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettholdKlagebehandl
 import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
 import java.time.Clock
 
@@ -53,6 +55,7 @@ fun Route.klagebehandlingRoutes(
     settKlagebehandlingPåVentService: SettKlagebehandlingPåVentService,
     opprettholdKlagebehandlingService: OpprettholdKlagebehandlingService,
     ferdigstillKlagebehandlingService: FerdigstillKlagebehandlingService,
+    visInnstillingsbrevKlagebehandlingService: VisInnstillingsbrevKlagebehandlingService,
     clock: Clock,
 ) {
     opprettKlagebehandlingRoute(
@@ -135,6 +138,11 @@ fun Route.klagebehandlingRoutes(
     )
     ferdigstillKlagebehandlingRoute(
         ferdigstillKlagebehandlingService = ferdigstillKlagebehandlingService,
+        auditService = auditService,
+        tilgangskontrollService = tilgangskontrollService,
+    )
+    visInnstillingsbrevKlagebehandlingRoute(
+        visInnstillingsbrevService = visInnstillingsbrevKlagebehandlingService,
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
     )

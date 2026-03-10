@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.DataSourceSetup
+import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClientImpl
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.KlageinstansKlagehendelseConsumer
@@ -138,6 +139,12 @@ open class ApplicationContext(
                     rewriteAudienceTarget = false,
                 )
             },
+        )
+    }
+
+    open val hentJournalpostDokumentService: HentJournalpostDokumentService by lazy {
+        HentJournalpostDokumentService(
+            journalpostClient = safJournalpostClient,
         )
     }
 
@@ -368,6 +375,7 @@ open class ApplicationContext(
             sakService = sakContext.sakService,
             clock = clock,
             validerJournalpostService = søknadContext.validerJournalpostService,
+            hentJournalpostDokumentService = hentJournalpostDokumentService,
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
             genererKlagebrevKlient = dokumentContext.genererKlagebrevKlient,

@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.FERDIGSTILT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
@@ -13,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
-import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.BehandlingFeilregistrert.KlagehendelseFeilregistrertType
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet.OmgjøringskravbehandlingAvsluttetUtfall
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
@@ -152,6 +153,7 @@ sealed interface Klagebehandlingsresultat {
         val iverksattOpprettholdelseTidspunkt: LocalDateTime?,
         val brevdato: LocalDate?,
         val journalpostIdInnstillingsbrev: JournalpostId?,
+        val dokumentInfoIder: NonEmptyList<DokumentInfoId>?,
         val journalføringstidspunktInnstillingsbrev: LocalDateTime?,
         val distribusjonIdInnstillingsbrev: DistribusjonId?,
         val distribusjonstidspunktInnstillingsbrev: LocalDateTime?,
@@ -242,6 +244,7 @@ sealed interface Klagebehandlingsresultat {
         fun oppdaterInnstillingsbrevJournalpost(
             brevdato: LocalDate,
             journalpostId: JournalpostId,
+            dokumentInfoId: NonEmptyList<DokumentInfoId>,
             tidspunkt: LocalDateTime,
         ): Opprettholdt {
             require(this.journalpostIdInnstillingsbrev == null && this.journalføringstidspunktInnstillingsbrev == null) {
@@ -250,6 +253,7 @@ sealed interface Klagebehandlingsresultat {
             return copy(
                 brevdato = brevdato,
                 journalpostIdInnstillingsbrev = journalpostId,
+                dokumentInfoIder = dokumentInfoId,
                 journalføringstidspunktInnstillingsbrev = tidspunkt,
             )
         }
@@ -276,6 +280,7 @@ sealed interface Klagebehandlingsresultat {
                     brevdato = null,
                     oversendtKlageinstansenTidspunkt = null,
                     journalpostIdInnstillingsbrev = null,
+                    dokumentInfoIder = null,
                     journalføringstidspunktInnstillingsbrev = null,
                     distribusjonIdInnstillingsbrev = null,
                     distribusjonstidspunktInnstillingsbrev = null,

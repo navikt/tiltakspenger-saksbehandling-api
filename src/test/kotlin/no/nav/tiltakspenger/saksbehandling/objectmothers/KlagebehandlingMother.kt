@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -18,6 +20,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -94,6 +97,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
 
     fun opprettholdtKlagebehandlingKlarForOversendelse(
         innstillingsbrevJournalpostId: JournalpostId = JournalpostId("journalpostId"),
+        dokumentInfoIder: NonEmptyList<DokumentInfoId> = nonEmptyListOf(DokumentInfoId("dokumentInfoId")),
     ): Klagebehandling {
         val clock = TikkendeKlokke()
         val correlationId: CorrelationId = CorrelationId.generate()
@@ -132,7 +136,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
             ),
         ).getOrFail()
         return iverksattOpprettholdt
-            .oppdaterInnstillingsbrevJournalpost(LocalDate.now(fixedClock), innstillingsbrevJournalpostId, nå)
+            .oppdaterInnstillingsbrevJournalpost(LocalDate.now(fixedClock), innstillingsbrevJournalpostId, dokumentInfoIder, nå)
             .oppdaterInnstillingsbrevDistribusjon(DistribusjonId("distribusjonId"), nå)
     }
 
@@ -160,6 +164,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         iverksattOpprettholdelseTidspunkt: LocalDateTime? = null,
         brevdato: LocalDate? = null,
         journalpostIdInnstillingsbrev: JournalpostId? = null,
+        dokumentInfoIder: NonEmptyList<DokumentInfoId>? = null,
         journalføringstidspunktInnstillingsbrev: LocalDateTime? = null,
         distribusjonIdInnstillingsbrev: DistribusjonId? = null,
         distribusjonstidspunktInnstillingsbrev: LocalDateTime? = null,
@@ -175,6 +180,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
             brevdato = brevdato,
             journalpostIdInnstillingsbrev = journalpostIdInnstillingsbrev,
             journalføringstidspunktInnstillingsbrev = journalføringstidspunktInnstillingsbrev,
+            dokumentInfoIder = dokumentInfoIder,
             distribusjonIdInnstillingsbrev = distribusjonIdInnstillingsbrev,
             distribusjonstidspunktInnstillingsbrev = distribusjonstidspunktInnstillingsbrev,
             oversendtKlageinstansenTidspunkt = oversendtKlageinstansenTidspunkt,

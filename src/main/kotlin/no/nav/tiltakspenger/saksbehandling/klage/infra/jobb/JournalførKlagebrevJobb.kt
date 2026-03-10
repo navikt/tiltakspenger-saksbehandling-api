@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -53,7 +54,7 @@ class JournalførKlagebrevJobb(
                     }.getOrElse { return@forEach }
 
                     log.info { "Vedtaksbrev generert for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
-                    val (journalpostId, metadata) = journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
+                    val (journalpostId, _, metadata) = journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
                         klagevedtak = vedtak,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
@@ -101,7 +102,7 @@ class JournalførKlagebrevJobb(
                     ).getOrElse { return@forEach }
 
                     log.info { "Innstillingsbrev generert. $loggkontekst" }
-                    val (journalpostId, metadata) = journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
+                    val (journalpostId, dokumentInfoId, metadata) = journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
                         klagebehandling = klagebehandling,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
@@ -109,6 +110,12 @@ class JournalførKlagebrevJobb(
                     val oppdatertKlagebehandling = klagebehandling.oppdaterInnstillingsbrevJournalpost(
                         brevdato = vårDatoIBrevet,
                         journalpostId = journalpostId,
+                        dokumentInfoId = dokumentInfoId
+                            ?: throw IllegalStateException("Journalføring av innstillingsbrev med journalpostId $journalpostId returnerte ingen dokumentInfoId. $loggkontekst").also {
+                                Sikkerlogg.error {
+                                    "Journalføring av innstillingsbrev med journalpostId $journalpostId returnerte ingen dokumentInfoId. $loggkontekst, metadata: $metadata"
+                                }
+                            },
                         tidspunkt = metadata.journalføringsTidspunkt,
                     )
                     log.info { "Innstillingsbrev journalført. Prøver å lagre. journalpostId: $journalpostId, $loggkontekst" }

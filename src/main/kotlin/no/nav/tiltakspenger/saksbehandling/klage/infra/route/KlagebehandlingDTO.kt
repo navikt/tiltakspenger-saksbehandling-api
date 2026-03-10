@@ -103,6 +103,7 @@ sealed interface KlagebehandlingsresultatDTO {
         val klageinstanshendelser: List<KlageinstanshendelseDTO>,
         val ferdigstiltTidspunkt: LocalDateTime?,
         val journalpostIdInnstillingsbrev: String?,
+        val dokumentInfoIder: List<String>?,
     ) : KlagebehandlingsresultatDTO {
         override val type = KlageresultatstypeDto.OPPRETTHOLDT
     }
@@ -152,6 +153,7 @@ fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): Klagebehandlingsr
             klageinstanshendelser = klageinstanshendelser.toDTO(),
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
             journalpostIdInnstillingsbrev = journalpostIdInnstillingsbrev?.toString(),
+            dokumentInfoIder = dokumentInfoIder?.map { it.toString() },
         )
     }
 }

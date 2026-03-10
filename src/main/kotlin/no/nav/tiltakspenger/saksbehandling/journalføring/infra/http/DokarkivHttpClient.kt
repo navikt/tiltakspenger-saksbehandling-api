@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.journalføring.infra.http
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.getOrElse
+import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -29,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientWithRetry
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.toJournalpostRequest
@@ -65,7 +68,9 @@ internal class DokarkivHttpClient(
         correlationId: CorrelationId,
     ): Pair<JournalpostId, JournalførBrevMetadata> {
         val jsonBody = vedtak.utgåendeJournalpostRequest(pdfOgJson)
-        return opprettJournalpost(jsonBody, correlationId)
+        return opprettJournalpost(jsonBody, correlationId).let {
+            it.journalpostId to it.metadata
+        }
     }
 
     override suspend fun journalførVedtaksbrevForMeldekortvedtak(
@@ -74,14 +79,16 @@ internal class DokarkivHttpClient(
         correlationId: CorrelationId,
     ): Pair<JournalpostId, JournalførBrevMetadata> {
         val jsonBody = meldekortvedtak.toJournalpostRequest(pdfOgJson)
-        return opprettJournalpost(jsonBody, correlationId)
+        return opprettJournalpost(jsonBody, correlationId).let {
+            it.journalpostId to it.metadata
+        }
     }
 
     override suspend fun journalførAvvisningsvedtakForKlagevedtak(
         klagevedtak: Klagevedtak,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
-    ): Pair<JournalpostId, JournalførBrevMetadata> {
+    ): JournalførteDokumenter {
         val jsonBody = klagevedtak.toJournalpostRequest(pdfOgJson)
         return opprettJournalpost(jsonBody, correlationId)
     }
@@ -90,7 +97,7 @@ internal class DokarkivHttpClient(
         klagebehandling: Klagebehandling,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
-    ): Pair<JournalpostId, JournalførBrevMetadata> {
+    ): JournalførteDokumenter {
         val jsonBody = klagebehandling.toJournalpostRequest(pdfOgJson)
         return opprettJournalpost(jsonBody, correlationId)
     }
@@ -98,7 +105,7 @@ internal class DokarkivHttpClient(
     private suspend fun opprettJournalpost(
         jsonRequestBody: String,
         correlationId: CorrelationId,
-    ): Pair<JournalpostId, JournalførBrevMetadata> {
+    ): JournalførteDokumenter {
         val token = Either.catch { getToken() }.getOrElse {
             Sikkerlogg.error(it) { "Kunne ikke hente token for journalføring. jsonBody: $jsonRequestBody, correlationId: $correlationId" }
             throw RuntimeException("Kunne ikke hente token for journalføring. Se sikkerlogg for mer kontekst.")
@@ -134,11 +141,16 @@ internal class DokarkivHttpClient(
                     }
 
                     log.info { "Vi har opprettet journalpost med id : $journalpostId" }
-                    return JournalpostId(journalpostId) to JournalførBrevMetadata(
-                        requestBody = jsonRequestBody,
-                        responseStatus = "201 Created",
-                        responseBody = responseBody,
-                        journalføringsTidspunkt = nå(clock),
+
+                    return JournalførteDokumenter(
+                        journalpostId = JournalpostId(journalpostId),
+                        dokumentInfoIder = response.dokumentInfoIder(),
+                        metadata = JournalførBrevMetadata(
+                            requestBody = jsonRequestBody,
+                            responseStatus = "201 Created",
+                            responseBody = responseBody,
+                            journalføringsTidspunkt = nå(clock),
+                        ),
                     )
                 }
 
@@ -161,11 +173,16 @@ internal class DokarkivHttpClient(
                             log.warn { "Har allerede blitt journalført (409 Conflict)" }
                             val responseBody: String = throwable.response.call.body()
                             val response = deserialize<DokarkivResponse>(responseBody)
-                            return JournalpostId(response.journalpostId.orEmpty()) to JournalførBrevMetadata(
-                                requestBody = jsonRequestBody,
-                                responseStatus = "409 Conflict",
-                                responseBody = responseBody,
-                                journalføringsTidspunkt = nå(clock),
+
+                            return JournalførteDokumenter(
+                                journalpostId = JournalpostId(response.journalpostId.orEmpty()),
+                                dokumentInfoIder = response.dokumentInfoIder(),
+                                metadata = JournalførBrevMetadata(
+                                    requestBody = jsonRequestBody,
+                                    responseStatus = "409 Conflict",
+                                    responseBody = responseBody,
+                                    journalføringsTidspunkt = nå(clock),
+                                ),
                             )
                         }
 
@@ -186,10 +203,13 @@ internal class DokarkivHttpClient(
         val journalpostferdigstilt: Boolean?,
         val melding: String?,
         val dokumenter: List<Dokumenter>?,
-    )
+    ) {
+        fun dokumentInfoIder(): NonEmptyList<DokumentInfoId>? = dokumenter?.mapNotNull {
+            it.dokumentInfoId?.let { DokumentInfoId(it) }
+        }?.toNonEmptyListOrNull()
+    }
 
     data class Dokumenter(
         val dokumentInfoId: String?,
-        val tittel: String?,
     )
 }

@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
+import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient
 import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.DistribuerKlagebrevJobb
@@ -45,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettholdKlagebehandl
 import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
@@ -55,6 +57,7 @@ open class KlagebehandlingContext(
     private val sakService: SakService,
     private val clock: Clock,
     private val validerJournalpostService: ValiderJournalpostService,
+    private val hentJournalpostDokumentService: HentJournalpostDokumentService,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
     private val genererKlagebrevKlient: GenererKlagebrevKlient,
@@ -265,6 +268,14 @@ open class KlagebehandlingContext(
     open val ferdigstillKlagebehandlingService by lazy {
         FerdigstillKlagebehandlingService(
             klagebehandlingRepo = klagebehandlingRepo,
+            clock = clock,
+        )
+    }
+
+    open val visInnstillingsbrevKlagebehandlingService by lazy {
+        VisInnstillingsbrevKlagebehandlingService(
+            klagebehandlingRepo = klagebehandlingRepo,
+            hentJournalpostDokumentService = hentJournalpostDokumentService,
             clock = clock,
         )
     }

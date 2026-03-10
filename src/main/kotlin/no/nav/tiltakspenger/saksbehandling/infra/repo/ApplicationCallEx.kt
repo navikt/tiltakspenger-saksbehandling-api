@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
@@ -121,6 +122,18 @@ internal suspend inline fun ApplicationCall.withBehandlingId(
         parse = BehandlingId::fromString,
         errorMessage = "Ugyldig behandling id",
         errorCode = "ugyldig_behandling_id",
+        onSuccess = onRight,
+    )
+}
+
+internal suspend inline fun ApplicationCall.withDokumentInfoId(
+    crossinline onRight: suspend (DokumentInfoId) -> Unit,
+) {
+    withValidParam(
+        paramName = "dokumentInfoId",
+        parse = { id -> DokumentInfoId(id) },
+        errorMessage = "Ugyldig dokumentInfoId id",
+        errorCode = "ugyldig_dokumentInfoId_id",
         onSuccess = onRight,
     )
 }

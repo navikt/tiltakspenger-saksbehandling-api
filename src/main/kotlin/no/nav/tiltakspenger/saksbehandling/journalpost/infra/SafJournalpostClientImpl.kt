@@ -3,16 +3,24 @@ package no.nav.tiltakspenger.saksbehandling.journalpost.infra
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.ResponseException
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.header
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.infra.graphql.GraphQLResponse
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientWithRetry
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalpost.HentDokumentCommand
 import tools.jackson.module.kotlin.readValue
 
 /**
@@ -95,6 +103,31 @@ class SafJournalpostClientImpl(
         }
 
         return hentJournalpostResponse.data.journalpost
+    }
+
+    override suspend fun hentDokument(
+        command: HentDokumentCommand,
+    ): PdfA {
+        val accessToken = getToken().token
+        val url = "$baseUrl/rest/hentdokument/journalpost/${command.journalpostId}/${command.dokumentInfoId}/ARKIV"
+
+        log.info { "Starter henting av dokument" }
+        val res = httpClient.post(url) {
+            accept(ContentType.Application.Pdf)
+            header("X-Correlation-ID", command.correlationId.value)
+            header("Nav-Callid", command.correlationId.value)
+            bearerAuth(accessToken)
+        }
+
+        when (res.status) {
+            HttpStatusCode.OK -> return PdfA(res.bodyAsBytes()).also {
+                log.info { "Hentet dokument OK fra SAF" }
+            }
+
+            else -> throw RuntimeException("Kall til SAF feilet med status ${res.status}. Url: $url, journalpostId ${command.journalpostId}, dokumentInfoId ${command.dokumentInfoId}. Dette skjedde for sak ${command.sakId}.").also {
+                log.error { "Kall til SAF feilet med status ${res.status}. Url: $url, journalpostId ${command.journalpostId}, dokumentInfoId ${command.dokumentInfoId}. Dette skjedde for sak ${command.sakId}." }
+            }
+        }
     }
 }
 
