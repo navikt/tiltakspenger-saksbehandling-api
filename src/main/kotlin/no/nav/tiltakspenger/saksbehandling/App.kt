@@ -123,6 +123,12 @@ internal fun start(
             } else {
                 it
             }
+        }.let {
+            if (Configuration.isDev()) {
+                it.plus({ applicationContext.tilbakekrevingInfoBehovSvarJobb.behandleTilbakekrevingInfoBehov() })
+            } else {
+                it
+            }
         },
     )
 
@@ -134,6 +140,7 @@ internal fun start(
             applicationContext.leesahConsumer,
             applicationContext.aktorV2Consumer,
             if (Configuration.isDev()) applicationContext.kabalKlagehendelseConsumer else null,
+            if (Configuration.isDev()) applicationContext.tilbakekrevingConsumer else null,
         )
         consumers.forEach { it.run() }
     }

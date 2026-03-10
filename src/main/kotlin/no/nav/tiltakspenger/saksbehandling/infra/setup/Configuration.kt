@@ -93,6 +93,7 @@ object Configuration {
                 "TILTAKSPENGER_ARENA_SCOPE" to "localhost",
                 "SAF_URL" to "http://host.docker.internal:8091",
                 "SAF_SCOPE" to "localhost",
+                "TILBAKEKREVING_TOPIC" to "tilbake.privat-tilbakekreving-tiltakspenger",
             ),
         )
 
@@ -140,6 +141,7 @@ object Configuration {
                 "SAF_SCOPE" to "api://dev-fss.teamdokumenthandtering.saf/.default",
                 "KABAL_SCOPE" to "api://dev-gcp.klage.kabal-api/.default",
                 "KABAL_URL" to "https://kabal-api.intern.dev.nav.no",
+                "TILBAKEKREVING_TOPIC" to "tilbake.privat-tilbakekreving-tiltakspenger",
             ),
         )
     private val prodProperties =
@@ -186,6 +188,7 @@ object Configuration {
                 "SAF_SCOPE" to "api://prod-fss.teamdokumenthandtering.saf/.default",
                 "KABAL_SCOPE" to "api://prod-gcp.klage.kabal-api/.default",
                 "KABAL_URL" to "https://kabal-api.intern.nav.no",
+                "TILBAKEKREVING_TOPIC" to "tilbake.privat-tilbakekreving-tiltakspenger",
             ),
         )
 
@@ -278,6 +281,7 @@ object Configuration {
     val leesahTopic: String by lazy { config()[Key("LEESAH_TOPIC", stringType)] }
     val aktorV2Topic: String by lazy { config()[Key("AKTOR_V2_TOPIC", stringType)] }
     val identhendelseTopic: String by lazy { config()[Key("IDENTHENDELSE_TOPIC", stringType)] }
+    val tilbakekrevingTopic: String by lazy { config()[Key("TILBAKEKREVING_TOPIC", stringType)] }
 
     val brukFakeMeldekortApiLokalt: Boolean =
         config().getOrNull(Key("BRUK_FAKE_MELDEKORT_API", stringType))?.toBooleanStrictOrNull() ?: true

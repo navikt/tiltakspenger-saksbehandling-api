@@ -6,8 +6,6 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.Satstype
-import java.time.temporal.TemporalAdjusters
 
 /**
  * Inneholder alle utbetalinger (som er en konsekvens av et vedtak).
@@ -42,21 +40,8 @@ data class Utbetalinger(
         return Utbetalinger((verdi + utbetaling).sortedBy { it.opprettet })
     }
 
-    fun hentUtbetalingerFraPeriode(periode: Periode): List<VedtattUtbetaling> {
-        return verdi.filter { periode.overlapperMed(it.periode) }
-    }
-
-    fun harDag7IMånederForPeriode(periode: Periode): Boolean {
-        val periodeForHeleMåneder = Periode(
-            periode.fraOgMed.with(TemporalAdjusters.firstDayOfMonth()),
-            periode.tilOgMed.with(TemporalAdjusters.lastDayOfMonth()),
-        )
-
-        return harDag7IPeriode(periodeForHeleMåneder)
-    }
-
-    private fun harDag7IPeriode(periode: Periode): Boolean {
-        return hentUtbetalingerFraPeriode(periode).any { it.satstype == Satstype.DAGLIG_INKL_HELG }
+    fun hentUtbetalingForUuidPart(id: String): VedtattUtbetaling? {
+        return verdi.find { it.id.uuidPart() == id }
     }
 
     init {
