@@ -18,7 +18,7 @@ class TilbakekrevingConsumer(
     private val tilbakekrevingHendelseRepo: TilbakekrevingHendelsePostgresRepo,
     private val clock: Clock,
     topic: String,
-    groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v2",
+    groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v3",
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
 ) : Consumer<String, String?> {
     private val logger = KotlinLogging.logger { }
@@ -53,9 +53,10 @@ class TilbakekrevingConsumer(
 
         logger.info { "Lagrer tilbakekrevingshendelse type ${hendelse.hendelsestype} med key $key" }
 
-        val wasInserted = tilbakekrevingHendelseRepo.lagreNy(hendelse, key, value)
-        if (!wasInserted) {
-            logger.info { "Tilbakekrevingshendelse med key $key er allerede mottatt - ignorerer duplikat" }
+        val bleLagret = tilbakekrevingHendelseRepo.lagreNy(hendelse, key, value)
+
+        if (!bleLagret) {
+            logger.info { "Tilbakekrevingshendelse type ${hendelse.hendelsestype} med key $key ble ikke lagret" }
         }
     }
 
