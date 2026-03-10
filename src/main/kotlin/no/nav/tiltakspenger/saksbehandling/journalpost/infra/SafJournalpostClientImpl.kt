@@ -32,6 +32,7 @@ class SafJournalpostClientImpl(
     private val httpClient: HttpClient = httpClientWithRetry(timeout = 60L),
     private val baseUrl: String,
     private val getToken: suspend () -> AccessToken,
+    private val getOboToken: suspend (saksbehandlerToken: String) -> AccessToken,
 ) : SafJournalpostClient {
     private val log = KotlinLogging.logger {}
     private val journalPostQuery =
@@ -109,7 +110,7 @@ class SafJournalpostClientImpl(
     override suspend fun hentDokument(
         command: HentDokumentCommand,
     ): PdfA {
-        val accessToken = getToken().token
+        val oboToken = getOboToken(command.saksbehandlerToken).token
         val url = "$baseUrl/rest/hentdokument/${command.journalpostId}/${command.dokumentInfoId}/ARKIV"
 
         log.info { "Starter henting av dokument" }
@@ -119,7 +120,7 @@ class SafJournalpostClientImpl(
                 accept(ContentType.Application.Pdf)
                 header("X-Correlation-ID", command.correlationId.value)
                 header("Nav-Callid", command.correlationId.value)
-                bearerAuth(accessToken)
+                bearerAuth(oboToken)
             }
 
             when (res.status) {

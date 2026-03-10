@@ -49,6 +49,7 @@ fun Route.visInnstillingsbrevKlagebehandlingRoute(
                             klagebehandlingId = klagebehandlingId,
                             dokumentInfoId = dokumentInfoId,
                             saksbehandler = saksbehandler,
+                            saksbehandlerToken = token,
                             correlationId = correlationId,
                         ),
                     ).fold(

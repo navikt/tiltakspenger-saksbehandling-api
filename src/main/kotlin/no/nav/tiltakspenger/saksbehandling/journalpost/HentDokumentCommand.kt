@@ -10,6 +10,7 @@ data class HentDokumentCommand(
     val sakId: SakId,
     val journalpostId: JournalpostId,
     val dokumentInfoId: DokumentInfoId,
+    val saksbehandlerToken: String,
     override val saksbehandler: Saksbehandler,
     override val correlationId: CorrelationId,
 ) : ServiceCommand

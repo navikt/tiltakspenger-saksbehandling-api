@@ -34,6 +34,7 @@ class VisInnstillingsbrevKlagebehandlingService(
                 journalpostId = journalpostIdInnstillingsbrev,
                 dokumentInfoId = command.dokumentInfoId,
                 saksbehandler = command.saksbehandler,
+                saksbehandlerToken = command.saksbehandlerToken,
                 correlationId = command.correlationId,
             ),
         ).right()
@@ -48,6 +49,7 @@ data class VisInnstillingsbrevKlagebehandlingCommand(
     val sakId: SakId,
     val klagebehandlingId: KlagebehandlingId,
     val dokumentInfoId: DokumentInfoId,
+    val saksbehandlerToken: String,
     override val saksbehandler: Saksbehandler,
     override val correlationId: CorrelationId,
 ) : ServiceCommand

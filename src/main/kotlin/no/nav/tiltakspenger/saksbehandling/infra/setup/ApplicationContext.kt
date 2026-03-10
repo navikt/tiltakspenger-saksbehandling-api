@@ -142,6 +142,13 @@ open class ApplicationContext(
                     rewriteAudienceTarget = false,
                 )
             },
+            getOboToken = {
+                texasClient.exchangeToken(
+                    userToken = it,
+                    audienceTarget = Configuration.safScope,
+                    identityProvider = IdentityProvider.AZUREAD,
+                )
+            },
         )
     }
 
