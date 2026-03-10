@@ -110,7 +110,7 @@ class SafJournalpostClientImpl(
         command: HentDokumentCommand,
     ): PdfA {
         val accessToken = getToken().token
-        val url = "$baseUrl/rest/hentdokument/journalpost/${command.journalpostId}/${command.dokumentInfoId}/ARKIV"
+        val url = "$baseUrl/rest/hentdokument/${command.journalpostId}/${command.dokumentInfoId}/ARKIV"
 
         log.info { "Starter henting av dokument" }
 
