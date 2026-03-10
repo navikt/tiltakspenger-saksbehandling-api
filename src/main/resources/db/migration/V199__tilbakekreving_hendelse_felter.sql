@@ -1,5 +1,3 @@
-DROP INDEX IF EXISTS tilbakekreving_hendelse_key_unique;
-
 CREATE UNIQUE INDEX IF NOT EXISTS tilbakekreving_hendelse_kravgrunnlag_ref_unique ON tilbakekreving_hendelse (kravgrunnlag_referanse);
 
 ALTER TABLE tilbakekreving_hendelse

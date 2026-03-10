@@ -11,6 +11,7 @@ data class TilbakekrevingInfoSvarDTO(
     val mottaker: TilbakekrevingMottaker,
     val revurdering: TilbakekrevingRevurdering,
     val utvidPerioder: List<TilbakekrevingUtvidPeriode>,
+    val behandlendeEnhet: String,
 ) : TilbakekrevingshendelseDTO {
     override val versjon: Int = 1
 

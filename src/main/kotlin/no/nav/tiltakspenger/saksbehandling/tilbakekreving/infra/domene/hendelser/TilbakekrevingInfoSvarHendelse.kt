@@ -9,6 +9,7 @@ data class TilbakekrevingInfoSvarHendelse(
     override val behandlet: LocalDateTime?,
     override val sakId: SakId?,
     override val eksternFagsakId: String,
+    val behandlendeEnhet: String,
 ) : Tilbakekrevingshendelse {
     override val hendelsestype = TilbakekrevingHendelsestype.InfoSvar
 }

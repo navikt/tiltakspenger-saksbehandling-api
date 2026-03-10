@@ -121,6 +121,7 @@ class BehandleTilbakekrevingInfoBehovJobb(
                     ),
                 ),
             ),
+            behandlendeEnhet = this.navkontor.kontornummer,
         )
     }
 
@@ -149,6 +150,7 @@ class BehandleTilbakekrevingInfoBehovJobb(
                     ),
                 ),
             ),
+            behandlendeEnhet = this.utbetaling!!.navkontor.kontornummer,
         )
     }
 }
