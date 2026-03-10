@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
@@ -112,21 +113,28 @@ class SafJournalpostClientImpl(
         val url = "$baseUrl/rest/hentdokument/journalpost/${command.journalpostId}/${command.dokumentInfoId}/ARKIV"
 
         log.info { "Starter henting av dokument" }
-        val res = httpClient.post(url) {
-            accept(ContentType.Application.Pdf)
-            header("X-Correlation-ID", command.correlationId.value)
-            header("Nav-Callid", command.correlationId.value)
-            bearerAuth(accessToken)
-        }
 
-        when (res.status) {
-            HttpStatusCode.OK -> return PdfA(res.bodyAsBytes()).also {
-                log.info { "Hentet dokument OK fra SAF" }
+        try {
+            val res = httpClient.get(url) {
+                accept(ContentType.Application.Pdf)
+                header("X-Correlation-ID", command.correlationId.value)
+                header("Nav-Callid", command.correlationId.value)
+                bearerAuth(accessToken)
             }
 
-            else -> throw RuntimeException("Kall til SAF feilet med status ${res.status}. Url: $url, journalpostId ${command.journalpostId}, dokumentInfoId ${command.dokumentInfoId}. Dette skjedde for sak ${command.sakId}.").also {
-                log.error { "Kall til SAF feilet med status ${res.status}. Url: $url, journalpostId ${command.journalpostId}, dokumentInfoId ${command.dokumentInfoId}. Dette skjedde for sak ${command.sakId}." }
+            when (res.status) {
+                HttpStatusCode.OK -> return PdfA(res.bodyAsBytes()).also {
+                    log.info { "Hentet dokument OK fra SAF" }
+                }
+
+                else -> throw RuntimeException("Feil i kallet til /hentDokument")
             }
+        } catch (e: Exception) {
+            log.error(e) { "Noe gikk galt ved kall til SAF for å hente dokument. Url: $url, journalpostId ${command.journalpostId}, dokumentInfoId ${command.dokumentInfoId}. Dette skjedde for sak ${command.sakId}." }
+            throw RuntimeException(
+                "Noe gikk galt ved kall til SAF for å hente dokument. Url: $url, journalpostId ${command.journalpostId}, dokumentInfoId ${command.dokumentInfoId}. Dette skjedde for sak ${command.sakId}.",
+                e,
+            )
         }
     }
 }
