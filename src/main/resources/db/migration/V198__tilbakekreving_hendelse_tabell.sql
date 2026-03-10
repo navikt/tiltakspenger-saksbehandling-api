@@ -1,5 +1,3 @@
-drop table if exists tilbakekreving_hendelse;
-
 create table tilbakekreving_hendelse (
     id varchar primary key,
     opprettet TIMESTAMPTZ not null,
