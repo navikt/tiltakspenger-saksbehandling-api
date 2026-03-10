@@ -38,6 +38,8 @@ class TilbakekrevingHendelsePostgresRepo(
                         hendelse_type,
                         ekstern_fagsak_id,
                         kravgrunnlag_referanse,
+                        url,
+                        behandlingsstatus,
                         key,
                         value
                     ) VALUES (
@@ -46,6 +48,8 @@ class TilbakekrevingHendelsePostgresRepo(
                         :hendelse_type,
                         :ekstern_fagsak_id,
                         :kravgrunnlag_referanse,
+                        :url,
+                        :behandlingsstatus,
                         :key,
                         to_jsonb(:value::jsonb)
                     )
