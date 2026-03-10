@@ -83,7 +83,7 @@ object GenerererKlageinstanshendelse {
                   "kabalReferanse":"$kabalReferanse",
                   "type":"BEHANDLING_FEILREGISTRERT",
                   "detaljer":{
-                    "behandlingFeilregistrertDetaljer":{
+                    "behandlingFeilregistrert":{
                       "feilregistrert":"$feilregistrert",
                       "navIdent":"$navIdent",
                       "reason":"$reason",

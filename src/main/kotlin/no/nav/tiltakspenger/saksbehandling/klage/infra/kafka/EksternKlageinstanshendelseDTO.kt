@@ -28,7 +28,7 @@ private data class KlageinstanshendelseDto(
     data class DetaljerDto(
         val klagebehandlingAvsluttet: KlagebehandlingAvsluttetDto? = null,
         val omgjoeringskravbehandlingAvsluttet: OmgjoeringskravbehandlingAvsluttetDto? = null,
-        val behandlingFeilregistrertDetaljer: BehandlingFeilregistrertDto? = null,
+        val behandlingFeilregistrert: BehandlingFeilregistrertDto? = null,
     )
 
     data class KlagebehandlingAvsluttetDto(
@@ -117,7 +117,7 @@ fun String.toKlageinstanshendelse(
         }
 
         KlageinstanshendelseDto.KlageinstanshendelseType.BEHANDLING_FEILREGISTRERT -> {
-            val detaljer = requireNotNull(dto.detaljer.behandlingFeilregistrertDetaljer) {
+            val detaljer = requireNotNull(dto.detaljer.behandlingFeilregistrert) {
                 "Mangler behandlingFeilregistrertDetaljer for eventId=${dto.eventId}"
             }
             Klageinstanshendelse.BehandlingFeilregistrert(

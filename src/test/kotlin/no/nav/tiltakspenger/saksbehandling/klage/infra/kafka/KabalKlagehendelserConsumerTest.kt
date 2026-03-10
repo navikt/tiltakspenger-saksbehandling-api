@@ -280,7 +280,7 @@ class KabalKlagehendelserConsumerTest {
         sistEndret = LocalDateTime.MIN,
         eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
         key = "some-unused-uuid",
-        value = """{"type":"BEHANDLING_FEILREGISTRERT","kilde":"TILTAKSPENGER","eventId":"0f4ea0c2-8b44-4266-a1c3-801006b06280","detaljer":{"behandlingFeilregistrertDetaljer":{"type":"$type","reason":"Årsaken til at behandlingen endte opp som feilregistrert.","navIdent":"Z123456","feilregistrert":"2025-01-01T01:02:03.456789"}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
+        value = """{"type":"BEHANDLING_FEILREGISTRERT","kilde":"TILTAKSPENGER","eventId":"0f4ea0c2-8b44-4266-a1c3-801006b06280","detaljer":{"behandlingFeilregistrert":{"type":"$type","reason":"Årsaken til at behandlingen endte opp som feilregistrert.","navIdent":"Z123456","feilregistrert":"2025-01-01T01:02:03.456789"}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
         sakId = sakId,
         klagebehandlingId = klagebehandlingId,
     )
