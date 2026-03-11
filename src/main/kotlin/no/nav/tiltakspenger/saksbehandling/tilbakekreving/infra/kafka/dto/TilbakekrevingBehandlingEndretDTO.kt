@@ -1,19 +1,19 @@
-package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record
+package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto
 
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingshendelseId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDateTime
 
 data class TilbakekrevingBehandlingEndretDTO(
-    override val versjon: Int,
     override val eksternFagsakId: String,
     override val hendelseOpprettet: LocalDateTime,
     val eksternBehandlingId: String?,
     val tilbakekreving: Tilbakekreving,
 ) : TilbakekrevingshendelseDTO {
+    override val versjon: Int = 1
     override val hendelsestype = TilbakekrevingHendelsestypeDTO.behandling_endret
 
     override fun tilNyHendelse(

@@ -1,7 +1,7 @@
-package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser
+package no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser
 
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record.TilbakekrevingInfoSvarDTO
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
 import java.time.LocalDateTime
 
 data class TilbakekrevingInfoBehovHendelse(
@@ -12,6 +12,7 @@ data class TilbakekrevingInfoBehovHendelse(
     override val eksternFagsakId: String,
     val kravgrunnlagReferanse: String,
     val svar: TilbakekrevingInfoSvarDTO?,
+    val feil: String?,
 ) : Tilbakekrevingshendelse {
     override val hendelsestype: TilbakekrevingHendelsestype = TilbakekrevingHendelsestype.InfoBehov
 }

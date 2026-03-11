@@ -9,7 +9,9 @@ import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalClientFake
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 
 abstract class TestApplicationContext(
     override val clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
@@ -32,4 +34,16 @@ abstract class TestApplicationContext(
     abstract val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient
 
     val kabalClientFake by lazy { KabalClientFake(clock) }
+
+    protected val utbetalingFakeKlient by lazy {
+        UtbetalingFakeKlient(sakContext.sakRepo, tilbakekrevingHendelseRepo, clock)
+    }
+
+    override val tilbakekrevingProducer by lazy {
+        TilbakekrevingFakeProducer(
+            tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            sakRepo = sakContext.sakRepo,
+            clock = clock,
+        )
+    }
 }

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser
+package no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser
 
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Ulid

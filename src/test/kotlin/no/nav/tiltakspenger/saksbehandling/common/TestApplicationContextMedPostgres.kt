@@ -46,7 +46,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
 
@@ -155,8 +154,6 @@ class TestApplicationContextMedPostgres(
         tilgangsmaskinClient = tilgangsmaskinFakeClient,
         sakService = sakContext.sakService,
     )
-
-    private val utbetalingFakeKlient = UtbetalingFakeKlient(sakContext.sakRepo)
 
     override val meldekortContext by lazy {
         object :

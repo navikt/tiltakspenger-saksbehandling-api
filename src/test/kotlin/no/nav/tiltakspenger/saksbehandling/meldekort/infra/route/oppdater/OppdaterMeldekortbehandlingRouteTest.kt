@@ -204,7 +204,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                       "tidligereUtbetaling": 0,
                       "totalTrekk": 0
                     },
-                    "simuleringsdato": "2025-01-01",
+                    "simuleringsdato": "2025-05-01",
                     "behandlingId": "${meldekortbehandling.id}",
                     "simuleringTotalBeløp": 2682,
                     "simuleringResultat": "ENDRING",

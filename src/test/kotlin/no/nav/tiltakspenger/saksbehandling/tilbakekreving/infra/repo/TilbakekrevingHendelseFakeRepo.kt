@@ -1,0 +1,66 @@
+package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo
+
+import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.json.deserialize
+import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
+import java.time.Clock
+
+class TilbakekrevingHendelseFakeRepo(
+    private val clock: Clock,
+) : TilbakekrevingHendelseRepo {
+    private val data = arrow.atomic.Atomic(mutableMapOf<TilbakekrevingshendelseId, Tilbakekrevingshendelse>())
+
+    override fun lagreNy(
+        hendelse: Tilbakekrevingshendelse,
+        key: String,
+        value: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        if (hendelse is TilbakekrevingInfoBehovHendelse &&
+            data.get().values.any {
+                it is TilbakekrevingInfoBehovHendelse && it.kravgrunnlagReferanse == hendelse.kravgrunnlagReferanse
+            }
+        ) {
+            return false
+        }
+
+        data.get()[hendelse.id] = hendelse
+        return true
+    }
+
+    override fun oppdaterBehandletInfoBehovMedSvar(
+        hendelseId: TilbakekrevingshendelseId,
+        svarJson: String,
+    ) {
+        val hendelse = data.get()[hendelseId] as? TilbakekrevingInfoBehovHendelse
+            ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")
+
+        data.get()[hendelseId] = hendelse.copy(
+            behandlet = nå(clock),
+            svar = deserialize<TilbakekrevingInfoSvarDTO>(svarJson),
+        )
+    }
+
+    override fun oppdaterBehandletInfoBehovFeil(
+        hendelseId: TilbakekrevingshendelseId,
+        feil: String,
+    ) {
+        val hendelse = data.get()[hendelseId] as? TilbakekrevingInfoBehovHendelse
+            ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")
+
+        data.get()[hendelseId] = hendelse.copy(
+            behandlet = nå(clock),
+            feil = feil,
+        )
+    }
+
+    override fun hentUbehandledeInfoBehov(): List<TilbakekrevingInfoBehovHendelse> {
+        return data.get().values
+            .filterIsInstance<TilbakekrevingInfoBehovHendelse>()
+            .filter { it.behandlet == null }
+    }
+}

@@ -64,8 +64,8 @@ sealed interface Simulering {
                 }
             }
 
-            // Abn: Disse skal være motsatte, logger om denne antagelsen ikke stemmer!
-            if (totalFeilutbetaling != -totalMotpostering) {
+            // Abn: Disse skal være like, logger om denne antagelsen ikke stemmer!
+            if (totalFeilutbetaling != totalMotpostering) {
                 val sakId = meldeperioder.first().sakId
                 logger.info {
                     "Forventet at feilutbetaling og motpostering skal være like - fikk $totalFeilutbetaling / $totalMotpostering på $sakId"

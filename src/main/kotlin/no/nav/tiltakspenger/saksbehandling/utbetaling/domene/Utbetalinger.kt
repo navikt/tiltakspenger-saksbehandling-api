@@ -40,7 +40,7 @@ data class Utbetalinger(
         return Utbetalinger((verdi + utbetaling).sortedBy { it.opprettet })
     }
 
-    fun hentUtbetalingForUuidPart(id: String): VedtattUtbetaling? {
+    fun hentUtbetalingForUuid(id: String): VedtattUtbetaling? {
         return verdi.find { it.id.uuidPart() == id }
     }
 

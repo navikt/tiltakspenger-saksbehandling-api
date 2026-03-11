@@ -54,6 +54,7 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
@@ -194,7 +195,19 @@ class LocalApplicationContext(
             clock = clock,
         ) {}
     }
-    private val utbetalingFakeKlient = UtbetalingFakeKlient(sakContext.sakRepo, clock)
+
+    private val utbetalingFakeKlient by lazy {
+        UtbetalingFakeKlient(sakContext.sakRepo, tilbakekrevingHendelseRepo, clock)
+    }
+
+    override val tilbakekrevingProducer by lazy {
+        TilbakekrevingFakeProducer(
+            tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            sakRepo = sakContext.sakRepo,
+            clock = clock,
+        )
+    }
+
     override val meldekortContext by lazy {
         object : MeldekortContext(
             sessionFactory = sessionFactory,

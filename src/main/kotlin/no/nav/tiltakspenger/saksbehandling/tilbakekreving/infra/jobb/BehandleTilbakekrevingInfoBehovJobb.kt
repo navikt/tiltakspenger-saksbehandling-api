@@ -4,30 +4,27 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.kafka.Producer
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingInfoBehovHendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record.TilbakekrevingInfoSvarDTO
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record.TilbakekrevingInfoSvarDTO.TilbakekrevingMottaker
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record.TilbakekrevingInfoSvarDTO.TilbakekrevingRevurdering
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record.TilbakekrevingInfoSvarDTO.TilbakekrevingUtvidPeriode
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record.TilbakekrevingPeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelsePostgresRepo
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO.TilbakekrevingMottaker
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO.TilbakekrevingRevurdering
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO.TilbakekrevingUtvidPeriode
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingPeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import java.time.Clock
 
 class BehandleTilbakekrevingInfoBehovJobb(
-    private val tilbakekrevingHendelseRepo: TilbakekrevingHendelsePostgresRepo,
+    private val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
     private val sakService: SakService,
-    private val topic: String,
+    private val tilbakekrevingProducer: TilbakekrevingProducer,
     private val clock: Clock,
-    private val kafkaProducer: Producer<String, String> = Producer(KafkaConfigImpl()),
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -51,7 +48,7 @@ class BehandleTilbakekrevingInfoBehovJobb(
                         return@forEach
                     }
 
-                val utbetaling = sak.utbetalinger.hentUtbetalingForUuidPart(behovHendelse.kravgrunnlagReferanse)
+                val utbetaling = sak.utbetalinger.hentUtbetalingForUuid(behovHendelse.kravgrunnlagReferanse)
 
                 if (utbetaling == null) {
                     logger.error { "Fant ingen utbetaling for kravgrunnlagReferanse/uuid ${behovHendelse.kravgrunnlagReferanse} i sak ${sak.id}" }
@@ -62,7 +59,7 @@ class BehandleTilbakekrevingInfoBehovJobb(
                     return@forEach
                 }
 
-                val svarDto = when (utbetaling.beregningKilde) {
+                val infoSvarDTO = when (utbetaling.beregningKilde) {
                     is BeregningKilde.BeregningKildeMeldekort ->
                         sak.meldekortbehandlinger.hentMeldekortBehandling(utbetaling.beregningKilde.id)
                             ?.tilSvarDTO(behovHendelse)
@@ -72,7 +69,7 @@ class BehandleTilbakekrevingInfoBehovJobb(
                             ?.tilSvarDTO(behovHendelse)
                 }
 
-                if (svarDto == null) {
+                if (infoSvarDTO == null) {
                     logger.error { "Fant ingen behandling for beregningskilde ${utbetaling.beregningKilde.id} i sak ${sak.id}" }
                     tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehovFeil(
                         behovHendelse.id,
@@ -81,11 +78,10 @@ class BehandleTilbakekrevingInfoBehovJobb(
                     return@forEach
                 }
 
-                val svarJson = serialize(svarDto)
-
                 logger.info { "Produserer svar på tilbakekreving info-behov ${behovHendelse.id} for sak ${sak.id} med kravgrunnlagReferanse ${behovHendelse.kravgrunnlagReferanse}" }
-                kafkaProducer.produce(topic, behovHendelse.id.uuidPart(), svarJson)
-                tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehov(behovHendelse.id, svarJson)
+                tilbakekrevingProducer.produserInfoSvar(behovHendelse.id, infoSvarDTO).also {
+                    tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehovMedSvar(behovHendelse.id, it)
+                }
             }.onLeft {
                 logger.error(it) { "Feil ved behandling av tilbakekreving info-behov ${behovHendelse.id}" }
             }

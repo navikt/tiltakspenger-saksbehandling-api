@@ -7,26 +7,27 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingHendelsestype
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingInfoBehovHendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.Tilbakekrevingshendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingshendelseId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingHendelsestype
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoSvarHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
 import java.time.Clock
 
 class TilbakekrevingHendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val clock: Clock,
-) {
+) : TilbakekrevingHendelseRepo {
 
     /**
      * Lagrer en ny tilbakekrevingshendelse. Returnerer true hvis hendelsen ble lagret, false hvis den allerede eksisterer (duplikat).
      */
-    fun lagreNy(
+    override fun lagreNy(
         hendelse: Tilbakekrevingshendelse,
         key: String,
         value: String,
-        sessionContext: SessionContext? = null,
+        sessionContext: SessionContext?,
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { session ->
             val rowsAffected = session.run(
@@ -71,7 +72,9 @@ class TilbakekrevingHendelsePostgresRepo(
                             "behandlingsstatus" to hendelse.behandlingsstatus,
                         )
 
-                        else -> emptyArray()
+                        is TilbakekrevingInfoSvarHendelse -> throw IllegalArgumentException(
+                            "Skal ikke lagre InfoSvarHendelse som ny hendelse, skal kun oppdatere eksisterende InfoBehovHendelse med svar",
+                        )
                     },
                 ).asUpdate,
             )
@@ -79,7 +82,7 @@ class TilbakekrevingHendelsePostgresRepo(
         }
     }
 
-    fun oppdaterBehandletInfoBehov(hendelseId: TilbakekrevingshendelseId, svarJson: String) {
+    override fun oppdaterBehandletInfoBehovMedSvar(hendelseId: TilbakekrevingshendelseId, svarJson: String) {
         sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
@@ -98,7 +101,7 @@ class TilbakekrevingHendelsePostgresRepo(
         }
     }
 
-    fun oppdaterBehandletInfoBehovFeil(hendelseId: TilbakekrevingshendelseId, feil: String) {
+    override fun oppdaterBehandletInfoBehovFeil(hendelseId: TilbakekrevingshendelseId, feil: String) {
         sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
@@ -117,7 +120,7 @@ class TilbakekrevingHendelsePostgresRepo(
         }
     }
 
-    fun hentUbehandledeInfoBehov(): List<TilbakekrevingInfoBehovHendelse> {
+    override fun hentUbehandledeInfoBehov(): List<TilbakekrevingInfoBehovHendelse> {
         return sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
@@ -152,6 +155,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     svar = stringOrNull("svar")?.let { deserialize(it) },
                     eksternFagsakId = eksternFagsakId,
                     kravgrunnlagReferanse = string("kravgrunnlag_referanse"),
+                    feil = stringOrNull("behandlet_feil"),
                 )
             }
 

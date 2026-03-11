@@ -56,11 +56,11 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.Statist
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
@@ -109,7 +109,8 @@ class TestApplicationContextMedInMemoryDb(
     private val genererFakeVedtaksbrevKlient = GenererFakeVedtaksbrevKlient()
     private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
     private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
-    private val journalførFakeKlagevedtaksbrevKlient = JournalførFakeKlagevedtakKlient(journalpostIdGenerator, dokumentInfoIdGeneratorGenerator)
+    private val journalførFakeKlagevedtaksbrevKlient =
+        JournalførFakeKlagevedtakKlient(journalpostIdGenerator, dokumentInfoIdGeneratorGenerator)
     private val dokumentdistribusjonsFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val meldekortApiFakeKlient = MeldekortApiFakeKlient()
     private val benkOversiktFakeRepo =
@@ -246,8 +247,6 @@ class TestApplicationContextMedInMemoryDb(
         sakService = sakContext.sakService,
     )
 
-    private val utbetalingFakeKlient = UtbetalingFakeKlient(sakContext.sakRepo as SakFakeRepo)
-
     override val meldekortContext by lazy {
         object :
             MeldekortContext(
@@ -358,4 +357,6 @@ class TestApplicationContextMedInMemoryDb(
             override val utbetalingRepo = utbetalingFakeRepo
         }
     }
+
+    override val tilbakekrevingHendelseRepo = TilbakekrevingHendelseFakeRepo(clock)
 }

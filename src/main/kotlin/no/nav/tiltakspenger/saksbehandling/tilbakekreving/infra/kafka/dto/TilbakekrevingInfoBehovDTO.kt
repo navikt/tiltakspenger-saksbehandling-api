@@ -1,8 +1,8 @@
-package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.record
+package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto
 
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingInfoBehovHendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.domene.hendelser.TilbakekrevingshendelseId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -18,11 +18,12 @@ data class TilbakekrevingInfoBehovDTO(
         return TilbakekrevingInfoBehovHendelse(
             id = TilbakekrevingshendelseId.random(),
             opprettet = nå(clock),
+            eksternFagsakId = eksternFagsakId,
+            kravgrunnlagReferanse = kravgrunnlagReferanse,
             sakId = null,
             behandlet = null,
             svar = null,
-            eksternFagsakId = eksternFagsakId,
-            kravgrunnlagReferanse = kravgrunnlagReferanse,
+            feil = null,
         )
     }
 }

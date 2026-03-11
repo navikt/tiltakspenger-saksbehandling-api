@@ -49,7 +49,10 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb.BehandleTilbakekrevingInfoBehovJobb
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingKafkaProducer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelsePostgresRepo
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
@@ -465,7 +468,7 @@ open class ApplicationContext(
         )
     }
 
-    val tilbakekrevingHendelseRepo by lazy {
+    open val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo by lazy {
         TilbakekrevingHendelsePostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
             clock = clock,
@@ -480,11 +483,18 @@ open class ApplicationContext(
         )
     }
 
+    open val tilbakekrevingProducer: TilbakekrevingProducer by lazy {
+        TilbakekrevingKafkaProducer(
+            topic = Configuration.tilbakekrevingTopic,
+            kafkaProducer = Producer(KafkaConfigImpl()),
+        )
+    }
+
     val tilbakekrevingInfoBehovSvarJobb by lazy {
         BehandleTilbakekrevingInfoBehovJobb(
             tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
             sakService = sakContext.sakService,
-            topic = Configuration.tilbakekrevingTopic,
+            tilbakekrevingProducer = tilbakekrevingProducer,
             clock = clock,
         )
     }
