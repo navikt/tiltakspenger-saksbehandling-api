@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.Folketrygdl
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.ForeldelseslovenHjemmel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.ForvaltningslovenHjemmel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel.TiltakspengeforskriftenHjemmel
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Klagehjemmel
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -25,7 +26,7 @@ fun Klagebehandling.toOversendelsesDto(
         ),
         kildeReferanse = this.id.toString(),
         dvhReferanse = this.id.toString(),
-        hjemler = resultat.hjemler.tilHjemlerDto(),
+        hjemler = resultat.hjemler.tilKlageOversendelseDto(),
         tilknyttedeJournalposter = listOf(
             TilknyttetJournalpost(
                 type = TilknyttetJournalpostType.BRUKERS_KLAGE,
@@ -105,39 +106,37 @@ enum class TilknyttetJournalpostType {
 /**
  * https://github.com/navikt/klage-kodeverk/blob/077caf7d5402898e0bead6b723ce4f9443adc85b/src/main/kotlin/no/nav/klage/kodeverk/hjemmel/YtelseToHjemler.kt#L1320
  */
-fun Klagehjemler.tilHjemlerDto(): List<String> {
-    return this.map {
-        when (it) {
-            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_2 -> "ARBML_2"
-            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13 -> "ARBML_13"
-            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_LØNN -> "ARBML_13_LOENN"
-            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L4 -> "ARBML_13_4"
-            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_15 -> "ARBML_15"
-            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_17 -> "ARBML_17"
-            ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_22 -> "ARBML_22"
-            FolketrygdlovenHjemmel.FOLKETRYGDLOVEN_22_15 -> "FTRL_22_15"
-            FolketrygdlovenHjemmel.FOLKETRYGDLOVEN_22_17_A -> "FTRL_22_17A"
-            ForeldelseslovenHjemmel.FORELDELSESLOVEN_10 -> "FORELDELSESLOVEN_10"
-            ForeldelseslovenHjemmel.FORELDELSESLOVEN_2_OG_3 -> "FORELDELSESLOVEN_2_OG_3"
-            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_11 -> "FVL_11"
-            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_17 -> "FVL_17"
-            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_18_OG_19 -> "FVL_18_OG_19"
-            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_28 -> "FVL_28"
-            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_30 -> "FVL_30"
-            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_31 -> "FVL_31"
-            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_32 -> "FVL_32"
-            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_35 -> "FVL_35"
-            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_41 -> "FVL_41"
-            ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_42 -> "FVL_42"
-            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_2 -> "FS_TIP_2"
-            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3 -> "FS_TIP_3"
-            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_5 -> "FS_TIP_5"
-            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_6 -> "FS_TIP_6"
-            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_7 -> "FS_TIP_7"
-            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_8 -> "FS_TIP_8"
-            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_9 -> "FS_TIP_9"
-            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_10 -> "FS_TIP_10"
-            TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_11 -> "FS_TIP_11"
-        }
-    }
+fun Klagehjemler.tilKlageOversendelseDto(): List<String> = this.map { it.tilKlageOversendelseDto() }
+
+fun Klagehjemmel.tilKlageOversendelseDto(): String = when (this) {
+    ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_2 -> "ARBML_2"
+    ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13 -> "ARBML_13"
+    ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_LØNN -> "ARBML_13_LOENN"
+    ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_13_L4 -> "ARBML_13_4"
+    ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_15 -> "ARBML_15"
+    ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_17 -> "ARBML_17"
+    ArbeidsmarkedslovenHjemmel.ARBEIDSMARKEDSLOVEN_22 -> "ARBML_22"
+    FolketrygdlovenHjemmel.FOLKETRYGDLOVEN_22_15 -> "FTRL_22_15"
+    FolketrygdlovenHjemmel.FOLKETRYGDLOVEN_22_17_A -> "FTRL_22_17A"
+    ForeldelseslovenHjemmel.FORELDELSESLOVEN_10 -> "FORELDELSESLOVEN_10"
+    ForeldelseslovenHjemmel.FORELDELSESLOVEN_2_OG_3 -> "FORELDELSESLOVEN_2_OG_3"
+    ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_11 -> "FVL_11"
+    ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_17 -> "FVL_17"
+    ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_18_OG_19 -> "FVL_18_19"
+    ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_28 -> "FVL_28"
+    ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_30 -> "FVL_30"
+    ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_31 -> "FVL_31"
+    ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_32 -> "FVL_32"
+    ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_35 -> "FVL_35"
+    ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_41 -> "FVL_41"
+    ForvaltningslovenHjemmel.FORVALTNINGSLOVEN_42 -> "FVL_42"
+    TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_2 -> "FS_TIP_2"
+    TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3 -> "FS_TIP_3"
+    TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_5 -> "FS_TIP_5"
+    TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_6 -> "FS_TIP_6"
+    TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_7 -> "FS_TIP_7"
+    TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_8 -> "FS_TIP_8"
+    TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_9 -> "FS_TIP_9"
+    TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_10 -> "FS_TIP_10"
+    TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_11 -> "FS_TIP_11"
 }
