@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.infra.repo
 import com.zaxxer.hikari.HikariDataSource
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.date.getTimeMillis
-import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
 import org.flywaydb.core.Flyway
@@ -85,7 +85,7 @@ internal class TestDatabaseManager {
 
     private fun cleanDatabase() {
         sessionOf(dataSource).run(
-            queryOf(
+            sqlQuery(
                 """
                 TRUNCATE
                   tiltaksdeltaker_kafka,
@@ -110,7 +110,8 @@ internal class TestDatabaseManager {
                   søknad,
                   utbetalingsvedtak,
                   tiltaksdeltaker,
-                  tilbakekreving_hendelse
+                  tilbakekreving_hendelse,
+                  tilbakekreving_behandling
                 """.trimIndent(),
             ).asUpdate,
         )
