@@ -13,3 +13,4 @@ CREATE TABLE tilbakekreving_behandling (
 
 CREATE INDEX idx_tilbakekreving_behandling_sak_id ON tilbakekreving_behandling (sak_id);
 CREATE INDEX idx_tilbakekreving_behandling_utbetaling_id ON tilbakekreving_behandling (utbetaling_id);
+CREATE INDEX idx_tilbakekreving_behandling_tilbake_behandling_id ON tilbakekreving_behandling (tilbake_behandling_id);
