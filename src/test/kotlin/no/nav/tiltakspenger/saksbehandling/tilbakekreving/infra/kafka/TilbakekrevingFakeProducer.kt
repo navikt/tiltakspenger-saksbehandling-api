@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO.TilbakekrevingBehandlingsstatusDTO
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO.TilbakekrevingHendelseStatusDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
@@ -57,7 +57,7 @@ class TilbakekrevingFakeProducer(
                 behandlingId = tilbakeBehandlingId,
                 sakOpprettet = nå(clock),
                 varselSendt = null,
-                behandlingsstatus = TilbakekrevingBehandlingsstatusDTO.OPPRETTET,
+                behandlingsstatus = TilbakekrevingHendelseStatusDTO.OPPRETTET,
                 forrigeBehandlingsstatus = null,
                 totaltFeilutbetaltBeløp = (
                     (simulering as? Simulering.Endring)?.totalFeilutbetaling

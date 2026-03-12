@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 data class BrevMeldekortvedtakDTO(
     val meldekortId: String,
     val saksnummer: String,
-    val meldekortPeriode: PeriodeDTO?,
+    val meldekortPeriode: BrevMeldekortPeriodeDTO?,
     val saksbehandler: SaksbehandlerDTO?,
     val beslutter: SaksbehandlerDTO?,
     val tiltak: List<TiltakDTO>,
@@ -40,7 +40,7 @@ data class BrevMeldekortvedtakDTO(
         data class Manuell(val navn: String) : SaksbehandlerDTO
     }
 
-    data class PeriodeDTO(
+    data class BrevMeldekortPeriodeDTO(
         val fom: String,
         val tom: String,
     )
@@ -108,7 +108,7 @@ suspend fun Meldekortvedtak.toJsonRequest(
         beslutter = beslutter.tilSaksbehandlerDto(hentSaksbehandlersNavn),
         meldekortId = meldekortId.toString(),
         saksnummer = saksnummer.toString(),
-        meldekortPeriode = BrevMeldekortvedtakDTO.PeriodeDTO(
+        meldekortPeriode = BrevMeldekortvedtakDTO.BrevMeldekortPeriodeDTO(
             fom = beregningsperiode.fraOgMed.format(norskDatoFormatter),
             tom = beregningsperiode.tilOgMed.format(norskDatoFormatter),
         ),

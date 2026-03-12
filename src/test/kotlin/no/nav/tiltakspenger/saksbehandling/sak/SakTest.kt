@@ -243,6 +243,7 @@ class SakTest {
             meldeperiodeKjeder = MeldeperiodeKjeder(),
             brukersMeldekort = listOf(),
             søknader = listOf(),
+            tilbakekrevinger = emptyList(),
             kanSendeInnHelgForMeldekort = false,
         )
 

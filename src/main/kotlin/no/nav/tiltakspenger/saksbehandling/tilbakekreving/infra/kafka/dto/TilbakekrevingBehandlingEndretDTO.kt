@@ -44,14 +44,14 @@ data class TilbakekrevingBehandlingEndretDTO(
         val behandlingId: String,
         val sakOpprettet: LocalDateTime,
         val varselSendt: LocalDate?,
-        val behandlingsstatus: TilbakekrevingBehandlingsstatusDTO,
-        val forrigeBehandlingsstatus: TilbakekrevingBehandlingsstatusDTO?,
+        val behandlingsstatus: TilbakekrevingHendelseStatusDTO,
+        val forrigeBehandlingsstatus: TilbakekrevingHendelseStatusDTO?,
         val totaltFeilutbetaltBeløp: BigDecimal,
         val saksbehandlingURL: String,
         val fullstendigPeriode: TilbakekrevingPeriodeDTO,
     )
 
-    enum class TilbakekrevingBehandlingsstatusDTO {
+    enum class TilbakekrevingHendelseStatusDTO {
         OPPRETTET,
         TIL_BEHANDLING,
         TIL_GODKJENNING,

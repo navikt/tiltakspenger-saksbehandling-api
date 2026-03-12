@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo
 
 import kotliquery.Row
+import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -98,20 +99,14 @@ class TilbakekrevingBehandlingPostgresRepo(
 
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<TilbakekrevingBehandling> {
         return sessionFactory.withSession(sessionContext) { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    SELECT *
-                    FROM tilbakekreving_behandling
-                    WHERE sak_id = :sak_id
-                    """.trimIndent(),
-                    "sak_id" to sakId.toString(),
-                ).map { row -> row.tilTilbakekrevingBehandling() }.asList,
-            )
+            hentForSakId(sakId, session)
         }
     }
 
-    override fun hentForUtbetalingId(utbetalingId: UtbetalingId, sessionContext: SessionContext?): List<TilbakekrevingBehandling> {
+    override fun hentForUtbetalingId(
+        utbetalingId: UtbetalingId,
+        sessionContext: SessionContext?,
+    ): List<TilbakekrevingBehandling> {
         return sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
@@ -126,18 +121,33 @@ class TilbakekrevingBehandlingPostgresRepo(
         }
     }
 
-    private fun Row.tilTilbakekrevingBehandling(): TilbakekrevingBehandling {
-        return TilbakekrevingBehandling(
-            id = TilbakekrevingId.fromString(string("id")),
-            sakId = SakId.fromString(string("sak_id")),
-            utbetalingId = UtbetalingId.fromString(string("utbetaling_id")),
-            tilbakeBehandlingId = string("tilbake_behandling_id"),
-            opprettet = localDateTime("opprettet"),
-            status = TilbakekrevingBehandlingsstatus.valueOf(string("status")),
-            url = string("url"),
-            kravgrunnlagTotalPeriode = periode("kravgrunnlag_periode"),
-            totaltFeilutbetaltBeløp = bigDecimal("totalt_feilutbetalt_beløp"),
-            varselSendt = localDateOrNull("varsel_sendt"),
-        )
+    companion object {
+        fun hentForSakId(sakId: SakId, session: Session): List<TilbakekrevingBehandling> {
+            return session.run(
+                sqlQuery(
+                    """
+                    SELECT *
+                    FROM tilbakekreving_behandling
+                    WHERE sak_id = :sak_id
+                    """.trimIndent(),
+                    "sak_id" to sakId.toString(),
+                ).map { row -> row.tilTilbakekrevingBehandling() }.asList,
+            )
+        }
+
+        private fun Row.tilTilbakekrevingBehandling(): TilbakekrevingBehandling {
+            return TilbakekrevingBehandling(
+                id = TilbakekrevingId.fromString(string("id")),
+                sakId = SakId.fromString(string("sak_id")),
+                utbetalingId = UtbetalingId.fromString(string("utbetaling_id")),
+                tilbakeBehandlingId = string("tilbake_behandling_id"),
+                opprettet = localDateTime("opprettet"),
+                status = TilbakekrevingBehandlingsstatus.valueOf(string("status")),
+                url = string("url"),
+                kravgrunnlagTotalPeriode = periode("kravgrunnlag_periode"),
+                totaltFeilutbetaltBeløp = bigDecimal("totalt_feilutbetalt_beløp"),
+                varselSendt = localDateOrNull("varsel_sendt"),
+            )
+        }
     }
 }

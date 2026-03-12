@@ -70,6 +70,7 @@ interface SakMother {
         meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
         brukersMeldekort = emptyList(),
         søknader = søknader,
+        tilbakekrevinger = emptyList(),
         kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
     )
 
@@ -184,6 +185,7 @@ interface SakMother {
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = listOf(søknad),
+            tilbakekrevinger = emptyList(),
             kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         ) to søknadsbehandling
     }
@@ -255,6 +257,7 @@ interface SakMother {
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = listOf(søknad),
+            tilbakekrevinger = emptyList(),
             kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
         ) to søknadsbehandling
     }

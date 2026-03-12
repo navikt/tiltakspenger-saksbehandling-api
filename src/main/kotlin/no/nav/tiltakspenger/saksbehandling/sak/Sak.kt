@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtakslist
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
@@ -46,6 +47,7 @@ data class Sak(
     val meldeperiodeKjeder: MeldeperiodeKjeder,
     val brukersMeldekort: List<BrukersMeldekort>,
     val søknader: List<Søknad>,
+    val tilbakekrevinger: List<TilbakekrevingBehandling>,
     val kanSendeInnHelgForMeldekort: Boolean,
 ) {
     val utbetalinger: Utbetalinger by lazy {

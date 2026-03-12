@@ -219,7 +219,7 @@ class PdfgenHttpClient(
                     meldekortId = command.meldekortbehandlingId.toString(),
                     saksnummer = command.saksnummer.verdi,
                     meldekortPeriode = command.beregningsperiode?.let {
-                        BrevMeldekortvedtakDTO.PeriodeDTO(
+                        BrevMeldekortvedtakDTO.BrevMeldekortPeriodeDTO(
                             fom = it.fraOgMed.format(norskDatoFormatter),
                             tom = it.tilOgMed.format(norskDatoFormatter),
                         )

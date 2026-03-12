@@ -54,6 +54,7 @@ class SakService(
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             søknader = emptyList(),
+            tilbakekrevinger = emptyList(),
             kanSendeInnHelgForMeldekort = false,
         )
         sakRepo.opprettSak(sak)
