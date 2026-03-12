@@ -21,6 +21,7 @@ data class TilbakekrevingBehandlingEndretHendelse(
     val sakOpprettet: LocalDateTime,
     val varselSendt: LocalDate?,
     val behandlingsstatus: TilbakekrevingBehandlingsstatus,
+    val forrigeBehandlingsstatus: TilbakekrevingBehandlingsstatus?,
     val totaltFeilutbetaltBeløp: BigDecimal,
     val url: String,
     val fullstendigPeriode: Periode,

@@ -19,7 +19,7 @@ data class TilbakekrevingBehandlingEndretDTO(
     override val versjon: Int = 1
     override val hendelsestype = TilbakekrevingHendelsestypeDTO.behandling_endret
 
-    override fun tilNyHendelse(
+    override fun tilHendelseForLagring(
         key: String,
         clock: Clock,
     ): TilbakekrevingBehandlingEndretHendelse {
@@ -34,6 +34,7 @@ data class TilbakekrevingBehandlingEndretDTO(
             sakOpprettet = tilbakekreving.sakOpprettet,
             varselSendt = tilbakekreving.varselSendt,
             behandlingsstatus = tilbakekreving.behandlingsstatus.tilDomene(),
+            forrigeBehandlingsstatus = tilbakekreving.forrigeBehandlingsstatus?.tilDomene(),
             totaltFeilutbetaltBeløp = tilbakekreving.totaltFeilutbetaltBeløp,
             url = tilbakekreving.saksbehandlingURL,
             fullstendigPeriode = tilbakekreving.fullstendigPeriode.tilPeriode(),

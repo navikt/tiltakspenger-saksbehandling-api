@@ -4,10 +4,12 @@ import kotliquery.Row
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.deserialize
-import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingHendelsestype
@@ -15,7 +17,10 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilba
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoSvarHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
+import java.math.BigDecimal
 import java.time.Clock
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 class TilbakekrevingHendelsePostgresRepo(
@@ -24,7 +29,10 @@ class TilbakekrevingHendelsePostgresRepo(
 ) : TilbakekrevingHendelseRepo {
 
     /**
-     * Lagrer en ny tilbakekrevingshendelse. Returnerer true hvis hendelsen ble lagret, false hvis den allerede eksisterer (duplikat).
+     * Lagrer en ny tilbakekrevingshendelse
+     *
+     * Lagrer ikke duplikate info_behov-hendelser for samme kravgrunnlag_referanse
+     * Team tilbake har retry på denne hvis vi ikke svarer i løpet av 3 timer, vi ønsker ikke å behandle samme kravgrunnlag flere ganger
      */
     override fun lagreNy(
         hendelse: Tilbakekrevingshendelse,
@@ -42,8 +50,8 @@ class TilbakekrevingHendelsePostgresRepo(
                         hendelse_type,
                         ekstern_fagsak_id,
                         kravgrunnlag_referanse,
-                        url,
-                        behandlingsstatus,
+                        ekstern_behandling_id,
+                        behandling,
                         key,
                         value
                     ) VALUES (
@@ -52,8 +60,8 @@ class TilbakekrevingHendelsePostgresRepo(
                         :hendelse_type,
                         :ekstern_fagsak_id,
                         :kravgrunnlag_referanse,
-                        :url,
-                        :behandlingsstatus,
+                        :ekstern_behandling_id,
+                        to_jsonb(:behandling::jsonb),
                         :key,
                         to_jsonb(:value::jsonb)
                     )
@@ -72,8 +80,8 @@ class TilbakekrevingHendelsePostgresRepo(
 
                         is TilbakekrevingBehandlingEndretHendelse -> arrayOf(
                             "hendelse_type" to HendelsetypeDb.BehandlingEndret.toString(),
-                            "url" to hendelse.url,
-                            "behandlingsstatus" to hendelse.behandlingsstatus.name,
+                            "ekstern_behandling_id" to hendelse.eksternBehandlingId,
+                            "behandling" to hendelse.tilDbBehandling(),
                         )
 
                         is TilbakekrevingInfoSvarHendelse -> throw IllegalArgumentException(
@@ -227,6 +235,8 @@ class TilbakekrevingHendelsePostgresRepo(
             }
 
             HendelsetypeDb.BehandlingEndret -> {
+                val behandling = deserialize<TilbakekrevingBehandlingDb>(string("behandling"))
+
                 TilbakekrevingBehandlingEndretHendelse(
                     id = id,
                     opprettet = opprettet,
@@ -234,16 +244,14 @@ class TilbakekrevingHendelsePostgresRepo(
                     sakId = sakId,
                     eksternFagsakId = eksternFagsakId,
                     eksternBehandlingId = string("ekstern_behandling_id"),
-                    tilbakeBehandlingId = UUID.fromString(string("tilbake_behandling_id")),
-                    sakOpprettet = localDateTime("sak_opprettet"),
-                    varselSendt = localDateOrNull("varsel_opprettet"),
-                    behandlingsstatus = BehandlingsstatusDb.valueOf(string("behandlingsstatus")).tilDomene(),
-                    totaltFeilutbetaltBeløp = bigDecimal("feilutbetalt_beløp"),
-                    url = string("url"),
-                    fullstendigPeriode = Periode(
-                        fraOgMed = nå(clock).toLocalDate(),
-                        tilOgMed = nå(clock).toLocalDate(),
-                    ),
+                    tilbakeBehandlingId = UUID.fromString(behandling.behandlingId),
+                    sakOpprettet = behandling.sakOpprettet,
+                    varselSendt = behandling.varselSendt,
+                    behandlingsstatus = behandling.behandlingsstatus.tilDomene(),
+                    forrigeBehandlingsstatus = behandling.forrigeBehandlingsstatus?.tilDomene(),
+                    totaltFeilutbetaltBeløp = behandling.totaltFeilutbetaltBeløp,
+                    url = behandling.saksbehandlingURL,
+                    fullstendigPeriode = behandling.fullstendigPeriode.toDomain(),
                 )
             }
         }
@@ -255,19 +263,53 @@ private enum class HendelsetypeDb {
     BehandlingEndret,
 }
 
-private enum class BehandlingsstatusDb {
-    OPPRETTET,
-    TIL_BEHANDLING,
-    TIL_GODKJENNING,
-    AVSLUTTET,
-    ;
+private data class TilbakekrevingBehandlingDb(
+    val behandlingId: String,
+    val sakOpprettet: LocalDateTime,
+    val varselSendt: LocalDate?,
+    val behandlingsstatus: BehandlingsstatusDb,
+    val forrigeBehandlingsstatus: BehandlingsstatusDb?,
+    val totaltFeilutbetaltBeløp: BigDecimal,
+    val saksbehandlingURL: String,
+    val fullstendigPeriode: PeriodeDbJson,
+) {
 
-    fun tilDomene(): TilbakekrevingBehandlingsstatus {
-        return when (this) {
-            OPPRETTET -> TilbakekrevingBehandlingsstatus.OPPRETTET
-            TIL_BEHANDLING -> TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
-            TIL_GODKJENNING -> TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
-            AVSLUTTET -> TilbakekrevingBehandlingsstatus.AVSLUTTET
+    enum class BehandlingsstatusDb {
+        OPPRETTET,
+        TIL_BEHANDLING,
+        TIL_GODKJENNING,
+        AVSLUTTET,
+        ;
+
+        fun tilDomene(): TilbakekrevingBehandlingsstatus {
+            return when (this) {
+                OPPRETTET -> TilbakekrevingBehandlingsstatus.OPPRETTET
+                TIL_BEHANDLING -> TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
+                TIL_GODKJENNING -> TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
+                AVSLUTTET -> TilbakekrevingBehandlingsstatus.AVSLUTTET
+            }
         }
+    }
+}
+
+private fun TilbakekrevingBehandlingEndretHendelse.tilDbBehandling(): String {
+    return TilbakekrevingBehandlingDb(
+        behandlingId = tilbakeBehandlingId.toString(),
+        sakOpprettet = sakOpprettet,
+        varselSendt = varselSendt,
+        behandlingsstatus = behandlingsstatus.tilDb(),
+        forrigeBehandlingsstatus = forrigeBehandlingsstatus?.tilDb(),
+        totaltFeilutbetaltBeløp = totaltFeilutbetaltBeløp,
+        saksbehandlingURL = url,
+        fullstendigPeriode = fullstendigPeriode.toDbJson(),
+    ).let { serialize(it) }
+}
+
+private fun TilbakekrevingBehandlingsstatus.tilDb(): TilbakekrevingBehandlingDb.BehandlingsstatusDb {
+    return when (this) {
+        TilbakekrevingBehandlingsstatus.OPPRETTET -> TilbakekrevingBehandlingDb.BehandlingsstatusDb.OPPRETTET
+        TilbakekrevingBehandlingsstatus.TIL_BEHANDLING -> TilbakekrevingBehandlingDb.BehandlingsstatusDb.TIL_BEHANDLING
+        TilbakekrevingBehandlingsstatus.TIL_GODKJENNING -> TilbakekrevingBehandlingDb.BehandlingsstatusDb.TIL_GODKJENNING
+        TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingDb.BehandlingsstatusDb.AVSLUTTET
     }
 }
