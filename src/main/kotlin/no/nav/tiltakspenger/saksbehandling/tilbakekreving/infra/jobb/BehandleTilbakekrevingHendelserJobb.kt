@@ -123,12 +123,20 @@ class BehandleTilbakekrevingHendelserJobb(
             return
         }
 
-        val tilbakekrevingBehandling = TilbakekrevingBehandling(
+        val eksisterendeBehandling = tilbakekrevingBehandlingRepo.hentForTilbakeBehandlingId(hendelse.tilbakeBehandlingId)
+
+        val oppdatertEllerNyBehandling = eksisterendeBehandling?.copy(
+            status = hendelse.behandlingsstatus,
+            url = hendelse.url,
+            kravgrunnlagTotalPeriode = hendelse.fullstendigPeriode,
+            totaltFeilutbetaltBeløp = hendelse.totaltFeilutbetaltBeløp,
+            varselSendt = hendelse.varselSendt,
+        ) ?: TilbakekrevingBehandling(
             id = TilbakekrevingId.random(),
             sakId = this.id,
             utbetalingId = utbetaling.id,
-            tilbakeBehandlingId = hendelse.tilbakeBehandlingId,
             opprettet = nå(clock),
+            tilbakeBehandlingId = hendelse.tilbakeBehandlingId,
             status = hendelse.behandlingsstatus,
             url = hendelse.url,
             kravgrunnlagTotalPeriode = hendelse.fullstendigPeriode,
@@ -136,10 +144,10 @@ class BehandleTilbakekrevingHendelserJobb(
             varselSendt = hendelse.varselSendt,
         )
 
-        logger.info { "Lagrer tilbakekrevingbehandling ${tilbakekrevingBehandling.id} for sak $id basert på hendelse ${hendelse.id}" }
+        logger.info { "Lagrer tilbakekrevingbehandling ${oppdatertEllerNyBehandling.id} for sak $id basert på hendelse ${hendelse.id}" }
 
         sessionFactory.withTransactionContext { tx ->
-            tilbakekrevingBehandlingRepo.lagre(tilbakekrevingBehandling, tx)
+            tilbakekrevingBehandlingRepo.lagre(oppdatertEllerNyBehandling, tx)
             tilbakekrevingHendelseRepo.markerEndringSomBehandlet(hendelse.id, tx)
         }
     }

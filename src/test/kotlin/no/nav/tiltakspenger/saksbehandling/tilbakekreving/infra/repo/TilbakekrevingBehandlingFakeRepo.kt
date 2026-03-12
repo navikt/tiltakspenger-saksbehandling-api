@@ -17,11 +17,21 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         return data.get()[id]
     }
 
+    override fun hentForTilbakeBehandlingId(
+        id: String,
+        sessionContext: SessionContext?,
+    ): TilbakekrevingBehandling? {
+        return data.get().values.find { it.tilbakeBehandlingId == id }
+    }
+
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<TilbakekrevingBehandling> {
         return data.get().values.filter { it.sakId == sakId }
     }
 
-    override fun hentForUtbetalingId(utbetalingId: UtbetalingId, sessionContext: SessionContext?): TilbakekrevingBehandling? {
-        return data.get().values.find { it.utbetalingId == utbetalingId }
+    override fun hentForUtbetalingId(
+        utbetalingId: UtbetalingId,
+        sessionContext: SessionContext?,
+    ): List<TilbakekrevingBehandling> {
+        return data.get().values.filter { it.utbetalingId == utbetalingId }
     }
 }

@@ -45,7 +45,6 @@ class TilbakekrevingBehandlingPostgresRepo(
                         :varsel_sendt
                     )
                     ON CONFLICT (id) DO UPDATE SET
-                        tilbake_behandling_id = :tilbake_behandling_id,
                         status = :status,
                         url = :url,
                         kravgrunnlag_periode = :kravgrunnlag_periode::periode,
@@ -55,7 +54,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "sak_id" to tilbakekrevingBehandling.sakId.toString(),
                     "utbetaling_id" to tilbakekrevingBehandling.utbetalingId.toString(),
-                    "tilbake_behandling_id" to tilbakekrevingBehandling.tilbakeBehandlingId.toString(),
+                    "tilbake_behandling_id" to tilbakekrevingBehandling.tilbakeBehandlingId,
                     "opprettet" to tilbakekrevingBehandling.opprettet,
                     "status" to tilbakekrevingBehandling.status.name,
                     "url" to tilbakekrevingBehandling.url,
@@ -82,6 +81,21 @@ class TilbakekrevingBehandlingPostgresRepo(
         }
     }
 
+    override fun hentForTilbakeBehandlingId(id: String, sessionContext: SessionContext?): TilbakekrevingBehandling? {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    SELECT *
+                    FROM tilbakekreving_behandling
+                    WHERE tilbake_behandling_id = :id
+                    """.trimIndent(),
+                    "id" to id,
+                ).map { row -> row.tilTilbakekrevingBehandling() }.asSingle,
+            )
+        }
+    }
+
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<TilbakekrevingBehandling> {
         return sessionFactory.withSession(sessionContext) { session ->
             session.run(
@@ -97,7 +111,7 @@ class TilbakekrevingBehandlingPostgresRepo(
         }
     }
 
-    override fun hentForUtbetalingId(utbetalingId: UtbetalingId, sessionContext: SessionContext?): TilbakekrevingBehandling? {
+    override fun hentForUtbetalingId(utbetalingId: UtbetalingId, sessionContext: SessionContext?): List<TilbakekrevingBehandling> {
         return sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
@@ -107,7 +121,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                     WHERE utbetaling_id = :utbetaling_id
                     """.trimIndent(),
                     "utbetaling_id" to utbetalingId.toString(),
-                ).map { row -> row.tilTilbakekrevingBehandling() }.asSingle,
+                ).map { row -> row.tilTilbakekrevingBehandling() }.asList,
             )
         }
     }

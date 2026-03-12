@@ -56,6 +56,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.Statist
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
@@ -358,5 +359,7 @@ class TestApplicationContextMedInMemoryDb(
         }
     }
 
-    override val tilbakekrevingHendelseRepo = TilbakekrevingHendelseFakeRepo(clock)
+    override val tilbakekrevingHendelseRepo by lazy { TilbakekrevingHendelseFakeRepo(clock) }
+
+    override val tilbakekrevingBehandlingRepo by lazy { TilbakekrevingBehandlingFakeRepo() }
 }

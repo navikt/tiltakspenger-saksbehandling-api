@@ -260,7 +260,7 @@ private data class TilbakekrevingBehandlingDb(
 
 private fun TilbakekrevingBehandlingEndretHendelse.tilDbBehandling(): String {
     return TilbakekrevingBehandlingDb(
-        behandlingId = tilbakeBehandlingId.toString(),
+        behandlingId = tilbakeBehandlingId,
         sakOpprettet = sakOpprettet,
         varselSendt = varselSendt,
         behandlingsstatus = behandlingsstatus.tilDb(),
