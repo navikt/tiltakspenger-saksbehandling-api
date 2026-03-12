@@ -2,15 +2,15 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo
 
 import kotliquery.Row
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
-import java.util.UUID
 
 class TilbakekrevingBehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -29,8 +29,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                         opprettet,
                         status,
                         url,
-                        kravgrunnlag_periode_fom,
-                        kravgrunnlag_periode_tom,
+                        kravgrunnlag_periode,
                         totalt_feilutbetalt_beløp,
                         varsel_sendt
                     ) VALUES (
@@ -41,18 +40,16 @@ class TilbakekrevingBehandlingPostgresRepo(
                         :opprettet,
                         :status,
                         :url,
-                        :kravgrunnlag_periode_fom,
-                        :kravgrunnlag_periode_tom,
-                        :totalt_feilutbetalt_beløp,
+                        :kravgrunnlag_periode::periode,
+                        :totalt_feilutbetalt_belop,
                         :varsel_sendt
                     )
                     ON CONFLICT (id) DO UPDATE SET
                         tilbake_behandling_id = :tilbake_behandling_id,
                         status = :status,
                         url = :url,
-                        kravgrunnlag_periode_fom = :kravgrunnlag_periode_fom,
-                        kravgrunnlag_periode_tom = :kravgrunnlag_periode_tom,
-                        totalt_feilutbetalt_beløp = :totalt_feilutbetalt_beløp,
+                        kravgrunnlag_periode = :kravgrunnlag_periode::periode,
+                        totalt_feilutbetalt_beløp = :totalt_feilutbetalt_belop,
                         varsel_sendt = :varsel_sendt
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
@@ -62,9 +59,8 @@ class TilbakekrevingBehandlingPostgresRepo(
                     "opprettet" to tilbakekrevingBehandling.opprettet,
                     "status" to tilbakekrevingBehandling.status.name,
                     "url" to tilbakekrevingBehandling.url,
-                    "kravgrunnlag_periode_fom" to tilbakekrevingBehandling.kravgrunnlagTotalPeriode.fraOgMed,
-                    "kravgrunnlag_periode_tom" to tilbakekrevingBehandling.kravgrunnlagTotalPeriode.tilOgMed,
-                    "totalt_feilutbetalt_beløp" to tilbakekrevingBehandling.totaltFeilutbetaltBeløp,
+                    "kravgrunnlag_periode" to tilbakekrevingBehandling.kravgrunnlagTotalPeriode.tilDbPeriode(),
+                    "totalt_feilutbetalt_belop" to tilbakekrevingBehandling.totaltFeilutbetaltBeløp,
                     "varsel_sendt" to tilbakekrevingBehandling.varselSendt,
                 ).asUpdate,
             )
@@ -121,14 +117,11 @@ class TilbakekrevingBehandlingPostgresRepo(
             id = TilbakekrevingId.fromString(string("id")),
             sakId = SakId.fromString(string("sak_id")),
             utbetalingId = UtbetalingId.fromString(string("utbetaling_id")),
-            tilbakeBehandlingId = UUID.fromString(string("tilbake_behandling_id")),
+            tilbakeBehandlingId = string("tilbake_behandling_id"),
             opprettet = localDateTime("opprettet"),
             status = TilbakekrevingBehandlingsstatus.valueOf(string("status")),
             url = string("url"),
-            kravgrunnlagTotalPeriode = Periode(
-                fraOgMed = localDate("kravgrunnlag_periode_fom"),
-                tilOgMed = localDate("kravgrunnlag_periode_tom"),
-            ),
+            kravgrunnlagTotalPeriode = periode("kravgrunnlag_periode"),
             totaltFeilutbetaltBeløp = bigDecimal("totalt_feilutbetalt_beløp"),
             varselSendt = localDateOrNull("varsel_sendt"),
         )

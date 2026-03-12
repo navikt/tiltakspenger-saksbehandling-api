@@ -7,8 +7,10 @@ import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.tilNyTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -18,6 +20,7 @@ private val logger = KotlinLogging.logger { }
 
 class TilbakekrevingConsumer(
     private val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
+    private val sakRepo: SakRepo,
     private val clock: Clock,
     topic: String,
     groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v3",
@@ -35,13 +38,19 @@ class TilbakekrevingConsumer(
     )
 
     override suspend fun consume(key: String, value: String?) {
-        consume(key, value, clock, tilbakekrevingHendelseRepo)
+        consume(key, value, clock, tilbakekrevingHendelseRepo, sakRepo)
     }
 
     override fun run() = consumer.run()
 
     companion object {
-        fun consume(key: String, value: String?, clock: Clock, tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo) {
+        fun consume(
+            key: String,
+            value: String?,
+            clock: Clock,
+            tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
+            sakRepo: SakRepo,
+        ) {
             logger.info { "Mottatt tilbakekrevingshendelse med key $key" }
 
             if (value == null) {
@@ -61,7 +70,9 @@ class TilbakekrevingConsumer(
 
             logger.info { "Lagrer tilbakekrevingshendelse type ${hendelse.hendelsestype} med key $key" }
 
-            val bleLagret = tilbakekrevingHendelseRepo.lagreNy(hendelse, key, value)
+            val sakId = sakRepo.hentSakIdForSaksnummer(Saksnummer(hendelse.eksternFagsakId))
+
+            val bleLagret = tilbakekrevingHendelseRepo.lagreNy(hendelse, sakId, key, value)
 
             if (!bleLagret) {
                 logger.info { "Tilbakekrevingshendelse type ${hendelse.hendelsestype} med key $key ble ikke lagret" }

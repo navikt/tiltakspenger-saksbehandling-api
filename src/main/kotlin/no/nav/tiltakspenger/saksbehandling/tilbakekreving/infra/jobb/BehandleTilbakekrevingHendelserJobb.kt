@@ -6,14 +6,17 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoSvarHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO.TilbakekrevingMottaker
@@ -34,126 +37,116 @@ class BehandleTilbakekrevingHendelserJobb(
 ) {
     private val logger = KotlinLogging.logger {}
 
-    fun behandleTilbakekrevingInfoBehov() {
-        logger.debug { "Kjører jobb for å behandle tilbakekreving info behov" }
+    fun håndterUbehandledeHendelser() {
+        logger.debug { "Kjører jobb for å behandle tilbakekreving-hendelser" }
 
-        val infoBehovHendelser = Either.catch { tilbakekrevingHendelseRepo.hentUbehandledeInfoBehov() }.getOrElse {
-            logger.error(it) { "Feil ved henting av ubehandlede info behov" }
+        val ubehandledeHendelser = Either.catch { tilbakekrevingHendelseRepo.hentUbehandledeHendelser() }.getOrElse {
+            logger.error(it) { "Feil ved henting av ubehandlede tilbakekreving-hendelser" }
             return
         }
 
-        infoBehovHendelser.forEach { behovHendelse ->
+        ubehandledeHendelser.forEach { hendelse ->
+            val sakId = hendelse.sakId
+
+            if (sakId == null) {
+                logger.error { "Tilbakekreving-hendelse ${hendelse.id} er ikke knyttet til en sak, og kan derfor ikke behandles" }
+                tilbakekrevingHendelseRepo.markerSomBehandletMedFeil(
+                    hendelse.id,
+                    "Hendelse med fagsak-id/saksnummer ${hendelse.eksternFagsakId} har ingen sak hos oss",
+                )
+                return@forEach
+            }
+
+            val sak = sakService.hentForSakId(sakId)
+
             Either.catch {
-                val sak =
-                    Either.catch { sakService.hentForSaksnummer(Saksnummer(behovHendelse.eksternFagsakId)) }.getOrElse {
-                        logger.error(it) { "Fant ingen sak for saksnummer/eksternFagsakId ${behovHendelse.eksternFagsakId} fra behovHendelse ${behovHendelse.id}" }
-                        tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehovFeil(
-                            behovHendelse.id,
-                            "Fant ikke sak for saksnummer",
-                        )
-                        return@forEach
-                    }
-
-                val utbetaling = sak.utbetalinger.hentUtbetalingForUuid(behovHendelse.kravgrunnlagReferanse)
-
-                if (utbetaling == null) {
-                    logger.error { "Fant ingen utbetaling for kravgrunnlagReferanse/uuid ${behovHendelse.kravgrunnlagReferanse} i sak ${sak.id}" }
-                    tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehovFeil(
-                        behovHendelse.id,
-                        "Fant ikke utbetaling for kravgrunnlagReferanse",
-                    )
-                    return@forEach
-                }
-
-                val infoSvarDTO = when (utbetaling.beregningKilde) {
-                    is BeregningKilde.BeregningKildeMeldekort ->
-                        sak.meldekortbehandlinger.hentMeldekortBehandling(utbetaling.beregningKilde.id)
-                            ?.tilSvarDTO(behovHendelse)
-
-                    is BeregningKilde.BeregningKildeBehandling ->
-                        sak.rammebehandlinger.hentRammebehandling(utbetaling.beregningKilde.id)
-                            ?.tilSvarDTO(behovHendelse)
-                }
-
-                if (infoSvarDTO == null) {
-                    logger.error { "Fant ingen behandling for beregningskilde ${utbetaling.beregningKilde.id} i sak ${sak.id}" }
-                    tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehovFeil(
-                        behovHendelse.id,
-                        "Fant ikke behandling for utbetalingens beregningskilde",
-                    )
-                    return@forEach
-                }
-
-                logger.info { "Produserer svar på tilbakekreving info-behov ${behovHendelse.id} for sak ${sak.id} med kravgrunnlagReferanse ${behovHendelse.kravgrunnlagReferanse}" }
-                tilbakekrevingProducer.produserInfoSvar(behovHendelse.id, infoSvarDTO).also {
-                    tilbakekrevingHendelseRepo.oppdaterBehandletInfoBehovMedSvar(behovHendelse.id, it)
+                when (hendelse) {
+                    is TilbakekrevingInfoBehovHendelse -> sak.håndterInfoBehov(hendelse)
+                    is TilbakekrevingBehandlingEndretHendelse -> sak.håndterBehandlingEndret(hendelse)
+                    is TilbakekrevingInfoSvarHendelse -> throw IllegalStateException("InfoSvar hendelse skal ikke behandles av oss")
                 }
             }.onLeft {
-                logger.error(it) { "Feil ved behandling av tilbakekreving info-behov ${behovHendelse.id}" }
+                logger.error(it) {
+                    "Feil ved behandling av tilbakekreving-hendelse ${hendelse.id} / ${hendelse.hendelsestype} på sak ${hendelse.sakId}"
+                }
             }
         }
     }
 
-    fun behandleTilbakekrevingBehandlingEndret() {
-        logger.debug { "Kjører jobb for å behandle tilbakekreving behandling endret" }
+    private fun Sak.håndterInfoBehov(hendelse: TilbakekrevingInfoBehovHendelse) {
+        val utbetaling = utbetalinger.hentUtbetalingForUuid(hendelse.kravgrunnlagReferanse)
 
-        val behandlingEndretHendelser =
-            Either.catch { tilbakekrevingHendelseRepo.hentUbehandledeEndringer() }.getOrElse {
-                logger.error(it) { "Feil ved henting av ubehandlede behandling endret hendelser" }
-                return
-            }
+        if (utbetaling == null) {
+            logger.error { "Fant ingen utbetaling for kravgrunnlagReferanse ${hendelse.kravgrunnlagReferanse} på sak $id" }
+            tilbakekrevingHendelseRepo.markerSomBehandletMedFeil(
+                hendelse.id,
+                "Fant ikke utbetaling for kravgrunnlagReferanse",
+            )
+            return
+        }
 
-        behandlingEndretHendelser.forEach { hendelse ->
-            Either.catch {
-                val sak = Either.catch { sakService.hentForSaksnummer(Saksnummer(hendelse.eksternFagsakId)) }
-                    .getOrElse {
-                        logger.error(it) { "Fant ingen sak for saksnummer/eksternFagsakId ${hendelse.eksternFagsakId} fra behandlingEndretHendelse ${hendelse.id}" }
-                        tilbakekrevingHendelseRepo.oppdaterBehandletEndringFeil(
-                            hendelse.id,
-                            "Fant ikke sak for saksnummer",
-                        )
-                        return@forEach
-                    }
+        val infoSvarDTO = when (utbetaling.beregningKilde) {
+            is BeregningKilde.BeregningKildeMeldekort ->
+                meldekortbehandlinger.hentMeldekortBehandling(utbetaling.beregningKilde.id)
+                    ?.tilSvarDTO(hendelse)
 
-                val utbetaling = hendelse.utbetalingId?.let { sak.utbetalinger.hentUtbetaling(it) }
+            is BeregningKilde.BeregningKildeBehandling ->
+                rammebehandlinger.hentRammebehandling(utbetaling.beregningKilde.id)
+                    ?.tilSvarDTO(hendelse)
+        }
 
-                if (utbetaling == null) {
-                    logger.error { "Fant ingen utbetaling for id ${hendelse.utbetalingId} i sak ${sak.id}" }
-                    tilbakekrevingHendelseRepo.oppdaterBehandletEndringFeil(
-                        hendelse.id,
-                        "Fant ikke utbetaling for tilbakeBehandlingId",
-                    )
-                    return@forEach
-                }
+        if (infoSvarDTO == null) {
+            logger.error { "Fant ingen behandling for beregningskilde ${utbetaling.beregningKilde.id} på sak $id" }
+            tilbakekrevingHendelseRepo.markerSomBehandletMedFeil(
+                hendelse.id,
+                "Fant ikke behandling for utbetalingens beregningskilde",
+            )
+            return
+        }
 
-                val tilbakekrevingBehandling = TilbakekrevingBehandling(
-                    id = TilbakekrevingId.random(),
-                    sakId = sak.id,
-                    utbetalingId = utbetaling.id,
-                    tilbakeBehandlingId = hendelse.tilbakeBehandlingId,
-                    opprettet = nå(clock),
-                    status = hendelse.behandlingsstatus,
-                    url = hendelse.url,
-                    kravgrunnlagTotalPeriode = hendelse.fullstendigPeriode,
-                    totaltFeilutbetaltBeløp = hendelse.totaltFeilutbetaltBeløp,
-                    varselSendt = hendelse.varselSendt,
-                )
+        logger.info { "Produserer svar på tilbakekreving info-behov ${hendelse.id} for sak $id med kravgrunnlagReferanse ${hendelse.kravgrunnlagReferanse}" }
 
-                logger.info { "Lagrer tilbakekrevingbehandling ${tilbakekrevingBehandling.id} for sak ${sak.id} basert på hendelse ${hendelse.id}" }
+        val svar = tilbakekrevingProducer.produserInfoSvar(hendelse.id, infoSvarDTO)
 
-                sessionFactory.withTransactionContext { tx ->
-                    tilbakekrevingBehandlingRepo.lagre(tilbakekrevingBehandling, tx)
-                    tilbakekrevingHendelseRepo.oppdaterBehandletEndring(hendelse.id, tx)
-                }
-            }.onLeft {
-                logger.error(it) { "Feil ved behandling av tilbakekreving behandling-endret ${hendelse.id}" }
-            }
+        tilbakekrevingHendelseRepo.markerInfoBehovSomBehandlet(hendelse.id, svar)
+    }
+
+    private fun Sak.håndterBehandlingEndret(hendelse: TilbakekrevingBehandlingEndretHendelse) {
+        val utbetaling = hendelse.eksternBehandlingId?.let { utbetalinger.hentUtbetalingForUuid(it) }
+
+        if (utbetaling == null) {
+            logger.error { "Fant ingen utbetaling for id ${hendelse.eksternBehandlingId} på sak $id" }
+            tilbakekrevingHendelseRepo.markerSomBehandletMedFeil(
+                hendelse.id,
+                "Fant ikke utbetaling for tilbakeBehandlingId",
+            )
+            return
+        }
+
+        val tilbakekrevingBehandling = TilbakekrevingBehandling(
+            id = TilbakekrevingId.random(),
+            sakId = this.id,
+            utbetalingId = utbetaling.id,
+            tilbakeBehandlingId = hendelse.tilbakeBehandlingId,
+            opprettet = nå(clock),
+            status = hendelse.behandlingsstatus,
+            url = hendelse.url,
+            kravgrunnlagTotalPeriode = hendelse.fullstendigPeriode,
+            totaltFeilutbetaltBeløp = hendelse.totaltFeilutbetaltBeløp,
+            varselSendt = hendelse.varselSendt,
+        )
+
+        logger.info { "Lagrer tilbakekrevingbehandling ${tilbakekrevingBehandling.id} for sak $id basert på hendelse ${hendelse.id}" }
+
+        sessionFactory.withTransactionContext { tx ->
+            tilbakekrevingBehandlingRepo.lagre(tilbakekrevingBehandling, tx)
+            tilbakekrevingHendelseRepo.markerEndringSomBehandlet(hendelse.id, tx)
         }
     }
 
     private fun MeldekortBehandling.tilSvarDTO(behov: TilbakekrevingInfoBehovHendelse): TilbakekrevingInfoSvarDTO {
         require(this.status == MeldekortBehandlingStatus.GODKJENT) {
-            "Meldekortet må være godkjent for å kunne produsere et svar på info-behov. MeldekortBehandlingId: ${this.id}, status: ${this.status}"
+            "Meldekortet må være godkjent for å produsere svar på info-behov - id: $id, status: $status"
         }
 
         return TilbakekrevingInfoSvarDTO(
@@ -185,6 +178,10 @@ class BehandleTilbakekrevingHendelserJobb(
     }
 
     private fun Rammebehandling.tilSvarDTO(behov: TilbakekrevingInfoBehovHendelse): TilbakekrevingInfoSvarDTO {
+        require(this.status == Rammebehandlingsstatus.VEDTATT) {
+            "Rammebehandlingen må være vedtatt for å produsere svar på info-behov - id: $id, status: $status"
+        }
+
         return TilbakekrevingInfoSvarDTO(
             eksternFagsakId = behov.eksternFagsakId,
             hendelseOpprettet = nå(clock),

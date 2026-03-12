@@ -35,6 +35,11 @@ interface SakRepo {
         sessionContext: SessionContext? = null,
     ): Fnr?
 
+    fun hentSakIdForSaksnummer(
+        saksnummer: Saksnummer,
+        sessionContext: SessionContext? = null,
+    ): SakId?
+
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
 
     fun hentForSendingTilMeldekortApi(): List<Sak>

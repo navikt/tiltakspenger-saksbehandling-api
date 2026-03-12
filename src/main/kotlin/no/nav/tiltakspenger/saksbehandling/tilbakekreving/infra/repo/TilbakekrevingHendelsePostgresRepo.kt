@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingHendelsestype
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoSvarHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
@@ -21,7 +20,6 @@ import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 class TilbakekrevingHendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -36,6 +34,7 @@ class TilbakekrevingHendelsePostgresRepo(
      */
     override fun lagreNy(
         hendelse: Tilbakekrevingshendelse,
+        sakId: SakId?,
         key: String,
         value: String,
         sessionContext: SessionContext?,
@@ -46,6 +45,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     """
                     INSERT INTO tilbakekreving_hendelse (
                         id,
+                        sak_id,
                         opprettet,
                         hendelse_type,
                         ekstern_fagsak_id,
@@ -56,6 +56,7 @@ class TilbakekrevingHendelsePostgresRepo(
                         value
                     ) VALUES (
                         :id,
+                        :sak_id,
                         :opprettet,
                         :hendelse_type,
                         :ekstern_fagsak_id,
@@ -68,6 +69,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     ON CONFLICT (kravgrunnlag_referanse) DO NOTHING
                     """.trimIndent(),
                     "id" to hendelse.id.toString(),
+                    "sak_id" to sakId?.toString(),
                     "opprettet" to hendelse.opprettet,
                     "ekstern_fagsak_id" to hendelse.eksternFagsakId,
                     "key" to key,
@@ -85,7 +87,7 @@ class TilbakekrevingHendelsePostgresRepo(
                         )
 
                         is TilbakekrevingInfoSvarHendelse -> throw IllegalArgumentException(
-                            "Skal ikke lagre InfoSvarHendelse som egen rad, skal kun oppdatere eksisterende InfoBehovHendelse med svar",
+                            "Skal ikke lagre InfoSvarHendelse som egen rad, skal kun oppdatere eksisterende InfoBehov hendelse med svar",
                         )
                     },
                 ).asUpdate,
@@ -94,7 +96,22 @@ class TilbakekrevingHendelsePostgresRepo(
         }
     }
 
-    override fun oppdaterBehandletInfoBehovMedSvar(
+    override fun hentUbehandledeHendelser(): List<Tilbakekrevingshendelse> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    SELECT *
+                    FROM tilbakekreving_hendelse
+                    WHERE behandlet IS NULL
+                    ORDER BY opprettet
+                    """.trimIndent(),
+                ).map { row -> row.tilTilbakekrevingshendelse() }.asList,
+            )
+        }
+    }
+
+    override fun markerInfoBehovSomBehandlet(
         hendelseId: TilbakekrevingshendelseId,
         svarJson: String,
         sessionContext: SessionContext?,
@@ -107,7 +124,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     SET
                         behandlet = :behandlet,
                         svar = to_jsonb(:svar::jsonb)
-                    WHERE id = :id
+                    WHERE id = :id AND hendelse_type = 'InfoBehov'
                     """.trimIndent(),
                     "id" to hendelseId.toString(),
                     "behandlet" to nå(clock),
@@ -117,7 +134,27 @@ class TilbakekrevingHendelsePostgresRepo(
         }
     }
 
-    override fun oppdaterBehandletInfoBehovFeil(
+    override fun markerEndringSomBehandlet(
+        hendelseId: TilbakekrevingshendelseId,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    UPDATE tilbakekreving_hendelse
+                    SET
+                        behandlet = :behandlet
+                    WHERE id = :id AND hendelse_type = 'BehandlingEndret'
+                    """.trimIndent(),
+                    "id" to hendelseId.toString(),
+                    "behandlet" to nå(clock),
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun markerSomBehandletMedFeil(
         hendelseId: TilbakekrevingshendelseId,
         feil: String,
         sessionContext: SessionContext?,
@@ -136,77 +173,6 @@ class TilbakekrevingHendelsePostgresRepo(
                     "behandlet" to nå(clock),
                     "behandlet_feil" to feil,
                 ).asUpdate,
-            )
-        }
-    }
-
-    override fun hentUbehandledeInfoBehov(): List<TilbakekrevingInfoBehovHendelse> {
-        return sessionFactory.withSession { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    SELECT *
-                    FROM tilbakekreving_hendelse
-                    WHERE hendelse_type = :hendelse_type
-                    AND behandlet IS NULL
-                    """.trimIndent(),
-                    "hendelse_type" to TilbakekrevingHendelsestype.InfoBehov.toString(),
-                ).map { row -> row.tilTilbakekrevingshendelse() as TilbakekrevingInfoBehovHendelse }.asList,
-            )
-        }
-    }
-
-    override fun oppdaterBehandletEndring(hendelseId: TilbakekrevingshendelseId, sessionContext: SessionContext?) {
-        sessionFactory.withSession(sessionContext) { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    UPDATE tilbakekreving_hendelse
-                    SET behandlet = :behandlet
-                    WHERE id = :id
-                    """.trimIndent(),
-                    "id" to hendelseId.toString(),
-                    "behandlet" to nå(clock),
-                ).asUpdate,
-            )
-        }
-    }
-
-    override fun oppdaterBehandletEndringFeil(
-        hendelseId: TilbakekrevingshendelseId,
-        feil: String,
-        sessionContext: SessionContext?,
-    ) {
-        sessionFactory.withSession(sessionContext) { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    UPDATE tilbakekreving_hendelse
-                    SET
-                        behandlet = :behandlet,
-                        behandlet_feil = :behandlet_feil
-                    WHERE id = :id
-                    """.trimIndent(),
-                    "id" to hendelseId.toString(),
-                    "behandlet" to nå(clock),
-                    "behandlet_feil" to feil,
-                ).asUpdate,
-            )
-        }
-    }
-
-    override fun hentUbehandledeEndringer(): List<TilbakekrevingBehandlingEndretHendelse> {
-        return sessionFactory.withSession { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    SELECT *
-                    FROM tilbakekreving_hendelse
-                    WHERE hendelse_type = :hendelse_type
-                    AND behandlet IS NULL
-                    """.trimIndent(),
-                    "hendelse_type" to TilbakekrevingHendelsestype.BehandlingEndret.toString(),
-                ).map { row -> row.tilTilbakekrevingshendelse() as TilbakekrevingBehandlingEndretHendelse }.asList,
             )
         }
     }
@@ -244,7 +210,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     sakId = sakId,
                     eksternFagsakId = eksternFagsakId,
                     eksternBehandlingId = string("ekstern_behandling_id"),
-                    tilbakeBehandlingId = UUID.fromString(behandling.behandlingId),
+                    tilbakeBehandlingId = behandling.behandlingId,
                     sakOpprettet = behandling.sakOpprettet,
                     varselSendt = behandling.varselSendt,
                     behandlingsstatus = behandling.behandlingsstatus.tilDomene(),

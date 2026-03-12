@@ -8,7 +8,6 @@ import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 data class TilbakekrevingBehandlingEndretDTO(
     override val eksternFagsakId: String,
@@ -30,7 +29,7 @@ data class TilbakekrevingBehandlingEndretDTO(
             sakId = null,
             eksternFagsakId = eksternFagsakId,
             eksternBehandlingId = eksternBehandlingId,
-            tilbakeBehandlingId = UUID.fromString(tilbakekreving.behandlingId),
+            tilbakeBehandlingId = tilbakekreving.behandlingId,
             sakOpprettet = tilbakekreving.sakOpprettet,
             varselSendt = tilbakekreving.varselSendt,
             behandlingsstatus = tilbakekreving.behandlingsstatus.tilDomene(),

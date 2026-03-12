@@ -76,6 +76,7 @@ class TilbakekrevingFakeProducer(
             serialize(behandlingEndretDTO),
             clock,
             tilbakekrevingHendelseRepo,
+            sakRepo,
         )
     }
 }

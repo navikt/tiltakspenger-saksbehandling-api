@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo
 
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoSvarHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
@@ -17,6 +19,7 @@ class TilbakekrevingHendelseFakeRepo(
 
     override fun lagreNy(
         hendelse: Tilbakekrevingshendelse,
+        sakId: SakId?,
         key: String,
         value: String,
         sessionContext: SessionContext?,
@@ -33,7 +36,11 @@ class TilbakekrevingHendelseFakeRepo(
         return true
     }
 
-    override fun oppdaterBehandletInfoBehovMedSvar(
+    override fun hentUbehandledeHendelser(): List<Tilbakekrevingshendelse> {
+        return data.get().values.filter { it.behandlet == null }
+    }
+
+    override fun markerInfoBehovSomBehandlet(
         hendelseId: TilbakekrevingshendelseId,
         svarJson: String,
         sessionContext: SessionContext?,
@@ -47,43 +54,24 @@ class TilbakekrevingHendelseFakeRepo(
         )
     }
 
-    override fun oppdaterBehandletInfoBehovFeil(
+    override fun markerEndringSomBehandlet(hendelseId: TilbakekrevingshendelseId, sessionContext: SessionContext?) {
+        val hendelse = data.get()[hendelseId] as? TilbakekrevingBehandlingEndretHendelse
+            ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")
+
+        data.get()[hendelseId] = hendelse.copy(behandlet = nå(clock))
+    }
+
+    override fun markerSomBehandletMedFeil(
         hendelseId: TilbakekrevingshendelseId,
         feil: String,
         sessionContext: SessionContext?,
     ) {
-        val hendelse = data.get()[hendelseId] as? TilbakekrevingInfoBehovHendelse
-            ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")
+        val hendelse = data.get()[hendelseId] ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")
 
-        data.get()[hendelseId] = hendelse.copy(
-            behandlet = nå(clock),
-            feil = feil,
-        )
-    }
-
-    override fun hentUbehandledeInfoBehov(): List<TilbakekrevingInfoBehovHendelse> {
-        return data.get().values
-            .filterIsInstance<TilbakekrevingInfoBehovHendelse>()
-            .filter { it.behandlet == null }
-    }
-
-    override fun oppdaterBehandletEndring(hendelseId: TilbakekrevingshendelseId, sessionContext: SessionContext?) {
-        val hendelse = data.get()[hendelseId] as? TilbakekrevingBehandlingEndretHendelse
-            ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")
-
-        data.get()[hendelseId] = hendelse.copy(behandlet = nå(clock))
-    }
-
-    override fun oppdaterBehandletEndringFeil(hendelseId: TilbakekrevingshendelseId, feil: String, sessionContext: SessionContext?) {
-        val hendelse = data.get()[hendelseId] as? TilbakekrevingBehandlingEndretHendelse
-            ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")
-
-        data.get()[hendelseId] = hendelse.copy(behandlet = nå(clock))
-    }
-
-    override fun hentUbehandledeEndringer(): List<TilbakekrevingBehandlingEndretHendelse> {
-        return data.get().values
-            .filterIsInstance<TilbakekrevingBehandlingEndretHendelse>()
-            .filter { it.behandlet == null }
+        data.get()[hendelseId] = when (hendelse) {
+            is TilbakekrevingBehandlingEndretHendelse -> hendelse.copy(behandlet = nå(clock))
+            is TilbakekrevingInfoBehovHendelse -> hendelse.copy(behandlet = nå(clock))
+            is TilbakekrevingInfoSvarHendelse -> hendelse.copy(behandlet = nå(clock))
+        }
     }
 }

@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 /**
  *  [tilbakeBehandlingId] BehandlingId i ekstern saksbehandlingsløsning for tilbakekreving
@@ -17,7 +16,7 @@ data class TilbakekrevingBehandling(
     val sakId: SakId,
     val utbetalingId: UtbetalingId,
 
-    val tilbakeBehandlingId: UUID,
+    val tilbakeBehandlingId: String,
     val opprettet: LocalDateTime,
     val status: TilbakekrevingBehandlingsstatus,
     val url: String,

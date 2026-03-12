@@ -32,7 +32,10 @@ sealed interface TilbakekrevingshendelseDTO {
     /**
      * @return [Tilbakekrevingshendelse] dersom hendelsen skal lagres i databasen, eller null dersom den ikke skal lagres
      * */
-    fun tilHendelseForLagring(key: String, clock: Clock): Tilbakekrevingshendelse?
+    fun tilHendelseForLagring(
+        key: String,
+        clock: Clock,
+    ): Tilbakekrevingshendelse?
 }
 
 @Suppress("ktlint:standard:enum-entry-name-case")
@@ -51,7 +54,10 @@ data class TilbakekrevingPeriodeDTO(
     }
 }
 
-fun String.tilNyTilbakekrevingshendelse(key: String, clock: Clock): Either<Throwable, Tilbakekrevingshendelse?> {
+fun String.tilNyTilbakekrevingshendelse(
+    key: String,
+    clock: Clock,
+): Either<Throwable, Tilbakekrevingshendelse?> {
     return Either.catch {
         deserialize<TilbakekrevingshendelseDTO>(this)
             .tilHendelseForLagring(key, clock)
