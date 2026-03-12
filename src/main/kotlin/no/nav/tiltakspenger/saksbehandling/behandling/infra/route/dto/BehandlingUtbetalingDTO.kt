@@ -40,7 +40,7 @@ fun BehandlingUtbetaling.tilDTO(
         navkontorNavn = navkontor.kontornavn,
         status = utbetalingsstatus.toUtbetalingsstatusDTO(),
         simulertBeregning = this.toSimulertBeregning(beregninger).toSimulertBeregningDTO(),
-        kanIkkeIverksetteUtbetaling = this.simulering?.validerKanIverksetteUtbetaling(saksbehandlerIdent)?.leftOrNull()
+        kanIkkeIverksetteUtbetaling = this.simulering?.validerKanIverksetteUtbetaling()?.leftOrNull()
             ?.tilKanIkkeIverksetteUtbetalingDTO(),
     )
 }

@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKo
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
-import no.nav.tiltakspenger.saksbehandling.objectmothers.medTillattFeilutbetaling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.meldekortTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
@@ -154,140 +153,134 @@ class SendRevurderingTilBeslutningTest {
     @Test
     fun `kan ikke sende til beslutning dersom beregning av utbetaling er endret`() {
         withTestApplicationContext { tac ->
-            medTillattFeilutbetaling {
-                val sak = tac.førsteMeldekortIverksatt()
+            val sak = tac.førsteMeldekortIverksatt()
 
-                val søknadvedtak = sak.rammevedtaksliste.first()
+            val søknadvedtak = sak.rammevedtaksliste.first()
 
-                val (_, omgjøring) = startRevurderingOmgjøring(
-                    tac = tac,
-                    sakId = sak.id,
-                    rammevedtakIdSomOmgjøres = søknadvedtak.id,
-                )!!
+            val (_, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+            )!!
 
-                oppdaterOmgjøringOpphør(
-                    tac = tac,
-                    sakId = sak.id,
-                    behandlingId = omgjøring.id,
-                    vedtaksperiode = søknadvedtak.periode,
-                )
+            oppdaterOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = søknadvedtak.periode,
+            )
 
-                iverksettRevurderingStans(
-                    tac = tac,
-                    sakId = sak.id,
-                    harValgtStansFraFørsteDagSomGirRett = true,
-                )
+            iverksettRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                harValgtStansFraFørsteDagSomGirRett = true,
+            )
 
-                val response = sendRevurderingTilBeslutningForBehandlingId(
-                    tac = tac,
-                    sakId = sak.id,
-                    behandlingId = omgjøring.id,
-                    forventetStatus = HttpStatusCode.Conflict,
-                )
+            val response = sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                forventetStatus = HttpStatusCode.Conflict,
+            )
 
-                response harKode "simulering_endret"
+            response harKode "simulering_endret"
 
-                // Skal ikke fungere ved gjentatte forsøk heller!
-                val retryResponse = sendRevurderingTilBeslutningForBehandlingId(
-                    tac = tac,
-                    sakId = sak.id,
-                    behandlingId = omgjøring.id,
-                    forventetStatus = HttpStatusCode.Conflict,
-                )
+            // Skal ikke fungere ved gjentatte forsøk heller!
+            val retryResponse = sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                forventetStatus = HttpStatusCode.Conflict,
+            )
 
-                retryResponse harKode "simulering_endret"
-            }
+            retryResponse harKode "simulering_endret"
         }
     }
 
     @Test
     fun `kan ikke sende til beslutning dersom beregning av utbetaling er endret fra null`() {
         withTestApplicationContext { tac ->
-            medTillattFeilutbetaling {
-                val sak = tac.meldekortTilBeslutter()
+            val sak = tac.meldekortTilBeslutter()
 
-                val søknadvedtak = sak.rammevedtaksliste.first()
+            val søknadvedtak = sak.rammevedtaksliste.first()
 
-                val (_, omgjøring) = startRevurderingOmgjøring(
-                    tac = tac,
-                    sakId = sak.id,
-                    rammevedtakIdSomOmgjøres = søknadvedtak.id,
-                )!!
+            val (_, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+            )!!
 
-                oppdaterOmgjøringOpphør(
-                    tac = tac,
-                    sakId = sak.id,
-                    behandlingId = omgjøring.id,
-                    vedtaksperiode = søknadvedtak.periode,
-                )
+            oppdaterOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = søknadvedtak.periode,
+            )
 
-                val meldekortId = sak.meldekortbehandlinger.first().id
-                tac.meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
-                    sakId = sak.id,
+            val meldekortId = sak.meldekortbehandlinger.first().id
+            tac.meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
+                sakId = sak.id,
+                meldekortId = meldekortId,
+                saksbehandler = beslutter(),
+            )
+            tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
+                IverksettMeldekortKommando(
                     meldekortId = meldekortId,
-                    saksbehandler = beslutter(),
-                )
-                tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
-                    IverksettMeldekortKommando(
-                        meldekortId = meldekortId,
-                        sakId = sak.id,
-                        beslutter = beslutter(),
-                        correlationId = CorrelationId.generate(),
-                    ),
-                )
-
-                val response = sendRevurderingTilBeslutningForBehandlingId(
-                    tac = tac,
                     sakId = sak.id,
-                    behandlingId = omgjøring.id,
-                    forventetStatus = HttpStatusCode.Conflict,
-                )
+                    beslutter = beslutter(),
+                    correlationId = CorrelationId.generate(),
+                ),
+            )
 
-                response harKode "simulering_endret"
-            }
+            val response = sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                forventetStatus = HttpStatusCode.Conflict,
+            )
+
+            response harKode "simulering_endret"
         }
     }
 
     @Test
     fun `kan ikke sende til beslutning dersom beregning av utbetaling er endret til null`() {
         withTestApplicationContext { tac ->
-            medTillattFeilutbetaling {
-                val sak = tac.førsteMeldekortIverksatt()
+            val sak = tac.førsteMeldekortIverksatt()
 
-                val søknadvedtak = sak.rammevedtaksliste.first()
+            val søknadvedtak = sak.rammevedtaksliste.first()
 
-                val (_, omgjøring) = startRevurderingOmgjøring(
-                    tac = tac,
-                    sakId = sak.id,
-                    rammevedtakIdSomOmgjøres = søknadvedtak.id,
-                )!!
+            val (_, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+            )!!
 
-                oppdaterOmgjøringOpphør(
-                    tac = tac,
-                    sakId = sak.id,
-                    behandlingId = omgjøring.id,
-                    vedtaksperiode = søknadvedtak.periode,
-                )
+            oppdaterOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = søknadvedtak.periode,
+            )
 
-                // En annen omgjøring iverksettes i mellomtiden, som opphører samme periode som den første.
-                // Beregningen av første omgjøring vil da endres til null/ingen endring, og vi skal ikke kunne sende den til beslutning.
-                // (den første omgjøringen vil forøvrig i dette tilfellet feile ved gjentatte forsøk også, ettersom perioden nå allerede er opphørt)
-                iverksettOmgjøringOpphør(
-                    tac = tac,
-                    sakId = sak.id,
-                    vedtaksperiode = søknadvedtak.periode,
-                    rammevedtakIdSomOmgjøres = søknadvedtak.id,
-                )
+            // En annen omgjøring iverksettes i mellomtiden, som opphører samme periode som den første.
+            // Beregningen av første omgjøring vil da endres til null/ingen endring, og vi skal ikke kunne sende den til beslutning.
+            // (den første omgjøringen vil forøvrig i dette tilfellet feile ved gjentatte forsøk også, ettersom perioden nå allerede er opphørt)
+            iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                vedtaksperiode = søknadvedtak.periode,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+            )
 
-                val response = sendRevurderingTilBeslutningForBehandlingId(
-                    tac = tac,
-                    sakId = sak.id,
-                    behandlingId = omgjøring.id,
-                    forventetStatus = HttpStatusCode.Conflict,
-                )
+            val response = sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                forventetStatus = HttpStatusCode.Conflict,
+            )
 
-                response harKode "simulering_endret"
-            }
+            response harKode "simulering_endret"
         }
     }
 }

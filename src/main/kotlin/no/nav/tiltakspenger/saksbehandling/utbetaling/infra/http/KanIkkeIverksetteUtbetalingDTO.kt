@@ -4,7 +4,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUt
 
 enum class KanIkkeIverksetteUtbetalingDTO {
     SimuleringMangler,
-    FeilutbetalingStøttesIkke,
     JusteringStøttesIkke,
     SimuleringHarEndringer,
 }
@@ -12,7 +11,6 @@ enum class KanIkkeIverksetteUtbetalingDTO {
 fun KanIkkeIverksetteUtbetaling.tilKanIkkeIverksetteUtbetalingDTO(): KanIkkeIverksetteUtbetalingDTO {
     return when (this) {
         KanIkkeIverksetteUtbetaling.SimuleringMangler -> KanIkkeIverksetteUtbetalingDTO.SimuleringMangler
-        KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke -> KanIkkeIverksetteUtbetalingDTO.FeilutbetalingStøttesIkke
         KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> KanIkkeIverksetteUtbetalingDTO.JusteringStøttesIkke
         KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer -> KanIkkeIverksetteUtbetalingDTO.SimuleringHarEndringer
     }

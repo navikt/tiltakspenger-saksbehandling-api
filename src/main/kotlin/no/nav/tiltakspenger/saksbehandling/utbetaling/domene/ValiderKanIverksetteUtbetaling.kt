@@ -4,11 +4,10 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 
 fun MeldekortBehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
-    return if (beregning == null) Unit.right() else simulering.validerKanIverksetteUtbetaling(saksbehandler)
+    return if (beregning == null) Unit.right() else simulering.validerKanIverksetteUtbetaling()
 }
 
 fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
@@ -28,18 +27,13 @@ fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUt
         return KanIkkeIverksetteUtbetaling.SimuleringMangler.left()
     }
 
-    return simulering.validerKanIverksetteUtbetaling(saksbehandler)
+    return simulering.validerKanIverksetteUtbetaling()
 }
 
-fun Simulering?.validerKanIverksetteUtbetaling(saksbehandlerIdent: String?): Either<KanIkkeIverksetteUtbetaling, Unit> {
+fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
     return when (this) {
         is Simulering.Endring -> {
-            if (Configuration.isProd() && this.harFeilutbetaling && !saksbehandlereSomKanBehandleMedFeilutbetaling.contains(
-                    saksbehandlerIdent,
-                )
-            ) {
-                KanIkkeIverksetteUtbetaling.FeilutbetalingStøttesIkke.left()
-            } else if (harJusteringPåTversAvMeldeperioderEllerMåneder()) {
+            if (harJusteringPåTversAvMeldeperioderEllerMåneder()) {
                 KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left()
             } else {
                 Unit.right()
@@ -68,16 +62,8 @@ private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(
     }
 }
 
-private val saksbehandlereSomKanBehandleMedFeilutbetaling = setOf(
-    "P160694",
-    "T133324",
-    "V109821",
-    "J104708",
-)
-
 enum class KanIkkeIverksetteUtbetaling {
     SimuleringMangler,
-    FeilutbetalingStøttesIkke,
     JusteringStøttesIkke,
     KontrollSimuleringHarEndringer,
 }

@@ -79,7 +79,7 @@ class ValiderKanIverksetteUtbetalingTest {
                     Pair(periodeInnenforSammeMåned.tilOgMed, -1337),
                 ),
             ),
-        ).validerKanIverksetteUtbetaling(saksbehandler().navIdent)
+        ).validerKanIverksetteUtbetaling()
 
         resultat.shouldBe(Unit.right())
     }
@@ -94,7 +94,7 @@ class ValiderKanIverksetteUtbetalingTest {
                     Pair(periodeInnenforSammeMåned.fraOgMed.plusDays(1), -1337),
                 ),
             ),
-        ).validerKanIverksetteUtbetaling(saksbehandler().navIdent)
+        ).validerKanIverksetteUtbetaling()
 
         resultat.shouldBe(Unit.right())
     }
@@ -114,7 +114,7 @@ class ValiderKanIverksetteUtbetalingTest {
                     Pair(periodePåTversAvMåned.fraOgMed.plusDays(1), -1337),
                 ),
             ),
-        ).validerKanIverksetteUtbetaling(saksbehandler().navIdent)
+        ).validerKanIverksetteUtbetaling()
 
         resultat.shouldBe(KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left())
     }
@@ -129,7 +129,7 @@ class ValiderKanIverksetteUtbetalingTest {
                     Pair(periodePåTversAvMåned.tilOgMed, -1337),
                 ),
             ),
-        ).validerKanIverksetteUtbetaling(saksbehandler().navIdent)
+        ).validerKanIverksetteUtbetaling()
 
         resultat.shouldBe(KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left())
     }
