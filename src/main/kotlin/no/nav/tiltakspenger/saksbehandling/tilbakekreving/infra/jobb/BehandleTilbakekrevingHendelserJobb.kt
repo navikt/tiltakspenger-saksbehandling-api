@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
@@ -31,7 +31,7 @@ import java.time.Clock
 class BehandleTilbakekrevingHendelserJobb(
     private val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
     private val tilbakekrevingBehandlingRepo: TilbakekrevingBehandlingRepo,
-    private val sakService: SakService,
+    private val sakRepo: SakRepo,
     private val tilbakekrevingProducer: TilbakekrevingProducer,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
@@ -58,7 +58,7 @@ class BehandleTilbakekrevingHendelserJobb(
                 return@forEach
             }
 
-            val sak = sakService.hentForSakId(sakId)
+            val sak = sakRepo.hentForSakId(sakId)!!
 
             Either.catch {
                 when (hendelse) {
@@ -113,6 +113,8 @@ class BehandleTilbakekrevingHendelserJobb(
             return "Fant ikke utbetaling for id ${hendelse.eksternBehandlingId}".left()
         }
 
+        val sistEndret = nå(clock)
+
         val eksisterendeBehandling =
             tilbakekrevingBehandlingRepo.hentForTilbakeBehandlingId(hendelse.tilbakeBehandlingId)
 
@@ -122,11 +124,13 @@ class BehandleTilbakekrevingHendelserJobb(
             kravgrunnlagTotalPeriode = hendelse.fullstendigPeriode,
             totaltFeilutbetaltBeløp = hendelse.totaltFeilutbetaltBeløp,
             varselSendt = hendelse.varselSendt,
+            sistEndret = sistEndret,
         ) ?: TilbakekrevingBehandling(
             id = TilbakekrevingId.random(),
             sakId = this.id,
             utbetalingId = utbetaling.id,
-            opprettet = nå(clock),
+            opprettet = hendelse.sakOpprettet,
+            sistEndret = sistEndret,
             tilbakeBehandlingId = hendelse.tilbakeBehandlingId,
             status = hendelse.behandlingsstatus,
             url = hendelse.url,

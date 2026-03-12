@@ -503,7 +503,7 @@ open class ApplicationContext(
         BehandleTilbakekrevingHendelserJobb(
             tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
             tilbakekrevingBehandlingRepo = tilbakekrevingBehandlingRepo,
-            sakService = sakContext.sakService,
+            sakRepo = sakContext.sakRepo,
             tilbakekrevingProducer = tilbakekrevingProducer,
             sessionFactory = sessionFactory,
             clock = clock,

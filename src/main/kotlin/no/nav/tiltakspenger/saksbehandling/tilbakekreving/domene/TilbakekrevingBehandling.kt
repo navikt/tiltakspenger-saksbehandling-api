@@ -15,9 +15,9 @@ data class TilbakekrevingBehandling(
     val id: TilbakekrevingId,
     val sakId: SakId,
     val utbetalingId: UtbetalingId,
-
     val tilbakeBehandlingId: String,
     val opprettet: LocalDateTime,
+    val sistEndret: LocalDateTime,
     val status: TilbakekrevingBehandlingsstatus,
     val url: String,
     val kravgrunnlagTotalPeriode: Periode,
