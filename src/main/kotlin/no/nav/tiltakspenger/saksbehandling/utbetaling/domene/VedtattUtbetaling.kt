@@ -5,20 +5,16 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.libs.common.uuidToUlid
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.Satstype
 import ulid.ULID
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 data class UtbetalingId private constructor(
     private val ulid: UlidBase,
@@ -34,8 +30,6 @@ data class UtbetalingId private constructor(
             }
             return UtbetalingId(ulid = UlidBase(stringValue))
         }
-
-        fun fromUUID(uuid: UUID) = UtbetalingId(ulid = UlidBase("${PREFIX}_${uuidToUlid(uuid)}"))
     }
 }
 
@@ -67,8 +61,4 @@ data class VedtattUtbetaling(
     val ordinærBeløp: Int = beregning.ordinærBeløp
     val barnetilleggBeløp: Int = beregning.barnetilleggBeløp
     val totalBeløp: Int = beregning.totalBeløp
-
-    fun hentBeregningsdagForDato(dato: LocalDate): MeldeperiodeBeregningDag? {
-        return beregning.hentDag(dato)
-    }
 }
