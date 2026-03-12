@@ -1,17 +1,20 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto
 
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
 import java.math.BigDecimal
 import java.time.Clock
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 data class TilbakekrevingBehandlingEndretDTO(
     override val eksternFagsakId: String,
     override val hendelseOpprettet: LocalDateTime,
     val eksternBehandlingId: String?,
-    val tilbakekreving: Tilbakekreving,
+    val tilbakekreving: TilbakekrevingDTO,
 ) : TilbakekrevingshendelseDTO {
     override val versjon: Int = 1
     override val hendelsestype = TilbakekrevingHendelsestypeDTO.behandling_endret
@@ -26,28 +29,42 @@ data class TilbakekrevingBehandlingEndretDTO(
             behandlet = null,
             sakId = null,
             eksternFagsakId = eksternFagsakId,
-            tilbakekrevingBehandlingId = tilbakekreving.behandlingId,
+            eksternBehandlingId = eksternBehandlingId,
+            tilbakeBehandlingId = UUID.fromString(tilbakekreving.behandlingId),
             sakOpprettet = tilbakekreving.sakOpprettet,
             varselSendt = tilbakekreving.varselSendt,
-            behandlingsstatus = tilbakekreving.behandlingsstatus,
+            behandlingsstatus = tilbakekreving.behandlingsstatus.tilDomene(),
             totaltFeilutbetaltBeløp = tilbakekreving.totaltFeilutbetaltBeløp,
             url = tilbakekreving.saksbehandlingURL,
             fullstendigPeriode = tilbakekreving.fullstendigPeriode.tilPeriode(),
         )
     }
 
-    data class Tilbakekreving(
+    data class TilbakekrevingDTO(
         val behandlingId: String,
         val sakOpprettet: LocalDateTime,
-        val varselSendt: LocalDateTime?,
-        // Vet ikke hvilke verdier denne kan ha ennå, så setter den til String inntil videre
-        val behandlingsstatus: String,
+        val varselSendt: LocalDate?,
+        val behandlingsstatus: TilbakekrevingBehandlingsstatusDTO,
+        val forrigeBehandlingsstatus: TilbakekrevingBehandlingsstatusDTO?,
         val totaltFeilutbetaltBeløp: BigDecimal,
         val saksbehandlingURL: String,
         val fullstendigPeriode: TilbakekrevingPeriodeDTO,
     )
 
-    enum class Behandlingsstatus {
+    enum class TilbakekrevingBehandlingsstatusDTO {
+        OPPRETTET,
         TIL_BEHANDLING,
+        TIL_GODKJENNING,
+        AVSLUTTET,
+        ;
+
+        fun tilDomene(): TilbakekrevingBehandlingsstatus {
+            return when (this) {
+                OPPRETTET -> TilbakekrevingBehandlingsstatus.OPPRETTET
+                TIL_BEHANDLING -> TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
+                TIL_GODKJENNING -> TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
+                AVSLUTTET -> TilbakekrevingBehandlingsstatus.AVSLUTTET
+            }
+        }
     }
 }

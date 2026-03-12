@@ -4,12 +4,15 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
@@ -17,13 +20,16 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.Tilbak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO.TilbakekrevingRevurdering
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO.TilbakekrevingUtvidPeriode
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingPeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import java.time.Clock
 
-class BehandleTilbakekrevingInfoBehovJobb(
+class BehandleTilbakekrevingHendelserJobb(
     private val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
+    private val tilbakekrevingBehandlingRepo: TilbakekrevingBehandlingRepo,
     private val sakService: SakService,
     private val tilbakekrevingProducer: TilbakekrevingProducer,
+    private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -84,6 +90,63 @@ class BehandleTilbakekrevingInfoBehovJobb(
                 }
             }.onLeft {
                 logger.error(it) { "Feil ved behandling av tilbakekreving info-behov ${behovHendelse.id}" }
+            }
+        }
+    }
+
+    fun behandleTilbakekrevingBehandlingEndret() {
+        logger.debug { "Kjører jobb for å behandle tilbakekreving behandling endret" }
+
+        val behandlingEndretHendelser =
+            Either.catch { tilbakekrevingHendelseRepo.hentUbehandledeEndringer() }.getOrElse {
+                logger.error(it) { "Feil ved henting av ubehandlede behandling endret hendelser" }
+                return
+            }
+
+        behandlingEndretHendelser.forEach { hendelse ->
+            Either.catch {
+                val sak = Either.catch { sakService.hentForSaksnummer(Saksnummer(hendelse.eksternFagsakId)) }
+                    .getOrElse {
+                        logger.error(it) { "Fant ingen sak for saksnummer/eksternFagsakId ${hendelse.eksternFagsakId} fra behandlingEndretHendelse ${hendelse.id}" }
+                        tilbakekrevingHendelseRepo.oppdaterBehandletEndringFeil(
+                            hendelse.id,
+                            "Fant ikke sak for saksnummer",
+                        )
+                        return@forEach
+                    }
+
+                val utbetaling = hendelse.utbetalingId?.let { sak.utbetalinger.hentUtbetaling(it) }
+
+                if (utbetaling == null) {
+                    logger.error { "Fant ingen utbetaling for id ${hendelse.utbetalingId} i sak ${sak.id}" }
+                    tilbakekrevingHendelseRepo.oppdaterBehandletEndringFeil(
+                        hendelse.id,
+                        "Fant ikke utbetaling for tilbakeBehandlingId",
+                    )
+                    return@forEach
+                }
+
+                val tilbakekrevingBehandling = TilbakekrevingBehandling(
+                    id = TilbakekrevingId.random(),
+                    sakId = sak.id,
+                    utbetalingId = utbetaling.id,
+                    tilbakeBehandlingId = hendelse.tilbakeBehandlingId,
+                    opprettet = nå(clock),
+                    status = hendelse.behandlingsstatus,
+                    url = hendelse.url,
+                    kravgrunnlagTotalPeriode = hendelse.fullstendigPeriode,
+                    totaltFeilutbetaltBeløp = hendelse.totaltFeilutbetaltBeløp,
+                    varselSendt = hendelse.varselSendt,
+                )
+
+                logger.info { "Lagrer tilbakekrevingbehandling ${tilbakekrevingBehandling.id} for sak ${sak.id} basert på hendelse ${hendelse.id}" }
+
+                sessionFactory.withTransactionContext { tx ->
+                    tilbakekrevingBehandlingRepo.lagre(tilbakekrevingBehandling, tx)
+                    tilbakekrevingHendelseRepo.oppdaterBehandletEndring(hendelse.id, tx)
+                }
+            }.onLeft {
+                logger.error(it) { "Feil ved behandling av tilbakekreving behandling-endret ${hendelse.id}" }
             }
         }
     }

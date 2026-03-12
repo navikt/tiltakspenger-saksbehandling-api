@@ -47,10 +47,12 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.Personhen
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb.BehandleTilbakekrevingInfoBehovJobb
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb.BehandleTilbakekrevingHendelserJobb
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.TiltaksdeltakerService
@@ -475,6 +477,12 @@ open class ApplicationContext(
         )
     }
 
+    open val tilbakekrevingBehandlingRepo: TilbakekrevingBehandlingRepo by lazy {
+        TilbakekrevingBehandlingPostgresRepo(
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+        )
+    }
+
     val tilbakekrevingConsumer by lazy {
         TilbakekrevingConsumer(
             topic = Configuration.tilbakekrevingTopic,
@@ -491,10 +499,12 @@ open class ApplicationContext(
     }
 
     val tilbakekrevingInfoBehovSvarJobb by lazy {
-        BehandleTilbakekrevingInfoBehovJobb(
+        BehandleTilbakekrevingHendelserJobb(
             tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            tilbakekrevingBehandlingRepo = tilbakekrevingBehandlingRepo,
             sakService = sakContext.sakService,
             tilbakekrevingProducer = tilbakekrevingProducer,
+            sessionFactory = sessionFactory,
             clock = clock,
         )
     }

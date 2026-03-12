@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.uuidToUlid
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrak
 import ulid.ULID
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 data class UtbetalingId private constructor(
     private val ulid: UlidBase,
@@ -32,6 +34,8 @@ data class UtbetalingId private constructor(
             }
             return UtbetalingId(ulid = UlidBase(stringValue))
         }
+
+        fun fromUUID(uuid: UUID) = UtbetalingId(ulid = UlidBase("${PREFIX}_${uuidToUlid(uuid)}"))
     }
 }
 
