@@ -103,6 +103,13 @@ class SakFakeRepo(
         return data.get()[sakId]?.fnr
     }
 
+    override fun hentSakIdForSaksnummer(
+        saksnummer: Saksnummer,
+        sessionContext: SessionContext?,
+    ): SakId? {
+        return data.get().values.singleOrNull { it.saksnummer == saksnummer }?.id
+    }
+
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
         val sak = data.get().values.find { it.fnr == gammeltFnr }
         sak?.let {

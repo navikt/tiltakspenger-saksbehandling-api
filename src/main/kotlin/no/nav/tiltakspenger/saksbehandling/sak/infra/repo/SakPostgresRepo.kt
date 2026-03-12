@@ -113,6 +113,23 @@ class SakPostgresRepo(
             )
         }
 
+    override fun hentSakIdForSaksnummer(
+        saksnummer: Saksnummer,
+        sessionContext: SessionContext?,
+    ): SakId? =
+        sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    """
+                        select id from sak where saksnummer = :saksnummer
+                    """.trimIndent(),
+                    mapOf("saksnummer" to saksnummer.verdi),
+                ).map { row ->
+                    SakId.fromString(row.string("id"))
+                }.asSingle,
+            )
+        }
+
     override fun opprettSak(sak: Sak) {
         logger.info { "Oppretter sak ${sak.id}" }
         val nå = nå(clock)

@@ -125,7 +125,7 @@ internal fun start(
             }
         }.let {
             if (!Configuration.isProd()) {
-                it.plus({ applicationContext.tilbakekrevingInfoBehovSvarJobb.behandleTilbakekrevingInfoBehov() })
+                it.plus({ applicationContext.tilbakekrevingInfoBehovSvarJobb.håndterUbehandledeHendelser() })
             } else {
                 it
             }

@@ -2,7 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser
 
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class TilbakekrevingBehandlingEndretHendelse(
@@ -11,10 +13,12 @@ data class TilbakekrevingBehandlingEndretHendelse(
     override val behandlet: LocalDateTime?,
     override val sakId: SakId?,
     override val eksternFagsakId: String,
-    val tilbakekrevingBehandlingId: String,
+    val eksternBehandlingId: String?,
+    val tilbakeBehandlingId: String,
     val sakOpprettet: LocalDateTime,
-    val varselSendt: LocalDateTime?,
-    val behandlingsstatus: String,
+    val varselSendt: LocalDate?,
+    val behandlingsstatus: TilbakekrevingBehandlingsstatus,
+    val forrigeBehandlingsstatus: TilbakekrevingBehandlingsstatus?,
     val totaltFeilutbetaltBeløp: BigDecimal,
     val url: String,
     val fullstendigPeriode: Periode,

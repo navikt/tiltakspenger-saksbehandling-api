@@ -74,6 +74,7 @@ class UtbetalingFakeKlient(
                 ),
                 clock = clock,
                 tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+                sakRepo = sakRepo,
             )
         }
 
