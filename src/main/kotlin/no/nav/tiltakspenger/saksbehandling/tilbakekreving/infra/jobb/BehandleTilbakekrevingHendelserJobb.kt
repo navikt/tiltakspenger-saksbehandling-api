@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingB
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoSvarHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO.TilbakekrevingMottaker
@@ -63,7 +62,6 @@ class BehandleTilbakekrevingHendelserJobb(
                 when (hendelse) {
                     is TilbakekrevingInfoBehovHendelse -> sak.håndterInfoBehov(hendelse)
                     is TilbakekrevingBehandlingEndretHendelse -> sak.håndterBehandlingEndret(hendelse)
-                    is TilbakekrevingInfoSvarHendelse -> throw IllegalStateException("InfoSvar hendelse skal ikke behandles av oss")
                 }
             }.onLeft {
                 logger.error(it) {

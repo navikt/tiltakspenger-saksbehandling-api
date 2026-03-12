@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoSvarHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
 import java.math.BigDecimal
@@ -84,10 +83,6 @@ class TilbakekrevingHendelsePostgresRepo(
                             "hendelse_type" to HendelsetypeDb.BehandlingEndret.toString(),
                             "ekstern_behandling_id" to hendelse.eksternBehandlingId,
                             "behandling" to hendelse.tilDbBehandling(),
-                        )
-
-                        is TilbakekrevingInfoSvarHendelse -> throw IllegalArgumentException(
-                            "Skal ikke lagre InfoSvarHendelse som egen rad, skal kun oppdatere eksisterende InfoBehov hendelse med svar",
                         )
                     },
                 ).asUpdate,

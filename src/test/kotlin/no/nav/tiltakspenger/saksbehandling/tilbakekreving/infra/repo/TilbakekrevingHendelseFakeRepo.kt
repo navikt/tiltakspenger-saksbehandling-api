@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoSvarHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
@@ -71,7 +70,6 @@ class TilbakekrevingHendelseFakeRepo(
         data.get()[hendelseId] = when (hendelse) {
             is TilbakekrevingBehandlingEndretHendelse -> hendelse.copy(behandlet = nå(clock))
             is TilbakekrevingInfoBehovHendelse -> hendelse.copy(behandlet = nå(clock))
-            is TilbakekrevingInfoSvarHendelse -> hendelse.copy(behandlet = nå(clock))
         }
     }
 }
