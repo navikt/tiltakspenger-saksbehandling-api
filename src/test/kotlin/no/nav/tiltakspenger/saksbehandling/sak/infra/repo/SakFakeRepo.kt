@@ -3,6 +3,7 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
 import arrow.atomic.Atomic
+import arrow.atomic.value
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
@@ -41,6 +42,7 @@ class SakFakeRepo(
     private val clock: Clock,
 ) : SakRepo {
     val data = Atomic(mutableMapOf<SakId, Sak>())
+    val skalSendesTilMeldekortApi = Atomic(mutableSetOf<SakId>())
 
     override fun hentForFnr(fnr: Fnr): Saker = Saker(fnr, data.get().values.filter { it.fnr == fnr })
 
@@ -120,18 +122,25 @@ class SakFakeRepo(
     }
 
     override fun hentForSendingTilMeldekortApi(): List<Sak> {
-        return emptyList()
+        return skalSendesTilMeldekortApi.get().mapNotNull { hentSak(it) }
     }
 
     override fun hentForSendingAvMeldeperioderTilDatadeling(): List<Sak> {
         return emptyList()
     }
 
-    override fun oppdaterSkalSendesTilMeldekortApi(
+    override fun markerSkalSendesTilMeldekortApi(
         sakId: SakId,
-        skalSendesTilMeldekortApi: Boolean,
         sessionContext: SessionContext?,
     ) {
+    }
+
+    override fun markerErSendtTilMeldekortApi(
+        sakId: SakId,
+        nyesteVedtakOpprettet: LocalDateTime?,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return true
     }
 
     override fun oppdaterSkalSendeMeldeperioderTilDatadeling(

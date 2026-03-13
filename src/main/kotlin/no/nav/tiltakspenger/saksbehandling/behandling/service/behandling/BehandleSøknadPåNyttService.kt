@@ -51,9 +51,8 @@ class BehandleSøknadPåNyttService(
         sessionFactory.withTransactionContext(transactionContext) { tx ->
             rammebehandlingRepo.lagre(søknadsbehandling, tx)
             statistikk.forEach { saksstatistikkRepo.lagre(it, tx) }
-            sakService.oppdaterSkalSendesTilMeldekortApi(
+            sakService.markerSkalSendesTilMeldekortApi(
                 sakId = sak.id,
-                skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
             // TODO jah: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid

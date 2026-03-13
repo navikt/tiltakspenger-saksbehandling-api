@@ -113,9 +113,8 @@ class StartBehandlingAvManueltRegistrertSøknadService(
             søknadRepo.lagre(manueltRegistrertSøknad, tx)
             rammebehandlingRepo.lagre(søknadsbehandling, tx)
             saksstatistikkRepo.lagre(opprettetBehandlingStatistikk, tx)
-            sakService.oppdaterSkalSendesTilMeldekortApi(
+            sakService.markerSkalSendesTilMeldekortApi(
                 sakId = sak.id,
-                skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
             // TODO jah: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid

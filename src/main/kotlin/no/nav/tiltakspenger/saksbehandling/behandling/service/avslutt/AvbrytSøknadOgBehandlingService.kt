@@ -50,9 +50,8 @@ class AvbrytSøknadOgBehandlingService(
                     tx = tx,
                 )
             }
-            sakService.oppdaterSkalSendesTilMeldekortApi(
+            sakService.markerSkalSendesTilMeldekortApi(
                 sakId = sak.id,
-                skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
         }

@@ -240,9 +240,8 @@ class SakPostgresRepo(
         }
     }
 
-    override fun oppdaterSkalSendesTilMeldekortApi(
+    override fun markerSkalSendesTilMeldekortApi(
         sakId: SakId,
-        skalSendesTilMeldekortApi: Boolean,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSessionContext(sessionContext) { sessionContext ->
@@ -251,15 +250,48 @@ class SakPostgresRepo(
                     sqlQuery(
                         """
                             update sak
-                                set skal_sendes_til_meldekort_api = :skal_sendes_til_meldekort_api 
+                                set skal_sendes_til_meldekort_api = true 
                             where id = :id
                         """,
-                        "skal_sendes_til_meldekort_api" to skalSendesTilMeldekortApi,
                         "id" to sakId.toString(),
                     ).asUpdate,
                 )
             }
         }
+    }
+
+    /**
+     *  [nyesteVedtakOpprettet] Forventer at dette skal tidspunkt for nyeste rammevedtak på saken
+     *  Dersom det finnes nyere vedtak må saken fortsatt være markert for sending
+     *  ettersom det kan ha kommet nye vedtak når jobben for sending kjørte
+     * */
+    override fun markerErSendtTilMeldekortApi(
+        sakId: SakId,
+        nyesteVedtakOpprettet: LocalDateTime?,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        """
+                            update sak
+                            set skal_sendes_til_meldekort_api = false
+                            where id = :id
+                              and (
+                                select opprettet
+                                from rammevedtak
+                                where sak_id = :id
+                                order by opprettet desc
+                                limit 1
+                              ) is not distinct from :nyeste_vedtak_tidspunkt
+                        """,
+                        "nyeste_vedtak_tidspunkt" to nyesteVedtakOpprettet,
+                        "id" to sakId.toString(),
+                    ).asUpdate,
+                )
+            }
+        } > 0
     }
 
     override fun oppdaterSkalSendeMeldeperioderTilDatadeling(

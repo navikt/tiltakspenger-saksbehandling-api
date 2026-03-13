@@ -162,14 +162,12 @@ class SakService(
             ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
     }
 
-    fun oppdaterSkalSendesTilMeldekortApi(
+    fun markerSkalSendesTilMeldekortApi(
         sakId: SakId,
-        skalSendesTilMeldekortApi: Boolean,
         sessionContext: SessionContext?,
     ) {
-        sakRepo.oppdaterSkalSendesTilMeldekortApi(
+        sakRepo.markerSkalSendesTilMeldekortApi(
             sakId = sakId,
-            skalSendesTilMeldekortApi = skalSendesTilMeldekortApi,
             sessionContext = sessionContext,
         )
     }
@@ -196,9 +194,8 @@ class SakService(
 
         sessionFactory.withTransactionContext {
             sakRepo.oppdaterKanSendeInnHelgForMeldekort(sakId = oppdatertSak.id, oppdatertSak.kanSendeInnHelgForMeldekort, it)
-            sakRepo.oppdaterSkalSendesTilMeldekortApi(
+            sakRepo.markerSkalSendesTilMeldekortApi(
                 sakId = oppdatertSak.id,
-                skalSendesTilMeldekortApi = true,
                 sessionContext = it,
             )
         }

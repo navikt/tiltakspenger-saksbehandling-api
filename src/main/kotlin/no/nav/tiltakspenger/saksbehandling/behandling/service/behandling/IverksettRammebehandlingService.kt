@@ -153,9 +153,8 @@ class IverksettRammebehandlingService(
                     // Obs: Dersom du endrer eller legger til noe her som angår klage, merk at du må gjøre tilsvarende i [no.nav.tiltakspenger.saksbehandling.klage.service.IverksettAvvistKlagebehandlingService]
                     rammebehandlingRepo.lagre(rammevedtak.rammebehandling, tx)
 
-                    sakService.oppdaterSkalSendesTilMeldekortApi(
+                    sakService.markerSkalSendesTilMeldekortApi(
                         sakId = this.id,
-                        skalSendesTilMeldekortApi = true,
                         sessionContext = tx,
                     )
                     rammevedtakRepo.lagre(rammevedtak, tx)

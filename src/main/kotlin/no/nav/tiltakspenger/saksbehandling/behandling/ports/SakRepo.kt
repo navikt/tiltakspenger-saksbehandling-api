@@ -46,11 +46,16 @@ interface SakRepo {
 
     fun hentForSendingAvMeldeperioderTilDatadeling(): List<Sak>
 
-    fun oppdaterSkalSendesTilMeldekortApi(
+    fun markerSkalSendesTilMeldekortApi(
         sakId: SakId,
-        skalSendesTilMeldekortApi: Boolean,
         sessionContext: SessionContext? = null,
     )
+
+    fun markerErSendtTilMeldekortApi(
+        sakId: SakId,
+        nyesteVedtakOpprettet: LocalDateTime?,
+        sessionContext: SessionContext? = null,
+    ): Boolean
 
     fun oppdaterSkalSendeMeldeperioderTilDatadeling(
         sakId: SakId,

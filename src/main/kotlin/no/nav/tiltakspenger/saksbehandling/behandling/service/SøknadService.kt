@@ -20,9 +20,8 @@ class SøknadService(
     fun nySøknad(søknad: Søknad) {
         sessionFactory.withTransactionContext { tx ->
             søknadRepo.lagre(søknad, tx)
-            sakService.oppdaterSkalSendesTilMeldekortApi(
+            sakService.markerSkalSendesTilMeldekortApi(
                 sakId = søknad.sakId,
-                skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
         }
