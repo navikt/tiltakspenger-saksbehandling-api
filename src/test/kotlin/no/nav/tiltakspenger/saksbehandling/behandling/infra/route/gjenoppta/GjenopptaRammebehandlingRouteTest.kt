@@ -18,6 +18,7 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
   "saksnummer": "202505011001",
   "rammevedtakId": null,
   "klagebehandlingId": null,
+  "tilbakekrevingId": null,
   "saksbehandler": "Z12345",
   "beslutter": null,
   "saksopplysninger": {

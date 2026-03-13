@@ -68,6 +68,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "saksnummer": "202505011001",
               "rammevedtakId": null,
               "klagebehandlingId": "${klagebehandling.id}",
+              "tilbakekrevingId": null,
               "saksbehandler": "saksbehandlerKlagebehandling",
               "beslutter": null,
               "saksopplysninger": {
@@ -240,6 +241,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "saksnummer": "202505011001",
               "rammevedtakId": null,
               "klagebehandlingId": "${klagebehandling.id}",
+              "tilbakekrevingId": null,
               "saksbehandler": "saksbehandlerKlagebehandling",
               "beslutter": null,
               "saksopplysninger": {
@@ -374,6 +376,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                   "utbetaling": null,
                   "utbetalingskontroll": null,
                   "klagebehandlingId": "${klagebehandling.id}",
+                  "tilbakekrevingId": null,
                   "omgjørVedtak": "${sak.vedtaksliste.rammevedtaksliste.first().id}",
                   "resultat": "OMGJØRING_IKKE_VALGT",
                   "type": "REVURDERING"

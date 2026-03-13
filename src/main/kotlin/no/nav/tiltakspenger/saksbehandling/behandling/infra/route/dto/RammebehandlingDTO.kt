@@ -44,6 +44,7 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val utbetaling: BehandlingUtbetalingDTO?
     val utbetalingskontroll: UtbetalingskontrollDTO?
     val klagebehandlingId: String?
+    val tilbakekrevingId: String?
 }
 
 data class SøknadsbehandlingDTO(
@@ -66,6 +67,7 @@ data class SøknadsbehandlingDTO(
     override val utbetaling: BehandlingUtbetalingDTO?,
     override val utbetalingskontroll: UtbetalingskontrollDTO?,
     override val klagebehandlingId: String?,
+    override val tilbakekrevingId: String?,
     @param:JsonUnwrapped val resultatDTO: SøknadsbehandlingResultatDTO,
     val søknad: SøknadDTO,
     val automatiskSaksbehandlet: Boolean,
@@ -97,6 +99,7 @@ data class RevurderingDTO(
     override val utbetaling: BehandlingUtbetalingDTO?,
     override val utbetalingskontroll: UtbetalingskontrollDTO?,
     override val klagebehandlingId: String?,
+    override val tilbakekrevingId: String?,
     @param:JsonUnwrapped val resultatDTO: RevurderingResultatDTO,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
@@ -165,6 +168,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         resultatDTO = this.resultat.tilSøknadsbehandlingResultatDTO(),
         kanInnvilges = this.kanInnvilges,
         klagebehandlingId = this.klagebehandling?.id?.toString(),
+        tilbakekrevingId = tilbakekrevingId?.toString(),
     )
 }
 
@@ -195,5 +199,6 @@ fun Revurdering.tilRevurderingDTO(
         utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilRevurderingResultatDTO(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
+        tilbakekrevingId = tilbakekrevingId?.toString(),
     )
 }

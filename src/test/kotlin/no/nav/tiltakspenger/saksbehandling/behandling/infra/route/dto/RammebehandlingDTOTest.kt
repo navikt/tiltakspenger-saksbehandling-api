@@ -109,6 +109,7 @@ class RammebehandlingDTOTest {
           "saksnummer": "202510291001",
           "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
           "klagebehandlingId": null,
+          "tilbakekrevingId": null,
           "saksbehandler": "Z12345",
           "beslutter": "B12345",
           "saksopplysninger": {
@@ -321,6 +322,7 @@ class RammebehandlingDTOTest {
               "saksnummer": "202510291001",
               "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
               "klagebehandlingId": null,
+              "tilbakekrevingId": null,
               "saksbehandler": "Z12345",
               "beslutter": "B12345",
               "saksopplysninger": {
@@ -513,6 +515,7 @@ class RammebehandlingDTOTest {
               "saksnummer": "202510291001",
               "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
               "klagebehandlingId": null,
+              "tilbakekrevingId": null,
               "saksbehandler": "Z12345",
               "beslutter": null,
               "saksopplysninger": {
@@ -682,6 +685,7 @@ class RammebehandlingDTOTest {
           "saksnummer": "202510291001",
           "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
           "klagebehandlingId": null,
+          "tilbakekrevingId": null,
           "saksbehandler": "Z12345",
           "beslutter": "B12345",
           "saksopplysninger": {
@@ -808,6 +812,7 @@ class RammebehandlingDTOTest {
               "saksnummer": "202510291001",
               "rammevedtakId": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
               "klagebehandlingId": null,
+              "tilbakekrevingId": null,
               "saksbehandler": "Z12345",
               "beslutter": "B12345",
               "saksopplysninger": {
@@ -998,6 +1003,7 @@ class RammebehandlingDTOTest {
               "utbetaling": null,
               "utbetalingskontroll": null,
               "klagebehandlingId": null,
+              "tilbakekrevingId": null,
               "omgjørVedtak": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
               "resultat": "OMGJØRING_IKKE_VALGT",
               "type": "REVURDERING"

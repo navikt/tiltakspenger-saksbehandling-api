@@ -118,136 +118,137 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
             json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {
-  "id": "${oppdatertRammebehandlingMedKlagebehandling.id}",
-  "status": "UNDER_BEHANDLING",
-  "sakId": "${sak.id}",
-  "saksnummer": "${sak.saksnummer}",
-  "rammevedtakId": null,
-  "saksbehandler": "saksbehandlerKlagebehandling",
-  "beslutter": null,
-  "saksopplysninger": {
-    "fødselsdato": "2001-01-01",
-    "tiltaksdeltagelse": [
-      {
-        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-        "typeKode": "GRUPPE_AMO",
-        "deltagelseFraOgMed": "2023-01-01",
-        "deltagelseTilOgMed": "2023-03-31",
-        "deltakelseStatus": "Deltar",
-        "deltakelseProsent": 100.0,
-        "antallDagerPerUke": 5.0,
-        "kilde": "Komet",
-        "gjennomforingsprosent": null,
-        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0"
-      }
-    ],
-    "periode": {
-      "fraOgMed": "2023-01-01",
-      "tilOgMed": "2023-03-31"
-    },
-    "ytelser": [],
-    "tiltakspengevedtakFraArena": [],
-    "oppslagstidspunkt": "TIMESTAMP"
-  },
-  "attesteringer": [],
-  "vedtaksperiode": null,
-  "fritekstTilVedtaksbrev": null,
-  "begrunnelseVilkårsvurdering": null,
-  "avbrutt": null,
-  "sistEndret": "TIMESTAMP",
-  "iverksattTidspunkt": null,
-  "ventestatus": {
-    "sattPåVentAv": "saksbehandlerKlagebehandling",
-    "tidspunkt": "TIMESTAMP",
-    "begrunnelse": "",
-    "erSattPåVent": false,
-    "frist": null
-  },
-  "utbetaling": null,
-  "utbetalingskontroll": null,
-  "klagebehandlingId": "${klagebehandling.id}",
-  "resultat": "IKKE_VALGT",
-  "søknad": {
-    "id": "${(rammebehandlingMedKlagebehandling as Søknadsbehandling).søknad.id}",
-    "journalpostId": "123456789",
-    "tiltak": {
-      "id": "61328250-7d5d-4961-b70e-5cb727a34371",
-      "fraOgMed": "2023-01-01",
-      "tilOgMed": "2023-03-31",
-      "typeKode": "GRUPPEAMO",
-      "typeNavn": "Arbeidsmarkedsoppfølging gruppe"
-    },
-    "tiltaksdeltakelseperiodeDetErSøktOm": {
-      "fraOgMed": "2023-01-01",
-      "tilOgMed": "2023-03-31"
-    },
-    "manueltSattTiltak": null,
-    "søknadstype": "DIGITAL",
-    "barnetillegg": [],
-    "opprettet": "TIMESTAMP",
-    "tidsstempelHosOss": "TIMESTAMP",
-    "antallVedlegg": 0,
-    "avbrutt": null,
-    "kanInnvilges": true,
-    "svar": {
-      "harSøktPåTiltak": {
-        "svar": "JA"
-      },
-      "harSøktOmBarnetillegg": {
-        "svar": "NEI"
-      },
-      "kvp": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "intro": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "institusjon": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "etterlønn": {
-        "svar": "NEI"
-      },
-      "gjenlevendepensjon": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "alderspensjon": {
-        "svar": "NEI",
-        "fraOgMed": null
-      },
-      "sykepenger": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "supplerendeStønadAlder": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "supplerendeStønadFlyktning": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "jobbsjansen": {
-        "svar": "NEI",
-        "periode": null
-      },
-      "trygdOgPensjon": {
-        "svar": "NEI",
-        "periode": null
-      }
-    },
-    "behandlingsarsak": null
-  },
-  "automatiskSaksbehandlet": false,
-  "manueltBehandlesGrunner": [],
-  "kanInnvilges": true,
-  "type": "SØKNADSBEHANDLING"
+                  "id": "${oppdatertRammebehandlingMedKlagebehandling.id}",
+                  "status": "UNDER_BEHANDLING",
+                  "sakId": "${sak.id}",
+                  "saksnummer": "${sak.saksnummer}",
+                  "rammevedtakId": null,
+                  "saksbehandler": "saksbehandlerKlagebehandling",
+                  "beslutter": null,
+                  "saksopplysninger": {
+                    "fødselsdato": "2001-01-01",
+                    "tiltaksdeltagelse": [
+                      {
+                        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
+                        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
+                        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
+                        "typeKode": "GRUPPE_AMO",
+                        "deltagelseFraOgMed": "2023-01-01",
+                        "deltagelseTilOgMed": "2023-03-31",
+                        "deltakelseStatus": "Deltar",
+                        "deltakelseProsent": 100.0,
+                        "antallDagerPerUke": 5.0,
+                        "kilde": "Komet",
+                        "gjennomforingsprosent": null,
+                        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0"
+                      }
+                    ],
+                    "periode": {
+                      "fraOgMed": "2023-01-01",
+                      "tilOgMed": "2023-03-31"
+                    },
+                    "ytelser": [],
+                    "tiltakspengevedtakFraArena": [],
+                    "oppslagstidspunkt": "TIMESTAMP"
+                  },
+                  "attesteringer": [],
+                  "vedtaksperiode": null,
+                  "fritekstTilVedtaksbrev": null,
+                  "begrunnelseVilkårsvurdering": null,
+                  "avbrutt": null,
+                  "sistEndret": "TIMESTAMP",
+                  "iverksattTidspunkt": null,
+                  "ventestatus": {
+                    "sattPåVentAv": "saksbehandlerKlagebehandling",
+                    "tidspunkt": "TIMESTAMP",
+                    "begrunnelse": "",
+                    "erSattPåVent": false,
+                    "frist": null
+                  },
+                  "utbetaling": null,
+                  "utbetalingskontroll": null,
+                  "klagebehandlingId": "${klagebehandling.id}",
+                  "tilbakekrevingId": null,
+                  "resultat": "IKKE_VALGT",
+                  "søknad": {
+                    "id": "${(rammebehandlingMedKlagebehandling as Søknadsbehandling).søknad.id}",
+                    "journalpostId": "123456789",
+                    "tiltak": {
+                      "id": "61328250-7d5d-4961-b70e-5cb727a34371",
+                      "fraOgMed": "2023-01-01",
+                      "tilOgMed": "2023-03-31",
+                      "typeKode": "GRUPPEAMO",
+                      "typeNavn": "Arbeidsmarkedsoppfølging gruppe"
+                    },
+                    "tiltaksdeltakelseperiodeDetErSøktOm": {
+                      "fraOgMed": "2023-01-01",
+                      "tilOgMed": "2023-03-31"
+                    },
+                    "manueltSattTiltak": null,
+                    "søknadstype": "DIGITAL",
+                    "barnetillegg": [],
+                    "opprettet": "TIMESTAMP",
+                    "tidsstempelHosOss": "TIMESTAMP",
+                    "antallVedlegg": 0,
+                    "avbrutt": null,
+                    "kanInnvilges": true,
+                    "svar": {
+                      "harSøktPåTiltak": {
+                        "svar": "JA"
+                      },
+                      "harSøktOmBarnetillegg": {
+                        "svar": "NEI"
+                      },
+                      "kvp": {
+                        "svar": "NEI",
+                        "periode": null
+                      },
+                      "intro": {
+                        "svar": "NEI",
+                        "periode": null
+                      },
+                      "institusjon": {
+                        "svar": "NEI",
+                        "periode": null
+                      },
+                      "etterlønn": {
+                        "svar": "NEI"
+                      },
+                      "gjenlevendepensjon": {
+                        "svar": "NEI",
+                        "periode": null
+                      },
+                      "alderspensjon": {
+                        "svar": "NEI",
+                        "fraOgMed": null
+                      },
+                      "sykepenger": {
+                        "svar": "NEI",
+                        "periode": null
+                      },
+                      "supplerendeStønadAlder": {
+                        "svar": "NEI",
+                        "periode": null
+                      },
+                      "supplerendeStønadFlyktning": {
+                        "svar": "NEI",
+                        "periode": null
+                      },
+                      "jobbsjansen": {
+                        "svar": "NEI",
+                        "periode": null
+                      },
+                      "trygdOgPensjon": {
+                        "svar": "NEI",
+                        "periode": null
+                      }
+                    },
+                    "behandlingsarsak": null
+                  },
+                  "automatiskSaksbehandlet": false,
+                  "manueltBehandlesGrunner": [],
+                  "kanInnvilges": true,
+                  "type": "SØKNADSBEHANDLING"
                 }
                 """.trimIndent(),
             )
