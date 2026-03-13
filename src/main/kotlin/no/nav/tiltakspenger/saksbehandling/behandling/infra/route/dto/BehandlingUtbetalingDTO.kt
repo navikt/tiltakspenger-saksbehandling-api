@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.KanIkkeIverksetteUtbetalingDTO
@@ -17,6 +18,7 @@ data class BehandlingUtbetalingDTO(
     val status: UtbetalingsstatusDTO,
     val simulertBeregning: SimulertBeregningDTO,
     val kanIkkeIverksetteUtbetaling: KanIkkeIverksetteUtbetalingDTO?,
+    val tilbakekrevingId: String?,
 )
 
 data class BeregningerSummertDTO(
@@ -33,7 +35,7 @@ data class BeløpFørOgNåDTO(
 fun BehandlingUtbetaling.tilDTO(
     utbetalingsstatus: Utbetalingsstatus?,
     beregninger: MeldeperiodeBeregningerVedtatt,
-    saksbehandlerIdent: String?,
+    tilbakekrevingId: TilbakekrevingId?,
 ): BehandlingUtbetalingDTO {
     return BehandlingUtbetalingDTO(
         navkontor = navkontor.kontornummer,
@@ -42,5 +44,6 @@ fun BehandlingUtbetaling.tilDTO(
         simulertBeregning = this.toSimulertBeregning(beregninger).toSimulertBeregningDTO(),
         kanIkkeIverksetteUtbetaling = this.simulering?.validerKanIverksetteUtbetaling()?.leftOrNull()
             ?.tilKanIkkeIverksetteUtbetalingDTO(),
+        tilbakekrevingId = tilbakekrevingId?.toString(),
     )
 }

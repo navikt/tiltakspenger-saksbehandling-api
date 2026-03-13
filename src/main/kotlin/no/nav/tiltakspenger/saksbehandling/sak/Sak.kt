@@ -103,6 +103,18 @@ data class Sak(
     fun hentRammebehandling(rammebehandlingId: BehandlingId): Rammebehandling? =
         rammebehandlinger.hentRammebehandling(rammebehandlingId)
 
+    fun hentTilbakekrevingForRammebehandling(id: BehandlingId): TilbakekrevingBehandling? {
+        return utbetalinger.hentUtbetalingForRammebehandling(id)?.let { utbetaling ->
+            tilbakekrevinger.singleOrNull { it.utbetalingId == utbetaling.id }
+        }
+    }
+
+    fun hentTilbakekrevingForMeldekortBehandling(id: MeldekortId): TilbakekrevingBehandling? {
+        return utbetalinger.hentUtbetalingForMeldekort(id)?.let { utbetaling ->
+            tilbakekrevinger.singleOrNull { it.utbetalingId == utbetaling.id }
+        }
+    }
+
     fun harSoknadUnderBehandling(): Boolean {
         val avsluttedeSoknadsbehandlinger = rammebehandlinger
             .filterIsInstance<Søknadsbehandling>()
@@ -126,7 +138,8 @@ data class Sak(
     ): Triple<Sak, Søknad?, Rammebehandling> {
         val rammebehandling: Rammebehandling = this.hentRammebehandling(command.behandlingId)!!
         val skalAvbryteSøknad =
-            rammebehandling is Søknadsbehandling && this.rammebehandlinger.filter { it.id != rammebehandling.id }.none { it is Søknadsbehandling && it.søknad.id == rammebehandling.søknad.id && !it.erAvbrutt }
+            rammebehandling is Søknadsbehandling && this.rammebehandlinger.filter { it.id != rammebehandling.id }
+                .none { it is Søknadsbehandling && it.søknad.id == rammebehandling.søknad.id && !it.erAvbrutt }
         val avbruttBehandling = rammebehandling.avbryt(
             avbruttAv = command.avsluttetAv,
             begrunnelse = command.begrunnelse,

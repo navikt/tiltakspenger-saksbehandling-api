@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import java.time.LocalDateTime
 
@@ -110,17 +111,20 @@ fun Sak.tilRammebehandlingDTO(behandlingId: BehandlingId): RammebehandlingDTO {
     }
 
     val rammevedtakId = rammevedtaksliste.finnRammevedtakForBehandling(behandlingId)?.id
+    val tilbakekrevingId = hentTilbakekrevingForRammebehandling(behandlingId)?.id
 
     return when (behandling) {
         is Revurdering -> behandling.tilRevurderingDTO(
-            utbetalingsstatus = utbetalinger.hentUtbetalingForBehandlingId(behandlingId)?.status,
+            utbetalingsstatus = utbetalinger.hentUtbetalingForRammebehandling(behandlingId)?.status,
             beregninger = meldeperiodeBeregninger,
+            tilbakekrevingId = tilbakekrevingId,
             rammevedtakId = rammevedtakId,
         )
 
         is Søknadsbehandling -> behandling.tilSøknadsbehandlingDTO(
-            utbetalingsstatus = utbetalinger.hentUtbetalingForBehandlingId(behandlingId)?.status,
+            utbetalingsstatus = utbetalinger.hentUtbetalingForRammebehandling(behandlingId)?.status,
             beregninger = meldeperiodeBeregninger,
+            tilbakekrevingId = tilbakekrevingId,
             rammevedtakId = rammevedtakId,
         )
     }
@@ -133,6 +137,7 @@ fun Sak.tilBehandlingerDTO(): List<RammebehandlingDTO> {
 fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     utbetalingsstatus: Utbetalingsstatus?,
     beregninger: MeldeperiodeBeregningerVedtatt,
+    tilbakekrevingId: TilbakekrevingId?,
     rammevedtakId: VedtakId?,
 ): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
@@ -155,7 +160,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
-        utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger, saksbehandler),
+        utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger, tilbakekrevingId),
         utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilSøknadsbehandlingResultatDTO(),
         kanInnvilges = this.kanInnvilges,
@@ -166,6 +171,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
 fun Revurdering.tilRevurderingDTO(
     utbetalingsstatus: Utbetalingsstatus?,
     beregninger: MeldeperiodeBeregningerVedtatt,
+    tilbakekrevingId: TilbakekrevingId?,
     rammevedtakId: VedtakId?,
 ): RevurderingDTO {
     return RevurderingDTO(
@@ -185,7 +191,7 @@ fun Revurdering.tilRevurderingDTO(
         sistEndret = this.sistEndret,
         iverksattTidspunkt = this.iverksattTidspunkt,
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
-        utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger, saksbehandler),
+        utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger, tilbakekrevingId),
         utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilRevurderingResultatDTO(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),

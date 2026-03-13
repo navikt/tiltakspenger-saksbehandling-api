@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
@@ -57,6 +55,7 @@ fun Route.behandleSøknadPåNyttRoute(
                         utbetalingsstatus = null,
                         beregninger = sak.meldeperiodeBeregninger,
                         rammevedtakId = null,
+                        tilbakekrevingId = null,
                     ),
                 )
             }

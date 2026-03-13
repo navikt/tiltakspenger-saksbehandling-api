@@ -95,6 +95,7 @@ class RammebehandlingDTOTest {
             behandling.tilSøknadsbehandlingDTO(
                 utbetalingsstatus = null,
                 beregninger = beregninger,
+                tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
             ),
         )
@@ -306,6 +307,7 @@ class RammebehandlingDTOTest {
             behandling.tilSøknadsbehandlingDTO(
                 utbetalingsstatus = null,
                 beregninger = beregninger,
+                tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
             ),
         )
@@ -497,6 +499,7 @@ class RammebehandlingDTOTest {
             behandling.tilSøknadsbehandlingDTO(
                 utbetalingsstatus = null,
                 beregninger = beregninger,
+                tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
             ),
         )
@@ -665,6 +668,7 @@ class RammebehandlingDTOTest {
             behandling.tilRevurderingDTO(
                 utbetalingsstatus = null,
                 beregninger = beregninger,
+                tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
             ),
         )
@@ -790,6 +794,7 @@ class RammebehandlingDTOTest {
             behandling.tilRevurderingDTO(
                 utbetalingsstatus = null,
                 beregninger = beregninger,
+                tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
             ),
         )
@@ -941,6 +946,7 @@ class RammebehandlingDTOTest {
             omgjøring.tilRevurderingDTO(
                 utbetalingsstatus = null,
                 beregninger = beregninger,
+                tilbakekrevingId = null,
                 rammevedtakId = omgjøringVedtakId,
             ),
         )

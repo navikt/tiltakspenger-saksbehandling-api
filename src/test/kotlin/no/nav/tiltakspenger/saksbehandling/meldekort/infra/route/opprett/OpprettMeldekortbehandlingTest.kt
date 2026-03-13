@@ -160,6 +160,7 @@ class OpprettMeldekortbehandlingTest {
                         }
                       ],
                       "korrigeringFraTidligerePeriode": null,
+                      "tilbakekrevingIder": [],
                       "periode": {
                         "fraOgMed": "2025-03-31",
                         "tilOgMed": "2025-04-13"

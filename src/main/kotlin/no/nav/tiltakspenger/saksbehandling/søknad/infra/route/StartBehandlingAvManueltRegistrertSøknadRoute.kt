@@ -69,6 +69,7 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
                         utbetalingsstatus = null,
                         beregninger = sak.meldeperiodeBeregninger,
                         rammevedtakId = null,
+                        tilbakekrevingId = null,
                     ),
                 )
             }
