@@ -15,7 +15,7 @@ fun Klagebehandling.settPåVent(
     kommando: SettKlagebehandlingPåVentKommando,
     clock: Clock,
 ): Either<KanIkkeSetteKlagebehandlingPåVent, Klagebehandling> {
-    kanOppdatereIDenneStatusen(null).onLeft {
+    kanOppdatereIDenneStatusen(null, kanVæreOmgjørEtterKA = true).onLeft {
         return KanIkkeSetteKlagebehandlingPåVent.KanIkkeOppdateres(it).left()
     }
     if (saksbehandler != kommando.saksbehandler.navIdent) {

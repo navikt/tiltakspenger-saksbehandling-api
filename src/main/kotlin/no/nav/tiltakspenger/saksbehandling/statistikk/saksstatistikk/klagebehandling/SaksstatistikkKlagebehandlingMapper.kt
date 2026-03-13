@@ -72,4 +72,5 @@ private fun Klagebehandlingsstatus.tilStatistikkBehandlingStatus(): StatistikkBe
     Klagebehandlingsstatus.OVERSENDT -> StatistikkBehandlingStatus.OVERSENDT_KA
     Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> StatistikkBehandlingStatus.UNDER_BEHANDLING
     Klagebehandlingsstatus.FERDIGSTILT -> StatistikkBehandlingStatus.FERDIG_BEHANDLET
+    Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS -> StatistikkBehandlingStatus.UNDER_BEHANDLING
 }

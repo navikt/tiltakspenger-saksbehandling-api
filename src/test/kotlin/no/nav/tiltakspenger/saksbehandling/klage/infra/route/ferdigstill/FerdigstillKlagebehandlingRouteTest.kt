@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.`opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling`
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
@@ -34,7 +34,7 @@ import java.util.UUID
 class FerdigstillKlagebehandlingRouteTest {
 
     @Test
-    fun `kan ferdigstille en klagebehandling`() {
+    fun `kan ferdigstille en klagebehandling som ikke har behov for videre behandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val (sak, klagebehandling, json) = opprettSakOgFerdigstillKlagebehandling(tac = tac)!!
@@ -47,7 +47,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 resultat = "OPPRETTHOLDT",
                 vedtakDetKlagesPå = sak.rammevedtaksliste.first().id.toString(),
                 status = "FERDIGSTILT",
-                kanIverksetteVedtak = false,
+                kanIverksetteVedtak = null,
                 rammebehandlingId = null,
                 brevtekst = listOf(
                     """{"tittel":"Hva klagesaken gjelder","tekst":"Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
@@ -103,10 +103,10 @@ class FerdigstillKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `Ferdigstiller avsluttet hendelse (medhold) og starter revurdering-omgjøring`() {
+    fun `omgjør avsluttet hendelse (medhold) og oppretter revurdering-omgjøring`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling(
+            val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = `opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling`(
                 tac = tac,
             )!!
 
@@ -167,20 +167,32 @@ class FerdigstillKlagebehandlingRouteTest {
             )
 
             klagebehandling.rammebehandlingId shouldBe rammebehandling.id
-            klagebehandling.status shouldBe Klagebehandlingsstatus.FERDIGSTILT
+            klagebehandling.status shouldBe Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
             klagebehandling.resultat.shouldBeInstanceOf<Klagebehandlingsresultat.Opprettholdt>()
             klagebehandling.resultat.ferdigstiltTidspunkt.shouldNotBeNull()
         }
     }
 
     @Test
-    fun `ferdigstiller klagebehandling og iverksetter søknadsbehandling`() {
+    fun `iverksetter klagebehandling med søknadsbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling) = opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling(
+            val (sak, rammebehandling, klagebehandling) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
                 tac = tac,
                 behandlingstype = "SØKNADSBEHANDLING_INNVILGELSE",
+                hendelseGenerering = { _, klagebehandling ->
+                    GenerererKlageinstanshendelse.avsluttetJson(
+                        eventId = UUID.randomUUID().toString(),
+                        kildeReferanse = klagebehandling.id.toString(),
+                        kabalReferanse = UUID.randomUUID().toString(),
+                        avsluttetTidspunkt = nå(tac.clock).toString(),
+                        utfall = Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD,
+                    )
+                },
             )!!
+
+            klagebehandling.status shouldBe Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
+            klagebehandling.resultat.shouldBeInstanceOf<Klagebehandlingsresultat.Opprettholdt>()
 
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
             oppdaterSøknadsbehandlingInnvilgelse(
@@ -344,13 +356,25 @@ class FerdigstillKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `ferdigstiller klagebehandling og iverksetter revurdering innvilgelse`() {
+    fun `iverksetter klagebehandling og revurdering innvilgelse`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling(
+            val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
                 tac = tac,
                 behandlingstype = "REVURDERING_INNVILGELSE",
+                hendelseGenerering = { _, klagebehandling ->
+                    GenerererKlageinstanshendelse.avsluttetJson(
+                        eventId = UUID.randomUUID().toString(),
+                        kildeReferanse = klagebehandling.id.toString(),
+                        kabalReferanse = UUID.randomUUID().toString(),
+                        avsluttetTidspunkt = nå(tac.clock).toString(),
+                        utfall = Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD,
+                    )
+                },
             )!!
+
+            klagebehandling.status shouldBe Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
+            klagebehandling.resultat.shouldBeInstanceOf<Klagebehandlingsresultat.Opprettholdt>()
 
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
             oppdaterRevurderingInnvilgelse(
@@ -472,11 +496,20 @@ class FerdigstillKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `ferdigstiller klagebehandling og iverksetter revurdering omgjøring`() {
+    fun `iverksetter klagebehandling og revurdering omgjøring`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling) = opprettSakOgFerdigstillKlagebehandlingMedNyRammebehandling(
+            val (sak, rammebehandling, klagebehandling) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
                 tac = tac,
+                hendelseGenerering = { _, klagebehandling ->
+                    GenerererKlageinstanshendelse.avsluttetJson(
+                        eventId = UUID.randomUUID().toString(),
+                        kildeReferanse = klagebehandling.id.toString(),
+                        kabalReferanse = UUID.randomUUID().toString(),
+                        avsluttetTidspunkt = nå(tac.clock).toString(),
+                        utfall = Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD,
+                    )
+                },
             )!!
 
             sak.vedtaksliste.alle.size shouldBe 1

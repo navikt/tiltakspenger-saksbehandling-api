@@ -38,6 +38,11 @@ enum class Klagebehandlingsstatus {
     MOTTATT_FRA_KLAGEINSTANS,
 
     /**
+     * Vi har mottatt et svar fra klageinstansen, og resultatet av skal føre til en omgjøring i førsteinstansen.
+     */
+    OMGJØRING_ETTER_KLAGEINSTANS,
+
+    /**
      * Vi har mottatt et svar fra klageinstansen, og resultatet av skal ikke føre til noen videre behandling.
      * Saksbeahndler bare bekrefter at de har mottatt svaret, og at klagebehandlingen er ferdigstilt.
      */

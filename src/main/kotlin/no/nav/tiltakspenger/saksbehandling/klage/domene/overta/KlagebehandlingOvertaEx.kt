@@ -16,7 +16,7 @@ fun Klagebehandling.overta(
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeOvertaKlagebehandling, Klagebehandling> {
-    kanOppdatereIDenneStatusen(rammebehandlingsstatus).onLeft {
+    kanOppdatereIDenneStatusen(rammebehandlingsstatus, kanVæreOmgjørEtterKA = true).onLeft {
         return KanIkkeOvertaKlagebehandling.KanIkkeOppdateres(it).left()
     }
     // Spesialtilfelle: Dersom saksbehandler forsøker å overta fra seg selv, så endres ikke behandlingen.

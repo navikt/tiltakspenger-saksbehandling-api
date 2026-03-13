@@ -119,7 +119,9 @@ data class Behandlinger(
                     "Forventet at rammebehandling ${rammebehandling.id} er KLAR_TIL_BEHANDLING når klagebehandling ${klagebehandling.id} er KLAR_TIL_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
                 }
 
-                Klagebehandlingsstatus.UNDER_BEHANDLING -> require(
+                Klagebehandlingsstatus.UNDER_BEHANDLING,
+                Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS,
+                -> require(
                     rammebehandling.status in listOf(
                         Rammebehandlingsstatus.UNDER_BEHANDLING,
                         Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
@@ -135,9 +137,14 @@ data class Behandlinger(
                     "En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling",
                 )
 
-                Klagebehandlingsstatus.OPPRETTHOLDT, Klagebehandlingsstatus.OVERSENDT, Klagebehandlingsstatus.FERDIGSTILT -> Unit
+                Klagebehandlingsstatus.OPPRETTHOLDT,
+                Klagebehandlingsstatus.OVERSENDT,
+                Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS,
+                -> Unit
 
-                Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> TODO()
+                Klagebehandlingsstatus.FERDIGSTILT -> throw IllegalStateException(
+                    "En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling",
+                )
             }
         }
         // Siden [Rammebehandling] er "eieren" av relasjonen til [Klagebehandling], sjekker vi statusen i initen til implementasjonene av [Rammebehandling].

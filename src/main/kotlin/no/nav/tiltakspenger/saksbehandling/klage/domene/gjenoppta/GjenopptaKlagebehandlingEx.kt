@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import java.time.Clock
@@ -21,6 +20,7 @@ fun Klagebehandling.gjenopptaKlagebehandling(
         rammebehandlingsstatus = null,
         kanVæreUnderBehandling = true,
         kanVæreKlarTilBehandling = true,
+        kanVæreOmgjørEtterKA = true,
     ).onLeft {
         return KanIkkeGjenopptaKlagebehandling.KanIkkeOppdateres(it).left()
     }

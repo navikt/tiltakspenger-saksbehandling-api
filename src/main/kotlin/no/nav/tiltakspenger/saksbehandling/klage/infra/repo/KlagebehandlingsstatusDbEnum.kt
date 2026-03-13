@@ -11,6 +11,7 @@ private enum class KlagebehandlingsstatusDbEnum {
     OVERSENDT,
     FERDIGSTILT,
     MOTTATT_FRA_KLAGEINSTANS,
+    OMGJØRING_ETTER_KLAGEINSTANS,
     ;
 
     fun toDomain(): Klagebehandlingsstatus {
@@ -23,6 +24,7 @@ private enum class KlagebehandlingsstatusDbEnum {
             OVERSENDT -> Klagebehandlingsstatus.OVERSENDT
             FERDIGSTILT -> Klagebehandlingsstatus.FERDIGSTILT
             MOTTATT_FRA_KLAGEINSTANS -> Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS
+            OMGJØRING_ETTER_KLAGEINSTANS -> Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
         }
     }
 }
@@ -35,8 +37,9 @@ fun Klagebehandlingsstatus.toDbEnum(): String {
         Klagebehandlingsstatus.VEDTATT -> KlagebehandlingsstatusDbEnum.VEDTATT
         Klagebehandlingsstatus.OVERSENDT -> KlagebehandlingsstatusDbEnum.OVERSENDT
         Klagebehandlingsstatus.OPPRETTHOLDT -> KlagebehandlingsstatusDbEnum.OPPRETTHOLDT
-        Klagebehandlingsstatus.FERDIGSTILT -> KlagebehandlingsstatusDbEnum.FERDIGSTILT
         Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> KlagebehandlingsstatusDbEnum.MOTTATT_FRA_KLAGEINSTANS
+        Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS -> KlagebehandlingsstatusDbEnum.OMGJØRING_ETTER_KLAGEINSTANS
+        Klagebehandlingsstatus.FERDIGSTILT -> KlagebehandlingsstatusDbEnum.FERDIGSTILT
     }.name
 }
 

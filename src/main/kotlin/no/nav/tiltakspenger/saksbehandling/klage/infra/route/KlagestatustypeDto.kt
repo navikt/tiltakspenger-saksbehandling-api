@@ -11,6 +11,7 @@ enum class KlagestatustypeDto {
     OVERSENDT,
     FERDIGSTILT,
     MOTTATT_FRA_KLAGEINSTANS,
+    OMGJØRING_ETTER_KLAGEINSTANS,
     ;
 
     companion object {
@@ -23,6 +24,7 @@ enum class KlagestatustypeDto {
             Klagebehandlingsstatus.OVERSENDT -> OVERSENDT
             Klagebehandlingsstatus.FERDIGSTILT -> FERDIGSTILT
             Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> MOTTATT_FRA_KLAGEINSTANS
+            Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS -> OMGJØRING_ETTER_KLAGEINSTANS
         }
     }
 }

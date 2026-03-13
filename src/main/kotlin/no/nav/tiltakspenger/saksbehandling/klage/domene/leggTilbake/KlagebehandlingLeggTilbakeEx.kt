@@ -17,7 +17,7 @@ fun Klagebehandling.leggTilbake(
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeLeggeTilbakeKlagebehandling, Klagebehandling> {
-    kanOppdatereIDenneStatusen(rammebehandlingsstatus).onLeft {
+    kanOppdatereIDenneStatusen(rammebehandlingsstatus, kanVæreOmgjørEtterKA = true).onLeft {
         return KanIkkeLeggeTilbakeKlagebehandling.KanIkkeOppdateres(it).left()
     }
     if (saksbehandler != kommando.saksbehandler.navIdent) {

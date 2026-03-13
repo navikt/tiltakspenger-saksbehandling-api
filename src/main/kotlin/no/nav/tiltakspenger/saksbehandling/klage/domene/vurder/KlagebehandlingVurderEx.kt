@@ -82,7 +82,7 @@ fun Klagebehandling.oppdaterRammebehandlingId(
         sistEndret = sistEndret,
         status = when (resultat) {
             is Omgjør -> status
-            is Opprettholdt -> Klagebehandlingsstatus.FERDIGSTILT
+            is Opprettholdt -> Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
         },
     )
 }

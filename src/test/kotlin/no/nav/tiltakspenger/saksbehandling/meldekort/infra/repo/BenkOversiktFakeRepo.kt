@@ -246,7 +246,7 @@ class BenkOversiktFakeRepo(
     private fun Klagebehandlingsstatus.toBehandlingssamendragStatus(): BehandlingssammendragStatus = when (this) {
         Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatus.KLAR_TIL_BEHANDLING
 
-        Klagebehandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
+        Klagebehandlingsstatus.UNDER_BEHANDLING, Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS -> BehandlingssammendragStatus.UNDER_BEHANDLING
 
         Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> BehandlingssammendragStatus.KLAR_TIL_FERDIGSTILLING
 

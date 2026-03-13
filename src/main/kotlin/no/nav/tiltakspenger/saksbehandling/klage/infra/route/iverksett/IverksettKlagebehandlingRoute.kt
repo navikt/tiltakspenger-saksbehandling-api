@@ -91,7 +91,7 @@ private fun KanIkkeIverksetteKlagebehandling.toStatusAndErrorJson(): Pair<HttpSt
             ),
         )
 
-        is KanIkkeIverksetteKlagebehandling.MåHaStatusUnderBehandling -> Pair(
+        is KanIkkeIverksetteKlagebehandling.MåHaStatus -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
                 "Kan kun iverksette klagebehandling med status UNDER_BEHANDLING",
@@ -112,6 +112,14 @@ private fun KanIkkeIverksetteKlagebehandling.toStatusAndErrorJson(): Pair<HttpSt
             ErrorJson(
                 "Kan ikke iverksette klagebheandling uten brevtekst",
                 "mangler_brevtekst",
+            ),
+        )
+
+        KanIkkeIverksetteKlagebehandling.SkalIkkeOmgjøresEtterKA -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Klagebehandlingen skal ikke omgjøres med angitt utfall fra klageinstansen, og kan derfor ikke iverksettes",
+                "skal_ikke_omgjøres_etter_ka",
             ),
         )
     }

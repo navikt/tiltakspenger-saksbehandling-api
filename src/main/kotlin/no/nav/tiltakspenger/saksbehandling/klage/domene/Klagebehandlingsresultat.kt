@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.A
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.FERDIGSTILT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OPPRETTHOLDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
@@ -37,6 +38,7 @@ sealed interface Klagebehandlingsresultat {
     fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus): Boolean
     val erKnyttetTilRammebehandling: Boolean
     fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean
+    val skalOmgjøresEtterKA: Boolean
 
     /**
      * @param klagebehandlingId - kun brukt for logging
@@ -61,13 +63,18 @@ sealed interface Klagebehandlingsresultat {
         override val kanOversendeKlageinstans = false
         override val harJournalførtInnstillingsbrev = false
         override val harDistribuertInnstillingsbrev = false
+        override val skalOmgjøresEtterKA = false
 
         /** Merk at generering av brev kan feile i tilstandene KLAR_TIL_BEHANDLING og AVBRUTT hvis [brevtekst] er null. */
         override fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean {
             return when (status) {
                 UNDER_BEHANDLING -> false
+
                 KLAR_TIL_BEHANDLING, AVBRUTT, VEDTATT -> true
-                OPPRETTHOLDT, OVERSENDT, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS -> throw IllegalStateException("$status er en ugyldig status for Avvist klage.")
+
+                OPPRETTHOLDT, OVERSENDT, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS, FERDIGSTILT -> throw IllegalStateException(
+                    "$status er en ugyldig status for Avvist klage.",
+                )
             }
         }
 
@@ -110,6 +117,7 @@ sealed interface Klagebehandlingsresultat {
         override val kanOversendeKlageinstans = false
         override val brevtekst = null
         override val skalVæreKnyttetTilRammebehandling: Boolean = true
+        override val skalOmgjøresEtterKA = false
 
         override fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean {
             throw IllegalStateException("Omgjort klage skal ikke generere brev, så denne funksjonen skal ikke brukes.")
@@ -170,7 +178,7 @@ sealed interface Klagebehandlingsresultat {
             harJournalførtInnstillingsbrev && oversendtKlageinstansenTidspunkt == null
         val sisteKlageinstanshendelse = klageinstanshendelser.lastOrNull()
 
-        override val skalVæreKnyttetTilRammebehandling = when (sisteKlageinstanshendelse) {
+        private val skalViderebehandlesEtterSvarFraKA = when (sisteKlageinstanshendelse) {
             is Klageinstanshendelse.BehandlingFeilregistrert -> false
 
             is Klageinstanshendelse.KlagebehandlingAvsluttet -> (
@@ -189,10 +197,10 @@ sealed interface Klagebehandlingsresultat {
             null -> false
         }
 
-        override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean {
-            // TODO jah: Legg til den etter vi har mappet klageinstans-hendelsen.
-            return false
-        }
+        override val skalOmgjøresEtterKA = skalViderebehandlesEtterSvarFraKA
+        override val skalVæreKnyttetTilRammebehandling = skalViderebehandlesEtterSvarFraKA
+
+        override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean? = null
 
         override fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus): Boolean {
             return status == UNDER_BEHANDLING && !brevtekst.isNullOrEmpty() && iverksattOpprettholdelseTidspunkt == null
@@ -202,7 +210,7 @@ sealed interface Klagebehandlingsresultat {
         override fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean {
             return when (status) {
                 UNDER_BEHANDLING -> false
-                KLAR_TIL_BEHANDLING, AVBRUTT, OPPRETTHOLDT, OVERSENDT, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS -> true
+                KLAR_TIL_BEHANDLING, AVBRUTT, OPPRETTHOLDT, OVERSENDT, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS, FERDIGSTILT, VEDTATT -> true
                 VEDTATT -> throw IllegalStateException("$status er en ugyldig status for Opprettholdt klage. Bruk FERDIGSTILT.")
             }
         }

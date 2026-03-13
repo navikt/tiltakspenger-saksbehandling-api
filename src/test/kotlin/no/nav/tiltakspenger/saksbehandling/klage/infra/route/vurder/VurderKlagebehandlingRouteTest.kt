@@ -62,6 +62,7 @@ class VurderKlagebehandlingRouteTest {
                 fnr = "12345678911",
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OPPRETTHOLDT",
+                kanIverksetteVedtak = null,
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
                 status = "UNDER_BEHANDLING",
                 hjemler = listOf("ARBEIDSMARKEDSLOVEN_17", "TILTAKSPENGEFORSKRIFTEN_2"),

@@ -372,7 +372,7 @@ class KlagebehandlingPostgresRepo(
                     update klagebehandling set
                         saksbehandler = :nySaksbehandler,
                         sist_endret = :sist_endret
-                    where id = :id and saksbehandler = :lagretSaksbehandler and status = 'UNDER_BEHANDLING'
+                    where id = :id and saksbehandler = :lagretSaksbehandler and status in ('UNDER_BEHANDLING', 'OMGJØRING_ETTER_KLAGEINSTANS')
                     """,
                     "id" to klagebehandling.id.toString(),
                     "nySaksbehandler" to klagebehandling.saksbehandler,
