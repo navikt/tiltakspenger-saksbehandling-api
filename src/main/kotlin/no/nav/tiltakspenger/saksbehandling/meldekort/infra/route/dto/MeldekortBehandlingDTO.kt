@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.KanIkkeIverksetteUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingsstatusDTO
@@ -47,11 +48,13 @@ data class MeldekortBehandlingDTO(
     val simulertBeregning: SimulertBeregningDTO?,
     val kanIkkeIverksetteUtbetaling: KanIkkeIverksetteUtbetalingDTO?,
     val tekstTilVedtaksbrev: String?,
+    val tilbakekrevingId: String?,
 )
 
 fun MeldekortBehandling.tilMeldekortBehandlingDTO(
-    vedtak: Meldekortvedtak? = null,
     beregninger: MeldeperiodeBeregningerVedtatt,
+    vedtak: Meldekortvedtak? = null,
+    tilbakekreving: TilbakekrevingBehandling? = null,
 ): MeldekortBehandlingDTO {
     require(status != MeldekortBehandlingStatus.GODKJENT || vedtak != null) {
         "Meldekortvedtak må være satt for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id"
@@ -82,6 +85,7 @@ fun MeldekortBehandling.tilMeldekortBehandlingDTO(
         kanIkkeIverksetteUtbetaling = this.validerKanIverksetteUtbetaling().leftOrNull()
             ?.tilKanIkkeIverksetteUtbetalingDTO(),
         tekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
+        tilbakekrevingId = tilbakekreving?.id?.toString(),
     )
 }
 

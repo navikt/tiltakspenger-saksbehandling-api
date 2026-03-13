@@ -33,6 +33,7 @@ class AvbrytMeldekortbehandlingRouteTest {
                       "saksbehandler": "Z12345",
                       "opprettet": "2025-01-01T01:02:25.456789",
                       "kanIkkeIverksetteUtbetaling": null,
+                      "tilbakekrevingId": null,
                       "type": "FØRSTE_BEHANDLING",
                       "meldeperiodeId": "${avbruttMeldekortbehandling.meldeperiode.id}",
                       "beregning": null,

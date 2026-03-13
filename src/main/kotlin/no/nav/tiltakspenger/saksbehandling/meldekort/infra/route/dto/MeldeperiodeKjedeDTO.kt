@@ -27,7 +27,6 @@ data class MeldeperiodeKjedeDTO(
     val korrigeringFraTidligerePeriode: MeldeperiodeKorrigeringDTO?,
     val avbrutteMeldekortBehandlinger: List<MeldekortBehandlingDTO>,
     val sisteBeregning: MeldeperiodeBeregningDTO?,
-    val tilbakekrevingIder: List<String>,
 )
 
 fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO {
@@ -55,9 +54,6 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         .filter { it.kjedeId == kjedeId }
         .sortedBy { it.mottatt }
 
-    val meldekortbehandlinger = this.meldekortbehandlinger
-        .hentMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
-
     return MeldeperiodeKjedeDTO(
         id = meldeperiodeKjede.kjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
@@ -67,21 +63,21 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
             .perioderMedVerdi.toList().map { it.verdi.typeNavn },
         meldeperioder = meldeperiodeKjede.map { it.toMeldeperiodeDTO() },
-        meldekortBehandlinger = meldekortbehandlinger.map {
-            it.tilMeldekortBehandlingDTO(
-                this.meldekortvedtaksliste.hentForMeldekortBehandling(it.id),
-                beregninger = this.meldeperiodeBeregninger,
-            )
-        },
+        meldekortBehandlinger = this.meldekortbehandlinger
+            .hentMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
+            .map {
+                it.tilMeldekortBehandlingDTO(
+                    beregninger = this.meldeperiodeBeregninger,
+                    vedtak = this.meldekortvedtaksliste.hentForMeldekortBehandling(it.id),
+                    tilbakekreving = this.hentTilbakekrevingForMeldekortBehandling(it.id),
+                )
+            },
         brukersMeldekort = brukersMeldekort.map { it.toBrukersMeldekortDTO() },
         korrigeringFraTidligerePeriode = korrigering,
         avbrutteMeldekortBehandlinger = this.meldekortbehandlinger
             .hentAvbrutteMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
             .map { it.tilMeldekortBehandlingDTO(beregninger = this.meldeperiodeBeregninger) },
         sisteBeregning = meldeperiodeBeregninger.gjeldendeBeregningPerKjede[kjedeId]?.tilMeldeperiodeBeregningDTO(),
-        tilbakekrevingIder = meldekortbehandlinger.mapNotNull {
-            this.hentTilbakekrevingForMeldekortBehandling(it.id)?.id?.toString()
-        },
     )
 }
 

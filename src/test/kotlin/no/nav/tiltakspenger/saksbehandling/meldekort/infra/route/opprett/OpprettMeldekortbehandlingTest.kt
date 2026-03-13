@@ -80,6 +80,7 @@ class OpprettMeldekortbehandlingTest {
                           "saksbehandler": "Z12345",
                           "opprettet": "2025-05-01T01:02:26.456789",
                           "kanIkkeIverksetteUtbetaling": null,
+                          "tilbakekrevingId": null,
                           "type": "FØRSTE_BEHANDLING",
                           "meldeperiodeId": "${meldekortbehandling.meldeperiode.id}",
                           "beregning": null,
