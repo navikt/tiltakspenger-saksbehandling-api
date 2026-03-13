@@ -9,7 +9,7 @@ import kotlin.collections.first
 
 /**
  * En beregning for en eller flere meldeperioder.
- * Vil enten ha [BeregningKilde.BeregningKildeMeldekort] eller [BeregningKilde.BeregningKildeBehandling] som kilde.
+ * Vil enten ha [BeregningKilde.BeregningKildeMeldekort] eller [BeregningKilde.BeregningKildeRammebehandling] som kilde.
  * Vil kunne ha hull. Er sortert og uten overlapp. En meldeperiodekjede er representert maks en gang.
  */
 data class Beregning(

@@ -37,7 +37,7 @@ class TilbakekrevingFakeProducer(
             .hentUtbetalingForUuid(infoSvar.revurdering.behandlingId)
             ?.beregningKilde?.let { beregningKilde ->
                 when (beregningKilde) {
-                    is BeregningKilde.BeregningKildeBehandling -> hentRammebehandling(beregningKilde.id)?.let {
+                    is BeregningKilde.BeregningKildeRammebehandling -> hentRammebehandling(beregningKilde.id)?.let {
                         it.vedtaksperiode!! to it.utbetaling?.simulering
                     }
 

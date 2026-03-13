@@ -218,7 +218,7 @@ class UtbetalingPostgresRepo(
                     "opprettet" to utbetaling.opprettet,
                     "satstype" to utbetaling.satstype.tilDb(),
                     when (utbetaling.beregningKilde) {
-                        is BeregningKilde.BeregningKildeBehandling -> "rammevedtak_id" to utbetaling.vedtakId.toString()
+                        is BeregningKilde.BeregningKildeRammebehandling -> "rammevedtak_id" to utbetaling.vedtakId.toString()
                         is BeregningKilde.BeregningKildeMeldekort -> "meldekortvedtak_id" to utbetaling.vedtakId.toString()
                     },
                 ).asUpdate,

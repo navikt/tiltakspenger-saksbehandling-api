@@ -90,7 +90,7 @@ fun SimulertBeregning.toSimulertBeregningDTO(): SimulertBeregningDTO {
     return SimulertBeregningDTO(
         behandlingId = this.beregningskilde.id.toString(),
         behandlingstype = when (this.beregningskilde) {
-            is BeregningKilde.BeregningKildeBehandling -> SimulertBeregningDTO.Behandlingstype.RAMME
+            is BeregningKilde.BeregningKildeRammebehandling -> SimulertBeregningDTO.Behandlingstype.RAMME
             is BeregningKilde.BeregningKildeMeldekort -> SimulertBeregningDTO.Behandlingstype.MELDEKORT
         },
         meldeperioder = this.meldeperioder.map { it.toDTO() }.toList(),

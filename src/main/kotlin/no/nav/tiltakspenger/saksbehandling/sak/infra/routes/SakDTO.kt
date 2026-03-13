@@ -63,6 +63,8 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     alleKlagevedtak = klagevedtaksliste.map { it.tilKlagevedtakDTO() },
     utbetalingstidslinje = this.tilUtbetalingstidslinjeMeldeperiodeDTO(),
     søknader = this.søknader.map { it.toSøknadDTO() },
-    tilbakekrevinger = this.tilbakekrevinger.map { it.tilTilbakekrevingBehandlingDTO() },
+    tilbakekrevinger = this.tilbakekrevinger.map {
+        it.tilTilbakekrevingBehandlingDTO(utbetalinger.hentUtbetaling(it.utbetalingId)!!)
+    },
     kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
 )

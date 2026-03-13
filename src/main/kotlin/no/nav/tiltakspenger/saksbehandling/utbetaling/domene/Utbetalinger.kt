@@ -29,23 +29,28 @@ data class Utbetalinger(
     }
 
     private val utbetalingerMap: Map<Ulid, VedtattUtbetaling> by lazy {
-        verdi.associateBy { it.beregningKilde.id }
+        verdi.flatMap { utbetaling ->
+            listOf(
+                utbetaling.beregningKilde.id to utbetaling,
+                utbetaling.id to utbetaling,
+            )
+        }.toMap()
     }
 
     fun hentUtbetalingForBehandlingId(id: BehandlingId): VedtattUtbetaling? {
         return utbetalingerMap[id]
     }
 
+    fun hentUtbetaling(id: UtbetalingId): VedtattUtbetaling? {
+        return utbetalingerMap[id]
+    }
+
+    fun hentUtbetalingForUuid(uuid: String): VedtattUtbetaling? {
+        return verdi.find { it.id.uuidPart() == uuid }
+    }
+
     fun leggTil(utbetaling: VedtattUtbetaling): Utbetalinger {
         return Utbetalinger((verdi + utbetaling).sortedBy { it.opprettet })
-    }
-
-    fun hentUtbetaling(id: UtbetalingId): VedtattUtbetaling? {
-        return verdi.find { it.id == id }
-    }
-
-    fun hentUtbetalingForUuid(id: String): VedtattUtbetaling? {
-        return verdi.find { it.id.uuidPart() == id }
     }
 
     init {

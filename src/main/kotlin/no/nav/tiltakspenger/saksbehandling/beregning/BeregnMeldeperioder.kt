@@ -379,7 +379,7 @@ private fun Sak.beregnRammebehandling(
     }
 
     return BeregnMeldeperioder(
-        beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId),
+        beregningKilde = BeregningKilde.BeregningKildeRammebehandling(behandlingId),
         meldeperioderSomBeregnes = meldeperioderSomBeregnesPåNytt,
         hentAntallBarn = {
             nyeBarnetilleggsperioder?.hentVerdiForDag(it)

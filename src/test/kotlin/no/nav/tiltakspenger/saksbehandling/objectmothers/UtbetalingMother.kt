@@ -109,7 +109,7 @@ interface UtbetalingMother : MotherOfAllMothers {
         )
 
         return when (beregningKilde) {
-            is BeregningKilde.BeregningKildeBehandling -> Beregning(beregninger)
+            is BeregningKilde.BeregningKildeRammebehandling -> Beregning(beregninger)
             is BeregningKilde.BeregningKildeMeldekort -> Beregning(beregninger)
         }
     }

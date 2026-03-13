@@ -88,7 +88,7 @@ class BehandleTilbakekrevingHendelserJobb(
                 meldekortbehandlinger.hentMeldekortBehandling(utbetaling.beregningKilde.id)
                     ?.tilSvarDTO(hendelse)
 
-            is BeregningKilde.BeregningKildeBehandling ->
+            is BeregningKilde.BeregningKildeRammebehandling ->
                 rammebehandlinger.hentRammebehandling(utbetaling.beregningKilde.id)
                     ?.tilSvarDTO(hendelse)
         }

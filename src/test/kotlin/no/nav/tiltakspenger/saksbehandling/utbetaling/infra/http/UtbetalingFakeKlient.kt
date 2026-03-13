@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
-import no.nav.tiltakspenger.saksbehandling.beregning.BeregningMedSimulering
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
@@ -55,7 +54,7 @@ class UtbetalingFakeKlient(
         val sak = sakRepo.hentForSakId(utbetaling.sakId)!!
 
         val harFeilutbetaling = when (utbetaling.beregningKilde) {
-            is BeregningKilde.BeregningKildeBehandling ->
+            is BeregningKilde.BeregningKildeRammebehandling ->
                 sak.hentRammebehandling(utbetaling.beregningKilde.id)?.utbetaling?.simulering.harFeilutbetaling()
 
             is BeregningKilde.BeregningKildeMeldekort ->

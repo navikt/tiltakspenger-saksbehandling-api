@@ -13,5 +13,5 @@ sealed interface BeregningKilde {
 
     /** @param id Id for behandlingen/revurderingen som utløste denne beregningen.
      * */
-    data class BeregningKildeBehandling(override val id: BehandlingId) : BeregningKilde
+    data class BeregningKildeRammebehandling(override val id: BehandlingId) : BeregningKilde
 }

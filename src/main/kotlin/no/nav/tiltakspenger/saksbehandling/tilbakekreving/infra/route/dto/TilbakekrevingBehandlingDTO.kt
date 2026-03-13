@@ -2,8 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.dto
 
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.BeregningKildeDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilBeregningKildeDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -12,6 +15,7 @@ data class TilbakekrevingBehandlingDTO(
     val id: String,
     val sakId: String,
     val utbetalingId: String,
+    val beregningKilde: BeregningKildeDTO,
     val tilbakeBehandlingId: String,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime,
@@ -37,11 +41,14 @@ private fun TilbakekrevingBehandlingsstatus.tilDTO() = when (this) {
     TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.AVSLUTTET
 }
 
-fun TilbakekrevingBehandling.tilTilbakekrevingBehandlingDTO(): TilbakekrevingBehandlingDTO {
+fun TilbakekrevingBehandling.tilTilbakekrevingBehandlingDTO(utbetaling: VedtattUtbetaling): TilbakekrevingBehandlingDTO {
+    require(utbetaling.id == utbetalingId)
+
     return TilbakekrevingBehandlingDTO(
         id = id.toString(),
         sakId = sakId.toString(),
         utbetalingId = utbetalingId.toString(),
+        beregningKilde = utbetaling.beregningKilde.tilBeregningKildeDTO(),
         tilbakeBehandlingId = tilbakeBehandlingId,
         opprettet = opprettet,
         sistEndret = sistEndret,
