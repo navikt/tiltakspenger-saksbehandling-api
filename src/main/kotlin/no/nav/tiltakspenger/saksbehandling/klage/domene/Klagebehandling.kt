@@ -231,7 +231,7 @@ data class Klagebehandling(
                     is Klagebehandlingsresultat.Opprettholdt -> {
                         if (skalOmgjøresEtterKA) {
                             require(iverksattTidspunkt != null) {
-                                "Klagebehandling som er $status kan ikke ha iverksattTidspunkt satt. $loggkontekst"
+                                "Klagebehandling som er $status, og skal omgjøres etter KA må ha iverksattTidspunkt satt. $loggkontekst"
                             }
                         } else {
                             require(iverksattTidspunkt == null) {
