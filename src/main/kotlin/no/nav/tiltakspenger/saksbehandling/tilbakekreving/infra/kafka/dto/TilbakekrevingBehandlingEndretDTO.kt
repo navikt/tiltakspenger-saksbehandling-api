@@ -32,6 +32,7 @@ data class TilbakekrevingBehandlingEndretDTO(
             totaltFeilutbetaltBeløp = tilbakekreving.totaltFeilutbetaltBeløp,
             url = tilbakekreving.saksbehandlingURL,
             fullstendigPeriode = tilbakekreving.fullstendigPeriode.tilPeriode(),
+            feil = null,
         )
     }
 

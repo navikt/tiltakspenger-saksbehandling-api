@@ -172,6 +172,22 @@ class TilbakekrevingHendelsePostgresRepo(
         }
     }
 
+    // Benyttes kun for tester, da vi normalt ikke trenger å hente en spesifikk hendelse
+    override fun hentHendelse(hendelseId: TilbakekrevinghendelseId): Tilbakekrevingshendelse? {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    SELECT *
+                    FROM tilbakekreving_hendelse
+                    WHERE id = :id
+                    """.trimIndent(),
+                    "id" to hendelseId.toString(),
+                ).map { row -> row.tilTilbakekrevingshendelse() }.asSingle,
+            )
+        }
+    }
+
     private fun Row.tilTilbakekrevingshendelse(): Tilbakekrevingshendelse {
         val hendelsestype = HendelsetypeDb.valueOf(string("hendelse_type"))
         val id = TilbakekrevinghendelseId.fromString(string("id"))
@@ -180,6 +196,7 @@ class TilbakekrevingHendelsePostgresRepo(
 
         val sakId = stringOrNull("sak_id")?.let { SakId.fromString(it) }
         val behandlet = localDateTimeOrNull("behandlet")
+        val feil = stringOrNull("behandlet_feil")
 
         return when (hendelsestype) {
             HendelsetypeDb.InfoBehov -> {
@@ -191,7 +208,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     svar = stringOrNull("svar")?.let { deserialize(it) },
                     eksternFagsakId = eksternFagsakId,
                     kravgrunnlagReferanse = string("kravgrunnlag_referanse"),
-                    feil = stringOrNull("behandlet_feil"),
+                    feil = feil,
                 )
             }
 
@@ -213,6 +230,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     totaltFeilutbetaltBeløp = behandling.totaltFeilutbetaltBeløp,
                     url = behandling.saksbehandlingURL,
                     fullstendigPeriode = behandling.fullstendigPeriode.toDomain(),
+                    feil = feil,
                 )
             }
         }

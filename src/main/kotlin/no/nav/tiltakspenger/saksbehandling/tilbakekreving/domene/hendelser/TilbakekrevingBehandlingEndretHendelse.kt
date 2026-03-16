@@ -24,6 +24,7 @@ data class TilbakekrevingBehandlingEndretHendelse(
     val totaltFeilutbetaltBeløp: BigDecimal,
     val url: String,
     val fullstendigPeriode: Periode,
+    val feil: String?,
 ) : Tilbakekrevingshendelse {
     override val hendelsestype = TilbakekrevinghendelseType.BehandlingEndret
 

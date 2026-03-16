@@ -74,8 +74,12 @@ class TilbakekrevingHendelseFakeRepo(
         val hendelse = data.get()[hendelseId] ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")
 
         data.get()[hendelseId] = when (hendelse) {
-            is TilbakekrevingBehandlingEndretHendelse -> hendelse.copy(behandlet = nå(clock))
-            is TilbakekrevingInfoBehovHendelse -> hendelse.copy(behandlet = nå(clock))
+            is TilbakekrevingBehandlingEndretHendelse -> hendelse.copy(behandlet = nå(clock), feil = feil)
+            is TilbakekrevingInfoBehovHendelse -> hendelse.copy(behandlet = nå(clock), feil = feil)
         }
+    }
+
+    override fun hentHendelse(hendelseId: TilbakekrevinghendelseId): Tilbakekrevingshendelse? {
+        return data.get()[hendelseId]
     }
 }

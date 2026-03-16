@@ -498,7 +498,7 @@ open class ApplicationContext(
         )
     }
 
-    val tilbakekrevingInfoBehovSvarJobb by lazy {
+    val behandleTilbakekrevingHendelserJobb by lazy {
         BehandleTilbakekrevingHendelserJobb(
             tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
             tilbakekrevingBehandlingRepo = tilbakekrevingBehandlingRepo,
