@@ -31,7 +31,13 @@ class TilbakekrevingHendelseFakeRepo(
             return false
         }
 
-        data.get()[hendelse.id] = hendelse
+        // Oppdater hendelsen med sakId, slik som PostgresRepo gjør
+        val hendelseMedSakId = when (hendelse) {
+            is TilbakekrevingInfoBehovHendelse -> hendelse.copy(sakId = sakId)
+            is TilbakekrevingBehandlingEndretHendelse -> hendelse.copy(sakId = sakId)
+        }
+
+        data.get()[hendelse.id] = hendelseMedSakId
         return true
     }
 

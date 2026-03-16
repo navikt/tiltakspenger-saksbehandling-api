@@ -63,14 +63,6 @@ sealed interface Simulering {
                     "Simuleringene må være i rekkefølge. ${a.meldeperiode.periode} er før ${b.meldeperiode.periode}"
                 }
             }
-
-            // Abn: Disse skal være like, logger om denne antagelsen ikke stemmer!
-            if (totalFeilutbetaling != totalMotpostering) {
-                val sakId = meldeperioder.first().sakId
-                logger.info {
-                    "Forventet at feilutbetaling og motpostering skal være like - fikk $totalFeilutbetaling / $totalMotpostering på $sakId"
-                }
-            }
         }
     }
 
