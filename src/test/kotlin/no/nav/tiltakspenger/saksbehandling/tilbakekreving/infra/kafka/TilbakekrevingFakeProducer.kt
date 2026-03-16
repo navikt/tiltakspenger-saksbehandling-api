@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO.TilbakekrevingHendelseStatusDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
@@ -23,7 +23,7 @@ class TilbakekrevingFakeProducer(
 ) : TilbakekrevingProducer {
 
     override fun produserInfoSvar(
-        behovHendelseId: TilbakekrevingshendelseId,
+        behovHendelseId: TilbakekrevinghendelseId,
         infoSvar: TilbakekrevingInfoSvarDTO,
     ): String {
         sakRepo.hentForSaksnummer(Saksnummer(infoSvar.eksternFagsakId))
@@ -74,7 +74,6 @@ class TilbakekrevingFakeProducer(
         TilbakekrevingConsumer.consume(
             this.fnr.verdi,
             serialize(behandlingEndretDTO),
-            clock,
             tilbakekrevingHendelseRepo,
             sakRepo,
         )

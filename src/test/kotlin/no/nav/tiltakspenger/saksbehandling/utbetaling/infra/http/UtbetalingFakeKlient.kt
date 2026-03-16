@@ -71,7 +71,6 @@ class UtbetalingFakeKlient(
                         kravgrunnlagReferanse = utbetaling.id.uuidPart(),
                     ),
                 ),
-                clock = clock,
                 tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
                 sakRepo = sakRepo,
             )

@@ -488,7 +488,6 @@ open class ApplicationContext(
             topic = Configuration.tilbakekrevingTopic,
             tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
             sakRepo = sakContext.sakRepo,
-            clock = clock,
         )
     }
 

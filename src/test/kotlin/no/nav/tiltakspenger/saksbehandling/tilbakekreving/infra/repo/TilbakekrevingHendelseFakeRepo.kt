@@ -6,15 +6,15 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
 import java.time.Clock
 
 class TilbakekrevingHendelseFakeRepo(
     private val clock: Clock,
 ) : TilbakekrevingHendelseRepo {
-    private val data = arrow.atomic.Atomic(mutableMapOf<TilbakekrevingshendelseId, Tilbakekrevingshendelse>())
+    private val data = arrow.atomic.Atomic(mutableMapOf<TilbakekrevinghendelseId, Tilbakekrevingshendelse>())
 
     override fun lagreNy(
         hendelse: Tilbakekrevingshendelse,
@@ -40,7 +40,7 @@ class TilbakekrevingHendelseFakeRepo(
     }
 
     override fun markerInfoBehovSomBehandlet(
-        hendelseId: TilbakekrevingshendelseId,
+        hendelseId: TilbakekrevinghendelseId,
         svarJson: String,
         sessionContext: SessionContext?,
     ) {
@@ -53,7 +53,7 @@ class TilbakekrevingHendelseFakeRepo(
         )
     }
 
-    override fun markerEndringSomBehandlet(hendelseId: TilbakekrevingshendelseId, sessionContext: SessionContext?) {
+    override fun markerEndringSomBehandlet(hendelseId: TilbakekrevinghendelseId, sessionContext: SessionContext?) {
         val hendelse = data.get()[hendelseId] as? TilbakekrevingBehandlingEndretHendelse
             ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")
 
@@ -61,7 +61,7 @@ class TilbakekrevingHendelseFakeRepo(
     }
 
     override fun markerSomBehandletMedFeil(
-        hendelseId: TilbakekrevingshendelseId,
+        hendelseId: TilbakekrevinghendelseId,
         feil: String,
         sessionContext: SessionContext?,
     ) {

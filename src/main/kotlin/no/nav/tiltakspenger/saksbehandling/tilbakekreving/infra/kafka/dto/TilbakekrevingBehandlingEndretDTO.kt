@@ -1,11 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto
 
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import java.math.BigDecimal
-import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -18,13 +16,10 @@ data class TilbakekrevingBehandlingEndretDTO(
     override val versjon: Int = 1
     override val hendelsestype = TilbakekrevingHendelsestypeDTO.behandling_endret
 
-    override fun tilHendelseForLagring(
-        key: String,
-        clock: Clock,
-    ): TilbakekrevingBehandlingEndretHendelse {
+    override fun tilHendelseForLagring(key: String): TilbakekrevingBehandlingEndretHendelse {
         return TilbakekrevingBehandlingEndretHendelse(
-            id = TilbakekrevingshendelseId.random(),
-            opprettet = nå(clock),
+            id = TilbakekrevinghendelseId.random(),
+            opprettet = hendelseOpprettet,
             behandlet = null,
             sakId = null,
             eksternFagsakId = eksternFagsakId,

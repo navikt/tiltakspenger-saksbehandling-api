@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.Tilbak
 import java.time.LocalDateTime
 
 data class TilbakekrevingInfoBehovHendelse(
-    override val id: TilbakekrevingshendelseId,
+    override val id: TilbakekrevinghendelseId,
     override val opprettet: LocalDateTime,
     override val behandlet: LocalDateTime?,
     override val sakId: SakId?,
@@ -14,5 +14,5 @@ data class TilbakekrevingInfoBehovHendelse(
     val svar: TilbakekrevingInfoSvarDTO?,
     val feil: String?,
 ) : Tilbakekrevingshendelse {
-    override val hendelsestype: TilbakekrevingHendelsestype = TilbakekrevingHendelsestype.InfoBehov
+    override val hendelsestype: TilbakekrevinghendelseType = TilbakekrevinghendelseType.InfoBehov
 }

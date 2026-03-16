@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
-import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -32,10 +31,7 @@ sealed interface TilbakekrevingshendelseDTO {
     /**
      * @return [Tilbakekrevingshendelse] dersom hendelsen skal lagres i databasen, eller null dersom den ikke skal lagres
      * */
-    fun tilHendelseForLagring(
-        key: String,
-        clock: Clock,
-    ): Tilbakekrevingshendelse?
+    fun tilHendelseForLagring(key: String): Tilbakekrevingshendelse?
 }
 
 @Suppress("ktlint:standard:enum-entry-name-case")
@@ -54,13 +50,10 @@ data class TilbakekrevingPeriodeDTO(
     }
 }
 
-fun String.tilNyTilbakekrevingshendelse(
-    key: String,
-    clock: Clock,
-): Either<Throwable, Tilbakekrevingshendelse?> {
+fun String.tilNyTilbakekrevingshendelse(key: String): Either<Throwable, Tilbakekrevingshendelse?> {
     return Either.catch {
         deserialize<TilbakekrevingshendelseDTO>(this)
-            .tilHendelseForLagring(key, clock)
+            .tilHendelseForLagring(key)
             .right()
     }.getOrElse {
         return it.left()

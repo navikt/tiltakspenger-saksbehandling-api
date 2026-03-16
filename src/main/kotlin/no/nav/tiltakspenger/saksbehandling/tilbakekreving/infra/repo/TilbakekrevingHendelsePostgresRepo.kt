@@ -13,8 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingshendelseId
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
@@ -29,7 +29,7 @@ class TilbakekrevingHendelsePostgresRepo(
      * Lagrer en ny tilbakekrevingshendelse
      *
      * Lagrer ikke duplikate info_behov-hendelser for samme kravgrunnlag_referanse
-     * Team tilbake har retry på denne hvis vi ikke svarer i løpet av 3 timer, vi ønsker ikke å behandle samme kravgrunnlag flere ganger
+     * Team tilbake har retry på denne hvis vi ikke svarer i løpet av 3 timer, vi ønsker ikke å svare for samme kravgrunnlag flere ganger
      */
     override fun lagreNy(
         hendelse: Tilbakekrevingshendelse,
@@ -107,7 +107,7 @@ class TilbakekrevingHendelsePostgresRepo(
     }
 
     override fun markerInfoBehovSomBehandlet(
-        hendelseId: TilbakekrevingshendelseId,
+        hendelseId: TilbakekrevinghendelseId,
         svarJson: String,
         sessionContext: SessionContext?,
     ) {
@@ -130,7 +130,7 @@ class TilbakekrevingHendelsePostgresRepo(
     }
 
     override fun markerEndringSomBehandlet(
-        hendelseId: TilbakekrevingshendelseId,
+        hendelseId: TilbakekrevinghendelseId,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -150,7 +150,7 @@ class TilbakekrevingHendelsePostgresRepo(
     }
 
     override fun markerSomBehandletMedFeil(
-        hendelseId: TilbakekrevingshendelseId,
+        hendelseId: TilbakekrevinghendelseId,
         feil: String,
         sessionContext: SessionContext?,
     ) {
@@ -174,7 +174,7 @@ class TilbakekrevingHendelsePostgresRepo(
 
     private fun Row.tilTilbakekrevingshendelse(): Tilbakekrevingshendelse {
         val hendelsestype = HendelsetypeDb.valueOf(string("hendelse_type"))
-        val id = TilbakekrevingshendelseId.fromString(string("id"))
+        val id = TilbakekrevinghendelseId.fromString(string("id"))
         val opprettet = localDateTime("opprettet")
         val eksternFagsakId = string("ekstern_fagsak_id")
 

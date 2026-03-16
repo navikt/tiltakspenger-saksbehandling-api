@@ -14,14 +14,12 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.tilNyTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import org.apache.kafka.common.serialization.StringDeserializer
-import java.time.Clock
 
 private val logger = KotlinLogging.logger { }
 
 class TilbakekrevingConsumer(
     private val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
     private val sakRepo: SakRepo,
-    private val clock: Clock,
     topic: String,
     groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v3",
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
@@ -38,7 +36,7 @@ class TilbakekrevingConsumer(
     )
 
     override suspend fun consume(key: String, value: String?) {
-        consume(key, value, clock, tilbakekrevingHendelseRepo, sakRepo)
+        consume(key, value, tilbakekrevingHendelseRepo, sakRepo)
     }
 
     override fun run() = consumer.run()
@@ -47,7 +45,6 @@ class TilbakekrevingConsumer(
         fun consume(
             key: String,
             value: String?,
-            clock: Clock,
             tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
             sakRepo: SakRepo,
         ) {
@@ -58,7 +55,7 @@ class TilbakekrevingConsumer(
                 logger.info { "Mottatt tilbakekrevingshendelse med key $key" }
             }
 
-            val hendelse = value.tilNyTilbakekrevingshendelse(key, clock).getOrElse {
+            val hendelse = value.tilNyTilbakekrevingshendelse(key).getOrElse {
                 logger.error(it) { "Mottatt tilbakekrevingshendelse med key $key - Deserialize feilet for value $value" }
                 throw it
             }
