@@ -261,9 +261,9 @@ class SakPostgresRepo(
     }
 
     /**
-     *  [nyesteVedtakOpprettet] Forventer at dette skal tidspunkt for nyeste rammevedtak på saken
+     *  [nyesteVedtakOpprettet] Forventer at dette skal være tidspunkt for nyeste rammevedtak på saken
      *  Dersom det finnes nyere vedtak må saken fortsatt være markert for sending
-     *  ettersom det kan ha kommet nye vedtak når jobben for sending kjørte
+     *  ettersom det kan ha kommet inn nye vedtak når jobben for sending kjørte
      * */
     override fun markerErSendtTilMeldekortApi(
         sakId: SakId,

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser
 
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -24,4 +25,16 @@ data class TilbakekrevingBehandlingEndretHendelse(
     val fullstendigPeriode: Periode,
 ) : Tilbakekrevingshendelse {
     override val hendelsestype = TilbakekrevingHendelsestype.BehandlingEndret
+
+    fun harEndringer(behandling: TilbakekrevingBehandling): Boolean {
+        require(behandling.tilbakeBehandlingId == tilbakeBehandlingId) {
+            "Prøvde å sammenligne endret-hendelse for tilbake behandling $tilbakeBehandlingId med behandling ${behandling.tilbakeBehandlingId}"
+        }
+
+        return behandling.status != behandlingsstatus ||
+            behandling.kravgrunnlagTotalPeriode != fullstendigPeriode ||
+            behandling.url !== url ||
+            behandling.varselSendt != varselSendt ||
+            behandling.totaltFeilutbetaltBeløp != totaltFeilutbetaltBeløp
+    }
 }

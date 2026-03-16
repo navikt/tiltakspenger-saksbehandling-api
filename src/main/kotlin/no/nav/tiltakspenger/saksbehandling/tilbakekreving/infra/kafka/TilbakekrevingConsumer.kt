@@ -51,11 +51,11 @@ class TilbakekrevingConsumer(
             tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
             sakRepo: SakRepo,
         ) {
-            logger.info { "Mottatt tilbakekrevingshendelse med key $key" }
-
             if (value == null) {
                 logger.warn { "Mottatt tilbakekrevingshendelse med key $key uten value" }
                 return
+            } else {
+                logger.info { "Mottatt tilbakekrevingshendelse med key $key" }
             }
 
             val hendelse = value.tilNyTilbakekrevingshendelse(key, clock).getOrElse {

@@ -113,10 +113,20 @@ class BehandleTilbakekrevingHendelserJobb(
             return "Fant ikke utbetaling for id ${hendelse.eksternBehandlingId}".left()
         }
 
-        val sistEndret = nå(clock)
-
         val eksisterendeBehandling =
             tilbakekrevingBehandlingRepo.hentForTilbakeBehandlingId(hendelse.tilbakeBehandlingId)
+
+        /*
+         *  Tilbakeløsningen sender daglige oppdatering for hver åpne behandling, selv om det ikke er noen faktiske endringer
+         *  Vi ønsker ikke å oppdatere behandlingen vår når det ikke er noen endringer
+         * */
+        if (eksisterendeBehandling != null && !hendelse.harEndringer(eksisterendeBehandling)) {
+            logger.info { "BehandlingEndret hendelse ${hendelse.id} har ingen endringer - hopper over oppdatering" }
+            tilbakekrevingHendelseRepo.markerEndringSomBehandlet(hendelse.id)
+            return Unit.right()
+        }
+
+        val sistEndret = nå(clock)
 
         val oppdatertEllerNyBehandling = eksisterendeBehandling?.copy(
             status = hendelse.behandlingsstatus,
