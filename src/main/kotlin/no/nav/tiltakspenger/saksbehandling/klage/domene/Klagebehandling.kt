@@ -238,9 +238,6 @@ data class Klagebehandling(
                                 "Klagebehandling som er $status kan ikke ha iverksattTidspunkt satt. $loggkontekst"
                             }
                         }
-                        require(resultat is Klagebehandlingsresultat.Opprettholdt) {
-                            "Klagebehandling som er $status må ha resultat som opprettholdt satt. $loggkontekst"
-                        }
                         require(resultat.iverksattOpprettholdelseTidspunkt != null) {
                             "Klagebehandling som er $status må ha iverksattOpprettholdelseTidspunkt satt. $loggkontekst"
                         }

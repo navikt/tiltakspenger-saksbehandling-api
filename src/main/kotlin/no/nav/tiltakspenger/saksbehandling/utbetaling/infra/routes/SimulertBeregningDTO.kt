@@ -56,8 +56,8 @@ data class SimulertBeregningDTO(
 
         data class SimulertBeregningDag(
             val dato: LocalDate,
-            val status: MeldekortDagStatusDTO,
-            val beregning: BeregningerSummertDTO,
+            val status: MeldekortDagStatusDTO?,
+            val beregning: BeregningerSummertDTO?,
             val simulerteBeløp: SimulerteBeløp?,
             val posteringer: List<PosteringForDagDTO>?,
         )
@@ -116,7 +116,7 @@ fun SimulertBeregningMeldeperiode.toDTO(): SimulertBeregningDTO.SimulertBeregnin
 fun SimulertBeregningDag.toDTO(): SimulertBeregningDTO.SimulertBeregningMeldeperiode.SimulertBeregningDag {
     return SimulertBeregningDTO.SimulertBeregningMeldeperiode.SimulertBeregningDag(
         dato = this.dato,
-        status = this.beregningsdag.tilMeldekortDagStatusDTO(),
+        status = this.beregningsdag?.tilMeldekortDagStatusDTO(),
         simulerteBeløp = this.simuleringsdag?.let {
             SimulertBeregningDTO.SimulerteBeløp(
                 feilutbetaling = it.totalFeilutbetaling,
@@ -127,20 +127,22 @@ fun SimulertBeregningDag.toDTO(): SimulertBeregningDTO.SimulertBeregningMeldeper
                 totalTrekk = it.totalTrekk,
             )
         },
-        beregning = BeregningerSummertDTO(
-            totalt = BeløpFørOgNåDTO(
-                før = this.forrigeBeregningsdag?.totalBeløp,
-                nå = this.beregningsdag.totalBeløp,
-            ),
-            ordinært = BeløpFørOgNåDTO(
-                før = this.forrigeBeregningsdag?.beløp,
-                nå = this.beregningsdag.beløp,
-            ),
-            barnetillegg = BeløpFørOgNåDTO(
-                før = this.forrigeBeregningsdag?.beløpBarnetillegg,
-                nå = this.beregningsdag.beløpBarnetillegg,
-            ),
-        ),
+        beregning = this.beregningsdag?.let {
+            BeregningerSummertDTO(
+                totalt = BeløpFørOgNåDTO(
+                    før = this.forrigeBeregningsdag?.totalBeløp,
+                    nå = it.totalBeløp,
+                ),
+                ordinært = BeløpFørOgNåDTO(
+                    før = this.forrigeBeregningsdag?.beløp,
+                    nå = it.beløp,
+                ),
+                barnetillegg = BeløpFørOgNåDTO(
+                    før = this.forrigeBeregningsdag?.beløpBarnetillegg,
+                    nå = it.beløpBarnetillegg,
+                ),
+            )
+        },
         posteringer = this.simuleringsdag?.let {
             it.posteringsdag.posteringer.map { postering ->
                 SimulertBeregningDTO.PosteringForDagDTO(
