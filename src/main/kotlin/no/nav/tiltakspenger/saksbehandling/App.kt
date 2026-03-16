@@ -99,13 +99,7 @@ internal fun start(
             { applicationContext.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev() },
 
             { applicationContext.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans() },
-
-            // holder denne kun på lokal + dev til vi får testet OK
-            if (!Configuration.isProd()) {
-                { applicationContext.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelser() }
-            } else {
-                null
-            },
+            { applicationContext.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelser() },
 
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },
             { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock) },
@@ -139,7 +133,7 @@ internal fun start(
             applicationContext.tiltaksdeltakerTeamTiltakConsumer,
             applicationContext.leesahConsumer,
             applicationContext.aktorV2Consumer,
-            if (Configuration.isDev()) applicationContext.kabalKlagehendelseConsumer else null,
+            applicationContext.kabalKlagehendelseConsumer,
             if (Configuration.isDev()) applicationContext.tilbakekrevingConsumer else null,
         )
         consumers.forEach { it.run() }
