@@ -168,6 +168,7 @@ class BehandleTilbakekrevingHendelserJobb(
                 årsakTilFeilutbetaling = this.begrunnelse?.verdi,
                 vedtaksdato = this.iverksattTidspunkt!!.toLocalDate(),
             ),
+            // TODO: dette er nok ikke riktig, avventer tilbakemelding fra team tilbake
             utvidPerioder = listOf(
                 TilbakekrevingUtvidPeriode(
                     kravgrunnlagPeriode = TilbakekrevingPeriodeDTO(
@@ -201,6 +202,7 @@ class BehandleTilbakekrevingHendelserJobb(
                 årsakTilFeilutbetaling = this.begrunnelseVilkårsvurdering?.verdi,
                 vedtaksdato = this.iverksattTidspunkt!!.toLocalDate(),
             ),
+            // TODO: dette er nok ikke riktig, avventer tilbakemelding fra team tilbake
             utvidPerioder = listOf(
                 TilbakekrevingUtvidPeriode(
                     kravgrunnlagPeriode = TilbakekrevingPeriodeDTO(

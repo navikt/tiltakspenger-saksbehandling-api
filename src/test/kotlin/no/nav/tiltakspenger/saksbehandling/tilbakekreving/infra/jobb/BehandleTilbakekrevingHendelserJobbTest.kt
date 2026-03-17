@@ -4,7 +4,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
@@ -13,11 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilba
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseType
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO.TilbakekrevingDTO
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO.TilbakekrevingHendelseStatusDTO
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoBehovDTO
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingPeriodeDTO
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -32,13 +27,18 @@ class BehandleTilbakekrevingHendelserJobbTest {
             val utbetaling = sak.utbetalinger.first()
             val kravgrunnlagReferanse = utbetaling.id.uuidPart()
 
-            val hendelseDto = TilbakekrevingInfoBehovDTO(
-                eksternFagsakId = sak.saksnummer.verdi,
-                kravgrunnlagReferanse = kravgrunnlagReferanse,
-                hendelseOpprettet = nå(tac.clock),
-            )
+            @Language("JSON")
+            val hendelseJson = """
+                {
+                    "hendelsestype": "fagsysteminfo_behov",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "kravgrunnlagReferanse": "$kravgrunnlagReferanse"
+                }
+            """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(hendelseDto))
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
 
             val hendelse = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().single()
 
@@ -60,13 +60,18 @@ class BehandleTilbakekrevingHendelserJobbTest {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
-            val hendelseDto = TilbakekrevingInfoBehovDTO(
-                eksternFagsakId = sak.saksnummer.verdi,
-                kravgrunnlagReferanse = "finnes-ikke-uuid",
-                hendelseOpprettet = nå(tac.clock),
-            )
+            @Language("JSON")
+            val hendelseJson = """
+                {
+                    "hendelsestype": "fagsysteminfo_behov",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "kravgrunnlagReferanse": "finnes-ikke-uuid"
+                }
+            """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(hendelseDto))
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
 
             val hendelseId = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().single().id
 
@@ -88,13 +93,18 @@ class BehandleTilbakekrevingHendelserJobbTest {
             val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
             // Bruk et saksnummer som ikke finnes i databasen (gyldig format men ikke eksisterende)
-            val hendelseDto = TilbakekrevingInfoBehovDTO(
-                eksternFagsakId = "202501011001",
-                kravgrunnlagReferanse = "ref-123",
-                hendelseOpprettet = nå(tac.clock),
-            )
+            @Language("JSON")
+            val hendelseJson = """
+                {
+                    "hendelsestype": "fagsysteminfo_behov",
+                    "versjon": 1,
+                    "eksternFagsakId": "202501011001",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "kravgrunnlagReferanse": "ref-123"
+                }
+            """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(hendelseDto))
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
 
             val hendelseId = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().single().id
 
@@ -118,26 +128,31 @@ class BehandleTilbakekrevingHendelserJobbTest {
             val utbetaling = sak.utbetalinger.first()
             val eksternBehandlingId = utbetaling.id.uuidPart()
 
-            val hendelseDto = TilbakekrevingBehandlingEndretDTO(
-                eksternFagsakId = sak.saksnummer.verdi,
-                hendelseOpprettet = nå(tac.clock),
-                eksternBehandlingId = eksternBehandlingId,
-                tilbakekreving = TilbakekrevingDTO(
-                    behandlingId = "tilbake-behandling-123",
-                    sakOpprettet = nå(tac.clock),
-                    varselSendt = LocalDate.now(tac.clock),
-                    behandlingsstatus = TilbakekrevingHendelseStatusDTO.OPPRETTET,
-                    forrigeBehandlingsstatus = null,
-                    totaltFeilutbetaltBeløp = BigDecimal("1500.00"),
-                    saksbehandlingURL = "https://tilbakekreving.nav.no/behandling/123",
-                    fullstendigPeriode = TilbakekrevingPeriodeDTO(
-                        fom = LocalDate.now(tac.clock).minusMonths(1),
-                        tom = LocalDate.now(tac.clock),
-                    ),
-                ),
-            )
+            @Language("JSON")
+            val hendelseJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "eksternBehandlingId": "$eksternBehandlingId",
+                    "tilbakekreving": {
+                        "behandlingId": "tilbake-behandling-123",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": "${LocalDate.now(tac.clock)}",
+                        "behandlingsstatus": "OPPRETTET",
+                        "forrigeBehandlingsstatus": null,
+                        "totaltFeilutbetaltBeløp": 1500.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/123",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        }
+                    }
+                }
+            """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(hendelseDto))
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
 
             tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).size shouldBe 0
 
@@ -169,52 +184,62 @@ class BehandleTilbakekrevingHendelserJobbTest {
             val tilbakeBehandlingId = "tilbake-behandling-456"
 
             // Først opprett en behandling
-            val førsteHendelseDto = TilbakekrevingBehandlingEndretDTO(
-                eksternFagsakId = sak.saksnummer.verdi,
-                hendelseOpprettet = nå(tac.clock),
-                eksternBehandlingId = eksternBehandlingId,
-                tilbakekreving = TilbakekrevingDTO(
-                    behandlingId = tilbakeBehandlingId,
-                    sakOpprettet = nå(tac.clock),
-                    varselSendt = null,
-                    behandlingsstatus = TilbakekrevingHendelseStatusDTO.OPPRETTET,
-                    forrigeBehandlingsstatus = null,
-                    totaltFeilutbetaltBeløp = BigDecimal("1000.00"),
-                    saksbehandlingURL = "https://tilbakekreving.nav.no/behandling/456",
-                    fullstendigPeriode = TilbakekrevingPeriodeDTO(
-                        fom = LocalDate.now(tac.clock).minusMonths(1),
-                        tom = LocalDate.now(tac.clock),
-                    ),
-                ),
-            )
+            @Language("JSON")
+            val førsteHendelseJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "eksternBehandlingId": "$eksternBehandlingId",
+                    "tilbakekreving": {
+                        "behandlingId": "$tilbakeBehandlingId",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": null,
+                        "behandlingsstatus": "OPPRETTET",
+                        "forrigeBehandlingsstatus": null,
+                        "totaltFeilutbetaltBeløp": 1000.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/456",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        }
+                    }
+                }
+            """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(førsteHendelseDto))
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, førsteHendelseJson)
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             val førsteBehandling = tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).first()
             førsteBehandling.status shouldBe TilbakekrevingBehandlingsstatus.OPPRETTET
 
             // Så oppdater med ny hendelse
-            val andreHendelseDto = TilbakekrevingBehandlingEndretDTO(
-                eksternFagsakId = sak.saksnummer.verdi,
-                hendelseOpprettet = nå(tac.clock).plusSeconds(10),
-                eksternBehandlingId = eksternBehandlingId,
-                tilbakekreving = TilbakekrevingDTO(
-                    behandlingId = tilbakeBehandlingId,
-                    sakOpprettet = nå(tac.clock),
-                    varselSendt = LocalDate.now(tac.clock),
-                    behandlingsstatus = TilbakekrevingHendelseStatusDTO.TIL_BEHANDLING,
-                    forrigeBehandlingsstatus = TilbakekrevingHendelseStatusDTO.OPPRETTET,
-                    totaltFeilutbetaltBeløp = BigDecimal("1200.00"),
-                    saksbehandlingURL = "https://tilbakekreving.nav.no/behandling/456",
-                    fullstendigPeriode = TilbakekrevingPeriodeDTO(
-                        fom = LocalDate.now(tac.clock).minusMonths(1),
-                        tom = LocalDate.now(tac.clock),
-                    ),
-                ),
-            )
+            @Language("JSON")
+            val andreHendelseJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock).plusSeconds(10)}",
+                    "eksternBehandlingId": "$eksternBehandlingId",
+                    "tilbakekreving": {
+                        "behandlingId": "$tilbakeBehandlingId",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": "${LocalDate.now(tac.clock)}",
+                        "behandlingsstatus": "TIL_BEHANDLING",
+                        "forrigeBehandlingsstatus": "OPPRETTET",
+                        "totaltFeilutbetaltBeløp": 1200.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/456",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        }
+                    }
+                }
+            """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(andreHendelseDto))
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, andreHendelseJson)
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             // Skal fortsatt bare være én behandling (oppdatert)
@@ -234,26 +259,31 @@ class BehandleTilbakekrevingHendelserJobbTest {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
-            val hendelseDto = TilbakekrevingBehandlingEndretDTO(
-                eksternFagsakId = sak.saksnummer.verdi,
-                hendelseOpprettet = nå(tac.clock),
-                eksternBehandlingId = "finnes-ikke-uuid",
-                tilbakekreving = TilbakekrevingDTO(
-                    behandlingId = "tilbake-behandling-789",
-                    sakOpprettet = nå(tac.clock),
-                    varselSendt = null,
-                    behandlingsstatus = TilbakekrevingHendelseStatusDTO.OPPRETTET,
-                    forrigeBehandlingsstatus = null,
-                    totaltFeilutbetaltBeløp = BigDecimal("500.00"),
-                    saksbehandlingURL = "https://tilbakekreving.nav.no/behandling/789",
-                    fullstendigPeriode = TilbakekrevingPeriodeDTO(
-                        fom = LocalDate.now(tac.clock).minusMonths(1),
-                        tom = LocalDate.now(tac.clock),
-                    ),
-                ),
-            )
+            @Language("JSON")
+            val hendelseJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "eksternBehandlingId": "finnes-ikke-uuid",
+                    "tilbakekreving": {
+                        "behandlingId": "tilbake-behandling-789",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": null,
+                        "behandlingsstatus": "OPPRETTET",
+                        "forrigeBehandlingsstatus": null,
+                        "totaltFeilutbetaltBeløp": 500.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/789",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        }
+                    }
+                }
+            """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(hendelseDto))
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
 
             val hendelse = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().first()
 
@@ -278,31 +308,43 @@ class BehandleTilbakekrevingHendelserJobbTest {
             val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
             // Bruk et saksnummer som ikke finnes i databasen (gyldig format men ikke eksisterende)
-            val hendelseDto = TilbakekrevingBehandlingEndretDTO(
-                eksternFagsakId = "202501011001",
-                hendelseOpprettet = nå(tac.clock),
-                eksternBehandlingId = "ekstern-id",
-                tilbakekreving = TilbakekrevingDTO(
-                    behandlingId = "tilbake-behandling-999",
-                    sakOpprettet = nå(tac.clock),
-                    varselSendt = null,
-                    behandlingsstatus = TilbakekrevingHendelseStatusDTO.OPPRETTET,
-                    forrigeBehandlingsstatus = null,
-                    totaltFeilutbetaltBeløp = BigDecimal("750.00"),
-                    saksbehandlingURL = "https://tilbakekreving.nav.no/behandling/999",
-                    fullstendigPeriode = TilbakekrevingPeriodeDTO(
-                        fom = LocalDate.now(tac.clock).minusMonths(1),
-                        tom = LocalDate.now(tac.clock),
-                    ),
-                ),
-            )
+            @Language("JSON")
+            val hendelseJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "202501011001",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "eksternBehandlingId": "ekstern-id",
+                    "tilbakekreving": {
+                        "behandlingId": "tilbake-behandling-999",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": null,
+                        "behandlingsstatus": "OPPRETTET",
+                        "forrigeBehandlingsstatus": null,
+                        "totaltFeilutbetaltBeløp": 750.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/999",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        }
+                    }
+                }
+            """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(hendelseDto))
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
+
+            val hendelse = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().first()
 
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             // Hendelsen skal være behandlet (markert med feil)
             tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+
+            // Verifiser at feil-feltet er satt
+            val behandletHendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelse.id)
+            behandletHendelse.shouldBeInstanceOf<TilbakekrevingBehandlingEndretHendelse>()
+            behandletHendelse.feil.shouldNotBeNull()
         }
     }
 
@@ -315,34 +357,44 @@ class BehandleTilbakekrevingHendelserJobbTest {
             val kravgrunnlagReferanse = utbetaling.id.uuidPart()
 
             // Opprett en infobehov-hendelse
-            val infoBehovDto = TilbakekrevingInfoBehovDTO(
-                eksternFagsakId = sak.saksnummer.verdi,
-                kravgrunnlagReferanse = kravgrunnlagReferanse,
-                hendelseOpprettet = nå(tac.clock),
-            )
+            @Language("JSON")
+            val infoBehovJson = """
+                {
+                    "hendelsestype": "fagsysteminfo_behov",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "kravgrunnlagReferanse": "$kravgrunnlagReferanse"
+                }
+            """.trimIndent()
 
             // Opprett en behandlingendret-hendelse
-            val behandlingEndretDto = TilbakekrevingBehandlingEndretDTO(
-                eksternFagsakId = sak.saksnummer.verdi,
-                hendelseOpprettet = nå(tac.clock),
-                eksternBehandlingId = kravgrunnlagReferanse,
-                tilbakekreving = TilbakekrevingDTO(
-                    behandlingId = "tilbake-multi-123",
-                    sakOpprettet = nå(tac.clock),
-                    varselSendt = null,
-                    behandlingsstatus = TilbakekrevingHendelseStatusDTO.OPPRETTET,
-                    forrigeBehandlingsstatus = null,
-                    totaltFeilutbetaltBeløp = BigDecimal("2000.00"),
-                    saksbehandlingURL = "https://tilbakekreving.nav.no/behandling/multi",
-                    fullstendigPeriode = TilbakekrevingPeriodeDTO(
-                        fom = LocalDate.now(tac.clock).minusMonths(1),
-                        tom = LocalDate.now(tac.clock),
-                    ),
-                ),
-            )
+            @Language("JSON")
+            val behandlingEndretJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "eksternBehandlingId": "$kravgrunnlagReferanse",
+                    "tilbakekreving": {
+                        "behandlingId": "tilbake-multi-123",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": null,
+                        "behandlingsstatus": "OPPRETTET",
+                        "forrigeBehandlingsstatus": null,
+                        "totaltFeilutbetaltBeløp": 2000.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/multi",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        }
+                    }
+                }
+            """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(infoBehovDto))
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(behandlingEndretDto))
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, infoBehovJson)
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, behandlingEndretJson)
 
             tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 2
 
@@ -383,52 +435,62 @@ class BehandleTilbakekrevingHendelserJobbTest {
             val tilbakeBehandlingId = "tilbake-utdatert-123"
 
             // Opprett første hendelse med nyere timestamp
-            val nyHendelseDto = TilbakekrevingBehandlingEndretDTO(
-                eksternFagsakId = sak.saksnummer.verdi,
-                hendelseOpprettet = nå(tac.clock).plusMinutes(10),
-                eksternBehandlingId = eksternBehandlingId,
-                tilbakekreving = TilbakekrevingDTO(
-                    behandlingId = tilbakeBehandlingId,
-                    sakOpprettet = nå(tac.clock),
-                    varselSendt = null,
-                    behandlingsstatus = TilbakekrevingHendelseStatusDTO.TIL_BEHANDLING,
-                    forrigeBehandlingsstatus = null,
-                    totaltFeilutbetaltBeløp = BigDecimal("1500.00"),
-                    saksbehandlingURL = "https://tilbakekreving.nav.no/behandling/utdatert",
-                    fullstendigPeriode = TilbakekrevingPeriodeDTO(
-                        fom = LocalDate.now(tac.clock).minusMonths(1),
-                        tom = LocalDate.now(tac.clock),
-                    ),
-                ),
-            )
+            @Language("JSON")
+            val nyHendelseJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock).plusMinutes(10)}",
+                    "eksternBehandlingId": "$eksternBehandlingId",
+                    "tilbakekreving": {
+                        "behandlingId": "$tilbakeBehandlingId",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": null,
+                        "behandlingsstatus": "TIL_BEHANDLING",
+                        "forrigeBehandlingsstatus": null,
+                        "totaltFeilutbetaltBeløp": 1500.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/utdatert",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        }
+                    }
+                }
+            """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(nyHendelseDto))
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, nyHendelseJson)
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             val behandlingFørUtdatertHendelse = tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).first()
             behandlingFørUtdatertHendelse.status shouldBe TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
 
             // Opprett utdatert hendelse med eldre timestamp
-            val utdatertHendelseDto = TilbakekrevingBehandlingEndretDTO(
-                eksternFagsakId = sak.saksnummer.verdi,
-                hendelseOpprettet = nå(tac.clock), // Eldre enn den første
-                eksternBehandlingId = eksternBehandlingId,
-                tilbakekreving = TilbakekrevingDTO(
-                    behandlingId = tilbakeBehandlingId,
-                    sakOpprettet = nå(tac.clock),
-                    varselSendt = null,
-                    behandlingsstatus = TilbakekrevingHendelseStatusDTO.OPPRETTET, // Prøver å sette tilbake til OPPRETTET
-                    forrigeBehandlingsstatus = null,
-                    totaltFeilutbetaltBeløp = BigDecimal("1000.00"),
-                    saksbehandlingURL = "https://tilbakekreving.nav.no/behandling/utdatert",
-                    fullstendigPeriode = TilbakekrevingPeriodeDTO(
-                        fom = LocalDate.now(tac.clock).minusMonths(1),
-                        tom = LocalDate.now(tac.clock),
-                    ),
-                ),
-            )
+            @Language("JSON")
+            val utdatertHendelseJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "eksternBehandlingId": "$eksternBehandlingId",
+                    "tilbakekreving": {
+                        "behandlingId": "$tilbakeBehandlingId",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": null,
+                        "behandlingsstatus": "OPPRETTET",
+                        "forrigeBehandlingsstatus": null,
+                        "totaltFeilutbetaltBeløp": 1000.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/utdatert",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        }
+                    }
+                }
+            """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, serialize(utdatertHendelseDto))
+            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, utdatertHendelseJson)
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             // Hendelsen skal være behandlet, men behandlingen skal ikke være oppdatert
@@ -450,7 +512,8 @@ class BehandleTilbakekrevingHendelserJobbTest {
 
             // Simuler mottak av InfoBehov hendelse via Kafka consumer
             val key = "test-key-infobehov"
-            //language=json
+
+            @Language("JSON")
             val value = """
                 {
                     "hendelsestype": "fagsysteminfo_behov",
