@@ -111,6 +111,10 @@ data class Rammevedtaksliste(
         innvilgetTidslinje.flatMapPeriodisering { it.verdi.rammebehandling.antallDagerPerMeldeperiode!! }
     }
 
+    val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltakelse> by lazy {
+        innvilgetTidslinje.flatMapPeriodisering { it.verdi.rammebehandling.valgteTiltaksdeltakelser!! }
+    }
+
     fun antallDagerForMeldeperiode(periode: Periode): AntallDagerForMeldeperiode? {
         return innvilgetTidslinje
             .overlappendePeriode(periode)
@@ -120,10 +124,6 @@ data class Rammevedtaksliste(
 
     fun vedtakForPeriode(periode: Periode): Periodisering<VedtakId> {
         return tidslinje.map { verdi, _ -> verdi.id }.krymp(periode)
-    }
-
-    val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltakelse> by lazy {
-        innvilgetTidslinje.flatMapPeriodisering { it.verdi.rammebehandling.valgteTiltaksdeltakelser!! }
     }
 
     fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltakelse> {

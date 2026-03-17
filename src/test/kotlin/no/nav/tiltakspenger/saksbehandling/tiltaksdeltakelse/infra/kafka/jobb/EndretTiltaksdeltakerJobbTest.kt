@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppgaveId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
@@ -239,6 +240,71 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
+            tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
+        }
+    }
+
+    @Test
+    fun `iverksatt søknadsbehandling + revurdering innvilgelse - forlenget tom til samme som revurderingen - sletter fra db`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnr = Fnr.random()
+            val tiltaksdeltakerId = TiltaksdeltakerId.random()
+            val deltakelseFom = 5.januar(2025)
+            val opprinneligDeltakelsesTom = 5.mai(2025)
+            val forlengetDeltakelsesTom = 5.juni(2025)
+            val opprinneligDeltakelsesperiode = deltakelseFom til opprinneligDeltakelsesTom
+            val forlengetDeltakelsesperiode = deltakelseFom til forlengetDeltakelsesTom
+
+            val revurderingForlengelsePeriode = opprinneligDeltakelsesTom.plusDays(1) til forlengetDeltakelsesTom
+
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = opprinneligDeltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
+
+            // Opprett og iverksett søknadsbehandling med opprinnelig periode
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = fnr,
+                innvilgelsesperioder = innvilgelsesperioder(opprinneligDeltakelsesperiode, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            val tiltaksdeltakelseForlenget = tiltaksdeltakelse(
+                periode = forlengetDeltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
+
+            tac.oppdaterTiltaksdeltakelse(fnr = sak.fnr, tiltaksdeltakelse = tiltaksdeltakelseForlenget)
+
+            // Opprett og iverksett revurdering innvilgelse med forlenget tom
+            iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(
+                    revurderingForlengelsePeriode,
+                    tiltaksdeltakelseForlenget,
+                ),
+            )
+
+            // Opprett tiltaksdeltakerKafka med samme forlengede tom som revurderingen
+            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                sakId = sak.id,
+                fom = deltakelseFom,
+                tom = forlengetDeltakelsesTom,
+                dagerPerUke = 5F,
+                deltakelsesprosent = 100F,
+                tiltaksdeltakerId = tiltaksdeltakerId,
+            )
+            tac.tiltaksdeltakerKafkaRepository.lagre(
+                tiltaksdeltakerKafkaDb,
+                "melding",
+                nå(tac.clock).minusMinutes(20),
+            )
+
+            tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
+
+            // Skal slettes fordi det ikke er noen endring
             tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
         }
     }

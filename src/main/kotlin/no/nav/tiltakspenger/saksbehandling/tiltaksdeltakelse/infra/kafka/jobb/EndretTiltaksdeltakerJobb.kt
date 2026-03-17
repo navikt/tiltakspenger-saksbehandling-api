@@ -106,23 +106,29 @@ class EndretTiltaksdeltakerJobb(
     private fun Sak.finnEndringer(deltaker: TiltaksdeltakerKafkaDb): NonEmptyList<TiltaksdeltakerEndring>? {
         val tiltaksdeltakerId = deltaker.tiltaksdeltakerId
 
-        val relevanteTiltaksdeltakelserFraVedtak = rammevedtaksliste.valgteTiltaksdeltakelser
-            .filter { it.verdi.internDeltakelseId == tiltaksdeltakerId }.verdier
+        val vedtatteBehandlingerMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.verdier
+            .filter { vedtak ->
+                vedtak.valgteTiltaksdeltakelser?.any {
+                    it.verdi.internDeltakelseId == tiltaksdeltakerId
+                } ?: false
+            }
+            .map { it.rammebehandling }
 
-        val relevanteTiltaksdeltakelserFraÅpneBehandlinger = rammebehandlinger.åpneBehandlinger
-            .filter { !it.erUnderAutomatiskBehandling }
-            .mapNotNull { it.getTiltaksdeltakelse(tiltaksdeltakerId) }
+        val åpneBehandlingerMedRelevantTiltaksdeltakelse = rammebehandlinger.åpneBehandlinger
+            .filter { !it.erUnderAutomatiskBehandling && it.getTiltaksdeltakelse(tiltaksdeltakerId) != null }
 
-        val relevanteTiltaksdeltakelser = relevanteTiltaksdeltakelserFraVedtak
-            .plus(relevanteTiltaksdeltakelserFraÅpneBehandlinger)
-            .distinctBy { it.internDeltakelseId }
+        val behandlingerMedRelevantTiltaksdeltakelse = vedtatteBehandlingerMedRelevantTiltaksdeltakelse
+            .plus(åpneBehandlingerMedRelevantTiltaksdeltakelse)
 
-        if (relevanteTiltaksdeltakelser.isEmpty()) {
+        if (behandlingerMedRelevantTiltaksdeltakelse.isEmpty()) {
             return null
         }
 
-        return relevanteTiltaksdeltakelser
-            .flatMap { deltaker.finnEndringer(it, clock) }
+        val sisteRelevanteTiltaksdeltakelse = behandlingerMedRelevantTiltaksdeltakelse
+            .maxBy { it.sistEndret }
+            .getTiltaksdeltakelse(tiltaksdeltakerId)!!
+
+        return deltaker.finnEndringer(sisteRelevanteTiltaksdeltakelse, clock)
             .toNonEmptyListOrNull()
     }
 
