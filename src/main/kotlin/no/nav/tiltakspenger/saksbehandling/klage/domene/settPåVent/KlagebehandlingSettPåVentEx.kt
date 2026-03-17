@@ -6,6 +6,9 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
 import java.time.Clock
 
 /**
@@ -14,7 +17,7 @@ import java.time.Clock
 fun Klagebehandling.settPåVent(
     kommando: SettKlagebehandlingPåVentKommando,
     clock: Clock,
-): Either<KanIkkeSetteKlagebehandlingPåVent, Klagebehandling> {
+): Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Klagebehandling, Statistikkhendelser>> {
     kanOppdatereIDenneStatusen(null, kanVæreOmgjørEtterKA = true).onLeft {
         return KanIkkeSetteKlagebehandlingPåVent.KanIkkeOppdateres(it).left()
     }
@@ -25,7 +28,7 @@ fun Klagebehandling.settPåVent(
         ).left()
     }
     val nå = nå(clock)
-    return this.copy(
+    val oppdatertKlagebehandling = this.copy(
         saksbehandler = null,
         ventestatus = ventestatus.settPåVent(
             tidspunkt = nå,
@@ -36,5 +39,11 @@ fun Klagebehandling.settPåVent(
         ),
         sistEndret = nå,
         status = KLAR_TIL_BEHANDLING,
-    ).right()
+    )
+    val statistikkhendelser = Statistikkhendelser(
+        oppdatertKlagebehandling.genererSaksstatistikk(
+            hendelse = StatistikkhendelseType.BEHANDLING_SATT_PA_VENT,
+        ),
+    )
+    return (oppdatertKlagebehandling to statistikkhendelser).right()
 }

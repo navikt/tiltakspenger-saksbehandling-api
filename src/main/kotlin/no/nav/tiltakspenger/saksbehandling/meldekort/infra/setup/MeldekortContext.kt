@@ -31,7 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
-import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
@@ -51,7 +51,7 @@ open class MeldekortContext(
     sakRepo: SakRepo,
     clock: Clock,
     simulerService: SimulerService,
-    statistikkMeldekortRepo: StatistikkMeldekortRepo,
+    statistikkService: StatistikkService,
     genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
     navIdentClient: NavIdentClient,
 ) {
@@ -85,7 +85,7 @@ open class MeldekortContext(
             meldekortvedtakRepo = meldekortvedtakRepo,
             utbetalingRepo = utbetalingRepo,
             clock = clock,
-            statistikkMeldekortRepo = statistikkMeldekortRepo,
+            statistikkService = statistikkService,
         )
     }
     val oppdaterMeldekortService by lazy {
@@ -115,7 +115,7 @@ open class MeldekortContext(
             simulerService = simulerService,
             sakService = sakService,
             oppgaveKlient = oppgaveKlient,
-            statistikkMeldekortRepo = statistikkMeldekortRepo,
+            statistikkService = statistikkService,
         )
     }
 

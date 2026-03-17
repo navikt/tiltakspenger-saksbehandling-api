@@ -242,7 +242,7 @@ interface SakMother {
                     clock = clock,
                     sak = sak,
                     correlationId = correlationId,
-                )
+                ).first
             }
         return Sak(
             id = sakId,
@@ -304,12 +304,12 @@ interface SakMother {
             saksbehandler = saksbehandler,
             clock = clock,
         ).taBehandling(beslutter, clock)
-            .iverksett(
+            .first.iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),
                 correlationId = correlationId,
                 clock = clock,
-            )
+            ).first
 
         val sakMedIverksattBehandling = sak.oppdaterRammebehandling(iverksattBehandling)
         val sakMedVedtak = sakMedIverksattBehandling.opprettRammevedtak(iverksattBehandling, clock)
@@ -351,13 +351,13 @@ interface SakMother {
         ).getOrFail().tilBeslutning(
             saksbehandler = saksbehandler,
             clock = clock,
-        ).taBehandling(beslutter, clock)
+        ).taBehandling(beslutter, clock).first
             .iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),
                 correlationId = correlationId,
                 clock = clock,
-            )
+            ).first
 
         val sakMedIverksattBehandling = sak.oppdaterRammebehandling(iverksattBehandling)
         val sakMedVedtak = sakMedIverksattBehandling.opprettRammevedtak(iverksattBehandling, clock)

@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -17,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvManueltRegistrertSøknadCommand
 import java.time.Clock
@@ -28,8 +27,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val søknadRepo: SøknadRepo,
-    private val saksstatistikkService: SaksstatistikkService,
-    private val saksstatistikkRepo: SaksstatistikkRepo,
+    private val statistikkService: StatistikkService,
     private val journalpostService: ValiderJournalpostService,
     private val personService: PersonService,
     private val sessionFactory: SessionFactory,
@@ -95,7 +93,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
         // Legg søknaden inn i sak før vi oppretter behandlingen eventuelt tiltak inkluderes i saksopplysningene
         val sakMedSøknad = sak.copy(søknader = sak.søknader + manueltRegistrertSøknad)
 
-        val (oppdatertSak, søknadsbehandling) = Søknadsbehandling.opprett(
+        val (oppdatertSak, søknadsbehandling, statistikkhendelser) = Søknadsbehandling.opprett(
             sak = sakMedSøknad,
             søknad = manueltRegistrertSøknad,
             saksbehandler = saksbehandler,
@@ -105,20 +103,16 @@ class StartBehandlingAvManueltRegistrertSøknadService(
             klagebehandling = null,
         )
 
-        val opprettetBehandlingStatistikk = saksstatistikkService.genererStatistikkForSøknadsbehandling(
-            behandling = søknadsbehandling,
-        )
+        val statistikkDTO = statistikkService.generer(statistikkhendelser)
 
         sessionFactory.withTransactionContext { tx ->
             søknadRepo.lagre(manueltRegistrertSøknad, tx)
             rammebehandlingRepo.lagre(søknadsbehandling, tx)
-            saksstatistikkRepo.lagre(opprettetBehandlingStatistikk, tx)
+            statistikkService.lagre(statistikkDTO, tx)
             sakService.markerSkalSendesTilMeldekortApi(
                 sakId = sak.id,
                 sessionContext = tx,
             )
-            // TODO jah: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
-            @Suppress("RunBlockingInSuspendFunction")
             runBlocking {
                 tx.onSuccess {
                     MetricRegister.STARTET_BEHANDLING.inc()

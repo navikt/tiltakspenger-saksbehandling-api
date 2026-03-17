@@ -9,9 +9,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.fixedClock
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.tilStatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
@@ -22,9 +21,9 @@ import org.junit.jupiter.api.Test
 internal class SendUtbetalingerServiceTest {
     private val utbetalingRepo = mockk<UtbetalingRepo>()
     private val utbetalingsklient = mockk<Utbetalingsklient>()
-    private val statistikkStønadRepo = mockk<StatistikkStønadRepo>()
+    private val statistikkService = mockk<StatistikkService>()
     private val sendUtbetalingerService =
-        SendUtbetalingerService(utbetalingRepo, utbetalingsklient, statistikkStønadRepo, fixedClock)
+        SendUtbetalingerService(utbetalingRepo, utbetalingsklient, statistikkService, fixedClock)
 
     @BeforeEach
     fun setup() {
@@ -34,13 +33,11 @@ internal class SendUtbetalingerServiceTest {
     @Test
     fun `utbetaling blir iverksatt og markert som sendt til utbetaling`() = runTest {
         val utbetaling = ObjectMother.utbetaling()
-        val statistikk = utbetaling.tilStatistikk(fixedClock)
 
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)
         val sendtUtbetaling = SendtUtbetaling("req", "res", 202)
         coEvery { utbetalingsklient.iverksett(any(), any(), any()) } returns Either.Right(sendtUtbetaling)
         justRun { utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, any(), sendtUtbetaling) }
-        justRun { statistikkStønadRepo.lagre(statistikk) }
 
         sendUtbetalingerService.sendUtbetalingerTilHelved()
 
@@ -50,10 +47,6 @@ internal class SendUtbetalingerServiceTest {
                 any(),
                 sendtUtbetaling,
             )
-        }
-
-        verify(exactly = 1) {
-            statistikkStønadRepo.lagre(statistikk)
         }
     }
 

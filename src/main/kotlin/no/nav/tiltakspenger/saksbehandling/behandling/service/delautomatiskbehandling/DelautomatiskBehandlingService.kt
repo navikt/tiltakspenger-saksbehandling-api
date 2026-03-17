@@ -24,7 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
@@ -33,7 +32,10 @@ import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_IKKE_BEHANDLET_AUTOMATISK
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -43,8 +45,7 @@ import java.time.LocalDate
 
 class DelautomatiskBehandlingService(
     private val rammebehandlingRepo: RammebehandlingRepo,
-    private val saksstatistikkService: SaksstatistikkService,
-    private val saksstatistikkRepo: SaksstatistikkRepo,
+    private val statistikkService: StatistikkService,
     private val sessionFactory: SessionFactory,
     private val sakService: SakService,
     private val navkontorService: NavkontorService,
@@ -58,9 +59,9 @@ class DelautomatiskBehandlingService(
             settBehandlingPaVent(behandling, correlationId)
             return
         }
-        val oppdatertBehandling = if (behandling.ventestatus.erSattPåVent) {
+        val (oppdatertBehandling, statistikkhendelser) = if (behandling.ventestatus.erSattPåVent) {
             log.info { "Gjenopptar behandling med id ${behandling.id}. CorrelationId: $correlationId" }
-            val gjenopptattBehandling = behandling.gjenoppta(
+            val (gjenopptattBehandling, statistikkhendelser) = behandling.gjenoppta(
                 GjenopptaRammebehandlingKommando(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
@@ -72,9 +73,9 @@ class DelautomatiskBehandlingService(
                 hentSaksopplysninger = null,
             ).getOrThrow()
             // I alle tilfeller der den automatiske jobben gjenopptar en behandling, vil den enten sette den til manuell eller sende til beslutning. I begge tilfeller persisteres behandlingen, så vi trenger ikke gjøre det her. Hvis vi vil gjøre det her, bør vi gjøre det i en transaksjon.
-            gjenopptattBehandling as Søknadsbehandling
+            (gjenopptattBehandling as Søknadsbehandling) to statistikkhendelser
         } else {
-            behandling
+            behandling to Statistikkhendelser.empty()
         }
 
         val manueltBehandlesGrunner = kanBehandleAutomatisk(oppdatertBehandling)
@@ -82,11 +83,11 @@ class DelautomatiskBehandlingService(
         if (manueltBehandlesGrunner.isEmpty()) {
             log.info { "Kan behandle behandling med id ${behandling.id} automatisk, sender til beslutning, correlationId $correlationId" }
             val sak = sakService.hentForSakId(behandling.sakId)
-            sak.sendTilBeslutning(oppdatertBehandling, correlationId)
+            sak.sendTilBeslutning(oppdatertBehandling, statistikkhendelser, correlationId)
             SOKNAD_BEHANDLET_DELVIS_AUTOMATISK.inc()
         } else {
             log.info { "Kan ikke behandle behandling med id ${behandling.id} automatisk, sender til manuell behandling, correlationId $correlationId" }
-            sendTilManuellBehandling(oppdatertBehandling, manueltBehandlesGrunner, correlationId)
+            sendTilManuellBehandling(oppdatertBehandling, manueltBehandlesGrunner, statistikkhendelser, correlationId)
             SOKNAD_IKKE_BEHANDLET_AUTOMATISK.inc()
         }
     }
@@ -104,7 +105,7 @@ class DelautomatiskBehandlingService(
         return false
     }
 
-    private fun settBehandlingPaVent(behandling: Søknadsbehandling, correlationId: CorrelationId) {
+    private suspend fun settBehandlingPaVent(behandling: Søknadsbehandling, correlationId: CorrelationId) {
         val startdatoForTiltak = getSoknadstiltakFraSaksopplysning(behandling)?.deltakelseFraOgMed
             ?: throw IllegalStateException("Skal ikke sette behandling med id ${behandling.id} på vent siden startdato mangler")
         val venterTil = startdatoForTiltak.atTime(6, 0)
@@ -113,6 +114,7 @@ class DelautomatiskBehandlingService(
                 nyVenterTil = venterTil,
                 clock = clock,
             ).let {
+                // Siden vi ikke sender ventestatusen til statistikk, trenger vi ikke sende ny statistikk her.
                 rammebehandlingRepo.lagre(it)
             }
             log.info { "Har oppdatert venterTil for behandling med id ${behandling.id} som allerede var på vent. CorrelationId: $correlationId" }
@@ -128,13 +130,21 @@ class DelautomatiskBehandlingService(
                 ),
                 clock = clock,
             ).let {
-                rammebehandlingRepo.lagre(it)
+                val statistikk = statistikkService.generer(it.second)
+                sessionFactory.withTransactionContext { tx ->
+                    rammebehandlingRepo.lagre(it.first, tx)
+                    statistikkService.lagre(statistikk, tx)
+                }
             }
             log.info { "Har satt behandling med id ${behandling.id} på vent. CorrelationId: $correlationId" }
         }
     }
 
-    private suspend fun Sak.sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {
+    private suspend fun Sak.sendTilBeslutning(
+        behandling: Søknadsbehandling,
+        statistikkhendelser: Statistikkhendelser,
+        correlationId: CorrelationId,
+    ) {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
         val innvilgelsesperiode = behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()
         val barnetillegg = utledBarnetillegg(behandling)
@@ -204,15 +214,18 @@ class DelautomatiskBehandlingService(
             saksbehandler = saksbehandler,
             correlationId = correlationId,
         )
-
         oppdatertBehandling.tilBeslutning(tilBeslutningKommando, clock).mapLeft {
             throw IllegalStateException("Kunne ikke sende behandling med id ${behandling.id} til beslutning fordi: ${it::class.simpleName}")
         }.map {
-            val statistikk = saksstatistikkService.genererStatistikkForSendTilBeslutter(it)
+            val statistikkDTO = statistikkService.generer(
+                statistikkhendelser.leggTil(
+                    it.genererSaksstatistikk(StatistikkhendelseType.SENDT_TIL_BESLUTTER),
+                ),
+            )
             sessionFactory.withTransactionContext { tx ->
                 rammebehandlingRepo.lagre(it, tx)
                 rammebehandlingRepo.oppdaterSimuleringMetadata(it.id, simuleringMedMetadata?.originalResponseBody, tx)
-                saksstatistikkRepo.lagre(statistikk, tx)
+                statistikkService.lagre(statistikkDTO, tx)
             }
         }
         log.info { "Behandling med id ${behandling.id} er sendt til beslutning, correlationId $correlationId" }
@@ -221,13 +234,18 @@ class DelautomatiskBehandlingService(
     private suspend fun sendTilManuellBehandling(
         behandling: Søknadsbehandling,
         manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
+        statistikkhendelser: Statistikkhendelser,
         correlationId: CorrelationId,
     ) {
         behandling.tilManuellBehandling(manueltBehandlesGrunner, clock).also {
-            val statistikk = saksstatistikkService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
+            val statistikkDTO = statistikkService.generer(
+                statistikkhendelser.leggTil(
+                    it.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
+                ),
+            )
             sessionFactory.withTransactionContext { tx ->
                 rammebehandlingRepo.lagre(it, tx)
-                saksstatistikkRepo.lagre(statistikk, tx)
+                statistikkService.lagre(statistikkDTO, tx)
             }
         }
         manueltBehandlesGrunner.forEach {

@@ -39,6 +39,9 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperioder
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.genererStønadsstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -271,7 +274,7 @@ data class Rammevedtak(
 fun Sak.opprettRammevedtak(
     rammebehandling: Rammebehandling,
     clock: Clock,
-): Pair<Sak, Rammevedtak> {
+): Triple<Sak, Rammevedtak, Statistikkhendelser> {
     val klagebehandling: Klagebehandling? = rammebehandling.klagebehandling
     require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
     if (klagebehandling != null) {
@@ -322,6 +325,15 @@ fun Sak.opprettRammevedtak(
     )
 
     val oppdatertSak = this.leggTilRammevedtak(vedtak).oppdaterRammebehandling(rammebehandling)
-
-    return oppdatertSak to vedtak
+    val statistikkhendelser = Statistikkhendelser(
+        listOfNotNull(
+            vedtak.genererSaksstatistikk(),
+            if (vedtak.rammebehandlingsresultat is Søknadsbehandlingsresultat.Avslag) {
+                null
+            } else {
+                genererStønadsstatistikkForRammevedtak(vedtak)
+            },
+        ),
+    )
+    return Triple(oppdatertSak, vedtak, statistikkhendelser)
 }

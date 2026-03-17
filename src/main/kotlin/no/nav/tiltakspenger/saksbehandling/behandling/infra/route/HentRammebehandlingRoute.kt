@@ -37,7 +37,7 @@ fun Route.hentRammebehandlingRoute(
                 val correlationId = call.correlationId()
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                behandlingService.hentSakOgBehandling(sakId, behandlingId).also { (sak) ->
+                behandlingService.hentSakOgRammebehandling(sakId, behandlingId).also { (sak) ->
                     auditService.logMedBehandlingId(
                         behandlingId = behandlingId,
                         navIdent = saksbehandler.navIdent,

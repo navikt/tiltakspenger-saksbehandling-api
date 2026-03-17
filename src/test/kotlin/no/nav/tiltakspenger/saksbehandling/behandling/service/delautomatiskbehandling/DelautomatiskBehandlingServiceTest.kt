@@ -140,7 +140,7 @@ class DelautomatiskBehandlingServiceTest {
             val behandlingPaVent = behandling.settPåVent(
                 kommando = kommando,
                 clock = tac.clock,
-            ) as Søknadsbehandling
+            ).first as Søknadsbehandling
             tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
@@ -191,7 +191,7 @@ class DelautomatiskBehandlingServiceTest {
             val behandlingPaVent = behandling.settPåVent(
                 kommando = kommando,
                 clock = tac.clock,
-            ) as Søknadsbehandling
+            ).first as Søknadsbehandling
             tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
@@ -242,7 +242,7 @@ class DelautomatiskBehandlingServiceTest {
             val behandlingPaVent = behandling.settPåVent(
                 kommando = kommando,
                 clock = tac.clock,
-            ) as Søknadsbehandling
+            ).first as Søknadsbehandling
             tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING

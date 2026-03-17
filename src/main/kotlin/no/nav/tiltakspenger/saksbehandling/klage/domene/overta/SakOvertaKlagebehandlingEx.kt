@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.overta
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.OvertaRammebehandlingKommando
@@ -11,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import java.time.Clock
 
 /**
@@ -20,10 +20,10 @@ suspend fun Sak.overtaKlagebehandling(
     kommando: OvertaKlagebehandlingKommando,
     clock: Clock,
     overtaRammebehandling: suspend (OvertaRammebehandlingKommando) -> Either<KunneIkkeOvertaBehandling, Pair<Sak, Rammebehandling>>,
-    lagreKlagebehandling: (Klagebehandling, SessionContext?) -> Unit,
+    lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeOvertaKlagebehandling, Triple<Sak, Klagebehandling, Rammebehandling?>> {
-    return this.hentKlagebehandling(kommando.klagebehandlingId).let {
-        val rammebehandling = it.rammebehandlingId?.let { this.hentRammebehandling(it) }
+    return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
+        val rammebehandling = klagebehandling.rammebehandlingId?.let { this.hentRammebehandling(it) }
         if (rammebehandling != null) {
             return overtaRammebehandling(
                 OvertaRammebehandlingKommando(
@@ -37,9 +37,11 @@ suspend fun Sak.overtaKlagebehandling(
                 Triple(it.first, it.second.klagebehandling!!, it.second)
             }.right()
         }
-        it.overta(kommando, null, clock).map {
-            val oppdatertSak = this.oppdaterKlagebehandling(it)
-            Triple(oppdatertSak, it, null)
-        }.onRight { lagreKlagebehandling(it.second, null) }
+        klagebehandling.overta(kommando, null, clock)
+            .map { (oppdatertKlagebehandling, statistikkhendelser) ->
+                val oppdatertSak = this.oppdaterKlagebehandling(oppdatertKlagebehandling)
+                lagre(oppdatertKlagebehandling, statistikkhendelser)
+                Triple(oppdatertSak, oppdatertKlagebehandling, null)
+            }
     }
 }

@@ -1,13 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk
 
 import kotliquery.Row
+import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import org.intellij.lang.annotations.Language
 import org.jetbrains.annotations.TestOnly
 
@@ -24,33 +24,18 @@ import org.jetbrains.annotations.TestOnly
  */
 internal class SaksstatistikkPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) : SaksstatistikkRepo {
-    override fun lagre(dto: StatistikkSakDTO, context: TransactionContext?) {
+) {
+    /** OBS: Skal kun brukes for tester */
+    @TestOnly
+    fun lagre(dto: SaksstatistikkDTO, context: TransactionContext? = null) {
         sessionFactory.withTransaction(context) { tx ->
             lagre(dto, tx)
         }
     }
 
-    // DVH håndterer selv adressebeskyttelse, så dette gjør vi mest for vår egen del.
-    override fun oppdaterAdressebeskyttelse(sakId: SakId) {
-        sessionFactory.withSession {
-            it.run(
-                queryOf(
-                    """
-                        update statistikk_sak set opprettetAv = :verdi, saksbehandler = :verdi, ansvarligbeslutter = :verdi, ansvarligenhet = :verdi where sak_id = :sak_id
-                    """.trimIndent(),
-                    mapOf(
-                        "verdi" to "-5",
-                        "sak_id" to sakId.toString(),
-                    ),
-                ).asUpdate,
-            )
-        }
-    }
-
     /** OBS: Skal kun brukes for tester */
     @TestOnly
-    override fun hent(sakId: SakId): List<StatistikkSakDTO> = sessionFactory.withSession {
+    fun hent(sakId: SakId): List<SaksstatistikkDTO> = sessionFactory.withSession {
         it.run(
             queryOf(
                 """
@@ -65,9 +50,16 @@ internal class SaksstatistikkPostgresRepo(
         )
     }
 
-    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
-        sessionFactory.withTransaction(context) { tx ->
-            tx.run(
+    companion object {
+        /**
+         * DVH håndterer selv adressebeskyttelse, så dette gjør vi mest for vår egen del.
+         */
+        fun oppdaterFnr(
+            gammeltFnr: Fnr,
+            nyttFnr: Fnr,
+            session: Session,
+        ) {
+            session.run(
                 queryOf(
                     """
                         update statistikk_sak set fnr = :nytt_fnr where fnr = :gammelt_fnr
@@ -79,10 +71,22 @@ internal class SaksstatistikkPostgresRepo(
                 ).asUpdate,
             )
         }
-    }
 
-    companion object {
-        fun lagre(dto: StatistikkSakDTO, tx: TransactionalSession) {
+        fun oppdaterAdressebeskyttelse(sakId: SakId, session: Session) {
+            session.run(
+                queryOf(
+                    """
+                        update statistikk_sak set opprettetAv = :verdi, saksbehandler = :verdi, ansvarligbeslutter = :verdi, ansvarligenhet = :verdi where sak_id = :sak_id
+                    """.trimIndent(),
+                    mapOf(
+                        "verdi" to "-5",
+                        "sak_id" to sakId.toString(),
+                    ),
+                ).asUpdate,
+            )
+        }
+
+        fun lagre(dto: SaksstatistikkDTO, tx: TransactionalSession) {
             tx.run(
                 queryOf(
                     lagreSql,
@@ -200,7 +204,7 @@ internal class SaksstatistikkPostgresRepo(
     }
 
     private fun Row.toStatistikkSakDTO() =
-        StatistikkSakDTO(
+        SaksstatistikkDTO(
             sakId = string("sak_id"),
             saksnummer = string("saksnummer"),
             behandlingId = string("behandlingid"),

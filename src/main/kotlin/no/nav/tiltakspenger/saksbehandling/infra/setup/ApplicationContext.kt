@@ -220,7 +220,7 @@ open class ApplicationContext(
             sakRepo = sakContext.sakRepo,
             personhendelseRepository = personhendelseRepository,
             personKlient = personContext.personKlient,
-            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
+            statistikkService = statistikkContext.statistikkService,
         )
     }
 
@@ -281,9 +281,7 @@ open class ApplicationContext(
             identhendelseKafkaProducer = identhendelseKafkaProducer,
             sakRepo = sakContext.sakRepo,
             søknadRepo = søknadContext.søknadRepo,
-            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
-            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
-            statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
+            statistikkService = statistikkContext.statistikkService,
             sessionFactory = sessionFactory,
         )
     }
@@ -337,7 +335,7 @@ open class ApplicationContext(
             sakRepo = sakContext.sakRepo,
             clock = clock,
             navkontorService = navkontorService,
-            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
+            statistikkService = statistikkContext.statistikkService,
         )
     }
     open val meldekortContext by lazy {
@@ -351,7 +349,7 @@ open class ApplicationContext(
             sakRepo = sakContext.sakRepo,
             clock = clock,
             simulerService = utbetalingContext.simulerService,
-            statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
+            statistikkService = statistikkContext.statistikkService,
             genererVedtaksbrevForUtbetalingKlient = dokumentContext.genererVedtaksbrevForUtbetalingKlient,
             navIdentClient = personContext.navIdentClient,
         )
@@ -361,8 +359,7 @@ open class ApplicationContext(
             sessionFactory = sessionFactory,
             meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
-            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
-            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
+            statistikkService = statistikkContext.statistikkService,
             journalførRammevedtaksbrevKlient = dokumentContext.journalførRammevedtaksbrevKlient,
             genererVedtaksbrevForInnvilgelseKlient = dokumentContext.genererVedtaksbrevForInnvilgelseKlient,
             genererVedtaksbrevForAvslagKlient = dokumentContext.genererVedtaksbrevForAvslagKlient,
@@ -374,7 +371,6 @@ open class ApplicationContext(
             sakService = sakContext.sakService,
             tiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
             clock = clock,
-            saksstatistikkService = statistikkContext.saksstatistikkService,
             sokosUtbetaldataClient = sokosUtbetaldataClient,
             navkontorService = navkontorService,
             simulerService = utbetalingContext.simulerService,
@@ -403,10 +399,9 @@ open class ApplicationContext(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
-            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
-            saksstatistikkService = statistikkContext.saksstatistikkService,
-            rammevedtakRepo = behandlingContext.rammevedtakRepo,
             texasClient = texasClient,
+            rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            statistikkService = statistikkContext.statistikkService,
         )
     }
 
@@ -417,8 +412,7 @@ open class ApplicationContext(
             hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
             sakService = sakContext.sakService,
             personService = personContext.personService,
-            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
-            saksstatistikkService = statistikkContext.saksstatistikkService,
+            statistikkService = statistikkContext.statistikkService,
             clock = clock,
             safJournalpostClient = safJournalpostClient,
             personKlient = personContext.personKlient,
@@ -464,10 +458,10 @@ open class ApplicationContext(
         AvbrytSøknadOgBehandlingContext(
             sakService = sakContext.sakService,
             søknadService = søknadContext.søknadService,
-            behandlingService = behandlingContext.rammebehandlingService,
-            saksstatistikkService = statistikkContext.saksstatistikkService,
+            statistikkService = statistikkContext.statistikkService,
             sessionFactory = sessionFactory,
             clock = clock,
+            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
         )
     }
 

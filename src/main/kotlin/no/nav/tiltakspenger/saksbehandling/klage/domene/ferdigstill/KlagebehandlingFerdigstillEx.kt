@@ -7,19 +7,24 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
 import java.time.Clock
 
+/**
+ * Gjelder kun for opprettholdt klage etter vi har mottatt svar fra klageinstansen.
+ */
 fun Klagebehandling.ferdigstill(
-    command: FerdigstillKlagebehandlingCommand,
+    kommando: FerdigstillKlagebehandlingKommando,
     clock: Clock,
-): Either<KunneIkkeFerdigstilleKlagebehandling, Klagebehandling> {
-    if (!erSaksbehandlerPåBehandlingen(command.saksbehandler)) {
+): Either<KunneIkkeFerdigstilleKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
         return KunneIkkeFerdigstilleKlagebehandling.SaksbehandlerMismatch(
             forventetSaksbehandler = this.saksbehandler,
-            faktiskSaksbehandler = command.saksbehandler.navIdent,
+            faktiskSaksbehandler = kommando.saksbehandler.navIdent,
         ).left()
     }
-
     if (this.resultat !is Klagebehandlingsresultat.Opprettholdt) {
         return KunneIkkeFerdigstilleKlagebehandling.ResultatMåVæreOpprettholdt.left()
     }
@@ -27,17 +32,21 @@ fun Klagebehandling.ferdigstill(
         return KunneIkkeFerdigstilleKlagebehandling.KreverUtfallFraKlageinstans.left()
     }
 
-    if (this.skalVæreKnyttetTilRammebehandling == true) {
+    // TODO jah: Ref. møte på tirsdag. Vi må støtte at denne ferdigstilles selvom den "egentlig" skal være knyttet til en rammebehandling. Saksbehandler kan ha løst det på andre måter.
+    if (this.resultat.skalVæreKnyttetTilRammebehandling) {
         throw IllegalStateException("Klagebehandling med id ${this.id} sak ${this.sakId} skal ferdigstilles ved å opprette ny rammbehandling")
     }
-
     val ferdigstiltTidspunkt = nå(clock)
 
-    return this.copy(
+    val oppdatertKlagebehandling = this.copy(
         status = Klagebehandlingsstatus.FERDIGSTILT,
         sistEndret = ferdigstiltTidspunkt,
         resultat = this.resultat.oppdaterFerdigstiltTidspunkt(ferdigstiltTidspunkt),
-    ).right()
+    )
+    val statistikkhendelser = Statistikkhendelser(
+        oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.AVSLUTTET_BEHANDLING),
+    )
+    return (oppdatertKlagebehandling to statistikkhendelser).right()
 }
 
 sealed interface KunneIkkeFerdigstilleKlagebehandling {

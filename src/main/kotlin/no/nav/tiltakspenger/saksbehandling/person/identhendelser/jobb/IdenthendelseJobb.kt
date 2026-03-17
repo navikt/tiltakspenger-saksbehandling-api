@@ -4,25 +4,20 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseDto
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseRepository
-import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 
 class IdenthendelseJobb(
     private val identhendelseRepository: IdenthendelseRepository,
     private val identhendelseKafkaProducer: IdenthendelseKafkaProducer,
     private val sakRepo: SakRepo,
     private val søknadRepo: SøknadRepo,
-    private val saksstatistikkRepo: SaksstatistikkRepo,
-    private val statistikkStønadRepo: StatistikkStønadRepo,
-    private val statistikkMeldekortRepo: StatistikkMeldekortRepo,
+    private val statistikkService: StatistikkService,
     private val sessionFactory: SessionFactory,
-
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -55,9 +50,7 @@ class IdenthendelseJobb(
         sessionFactory.withTransactionContext { tx ->
             sakRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
             søknadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
-            saksstatistikkRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
-            statistikkStønadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
-            statistikkMeldekortRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
+            statistikkService.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
         }
     }
 

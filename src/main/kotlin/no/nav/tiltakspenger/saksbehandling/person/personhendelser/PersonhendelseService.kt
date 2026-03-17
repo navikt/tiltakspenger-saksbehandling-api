@@ -7,19 +7,19 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import java.util.UUID
 
 class PersonhendelseService(
     private val sakRepo: SakRepo,
     private val personhendelseRepository: PersonhendelseRepository,
     private val personKlient: PersonKlient,
-    private val saksstatistikkRepo: SaksstatistikkRepo,
+    private val statistikkService: StatistikkService,
 ) {
     private val log = KotlinLogging.logger { }
 
@@ -78,7 +78,7 @@ class PersonhendelseService(
         personhendelse: Personhendelse,
     ) {
         log.info { "Person har adressebeskyttelse, oppdaterer statistikktabeller. HendelseId ${personhendelse.hendelseId}" }
-        saksstatistikkRepo.oppdaterAdressebeskyttelse(sakId)
+        statistikkService.oppdaterAdressebeskyttelse(sakId)
         log.info { "Har oppdatert statistikktabell for personhendelse med hendelseId ${personhendelse.hendelseId}" }
     }
 

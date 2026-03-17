@@ -22,6 +22,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.GjenopptaKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.gjenopptaKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import java.time.Clock
 
 /**
@@ -32,7 +35,7 @@ suspend fun Rammebehandling.gjenoppta(
     kommando: GjenopptaRammebehandlingKommando,
     clock: Clock,
     hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
-): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandling> {
+): Either<KunneIkkeOppdatereSaksopplysninger, Pair<Rammebehandling, Statistikkhendelser>> {
     require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
 
     return when (status) {
@@ -100,14 +103,15 @@ private suspend fun Rammebehandling.gjenopptaBehandling(
     oppdatertStatus: Rammebehandlingsstatus,
     clock: Clock,
     hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
-): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandling> {
+): Either<KunneIkkeOppdatereSaksopplysninger, Pair<Rammebehandling, Statistikkhendelser>> {
+    require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
     val nå = nå(clock)
     val oppdatertVentestatus = ventestatus.gjenoppta(
         tidspunkt = nå,
         endretAv = kommando.saksbehandler.navIdent,
         status = status.toString(),
     )
-    val oppdatertKlagebehandling = klagebehandling?.gjenopptaKlagebehandling(
+    val (oppdatertKlagebehandling, klagestatistikk) = klagebehandling?.gjenopptaKlagebehandling(
         kommando = GjenopptaKlagebehandlingKommando(
             sakId = this.sakId,
             klagebehandlingId = klagebehandling!!.id,
@@ -115,8 +119,8 @@ private suspend fun Rammebehandling.gjenopptaBehandling(
             correlationId = kommando.correlationId,
         ),
         clock = clock,
-    )?.getOrThrow()
-    return when (this) {
+    )?.getOrThrow() ?: (null to Statistikkhendelser.empty())
+    val oppdatertRammebehandling = when (this) {
         is Søknadsbehandling -> this.copy(
             ventestatus = oppdatertVentestatus,
             venterTil = null,
@@ -136,11 +140,17 @@ private suspend fun Rammebehandling.gjenopptaBehandling(
             beslutter = oppdatertBeslutter,
             status = oppdatertStatus,
         )
-    }.let {
-        if (hentSaksopplysninger != null) {
-            it.oppdaterSaksopplysninger(kommando.saksbehandler, hentSaksopplysninger())
-        } else {
-            it.right()
-        }
+    }
+    return if (hentSaksopplysninger != null) {
+        oppdatertRammebehandling.oppdaterSaksopplysninger(kommando.saksbehandler, hentSaksopplysninger())
+    } else {
+        oppdatertRammebehandling.right()
+    }.map {
+        val statistikkhendelser = klagestatistikk.leggTil(
+            it.genererSaksstatistikk(
+                StatistikkhendelseType.BEHANDLING_GJENOPPTATT,
+            ),
+        )
+        it to statistikkhendelser
     }
 }

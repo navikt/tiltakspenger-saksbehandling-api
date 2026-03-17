@@ -6,10 +6,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import java.time.Clock
 
 class StartRevurderingService(
@@ -17,8 +19,7 @@ class StartRevurderingService(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val clock: Clock,
-    private val saksstatistikkService: SaksstatistikkService,
-    private val saksstatistikkRepo: SaksstatistikkRepo,
+    private val statistikkService: StatistikkService,
     private val sessionFactory: SessionFactory,
 ) {
     val logger = KotlinLogging.logger { }
@@ -48,12 +49,18 @@ class StartRevurderingService(
             },
         )
 
-        val statistikk = saksstatistikkService.genererStatistikkForRevurdering(revurdering)
+        val statistikk = statistikkService.generer(
+            Statistikkhendelser(
+                revurdering.genererSaksstatistikk(
+                    hendelse = StatistikkhendelseType.OPPRETTET_REVURDERING,
+                ),
+            ),
+        )
 
         return sessionFactory.withTransactionContext { transactionContext ->
             sessionFactory.withTransactionContext(transactionContext) { tx ->
                 rammebehandlingRepo.lagre(revurdering, tx)
-                saksstatistikkRepo.lagre(statistikk, tx)
+                statistikkService.lagre(statistikk, tx)
             }
             Pair(oppdatertSak, revurdering)
         }

@@ -8,11 +8,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.StartSøknadsbehandlingPåNyttKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.startSøknadsbehandlingPåNytt
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import java.time.Clock
 
 class BehandleSøknadPåNyttService(
@@ -20,8 +19,7 @@ class BehandleSøknadPåNyttService(
     private val sakService: SakService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
-    private val saksstatistikkService: SaksstatistikkService,
-    private val saksstatistikkRepo: SaksstatistikkRepo,
+    private val statistikkService: StatistikkService,
     private val sessionFactory: SessionFactory,
 ) {
     val logger = KotlinLogging.logger { }
@@ -32,11 +30,9 @@ class BehandleSøknadPåNyttService(
         transactionContext: TransactionContext? = null,
     ): Pair<Sak, Søknadsbehandling> {
         require(kommando.sakId == sak.id) { "SakId i kommando (${kommando.sakId}) må være lik SakId til hentet sak (${sak.id})" }
-        val (oppdatertSak, søknadsbehandling, statistikk) = sak.startSøknadsbehandlingPåNytt(
+        val (oppdatertSak, søknadsbehandling, statistikkhendelser) = sak.startSøknadsbehandlingPåNytt(
             kommando = kommando,
             clock = clock,
-            genererStatistikkForSøknadsbehandling = saksstatistikkService::genererStatistikkForSøknadsbehandling,
-            genererStatistikkForSøknadSomBehandlesPåNytt = saksstatistikkService::genererStatistikkForSøknadSomBehandlesPåNytt,
             hentSaksopplysninger = { fnr, correlationId, tiltaksdeltakelserDetErSøktTiltakspengerFor, aktuelleTiltaksdeltakelserForBehandlingen, inkluderOverlappendeTiltaksdeltakelserDetErSøktOm ->
                 hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
                     fnr = fnr,
@@ -48,15 +44,14 @@ class BehandleSøknadPåNyttService(
                 )
             },
         )
+        val statistikkDTO = statistikkService.generer(statistikkhendelser)
         sessionFactory.withTransactionContext(transactionContext) { tx ->
             rammebehandlingRepo.lagre(søknadsbehandling, tx)
-            statistikk.forEach { saksstatistikkRepo.lagre(it, tx) }
+            statistikkService.lagre(statistikkDTO, tx)
             sakService.markerSkalSendesTilMeldekortApi(
                 sakId = sak.id,
                 sessionContext = tx,
             )
-            // TODO jah: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
-            @Suppress("RunBlockingInSuspendFunction")
             runBlocking {
                 tx.onSuccess {
                     MetricRegister.STARTET_BEHANDLING.inc()

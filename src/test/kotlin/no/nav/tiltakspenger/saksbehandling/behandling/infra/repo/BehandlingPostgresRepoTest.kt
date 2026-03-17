@@ -177,7 +177,7 @@ internal class BehandlingPostgresRepoTest {
                     tidspunkt = nå(testDataHelper.clock),
                 ),
                 clock = testDataHelper.clock,
-            ).also {
+            ).first.also {
                 behandlingRepo.lagre(it)
             }
 
@@ -186,7 +186,7 @@ internal class BehandlingPostgresRepoTest {
             val oppdatertBehandling = behandlingRepo.hent(behandlingId).taBehandling(
                 saksbehandler = beslutter,
                 clock = testDataHelper.clock,
-            )
+            ).first
 
             val harTatt = behandlingRepo.taBehandlingSaksbehandler(
                 rammebehandling = oppdatertBehandling,
@@ -221,7 +221,7 @@ internal class BehandlingPostgresRepoTest {
                     tidspunkt = nå(testDataHelper.clock),
                 ),
                 clock = testDataHelper.clock,
-            ).also {
+            ).first.also {
                 behandlingRepo.lagre(it)
             }
 
@@ -233,7 +233,7 @@ internal class BehandlingPostgresRepoTest {
                 saksbehandler = beslutter,
                 correlationId = correlationId,
                 clock = clockOmToMinutter,
-            ).getOrFail()
+            ).getOrFail().first
 
             val harOvertatt = behandlingRepo.overtaSaksbehandler(
                 rammebehandling = oppdatertBehandling,

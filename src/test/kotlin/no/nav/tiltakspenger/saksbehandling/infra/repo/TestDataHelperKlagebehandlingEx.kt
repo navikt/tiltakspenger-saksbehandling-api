@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrevKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.oppdaterBrevtekst
-import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.FerdigstillKlagebehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.FerdigstillKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.ferdigstill
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.KlagehendelseId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
@@ -113,7 +113,7 @@ internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilVurdering(
                 frist = 13.februar(2026),
             ),
             clock = this.clock,
-        ).getOrFail()
+        ).getOrFail().first
         this.klagebehandlingRepo.lagreKlagebehandling(sattPåVent)
 
         val oppdatertSak = sakRepo.hentForSakId(sakId)!!
@@ -325,8 +325,8 @@ internal fun TestDataHelper.persisterFerdigstiltKlagebehandling(
         klageinstanshendelser = klageinstanshendelser,
     )
 
-    val ferdigstiltKlagebehandling = klagebehandling.ferdigstill(
-        command = FerdigstillKlagebehandlingCommand(
+    val (ferdigstiltKlagebehandling, _) = klagebehandling.ferdigstill(
+        kommando = FerdigstillKlagebehandlingKommando(
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandler,

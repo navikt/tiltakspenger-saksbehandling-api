@@ -50,9 +50,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
-import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortFakeRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkFakeRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadFakeRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
@@ -93,9 +91,7 @@ class TestApplicationContextMedInMemoryDb(
     private val rammevedtakFakeRepo = RammevedtakFakeRepo(utbetalingFakeRepo)
     private val meldekortvedtakFakeRepo = MeldekortvedtakFakeRepo(utbetalingFakeRepo)
     private val klagevedtakFakeRepo = KlagevedtakFakeRepo()
-    private val statistikkStønadFakeRepo = StatistikkStønadFakeRepo()
-    private val statistikkSakFakeRepo = SaksstatistikkFakeRepo()
-    private val statistikkMeldekortFakeRepo = StatistikkMeldekortFakeRepo()
+    private val statistikkFakeRepo = StatistikkFakeRepo()
     private val meldekortBehandlingFakeRepo = MeldekortBehandlingFakeRepo()
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
@@ -196,9 +192,7 @@ class TestApplicationContextMedInMemoryDb(
 
     override val statistikkContext by lazy {
         object : StatistikkContext(sessionFactory, personFakeKlient, gitHash, clock) {
-            override val statistikkStønadRepo = statistikkStønadFakeRepo
-            override val saksstatistikkRepo = statistikkSakFakeRepo
-            override val statistikkMeldekortRepo = statistikkMeldekortFakeRepo
+            override val statistikkRepo = statistikkFakeRepo
         }
     }
 
@@ -209,8 +203,7 @@ class TestApplicationContextMedInMemoryDb(
             hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
             sakService = sakContext.sakService,
             personService = personContext.personService,
-            saksstatistikkService = statistikkContext.saksstatistikkService,
-            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
+            statistikkService = statistikkContext.statistikkService,
             clock = clock,
             safJournalpostClient = safJournalpostFakeClient,
             personKlient = personFakeKlient,
@@ -260,9 +253,9 @@ class TestApplicationContextMedInMemoryDb(
                 sakRepo = sakContext.sakRepo,
                 clock = clock,
                 simulerService = utbetalingContext.simulerService,
-                statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
                 genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
                 navIdentClient = personContext.navIdentClient,
+                statistikkService = statistikkContext.statistikkService,
             ) {
             override val meldekortBehandlingRepo = meldekortBehandlingFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo
@@ -277,8 +270,7 @@ class TestApplicationContextMedInMemoryDb(
             sessionFactory = sessionFactory,
             meldekortBehandlingRepo = meldekortBehandlingFakeRepo,
             meldeperiodeRepo = meldeperiodeFakeRepo,
-            saksstatistikkRepo = statistikkSakFakeRepo,
-            statistikkStønadRepo = statistikkStønadFakeRepo,
+            statistikkService = statistikkContext.statistikkService,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,
             genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevKlient,
             genererVedtaksbrevForAvslagKlient = genererFakeVedtaksbrevKlient,
@@ -290,7 +282,6 @@ class TestApplicationContextMedInMemoryDb(
             sakService = sakContext.sakService,
             tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient,
             clock = clock,
-            saksstatistikkService = statistikkContext.saksstatistikkService,
             sokosUtbetaldataClient = sokosUtbetaldataFakeClient,
             navkontorService = navkontorService,
             simulerService = utbetalingContext.simulerService,
@@ -322,8 +313,7 @@ class TestApplicationContextMedInMemoryDb(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
-            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
-            saksstatistikkService = statistikkContext.saksstatistikkService,
+            statistikkService = statistikkContext.statistikkService,
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             texasClient = texasClient,
         ) {
@@ -352,7 +342,7 @@ class TestApplicationContextMedInMemoryDb(
             sakRepo = sakContext.sakRepo,
             clock = clock,
             navkontorService = navkontorService,
-            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
+            statistikkService = statistikkContext.statistikkService,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
             override val meldekortvedtakRepo = meldekortvedtakFakeRepo

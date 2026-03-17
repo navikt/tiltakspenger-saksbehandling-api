@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
 
 import kotliquery.Row
+import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -10,150 +11,169 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
+import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import java.util.UUID
 
 class StatistikkStønadPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val clock: Clock,
-) : StatistikkStønadRepo {
-    override fun lagre(
+) {
+    /** Denne brukes kun for tester */
+    @TestOnly
+    fun lagre(
         dto: StatistikkStønadDTO,
-        context: TransactionContext?,
+        context: TransactionContext? = null,
     ) {
         sessionFactory.withTransaction(context) { tx ->
-            lagre(dto, tx)
+            lagre(dto, clock, tx)
         }
     }
 
-    internal fun lagre(
-        dto: StatistikkStønadDTO,
-        tx: TransactionalSession,
-    ) {
-        tx.run(
-            queryOf(
-                lagreStonadSql,
-                mapOf(
-                    "id" to dto.id.toString(),
-                    "brukerId" to dto.brukerId,
-                    "sakId" to dto.sakId,
-                    "saksnummer" to dto.saksnummer,
-                    "resultat" to dto.resultat.toString(),
-                    "sakDato" to dto.sakDato,
-                    "ytelse" to dto.ytelse,
-                    "soknadId" to dto.søknadId,
-                    "soknadDato" to dto.søknadDato,
-                    "gyldigFraDatoSoknad" to dto.søknadFraDato,
-                    "gyldigTilDatoSoknad" to dto.søknadTilDato,
-                    "vedtakId" to dto.vedtakId,
-                    "type" to dto.vedtaksType,
-                    "vedtakDato" to dto.vedtakDato,
-                    "vedtaksperiode_fra_og_med" to dto.vedtaksperiodeFraOgMed,
-                    "vedtaksperiode_til_og_med" to dto.vedtaksperiodeTilOgMed,
-                    "fagsystem" to dto.fagsystem,
-                    "sistEndret" to nå(clock),
-                    "opprettet" to nå(clock),
-                    "barnetillegg" to toPGObject(dto.barnetillegg),
-                    "harBarnetillegg" to dto.harBarnetillegg,
-                    "innvilgelsesperioder" to toPGObject(dto.innvilgelsesperioder),
-                    "omgjorRammevedtakId" to dto.omgjørRammevedtakId,
-                    "omgjorRammevedtak" to toPGObject(dto.omgjørRammevedtak),
-                ),
-            ).asUpdate,
-        )
-    }
-
-    override fun lagre(
-        dto: StatistikkUtbetalingDTO,
-        context: TransactionContext?,
-    ) {
-        sessionFactory.withTransaction(context) { tx ->
-            lagre(dto, tx)
-        }
-    }
-
+    /** Denne brukes kun for tester */
+    @TestOnly
     fun lagre(
         dto: StatistikkUtbetalingDTO,
-        tx: TransactionalSession,
-    ) {
-        tx.run(
-            queryOf(
-                lagreUtbetalingSql,
-                mapOf(
-                    "id" to dto.id,
-                    "sakId" to dto.sakId,
-                    "saksnummer" to dto.saksnummer,
-                    "belop" to dto.totalBeløp,
-                    "ordinaerBelop" to dto.ordinærBeløp,
-                    "barnetilleggBelop" to dto.barnetilleggBeløp,
-                    "posteringsDato" to dto.posteringDato,
-                    "gyldigFraDato" to dto.gyldigFraDatoPostering,
-                    "gyldigTilDato" to dto.gyldigTilDatoPostering,
-                    "utbetaling_id" to dto.utbetalingId,
-                    "vedtak_id" to toPGObject(dto.vedtakId),
-                    "opprettet" to dto.opprettet,
-                    "sist_endret" to dto.sistEndret,
-                    "bruker_id" to dto.brukerId,
-                    "meldeperioder" to toPGObject(dto.meldeperioder),
-                ),
-            ).asUpdate,
-        )
-    }
-
-    override fun oppdaterFnr(
-        gammeltFnr: Fnr,
-        nyttFnr: Fnr,
-        context: TransactionContext?,
+        context: TransactionContext? = null,
     ) {
         sessionFactory.withTransaction(context) { tx ->
-            oppdaterFnrForStonad(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx = tx)
-            oppdaterFnrForUtbetaling(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx = tx)
+            lagre(dto, tx)
         }
     }
 
-    private fun oppdaterFnrForStonad(
-        gammeltFnr: Fnr,
-        nyttFnr: Fnr,
-        tx: TransactionalSession,
-    ) {
-        tx.run(
-            queryOf(
-                """
+    companion object {
+        fun oppdaterFnr(
+            gammeltFnr: Fnr,
+            nyttFnr: Fnr,
+            clock: Clock,
+            transactionalSession: TransactionalSession,
+        ) {
+            oppdaterFnrForStonad(
+                gammeltFnr = gammeltFnr,
+                nyttFnr = nyttFnr,
+                clock = clock,
+                session = transactionalSession,
+            )
+            oppdaterFnrForUtbetaling(
+                gammeltFnr = gammeltFnr,
+                nyttFnr = nyttFnr,
+                clock = clock,
+                session = transactionalSession,
+            )
+        }
+
+        private fun oppdaterFnrForStonad(
+            gammeltFnr: Fnr,
+            nyttFnr: Fnr,
+            clock: Clock,
+            session: Session,
+        ) {
+            session.run(
+                queryOf(
+                    """
                         update statistikk_stonad set bruker_id = :nytt_fnr, sist_endret = :sist_endret where bruker_id = :gammelt_fnr
-                """.trimIndent(),
-                mapOf(
-                    "nytt_fnr" to nyttFnr.verdi,
-                    "gammelt_fnr" to gammeltFnr.verdi,
-                    "sist_endret" to nå(clock),
-                ),
-            ).asUpdate,
-        )
-    }
+                    """.trimIndent(),
+                    mapOf(
+                        "nytt_fnr" to nyttFnr.verdi,
+                        "gammelt_fnr" to gammeltFnr.verdi,
+                        "sist_endret" to nå(clock),
+                    ),
+                ).asUpdate,
+            )
+        }
 
-    private fun oppdaterFnrForUtbetaling(
-        gammeltFnr: Fnr,
-        nyttFnr: Fnr,
-        tx: TransactionalSession,
-    ) {
-        tx.run(
-            queryOf(
-                """
+        private fun oppdaterFnrForUtbetaling(
+            gammeltFnr: Fnr,
+            nyttFnr: Fnr,
+            clock: Clock,
+            session: Session,
+        ) {
+            session.run(
+                queryOf(
+                    """
                     update statistikk_utbetaling set bruker_id = :nytt_fnr, sist_endret = :sist_endret where bruker_id = :gammelt_fnr
-                """.trimIndent(),
-                mapOf(
-                    "nytt_fnr" to nyttFnr.verdi,
-                    "gammelt_fnr" to gammeltFnr.verdi,
-                    "sist_endret" to nå(clock),
-                ),
-            ).asUpdate,
-        )
+                    """.trimIndent(),
+                    mapOf(
+                        "nytt_fnr" to nyttFnr.verdi,
+                        "gammelt_fnr" to gammeltFnr.verdi,
+                        "sist_endret" to nå(clock),
+                    ),
+                ).asUpdate,
+            )
+        }
+
+        internal fun lagre(
+            dto: StatistikkStønadDTO,
+            clock: Clock,
+            tx: TransactionalSession,
+        ) {
+            tx.run(
+                queryOf(
+                    lagreStonadSql,
+                    mapOf(
+                        "id" to dto.id.toString(),
+                        "brukerId" to dto.brukerId,
+                        "sakId" to dto.sakId,
+                        "saksnummer" to dto.saksnummer,
+                        "resultat" to dto.resultat.toString(),
+                        "sakDato" to dto.sakDato,
+                        "ytelse" to dto.ytelse,
+                        "soknadId" to dto.søknadId,
+                        "soknadDato" to dto.søknadDato,
+                        "gyldigFraDatoSoknad" to dto.søknadFraDato,
+                        "gyldigTilDatoSoknad" to dto.søknadTilDato,
+                        "vedtakId" to dto.vedtakId,
+                        "type" to dto.vedtaksType,
+                        "vedtakDato" to dto.vedtakDato,
+                        "vedtaksperiode_fra_og_med" to dto.vedtaksperiodeFraOgMed,
+                        "vedtaksperiode_til_og_med" to dto.vedtaksperiodeTilOgMed,
+                        "fagsystem" to dto.fagsystem,
+                        "sistEndret" to nå(clock),
+                        "opprettet" to nå(clock),
+                        "barnetillegg" to toPGObject(dto.barnetillegg),
+                        "harBarnetillegg" to dto.harBarnetillegg,
+                        "innvilgelsesperioder" to toPGObject(dto.innvilgelsesperioder),
+                        "omgjorRammevedtakId" to dto.omgjørRammevedtakId,
+                        "omgjorRammevedtak" to toPGObject(dto.omgjørRammevedtak),
+                    ),
+                ).asUpdate,
+            )
+        }
+
+        fun lagre(
+            dto: StatistikkUtbetalingDTO,
+            tx: TransactionalSession,
+        ) {
+            tx.run(
+                queryOf(
+                    lagreUtbetalingSql,
+                    mapOf(
+                        "id" to dto.id,
+                        "sakId" to dto.sakId,
+                        "saksnummer" to dto.saksnummer,
+                        "belop" to dto.totalBeløp,
+                        "ordinaerBelop" to dto.ordinærBeløp,
+                        "barnetilleggBelop" to dto.barnetilleggBeløp,
+                        "posteringsDato" to dto.posteringDato,
+                        "gyldigFraDato" to dto.gyldigFraDatoPostering,
+                        "gyldigTilDato" to dto.gyldigTilDatoPostering,
+                        "utbetaling_id" to dto.utbetalingId,
+                        "vedtak_id" to toPGObject(dto.vedtakId),
+                        "opprettet" to dto.opprettet,
+                        "sist_endret" to dto.sistEndret,
+                        "bruker_id" to dto.brukerId,
+                        "meldeperioder" to toPGObject(dto.meldeperioder),
+                    ),
+                ).asUpdate,
+            )
+        }
     }
 
-    // Denne brukes kun for tester
-    override fun hentForRammevedtak(sakId: SakId): List<StatistikkStønadDTO> = sessionFactory.withSession {
+    /** Denne brukes kun for tester */
+    @TestOnly
+    fun hentForRammevedtak(sakId: SakId): List<StatistikkStønadDTO> = sessionFactory.withSession {
         it.run(
             sqlQuery(
                 """
@@ -167,8 +187,9 @@ class StatistikkStønadPostgresRepo(
         )
     }
 
-    // Denne brukes kun for tester
-    override fun hentForUtbetalinger(sakId: SakId): List<StatistikkUtbetalingDTO> = sessionFactory.withSession {
+    /** Denne brukes kun for tester */
+    @TestOnly
+    fun hentForUtbetalinger(sakId: SakId): List<StatistikkUtbetalingDTO> = sessionFactory.withSession {
         it.run(
             sqlQuery(
                 """
@@ -182,9 +203,55 @@ class StatistikkStønadPostgresRepo(
         )
     }
 
-    @Language("SQL")
-    private val lagreStonadSql =
-        """
+    private fun Row.toStatistikkStonadDTO() =
+        StatistikkStønadDTO(
+            id = UUID.fromString(string("id")),
+            brukerId = string("bruker_id"),
+            sakId = string("sak_id"),
+            saksnummer = string("saksnummer"),
+            resultat = string("resultat").let { VedtakStatistikkResultat.valueOf(it) },
+            sakDato = localDate("sak_dato"),
+            ytelse = string("ytelse"),
+            søknadId = stringOrNull("soknad_id"),
+            søknadDato = localDateOrNull("soknad_dato"),
+            søknadFraDato = localDateOrNull("gyldig_fra_dato_soknad"),
+            søknadTilDato = localDateOrNull("gyldig_til_dato_soknad"),
+            vedtakId = string("vedtak_id"),
+            vedtaksType = string("type"),
+            vedtakDato = localDate("vedtak_dato"),
+            vedtaksperiodeFraOgMed = localDate("vedtaksperiode_fra_og_med"),
+            vedtaksperiodeTilOgMed = localDate("vedtaksperiode_til_og_med"),
+            fagsystem = string("fagsystem"),
+            barnetillegg = deserialize(string("barnetillegg")),
+            harBarnetillegg = boolean("har_barnetillegg"),
+            innvilgelsesperioder = deserialize(string("innvilgelsesperioder")),
+            omgjørRammevedtakId = stringOrNull("omgjor_rammevedtak_id"),
+            omgjørRammevedtak = deserialize(string("omgjor_rammevedtak")),
+        )
+
+    private fun Row.toStatistikkUtbetalingDTO() =
+        StatistikkUtbetalingDTO(
+            id = string("id"),
+            sakId = string("sak_id"),
+            saksnummer = string("saksnummer"),
+            totalBeløp = int("belop"),
+            ordinærBeløp = int("ordinar_belop"),
+            barnetilleggBeløp = int("barnetillegg_belop"),
+            posteringDato = localDate("posteringsdato"),
+            gyldigFraDatoPostering = localDate("gyldig_fra_dato"),
+            gyldigTilDatoPostering = localDate("gyldig_til_dato"),
+            utbetalingId = string("utbetaling_id"),
+            vedtakId = stringOrNull("vedtak_id")?.let { deserialize(it) },
+            opprettet = localDateTimeOrNull("opprettet"),
+            sistEndret = localDateTimeOrNull("sist_endret"),
+            brukerId = string("bruker_id"),
+            meldeperioder = deserialize(string("meldeperioder")),
+        )
+}
+
+@Language("SQL")
+private val lagreStonadSql =
+    """
         insert into statistikk_stonad (
         id,
         bruker_id,
@@ -236,11 +303,11 @@ class StatistikkStønadPostgresRepo(
         :omgjorRammevedtakId,
         :omgjorRammevedtak
         )
-        """.trimIndent()
+    """.trimIndent()
 
-    @Language("SQL")
-    private val lagreUtbetalingSql =
-        """
+@Language("SQL")
+private val lagreUtbetalingSql =
+    """
         insert into statistikk_utbetaling (
         id,
         sak_id,
@@ -274,50 +341,4 @@ class StatistikkStønadPostgresRepo(
         :bruker_id,
         :meldeperioder
         )
-        """.trimIndent()
-
-    private fun Row.toStatistikkStonadDTO() =
-        StatistikkStønadDTO(
-            id = UUID.fromString(string("id")),
-            brukerId = string("bruker_id"),
-            sakId = string("sak_id"),
-            saksnummer = string("saksnummer"),
-            resultat = string("resultat").let { VedtakStatistikkResultat.valueOf(it) },
-            sakDato = localDate("sak_dato"),
-            ytelse = string("ytelse"),
-            søknadId = stringOrNull("soknad_id"),
-            søknadDato = localDateOrNull("soknad_dato"),
-            søknadFraDato = localDateOrNull("gyldig_fra_dato_soknad"),
-            søknadTilDato = localDateOrNull("gyldig_til_dato_soknad"),
-            vedtakId = string("vedtak_id"),
-            vedtaksType = string("type"),
-            vedtakDato = localDate("vedtak_dato"),
-            vedtaksperiodeFraOgMed = localDate("vedtaksperiode_fra_og_med"),
-            vedtaksperiodeTilOgMed = localDate("vedtaksperiode_til_og_med"),
-            fagsystem = string("fagsystem"),
-            barnetillegg = deserialize(string("barnetillegg")),
-            harBarnetillegg = boolean("har_barnetillegg"),
-            innvilgelsesperioder = deserialize(string("innvilgelsesperioder")),
-            omgjørRammevedtakId = stringOrNull("omgjor_rammevedtak_id"),
-            omgjørRammevedtak = deserialize(string("omgjor_rammevedtak")),
-        )
-
-    private fun Row.toStatistikkUtbetalingDTO() =
-        StatistikkUtbetalingDTO(
-            id = string("id"),
-            sakId = string("sak_id"),
-            saksnummer = string("saksnummer"),
-            totalBeløp = int("belop"),
-            ordinærBeløp = int("ordinar_belop"),
-            barnetilleggBeløp = int("barnetillegg_belop"),
-            posteringDato = localDate("posteringsdato"),
-            gyldigFraDatoPostering = localDate("gyldig_fra_dato"),
-            gyldigTilDatoPostering = localDate("gyldig_til_dato"),
-            utbetalingId = string("utbetaling_id"),
-            vedtakId = stringOrNull("vedtak_id")?.let { deserialize(it) },
-            opprettet = localDateTimeOrNull("opprettet"),
-            sistEndret = localDateTimeOrNull("sist_endret"),
-            brukerId = string("bruker_id"),
-            meldeperioder = deserialize(string("meldeperioder")),
-        )
-}
+    """.trimIndent()

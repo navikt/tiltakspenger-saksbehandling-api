@@ -5,7 +5,7 @@ fun maskerHvisStrengtFortrolig(
     verdi: String?,
 ): String? {
     return if (verdi != null) {
-        return maskerHvisStrengtFortroligStrict(erStrengtFortrolig, verdi)
+        maskerHvisStrengtFortroligStrict(erStrengtFortrolig, verdi)
     } else {
         verdi
     }

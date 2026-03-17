@@ -35,7 +35,7 @@ fun Route.leggTilbakeRammebehandlingRoute(
                 val correlationId = call.correlationId()
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                leggTilbakeBehandlingService.leggTilbakeBehandling(
+                leggTilbakeBehandlingService.leggTilbakeRammebehandling(
                     sakId,
                     behandlingId,
                     saksbehandler,

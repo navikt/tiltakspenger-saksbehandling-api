@@ -11,10 +11,13 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseRepository
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
 import no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadPostgresRepo
@@ -42,7 +45,15 @@ internal class TestDataHelper(
     val sakRepo = SakPostgresRepo(sessionFactory, saksnummerGenerator, clock)
     val statistikkSakRepo = SaksstatistikkPostgresRepo(sessionFactory)
     val statistikkStønadRepo = StatistikkStønadPostgresRepo(sessionFactory, clock)
-    val statistikkMeldekortRepo = StatistikkMeldekortPostgresRepo(sessionFactory, clock)
+    val statistikkMeldekortRepo = StatistikkMeldekortPostgresRepo()
+    val statistikkRepo = StatistikkPostgresRepo(sessionFactory, clock)
+    private val personFakeKlient = PersonFakeKlient(clock)
+    val statistikkService = StatistikkService(
+        personKlient = personFakeKlient,
+        gitHash = "fake-git-hash",
+        clock = clock,
+        statistikkRepo = statistikkRepo,
+    )
     val meldekortRepo = MeldekortBehandlingPostgresRepo(sessionFactory)
     val meldeperiodeRepo = MeldeperiodePostgresRepo(sessionFactory)
     val meldekortBrukerRepo = BrukersMeldekortPostgresRepo(sessionFactory)

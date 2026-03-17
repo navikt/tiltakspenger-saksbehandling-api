@@ -153,7 +153,7 @@ internal fun TestDataHelper.persisterRevurderingStansUnderBeslutning(
 ): Pair<Sak, Rammebehandling> {
     val (sakMedRevurderingTilBeslutning, revurderingTilBeslutning) = genererSak(sak)
 
-    val revurderingUnderBeslutning = revurderingTilBeslutning.taBehandling(beslutterAv, clock)
+    val revurderingUnderBeslutning = revurderingTilBeslutning.taBehandling(beslutterAv, clock).first
     behandlingRepo.lagre(revurderingUnderBeslutning)
 
     return Pair(sakRepo.hentForSakId(sakMedRevurderingTilBeslutning.id)!!, revurderingUnderBeslutning)
@@ -189,7 +189,7 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
     val (sakMedRevurderingTilBeslutning, revurderingTilBeslutning) = genererSak(sak)
 
     val iverksattRevurdering =
-        revurderingTilBeslutning.iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), correlationId, clock)
+        revurderingTilBeslutning.iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), correlationId, clock).first
 
     val stansVedtak = sessionFactory.withTransactionContext { tx ->
         behandlingRepo.lagre(iverksattRevurdering, tx)
@@ -301,7 +301,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
     }.getOrFail().tilBeslutning().taBehandling(
         saksbehandler = beslutter,
         clock = clock,
-    ).iverksett(
+    ).first.iverksett(
         utøvendeBeslutter = beslutter,
         attestering = Attestering(
             status = Attesteringsstatus.GODKJENT,
@@ -311,7 +311,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
         ),
         correlationId = correlationId,
         clock = clock,
-    ).let {
+    ).first.let {
         behandlingRepo.lagre(it)
         sakRepo.hentForSakId(sakMedRevurdering.id)!! to it as Revurdering
     }

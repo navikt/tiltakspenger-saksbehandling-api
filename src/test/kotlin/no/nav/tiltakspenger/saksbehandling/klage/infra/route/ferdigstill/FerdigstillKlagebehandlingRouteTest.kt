@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus

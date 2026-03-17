@@ -5,12 +5,12 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
@@ -32,7 +32,7 @@ open class UtbetalingContext(
     sakRepo: SakRepo,
     clock: Clock,
     navkontorService: NavkontorService,
-    statistikkStønadRepo: StatistikkStønadRepo,
+    statistikkService: StatistikkService,
 ) {
     open val utbetalingsklient: Utbetalingsklient by lazy {
         UtbetalingHttpKlient(
@@ -62,7 +62,7 @@ open class UtbetalingContext(
         SendUtbetalingerService(
             utbetalingRepo = utbetalingRepo,
             utbetalingsklient = utbetalingsklient,
-            statistikkStønadRepo = statistikkStønadRepo,
+            statistikkService = statistikkService,
             clock = clock,
         )
     }
