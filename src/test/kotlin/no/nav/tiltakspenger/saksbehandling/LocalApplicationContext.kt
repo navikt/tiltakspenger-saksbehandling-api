@@ -305,6 +305,7 @@ class LocalApplicationContext(
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
             saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
             saksstatistikkService = statistikkContext.saksstatistikkService,
+            rammevedtakRepo = behandlingContext.rammevedtakRepo,
             texasClient = texasClient,
         ) {
             override val kabalClient: KabalClient = KabalClientFake(clock)

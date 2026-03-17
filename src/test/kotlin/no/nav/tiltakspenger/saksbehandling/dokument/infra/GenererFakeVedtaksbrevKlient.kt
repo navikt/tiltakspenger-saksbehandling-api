@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import java.time.Clock
 import java.time.LocalDate
 
 class GenererFakeVedtaksbrevKlient :
@@ -159,11 +160,12 @@ class GenererFakeVedtaksbrevKlient :
         fnr: Fnr,
         tilleggstekst: Brevtekster,
         saksbehandlerNavIdent: String,
-        forhåndsvisning: Boolean,
+        `forhåndsvisning`: Boolean,
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         innsendingsdato: LocalDate,
+        clock: Clock,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return PdfOgJson(
             pdf = PdfA("pdf".toByteArray()),

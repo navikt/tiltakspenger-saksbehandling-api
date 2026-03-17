@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
@@ -72,6 +73,7 @@ open class KlagebehandlingContext(
     private val settRammebehandlingPåVentService: SettRammebehandlingPåVentService,
     private val saksstatistikkService: SaksstatistikkService,
     private val saksstatistikkRepo: SaksstatistikkRepo,
+    private val rammevedtakRepo: RammevedtakRepo,
     private val texasClient: TexasClient,
 ) {
 
@@ -163,6 +165,7 @@ open class KlagebehandlingContext(
             journalførKlagevedtaksbrevKlient = journalførKlagevedtaksbrevKlient,
             klagevedtakRepo = klagevedtakRepo,
             klagebehandlingRepo = klagebehandlingRepo,
+            rammevedtakRepo = rammevedtakRepo,
             genererKlagebrevKlient = genererKlagebrevKlient,
             personService = personService,
             navIdentClient = navIdentClient,

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import java.time.Clock
 import java.time.LocalDate
 
 interface GenererKlagebrevKlient {
@@ -31,5 +32,6 @@ interface GenererKlagebrevKlient {
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         innsendingsdato: LocalDate,
+        clock: Clock,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

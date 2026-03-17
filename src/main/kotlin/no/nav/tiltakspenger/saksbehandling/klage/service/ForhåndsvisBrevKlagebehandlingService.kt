@@ -49,6 +49,7 @@ class ForhåndsvisBrevKlagebehandlingService(
                     hentBrukersNavn = personService::hentNavn,
                     hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                     innsendingsdato = innsendingsdato,
+                    clock = clock,
                 )
             },
         ).map { it.pdf }.mapLeft {

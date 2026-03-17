@@ -6,6 +6,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -21,6 +22,7 @@ class JournalførKlagebrevJobb(
     private val journalførKlagevedtaksbrevKlient: JournalførKlagebrevKlient,
     private val klagevedtakRepo: KlagevedtakRepo,
     private val klagebehandlingRepo: KlagebehandlingRepo,
+    private val rammevedtakRepo: RammevedtakRepo,
     private val genererKlagebrevKlient: GenererKlagebrevKlient,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
@@ -84,10 +86,12 @@ class JournalførKlagebrevJobb(
                 val sakId = klagebehandling.sakId
                 val saksnummer = klagebehandling.saksnummer
                 val id = klagebehandling.id
+                val vedtaksdato = rammevedtakRepo.hentForVedtakId(klagebehandling.formkrav.vedtakDetKlagesPå!!)!!
+
                 val loggkontekst = "sakId: $sakId, saksnummer: $saksnummer, klagebehandlingId: $id"
                 Either.catch {
                     val correlationId = CorrelationId.generate()
-                    val vårDatoIBrevet = LocalDate.now(clock)
+
                     log.info { "Genererer innstillingsbrev. $loggkontekst" }
                     val pdfOgJson = genererKlagebrevKlient.genererInnstillingsbrev(
                         saksnummer = saksnummer,
@@ -95,10 +99,11 @@ class JournalførKlagebrevJobb(
                         tilleggstekst = klagebehandling.brevtekst!!,
                         saksbehandlerNavIdent = klagebehandling.saksbehandler!!,
                         forhåndsvisning = false,
-                        vedtaksdato = vårDatoIBrevet,
+                        vedtaksdato = vedtaksdato.opprettet.toLocalDate(),
                         hentBrukersNavn = personService::hentNavn,
                         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         innsendingsdato = klagebehandling.formkrav.innsendingsdato,
+                        clock = clock,
                     ).getOrElse { return@forEach }
 
                     log.info { "Innstillingsbrev generert. $loggkontekst" }
@@ -108,7 +113,7 @@ class JournalførKlagebrevJobb(
                         correlationId = correlationId,
                     )
                     val oppdatertKlagebehandling = klagebehandling.oppdaterInnstillingsbrevJournalpost(
-                        brevdato = vårDatoIBrevet,
+                        brevdato = LocalDate.now(clock),
                         journalpostId = journalpostId,
                         dokumentInfoId = dokumentInfoId
                             ?: throw IllegalStateException("Journalføring av innstillingsbrev med journalpostId $journalpostId returnerte ingen dokumentInfoId. $loggkontekst").also {

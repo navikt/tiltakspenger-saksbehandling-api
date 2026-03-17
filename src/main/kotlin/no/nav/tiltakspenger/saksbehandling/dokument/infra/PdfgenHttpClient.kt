@@ -45,6 +45,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Clock
 import java.time.LocalDate
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -398,13 +399,14 @@ class PdfgenHttpClient(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         innsendingsdato: LocalDate,
+        clock: Clock,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
                 BrevKlageInnstillingDTO.create(
                     hentBrukersNavn = hentBrukersNavn,
                     hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    datoForUtsending = vedtaksdato,
+                    datoForUtsending = LocalDate.now(clock),
                     tilleggstekst = tilleggstekst,
                     saksbehandlerNavIdent = saksbehandlerNavIdent,
                     saksnummer = saksnummer,
