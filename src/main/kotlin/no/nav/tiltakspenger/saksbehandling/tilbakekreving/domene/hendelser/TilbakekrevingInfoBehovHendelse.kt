@@ -10,9 +10,9 @@ data class TilbakekrevingInfoBehovHendelse(
     override val behandlet: LocalDateTime?,
     override val sakId: SakId?,
     override val eksternFagsakId: String,
+    override val feil: TilbakekrevinghendelseFeil?,
     val kravgrunnlagReferanse: String,
     val svar: TilbakekrevingInfoSvarDTO?,
-    val feil: String?,
 ) : Tilbakekrevingshendelse {
-    override val hendelsestype: TilbakekrevinghendelseType = TilbakekrevinghendelseType.InfoBehov
+    override val hendelsestype = TilbakekrevinghendelseType.InfoBehov
 }

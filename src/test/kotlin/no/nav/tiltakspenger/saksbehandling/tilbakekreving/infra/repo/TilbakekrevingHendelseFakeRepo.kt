@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
@@ -68,7 +69,7 @@ class TilbakekrevingHendelseFakeRepo(
 
     override fun markerSomBehandletMedFeil(
         hendelseId: TilbakekrevinghendelseId,
-        feil: String,
+        feil: TilbakekrevinghendelseFeil,
         sessionContext: SessionContext?,
     ) {
         val hendelse = data.get()[hendelseId] ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")

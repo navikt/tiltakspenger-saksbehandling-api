@@ -13,6 +13,7 @@ sealed interface Tilbakekrevingshendelse {
     val hendelsestype: TilbakekrevinghendelseType
     val eksternFagsakId: String
     val sakId: SakId?
+    val feil: TilbakekrevinghendelseFeil?
 }
 
 data class TilbakekrevinghendelseId private constructor(
@@ -31,4 +32,10 @@ data class TilbakekrevinghendelseId private constructor(
 enum class TilbakekrevinghendelseType {
     InfoBehov,
     BehandlingEndret,
+}
+
+enum class TilbakekrevinghendelseFeil {
+    FantIkkeSak,
+    FantIkkeBehandling,
+    FantIkkeUtbetaling,
 }

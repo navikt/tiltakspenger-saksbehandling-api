@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingB
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO.TilbakekrevingMottaker
@@ -53,7 +54,7 @@ class BehandleTilbakekrevingHendelserJobb(
                 logger.error { "Tilbakekreving-hendelse ${hendelse.id} er ikke knyttet til en sak, og kan derfor ikke behandles" }
                 tilbakekrevingHendelseRepo.markerSomBehandletMedFeil(
                     hendelse.id,
-                    "Hendelse med fagsak-id/saksnummer ${hendelse.eksternFagsakId} har ingen sak hos oss",
+                    TilbakekrevinghendelseFeil.FantIkkeSak,
                 )
                 return@forEach
             }
@@ -79,9 +80,9 @@ class BehandleTilbakekrevingHendelserJobb(
         }
     }
 
-    private fun Sak.håndterInfoBehov(hendelse: TilbakekrevingInfoBehovHendelse): Either<String, Unit> {
+    private fun Sak.håndterInfoBehov(hendelse: TilbakekrevingInfoBehovHendelse): Either<TilbakekrevinghendelseFeil, Unit> {
         val utbetaling = utbetalinger.hentUtbetalingForUuid(hendelse.kravgrunnlagReferanse)
-            ?: return "Fant ingen utbetaling for kravgrunnlagReferanse ${hendelse.kravgrunnlagReferanse}".left()
+            ?: return TilbakekrevinghendelseFeil.FantIkkeUtbetaling.left()
 
         val infoSvarDTO = when (utbetaling.beregningKilde) {
             is BeregningKilde.BeregningKildeMeldekort ->
@@ -94,7 +95,7 @@ class BehandleTilbakekrevingHendelserJobb(
         }
 
         if (infoSvarDTO == null) {
-            return "Fant ingen behandling for utbetalingens beregningskilde ${utbetaling.beregningKilde.id}".left()
+            return TilbakekrevinghendelseFeil.FantIkkeBehandling.left()
         }
 
         logger.info { "Produserer svar på tilbakekreving info-behov ${hendelse.id} for sak $id med kravgrunnlagReferanse ${hendelse.kravgrunnlagReferanse}" }
@@ -106,11 +107,11 @@ class BehandleTilbakekrevingHendelserJobb(
         return Unit.right()
     }
 
-    private fun Sak.håndterBehandlingEndret(hendelse: TilbakekrevingBehandlingEndretHendelse): Either<String, Unit> {
+    private fun Sak.håndterBehandlingEndret(hendelse: TilbakekrevingBehandlingEndretHendelse): Either<TilbakekrevinghendelseFeil, Unit> {
         val utbetaling = hendelse.eksternBehandlingId?.let { utbetalinger.hentUtbetalingForUuid(it) }
 
         if (utbetaling == null) {
-            return "Fant ikke utbetaling for id ${hendelse.eksternBehandlingId}".left()
+            return TilbakekrevinghendelseFeil.FantIkkeUtbetaling.left()
         }
 
         val eksisterendeBehandling =

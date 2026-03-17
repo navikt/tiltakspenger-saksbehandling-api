@@ -15,6 +15,7 @@ data class TilbakekrevingBehandlingEndretHendelse(
     override val behandlet: LocalDateTime?,
     override val sakId: SakId?,
     override val eksternFagsakId: String,
+    override val feil: TilbakekrevinghendelseFeil?,
     val eksternBehandlingId: String?,
     val tilbakeBehandlingId: String,
     val sakOpprettet: LocalDateTime,
@@ -24,7 +25,6 @@ data class TilbakekrevingBehandlingEndretHendelse(
     val totaltFeilutbetaltBeløp: BigDecimal,
     val url: String,
     val fullstendigPeriode: Periode,
-    val feil: String?,
 ) : Tilbakekrevingshendelse {
     override val hendelsestype = TilbakekrevinghendelseType.BehandlingEndret
 
@@ -35,8 +35,13 @@ data class TilbakekrevingBehandlingEndretHendelse(
             "Forsøkte å oppdatere tilbakekreving-behandling ${behandling.tilbakeBehandlingId} med hendelse for behandling $tilbakeBehandlingId"
         }
 
-        if (behandling.sistEndret >= this.opprettet) {
-            logger.info { "BehandlingEndret hendelse $id er utdatert eller allerede behandlet - hopper over oppdatering" }
+        if (behandling.sistEndret == this.opprettet) {
+            logger.info { "BehandlingEndret hendelse $id er allerede behandlet" }
+            return null
+        }
+
+        if (behandling.sistEndret > this.opprettet) {
+            logger.info { "BehandlingEndret hendelse $id er utdatert" }
             return null
         }
 

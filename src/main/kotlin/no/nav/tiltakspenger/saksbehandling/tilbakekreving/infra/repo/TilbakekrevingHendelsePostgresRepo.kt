@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 import java.math.BigDecimal
@@ -151,7 +152,7 @@ class TilbakekrevingHendelsePostgresRepo(
 
     override fun markerSomBehandletMedFeil(
         hendelseId: TilbakekrevinghendelseId,
-        feil: String,
+        feil: TilbakekrevinghendelseFeil,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -166,7 +167,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     """.trimIndent(),
                     "id" to hendelseId.toString(),
                     "behandlet" to nå(clock),
-                    "behandlet_feil" to feil,
+                    "behandlet_feil" to feil.tilDb(),
                 ).asUpdate,
             )
         }
@@ -196,7 +197,7 @@ class TilbakekrevingHendelsePostgresRepo(
 
         val sakId = stringOrNull("sak_id")?.let { SakId.fromString(it) }
         val behandlet = localDateTimeOrNull("behandlet")
-        val feil = stringOrNull("behandlet_feil")
+        val feil = stringOrNull("behandlet_feil")?.let { TilbakekrevinghendelseFeilDb.valueOf(it).tilDomene() }
 
         return when (hendelsestype) {
             HendelsetypeDb.InfoBehov -> {
@@ -291,4 +292,27 @@ private fun TilbakekrevingBehandlingsstatus.tilDb(): TilbakekrevingBehandlingDb.
         TilbakekrevingBehandlingsstatus.TIL_GODKJENNING -> TilbakekrevingBehandlingDb.BehandlingsstatusDb.TIL_GODKJENNING
         TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingDb.BehandlingsstatusDb.AVSLUTTET
     }
+}
+
+enum class TilbakekrevinghendelseFeilDb {
+    FantIkkeSak,
+    FantIkkeBehandling,
+    FantIkkeUtbetaling,
+    ;
+
+    fun tilDomene(): TilbakekrevinghendelseFeil {
+        return when (this) {
+            FantIkkeSak -> TilbakekrevinghendelseFeil.FantIkkeSak
+            FantIkkeBehandling -> TilbakekrevinghendelseFeil.FantIkkeBehandling
+            FantIkkeUtbetaling -> TilbakekrevinghendelseFeil.FantIkkeUtbetaling
+        }
+    }
+}
+
+private fun TilbakekrevinghendelseFeil.tilDb(): String {
+    return when (this) {
+        TilbakekrevinghendelseFeil.FantIkkeSak -> TilbakekrevinghendelseFeilDb.FantIkkeSak
+        TilbakekrevinghendelseFeil.FantIkkeBehandling -> TilbakekrevinghendelseFeilDb.FantIkkeBehandling
+        TilbakekrevinghendelseFeil.FantIkkeUtbetaling -> TilbakekrevinghendelseFeilDb.FantIkkeUtbetaling
+    }.toString()
 }

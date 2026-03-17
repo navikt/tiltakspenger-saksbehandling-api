@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseType
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
 import org.intellij.lang.annotations.Language
@@ -83,7 +84,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             // Verifiser at feil-feltet er satt
             val behandletHendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelseId)
             behandletHendelse.shouldBeInstanceOf<TilbakekrevingInfoBehovHendelse>()
-            behandletHendelse.feil.shouldNotBeNull()
+            behandletHendelse.feil shouldBe TilbakekrevinghendelseFeil.FantIkkeUtbetaling
         }
     }
 
@@ -116,7 +117,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             // Verifiser at feil-feltet er satt
             val behandletHendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelseId)
             behandletHendelse.shouldBeInstanceOf<TilbakekrevingInfoBehovHendelse>()
-            behandletHendelse.feil.shouldNotBeNull()
+            behandletHendelse.feil shouldBe TilbakekrevinghendelseFeil.FantIkkeSak
         }
     }
 
@@ -298,7 +299,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             // Verifiser at feil-feltet er satt
             val behandletHendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelse.id)
             behandletHendelse.shouldBeInstanceOf<TilbakekrevingBehandlingEndretHendelse>()
-            behandletHendelse.feil.shouldNotBeNull()
+            behandletHendelse.feil shouldBe TilbakekrevinghendelseFeil.FantIkkeUtbetaling
         }
     }
 
@@ -344,7 +345,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             // Verifiser at feil-feltet er satt
             val behandletHendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelse.id)
             behandletHendelse.shouldBeInstanceOf<TilbakekrevingBehandlingEndretHendelse>()
-            behandletHendelse.feil.shouldNotBeNull()
+            behandletHendelse.feil shouldBe TilbakekrevinghendelseFeil.FantIkkeSak
         }
     }
 

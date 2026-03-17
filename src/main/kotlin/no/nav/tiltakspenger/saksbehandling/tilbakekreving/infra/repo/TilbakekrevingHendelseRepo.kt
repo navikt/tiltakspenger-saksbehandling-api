@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo
 
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 
@@ -20,5 +21,5 @@ interface TilbakekrevingHendelseRepo {
 
     fun markerInfoBehovSomBehandlet(hendelseId: TilbakekrevinghendelseId, svarJson: String, sessionContext: SessionContext? = null)
     fun markerEndringSomBehandlet(hendelseId: TilbakekrevinghendelseId, sessionContext: SessionContext? = null)
-    fun markerSomBehandletMedFeil(hendelseId: TilbakekrevinghendelseId, feil: String, sessionContext: SessionContext? = null)
+    fun markerSomBehandletMedFeil(hendelseId: TilbakekrevinghendelseId, feil: TilbakekrevinghendelseFeil, sessionContext: SessionContext? = null)
 }
