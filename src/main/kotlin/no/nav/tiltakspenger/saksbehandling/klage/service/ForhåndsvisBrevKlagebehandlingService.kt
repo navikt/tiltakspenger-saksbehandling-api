@@ -38,14 +38,14 @@ class ForhåndsvisBrevKlagebehandlingService(
                     hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                 )
             },
-            genererKlageInnstillingsbrev = { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning, innsendingsdato ->
+            genererKlageInnstillingsbrev = { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning, innsendingsdato, datoVedtak ->
                 genererKlagebrevKlient.genererInnstillingsbrev(
                     saksnummer = saksnummer,
                     fnr = fnr,
                     tilleggstekst = tilleggstekst,
                     saksbehandlerNavIdent = saksbehandlerNavIdent,
                     forhåndsvisning = forhåndsvisning,
-                    vedtaksdato = LocalDate.now(clock),
+                    vedtaksdato = datoVedtak,
                     hentBrukersNavn = personService::hentNavn,
                     hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                     innsendingsdato = innsendingsdato,

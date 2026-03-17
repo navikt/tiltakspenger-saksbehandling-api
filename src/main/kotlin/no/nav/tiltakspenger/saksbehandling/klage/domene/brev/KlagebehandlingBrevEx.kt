@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.O
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
+import java.time.LocalDate
 
 /**
  * Avgjør selv hvilken type brev som genereres og om det er forhåndsvisning eller endelig generering.
@@ -25,6 +26,8 @@ suspend fun Klagebehandling.genererBrev(
     kommando: KlagebehandlingBrevKommando,
     genererAvvisningsbrev: GenererKlageAvvisningsbrev,
     genererKlageInnstillingsbrev: GenererKlageInnstillingsbrev,
+    // til bruk for innstillingsbrev
+    vedtaksdato: LocalDate?,
 ): Either<KunneIkkeGenererePdf, PdfOgJson> {
     require(resultat is Klagebehandlingsresultat.Avvist || resultat is Klagebehandlingsresultat.Opprettholdt) {
         """
@@ -34,7 +37,7 @@ suspend fun Klagebehandling.genererBrev(
             Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id
         """.trimIndent()
     }
-    if (skalGenerereBrevKunFraBehandling()) return genererBrev(genererAvvisningsbrev, genererKlageInnstillingsbrev)
+    if (skalGenerereBrevKunFraBehandling()) return genererBrev(genererAvvisningsbrev, genererKlageInnstillingsbrev, vedtaksdato)
 
     val brevtekst = resultat.brevtekst
     val saksbehandler: String = when (status) {
@@ -72,6 +75,7 @@ suspend fun Klagebehandling.genererBrev(
             tilleggstekst,
             true,
             this.formkrav.innsendingsdato,
+            vedtaksdato!!,
         )
     }
 }
@@ -83,6 +87,8 @@ suspend fun Klagebehandling.genererBrev(
 suspend fun Klagebehandling.genererBrev(
     genererAvvisningsbrev: GenererKlageAvvisningsbrev,
     genererKlageInnstillingsbrev: GenererKlageInnstillingsbrev,
+    // til bruk for innstillingsbrev
+    vedtaksdato: LocalDate?,
 ): Either<KunneIkkeGenererePdf, PdfOgJson> {
     require(skalGenerereBrevKunFraBehandling()) {
         """
@@ -117,6 +123,7 @@ suspend fun Klagebehandling.genererBrev(
                 resultat.brevtekst!!,
                 false,
                 this.formkrav.innsendingsdato,
+                vedtaksdato!!,
             )
         }
 
