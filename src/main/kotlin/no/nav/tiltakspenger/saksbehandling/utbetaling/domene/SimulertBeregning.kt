@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
@@ -74,7 +75,7 @@ data class SimulertBeregning(
         }
 
         val beregning: BeregningBeløp by lazy {
-            dager.map { it.beregning }.summer()
+            dager.mapNotNull { it.beregning }.summer()
         }
 
         val forrigeBeregning: BeregningBeløp? by lazy {
@@ -82,27 +83,29 @@ data class SimulertBeregning(
         }
 
         val beregningEndring: BeregningBeløp by lazy {
-            dager.map { it.beregningEndring }.summer()
+            dager.mapNotNull { it.beregningEndring }.summer()
         }
 
         /**
          * En dag i en simulering, som kobler sammen data fra både simuleringen og beregningen.
          * @param forrigeBeregningsdag er null dersom vi ikke tidligere har beregnet denne dagen.
+         * @param beregningsdag er null dersom vi ikke har en ny beregning, men har fått en endring i simuleringen
          * @property beregningEndring Merk at dette kun er endringen fra vår forrige beregning, men ikke nødvendigvis utbetalt enda. Oppdrag simulerer kun mot det som er sent til UR. Hvis vi sender en utbetaling til oppdrag beregnes den ikke før på kvelden. Siste utbetaling vil overskrive overlappende perioder. Eksempel: vi utbetaler 1000 kr og samme dag stanser vi den dagen, da vil simuleringen si "ingen endring", mens beregningsendringen vil si -1000 kr.
          */
         data class SimulertBeregningDag(
             val dato: LocalDate,
-            val beregningsdag: MeldeperiodeBeregningDag,
+            val beregningsdag: MeldeperiodeBeregningDag?,
             val forrigeBeregningsdag: MeldeperiodeBeregningDag?,
             val simuleringsdag: Simuleringsdag?,
         ) {
-
-            val beregning: BeregningBeløp by lazy {
-                BeregningBeløp(
-                    ordinær = beregningsdag.beløp,
-                    barnetillegg = beregningsdag.beløpBarnetillegg,
-                    total = beregningsdag.totalBeløp,
-                )
+            val beregning: BeregningBeløp? by lazy {
+                beregningsdag?.let {
+                    BeregningBeløp(
+                        ordinær = it.beløp,
+                        barnetillegg = it.beløpBarnetillegg,
+                        total = it.totalBeløp,
+                    )
+                }
             }
 
             val forrigeBeregning: BeregningBeløp? by lazy {
@@ -115,41 +118,77 @@ data class SimulertBeregning(
                 }
             }
 
-            val beregningEndring: BeregningBeløp by lazy {
-                BeregningBeløp(
-                    ordinær = beregning.ordinær - (forrigeBeregning?.ordinær ?: 0),
-                    barnetillegg = beregning.barnetillegg - (forrigeBeregning?.barnetillegg ?: 0),
-                    total = beregning.total - (forrigeBeregning?.total ?: 0),
-                )
+            val beregningEndring: BeregningBeløp? by lazy {
+                beregning?.let {
+                    BeregningBeløp(
+                        ordinær = it.ordinær - (forrigeBeregning?.ordinær ?: 0),
+                        barnetillegg = it.barnetillegg - (forrigeBeregning?.barnetillegg ?: 0),
+                        total = it.total - (forrigeBeregning?.total ?: 0),
+                    )
+                }
             }
         }
     }
 
     companion object {
+        /**
+         * @param beregning Beregningen for behandlingen.
+         * @param eksisterendeBeregninger Alle vedtatte beregninger (rammevedtak+meldekortvedtak)
+         * @param simulering Simuleringen knyttet til utbetalingen. Kan inneholde mer enn [beregning].
+         */
         fun create(
             beregning: Beregning,
             eksisterendeBeregninger: MeldeperiodeBeregningerVedtatt,
             simulering: Simulering?,
         ): SimulertBeregning {
-            val perMeldeperiode: Nel<SimulertBeregningMeldeperiode> =
-                beregning.beregninger.map { meldeperiodeBeregning ->
-                    val kjedeId = meldeperiodeBeregning.kjedeId
+            val beregningKjedeIder: Set<MeldeperiodeKjedeId> = beregning.beregninger.map { it.kjedeId }.toSet()
 
-                    val forrigeBeregning: MeldeperiodeBeregning? =
-                        eksisterendeBeregninger.hentForrigeBeregningForSimulering(meldeperiodeBeregning)
+            val fraMeldeperiodeBeregninger = beregning.beregninger.map { meldeperiodeBeregning ->
+                val kjedeId = meldeperiodeBeregning.kjedeId
 
-                    SimulertBeregningMeldeperiode(
-                        kjedeId = kjedeId,
-                        dager = meldeperiodeBeregning.dager.map { dag ->
-                            SimulertBeregningDag(
-                                dato = dag.dato,
-                                simuleringsdag = simulering?.hentDag(dag.dato),
-                                beregningsdag = dag,
-                                forrigeBeregningsdag = forrigeBeregning?.hentDag(dag.dato),
+                val forrigeBeregning: MeldeperiodeBeregning? =
+                    eksisterendeBeregninger.hentForrigeBeregningForSimulering(meldeperiodeBeregning)
+
+                SimulertBeregningMeldeperiode(
+                    kjedeId = kjedeId,
+                    dager = meldeperiodeBeregning.dager.map { dag ->
+                        SimulertBeregningDag(
+                            dato = dag.dato,
+                            simuleringsdag = simulering?.hentDag(dag.dato),
+                            beregningsdag = dag,
+                            forrigeBeregningsdag = forrigeBeregning?.hentDag(dag.dato),
+                        )
+                    },
+                )
+            }
+
+            val fraSimulering = when (simulering) {
+                is Simulering.Endring -> {
+                    simulering.simuleringPerMeldeperiode
+                        .filter { it.meldeperiode.kjedeId !in beregningKjedeIder }
+                        .map { simuleringForMeldeperiode ->
+                            SimulertBeregningMeldeperiode(
+                                kjedeId = simuleringForMeldeperiode.meldeperiode.kjedeId,
+                                dager = simuleringForMeldeperiode.simuleringsdager.map { dag ->
+                                    SimulertBeregningDag(
+                                        dato = dag.dato,
+                                        simuleringsdag = dag,
+                                        beregningsdag = null,
+                                        // TODO jah: Dersom vi ønsker å populere denne riktig, mtp. at det kan komme til nyere vedtak etter denne, trenger vi et forhold til beregningtidspunkt, som mangler per nå.
+                                        forrigeBeregningsdag = null,
+                                    )
+                                },
                             )
-                        },
-                    )
+                        }
                 }
+
+                else -> emptyList()
+            }
+
+            val perMeldeperiode: Nel<SimulertBeregningMeldeperiode> =
+                (fraMeldeperiodeBeregninger + fraSimulering)
+                    .sortedBy { it.kjedeId.fraOgMed }
+                    .toNonEmptyListOrThrow()
 
             return SimulertBeregning(
                 beregningskilde = beregning.beregningKilde,
@@ -173,13 +212,14 @@ data class SimulertBeregning(
  *  Dersom beregningen vi prøvde å finne forrige beregning til ikke finnes (men det finnes andre beregninger på kjeden),
  *  betyr det at denne beregningen ikke er iverksatt ennå, og forrige beregning er den gjeldende/sist iverksatte beregningen
  * */
-fun MeldeperiodeBeregningerVedtatt.hentForrigeBeregningForSimulering(meldeperiodeBeregning: MeldeperiodeBeregning): MeldeperiodeBeregning? =
-    hentForrigeBeregningEllerSiste(
+fun MeldeperiodeBeregningerVedtatt.hentForrigeBeregningForSimulering(meldeperiodeBeregning: MeldeperiodeBeregning): MeldeperiodeBeregning? {
+    return hentForrigeBeregningEllerSiste(
         meldeperiodeBeregning.id,
         meldeperiodeBeregning.kjedeId,
     )
+}
 
-private fun NonEmptyList<SimulertBeregning.BeregningBeløp>.summer(): SimulertBeregning.BeregningBeløp {
+private fun List<SimulertBeregning.BeregningBeløp>.summer(): SimulertBeregning.BeregningBeløp {
     return SimulertBeregning.BeregningBeløp(
         ordinær = this.sumOf { it.ordinær },
         barnetillegg = this.sumOf { it.barnetillegg },
