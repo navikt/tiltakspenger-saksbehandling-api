@@ -61,7 +61,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                     "tilbake_behandling_id" to tilbakekrevingBehandling.tilbakeBehandlingId,
                     "opprettet" to tilbakekrevingBehandling.opprettet,
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
-                    "status" to tilbakekrevingBehandling.status.name,
+                    "status" to tilbakekrevingBehandling.status.tilDb(),
                     "url" to tilbakekrevingBehandling.url,
                     "kravgrunnlag_periode" to tilbakekrevingBehandling.kravgrunnlagTotalPeriode.tilDbPeriode(),
                     "totalt_feilutbetalt_belop" to tilbakekrevingBehandling.totaltFeilutbetaltBeløp,
@@ -147,7 +147,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                 tilbakeBehandlingId = string("tilbake_behandling_id"),
                 opprettet = localDateTime("opprettet"),
                 sistEndret = localDateTime("sist_endret"),
-                status = TilbakekrevingBehandlingsstatus.valueOf(string("status")),
+                status = TilbakekrevingBehandlingsstatusDb.valueOf(string("status")).tilDomene(),
                 url = string("url"),
                 kravgrunnlagTotalPeriode = periode("kravgrunnlag_periode"),
                 totaltFeilutbetaltBeløp = bigDecimal("totalt_feilutbetalt_beløp"),
@@ -155,4 +155,28 @@ class TilbakekrevingBehandlingPostgresRepo(
             )
         }
     }
+}
+
+private enum class TilbakekrevingBehandlingsstatusDb {
+    OPPRETTET,
+    TIL_BEHANDLING,
+    TIL_GODKJENNING,
+    AVSLUTTET,
+    ;
+
+    fun tilDomene() = when (this) {
+        OPPRETTET -> TilbakekrevingBehandlingsstatus.OPPRETTET
+        TIL_BEHANDLING -> TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
+        TIL_GODKJENNING -> TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
+        AVSLUTTET -> TilbakekrevingBehandlingsstatus.AVSLUTTET
+    }
+}
+
+private fun TilbakekrevingBehandlingsstatus.tilDb(): String {
+    return when (this) {
+        TilbakekrevingBehandlingsstatus.OPPRETTET -> TilbakekrevingBehandlingsstatusDb.OPPRETTET
+        TilbakekrevingBehandlingsstatus.TIL_BEHANDLING -> TilbakekrevingBehandlingsstatusDb.TIL_BEHANDLING
+        TilbakekrevingBehandlingsstatus.TIL_GODKJENNING -> TilbakekrevingBehandlingsstatusDb.TIL_GODKJENNING
+        TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingsstatusDb.AVSLUTTET
+    }.name
 }

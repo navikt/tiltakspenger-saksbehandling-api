@@ -44,11 +44,15 @@ class BenkOversiktFakeRepo(
 
     private fun BehandlingssammendragType.toBehandlingstype(): Behandlingstype = when (this) {
         BehandlingssammendragType.SØKNADSBEHANDLING -> Behandlingstype.SØKNADSBEHANDLING
+
         BehandlingssammendragType.REVURDERING -> Behandlingstype.REVURDERING
-        BehandlingssammendragType.MELDEKORTBEHANDLING -> throw IllegalArgumentException("Meldekortbehanding er ikke en behandlingstype")
-        BehandlingssammendragType.INNSENDT_MELDEKORT -> throw IllegalArgumentException("Innsendt meldekort er ikke en behandlingstype")
-        BehandlingssammendragType.KORRIGERT_MELDEKORT -> throw IllegalArgumentException("Korrigert meldekort er ikke en behandlingstype")
-        BehandlingssammendragType.KLAGEBEHANDLING -> throw IllegalArgumentException("Klagebehandling er ikke en behandlingstype")
+
+        BehandlingssammendragType.MELDEKORTBEHANDLING,
+        BehandlingssammendragType.INNSENDT_MELDEKORT,
+        BehandlingssammendragType.KORRIGERT_MELDEKORT,
+        BehandlingssammendragType.KLAGEBEHANDLING,
+        BehandlingssammendragType.TILBAKEKREVING,
+        -> throw IllegalArgumentException("$this er ikke en behandlingstype")
     }
 
     private fun BehandlingssammendragStatus.toBehandlingsstatus(): Rammebehandlingsstatus = when (this) {

@@ -58,7 +58,11 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningS�
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgSettPåVent
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 
@@ -669,6 +673,115 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    fun `henter åpne tilbakekrevinger`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val (sak, meldekortvedtak) = testDataHelper.persisterIverksattMeldekortbehandling()
+            val utbetalingId = meldekortvedtak.utbetaling.id
+            val opprettet = nå(testDataHelper.clock)
+
+            val tilBehandling = TilbakekrevingBehandling(
+                id = TilbakekrevingId.random(),
+                sakId = sak.id,
+                utbetalingId = utbetalingId,
+                tilbakeBehandlingId = "tilbake-1",
+                opprettet = opprettet,
+                sistEndret = opprettet,
+                status = TilbakekrevingBehandlingsstatus.TIL_BEHANDLING,
+                url = "https://tilbakekreving.nav.no/1",
+                kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
+                totaltFeilutbetaltBeløp = BigDecimal("1000.00"),
+                varselSendt = null,
+            )
+            testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilBehandling)
+
+            val tilGodkjenning = TilbakekrevingBehandling(
+                id = TilbakekrevingId.random(),
+                sakId = sak.id,
+                utbetalingId = utbetalingId,
+                tilbakeBehandlingId = "tilbake-2",
+                opprettet = nå(testDataHelper.clock),
+                sistEndret = nå(testDataHelper.clock),
+                status = TilbakekrevingBehandlingsstatus.TIL_GODKJENNING,
+                url = "https://tilbakekreving.nav.no/2",
+                kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
+                totaltFeilutbetaltBeløp = BigDecimal("2000.00"),
+                varselSendt = null,
+            )
+            testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilGodkjenning)
+
+            // Opprettet og avsluttet skal ikke dukke opp
+            val opprettetTilbakekreving = TilbakekrevingBehandling(
+                id = TilbakekrevingId.random(),
+                sakId = sak.id,
+                utbetalingId = utbetalingId,
+                tilbakeBehandlingId = "tilbake-3",
+                opprettet = nå(testDataHelper.clock),
+                sistEndret = nå(testDataHelper.clock),
+                status = TilbakekrevingBehandlingsstatus.OPPRETTET,
+                url = "https://tilbakekreving.nav.no/3",
+                kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
+                totaltFeilutbetaltBeløp = BigDecimal("500.00"),
+                varselSendt = null,
+            )
+            testDataHelper.tilbakekrevingBehandlingRepo.lagre(opprettetTilbakekreving)
+
+            val avsluttetTilbakekreving = TilbakekrevingBehandling(
+                id = TilbakekrevingId.random(),
+                sakId = sak.id,
+                utbetalingId = utbetalingId,
+                tilbakeBehandlingId = "tilbake-4",
+                opprettet = nå(testDataHelper.clock),
+                sistEndret = nå(testDataHelper.clock),
+                status = TilbakekrevingBehandlingsstatus.AVSLUTTET,
+                url = "https://tilbakekreving.nav.no/4",
+                kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
+                totaltFeilutbetaltBeløp = BigDecimal("750.00"),
+                varselSendt = null,
+            )
+            testDataHelper.tilbakekrevingBehandlingRepo.lagre(avsluttetTilbakekreving)
+
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntall shouldBe 2
+            actual.size shouldBe 2
+            actual.first() shouldBe Behandlingssammendrag(
+                sakId = sak.id,
+                fnr = sak.fnr,
+                saksnummer = sak.saksnummer,
+                startet = tilBehandling.opprettet,
+                kravtidspunkt = null,
+                behandlingstype = BehandlingssammendragType.TILBAKEKREVING,
+                status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                saksbehandler = null,
+                beslutter = null,
+                sistEndret = tilBehandling.sistEndret,
+                erSattPåVent = false,
+                sattPåVentBegrunnelse = null,
+                sattPåVentFrist = null,
+                resultat = null,
+                erUnderkjent = false,
+            )
+            actual.last() shouldBe Behandlingssammendrag(
+                sakId = sak.id,
+                fnr = sak.fnr,
+                saksnummer = sak.saksnummer,
+                startet = tilGodkjenning.opprettet,
+                kravtidspunkt = null,
+                behandlingstype = BehandlingssammendragType.TILBAKEKREVING,
+                status = BehandlingssammendragStatus.KLAR_TIL_BESLUTNING,
+                saksbehandler = null,
+                beslutter = null,
+                sistEndret = tilGodkjenning.sistEndret,
+                erSattPåVent = false,
+                sattPåVentBegrunnelse = null,
+                sattPåVentFrist = null,
+                resultat = null,
+                erUnderkjent = false,
+            )
+        }
+    }
+
+    @Test
     fun `henter mix av behandlingene`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             testDataHelper.persisterSakOgSøknad()
@@ -677,10 +790,26 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
             testDataHelper.persisterOpprettetKlagebehandlingTilAvvisning()
 
+            val (sakMedMeldekortvedtak, meldekortvedtak) = testDataHelper.persisterIverksattMeldekortbehandling()
+            val tilbakekreving = TilbakekrevingBehandling(
+                id = TilbakekrevingId.random(),
+                sakId = sakMedMeldekortvedtak.id,
+                utbetalingId = meldekortvedtak.utbetaling.id,
+                tilbakeBehandlingId = "tilbake-mix",
+                opprettet = nå(testDataHelper.clock),
+                sistEndret = nå(testDataHelper.clock),
+                status = TilbakekrevingBehandlingsstatus.TIL_BEHANDLING,
+                url = "https://tilbakekreving.nav.no/mix",
+                kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
+                totaltFeilutbetaltBeløp = BigDecimal("1000.00"),
+                varselSendt = null,
+            )
+            testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilbakekreving)
+
             val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
-            totalAntall shouldBe 5
-            actual.size shouldBe 5
+            totalAntall shouldBe 6
+            actual.size shouldBe 6
         }
     }
 

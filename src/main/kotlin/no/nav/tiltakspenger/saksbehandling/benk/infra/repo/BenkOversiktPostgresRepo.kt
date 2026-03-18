@@ -179,6 +179,29 @@ class BenkOversiktPostgresRepo(
               and (mbr.mottatt > smbh.sist_endret_tidspunkt or smbh.sist_endret_tidspunkt is null)
         """
 
+        const val ÅPNE_TILBAKEKREVINGER = """
+            select tb.sak_id              as sakId,
+                s.fnr                     as fnr,
+                s.saksnummer              as saksnummer,
+                tb.opprettet              as startet,
+                'TILBAKEKREVING'          as behandlingstype,
+                case
+                    when tb.status = 'TIL_BEHANDLING' then 'KLAR_TIL_BEHANDLING'
+                    when tb.status = 'TIL_GODKJENNING' then 'KLAR_TIL_BESLUTNING'
+                end                       as status,
+                null                      as saksbehandler,
+                null                      as beslutter,
+                null                      as resultat,
+                null::boolean             as erSattPåVent,
+                null                      as sattPåVentBegrunnelse,
+                null::date                as sattPåVentFrist,
+                tb.sist_endret            as sist_endret,
+                null::jsonb               as attesteringer
+            from tilbakekreving_behandling tb
+                join sak s on tb.sak_id = s.id
+            where tb.status in ('TIL_BEHANDLING', 'TIL_GODKJENNING')
+        """
+
         const val ÅPNE_KLAGER = """
             select k.sak_id             as sakId,
                 s.fnr                   as fnr,
@@ -240,6 +263,7 @@ class BenkOversiktPostgresRepo(
                         åpneMeldekortBehandlinger as (${BenkSpørringer.ÅPNE_MELDEKORTBEHANDLINGER}),
                         åpneMeldekortTilBehandling as (${BenkSpørringer.ÅPNE_MELDEKORT_TIL_BEHANDLING}),
                         åpneKlager as (${BenkSpørringer.ÅPNE_KLAGER}),
+                        åpneTilbakekrevinger as (${BenkSpørringer.ÅPNE_TILBAKEKREVINGER}),
                         slåttSammen as (
                             select * from åpneSøknaderUtenBehandling
                             union all
@@ -252,6 +276,8 @@ class BenkOversiktPostgresRepo(
                             select * from åpneMeldekortTilBehandling
                             union all
                             select * from åpneKlager
+                            union all
+                            select * from åpneTilbakekrevinger
                         )
                     select *,
                         count(*) over () as total_count
@@ -282,8 +308,8 @@ class BenkOversiktPostgresRepo(
                     val fnr = Fnr.fromString(row.string("fnr"))
                     val saksnummer = Saksnummer(row.string("saksnummer"))
                     val startet = row.localDateTime("startet")
-                    val behandlingstype =
-                        row.string("behandlingstype").let { BehandlingssammendragTypeDb.valueOf(it) }.toDomain()
+                    val behandlingstype = row.string("behandlingstype")
+                        .let { BehandlingssammendragTypeDb.valueOf(it) }.toDomain()
                     val status = row.stringOrNull("status")?.toBehandlingssammendragStatus()
                     val saksbehandler = row.stringOrNull("saksbehandler")
                     val beslutter = row.stringOrNull("beslutter")
@@ -334,6 +360,7 @@ enum class BehandlingssammendragTypeDb {
     INNSENDT_MELDEKORT,
     KORRIGERT_MELDEKORT,
     KLAGEBEHANDLING,
+    TILBAKEKREVING,
     ;
 
     fun toDomain(): BehandlingssammendragType = when (this) {
@@ -343,6 +370,7 @@ enum class BehandlingssammendragTypeDb {
         INNSENDT_MELDEKORT -> BehandlingssammendragType.INNSENDT_MELDEKORT
         KORRIGERT_MELDEKORT -> BehandlingssammendragType.KORRIGERT_MELDEKORT
         KLAGEBEHANDLING -> BehandlingssammendragType.KLAGEBEHANDLING
+        TILBAKEKREVING -> BehandlingssammendragType.TILBAKEKREVING
     }
 }
 

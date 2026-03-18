@@ -113,4 +113,5 @@ private fun BehandlingssammendragType.toDTO(): BehandlingssammendragTypeDTO = wh
     BehandlingssammendragType.INNSENDT_MELDEKORT -> BehandlingssammendragTypeDTO.INNSENDT_MELDEKORT
     BehandlingssammendragType.KORRIGERT_MELDEKORT -> BehandlingssammendragTypeDTO.KORRIGERT_MELDEKORT
     BehandlingssammendragType.KLAGEBEHANDLING -> BehandlingssammendragTypeDTO.KLAGEBEHANDLING
+    BehandlingssammendragType.TILBAKEKREVING -> BehandlingssammendragTypeDTO.TILBAKEKREVING
 }
