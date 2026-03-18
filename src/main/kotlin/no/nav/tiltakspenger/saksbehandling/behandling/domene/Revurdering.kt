@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 import java.time.LocalDate
@@ -59,6 +60,7 @@ data class Revurdering(
     override val utbetaling: BehandlingUtbetaling?,
     override val utbetalingskontroll: Utbetalingskontroll?,
     override val klagebehandling: Klagebehandling?,
+    val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 ) : Rammebehandling {
 
     override val vedtaksperiode: Periode? = resultat.vedtaksperiode
@@ -210,6 +212,7 @@ data class Revurdering(
             saksbehandler: Saksbehandler?,
             saksopplysninger: Saksopplysninger,
             opprettet: LocalDateTime,
+            automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
         ): Revurdering {
             return opprett(
                 revurderingId = revurderingId,
@@ -221,6 +224,7 @@ data class Revurdering(
                 opprettet = opprettet,
                 resultat = Stans.empty,
                 klagebehandling = null,
+                automatiskOpprettetGrunn = automatiskOpprettetGrunn,
             )
         }
 
@@ -233,6 +237,7 @@ data class Revurdering(
             opprettet: LocalDateTime,
             klagebehandling: Klagebehandling?,
             revurderingId: BehandlingId = BehandlingId.random(),
+            automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
         ): Revurdering {
             return opprett(
                 revurderingId = revurderingId,
@@ -244,6 +249,7 @@ data class Revurdering(
                 opprettet = opprettet,
                 resultat = Innvilgelse.empty,
                 klagebehandling = klagebehandling,
+                automatiskOpprettetGrunn = automatiskOpprettetGrunn,
             )
         }
 
@@ -257,6 +263,7 @@ data class Revurdering(
             klagebehandling: Klagebehandling?,
             opprettet: LocalDateTime,
             revurderingId: BehandlingId = BehandlingId.random(),
+            automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
         ): Revurdering {
             return opprett(
                 revurderingId = revurderingId,
@@ -270,6 +277,7 @@ data class Revurdering(
                     omgjørRammevedtak = OmgjørRammevedtak.create(omgjørRammevedtak),
                 ),
                 klagebehandling = klagebehandling,
+                automatiskOpprettetGrunn = automatiskOpprettetGrunn,
             )
         }
 
@@ -283,6 +291,7 @@ data class Revurdering(
             opprettet: LocalDateTime,
             resultat: Revurderingsresultat,
             klagebehandling: Klagebehandling?,
+            automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
         ): Revurdering {
             return Revurdering(
                 id = revurderingId,
@@ -308,6 +317,7 @@ data class Revurdering(
                 utbetaling = null,
                 utbetalingskontroll = null,
                 klagebehandling = klagebehandling,
+                automatiskOpprettetGrunn = automatiskOpprettetGrunn,
             )
         }
     }

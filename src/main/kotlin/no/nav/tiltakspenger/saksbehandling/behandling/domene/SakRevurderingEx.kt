@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.oppdaterRammebehandlingId
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 import java.time.LocalDateTime
@@ -37,6 +38,7 @@ suspend fun Sak.startRevurdering(
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
             opprettet = nå,
+            automatiskOpprettetGrunn = kommando.automatiskOpprettetGrunn,
         )
 
         StartRevurderingType.INNVILGELSE -> startRevurderingInnvilgelse(
@@ -46,6 +48,7 @@ suspend fun Sak.startRevurdering(
             correlationId = kommando.correlationId,
             opprettet = nå,
             klagebehandling = klagebehandling,
+            automatiskOpprettetGrunn = kommando.automatiskOpprettetGrunn,
         )
 
         StartRevurderingType.OMGJØRING -> startRevurderingOmgjøring(
@@ -56,6 +59,7 @@ suspend fun Sak.startRevurdering(
             rammevedtakIdSomOmgjøres = kommando.vedtakIdSomOmgjøres!!,
             opprettet = nå,
             klagebehandling = klagebehandling,
+            automatiskOpprettetGrunn = kommando.automatiskOpprettetGrunn,
         )
     }
 
@@ -71,6 +75,7 @@ private suspend fun Sak.startRevurderingStans(
     hentSaksopplysninger: HentSaksopplysninger,
     correlationId: CorrelationId,
     opprettet: LocalDateTime,
+    automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 ): Revurdering {
     return Revurdering.opprettStans(
         revurderingId = revurderingId,
@@ -87,8 +92,8 @@ private suspend fun Sak.startRevurderingStans(
             this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
             false,
         ),
-
         opprettet = opprettet,
+        automatiskOpprettetGrunn = automatiskOpprettetGrunn,
     )
 }
 
@@ -100,6 +105,7 @@ private suspend fun Sak.startRevurderingInnvilgelse(
     opprettet: LocalDateTime,
     klagebehandling: Klagebehandling?,
     revurderingId: BehandlingId = BehandlingId.random(),
+    automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 ): Revurdering {
     require(harFørstegangsvedtak) {
         "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere"
@@ -121,6 +127,7 @@ private suspend fun Sak.startRevurderingInnvilgelse(
         ),
         opprettet = opprettet,
         klagebehandling = klagebehandling,
+        automatiskOpprettetGrunn = automatiskOpprettetGrunn,
     )
 }
 
@@ -132,6 +139,7 @@ private suspend fun Sak.startRevurderingOmgjøring(
     klagebehandling: Klagebehandling?,
     opprettet: LocalDateTime,
     revurderingId: BehandlingId = BehandlingId.random(),
+    automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 ): Revurdering {
     val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
 
@@ -150,5 +158,6 @@ private suspend fun Sak.startRevurderingOmgjøring(
         opprettet = opprettet,
         omgjørRammevedtak = gjeldendeRammevedtak,
         klagebehandling = klagebehandling,
+        automatiskOpprettetGrunn = automatiskOpprettetGrunn,
     )
 }

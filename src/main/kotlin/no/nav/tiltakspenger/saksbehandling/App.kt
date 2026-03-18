@@ -103,11 +103,12 @@ internal fun start(
 
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },
             { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort(clock) },
+
+            { applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere() },
         ).let {
             if (Configuration.isNais()) {
                 it.plus(
                     listOf(
-                        { applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere() },
                         { applicationContext.sendTilDatadelingService.send() },
                         { applicationContext.personhendelseJobb.opprettOppgaveForPersonhendelser() },
                         { applicationContext.personhendelseJobb.opprydning() },

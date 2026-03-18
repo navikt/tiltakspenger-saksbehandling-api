@@ -54,6 +54,8 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toOmgjørRammev
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.toAutomatiskOpprettetRevurderingGrunn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.toDbJson
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFraDbJson
@@ -501,6 +503,7 @@ class RammebehandlingPostgresRepo(
                         },
                         utbetaling = utbetaling,
                         utbetalingskontroll = utbetalingskontroll,
+                        automatiskOpprettetGrunn = stringOrNull("automatisk_opprettet_grunn")?.toAutomatiskOpprettetRevurderingGrunn(),
                     )
                 }
             }
@@ -559,7 +562,8 @@ class RammebehandlingPostgresRepo(
                 har_valgt_stans_til_siste_dag_som_gir_rett,
                 innvilgelsesperioder,
                 omgjør_rammevedtak,
-                klagebehandling_id
+                klagebehandling_id,
+                automatisk_opprettet_grunn
             ) values (
                 :id,
                 :sak_id,
@@ -598,7 +602,8 @@ class RammebehandlingPostgresRepo(
                 :har_valgt_stans_til_siste_dag_som_gir_rett,
                 to_jsonb(:innvilgelsesperioder::jsonb),
                 to_jsonb(:omgjoer_rammevedtak::jsonb),
-                :klagebehandling_id
+                :klagebehandling_id,
+                to_jsonb(:automatisk_opprettet_grunn::jsonb)
             )
             """.trimIndent()
 
@@ -640,7 +645,8 @@ class RammebehandlingPostgresRepo(
                 har_valgt_stans_til_siste_dag_som_gir_rett = :har_valgt_stans_til_siste_dag_som_gir_rett,
                 innvilgelsesperioder = to_jsonb(:innvilgelsesperioder::jsonb),
                 omgjør_rammevedtak = to_jsonb(:omgjoer_rammevedtak::jsonb),
-                klagebehandling_id = :klagebehandling_id
+                klagebehandling_id = :klagebehandling_id,
+                automatisk_opprettet_grunn = to_jsonb(:automatisk_opprettet_grunn::jsonb)
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -772,6 +778,10 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "navkontor" to this.utbetaling?.navkontor?.kontornummer,
         "navkontor_navn" to this.utbetaling?.navkontor?.kontornavn,
         "klagebehandling_id" to this.klagebehandling?.id?.toString(),
+        "automatisk_opprettet_grunn" to when (this) {
+            is Revurdering -> this.automatiskOpprettetGrunn?.toDbJson()
+            is Søknadsbehandling -> null
+        },
 
         *this.resultat.tilDbParams(),
     )

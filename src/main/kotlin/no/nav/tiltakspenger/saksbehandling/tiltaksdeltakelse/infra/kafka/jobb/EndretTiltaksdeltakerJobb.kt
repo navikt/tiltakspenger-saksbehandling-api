@@ -5,7 +5,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
@@ -15,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
 import java.time.Clock
@@ -55,12 +55,28 @@ class EndretTiltaksdeltakerJobb(
                         return@forEach
                     }
 
-                    val revurdering = sak.opprettRevurderingHvisRelevant(
-                        tiltaksdeltakerId,
-                        endringer,
-                    )
+                    val revurderingSomSkalOpprettes = sak.vurderRevurdering(tiltaksdeltakerId, endringer)
 
-                    if (revurdering == null) {
+                    if (revurderingSomSkalOpprettes != null) {
+                        val kommando = StartRevurderingKommando(
+                            sakId = sak.id,
+                            correlationId = CorrelationId.generate(),
+                            saksbehandler = null,
+                            revurderingType = revurderingSomSkalOpprettes.type,
+                            vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
+                            klagebehandlingId = null,
+                            automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(
+                                endringer = endringer,
+                                hendelseId = eksternDeltakerId,
+                            ),
+                        )
+
+                        val (_, revurdering) = startRevurderingService.startRevurdering(kommando, sak)
+
+                        tiltaksdeltakerKafkaRepository.lagreBehandlingId(eksternDeltakerId, revurdering.id)
+
+                        log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse $tiltaksdeltakerId / $eksternDeltakerId" }
+                    } else {
                         log.info { "Tiltaksdeltakelse $eksternDeltakerId er endret uten å opprette revurdering, oppretter oppgave" }
 
                         val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
@@ -72,10 +88,6 @@ class EndretTiltaksdeltakerJobb(
                         tiltaksdeltakerKafkaRepository.lagreOppgaveId(eksternDeltakerId, oppgaveId)
 
                         log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $eksternDeltakerId" }
-                    } else {
-                        tiltaksdeltakerKafkaRepository.lagreBehandlingId(eksternDeltakerId, revurdering.id)
-
-                        log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse $tiltaksdeltakerId / $eksternDeltakerId" }
                     }
                 }.onLeft {
                     log.error(it) { "Feil ved opprettelse av oppgave/revurdering for endret tiltaksdeltakelse (deltakelseId $eksternDeltakerId - sakId $sakId)" }
@@ -129,10 +141,10 @@ class EndretTiltaksdeltakerJobb(
         return deltaker.finnEndringer(sisteRelevanteTiltaksdeltakelse, clock)
     }
 
-    private suspend fun Sak.opprettRevurderingHvisRelevant(
+    private fun Sak.vurderRevurdering(
         deltakerId: TiltaksdeltakerId,
         endringer: TiltaksdeltakerEndringer,
-    ): Revurdering? {
+    ): RevurderingSomSkalOpprettes? {
         if (!this.harFørstegangsvedtak || this.rammebehandlinger.åpneBehandlinger.isNotEmpty()) {
             log.info {
                 "Oppretter ikke revurdering hvis det finnes åpne behandlinger, eller førstegangsvedtak mangler - tiltaksdeltakelse $deltakerId, sakId $id"
@@ -141,25 +153,25 @@ class EndretTiltaksdeltakerJobb(
         }
 
         if (endringer.avbrutt != null) {
-            return startRevurderingForAvbruddHvisRelevant(deltakerId)
+            return vurderRevurderingForAvbrudd(deltakerId)
         }
 
         if (endringer.forlengelse != null) {
-            return startRevurderingForlengelseHvisRelevant(endringer.forlengelse!!)
+            return vurderRevurderingForForlengelse(endringer.forlengelse!!)
         }
 
         return when {
             endringer.endretStartdato != null ||
                 endringer.endretSluttdato != null ||
-                endringer.endretDeltakelsesmengde != null -> startOmgjøringHvisRelevant(deltakerId)
+                endringer.endretDeltakelsesmengde != null -> vurderOmgjøring(deltakerId)
 
             else -> null
         }
     }
 
-    private suspend fun Sak.startRevurderingForAvbruddHvisRelevant(
+    private fun Sak.vurderRevurderingForAvbrudd(
         deltakerId: TiltaksdeltakerId,
-    ): Revurdering? {
+    ): RevurderingSomSkalOpprettes? {
         val idag = LocalDate.now(clock)
 
         val harRettFremover = rammevedtaksliste.sisteDagSomGirRett?.let { it >= idag } ?: false
@@ -177,13 +189,15 @@ class EndretTiltaksdeltakerJobb(
 
         // Oppretter ikke stans dersom det også er innvilget for andre tiltaksdeltakelser
         if (harAndreTiltaksdeltakelserFremover) {
-            return startOmgjøringHvisRelevant(deltakerId)
+            return vurderOmgjøring(deltakerId)
         }
 
-        return startRevurdering(StartRevurderingType.STANS)
+        return RevurderingSomSkalOpprettes(StartRevurderingType.STANS)
     }
 
-    private suspend fun Sak.startRevurderingForlengelseHvisRelevant(endring: TiltaksdeltakerEndring.Forlengelse): Revurdering? {
+    private fun Sak.vurderRevurderingForForlengelse(
+        endring: TiltaksdeltakerEndring.Forlengelse,
+    ): RevurderingSomSkalOpprettes? {
         // Dersom det allerede er rett frem til ny sluttdato, så har forlengelsen sannsynligvis allerede blitt iverksatt
         // TODO: vi kunne kanskje sjekke mot gjeldende vedtak i stedet for siste dag på hele saken, for de tilfellene
         // der det finnes flere vedtak, og et annet vedtak enn det siste forlenges. Dette skjer sannsynligvis veldig sjelden (aldri?)
@@ -191,12 +205,12 @@ class EndretTiltaksdeltakerJobb(
             return null
         }
 
-        return startRevurdering(StartRevurderingType.INNVILGELSE)
+        return RevurderingSomSkalOpprettes(StartRevurderingType.INNVILGELSE)
     }
 
-    private suspend fun Sak.startOmgjøringHvisRelevant(
+    private fun Sak.vurderOmgjøring(
         deltakerId: TiltaksdeltakerId,
-    ): Revurdering? {
+    ): RevurderingSomSkalOpprettes? {
         val vedtakMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.filter {
             it.verdi.gjeldendeTiltaksdeltakelser.verdier.any { deltakelse -> deltakelse.internDeltakelseId == deltakerId }
         }.verdier
@@ -212,22 +226,21 @@ class EndretTiltaksdeltakerJobb(
             return null
         }
 
-        return startRevurdering(StartRevurderingType.OMGJØRING, vedtakMedRelevantTiltaksdeltakelse.single().id)
-    }
-
-    private suspend fun Sak.startRevurdering(
-        revurderingType: StartRevurderingType,
-        vedtakIdSomOmgjøres: VedtakId? = null,
-    ): Revurdering {
-        val kommando = StartRevurderingKommando(
-            sakId = this.id,
-            correlationId = CorrelationId.generate(),
-            saksbehandler = null,
-            revurderingType = revurderingType,
-            vedtakIdSomOmgjøres = vedtakIdSomOmgjøres,
-            klagebehandlingId = null,
+        return RevurderingSomSkalOpprettes(
+            type = StartRevurderingType.OMGJØRING,
+            vedtakIdSomOmgjøres = vedtakMedRelevantTiltaksdeltakelse.single().id,
         )
+    }
+}
 
-        return startRevurderingService.startRevurdering(kommando, this).second
+private data class RevurderingSomSkalOpprettes(
+    val type: StartRevurderingType,
+    val vedtakIdSomOmgjøres: VedtakId? = null,
+) {
+
+    init {
+        require(type != StartRevurderingType.OMGJØRING || vedtakIdSomOmgjøres != null) {
+            "Ved omgjøring må vedtakIdSomOmgjøres være satt"
+        }
     }
 }

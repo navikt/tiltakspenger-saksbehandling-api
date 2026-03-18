@@ -283,6 +283,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "innvilgelsesperioder": null,
               "barnetillegg": null,
               "resultat": "REVURDERING_INNVILGELSE",
+              "automatiskOpprettetGrunn": null,
               "type": "REVURDERING"
               }
                 """.trimIndent(),
@@ -379,6 +380,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                   "tilbakekrevingId": null,
                   "omgjørVedtak": "${sak.vedtaksliste.rammevedtaksliste.first().id}",
                   "resultat": "OMGJØRING_IKKE_VALGT",
+                  "automatiskOpprettetGrunn": null,
                   "type": "REVURDERING"
                 }
                 """.trimIndent(),
