@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
 import java.time.Clock
@@ -58,6 +59,7 @@ class EndretTiltaksdeltakerJobb(
                     val revurdering = sak.opprettRevurderingHvisRelevant(
                         tiltaksdeltakerId,
                         endringer,
+                        eksternDeltakerId,
                     )
 
                     if (revurdering == null) {
@@ -132,7 +134,10 @@ class EndretTiltaksdeltakerJobb(
     private suspend fun Sak.opprettRevurderingHvisRelevant(
         deltakerId: TiltaksdeltakerId,
         endringer: TiltaksdeltakerEndringer,
+        hendelseId: String,
     ): Revurdering? {
+        val grunn = AutomatiskOpprettetRevurderingGrunn(endringer = endringer, hendelseId = hendelseId)
+
         if (!this.harFørstegangsvedtak || this.rammebehandlinger.åpneBehandlinger.isNotEmpty()) {
             log.info {
                 "Oppretter ikke revurdering hvis det finnes åpne behandlinger, eller førstegangsvedtak mangler - tiltaksdeltakelse $deltakerId, sakId $id"
@@ -141,17 +146,17 @@ class EndretTiltaksdeltakerJobb(
         }
 
         if (endringer.avbrutt != null) {
-            return startRevurderingForAvbruddHvisRelevant(deltakerId)
+            return startRevurderingForAvbruddHvisRelevant(deltakerId, grunn)
         }
 
         if (endringer.forlengelse != null) {
-            return startRevurderingForlengelseHvisRelevant(endringer.forlengelse!!)
+            return startRevurderingForlengelseHvisRelevant(endringer.forlengelse!!, grunn)
         }
 
         return when {
             endringer.endretStartdato != null ||
                 endringer.endretSluttdato != null ||
-                endringer.endretDeltakelsesmengde != null -> startOmgjøringHvisRelevant(deltakerId)
+                endringer.endretDeltakelsesmengde != null -> startOmgjøringHvisRelevant(deltakerId, grunn)
 
             else -> null
         }
@@ -159,6 +164,7 @@ class EndretTiltaksdeltakerJobb(
 
     private suspend fun Sak.startRevurderingForAvbruddHvisRelevant(
         deltakerId: TiltaksdeltakerId,
+        grunn: AutomatiskOpprettetRevurderingGrunn,
     ): Revurdering? {
         val idag = LocalDate.now(clock)
 
@@ -177,13 +183,16 @@ class EndretTiltaksdeltakerJobb(
 
         // Oppretter ikke stans dersom det også er innvilget for andre tiltaksdeltakelser
         if (harAndreTiltaksdeltakelserFremover) {
-            return startOmgjøringHvisRelevant(deltakerId)
+            return startOmgjøringHvisRelevant(deltakerId, grunn)
         }
 
-        return startRevurdering(StartRevurderingType.STANS)
+        return startRevurdering(StartRevurderingType.STANS, automatiskOpprettetGrunn = grunn)
     }
 
-    private suspend fun Sak.startRevurderingForlengelseHvisRelevant(endring: TiltaksdeltakerEndring.Forlengelse): Revurdering? {
+    private suspend fun Sak.startRevurderingForlengelseHvisRelevant(
+        endring: TiltaksdeltakerEndring.Forlengelse,
+        grunn: AutomatiskOpprettetRevurderingGrunn,
+    ): Revurdering? {
         // Dersom det allerede er rett frem til ny sluttdato, så har forlengelsen sannsynligvis allerede blitt iverksatt
         // TODO: vi kunne kanskje sjekke mot gjeldende vedtak i stedet for siste dag på hele saken, for de tilfellene
         // der det finnes flere vedtak, og et annet vedtak enn det siste forlenges. Dette skjer sannsynligvis veldig sjelden (aldri?)
@@ -191,11 +200,12 @@ class EndretTiltaksdeltakerJobb(
             return null
         }
 
-        return startRevurdering(StartRevurderingType.INNVILGELSE)
+        return startRevurdering(StartRevurderingType.INNVILGELSE, automatiskOpprettetGrunn = grunn)
     }
 
     private suspend fun Sak.startOmgjøringHvisRelevant(
         deltakerId: TiltaksdeltakerId,
+        grunn: AutomatiskOpprettetRevurderingGrunn,
     ): Revurdering? {
         val vedtakMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.filter {
             it.verdi.gjeldendeTiltaksdeltakelser.verdier.any { deltakelse -> deltakelse.internDeltakelseId == deltakerId }
@@ -212,12 +222,13 @@ class EndretTiltaksdeltakerJobb(
             return null
         }
 
-        return startRevurdering(StartRevurderingType.OMGJØRING, vedtakMedRelevantTiltaksdeltakelse.single().id)
+        return startRevurdering(StartRevurderingType.OMGJØRING, vedtakMedRelevantTiltaksdeltakelse.single().id, grunn)
     }
 
     private suspend fun Sak.startRevurdering(
         revurderingType: StartRevurderingType,
         vedtakIdSomOmgjøres: VedtakId? = null,
+        automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
     ): Revurdering {
         val kommando = StartRevurderingKommando(
             sakId = this.id,
@@ -226,6 +237,7 @@ class EndretTiltaksdeltakerJobb(
             revurderingType = revurderingType,
             vedtakIdSomOmgjøres = vedtakIdSomOmgjøres,
             klagebehandlingId = null,
+            automatiskOpprettetGrunn = automatiskOpprettetGrunn,
         )
 
         return startRevurderingService.startRevurdering(kommando, this).second

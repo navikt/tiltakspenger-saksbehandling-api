@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 
 data class StartRevurderingKommando(
     val sakId: SakId,
@@ -15,6 +16,7 @@ data class StartRevurderingKommando(
     val vedtakIdSomOmgjøres: VedtakId?,
     val klagebehandlingId: KlagebehandlingId?,
     val revurderingId: BehandlingId = BehandlingId.random(),
+    val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 )
 
 enum class StartRevurderingType {
