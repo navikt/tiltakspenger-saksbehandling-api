@@ -47,6 +47,7 @@ class OversendKlageTilKlageinstansJobb(
                                 klagebehandlingRepo.markerOversendtTilKlageinstans(
                                     klagebehandling = klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(it.oversendtTidspunkt),
                                     metadata = it,
+                                    sessionContext = tx,
                                 )
                                 // TODO: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
                                 @Suppress("RunBlockingInSuspendFunction")
