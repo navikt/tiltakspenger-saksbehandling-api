@@ -14,13 +14,23 @@ private data class AutomatiskOpprettetRevurderingGrunnDbJson(
 )
 
 private data class TiltaksdeltakerEndringDbJson(
-    val type: String,
+    val type: TiltaksdeltakerEndringTypeDb,
     val nySluttdato: String? = null,
     val nyStartdato: String? = null,
     val nyDeltakelsesprosent: Float? = null,
     val nyDagerPerUke: Float? = null,
     val nyStatus: String? = null,
 )
+
+private enum class TiltaksdeltakerEndringTypeDb {
+    AVBRUTT_DELTAKELSE,
+    IKKE_AKTUELL_DELTAKELSE,
+    FORLENGELSE,
+    ENDRET_SLUTTDATO,
+    ENDRET_STARTDATO,
+    ENDRET_DELTAKELSESMENGDE,
+    ENDRET_STATUS,
+}
 
 fun AutomatiskOpprettetRevurderingGrunn.toDbJson(): String {
     return serialize(
@@ -42,22 +52,21 @@ fun String.toAutomatiskOpprettetRevurderingGrunn(): AutomatiskOpprettetRevurderi
 }
 
 private fun TiltaksdeltakerEndring.toDbJson(): TiltaksdeltakerEndringDbJson = when (this) {
-    is TiltaksdeltakerEndring.AvbruttDeltakelse -> TiltaksdeltakerEndringDbJson(type = "AVBRUTT_DELTAKELSE")
-    is TiltaksdeltakerEndring.IkkeAktuellDeltakelse -> TiltaksdeltakerEndringDbJson(type = "IKKE_AKTUELL_DELTAKELSE")
-    is TiltaksdeltakerEndring.Forlengelse -> TiltaksdeltakerEndringDbJson(type = "FORLENGELSE", nySluttdato = nySluttdato.toString())
-    is TiltaksdeltakerEndring.EndretSluttdato -> TiltaksdeltakerEndringDbJson(type = "ENDRET_SLUTTDATO", nySluttdato = nySluttdato?.toString())
-    is TiltaksdeltakerEndring.EndretStartdato -> TiltaksdeltakerEndringDbJson(type = "ENDRET_STARTDATO", nyStartdato = nyStartdato?.toString())
-    is TiltaksdeltakerEndring.EndretDeltakelsesmengde -> TiltaksdeltakerEndringDbJson(type = "ENDRET_DELTAKELSESMENGDE", nyDeltakelsesprosent = nyDeltakelsesprosent, nyDagerPerUke = nyDagerPerUke)
-    is TiltaksdeltakerEndring.EndretStatus -> TiltaksdeltakerEndringDbJson(type = "ENDRET_STATUS", nyStatus = nyStatus.name)
+    is TiltaksdeltakerEndring.AvbruttDeltakelse -> TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.AVBRUTT_DELTAKELSE)
+    is TiltaksdeltakerEndring.IkkeAktuellDeltakelse -> TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.IKKE_AKTUELL_DELTAKELSE)
+    is TiltaksdeltakerEndring.Forlengelse -> TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.FORLENGELSE, nySluttdato = nySluttdato.toString())
+    is TiltaksdeltakerEndring.EndretSluttdato -> TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.ENDRET_SLUTTDATO, nySluttdato = nySluttdato?.toString())
+    is TiltaksdeltakerEndring.EndretStartdato -> TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.ENDRET_STARTDATO, nyStartdato = nyStartdato?.toString())
+    is TiltaksdeltakerEndring.EndretDeltakelsesmengde -> TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.ENDRET_DELTAKELSESMENGDE, nyDeltakelsesprosent = nyDeltakelsesprosent, nyDagerPerUke = nyDagerPerUke)
+    is TiltaksdeltakerEndring.EndretStatus -> TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.ENDRET_STATUS, nyStatus = nyStatus.name)
 }
 
 private fun TiltaksdeltakerEndringDbJson.toDomain(): TiltaksdeltakerEndring = when (type) {
-    "AVBRUTT_DELTAKELSE" -> TiltaksdeltakerEndring.AvbruttDeltakelse
-    "IKKE_AKTUELL_DELTAKELSE" -> TiltaksdeltakerEndring.IkkeAktuellDeltakelse
-    "FORLENGELSE" -> TiltaksdeltakerEndring.Forlengelse(nySluttdato = LocalDate.parse(nySluttdato!!))
-    "ENDRET_SLUTTDATO" -> TiltaksdeltakerEndring.EndretSluttdato(nySluttdato = nySluttdato?.let { LocalDate.parse(it) })
-    "ENDRET_STARTDATO" -> TiltaksdeltakerEndring.EndretStartdato(nyStartdato = nyStartdato?.let { LocalDate.parse(it) })
-    "ENDRET_DELTAKELSESMENGDE" -> TiltaksdeltakerEndring.EndretDeltakelsesmengde(nyDeltakelsesprosent = nyDeltakelsesprosent, nyDagerPerUke = nyDagerPerUke)
-    "ENDRET_STATUS" -> TiltaksdeltakerEndring.EndretStatus(nyStatus = TiltakDeltakerstatus.valueOf(nyStatus!!))
-    else -> throw IllegalArgumentException("Ukjent TiltaksdeltakerEndring type: $type")
+    TiltaksdeltakerEndringTypeDb.AVBRUTT_DELTAKELSE -> TiltaksdeltakerEndring.AvbruttDeltakelse
+    TiltaksdeltakerEndringTypeDb.IKKE_AKTUELL_DELTAKELSE -> TiltaksdeltakerEndring.IkkeAktuellDeltakelse
+    TiltaksdeltakerEndringTypeDb.FORLENGELSE -> TiltaksdeltakerEndring.Forlengelse(nySluttdato = LocalDate.parse(nySluttdato!!))
+    TiltaksdeltakerEndringTypeDb.ENDRET_SLUTTDATO -> TiltaksdeltakerEndring.EndretSluttdato(nySluttdato = nySluttdato?.let { LocalDate.parse(it) })
+    TiltaksdeltakerEndringTypeDb.ENDRET_STARTDATO -> TiltaksdeltakerEndring.EndretStartdato(nyStartdato = nyStartdato?.let { LocalDate.parse(it) })
+    TiltaksdeltakerEndringTypeDb.ENDRET_DELTAKELSESMENGDE -> TiltaksdeltakerEndring.EndretDeltakelsesmengde(nyDeltakelsesprosent = nyDeltakelsesprosent, nyDagerPerUke = nyDagerPerUke)
+    TiltaksdeltakerEndringTypeDb.ENDRET_STATUS -> TiltaksdeltakerEndring.EndretStatus(nyStatus = TiltakDeltakerstatus.valueOf(nyStatus!!))
 }

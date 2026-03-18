@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
@@ -11,6 +13,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
@@ -352,6 +355,14 @@ class EndretTiltaksdeltakerJobbTest {
             oppdatertTiltaksdeltakerKafkaDb.shouldNotBeNull()
             oppdatertTiltaksdeltakerKafkaDb.oppgaveId.shouldBeNull()
             oppdatertTiltaksdeltakerKafkaDb.behandlingId shouldBe sisteBehandling.id
+
+            val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
+            revurdering.id shouldBe oppdatertTiltaksdeltakerKafkaDb.behandlingId
+            val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
+            grunn.hendelseId shouldBe tiltaksdeltakerKafkaDb.id
+            grunn.endringer shouldHaveSize 2
+            grunn.endringer.any { it is TiltaksdeltakerEndring.Forlengelse } shouldBe true
+            grunn.endringer.any { it is TiltaksdeltakerEndring.EndretDeltakelsesmengde } shouldBe true
         }
     }
 
@@ -394,6 +405,14 @@ class EndretTiltaksdeltakerJobbTest {
             val oppdatertTiltaksdeltakerKafkaDb = tac.tiltaksdeltakerKafkaRepository.hent(tiltaksdeltakerKafkaDb.id)
             oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
             oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+
+            val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
+            val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
+            revurdering.id shouldBe oppdatertTiltaksdeltakerKafkaDb?.behandlingId
+            val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
+            grunn.hendelseId shouldBe tiltaksdeltakerKafkaDb.id
+            grunn.endringer shouldHaveSize 1
+            grunn.endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
         }
     }
 
@@ -525,6 +544,14 @@ class EndretTiltaksdeltakerJobbTest {
                 førsteOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 førsteOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
 
+                val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
+                val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
+                revurdering.id shouldBe førsteOppdatertTiltaksdeltakerKafkaDb?.behandlingId
+                val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
+                grunn.hendelseId shouldBe førsteEksternId
+                grunn.endringer shouldHaveSize 1
+                grunn.endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
+
                 val andreOppdatertTiltaksdeltakerKafkaDb =
                     tac.tiltaksdeltakerKafkaRepository.hent(andreTiltaksdeltakerKafkaDb.id)
                 andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
@@ -612,6 +639,14 @@ class EndretTiltaksdeltakerJobbTest {
                     tac.tiltaksdeltakerKafkaRepository.hent(andreTiltaksdeltakerKafkaDb.id)
                 andreOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+
+                val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
+                val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
+                revurdering.id shouldBe andreOppdatertTiltaksdeltakerKafkaDb?.behandlingId
+                val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
+                grunn.hendelseId shouldBe andreEksternId
+                grunn.endringer shouldHaveSize 1
+                grunn.endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
             }
         }
     }
