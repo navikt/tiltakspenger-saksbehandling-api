@@ -101,6 +101,7 @@ data class RevurderingDTO(
     override val klagebehandlingId: String?,
     override val tilbakekrevingId: String?,
     @param:JsonUnwrapped val resultatDTO: RevurderingResultatDTO,
+    val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunnDTO?,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.REVURDERING
@@ -200,5 +201,6 @@ fun Revurdering.tilRevurderingDTO(
         resultatDTO = this.resultat.tilRevurderingResultatDTO(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
         tilbakekrevingId = tilbakekrevingId?.toString(),
+        automatiskOpprettetGrunn = this.automatiskOpprettetGrunn?.toDTO(),
     )
 }

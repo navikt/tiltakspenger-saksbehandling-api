@@ -20,18 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.reposit
 import java.time.Clock
 import java.time.LocalDate
 
-private data class RevurderingSomSkalOpprettes(
-    val type: StartRevurderingType,
-    val vedtakIdSomOmgjøres: VedtakId? = null,
-) {
-
-    init {
-        require(type != StartRevurderingType.OMGJØRING || vedtakIdSomOmgjøres != null) {
-            "Ved omgjøring må vedtakIdSomOmgjøres være satt"
-        }
-    }
-}
-
 class EndretTiltaksdeltakerJobb(
     private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
     private val sakRepo: SakRepo,
@@ -242,5 +230,17 @@ class EndretTiltaksdeltakerJobb(
             type = StartRevurderingType.OMGJØRING,
             vedtakIdSomOmgjøres = vedtakMedRelevantTiltaksdeltakelse.single().id,
         )
+    }
+}
+
+private data class RevurderingSomSkalOpprettes(
+    val type: StartRevurderingType,
+    val vedtakIdSomOmgjøres: VedtakId? = null,
+) {
+
+    init {
+        require(type != StartRevurderingType.OMGJØRING || vedtakIdSomOmgjøres != null) {
+            "Ved omgjøring må vedtakIdSomOmgjøres være satt"
+        }
     }
 }

@@ -757,7 +757,8 @@ class RammebehandlingDTOTest {
             "begrunnelse": null
           },
           "resultat": "REVURDERING_INNVILGELSE",
-          "type": "REVURDERING"
+          "type": "REVURDERING",
+          "automatiskOpprettetGrunn": null
         }
         """.trimIndent()
 
@@ -866,7 +867,8 @@ class RammebehandlingDTOTest {
               ],
               "harValgtStansFraFørsteDagSomGirRett": false,
               "resultat": "STANS",
-              "type": "REVURDERING"
+              "type": "REVURDERING",
+              "automatiskOpprettetGrunn": null
             }
         """.trimIndent()
 
@@ -1006,7 +1008,8 @@ class RammebehandlingDTOTest {
               "tilbakekrevingId": null,
               "omgjørVedtak": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
               "resultat": "OMGJØRING_IKKE_VALGT",
-              "type": "REVURDERING"
+              "type": "REVURDERING",
+              "automatiskOpprettetGrunn": null
             }
         """.trimIndent()
 
