@@ -1,6 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
+import arrow.core.NonEmptyList
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring.AvbruttDeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring.EndretDeltakelsesmengde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring.EndretSluttdato
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring.EndretStartdato
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring.Forlengelse
 import java.time.LocalDate
 
 sealed interface TiltaksdeltakerEndring {
@@ -35,13 +42,35 @@ sealed interface TiltaksdeltakerEndring {
     }
 }
 
-fun List<TiltaksdeltakerEndring>.getOppgaveTilleggstekst(): String? {
-    if (this.isEmpty()) {
-        return null
-    }
-    if (this.size == 1) {
-        return "${this.first().beskrivelse}."
+data class TiltaksdeltakerEndringer(
+    val endringer: NonEmptyList<TiltaksdeltakerEndring>,
+) : List<TiltaksdeltakerEndring> by endringer {
+
+    val avbrutt: AvbruttDeltakelse? by lazy { filterIsInstance<AvbruttDeltakelse>().firstOrNull() }
+
+    val forlengelse: Forlengelse? by lazy { filterIsInstance<Forlengelse>().firstOrNull() }
+
+    val endretStartdato: EndretStartdato? by lazy { filterIsInstance<EndretStartdato>().firstOrNull() }
+
+    val endretSluttdato: EndretSluttdato? by lazy { filterIsInstance<EndretSluttdato>().firstOrNull() }
+
+    val endretDeltakelsesmengde: EndretDeltakelsesmengde? by lazy { filterIsInstance<EndretDeltakelsesmengde>().firstOrNull() }
+
+    fun getOppgaveTilleggstekst(): String? {
+        if (this.isEmpty()) {
+            return null
+        }
+
+        if (this.size == 1) {
+            return "${this.first().beskrivelse}."
+        }
+
+        return this.joinToString("\n") { "- ${it.beskrivelse}" }
     }
 
-    return this.joinToString("\n") { "- ${it.beskrivelse}" }
+    companion object {
+        fun List<TiltaksdeltakerEndring>.tilEndringer(): TiltaksdeltakerEndringer? {
+            return this.toNonEmptyListOrNull()?.let { TiltaksdeltakerEndringer(it) }
+        }
+    }
 }

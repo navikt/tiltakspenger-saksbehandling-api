@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository
 
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.SakId
@@ -42,7 +44,7 @@ class TiltaksdeltakerKafkaDbTest {
         val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb()
 
-        tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldBeNull()
     }
 
     @Test
@@ -51,7 +53,7 @@ class TiltaksdeltakerKafkaDbTest {
         val nyStartdato = lagretTiltaksdeltakelse.deltakelseFraOgMed!!.minusDays(3)
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(fom = nyStartdato)
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock)
+        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretStartdato>()
         (endringer.first() as TiltaksdeltakerEndring.EndretStartdato).nyStartdato shouldBe nyStartdato
@@ -63,7 +65,7 @@ class TiltaksdeltakerKafkaDbTest {
         val nySluttdato = lagretTiltaksdeltakelse.deltakelseTilOgMed!!.plusMonths(1)
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(tom = nySluttdato)
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock)
+        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.Forlengelse>()
         (endringer.first() as TiltaksdeltakerEndring.Forlengelse).nySluttdato shouldBe nySluttdato
@@ -74,7 +76,7 @@ class TiltaksdeltakerKafkaDbTest {
         val clock = TikkendeKlokke()
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(dagerPerUke = 1F)
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock)
+        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretDeltakelsesmengde>()
     }
@@ -85,7 +87,7 @@ class TiltaksdeltakerKafkaDbTest {
         val nyDeltakelsesprosent = 60F
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(deltakelsesprosent = nyDeltakelsesprosent)
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock)
+        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretDeltakelsesmengde>()
         (endringer.first() as TiltaksdeltakerEndring.EndretDeltakelsesmengde).nyDeltakelsesprosent shouldBe nyDeltakelsesprosent
@@ -97,7 +99,7 @@ class TiltaksdeltakerKafkaDbTest {
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(deltakelsesprosent = null)
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(deltakelseProsent = 0.0F)
 
-        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldBeNull()
     }
 
     @Test
@@ -113,7 +115,9 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.HarSluttet,
         )
 
-        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.AvbruttDeltakelse)
+        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
+        endringer shouldHaveSize 1
+        endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
     }
 
     @Test
@@ -129,7 +133,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Fullført,
         )
 
-        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldBeNull()
     }
 
     @Test
@@ -145,7 +149,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Deltar,
         )
 
-        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe emptyList()
+        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldBeNull()
     }
 
     @Test
@@ -162,7 +166,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Deltar,
         )
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock)
+        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.Forlengelse>()
         (endringer.first() as TiltaksdeltakerEndring.Forlengelse).nySluttdato shouldBe nySluttdato
@@ -182,7 +186,7 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = nyStatus,
         )
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock)
+        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretStatus>()
         (endringer.first() as TiltaksdeltakerEndring.EndretStatus).nyStatus shouldBe nyStatus
@@ -195,7 +199,9 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.Avbrutt,
         )
 
-        tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.AvbruttDeltakelse)
+        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
+        endringer shouldHaveSize 1
+        endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
     }
 
     @Test
@@ -206,7 +212,7 @@ class TiltaksdeltakerKafkaDbTest {
             dagerPerUke = 1F,
         )
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock)
+        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
         endringer.size shouldBe 2
         endringer.any { it is TiltaksdeltakerEndring.Forlengelse } shouldBe true
         endringer.any { it is TiltaksdeltakerEndring.EndretDeltakelsesmengde } shouldBe true
@@ -226,7 +232,9 @@ class TiltaksdeltakerKafkaDbTest {
             deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
         )
 
-        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock) shouldBe listOf(TiltaksdeltakerEndring.IkkeAktuellDeltakelse)
+        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
+        endringer shouldHaveSize 1
+        endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.IkkeAktuellDeltakelse>()
     }
 }
 

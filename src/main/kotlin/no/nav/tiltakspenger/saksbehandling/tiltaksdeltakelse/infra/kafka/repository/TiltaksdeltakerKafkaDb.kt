@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndringer
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndringer.Companion.tilEndringer
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -31,7 +33,7 @@ data class TiltaksdeltakerKafkaDb(
     fun finnEndringer(
         tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
         clock: Clock,
-    ): List<TiltaksdeltakerEndring> {
+    ): TiltaksdeltakerEndringer? {
         val endringer = mutableListOf<TiltaksdeltakerEndring>()
         val sammeFom = deltakelseFraOgMed == tiltaksdeltakelseFraBehandling.deltakelseFraOgMed
         val sammeTom = deltakelseTilOgMed == tiltaksdeltakelseFraBehandling.deltakelseTilOgMed
@@ -46,17 +48,17 @@ data class TiltaksdeltakerKafkaDb(
             sammeDeltakelsesprosent &&
             (sammeStatus || deltakelsenErAvsluttetSomForventet(clock = clock))
         ) {
-            return emptyList()
+            return null
         }
 
         if (erAvbruttDeltakelse(sammeStatus = sammeStatus, sammeTom = sammeTom, tiltaksdeltakelseFraBehandling, clock = clock)) {
             endringer.add(TiltaksdeltakerEndring.AvbruttDeltakelse)
-            return endringer
+            return endringer.tilEndringer()
         }
 
         if (erIkkeAktuellDeltakelse(sammeStatus)) {
             endringer.add(TiltaksdeltakerEndring.IkkeAktuellDeltakelse)
-            return endringer
+            return endringer.tilEndringer()
         }
 
         if (!sammeDeltakelsesprosent || !sammeAntallDagerPerUke) {
@@ -65,7 +67,7 @@ data class TiltaksdeltakerKafkaDb(
 
         if (erForlengelse(sammeFom, tiltaksdeltakelseFraBehandling)) {
             endringer.add(TiltaksdeltakerEndring.Forlengelse(deltakelseTilOgMed!!))
-            return endringer
+            return endringer.tilEndringer()
         }
 
         if (!sammeFom) {
@@ -78,7 +80,7 @@ data class TiltaksdeltakerKafkaDb(
             endringer.add(TiltaksdeltakerEndring.EndretStatus(deltakerstatus))
         }
 
-        return endringer
+        return endringer.tilEndringer()
     }
 
     private fun erForlengelse(sammeFom: Boolean, tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse): Boolean =

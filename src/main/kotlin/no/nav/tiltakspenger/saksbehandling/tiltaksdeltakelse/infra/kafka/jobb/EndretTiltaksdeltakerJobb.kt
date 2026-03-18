@@ -1,8 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
-import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -103,7 +101,7 @@ class EndretTiltaksdeltakerJobb(
             }
     }
 
-    private fun Sak.finnEndringer(deltaker: TiltaksdeltakerKafkaDb): NonEmptyList<TiltaksdeltakerEndring>? {
+    private fun Sak.finnEndringer(deltaker: TiltaksdeltakerKafkaDb): TiltaksdeltakerEndringer? {
         val tiltaksdeltakerId = deltaker.tiltaksdeltakerId
 
         val vedtatteBehandlingerMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.verdier
@@ -129,12 +127,11 @@ class EndretTiltaksdeltakerJobb(
             .getTiltaksdeltakelse(tiltaksdeltakerId)!!
 
         return deltaker.finnEndringer(sisteRelevanteTiltaksdeltakelse, clock)
-            .toNonEmptyListOrNull()
     }
 
     private suspend fun Sak.opprettRevurderingHvisRelevant(
         deltakerId: TiltaksdeltakerId,
-        endringer: NonEmptyList<TiltaksdeltakerEndring>,
+        endringer: TiltaksdeltakerEndringer,
     ): Revurdering? {
         if (!this.harFørstegangsvedtak || this.rammebehandlinger.åpneBehandlinger.isNotEmpty()) {
             log.info {
@@ -143,46 +140,54 @@ class EndretTiltaksdeltakerJobb(
             return null
         }
 
-        return startStansHvisRelevant(deltakerId, endringer)
-            ?: startForlengelseHvisRelevant(endringer)
-            ?: startOmgjøringHvisRelevant(deltakerId, endringer)
+        if (endringer.avbrutt != null) {
+            return startRevurderingForAvbruddHvisRelevant(deltakerId)
+        }
+
+        if (endringer.forlengelse != null) {
+            return startRevurderingForlengelseHvisRelevant(endringer.forlengelse!!)
+        }
+
+        return when {
+            endringer.endretStartdato != null ||
+                endringer.endretSluttdato != null ||
+                endringer.endretDeltakelsesmengde != null -> startOmgjøringHvisRelevant(deltakerId)
+
+            else -> null
+        }
     }
 
-    private suspend fun Sak.startStansHvisRelevant(
+    private suspend fun Sak.startRevurderingForAvbruddHvisRelevant(
         deltakerId: TiltaksdeltakerId,
-        endringer: NonEmptyList<TiltaksdeltakerEndring>,
     ): Revurdering? {
-        if (endringer.none { it is TiltaksdeltakerEndring.AvbruttDeltakelse }) {
+        val idag = LocalDate.now(clock)
+
+        val harRettFremover = rammevedtaksliste.sisteDagSomGirRett?.let { it >= idag } ?: false
+
+        // Dersom det ikke finnes dager med rett i fremtiden, er sannsynligvis innvilgelsen stanset allerede
+        if (!harRettFremover) {
             return null
         }
 
-        val idag = LocalDate.now(clock)
-
-        // Oppretter ikke stans dersom det også er innvilget for andre tiltaksdeltakelser
         val harAndreTiltaksdeltakelserFremover by lazy {
             rammevedtaksliste.valgteTiltaksdeltakelser.filter {
                 it.periode.tilOgMed >= idag && it.verdi.internDeltakelseId != deltakerId
             }.verdier.isNotEmpty()
         }
 
-        // Dersom det ikke finnes dager med rett i fremtiden, er sannsynligvis innvilgelsen stanset allerede
-        val harRettFremover = rammevedtaksliste.sisteDagSomGirRett?.let { it >= idag } ?: false
-
-        if (!harRettFremover || harAndreTiltaksdeltakelserFremover) {
-            return null
+        // Oppretter ikke stans dersom det også er innvilget for andre tiltaksdeltakelser
+        if (harAndreTiltaksdeltakelserFremover) {
+            return startOmgjøringHvisRelevant(deltakerId)
         }
 
         return startRevurdering(StartRevurderingType.STANS)
     }
 
-    private suspend fun Sak.startForlengelseHvisRelevant(endringer: NonEmptyList<TiltaksdeltakerEndring>): Revurdering? {
-        val forlengelse =
-            endringer.filterIsInstance<TiltaksdeltakerEndring.Forlengelse>().singleOrNull() ?: return null
-
+    private suspend fun Sak.startRevurderingForlengelseHvisRelevant(endring: TiltaksdeltakerEndring.Forlengelse): Revurdering? {
         // Dersom det allerede er rett frem til ny sluttdato, så har forlengelsen sannsynligvis allerede blitt iverksatt
         // TODO: vi kunne kanskje sjekke mot gjeldende vedtak i stedet for siste dag på hele saken, for de tilfellene
         // der det finnes flere vedtak, og et annet vedtak enn det siste forlenges. Dette skjer sannsynligvis veldig sjelden (aldri?)
-        if (sisteDagSomGirRett != null && forlengelse.nySluttdato <= sisteDagSomGirRett) {
+        if (sisteDagSomGirRett != null && endring.nySluttdato <= sisteDagSomGirRett) {
             return null
         }
 
@@ -191,12 +196,7 @@ class EndretTiltaksdeltakerJobb(
 
     private suspend fun Sak.startOmgjøringHvisRelevant(
         deltakerId: TiltaksdeltakerId,
-        endringer: NonEmptyList<TiltaksdeltakerEndring>,
     ): Revurdering? {
-        if (endringer.none { it.erOmgjøringsendring() }) {
-            return null
-        }
-
         val vedtakMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.filter {
             it.verdi.gjeldendeTiltaksdeltakelser.verdier.any { deltakelse -> deltakelse.internDeltakelseId == deltakerId }
         }.verdier
@@ -229,15 +229,5 @@ class EndretTiltaksdeltakerJobb(
         )
 
         return startRevurderingService.startRevurdering(kommando, this).second
-    }
-
-    private fun TiltaksdeltakerEndring.erOmgjøringsendring(): Boolean = when (this) {
-        is TiltaksdeltakerEndring.EndretStartdato,
-        is TiltaksdeltakerEndring.EndretSluttdato,
-        is TiltaksdeltakerEndring.EndretDeltakelsesmengde,
-        is TiltaksdeltakerEndring.AvbruttDeltakelse,
-        -> true
-
-        else -> false
     }
 }
