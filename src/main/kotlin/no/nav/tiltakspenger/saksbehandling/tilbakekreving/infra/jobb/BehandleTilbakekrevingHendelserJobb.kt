@@ -182,7 +182,7 @@ class BehandleTilbakekrevingHendelserJobb(
                     ),
                 ),
             ),
-            behandlendeEnhet = this.navkontor.kontornummer,
+            behandlendeEnhet = NAV_TILTAK_OSLO_ENHET,
         )
     }
 
@@ -216,7 +216,11 @@ class BehandleTilbakekrevingHendelserJobb(
                     ),
                 ),
             ),
-            behandlendeEnhet = this.utbetaling!!.navkontor.kontornummer,
+            behandlendeEnhet = NAV_TILTAK_OSLO_ENHET,
         )
+    }
+
+    companion object {
+        private const val NAV_TILTAK_OSLO_ENHET = "0387"
     }
 }
