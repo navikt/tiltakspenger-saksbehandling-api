@@ -68,7 +68,7 @@ data class SøknadsbehandlingDTO(
     override val utbetalingskontroll: UtbetalingskontrollDTO?,
     override val klagebehandlingId: String?,
     override val tilbakekrevingId: String?,
-    @param:JsonUnwrapped val resultatDTO: SøknadsbehandlingResultatDTO,
+    @get:JsonUnwrapped val resultatDTO: SøknadsbehandlingResultatDTO,
     val søknad: SøknadDTO,
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<String>,
@@ -100,7 +100,7 @@ data class RevurderingDTO(
     override val utbetalingskontroll: UtbetalingskontrollDTO?,
     override val klagebehandlingId: String?,
     override val tilbakekrevingId: String?,
-    @param:JsonUnwrapped val resultatDTO: RevurderingResultatDTO,
+    @get:JsonUnwrapped val resultatDTO: RevurderingResultatDTO,
     val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunnDTO?,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
