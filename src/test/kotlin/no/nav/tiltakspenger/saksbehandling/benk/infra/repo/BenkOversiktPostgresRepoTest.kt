@@ -960,7 +960,7 @@ class BenkOversiktPostgresRepoTest {
                 venterTil = null,
                 frist = LocalDate.now(fixedClock).plusWeeks(1),
             )
-            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock)
+            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock).first
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
             val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
@@ -984,7 +984,7 @@ class BenkOversiktPostgresRepoTest {
                 saksbehandler = beslutter,
                 frist = LocalDate.now(fixedClock).plusWeeks(1),
             )
-            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock)
+            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock).first
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
             val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
@@ -1010,7 +1010,7 @@ class BenkOversiktPostgresRepoTest {
                 saksbehandler = beslutter,
                 frist = LocalDate.now(fixedClock).plusWeeks(1),
             )
-            val oppdatertBehandling = behandling.settPåVent(kommando, Clock.system(zoneIdOslo))
+            val oppdatertBehandling = behandling.settPåVent(kommando, Clock.system(zoneIdOslo)).first
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
             val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(

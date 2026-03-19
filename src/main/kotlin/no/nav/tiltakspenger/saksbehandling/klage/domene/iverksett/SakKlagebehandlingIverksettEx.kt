@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilKlagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
 import java.time.Clock
 
 /**
@@ -15,13 +17,17 @@ import java.time.Clock
 fun Sak.iverksettAvvistKlagebehandling(
     kommando: IverksettAvvisningKommando,
     clock: Clock,
-): Either<KanIkkeIverksetteKlagebehandling, Pair<Sak, Klagevedtak>> {
-    return this.hentKlagebehandling(kommando.klagebehandlingId).iverksettAvvisning(kommando = kommando).map {
-        val klagevedtak = Klagevedtak.createFromKlagebehandling(
-            clock = clock,
-            klagebehandling = it,
-        )
-        val oppdatertSak = this.oppdaterKlagebehandling(it).leggTilKlagevedtak(klagevedtak)
-        Pair(oppdatertSak, klagevedtak)
-    }
+): Either<KanIkkeIverksetteKlagebehandling, Triple<Sak, Klagevedtak, Statistikkhendelser>> {
+    return this
+        .hentKlagebehandling(kommando.klagebehandlingId)
+        .iverksettAvvisning(kommando = kommando)
+        .map { oppdatertKlagebehandling ->
+            val klagevedtak = Klagevedtak.createFromKlagebehandling(
+                clock = clock,
+                klagebehandling = oppdatertKlagebehandling,
+            )
+            val klagestatistikk = Statistikkhendelser(klagevedtak.genererSaksstatistikk())
+            val oppdatertSak = this.oppdaterKlagebehandling(oppdatertKlagebehandling).leggTilKlagevedtak(klagevedtak)
+            Triple(oppdatertSak, klagevedtak, klagestatistikk)
+        }
 }

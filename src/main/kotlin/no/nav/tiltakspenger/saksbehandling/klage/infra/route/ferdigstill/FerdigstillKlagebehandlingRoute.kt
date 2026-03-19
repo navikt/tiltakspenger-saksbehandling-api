@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.FerdigstillKlagebehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.FerdigstillKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.KunneIkkeFerdigstilleKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.service.FerdigstillKlagebehandlingService
@@ -43,7 +43,7 @@ fun Route.ferdigstillKlagebehandlingRoute(
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
 
                 ferdigstillKlagebehandlingService.ferdigstill(
-                    command = FerdigstillKlagebehandlingCommand(
+                    kommando = FerdigstillKlagebehandlingKommando(
                         sakId = sakId,
                         klagebehandlingId = klagebehandlingId,
                         saksbehandler = saksbehandler,

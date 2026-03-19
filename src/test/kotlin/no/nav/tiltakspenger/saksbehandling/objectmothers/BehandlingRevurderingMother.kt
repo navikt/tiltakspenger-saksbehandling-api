@@ -178,12 +178,12 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             sisteDagSomGirRett = sisteDagSomGirRett,
             omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
-        ).taBehandling(beslutter, clock).iverksett(
+        ).taBehandling(beslutter, clock).first.iverksett(
             utøvendeBeslutter = beslutter,
             attestering = attestering,
             correlationId = correlationId,
             clock = clock,
-        ) as Revurdering
+        ).first as Revurdering
     }
 
     /**
@@ -342,12 +342,12 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             barnetillegg = barnetillegg,
             beregning = beregning,
             clock = clock,
-        ).taBehandling(beslutter, clock).iverksett(
+        ).taBehandling(beslutter, clock).first.iverksett(
             utøvendeBeslutter = beslutter,
             attestering = attestering,
             correlationId = correlationId,
             clock = clock,
-        ) as Revurdering
+        ).first as Revurdering
     }
 
     fun nyOpprettetRevurderingOmgjøring(
@@ -451,7 +451,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             correlationId = CorrelationId.generate(),
             clock = clock,
-        ).taBehandling(beslutter, clock)
+        ).taBehandling(beslutter, clock).first
     }
 
     fun nyIverksattRevurderingOmgjøring(
@@ -501,7 +501,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         attestering = attestering,
         correlationId = correlationId,
         clock = clock,
-    )
+    ).first
 
     fun RevurderingsresultatType.tilStartRevurderingType(): StartRevurderingType {
         return when (this) {

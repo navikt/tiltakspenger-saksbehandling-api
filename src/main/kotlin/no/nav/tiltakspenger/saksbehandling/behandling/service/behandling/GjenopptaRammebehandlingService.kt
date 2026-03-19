@@ -9,13 +9,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import java.time.Clock
 
 class GjenopptaRammebehandlingService(
     private val behandlingService: RammebehandlingService,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
-    private val saksstatistikkService: SaksstatistikkService,
     private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
@@ -23,7 +21,7 @@ class GjenopptaRammebehandlingService(
     suspend fun gjenopptaBehandling(
         kommando: GjenopptaRammebehandlingKommando,
     ): Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>> =
-        gjenopptaBehandlingInternal(kommando, genererKlageStatistikk = true)
+        gjenopptaBehandlingInternal(kommando)
 
     /**
      * Brukes når klagebehandlingen gjenopptar rammebehandlingen.
@@ -32,14 +30,13 @@ class GjenopptaRammebehandlingService(
     suspend fun gjenopptaBehandlingFraKlage(
         kommando: GjenopptaRammebehandlingKommando,
     ): Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>> =
-        gjenopptaBehandlingInternal(kommando, genererKlageStatistikk = false)
+        gjenopptaBehandlingInternal(kommando)
 
     private suspend fun gjenopptaBehandlingInternal(
         kommando: GjenopptaRammebehandlingKommando,
-        genererKlageStatistikk: Boolean,
     ): Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>> {
-        val (sakId, behandlingId, saksbehandler, correlationId) = kommando
-        val (sak, behandling) = behandlingService.hentSakOgBehandling(sakId, behandlingId)
+        val (sakId, behandlingId, _, correlationId) = kommando
+        val (sak, behandling) = behandlingService.hentSakOgRammebehandling(sakId, behandlingId)
 
         val hentSaksopplysninger = suspend {
             hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
@@ -59,21 +56,13 @@ class GjenopptaRammebehandlingService(
 
         return behandling.gjenoppta(kommando, clock, hentSaksopplysninger).mapLeft {
             KunneIkkeGjenopptaBehandling.FeilVedOppdateringAvSaksopplysninger(it)
-        }.map { behandling ->
-            val oppdatertSak = sak.oppdaterRammebehandling(behandling)
-
+        }.map { (oppdatertBehandling, statistikkhendelser) ->
+            val oppdatertSak = sak.oppdaterRammebehandling(oppdatertBehandling)
             behandlingService.lagreMedStatistikk(
-                behandling,
-                saksstatistikkService.genererStatistikkForGjenopptattBehandling(behandling),
-                klageStatistikk = if (genererKlageStatistikk) {
-                    behandling.klagebehandling?.let {
-                        saksstatistikkService.genererSaksstatistikkForGjenopptattKlagebehandling(it)
-                    }
-                } else {
-                    null
-                },
+                oppdatertBehandling,
+                statistikkhendelser,
             )
-            oppdatertSak to behandling
+            oppdatertSak to oppdatertBehandling
         }
     }
 }

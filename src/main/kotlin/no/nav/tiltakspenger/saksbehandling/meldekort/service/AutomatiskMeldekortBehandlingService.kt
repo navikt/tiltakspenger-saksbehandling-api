@@ -25,7 +25,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
@@ -44,7 +45,7 @@ class AutomatiskMeldekortBehandlingService(
     private val simulerService: SimulerService,
     private val sakService: SakService,
     private val oppgaveKlient: OppgaveKlient,
-    private val statistikkMeldekortRepo: StatistikkMeldekortRepo,
+    private val statistikkService: StatistikkService,
 ) {
     val logger = KotlinLogging.logger { }
     val venteIntervaller: Map<Long, Duration> = mapOf(
@@ -227,6 +228,9 @@ class AutomatiskMeldekortBehandlingService(
             return MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK.left()
         }
 
+        val statistikkDTO = statistikkService.generer(
+            Statistikkhendelser(meldekortBehandling.tilStatistikkMeldekortDTO(clock)),
+        )
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortBehandling, simulering, tx)
             meldekortvedtakRepo.lagre(meldekortvedtak, tx)
@@ -237,7 +241,7 @@ class AutomatiskMeldekortBehandlingService(
                 metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(clock),
                 tx,
             )
-            statistikkMeldekortRepo.lagre(meldekortBehandling.tilStatistikkMeldekortDTO(clock), tx)
+            statistikkService.lagre(statistikkDTO, tx)
         }
 
         return meldekortBehandling.right()

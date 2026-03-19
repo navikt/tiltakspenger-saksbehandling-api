@@ -103,7 +103,7 @@ class RammebehandlingTest {
             val behandling = ObjectMother.nyAutomatiskSøknadsbehandlingManuellBehandling()
             val saksbehandler = ObjectMother.saksbehandler()
 
-            val taBehandling = behandling.taBehandling(saksbehandler, clock)
+            val taBehandling = behandling.taBehandling(saksbehandler, clock).first
 
             taBehandling.saksbehandler shouldBe saksbehandler.navIdent
             taBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -113,7 +113,7 @@ class RammebehandlingTest {
         fun `en beslutter kan ta behandlingen`() {
             val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning()
             val beslutter = ObjectMother.beslutter()
-            val taBehandling = behandling.taBehandling(beslutter, clock)
+            val taBehandling = behandling.taBehandling(beslutter, clock).first
 
             taBehandling.beslutter shouldBe beslutter.navIdent
             taBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
@@ -130,7 +130,7 @@ class RammebehandlingTest {
                 behandling.overta(saksbehandler = nySaksbehandler, correlationId, clock = enUkeEtterFixedClock)
 
             behandling.saksbehandler.shouldNotBe(nySaksbehandler.navIdent)
-            overtaBehandling.getOrFail().saksbehandler shouldBe nySaksbehandler.navIdent
+            overtaBehandling.getOrFail().first.saksbehandler shouldBe nySaksbehandler.navIdent
         }
 
         @Test
@@ -141,7 +141,7 @@ class RammebehandlingTest {
                 behandling.overta(saksbehandler = nyBeslutter, correlationId, clock = enUkeEtterFixedClock)
 
             behandling.beslutter.shouldNotBe(nyBeslutter.navIdent)
-            overtaBehandling.getOrFail().beslutter shouldBe nyBeslutter.navIdent
+            overtaBehandling.getOrFail().first.beslutter shouldBe nyBeslutter.navIdent
         }
 
         @Test
@@ -198,7 +198,7 @@ class RammebehandlingTest {
         fun `kaster exception dersom man prøver å sette behandling (klar til behandling) på vent`() {
             val saksbehandler = ObjectMother.saksbehandler()
             val behandling = ObjectMother.nyOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
-                .leggTilbakeBehandling(saksbehandler = saksbehandler, clock = clock)
+                .leggTilbakeRammebehandling(saksbehandler = saksbehandler, clock = clock).first
 
             assertThrows<IllegalStateException> {
                 val kommando = SettRammebehandlingPåVentKommando(
@@ -225,7 +225,7 @@ class RammebehandlingTest {
                 venterTil = null,
                 frist = null,
             )
-            val behandlingSattPåVent = behandling.settPåVent(kommando, clock)
+            val behandlingSattPåVent = behandling.settPåVent(kommando, clock).first
 
             behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
             behandlingSattPåVent.saksbehandler shouldBe null
@@ -268,7 +268,7 @@ class RammebehandlingTest {
                 venterTil = null,
                 frist = null,
             )
-            val behandlingSattPåVent = behandling.settPåVent(kommando, clock)
+            val behandlingSattPåVent = behandling.settPåVent(kommando, clock).first
 
             behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             behandlingSattPåVent.saksbehandler shouldBe behandling.saksbehandler
@@ -341,7 +341,7 @@ class RammebehandlingTest {
                             ),
                             clock,
                         )
-                    }
+                    }.first
 
                 behandlingSattPåVent.saksbehandler shouldBe null
                 behandlingSattPåVent.beslutter shouldBe null
@@ -357,7 +357,7 @@ class RammebehandlingTest {
                         correlationId = correlationId,
                     ),
                     clock,
-                ) { behandlingSattPåVent.saksopplysninger }.getOrFail()
+                ) { behandlingSattPåVent.saksopplysninger }.getOrFail().first
 
                 gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 gjenopptattBehandling.saksbehandler shouldBe saksbehandler2.navIdent
@@ -381,7 +381,7 @@ class RammebehandlingTest {
                     venterTil = null,
                     frist = null,
                 )
-                val behandlingSattPåVent = behandling.settPåVent(kommando, clock)
+                val behandlingSattPåVent = behandling.settPåVent(kommando, clock).first
 
                 behandlingSattPåVent.saksbehandler shouldBe behandling.saksbehandler
                 behandlingSattPåVent.beslutter shouldBe null
@@ -397,7 +397,7 @@ class RammebehandlingTest {
                         ),
                         clock,
                     ) { behandling.saksopplysninger }
-                        .getOrFail()
+                        .getOrFail().first
 
                 gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                 gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
@@ -420,7 +420,7 @@ class RammebehandlingTest {
                     venterTil = nå(clock).plusWeeks(1),
                     frist = null,
                 )
-                val behandlingSattPåVent = behandling.settPåVent(kommando, clockPaVent)
+                val behandlingSattPåVent = behandling.settPåVent(kommando, clockPaVent).first
                 val gjenopptaClock = Clock.fixed(Instant.parse("2025-07-01T13:30:00Z"), ZoneOffset.UTC)
 
                 behandlingSattPåVent.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER.navIdent
@@ -436,7 +436,7 @@ class RammebehandlingTest {
                         correlationId = correlationId,
                     ),
                     gjenopptaClock,
-                ) { behandling.saksopplysninger }.getOrFail()
+                ) { behandling.saksopplysninger }.getOrFail().first
 
                 gjenopptattBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
@@ -460,7 +460,7 @@ class RammebehandlingTest {
                         venterTil = null,
                         frist = null,
                     )
-                    val behandlingPåVent = behandling.settPåVent(kommando, clock)
+                    val behandlingPåVent = behandling.settPåVent(kommando, clock).first
                     behandlingPåVent.gjenoppta(
                         GjenopptaRammebehandlingKommando(
                             sakId = behandling.sakId,
@@ -489,7 +489,7 @@ class RammebehandlingTest {
                         venterTil = null,
                         frist = null,
                     )
-                    val behandlingPåVent = behandling.settPåVent(kommando, clock)
+                    val behandlingPåVent = behandling.settPåVent(kommando, clock).first
                     behandlingPåVent.gjenoppta(
                         GjenopptaRammebehandlingKommando(
                             sakId = behandling.sakId,
@@ -540,7 +540,7 @@ class RammebehandlingTest {
                 utøvendeBeslutter = ObjectMother.beslutter(),
                 attestering = attestering,
                 clock = fixedClock,
-            ).let {
+            ).first.let {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
 
                 it.attesteringer.size shouldBe 1
@@ -561,7 +561,7 @@ class RammebehandlingTest {
                 attestering = attestering,
                 clock = fixedClock,
             ).let {
-                it.resultat shouldBe behandling.resultat
+                it.first.resultat shouldBe behandling.resultat
             }
         }
 
@@ -573,7 +573,7 @@ class RammebehandlingTest {
                 attestering = attestering,
                 clock = fixedClock,
             ).let {
-                it.resultat shouldBe null
+                it.first.resultat shouldBe null
             }
         }
     }

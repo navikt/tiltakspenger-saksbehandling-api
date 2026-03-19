@@ -49,6 +49,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.ta
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.Clock
@@ -133,52 +136,50 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     fun erFerdigutfylt(): Boolean
 
-    fun leggTilbakeBehandling(
+    fun leggTilbakeRammebehandling(
         saksbehandler: Saksbehandler,
         clock: Clock,
-    ): Rammebehandling {
+    ): Pair<Rammebehandling, Statistikkhendelser> {
         return when (status) {
             UNDER_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
                 require(this.saksbehandler == saksbehandler.navIdent) {
                     "Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen"
                 }
-
-                when (this) {
-                    is Søknadsbehandling -> this.copy(
-                        saksbehandler = null,
-                        status = KLAR_TIL_BEHANDLING,
-                        sistEndret = nå(clock),
-                        klagebehandling = klagebehandling?.leggTilbake(
-                            LeggTilbakeKlagebehandlingKommando(
-                                sakId = sakId,
-                                klagebehandlingId = klagebehandling.id,
-                                saksbehandler = saksbehandler,
-                            ),
-                            rammebehandlingsstatus = this.status,
-                            clock = clock,
-                        )?.getOrElse {
-                            throw IllegalStateException("Kunne ikke legge tilbake klagebehandling når rammebehandling legges tilbake: $it")
-                        },
-                    )
+                val (oppdatertKlagebehandling, klagestatistikk) = klagebehandling?.leggTilbake(
+                    LeggTilbakeKlagebehandlingKommando(
+                        sakId = sakId,
+                        klagebehandlingId = klagebehandling!!.id,
+                        saksbehandler = saksbehandler,
+                    ),
+                    rammebehandlingsstatus = this.status,
+                    clock = clock,
+                )?.getOrElse {
+                    throw IllegalStateException("Kunne ikke legge tilbake klagebehandling når rammebehandling legges tilbake: $it")
+                } ?: (null to Statistikkhendelser.empty())
+                val oppdatertRammebehandling = when (this) {
+                    is Søknadsbehandling -> {
+                        this.copy(
+                            saksbehandler = null,
+                            status = KLAR_TIL_BEHANDLING,
+                            sistEndret = nå(clock),
+                            klagebehandling = oppdatertKlagebehandling,
+                        )
+                    }
 
                     is Revurdering -> this.copy(
                         saksbehandler = null,
                         status = KLAR_TIL_BEHANDLING,
                         sistEndret = nå(clock),
-                        klagebehandling = klagebehandling?.leggTilbake(
-                            LeggTilbakeKlagebehandlingKommando(
-                                sakId = sakId,
-                                klagebehandlingId = klagebehandling.id,
-                                saksbehandler = saksbehandler,
-                            ),
-                            rammebehandlingsstatus = this.status,
-                            clock = clock,
-                        )?.getOrElse {
-                            throw IllegalStateException("Kunne ikke legge tilbake klagebehandling når rammebehandling legges tilbake: $it")
-                        },
+                        klagebehandling = oppdatertKlagebehandling,
                     )
                 }
+                val statistikkhendelser = klagestatistikk.leggTil(
+                    oppdatertRammebehandling.genererSaksstatistikk(
+                        StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER,
+                    ),
+                )
+                oppdatertRammebehandling to statistikkhendelser
             }
 
             UNDER_BESLUTNING -> {
@@ -187,7 +188,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     "Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen"
                 }
 
-                when (this) {
+                val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
                         beslutter = null,
                         status = KLAR_TIL_BESLUTNING,
@@ -200,6 +201,12 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         sistEndret = nå(clock),
                     )
                 }
+                val statistikkhendelser = Statistikkhendelser(
+                    oppdatertRammebehandling.genererSaksstatistikk(
+                        StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER,
+                    ),
+                )
+                oppdatertRammebehandling to statistikkhendelser
             }
 
             KLAR_TIL_BESLUTNING -> throw IllegalStateException("Kan ikke legge tilbake behandling som er klar til beslutning")
@@ -215,21 +222,24 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     }
 
     /** Saksbehandler/beslutter tar behandlingen. */
-    fun taBehandling(saksbehandler: Saksbehandler, clock: Clock): Rammebehandling {
+    fun taBehandling(
+        saksbehandler: Saksbehandler,
+        clock: Clock,
+    ): Pair<Rammebehandling, Statistikkhendelser> {
         val nå = nå(clock)
         return when (status) {
             KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
 
                 require(this.saksbehandler == null) { "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
-                val oppdatertKlagebehandling = klagebehandling?.ta(
+                val (oppdatertKlagebehandling, klagestatistikk) = klagebehandling?.ta(
                     kommando = TaKlagebehandlingKommando(sakId, klagebehandling!!.id, saksbehandler),
                     rammebehandlingsstatus = this.status,
                     sistEndret = nå,
                 )?.getOrElse {
                     throw IllegalStateException("Kunne ikke ta klagebehandling når rammebehandling tas: $it")
-                }
-                when (this) {
+                } ?: (null to Statistikkhendelser.empty())
+                val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
                         saksbehandler = saksbehandler.navIdent,
                         beslutter = if (saksbehandler.navIdent == beslutter) null else beslutter,
@@ -246,6 +256,10 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         klagebehandling = oppdatertKlagebehandling,
                     )
                 }
+                val statistikkhendelser = klagestatistikk.leggTil(
+                    oppdatertRammebehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
+                )
+                oppdatertRammebehandling to statistikkhendelser
             }
 
             KLAR_TIL_BESLUTNING -> {
@@ -255,7 +269,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 krevBeslutterRolle(saksbehandler)
                 require(this.beslutter == null) { "Behandlingen har en eksisterende beslutter. For å overta behandlingen, bruk overta() - behandlingsId: ${this.id}" }
 
-                when (this) {
+                val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
                         beslutter = saksbehandler.navIdent,
                         status = UNDER_BESLUTNING,
@@ -268,6 +282,10 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         sistEndret = nå,
                     )
                 }
+                val statistikkhendelser = Statistikkhendelser(
+                    oppdatertRammebehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
+                )
+                oppdatertRammebehandling to statistikkhendelser
             }
 
             UNDER_BEHANDLING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en saksbehandler fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
@@ -287,7 +305,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
         clock: Clock,
-    ): Either<KunneIkkeOvertaBehandling, Rammebehandling> {
+    ): Either<KunneIkkeOvertaBehandling, Pair<Rammebehandling, Statistikkhendelser>> {
         val nå = nå(clock)
         val nåMinusEttMinutt = nå.minusMinutes(1)
         val erSistEndretMindreEnn1MinuttSiden = this.sistEndret.isAfter(nåMinusEttMinutt)
@@ -301,11 +319,10 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 if (this.saksbehandler == null) {
                     return KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
                 }
-
                 // dersom det er beslutteren som overtar behandlingen, skal dem nulles ut som beslutter
                 val beslutter = if (this.beslutter == saksbehandler.navIdent) null else this.beslutter
 
-                val oppdatertKlagebehandling = klagebehandling?.overta(
+                val (oppdatertKlagebehandling, klagestatistikk) = klagebehandling?.overta(
                     kommando = OvertaKlagebehandlingKommando(
                         sakId = sakId,
                         klagebehandlingId = klagebehandling!!.id,
@@ -317,8 +334,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     clock = clock,
                 )?.getOrElse {
                     return KunneIkkeOvertaBehandling.KanIkkeOvertaKlagebehandling(it).left()
-                }
-                when (this) {
+                } ?: (null to Statistikkhendelser.empty())
+                val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
                         saksbehandler = saksbehandler.navIdent,
                         beslutter = beslutter,
@@ -332,7 +349,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         sistEndret = nå,
                         klagebehandling = oppdatertKlagebehandling,
                     )
-                }.right()
+                }
+                val statistikkhendelser = klagestatistikk.leggTil(
+                    oppdatertRammebehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
+                )
+                (oppdatertRammebehandling to statistikkhendelser).right()
             }
 
             UNDER_BESLUTNING -> {
@@ -344,7 +365,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     return KunneIkkeOvertaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSamme.left()
                 }
 
-                when (this) {
+                val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
                         beslutter = saksbehandler.navIdent,
                         sistEndret = nå,
@@ -354,7 +375,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         beslutter = saksbehandler.navIdent,
                         sistEndret = nå,
                     )
-                }.right()
+                }
+                val statistikkhendelser = Statistikkhendelser(
+                    oppdatertRammebehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
+                )
+                (oppdatertRammebehandling to statistikkhendelser).right()
             }
 
             KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
@@ -366,7 +391,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     return KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
                 }
                 krevSaksbehandlerRolle(saksbehandler)
-                when (this) {
+                val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
                         status = UNDER_BEHANDLING,
                         saksbehandler = saksbehandler.navIdent,
@@ -374,7 +399,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     )
 
                     is Revurdering -> return KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
-                }.right()
+                }
+                val statistikkhendelser = Statistikkhendelser(
+                    oppdatertRammebehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
+                )
+                (oppdatertRammebehandling to statistikkhendelser).right()
             }
 
             VEDTATT,
@@ -415,7 +444,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         attestering: Attestering,
         correlationId: CorrelationId,
         clock: Clock,
-    ): Rammebehandling {
+    ): Pair<Rammebehandling, Statistikkhendelser> {
         require(vedtaksperiode != null) { "vedtaksperiode må være satt ved iverksetting" }
 
         return when (status) {
@@ -430,33 +459,39 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 val attesteringer = attesteringer.leggTil(attestering)
                 val iverksattTidspunkt = nå(clock)
 
-                val oppdatertKlagebehandling = when (klagebehandling?.resultat) {
+                val (oppdatertKlagebehandling, klagestatistikk) = when (klagebehandling?.resultat) {
                     is Klagebehandlingsresultat.Avvist -> throw IllegalStateException("Klagebehandling med avvist resultat skal ikke være knyttet til en rammebehandling. Dette skjedde for sakId: $sakId, saksnummer: $saksnummer, behandling: ${this.id}, klagebehandlingId: ${klagebehandling!!.id}")
 
-                    is Klagebehandlingsresultat.Omgjør -> klagebehandling?.iverksettOmgjøring(
-                        IverksettOmgjøringKommando(
-                            sakId = sakId,
-                            klagebehandlingId = klagebehandling!!.id,
-                            correlationId = correlationId,
-                            iverksattTidspunkt = iverksattTidspunkt,
-                        ),
-                        // TODO jah: Endre til left eller custom exception for å propagere feil bedre?
-                    )
-                        ?.getOrElse { throw IllegalStateException("Feil ved iverksetting av rammebehandling $id knyttet til klagebehandling ${klagebehandling!!.id}. Underliggende feil: $it, sakId: $sakId, saksnummer: $saksnummer") }
+                    is Klagebehandlingsresultat.Omgjør -> {
+                        klagebehandling?.iverksettOmgjøring(
+                            IverksettOmgjøringKommando(
+                                sakId = sakId,
+                                klagebehandlingId = klagebehandling!!.id,
+                                correlationId = correlationId,
+                                iverksattTidspunkt = iverksattTidspunkt,
+                            ),
+                        )
+                            ?.getOrElse { throw IllegalStateException("Feil ved iverksetting av rammebehandling $id knyttet til klagebehandling ${klagebehandling!!.id}. Underliggende feil: $it, sakId: $sakId, saksnummer: $saksnummer") }
+                            ?: (null to Statistikkhendelser.empty())
+                    }
 
-                    is Klagebehandlingsresultat.Opprettholdt -> klagebehandling?.iverksettOpprettholdelse(
-                        IverksettOpprettholdelseKommando(
-                            sakId = sakId,
-                            klagebehandlingId = klagebehandling!!.id,
-                            correlationId = correlationId,
-                            iverksattTidspunkt = iverksattTidspunkt,
-                        ),
-                    )?.getOrElse { throw IllegalStateException("Feil ved iverksetting av rammebehandling $id knyttet til klagebehandling ${klagebehandling!!.id}. Underliggende feil: $it, sakId: $sakId, saksnummer: $saksnummer") }
+                    is Klagebehandlingsresultat.Opprettholdt -> {
+                        klagebehandling?.iverksettOpprettholdelse(
+                            IverksettOpprettholdelseKommando(
+                                sakId = sakId,
+                                klagebehandlingId = klagebehandling!!.id,
+                                correlationId = correlationId,
+                                iverksattTidspunkt = iverksattTidspunkt,
+                            ),
+                        )
+                            ?.getOrElse { throw IllegalStateException("Feil ved iverksetting av rammebehandling $id knyttet til klagebehandling ${klagebehandling!!.id}. Underliggende feil: $it, sakId: $sakId, saksnummer: $saksnummer") }
+                            ?: (null to Statistikkhendelser.empty())
+                    }
 
-                    null -> null
+                    null -> (null to Statistikkhendelser.empty())
                 }
 
-                when (this) {
+                val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
                         status = VEDTATT,
                         attesteringer = attesteringer,
@@ -473,6 +508,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         klagebehandling = oppdatertKlagebehandling,
                     )
                 }
+                oppdatertRammebehandling to klagestatistikk
             }
 
             KLAR_TIL_BEHANDLING,
@@ -496,7 +532,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
         clock: Clock,
-    ): Rammebehandling {
+    ): Pair<Rammebehandling, Statistikkhendelser> {
         return when (status) {
             UNDER_BESLUTNING -> {
                 krevBeslutterRolle(utøvendeBeslutter)
@@ -539,6 +575,12 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> throw IllegalStateException(
                 "Må ha status UNDER_BESLUTNING for å sende tilbake. Behandlingsstatus: $status",
             )
+        }.let {
+            // Genererer ikke statistikk for klage, fordi underkjennelse av rammebehandlingen underkjenner ikke klagebehandlingen.
+            val statistikkhendelser = Statistikkhendelser(
+                it.genererSaksstatistikk(StatistikkhendelseType.UNDERKJENT_BEHANDLING),
+            )
+            it to statistikkhendelser
         }
     }
 

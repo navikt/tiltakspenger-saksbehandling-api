@@ -6,6 +6,9 @@ import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
 import java.time.LocalDateTime
 
 /**
@@ -15,7 +18,7 @@ fun Klagebehandling.ta(
     kommando: TaKlagebehandlingKommando,
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     sistEndret: LocalDateTime,
-): Either<KanIkkeTaKlagebehandling, Klagebehandling> {
+): Either<KanIkkeTaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     kanOppdatereIDenneStatusen(
         rammebehandlingsstatus = rammebehandlingsstatus,
         kanVæreUnderBehandling = false,
@@ -25,11 +28,15 @@ fun Klagebehandling.ta(
         return KanIkkeTaKlagebehandling.KanIkkeOppdateres(it).left()
     }
     // Spesialtilfelle: Dersom saksbehandler forsøker å ta fra seg selv, så endres ikke behandlingen.
-    if (saksbehandler == kommando.saksbehandler.navIdent) return this.right()
+    if (saksbehandler == kommando.saksbehandler.navIdent) return (this to Statistikkhendelser.empty()).right()
     if (saksbehandler != null) return KanIkkeTaKlagebehandling.BrukOvertaIsteden.left()
-    return this.copy(
+    val oppdatertKlagebehandling = this.copy(
         saksbehandler = kommando.saksbehandler.navIdent,
         sistEndret = sistEndret,
         status = Klagebehandlingsstatus.UNDER_BEHANDLING,
-    ).right()
+    )
+    val statistikkhendelser = Statistikkhendelser(
+        oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
+    )
+    return (oppdatertKlagebehandling to statistikkhendelser).right()
 }

@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
@@ -50,7 +49,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingServic
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import java.time.Clock
 
 open class KlagebehandlingContext(
@@ -71,8 +70,7 @@ open class KlagebehandlingContext(
     private val leggTilbakeRammebehandlingService: LeggTilbakeRammebehandlingService,
     private val gjenopptaRammebehandlingService: GjenopptaRammebehandlingService,
     private val settRammebehandlingPåVentService: SettRammebehandlingPåVentService,
-    private val saksstatistikkService: SaksstatistikkService,
-    private val saksstatistikkRepo: SaksstatistikkRepo,
+    private val statistikkService: StatistikkService,
     private val rammevedtakRepo: RammevedtakRepo,
     private val texasClient: TexasClient,
 ) {
@@ -107,8 +105,7 @@ open class KlagebehandlingContext(
             clock = clock,
             validerJournalpostService = validerJournalpostService,
             klagebehandlingRepo = klagebehandlingRepo,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             sessionFactory = sessionFactory,
         )
     }
@@ -126,8 +123,7 @@ open class KlagebehandlingContext(
             sakService = sakService,
             clock = clock,
             klagebehandlingRepo = klagebehandlingRepo,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             sessionFactory = sessionFactory,
         )
     }
@@ -154,8 +150,7 @@ open class KlagebehandlingContext(
             clock = clock,
             klagebehandlingRepo = klagebehandlingRepo,
             klagevedtakRepo = klagevedtakRepo,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             sessionFactory = sessionFactory,
         )
     }
@@ -210,6 +205,8 @@ open class KlagebehandlingContext(
             overtaRammebehandlingService = overtaRammebehandlingService,
             klagebehandlingRepo = klagebehandlingRepo,
             clock = clock,
+            statistikkService = statistikkService,
+            sessionFactory = sessionFactory,
         )
     }
     open val taKlagebehandlingService by lazy {
@@ -218,6 +215,8 @@ open class KlagebehandlingContext(
             klagebehandlingRepo = klagebehandlingRepo,
             taRammebehandlingService = taRammebehandlingService,
             clock = clock,
+            statistikkService = statistikkService,
+            sessionFactory = sessionFactory,
         )
     }
     open val leggTilbakeKlagebehandlingService by lazy {
@@ -226,6 +225,9 @@ open class KlagebehandlingContext(
             klagebehandlingRepo = klagebehandlingRepo,
             leggTilbakeRammebehandlingService = leggTilbakeRammebehandlingService,
             clock = clock,
+            statistikkService = statistikkService,
+            sessionFactory = sessionFactory,
+
         )
     }
     open val gjenopptaKlagebehandlingService by lazy {
@@ -233,8 +235,7 @@ open class KlagebehandlingContext(
             sakService = sakService,
             gjenopptaRammebehandlingService = gjenopptaRammebehandlingService,
             klagebehandlingRepo = klagebehandlingRepo,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             sessionFactory = sessionFactory,
             clock = clock,
         )
@@ -244,8 +245,7 @@ open class KlagebehandlingContext(
             sakService = sakService,
             settRammebehandlingPåVentService = settRammebehandlingPåVentService,
             klagebehandlingRepo = klagebehandlingRepo,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             sessionFactory = sessionFactory,
             clock = clock,
         )
@@ -262,8 +262,7 @@ open class KlagebehandlingContext(
             klagebehandlingRepo = klagebehandlingRepo,
             sakService = sakService,
             kabalClient = kabalClient,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             sessionFactory = sessionFactory,
         )
     }
@@ -271,6 +270,8 @@ open class KlagebehandlingContext(
     open val ferdigstillKlagebehandlingService by lazy {
         FerdigstillKlagebehandlingService(
             klagebehandlingRepo = klagebehandlingRepo,
+            statistikkService = statistikkService,
+            sessionFactory = sessionFactory,
             clock = clock,
         )
     }

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAu
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
+import no.nav.tiltakspenger.saksbehandling.statistikk.GenererMeldekortstatistikk
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -49,23 +50,26 @@ data class StatistikkMeldekortDTO(
     }
 }
 
-fun MeldekortBehandling.Behandlet.tilStatistikkMeldekortDTO(clock: Clock): StatistikkMeldekortDTO =
-    StatistikkMeldekortDTO(
-        meldeperiodeKjedeId = kjedeId.toString(),
-        sakId = sakId.toString(),
-        meldekortBehandlingId = id.toString(),
-        brukerId = fnr.verdi,
-        saksnummer = saksnummer.verdi,
-        vedtattTidspunkt = iverksattTidspunkt!!,
-        behandletAutomatisk = this is MeldekortBehandletAutomatisk,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-        meldekortdager = dager.verdi.map { it.tilStatistikkMeldekortDag() },
-        opprettet = opprettet,
-        sistEndret = nå(clock),
-    )
+fun MeldekortBehandling.Behandlet.tilStatistikkMeldekortDTO(clock: Clock): GenererMeldekortstatistikk {
+    return GenererMeldekortstatistikk {
+        StatistikkMeldekortDTO(
+            meldeperiodeKjedeId = kjedeId.toString(),
+            sakId = sakId.toString(),
+            meldekortBehandlingId = id.toString(),
+            brukerId = fnr.verdi,
+            saksnummer = saksnummer.verdi,
+            vedtattTidspunkt = iverksattTidspunkt!!,
+            behandletAutomatisk = this is MeldekortBehandletAutomatisk,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+            meldekortdager = dager.verdi.map { it.tilStatistikkMeldekortDag() },
+            opprettet = opprettet,
+            sistEndret = nå(clock),
+        )
+    }
+}
 
-fun MeldekortDag.tilStatistikkMeldekortDag(): StatistikkMeldekortDTO.StatistikkMeldekortDag {
+private fun MeldekortDag.tilStatistikkMeldekortDag(): StatistikkMeldekortDTO.StatistikkMeldekortDag {
     return StatistikkMeldekortDTO.StatistikkMeldekortDag(
         dato = dato,
         status = status.tilStatistikkMeldekortDagStatus(),
@@ -73,8 +77,8 @@ fun MeldekortDag.tilStatistikkMeldekortDag(): StatistikkMeldekortDTO.StatistikkM
     )
 }
 
-fun MeldekortDagStatus.tilStatistikkMeldekortDagStatus(): StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus =
-    when (this) {
+private fun MeldekortDagStatus.tilStatistikkMeldekortDagStatus(): StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus {
+    return when (this) {
         MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.DELTATT_UTEN_LONN_I_TILTAKET
         MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.DELTATT_MED_LONN_I_TILTAKET
         MeldekortDagStatus.FRAVÆR_SYK -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.FRAVAER_SYK
@@ -86,9 +90,10 @@ fun MeldekortDagStatus.tilStatistikkMeldekortDagStatus(): StatistikkMeldekortDTO
         MeldekortDagStatus.IKKE_TILTAKSDAG -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.IKKE_TILTAKSDAG
         MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> StatistikkMeldekortDTO.StatistikkMeldekortDag.MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
     }
+}
 
-fun MeldekortDagStatus.tilReduksjon(): StatistikkMeldekortDTO.StatistikkMeldekortDag.Reduksjon =
-    when (this) {
+private fun MeldekortDagStatus.tilReduksjon(): StatistikkMeldekortDTO.StatistikkMeldekortDag.Reduksjon {
+    return when (this) {
         MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
         MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV,
         MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
@@ -105,3 +110,4 @@ fun MeldekortDagStatus.tilReduksjon(): StatistikkMeldekortDTO.StatistikkMeldekor
         MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER,
         -> StatistikkMeldekortDTO.StatistikkMeldekortDag.Reduksjon.YTELSEN_FALLER_BORT
     }
+}

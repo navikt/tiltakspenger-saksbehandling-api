@@ -1,24 +1,41 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.meldekort
 
+import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
 import java.time.Clock
 
-class StatistikkMeldekortPostgresRepo(
-    private val sessionFactory: PostgresSessionFactory,
-    private val clock: Clock,
-) : StatistikkMeldekortRepo {
-    override fun lagre(
-        dto: StatistikkMeldekortDTO,
-        context: TransactionContext?,
-    ) {
-        sessionFactory.withTransaction(context) { tx ->
-            tx.run(
+class StatistikkMeldekortPostgresRepo {
+
+    companion object {
+        fun oppdaterFnr(
+            gammeltFnr: Fnr,
+            nyttFnr: Fnr,
+            clock: Clock,
+            session: Session,
+        ) {
+            session.run(
+                queryOf(
+                    """
+                        update statistikk_meldekort set bruker_id = :nytt_fnr, sist_endret = :sist_endret where bruker_id = :gammelt_fnr
+                    """.trimIndent(),
+                    mapOf(
+                        "nytt_fnr" to nyttFnr.verdi,
+                        "gammelt_fnr" to gammeltFnr.verdi,
+                        "sist_endret" to nå(clock),
+                    ),
+                ).asUpdate,
+            )
+        }
+
+        fun lagre(
+            dto: StatistikkMeldekortDTO,
+            session: Session,
+        ) {
+            session.run(
                 queryOf(
                     lagreMeldekortSql,
                     mapOf(
@@ -39,31 +56,11 @@ class StatistikkMeldekortPostgresRepo(
             )
         }
     }
+}
 
-    override fun oppdaterFnr(
-        gammeltFnr: Fnr,
-        nyttFnr: Fnr,
-        context: TransactionContext?,
-    ) {
-        sessionFactory.withTransaction(context) { tx ->
-            tx.run(
-                queryOf(
-                    """
-                        update statistikk_meldekort set bruker_id = :nytt_fnr, sist_endret = :sist_endret where bruker_id = :gammelt_fnr
-                    """.trimIndent(),
-                    mapOf(
-                        "nytt_fnr" to nyttFnr.verdi,
-                        "gammelt_fnr" to gammeltFnr.verdi,
-                        "sist_endret" to nå(clock),
-                    ),
-                ).asUpdate,
-            )
-        }
-    }
-
-    @Language("SQL")
-    private val lagreMeldekortSql =
-        """
+@Language("SQL")
+private val lagreMeldekortSql =
+    """
         insert into statistikk_meldekort (
         meldeperiode_kjede_id,
         sak_id,
@@ -99,5 +96,4 @@ class StatistikkMeldekortPostgresRepo(
         til_og_med = :til_og_med,
         meldekortdager = :meldekortdager,
         sist_endret = :sist_endret
-        """.trimIndent()
-}
+    """.trimIndent()

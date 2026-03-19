@@ -7,12 +7,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import java.time.Clock
 
@@ -20,10 +21,9 @@ class StartSøknadsbehandlingService(
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
     private val rammebehandlingRepo: RammebehandlingRepo,
-    private val saksstatistikkRepo: SaksstatistikkRepo,
+    private val statistikkService: StatistikkService,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val clock: Clock,
-    private val saksstatistikkService: SaksstatistikkService,
     private val oppgaveKlient: OppgaveKlient,
 ) {
     val logger = KotlinLogging.logger {}
@@ -42,21 +42,17 @@ class StartSøknadsbehandlingService(
             )
         }
         val sak = sakService.hentForSakId(soknad.sakId)
-        val behandling = Søknadsbehandling.opprettAutomatiskBehandling(
+        val (behandling, statistikkhendelser) = Søknadsbehandling.opprettAutomatiskBehandling(
             sak = sak,
             søknad = soknad,
             hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
             correlationId = correlationId,
             clock = clock,
         )
-
-        val statistikk = saksstatistikkService.genererStatistikkForSøknadsbehandling(
-            behandling = behandling,
-        )
-
+        val statistikkDTO = statistikkService.generer(statistikkhendelser)
         sessionFactory.withTransactionContext { tx ->
             rammebehandlingRepo.lagre(behandling, tx)
-            saksstatistikkRepo.lagre(statistikk, tx)
+            statistikkService.lagre(statistikkDTO, tx)
             sakService.markerSkalSendesTilMeldekortApi(
                 sakId = soknad.sakId,
                 sessionContext = tx,

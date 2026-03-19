@@ -2,9 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.jobb
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentJournalpostIdForVedtakId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandlingerSomSkalOversendesKlageinstansen
@@ -12,14 +10,16 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppdaterOver
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
 
 class OversendKlageTilKlageinstansJobb(
     private val klagebehandlingRepo: KlagebehandlingRepo,
     private val sakService: SakService,
     private val kabalClient: KabalClient,
-    private val saksstatistikkService: SaksstatistikkService,
-    private val saksstatistikkRepo: SaksstatistikkRepo,
+    private val statistikkService: StatistikkService,
     private val sessionFactory: SessionFactory,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -43,21 +43,16 @@ class OversendKlageTilKlageinstansJobb(
                         }
                         // Left skal logges i klienten.
                         kabalClient.oversend(klagebehandling, journalpostIdVedtak).onRight {
+                            val oppdatertKlagebehandling =
+                                klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(it.oversendtTidspunkt)
+                            val statistikkDTO = statistikkService.generer(
+                                Statistikkhendelser(
+                                    oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.OVERSENDT_KA),
+                                ),
+                            )
                             sessionFactory.withTransactionContext { tx ->
-                                klagebehandlingRepo.markerOversendtTilKlageinstans(
-                                    klagebehandling = klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(it.oversendtTidspunkt),
-                                    metadata = it,
-                                    sessionContext = tx,
-                                )
-                                // TODO: Å gjøre om withTransactionContext til suspend function er målet, men krever noen dagers arbeid
-                                @Suppress("RunBlockingInSuspendFunction")
-                                runBlocking {
-                                    val statistikk =
-                                        saksstatistikkService.genererSaksstatistikkForKlagebehandlingOversendtTilKabal(
-                                            klagebehandling,
-                                        )
-                                    saksstatistikkRepo.lagre(statistikk, tx)
-                                }
+                                klagebehandlingRepo.markerOversendtTilKlageinstans(oppdatertKlagebehandling, it, tx)
+                                statistikkService.lagre(statistikkDTO, tx)
                             }
                         }
                     }.onFailure { e ->

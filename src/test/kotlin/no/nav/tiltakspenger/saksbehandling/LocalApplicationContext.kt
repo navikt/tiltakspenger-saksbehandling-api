@@ -219,7 +219,7 @@ class LocalApplicationContext(
             sakRepo = sakContext.sakRepo,
             clock = clock,
             simulerService = utbetalingContext.simulerService,
-            statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
+            statistikkService = statistikkContext.statistikkService,
             genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
             navIdentClient = personContext.navIdentClient,
         ) {
@@ -246,8 +246,7 @@ class LocalApplicationContext(
             sessionFactory = sessionFactory,
             meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
-            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
-            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
+            statistikkService = statistikkContext.statistikkService,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,
             genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
             genererVedtaksbrevForAvslagKlient = genererFakeVedtaksbrevForAvslagKlient,
@@ -259,7 +258,6 @@ class LocalApplicationContext(
             sakService = sakContext.sakService,
             tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient,
             clock = clock,
-            saksstatistikkService = statistikkContext.saksstatistikkService,
             sokosUtbetaldataClient = sokosUtbetaldataClient,
             navkontorService = navkontorService,
             simulerService = utbetalingContext.simulerService,
@@ -278,7 +276,7 @@ class LocalApplicationContext(
             navIdentClient = personContext.navIdentClient,
             clock = clock,
             navkontorService = navkontorService,
-            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
+            statistikkService = statistikkContext.statistikkService,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
         }
@@ -303,8 +301,7 @@ class LocalApplicationContext(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
-            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
-            saksstatistikkService = statistikkContext.saksstatistikkService,
+            statistikkService = statistikkContext.statistikkService,
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             texasClient = texasClient,
         ) {

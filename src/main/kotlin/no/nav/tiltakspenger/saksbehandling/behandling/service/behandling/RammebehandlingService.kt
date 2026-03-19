@@ -15,13 +15,12 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkSakDTO
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import java.time.Clock
 
 class RammebehandlingService(
@@ -29,12 +28,11 @@ class RammebehandlingService(
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
-    private val saksstatistikkService: SaksstatistikkService,
-    private val saksstatistikkRepo: SaksstatistikkRepo,
+    private val statistikkService: StatistikkService,
 ) {
     val logger = KotlinLogging.logger { }
 
-    fun hentSakOgBehandling(
+    fun hentSakOgRammebehandling(
         sakId: SakId,
         behandlingId: BehandlingId,
     ): Pair<Sak, Rammebehandling> {
@@ -54,7 +52,7 @@ class RammebehandlingService(
         beslutter: Saksbehandler,
         begrunnelse: String?,
     ): Either<KanIkkeUnderkjenne, Pair<Sak, Rammebehandling>> {
-        val (sak, behandling) = hentSakOgBehandling(sakId, behandlingId)
+        val (sak, rammebehandling) = hentSakOgRammebehandling(sakId, behandlingId)
 
         val nonBlankBegrunnelse = Either.catch { begrunnelse?.toNonBlankString() }.getOrElse {
             return KanIkkeUnderkjenne.ManglerBegrunnelse.left()
@@ -68,41 +66,29 @@ class RammebehandlingService(
         )
 
         // Denne validerer saksbehandler
-        return behandling.underkjenn(beslutter, attestering, clock).let {
-            val oppdatertSak = sak.oppdaterRammebehandling(it)
+        return rammebehandling
+            .underkjenn(beslutter, attestering, clock)
+            .let { (oppdatertRammebehandling, statistikkhendelser) ->
+                val oppdatertSak = sak.oppdaterRammebehandling(oppdatertRammebehandling)
 
-            val statistikk = saksstatistikkService.genererStatistikkForUnderkjennBehandling(it)
+                lagreMedStatistikk(behandling = oppdatertRammebehandling, statistikkhendelser = statistikkhendelser)
 
-            // Genererer ikke statistikk for klage, fordi underkjennelse av rammebehandlingen underkjenner ikke klagebehandlingen.
-            lagreMedStatistikk(behandling = it, statistikk = statistikk, klageStatistikk = null)
-
-            oppdatertSak to it
-        }.right()
+                oppdatertSak to oppdatertRammebehandling
+            }.right()
     }
 
     /**
      * Denne gjør ingen tilgangskontroll. Ansvaret ligger hos kalleren.
      */
-    fun lagreMedStatistikk(
+    suspend fun lagreMedStatistikk(
         behandling: Rammebehandling,
-        statistikk: StatistikkSakDTO,
-        klageStatistikk: StatistikkSakDTO?,
+        statistikkhendelser: Statistikkhendelser,
         tx: TransactionContext? = null,
     ) {
-        require(behandling.id.toString() == statistikk.behandlingId) {
-            "Statistikken må tilhøre behandlingen (forventet ${behandling.id}, fikk ${statistikk.behandlingId})"
-        }
-
-        require(behandling.sistEndret == statistikk.endretTidspunkt) {
-            "Statistikken må ha samme endringstidspunkt som behandlingen (forventet ${behandling.sistEndret}, fikk ${statistikk.endretTidspunkt})"
-        }
-
+        val statistikkDto = statistikkService.generer(statistikkhendelser)
         sessionFactory.withTransactionContext(tx) { tx ->
             rammebehandlingRepo.lagre(behandling, tx)
-            saksstatistikkRepo.lagre(statistikk, tx)
-            if (klageStatistikk != null) {
-                saksstatistikkRepo.lagre(klageStatistikk, tx)
-            }
+            statistikkService.lagre(statistikkDto, tx)
         }
     }
 }

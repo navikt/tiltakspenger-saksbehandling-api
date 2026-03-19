@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkHendelse
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -47,9 +47,9 @@ class PersonhendelseServiceTest {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkSakRepo = testDataHelper.statistikkSakRepo
+                val statistikkService = testDataHelper.statistikkService
                 val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
                 val fnr = Fnr.random()
 
                 personhendelseService.behandlePersonhendelse(
@@ -72,9 +72,9 @@ class PersonhendelseServiceTest {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkSakRepo = testDataHelper.statistikkSakRepo
+                val statistikkService = testDataHelper.statistikkService
                 val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 testDataHelper.persisterSakOgSøknad(
@@ -117,9 +117,9 @@ class PersonhendelseServiceTest {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkSakRepo = testDataHelper.statistikkSakRepo
+                val statistikkService = testDataHelper.statistikkService
                 val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 testDataHelper.persisterSakOgSøknad(
@@ -163,9 +163,9 @@ class PersonhendelseServiceTest {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkSakRepo = testDataHelper.statistikkSakRepo
+                val statistikkService = testDataHelper.statistikkService
                 val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 testDataHelper.persisterSakOgSøknad(
@@ -197,9 +197,9 @@ class PersonhendelseServiceTest {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkSakRepo = testDataHelper.statistikkSakRepo
+                val statistikkService = testDataHelper.statistikkService
                 val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling(
@@ -212,12 +212,13 @@ class PersonhendelseServiceTest {
                         saksnummer = sak.saksnummer,
                     ),
                 )
-                statistikkSakRepo.lagre(
+                testDataHelper.statistikkSakRepo.lagre(
                     behandling.genererSaksstatistikk(
-                        gjelderKode6 = false,
+                        hendelse = StatistikkhendelseType.OPPRETTET_BEHANDLING,
+                    ).genererSaksstatistikk(
+                        gjelderKode6 = { false },
                         versjon = "1",
                         clock = Clock.system(zoneIdOslo),
-                        hendelse = StatistikkHendelse.OPPRETTET_BEHANDLING,
                     ),
                 )
                 val personhendelse = getPersonhendelse(
@@ -252,7 +253,7 @@ class PersonhendelseServiceTest {
                 personhendelseDb.oppgaveId shouldBe null
                 personhendelseDb.oppgaveSistSjekket shouldBe null
 
-                val statistikkSakDTO = statistikkSakRepo.hent(sak.id).first()
+                val statistikkSakDTO = testDataHelper.statistikkSakRepo.hent(sak.id).first()
                 statistikkSakDTO.fnr shouldBe fnr.verdi
                 statistikkSakDTO.opprettetAv shouldBe "-5"
                 statistikkSakDTO.saksbehandler shouldBe "-5"
@@ -269,8 +270,9 @@ class PersonhendelseServiceTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
+                val statistikkService = testDataHelper.statistikkService
                 val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling(
@@ -285,10 +287,11 @@ class PersonhendelseServiceTest {
                 )
                 statistikkSakRepo.lagre(
                     behandling.genererSaksstatistikk(
-                        gjelderKode6 = false,
+                        hendelse = StatistikkhendelseType.OPPRETTET_BEHANDLING,
+                    ).genererSaksstatistikk(
                         versjon = "1",
                         clock = Clock.system(zoneIdOslo),
-                        hendelse = StatistikkHendelse.OPPRETTET_BEHANDLING,
+                        gjelderKode6 = { false },
                     ),
                 )
                 val personhendelse = getPersonhendelse(

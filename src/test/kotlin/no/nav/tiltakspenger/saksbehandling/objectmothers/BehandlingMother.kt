@@ -143,7 +143,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 clock = clock,
                 sak = sak,
                 correlationId = correlationId,
-            )
+            ).first
         }
     }
 
@@ -170,7 +170,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 clock = clock,
                 sak = sak,
                 correlationId = correlationId,
-            )
+            ).first
             return@runBlocking behandling.tilManuellBehandling(
                 manueltBehandlesGrunner = manueltBehandlesGrunner,
                 clock = clock,
@@ -350,7 +350,7 @@ interface BehandlingMother : MotherOfAllMothers {
             omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
             automatiskBehandling = automatiskBehandling,
-        ).taBehandling(beslutter, clock) as Søknadsbehandling
+        ).taBehandling(beslutter, clock).first as Søknadsbehandling
     }
 
     @Suppress("unused")
@@ -412,7 +412,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 tidspunkt = nå(clock),
             ),
             clock = clock,
-        ) as Søknadsbehandling
+        ).first as Søknadsbehandling
     }
 
     /**
@@ -479,7 +479,7 @@ interface BehandlingMother : MotherOfAllMothers {
             attestering = godkjentAttestering(beslutter, clock),
             correlationId = correlationId,
             clock = clock,
-        ) as Søknadsbehandling
+        ).first as Søknadsbehandling
     }
 
     fun nyAvbruttSøknadsbehandling(

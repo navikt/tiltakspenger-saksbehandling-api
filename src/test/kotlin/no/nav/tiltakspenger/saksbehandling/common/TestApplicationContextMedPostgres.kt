@@ -135,7 +135,7 @@ class TestApplicationContextMedPostgres(
             sakRepo = sakContext.sakRepo,
             clock = clock,
             navkontorService = navkontorService,
-            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
+            statistikkService = statistikkContext.statistikkService,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
         }
@@ -167,7 +167,7 @@ class TestApplicationContextMedPostgres(
                 sakRepo = sakContext.sakRepo,
                 clock = clock,
                 simulerService = utbetalingContext.simulerService,
-                statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
+                statistikkService = statistikkContext.statistikkService,
                 genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
                 navIdentClient = personContext.navIdentClient,
             ) {
@@ -180,8 +180,7 @@ class TestApplicationContextMedPostgres(
             sessionFactory = sessionFactory,
             meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
-            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
-            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
+            statistikkService = statistikkContext.statistikkService,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,
             genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevKlient,
             genererVedtaksbrevForAvslagKlient = genererFakeVedtaksbrevKlient,
@@ -193,7 +192,6 @@ class TestApplicationContextMedPostgres(
             sakService = sakContext.sakService,
             tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient,
             clock = clock,
-            saksstatistikkService = statistikkContext.saksstatistikkService,
             sokosUtbetaldataClient = sokosUtbetaldataFakeClient,
             navkontorService = navkontorService,
             simulerService = utbetalingContext.simulerService,
@@ -222,8 +220,7 @@ class TestApplicationContextMedPostgres(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
-            saksstatistikkRepo = statistikkContext.saksstatistikkRepo,
-            saksstatistikkService = statistikkContext.saksstatistikkService,
+            statistikkService = statistikkContext.statistikkService,
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             texasClient = texasClient,
         ) {

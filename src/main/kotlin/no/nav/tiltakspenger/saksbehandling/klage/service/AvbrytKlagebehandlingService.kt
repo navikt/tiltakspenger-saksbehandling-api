@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbrytKlagebehandlingKommando
@@ -10,16 +9,18 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KanIkkeAvbryteKla
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.avbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 
 class AvbrytKlagebehandlingService(
     private val sakService: SakService,
     private val clock: java.time.Clock,
     private val klagebehandlingRepo: KlagebehandlingRepo,
-    private val saksstatistikkService: SaksstatistikkService,
-    private val saksstatistikkRepo: SaksstatistikkRepo,
+    private val statistikkService: StatistikkService,
     private val sessionFactory: SessionFactory,
 ) {
+    /**
+     * Kan ikke avbrytes dersom den er tilknyttet en [no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling]
+     */
     suspend fun avbrytKlagebehandling(
         kommando: AvbrytKlagebehandlingKommando,
     ): Either<KanIkkeAvbryteKlagebehandling, Pair<Sak, Klagebehandling>> {
@@ -27,13 +28,13 @@ class AvbrytKlagebehandlingService(
         return sak.avbrytKlagebehandling(
             kommando = kommando,
             clock = clock,
-        ).onRight {
-            val statistikk = saksstatistikkService.genererSaksstatistikkForAvsluttetKlagebehandling(it.second)
-
+        ).map { (oppdatertSak, oppdatertKlagebehandling, statistikkhendelser) ->
+            val statistikkDTO = statistikkService.generer(statistikkhendelser)
             sessionFactory.withTransactionContext { tx ->
-                klagebehandlingRepo.lagreKlagebehandling(it.second)
-                saksstatistikkRepo.lagre(statistikk, tx)
+                klagebehandlingRepo.lagreKlagebehandling(oppdatertKlagebehandling, tx)
+                statistikkService.lagre(statistikkDTO, tx)
             }
+            oppdatertSak to oppdatertKlagebehandling
         }
     }
 }

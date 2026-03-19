@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
 
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
+import no.nav.tiltakspenger.saksbehandling.statistikk.GenererUtbetalingsstatistikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
 import java.time.LocalDate
@@ -35,27 +36,30 @@ data class StatistikkUtbetalingDTO(
     )
 }
 
-fun VedtattUtbetaling.tilStatistikk(clock: Clock): StatistikkUtbetalingDTO =
-    StatistikkUtbetalingDTO(
-        // TODO post-mvp jah: Vi sender uuid-delen av denne til helved som behandlingId som mappes videre til OS/UR i feltet 'henvisning'.
-        id = this.id.toString(),
-        sakId = this.sakId.toString(),
-        saksnummer = this.saksnummer.toString(),
-        ordinærBeløp = this.ordinærBeløp,
-        barnetilleggBeløp = this.barnetilleggBeløp,
-        totalBeløp = this.totalBeløp,
-        posteringDato = this.opprettet.toLocalDate(),
-        gyldigFraDatoPostering = this.periode.fraOgMed,
-        gyldigTilDatoPostering = this.periode.tilOgMed,
-        utbetalingId = this.id.uuidPart(),
-        vedtakId = listOf(this.vedtakId.toString()),
-        opprettet = LocalDateTime.now(clock),
-        sistEndret = LocalDateTime.now(clock),
-        brukerId = this.fnr.verdi,
-        meldeperioder = this.beregning.beregninger.toList().map {
-            it.toStatistikkMeldeperiode()
-        },
-    )
+fun VedtattUtbetaling.tilStatistikk(clock: Clock): GenererUtbetalingsstatistikk {
+    return GenererUtbetalingsstatistikk {
+        StatistikkUtbetalingDTO(
+            // TODO post-mvp jah: Vi sender uuid-delen av denne til helved som behandlingId som mappes videre til OS/UR i feltet 'henvisning'.
+            id = this.id.toString(),
+            sakId = this.sakId.toString(),
+            saksnummer = this.saksnummer.toString(),
+            ordinærBeløp = this.ordinærBeløp,
+            barnetilleggBeløp = this.barnetilleggBeløp,
+            totalBeløp = this.totalBeløp,
+            posteringDato = this.opprettet.toLocalDate(),
+            gyldigFraDatoPostering = this.periode.fraOgMed,
+            gyldigTilDatoPostering = this.periode.tilOgMed,
+            utbetalingId = this.id.uuidPart(),
+            vedtakId = listOf(this.vedtakId.toString()),
+            opprettet = LocalDateTime.now(clock),
+            sistEndret = LocalDateTime.now(clock),
+            brukerId = this.fnr.verdi,
+            meldeperioder = this.beregning.beregninger.toList().map {
+                it.toStatistikkMeldeperiode()
+            },
+        )
+    }
+}
 
 private fun MeldeperiodeBeregning.toStatistikkMeldeperiode() =
     StatistikkUtbetalingDTO.StatistikkMeldeperiode(

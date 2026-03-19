@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenoppta
 
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import org.junit.jupiter.api.Test
 
 class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
@@ -9,7 +10,7 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
     fun `gjenoppta søknadsbehandling`() {
         withTestApplicationContext { tac ->
             val (sak, søknad, søknadsbehandling, json) = opprettSøknadsbehandlingOgGjenoppta(tac = tac)!!
-            json.toString().shouldEqualJson(
+            json.toString().shouldEqualJsonIgnoringTimestamps(
                 """
 {
   "id": "${søknadsbehandling!!.id}",

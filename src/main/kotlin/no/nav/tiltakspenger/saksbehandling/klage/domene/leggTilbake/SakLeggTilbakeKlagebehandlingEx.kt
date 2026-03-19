@@ -11,16 +11,17 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import java.time.Clock
 
 suspend fun Sak.leggTilbakeKlagebehandling(
     kommando: LeggTilbakeKlagebehandlingKommando,
     clock: Clock,
     leggTilbakeRammebehandling: suspend (SakId, BehandlingId, Saksbehandler) -> Pair<Sak, Rammebehandling>,
-    lagreKlagebehandling: (Klagebehandling, SessionContext?) -> Unit,
+    lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeLeggeTilbakeKlagebehandling, Triple<Sak, Klagebehandling, Rammebehandling?>> {
-    return this.hentKlagebehandling(kommando.klagebehandlingId).let {
-        val rammebehandling = it.rammebehandlingId?.let { this.hentRammebehandling(it) }
+    return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
+        val rammebehandling = klagebehandling.rammebehandlingId?.let { this.hentRammebehandling(it) }
         if (rammebehandling != null) {
             return leggTilbakeRammebehandling(
                 kommando.sakId,
@@ -30,9 +31,10 @@ suspend fun Sak.leggTilbakeKlagebehandling(
                 Triple(it.first, it.second.klagebehandling!!, it.second)
             }.right()
         }
-        it.leggTilbake(kommando, null, clock).map {
-            val oppdatertSak = this.oppdaterKlagebehandling(it)
-            Triple(oppdatertSak, it, null)
-        }.onRight { lagreKlagebehandling(it.second, null) }
+        klagebehandling.leggTilbake(kommando, null, clock).map { (oppdaterKlagebehandling, statistikkhendelser) ->
+            val oppdatertSak = this.oppdaterKlagebehandling(oppdaterKlagebehandling)
+            lagre(oppdaterKlagebehandling, statistikkhendelser)
+            Triple(oppdatertSak, oppdaterKlagebehandling, null)
+        }
     }
 }

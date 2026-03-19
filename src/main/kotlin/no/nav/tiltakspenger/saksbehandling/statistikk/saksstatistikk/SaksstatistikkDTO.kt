@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 // Grensenittet for denne tabellen eies av DVH og er definert her:
 // https://confluence.adeo.no/display/navdvh/Teknisk+beskrivelse+av+behov+til+felles+saksbehandlingsstatistikk
-data class StatistikkSakDTO(
+data class SaksstatistikkDTO(
     val sakId: String,
     val saksnummer: String,
     val behandlingId: String,
@@ -141,7 +141,7 @@ enum class StatistikkResultatBegrunnelse {
     ANNET,
 }
 
-enum class StatistikkHendelse(val value: String) {
+enum class StatistikkhendelseType(val value: String) {
     OPPRETTET_BEHANDLING("opprettet_behandling"),
     OPPRETTET_REVURDERING("opprettet_revurdering"),
     SENDT_TIL_BESLUTTER("sendt_til_beslutter"),

@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
@@ -30,11 +30,11 @@ class IverksettMeldekortService(
     val sessionFactory: SessionFactory,
     private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val clock: Clock,
-    private val statistikkMeldekortRepo: StatistikkMeldekortRepo,
+    private val statistikkService: StatistikkService,
 ) {
     private val logger = KotlinLogging.logger { }
 
-    fun iverksettMeldekort(
+    suspend fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
     ): Either<KanIkkeIverksetteMeldekort, Pair<Sak, MeldekortBehandling>> {
         val meldekortId = kommando.meldekortId
@@ -61,10 +61,13 @@ class IverksettMeldekortService(
                 clock = clock,
             )
 
+            val statistikkDTO = statistikkService.generer(iverksattMeldekortbehandling.tilStatistikkMeldekortDTO(clock))
+            val oppdatertSak = sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
+                .leggTilMeldekortvedtak(meldekortvedtak)
             sessionFactory.withTransactionContext { tx ->
                 meldekortBehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
                 meldekortvedtakRepo.lagre(meldekortvedtak, tx)
-                statistikkMeldekortRepo.lagre(iverksattMeldekortbehandling.tilStatistikkMeldekortDTO(clock), tx)
+                statistikkService.lagre(statistikkDTO, tx)
 
                 runBlocking {
                     tx.onSuccess {
@@ -75,8 +78,7 @@ class IverksettMeldekortService(
                     }
                 }
             }
-            sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
-                .leggTilMeldekortvedtak(meldekortvedtak) to iverksattMeldekortbehandling
+            oppdatertSak to iverksattMeldekortbehandling
         }
     }
 }

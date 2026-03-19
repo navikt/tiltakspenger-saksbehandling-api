@@ -12,8 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedt
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksstatistikkRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
@@ -40,7 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRe
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
@@ -52,8 +50,7 @@ open class BehandlingOgVedtakContext(
     sessionFactory: SessionFactory,
     meldekortBehandlingRepo: MeldekortBehandlingRepo,
     meldeperiodeRepo: MeldeperiodeRepo,
-    saksstatistikkRepo: SaksstatistikkRepo,
-    statistikkStønadRepo: StatistikkStønadRepo,
+    statistikkService: StatistikkService,
     journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient,
     genererVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient,
     genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient,
@@ -64,7 +61,6 @@ open class BehandlingOgVedtakContext(
     navIdentClient: NavIdentClient,
     sakService: SakService,
     tiltaksdeltakelseKlient: TiltaksdeltakelseKlient,
-    saksstatistikkService: SaksstatistikkService,
     clock: Clock,
     sokosUtbetaldataClient: SokosUtbetaldataClient,
     navkontorService: NavkontorService,
@@ -85,9 +81,8 @@ open class BehandlingOgVedtakContext(
             rammebehandlingRepo = rammebehandlingRepo,
             sessionFactory = sessionFactory,
             clock = clock,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
             sakService = sakService,
+            statistikkService = statistikkService,
         )
     }
     val startSøknadsbehandlingService: StartSøknadsbehandlingService by lazy {
@@ -95,18 +90,16 @@ open class BehandlingOgVedtakContext(
             sakService = sakService,
             sessionFactory = sessionFactory,
             rammebehandlingRepo = rammebehandlingRepo,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             hentSaksopplysingerService = hentSaksopplysingerService,
             clock = clock,
-            saksstatistikkService = saksstatistikkService,
             oppgaveKlient = oppgaveKlient,
         )
     }
     val delautomatiskBehandlingService: DelautomatiskBehandlingService by lazy {
         DelautomatiskBehandlingService(
             rammebehandlingRepo = rammebehandlingRepo,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             sessionFactory = sessionFactory,
             sakService = sakService,
             navkontorService = navkontorService,
@@ -118,11 +111,10 @@ open class BehandlingOgVedtakContext(
         BehandleSøknadPåNyttService(
             sakService = sakService,
             sessionFactory = sessionFactory,
-            saksstatistikkRepo = saksstatistikkRepo,
-            saksstatistikkService = saksstatistikkService,
             clock = clock,
             rammebehandlingRepo = rammebehandlingRepo,
             hentSaksopplysingerService = hentSaksopplysingerService,
+            statistikkService = statistikkService,
         )
     }
     val hentSaksopplysingerService: HentSaksopplysingerService by lazy {
@@ -149,11 +141,9 @@ open class BehandlingOgVedtakContext(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
-            saksstatistikkRepo = saksstatistikkRepo,
-            statistikkStønadRepo = statistikkStønadRepo,
             sakService = sakService,
             clock = clock,
-            saksstatistikkService = saksstatistikkService,
+            statistikkService = statistikkService,
             oppdaterBeregningOgSimuleringService = oppdaterBeregningOgSimuleringService,
         )
     }
@@ -164,9 +154,8 @@ open class BehandlingOgVedtakContext(
             rammebehandlingRepo = rammebehandlingRepo,
             oppdaterBeregningOgSimuleringService = oppdaterBeregningOgSimuleringService,
             clock = clock,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
             sessionFactory = sessionFactory,
+            statistikkService = statistikkService,
         )
     }
     val startRevurderingService: StartRevurderingService by lazy {
@@ -175,8 +164,7 @@ open class BehandlingOgVedtakContext(
             rammebehandlingRepo = rammebehandlingRepo,
             hentSaksopplysingerService = hentSaksopplysingerService,
             clock = clock,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             sessionFactory = sessionFactory,
         )
     }
@@ -220,8 +208,7 @@ open class BehandlingOgVedtakContext(
         TaRammebehandlingService(
             behandlingService = rammebehandlingService,
             rammebehandlingRepo = rammebehandlingRepo,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             sessionFactory = sessionFactory,
             clock = clock,
         )
@@ -232,8 +219,7 @@ open class BehandlingOgVedtakContext(
             rammebehandlingService = rammebehandlingService,
             rammebehandlingRepo = rammebehandlingRepo,
             clock = clock,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             sessionFactory = sessionFactory,
         )
     }
@@ -242,8 +228,7 @@ open class BehandlingOgVedtakContext(
         LeggTilbakeRammebehandlingService(
             behandlingService = rammebehandlingService,
             rammebehandlingRepo = rammebehandlingRepo,
-            saksstatistikkService = saksstatistikkService,
-            saksstatistikkRepo = saksstatistikkRepo,
+            statistikkService = statistikkService,
             sessionFactory = sessionFactory,
             clock = clock,
         )
@@ -263,7 +248,6 @@ open class BehandlingOgVedtakContext(
     val settRammebehandlingPåVentService by lazy {
         SettRammebehandlingPåVentService(
             behandlingService = rammebehandlingService,
-            saksstatistikkService = saksstatistikkService,
             clock = clock,
         )
     }
@@ -272,7 +256,6 @@ open class BehandlingOgVedtakContext(
         GjenopptaRammebehandlingService(
             behandlingService = rammebehandlingService,
             hentSaksopplysingerService = hentSaksopplysingerService,
-            saksstatistikkService = saksstatistikkService,
             clock = clock,
         )
     }

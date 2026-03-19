@@ -183,7 +183,7 @@ class EndretTiltaksdeltakerJobbTest {
                 frist = null,
             )
 
-            val behandlingPaVent = behandling.settPåVent(kommando = kommando, clock = tac.clock) as Søknadsbehandling
+            val behandlingPaVent = behandling.settPåVent(kommando = kommando, clock = tac.clock).first as Søknadsbehandling
             tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
 
             val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(

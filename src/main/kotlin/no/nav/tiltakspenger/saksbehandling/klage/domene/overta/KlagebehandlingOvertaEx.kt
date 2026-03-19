@@ -6,6 +6,9 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
 import java.time.Clock
 
 /**
@@ -15,15 +18,19 @@ fun Klagebehandling.overta(
     kommando: OvertaKlagebehandlingKommando,
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
-): Either<KanIkkeOvertaKlagebehandling, Klagebehandling> {
+): Either<KanIkkeOvertaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     kanOppdatereIDenneStatusen(rammebehandlingsstatus, kanVæreOmgjørEtterKA = true).onLeft {
         return KanIkkeOvertaKlagebehandling.KanIkkeOppdateres(it).left()
     }
     // Spesialtilfelle: Dersom saksbehandler forsøker å overta fra seg selv, så endres ikke behandlingen.
-    if (saksbehandler == kommando.saksbehandler.navIdent) return this.right()
+    if (saksbehandler == kommando.saksbehandler.navIdent) return (this to Statistikkhendelser.empty()).right()
     if (saksbehandler == null) return KanIkkeOvertaKlagebehandling.BrukTaKlagebehandlingIsteden.left()
-    return this.copy(
+    val oppdatertKlagebehandling = this.copy(
         saksbehandler = kommando.saksbehandler.navIdent,
         sistEndret = nå(clock),
-    ).right()
+    )
+    val statistikkhendelser = Statistikkhendelser(
+        oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
+    )
+    return (oppdatertKlagebehandling to statistikkhendelser).right()
 }

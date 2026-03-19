@@ -206,7 +206,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 val behandlingPaVent = automatiskBehandling.settPåVent(
                     kommando = kommando,
                     clock = testDataHelper.clock,
-                ) as Søknadsbehandling
+                ).first as Søknadsbehandling
                 behandlingRepo.lagre(behandlingPaVent)
 
                 delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
@@ -245,7 +245,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 val behandlingPaVent = automatiskBehandling.settPåVent(
                     kommando = kommando,
                     clock = testDataHelper.clock,
-                ) as Søknadsbehandling
+                ).first as Søknadsbehandling
                 behandlingRepo.lagre(behandlingPaVent)
                 coEvery {
                     oppdaterSaksopplysningerService.oppdaterSaksopplysninger(

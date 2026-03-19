@@ -34,6 +34,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -255,7 +258,7 @@ data class Søknadsbehandling(
             correlationId: CorrelationId,
             klagebehandling: Klagebehandling?,
             clock: Clock,
-        ): Pair<Sak, Søknadsbehandling> {
+        ): Triple<Sak, Søknadsbehandling, Statistikkhendelser> {
             val opprettet = nå(clock)
 
             val saksopplysninger = when (søknad) {
@@ -276,7 +279,7 @@ data class Søknadsbehandling(
                 )
             }
 
-            return Søknadsbehandling(
+            val opprettetSøknadsbehandling = Søknadsbehandling(
                 id = søknadsbehandlingId,
                 saksnummer = sak.saksnummer,
                 sakId = sak.id,
@@ -307,9 +310,12 @@ data class Søknadsbehandling(
                     saksbehandler = saksbehandler,
                     sistEndret = opprettet,
                 ),
-            ).let {
-                Pair(sak.leggTilSøknadsbehandling(it), it)
-            }
+            )
+            val statistikkhendelser = Statistikkhendelser(
+                opprettetSøknadsbehandling.genererSaksstatistikk(StatistikkhendelseType.OPPRETTET_BEHANDLING),
+            )
+            val oppdatertSak = sak.leggTilSøknadsbehandling(opprettetSøknadsbehandling)
+            return Triple(oppdatertSak, opprettetSøknadsbehandling, statistikkhendelser)
         }
 
         suspend fun opprettAutomatiskBehandling(
@@ -318,7 +324,7 @@ data class Søknadsbehandling(
             hentSaksopplysninger: HentSaksopplysninger,
             correlationId: CorrelationId,
             clock: Clock,
-        ): Søknadsbehandling {
+        ): Pair<Søknadsbehandling, Statistikkhendelser> {
             val opprettet = nå(clock)
             val saksopplysninger = hentSaksopplysninger(
                 søknad.fnr,
@@ -327,7 +333,7 @@ data class Søknadsbehandling(
                 listOf(søknad.tiltak.tiltaksdeltakerId),
                 true,
             )
-            return Søknadsbehandling(
+            val opprettetSøknadsbehandling = Søknadsbehandling(
                 id = BehandlingId.random(),
                 saksnummer = søknad.saksnummer,
                 sakId = søknad.sakId,
@@ -355,6 +361,10 @@ data class Søknadsbehandling(
                 utbetalingskontroll = null,
                 klagebehandling = null,
             )
+            val statistikkhendelser = Statistikkhendelser(
+                opprettetSøknadsbehandling.genererSaksstatistikk(StatistikkhendelseType.OPPRETTET_BEHANDLING),
+            )
+            return opprettetSøknadsbehandling to statistikkhendelser
         }
     }
 }

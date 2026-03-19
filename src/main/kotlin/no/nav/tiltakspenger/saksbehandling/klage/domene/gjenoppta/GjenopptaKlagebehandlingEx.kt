@@ -6,16 +6,19 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
 import java.time.Clock
 
 /**
  * Gjelder kun saksbehandler. Dersom en beslutter vil legge tilbake over en klagebehandling til omgjøring, må dette gjøres fra omgjøringsbehandlingen.
- * Har samme logikk som for rammebehandling og meldekortbehandling, som er at du kan gjenoppta fra en annen saksbehandler uten og tildele den til deg selv først.
+ * Har samme logikk som for rammebehandling og meldekortbehandling, som er at du kan gjenoppta fra en annen saksbehandler uten å tildele den til deg selv først.
  */
 fun Klagebehandling.gjenopptaKlagebehandling(
     kommando: GjenopptaKlagebehandlingKommando,
     clock: Clock,
-): Either<KanIkkeGjenopptaKlagebehandling, Klagebehandling> {
+): Either<KanIkkeGjenopptaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     kanOppdatereIDenneStatusen(
         rammebehandlingsstatus = null,
         kanVæreUnderBehandling = true,
@@ -28,7 +31,7 @@ fun Klagebehandling.gjenopptaKlagebehandling(
         return KanIkkeGjenopptaKlagebehandling.MåVæreSattPåVent.left()
     }
     val nå = nå(clock)
-    return this.copy(
+    val oppdatertKlagebehandling = this.copy(
         sistEndret = nå,
         ventestatus = ventestatus.gjenoppta(
             tidspunkt = nå,
@@ -37,5 +40,9 @@ fun Klagebehandling.gjenopptaKlagebehandling(
         ),
         saksbehandler = kommando.saksbehandler.navIdent,
         status = UNDER_BEHANDLING,
-    ).right()
+    )
+    val statistikkhendelser = Statistikkhendelser(
+        oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.BEHANDLING_GJENOPPTATT),
+    )
+    return (oppdatertKlagebehandling to statistikkhendelser).right()
 }

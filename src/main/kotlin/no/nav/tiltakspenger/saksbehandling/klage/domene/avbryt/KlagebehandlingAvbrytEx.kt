@@ -7,12 +7,15 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
 import java.time.Clock
 
 fun Klagebehandling.avbryt(
     kommando: AvbrytKlagebehandlingKommando,
     clock: Clock,
-): Either<KanIkkeAvbryteKlagebehandling, Klagebehandling> {
+): Either<KanIkkeAvbryteKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     if (erAvsluttet) {
         return KanIkkeAvbryteKlagebehandling.AlleredeAvsluttet(this.status).left()
     }
@@ -25,7 +28,7 @@ fun Klagebehandling.avbryt(
             faktiskSaksbehandler = kommando.saksbehandler.navIdent,
         ).left()
     }
-    return this.copy(
+    val oppdatertKlagebehandling = this.copy(
         sistEndret = nå(clock),
         status = AVBRUTT,
         avbrutt = Avbrutt(
@@ -33,5 +36,9 @@ fun Klagebehandling.avbryt(
             saksbehandler = kommando.saksbehandler.navIdent,
             tidspunkt = nå(clock),
         ),
-    ).right()
+    )
+    val statistikkhendelser = Statistikkhendelser(
+        oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.AVSLUTTET_BEHANDLING),
+    )
+    return (oppdatertKlagebehandling to statistikkhendelser).right()
 }

@@ -46,7 +46,7 @@ class BehandlingDTOTest {
                         ),
                         clock,
                     )
-                    .gjenoppta(
+                    .first.gjenoppta(
                         GjenopptaRammebehandlingKommando(
                             sakId = behandling.sakId,
                             rammebehandlingId = behandling.id,
@@ -55,7 +55,7 @@ class BehandlingDTOTest {
                         ),
                         clock,
                     ) { behandling.saksopplysninger }.getOrFail()
-                    .settPåVent(
+                    .first.settPåVent(
                         SettRammebehandlingPåVentKommando(
                             sakId = behandling.sakId,
                             rammebehandlingId = behandling.id,
@@ -65,7 +65,7 @@ class BehandlingDTOTest {
                             frist = LocalDate.now(clock).plusWeeks(1),
                         ),
                         clock,
-                    )
+                    ).first
 
                 behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 3
                 behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING

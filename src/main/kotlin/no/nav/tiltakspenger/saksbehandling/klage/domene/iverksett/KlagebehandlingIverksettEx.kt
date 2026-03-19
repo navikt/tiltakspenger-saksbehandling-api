@@ -10,8 +10,13 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
 
-fun Klagebehandling.iverksettOmgjøring(command: IverksettOmgjøringKommando): Either<KanIkkeIverksetteKlagebehandling, Klagebehandling> {
+fun Klagebehandling.iverksettOmgjøring(
+    kommando: IverksettOmgjøringKommando,
+): Either<KanIkkeIverksetteKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     if (resultat !is Omgjør) {
         return KanIkkeIverksetteKlagebehandling.FeilResultat(
             Omgjør::class.simpleName!!,
@@ -27,11 +32,14 @@ fun Klagebehandling.iverksettOmgjøring(command: IverksettOmgjøringKommando): E
     require(resultat.rammebehandlingId != null) { "RammebehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
     // Vi aksepterer at den er null, siden denne funksjonen kun skal kalles fra Rammebehandling.
     require(kanIverksetteVedtak != false) { "Dette skal være håndtert over. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
-    return this.copy(
-        sistEndret = command.iverksattTidspunkt,
-        iverksattTidspunkt = command.iverksattTidspunkt,
+
+    val oppdatertKlagebehandling = this.copy(
+        sistEndret = kommando.iverksattTidspunkt,
+        iverksattTidspunkt = kommando.iverksattTidspunkt,
         status = VEDTATT,
-    ).right()
+    )
+    val statistikkhendelser = Statistikkhendelser(oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.AVSLUTTET_BEHANDLING))
+    return (oppdatertKlagebehandling to statistikkhendelser).right()
 }
 
 fun Klagebehandling.iverksettAvvisning(
@@ -61,14 +69,17 @@ fun Klagebehandling.iverksettAvvisning(
     // Vi aksepterer at den er null, siden denne funksjonen kun skal kalles fra Rammebehandling.
     require(kanIverksetteVedtak != false) { "Dette skal være håndtert over. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
 
-    return this.copy(
+    val oppdatertKlagebehandling = this.copy(
         sistEndret = kommando.iverksattTidspunkt,
         iverksattTidspunkt = kommando.iverksattTidspunkt,
         status = VEDTATT,
-    ).right()
+    )
+    return oppdatertKlagebehandling.right()
 }
 
-fun Klagebehandling.iverksettOpprettholdelse(command: IverksettOpprettholdelseKommando): Either<KanIkkeIverksetteKlagebehandling, Klagebehandling> {
+fun Klagebehandling.iverksettOpprettholdelse(
+    kommando: IverksettOpprettholdelseKommando,
+): Either<KanIkkeIverksetteKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     if (resultat !is Opprettholdt) {
         return KanIkkeIverksetteKlagebehandling.FeilResultat(
             Opprettholdt::class.simpleName!!,
@@ -89,9 +100,11 @@ fun Klagebehandling.iverksettOpprettholdelse(command: IverksettOpprettholdelseKo
     require(resultat.rammebehandlingId != null) { "RammebehandlingId skal ikke være null ved iverksettelse av opprettholdelse. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
     // Vi aksepterer at den er null, siden denne funksjonen kun skal kalles fra Rammebehandling.
     require(kanIverksetteVedtak != false) { "Dette skal være håndtert over. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
-    return this.copy(
-        sistEndret = command.iverksattTidspunkt,
-        iverksattTidspunkt = command.iverksattTidspunkt,
+    val oppdatertKlagebehandling = this.copy(
+        sistEndret = kommando.iverksattTidspunkt,
+        iverksattTidspunkt = kommando.iverksattTidspunkt,
         status = VEDTATT,
-    ).right()
+    )
+    val statistikkhendelser = Statistikkhendelser(oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.AVSLUTTET_BEHANDLING))
+    return (oppdatertKlagebehandling to statistikkhendelser).right()
 }

@@ -5,19 +5,17 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkService
 import java.time.Clock
 
 class SettRammebehandlingPåVentService(
     private val behandlingService: RammebehandlingService,
-    private val saksstatistikkService: SaksstatistikkService,
     private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
     suspend fun settBehandlingPåVent(
         kommando: SettRammebehandlingPåVentKommando,
-    ): Pair<Sak, Rammebehandling> = settBehandlingPåVentInternal(kommando, genererKlageStatistikk = true)
+    ): Pair<Sak, Rammebehandling> = settRammebehandlingPåVentInternal(kommando)
 
     /**
      * Brukes når klagebehandlingen setter rammebehandlingen på vent.
@@ -25,36 +23,26 @@ class SettRammebehandlingPåVentService(
      */
     suspend fun settBehandlingPåVentFraKlage(
         kommando: SettRammebehandlingPåVentKommando,
-    ): Pair<Sak, Rammebehandling> = settBehandlingPåVentInternal(kommando, genererKlageStatistikk = false)
+    ): Pair<Sak, Rammebehandling> = settRammebehandlingPåVentInternal(kommando)
 
-    private suspend fun settBehandlingPåVentInternal(
+    private suspend fun settRammebehandlingPåVentInternal(
         kommando: SettRammebehandlingPåVentKommando,
-        genererKlageStatistikk: Boolean,
     ): Pair<Sak, Rammebehandling> {
-        val (sak, behandling) = behandlingService.hentSakOgBehandling(
+        val (sak, rammebehandling) = behandlingService.hentSakOgRammebehandling(
             sakId = kommando.sakId,
             behandlingId = kommando.rammebehandlingId,
         )
-
-        return behandling.settPåVent(
+        return rammebehandling.settPåVent(
             kommando = kommando,
             clock = clock,
-        ).let { behandling ->
-            val oppdaterSak = sak.oppdaterRammebehandling(behandling)
+        ).let { (oppdatertRammebehandling, statistikkhendelser) ->
+            val oppdatertSak = sak.oppdaterRammebehandling(oppdatertRammebehandling)
 
             behandlingService.lagreMedStatistikk(
-                behandling = behandling,
-                statistikk = saksstatistikkService.genererStatistikkForBehandlingSattPåVent(behandling),
-                klageStatistikk = if (genererKlageStatistikk) {
-                    behandling.klagebehandling?.let {
-                        saksstatistikkService.genererSaksstatistikkForKlagebehandlingSattPåVent(it)
-                    }
-                } else {
-                    null
-                },
+                behandling = oppdatertRammebehandling,
+                statistikkhendelser = statistikkhendelser,
             )
-
-            oppdaterSak to behandling
+            oppdatertSak to oppdatertRammebehandling
         }
     }
 }

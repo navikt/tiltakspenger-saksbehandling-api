@@ -5,15 +5,17 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import java.time.Clock
 
 fun Sak.avbrytKlagebehandling(
     kommando: AvbrytKlagebehandlingKommando,
     clock: Clock,
-): Either<KanIkkeAvbryteKlagebehandling, Pair<Sak, Klagebehandling>> {
-    return this.hentKlagebehandling(kommando.klagebehandlingId).avbryt(kommando, clock)
-        .map {
-            val oppdatertSak = this.oppdaterKlagebehandling(it)
-            Pair(oppdatertSak, it)
+): Either<KanIkkeAvbryteKlagebehandling, Triple<Sak, Klagebehandling, Statistikkhendelser>> {
+    return this.hentKlagebehandling(kommando.klagebehandlingId)
+        .avbryt(kommando, clock)
+        .map { (oppdaterKlagebehandling, statistikkhendelser) ->
+            val oppdatertSak = this.oppdaterKlagebehandling(oppdaterKlagebehandling)
+            Triple(oppdatertSak, oppdaterKlagebehandling, statistikkhendelser)
         }
 }
