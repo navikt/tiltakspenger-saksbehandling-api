@@ -33,11 +33,15 @@ data class BenkSortering(
     }
 }
 
-// Tillater bare sortering på enkelte kolonner.
 enum class BenkSorteringKolonne {
+    FNR,
+    BEHANDLINGSTYPE,
+    FRIST,
+    STATUS,
     STARTET,
     SIST_ENDRET,
-    FRIST,
+    SAKSBEHANDLER,
+    BESLUTTER,
     ;
 
     companion object {

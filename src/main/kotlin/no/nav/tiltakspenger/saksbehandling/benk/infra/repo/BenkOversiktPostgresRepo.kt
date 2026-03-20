@@ -353,7 +353,7 @@ class BenkOversiktPostgresRepo(
     }
 }
 
-enum class BehandlingssammendragTypeDb {
+private enum class BehandlingssammendragTypeDb {
     SØKNADSBEHANDLING,
     REVURDERING,
     MELDEKORTBEHANDLING,
@@ -374,18 +374,23 @@ enum class BehandlingssammendragTypeDb {
     }
 }
 
-fun BenkSorteringKolonne.toDbString(): String =
+private fun BenkSorteringKolonne.toDbString(): String =
     when (this) {
         BenkSorteringKolonne.STARTET -> "startet"
         BenkSorteringKolonne.SIST_ENDRET -> "sist_endret"
         BenkSorteringKolonne.FRIST -> "sattPåVentFrist"
+        BenkSorteringKolonne.FNR -> "fnr"
+        BenkSorteringKolonne.BEHANDLINGSTYPE -> "behandlingstype"
+        BenkSorteringKolonne.STATUS -> "status"
+        BenkSorteringKolonne.SAKSBEHANDLER -> "saksbehandler"
+        BenkSorteringKolonne.BESLUTTER -> "beslutter"
     }
 
-fun SorteringRetning.toDbString(): String =
+private fun SorteringRetning.toDbString(): String =
     when (this) {
         SorteringRetning.ASC -> "ASC"
         SorteringRetning.DESC -> "DESC"
     }
 
-fun String.toBehandlingssammendragStatus(): BehandlingssammendragStatus =
+private fun String.toBehandlingssammendragStatus(): BehandlingssammendragStatus =
     BehandlingssammendragStatus.valueOf(this)
