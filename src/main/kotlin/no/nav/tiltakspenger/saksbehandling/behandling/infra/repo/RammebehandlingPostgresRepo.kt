@@ -34,10 +34,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningFraRammebehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilDbJson
-import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraBehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilRammebehandlingUtbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
@@ -370,7 +369,7 @@ class RammebehandlingPostgresRepo(
 
             val utbetaling = stringOrNull("beregning")?.let {
                 BehandlingUtbetaling(
-                    beregning = Beregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
+                    beregning = it.tilBeregningFraRammebehandling(id),
                     navkontor = Navkontor(
                         kontornummer = string("navkontor"),
                         kontornavn = stringOrNull("navkontor_navn"),

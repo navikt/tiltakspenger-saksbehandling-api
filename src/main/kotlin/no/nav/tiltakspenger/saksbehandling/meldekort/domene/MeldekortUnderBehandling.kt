@@ -85,14 +85,15 @@ data class MeldekortUnderBehandling(
         validerSaksbehandlerOgTilstand(kommando.saksbehandler, clock).onLeft {
             return it.tilKanIkkeOppdatereMeldekort().left()
         }
-        val beregning = Beregning(beregn(meldeperiode))
+        val nå = nå(clock)
+        val beregning = Beregning(beregn(meldeperiode), nå)
 
         val oppdatertBehandling = this.copy(
             dager = kommando.dager.tilMeldekortDager(meldeperiode),
             begrunnelse = kommando.begrunnelse,
             beregning = beregning,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            sistEndret = nå(clock),
+            sistEndret = nå,
         )
         // TODO jah: I første omgang kjører vi simulering som best effort. Men dersom den feiler, er det viktig at vi nuller den ut. Også kan vi senere tvinge den på, evt. kunne ha et flagg som dropper kjøre simulering.
         val simuleringMedMetadata = simuler(oppdatertBehandling).getOrElse { null }

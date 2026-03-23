@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Ulid
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -29,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
+import java.time.LocalDateTime
 
 class OppdaterBeregningOgSimuleringService(
     val sakService: SakService,
@@ -133,6 +135,7 @@ class OppdaterBeregningOgSimuleringService(
         behandling: Rammebehandling,
         saksbehandlerEllerBeslutter: Saksbehandler,
     ): Either<KunneIkkeSimulere, Pair<Beregning, SimuleringMedMetadata>?> {
+        val nå = nå(clock)
         if (behandling.erUnderBehandling) {
             require(saksbehandlerEllerBeslutter.navIdent == behandling.saksbehandler) {
                 "Kan kun oppdatere simulering på en behandling dersom saksbehandler som ber om det er den samme som er satt på behandlingen"
@@ -145,7 +148,7 @@ class OppdaterBeregningOgSimuleringService(
             throw IllegalStateException("Rammebehandling må være under behandling eller beslutning for at simulering skal kunne oppdateres")
         }
 
-        val beregning = this.beregnRammebehandling(behandling) ?: return null.right()
+        val beregning = this.beregnRammebehandling(behandling, nå) ?: return null.right()
 
         val simulering: SimuleringMedMetadata =
             beregning.let { beregning ->
@@ -193,7 +196,10 @@ class OppdaterBeregningOgSimuleringService(
         return (oppdatertSak to oppdatertMeldekortbehandling.right()).right()
     }
 
-    private fun Sak.beregnRammebehandling(behandling: Rammebehandling): Beregning? {
+    private fun Sak.beregnRammebehandling(
+        behandling: Rammebehandling,
+        beregningstidspunkt: LocalDateTime,
+    ): Beregning? {
         val behandlingId = behandling.id
         val vedtaksperiode = behandling.vedtaksperiode!!
 
@@ -206,16 +212,19 @@ class OppdaterBeregningOgSimuleringService(
                 vedtaksperiode = behandling.innvilgelsesperioder!!.totalPeriode,
                 innvilgelsesperioder = behandling.innvilgelsesperioder!!,
                 barnetilleggsperioder = behandling.barnetillegg!!.periodisering,
+                beregningstidspunkt = beregningstidspunkt,
             )
 
             is Omgjøringsresultat.OmgjøringOpphør -> this.beregnOpphør(
                 behandlingId = behandlingId,
                 opphørsperiode = vedtaksperiode,
+                beregningstidspunkt = beregningstidspunkt,
             )
 
             is Revurderingsresultat.Stans -> this.beregnRevurderingStans(
                 behandlingId = behandlingId,
                 stansperiode = vedtaksperiode,
+                beregningstidspunkt = beregningstidspunkt,
             )
 
             is Søknadsbehandlingsresultat.Avslag,

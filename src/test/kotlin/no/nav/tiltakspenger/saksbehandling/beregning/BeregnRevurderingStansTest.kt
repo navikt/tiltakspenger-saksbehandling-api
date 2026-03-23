@@ -4,6 +4,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
@@ -54,9 +55,9 @@ class BeregnRevurderingStansTest {
     @Test
     fun `Skal ikke beregne utbetaling ved stans over kun ikke-utbetalte perioder`() {
         val (sak, revurdering) = sakMedToMeldekortOgStans()
-
-        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(27.januar(2025), sak.sisteDagSomGirRett!!))
-
+        val beregningstidspunkt = nå(fixedClock)
+        val stansperiode = Periode(27.januar(2025), sak.sisteDagSomGirRett!!)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, stansperiode, beregningstidspunkt)
         beregning.shouldBeNull()
     }
 
@@ -65,7 +66,9 @@ class BeregnRevurderingStansTest {
         // Stanser lørdag/søndag på andre meldekort
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(25.januar(2025), sak.sisteDagSomGirRett!!))
+        val stansperiode = Periode(25.januar(2025), sak.sisteDagSomGirRett!!)
+        val beregningstidspunkt = nå(fixedClock)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, stansperiode, beregningstidspunkt)
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 1
@@ -80,7 +83,9 @@ class BeregnRevurderingStansTest {
     fun `Skal beregne 0-utbetaling for hele vedtaksperiode når hele perioden stanses`() {
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(vedtaksperiode.fraOgMed, sak.sisteDagSomGirRett!!))
+        val stansperiode = Periode(vedtaksperiode.fraOgMed, sak.sisteDagSomGirRett!!)
+        val beregningstidspunkt = nå(fixedClock)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, stansperiode, beregningstidspunkt)
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 2
@@ -97,7 +102,9 @@ class BeregnRevurderingStansTest {
     fun `Skal beregne 0-utbetaling for en utbetalt meldeperiode når denne perioden stanses`() {
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(13.januar(2025), sak.sisteDagSomGirRett!!))
+        val stansperiode = Periode(13.januar(2025), sak.sisteDagSomGirRett!!)
+        val beregningstidspunkt = nå(fixedClock)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, stansperiode, beregningstidspunkt)
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 1
@@ -113,7 +120,9 @@ class BeregnRevurderingStansTest {
     fun `Skal beregne redusert utbetaling ved stans midt i siste utbetalte periode`() {
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(20.januar(2025), sak.sisteDagSomGirRett!!))
+        val stansperiode = Periode(20.januar(2025), sak.sisteDagSomGirRett!!)
+        val beregningstidspunkt = nå(fixedClock)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, stansperiode, beregningstidspunkt)
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 1
@@ -129,7 +138,9 @@ class BeregnRevurderingStansTest {
     fun `Skal beregne en redusert utbetaling og en 0-utbetaling ved stans midt i første utbetalte periode`() {
         val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id, Periode(6.januar(2025), sak.sisteDagSomGirRett!!))
+        val stansperiode = Periode(6.januar(2025), sak.sisteDagSomGirRett!!)
+        val beregningstidspunkt = nå(fixedClock)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, stansperiode, beregningstidspunkt)
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 2

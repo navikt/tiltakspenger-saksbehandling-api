@@ -136,21 +136,22 @@ suspend fun Sak.opprettAutomatiskMeldekortBehandling(
         meldekortIdSomBeregnes = meldekortBehandlingId,
         meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
     )
+    val nå = nå(clock)
     val meldekortBehandletAutomatisk = MeldekortBehandletAutomatisk(
         id = meldekortBehandlingId,
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
-        opprettet = nå(clock),
+        opprettet = nå,
         navkontor = navkontor,
         brukersMeldekort = brukersMeldekort,
         meldeperiode = sisteMeldeperiode,
         dager = brukersMeldekort.tilMeldekortDager(),
-        beregning = Beregning(beregninger),
+        beregning = Beregning(beregninger, nå),
         type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         status = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
         simulering = null,
-        sistEndret = nå(clock),
+        sistEndret = nå,
         behandlingSendtTilDatadeling = null,
     )
     return simuler(meldekortBehandletAutomatisk).mapLeft {
