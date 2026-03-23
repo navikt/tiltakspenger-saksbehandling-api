@@ -30,34 +30,13 @@ fun Route.hentBenkRoute(
 ) {
     val logger = KotlinLogging.logger {}
 
-    data class HentBenkOversiktBody(
-        val benktype: List<String>?,
-        val behandlingstype: List<String>?,
-        val status: List<String>? = null,
-        val identer: List<String>? = null,
-        val sortering: String,
-    ) {
-        val benkSortering = BenkSortering.fromString(sortering)
-
-        fun toCommand(saksbehandler: Saksbehandler, correlationId: CorrelationId): HentÅpneBehandlingerCommand =
-            HentÅpneBehandlingerCommand(
-                åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
-                    benktype = benktype?.let { benktyper -> benktyper.map { BehandlingssammendragBenktype.valueOf(it) } },
-                    behandlingstype = behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
-                    status = status?.map { BehandlingssammendragStatus.valueOf(it) },
-                    identer = identer,
-                ),
-                sortering = benkSortering,
-                saksbehandler = saksbehandler,
-                correlationId = correlationId,
-            )
-    }
-
     post(PATH) {
         logger.debug { "Mottatt get-request på $PATH for å hente alle behandlinger på benken" }
+
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
+
         call.withBody<HentBenkOversiktBody> { body ->
             benkOversiktService.hentBenkOversikt(
                 command = body.toCommand(saksbehandler, call.correlationId()),
@@ -68,6 +47,47 @@ fun Route.hentBenkRoute(
             }
         }
     }
+}
+
+private data class HentBenkOversiktBody(
+    val sortering: String,
+    val filters: Filters? = null,
+
+    // TODO: fjern når frontend er oppdatert
+    val benktype: List<String>? = null,
+    val behandlingstype: List<String>? = null,
+    val status: List<String>? = null,
+    val identer: List<String>? = null,
+) {
+    val benkSortering = BenkSortering.fromString(sortering)
+
+    fun toCommand(saksbehandler: Saksbehandler, correlationId: CorrelationId): HentÅpneBehandlingerCommand {
+        return HentÅpneBehandlingerCommand(
+            åpneBehandlingerFiltrering = filters?.let {
+                ÅpneBehandlingerFiltrering(
+                    benktype = it.benktype?.let { benktyper -> benktyper.map { BehandlingssammendragBenktype.valueOf(it) } },
+                    behandlingstype = it.behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
+                    status = it.status?.map { BehandlingssammendragStatus.valueOf(it) },
+                    identer = it.identer,
+                )
+            } ?: ÅpneBehandlingerFiltrering(
+                benktype = benktype?.let { benktyper -> benktyper.map { BehandlingssammendragBenktype.valueOf(it) } },
+                behandlingstype = behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
+                status = status?.map { BehandlingssammendragStatus.valueOf(it) },
+                identer = identer,
+            ),
+            sortering = benkSortering,
+            saksbehandler = saksbehandler,
+            correlationId = correlationId,
+        )
+    }
+
+    data class Filters(
+        val benktype: List<String>?,
+        val behandlingstype: List<String>?,
+        val status: List<String>?,
+        val identer: List<String>?,
+    )
 }
 
 private fun TilgangsfiltrertBenkOversikt.toDTO(): TilgangsfiltrertBenkOversiktDTO = TilgangsfiltrertBenkOversiktDTO(
