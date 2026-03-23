@@ -43,6 +43,7 @@ fun String.shouldBeKlagebehandlingDTO(
     oversendtKlageinstansenTidspunkt: Boolean = false,
     klageinstanshendelser: List<String> = emptyList(),
     ferdigstiltTidspunkt: Boolean = false,
+    begrunnelseFerdigstilling: String? = null,
 ) {
     val expected =
         """
@@ -72,14 +73,16 @@ fun String.shouldBeKlagebehandlingDTO(
                       "ferdigstiltTidspunkt": ${if (ferdigstiltTidspunkt) "\"TIMESTAMP\"" else "null"},
                       "journalpostIdInnstillingsbrev": ${journalpostIdInnstillingsbrev?.let { "\"$it\"" }},
                       "dokumentInfoIder": ${dokumentInfoIder.map { "\"$it\"" }},
-                      "type": "OPPRETTHOLDT"
+                      "type": "OPPRETTHOLDT",
+                      "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
                     }
                 """.trimIndent()
 
                 "AVVIST" -> """
                     {
                       "type": "AVVIST",
-                      "brevtekst": ${if (brevtekst.isEmpty()) "[]" else "[${brevtekst.joinToString()}]"}
+                      "brevtekst": ${if (brevtekst.isEmpty()) "[]" else "[${brevtekst.joinToString()}]"},
+                      "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
                     }
                 """.trimIndent()
 
@@ -88,7 +91,8 @@ fun String.shouldBeKlagebehandlingDTO(
                       "type": "OMGJØR",
                       "årsak": ${årsak.toJsonValue()},
                       "begrunnelse": ${begrunnelse.toJsonValue()},
-                      "rammebehandlingId": ${rammebehandlingId.toJsonValue()}
+                      "rammebehandlingId": ${rammebehandlingId.toJsonValue()},
+                      "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
                     }
                 """.trimIndent()
 

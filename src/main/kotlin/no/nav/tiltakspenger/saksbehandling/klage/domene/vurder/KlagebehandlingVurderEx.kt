@@ -95,8 +95,8 @@ fun Klagebehandling.fjernRammebehandlingId(
     require(erKnyttetTilRammebehandling) {
         "Klagebehandling er ikke knyttet til en rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
-    require(this.status == KLAR_TIL_BEHANDLING || this.status == UNDER_BEHANDLING) {
-        "Klagebehandling må være i status KLAR_TIL_BEHANDLING eller UNDER_BEHANDLING for at man kan disassosiere rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+    require(this.status == KLAR_TIL_BEHANDLING || this.status == UNDER_BEHANDLING || this.status == Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS) {
+        "Klagebehandling må være i status KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, OMGJØRING_ETTER_KLAGEINSTANS for at man kan disassosiere rammebehandling. status was ${this.status}, sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
     require(erSaksbehandlerPåBehandlingen(saksbehandler))
     return when (val res = resultat) {
@@ -105,13 +105,26 @@ fun Klagebehandling.fjernRammebehandlingId(
             sistEndret = sistEndret,
         )
 
-        is Klagebehandlingsresultat.Avvist, is Opprettholdt, null -> throw IllegalStateException(
+        is Opprettholdt -> this.copy(
+            resultat = res.fjernRammebehandlingId(rammebehandlingId),
+            sistEndret = sistEndret,
+            status = Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS,
+        )
+
+        is Klagebehandlingsresultat.Avvist, null -> throw IllegalStateException(
             "Klagebehandling er ikke knyttet til en rammebehandling. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id",
         )
     }
 }
 
-fun Omgjør.fjernRammebehandlingId(rammmebehandlingId: BehandlingId): Omgjør {
+private fun Omgjør.fjernRammebehandlingId(rammmebehandlingId: BehandlingId): Omgjør {
+    require(this.rammebehandlingId == rammmebehandlingId) {
+        "Kan kun fjerne rammebehandlingId hvis den matcher eksisterende verdi"
+    }
+    return this.copy(rammebehandlingId = null)
+}
+
+private fun Opprettholdt.fjernRammebehandlingId(rammmebehandlingId: BehandlingId): Opprettholdt {
     require(this.rammebehandlingId == rammmebehandlingId) {
         "Kan kun fjerne rammebehandlingId hvis den matcher eksisterende verdi"
     }

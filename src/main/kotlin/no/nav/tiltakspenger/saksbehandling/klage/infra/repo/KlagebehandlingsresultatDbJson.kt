@@ -16,6 +16,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingsresultatDbJson.KlagebehandlingsresultatDbEnum
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehjemmelDb.Companion.toDb
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehjemmelDb.Companion.toDomain
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -36,6 +38,8 @@ private data class KlagebehandlingsresultatDbJson(
     val distribusjonstidspunktInnstillingsbrev: LocalDateTime?,
     val klageinstanshendelser: List<KlageinstanshendelseDb>,
     val ferdigstiltTidspunkt: LocalDateTime?,
+    // kan fjerne default etter migrering
+    val begrunnelseFerdigstilling: String? = null,
 
     // TODO jah: Flytt avvisningsbrevtekst hit fra klagebehandlingstabellen
 ) {
@@ -57,6 +61,8 @@ private data class KlagebehandlingsresultatDbJson(
                 årsak = omgjørÅrsak!!.toDomain(),
                 begrunnelse = Begrunnelse.create(omgjørBegrunnelse!!)!!,
                 rammebehandlingId = rammebehandlingId?.let { BehandlingId.fromString(it) },
+                ferdigstiltTidspunkt = ferdigstiltTidspunkt,
+                begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
             )
 
             KlagebehandlingsresultatDbEnum.OPPRETTHOLDT -> Opprettholdt(
@@ -73,6 +79,7 @@ private data class KlagebehandlingsresultatDbJson(
                 klageinstanshendelser = Klageinstanshendelser(klageinstanshendelser.map { it.toDomain() }),
                 ferdigstiltTidspunkt = ferdigstiltTidspunkt,
                 rammebehandlingId = rammebehandlingId?.let { BehandlingId.fromString(it) },
+                begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
             )
         }
     }
@@ -98,7 +105,8 @@ fun Klagebehandlingsresultat.toDbJson(): String {
         distribusjonIdInnstillingsbrev = (this as? Opprettholdt)?.distribusjonIdInnstillingsbrev?.toString(),
         distribusjonstidspunktInnstillingsbrev = (this as? Opprettholdt)?.distribusjonstidspunktInnstillingsbrev,
         klageinstanshendelser = (this as? Opprettholdt)?.klageinstanshendelser?.toDb() ?: emptyList(),
-        ferdigstiltTidspunkt = (this as? Opprettholdt)?.ferdigstiltTidspunkt,
+        ferdigstiltTidspunkt = this.ferdigstiltTidspunkt,
+        begrunnelseFerdigstilling = this.begrunnelseFerdigstilling?.verdi,
     ).let { serialize(it) }
 }
 

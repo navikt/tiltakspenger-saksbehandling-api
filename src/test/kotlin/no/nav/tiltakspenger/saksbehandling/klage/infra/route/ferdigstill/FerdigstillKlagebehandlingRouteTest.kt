@@ -35,10 +35,10 @@ import java.util.UUID
 class FerdigstillKlagebehandlingRouteTest {
 
     @Test
-    fun `kan ferdigstille en klagebehandling som ikke har behov for videre behandling`() {
+    fun `kan ferdigstille en klagebehandling (opprettholdelse) som ikke har behov for videre behandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, klagebehandling, json) = opprettSakOgFerdigstillKlagebehandling(tac = tac)!!
+            val (sak, klagebehandling, json) = opprettSakOgFerdigstillOppretholdtKlagebehandling(tac = tac)!!
             val resultat = klagebehandling.resultat as Klagebehandlingsresultat.Opprettholdt
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
@@ -84,10 +84,10 @@ class FerdigstillKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `Avsluttet hendelse + visse utfall skal ikke ferdigstilles uten en opprettet rammebehandling`() {
+    fun `kan ferdigstille en klagebehandling (opprettholdelse) som har behov for videre behandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            opprettSakOgFerdigstillKlagebehandling(
+            val (sak, klagebehandling, json) = opprettSakOgFerdigstillOppretholdtKlagebehandling(
                 tac = tac,
                 forventetStatus = HttpStatusCode.InternalServerError,
                 forventetJsonBody = { """{"kode": "server_feil","melding": "Noe gikk galt på serversiden"}""" },
@@ -100,547 +100,140 @@ class FerdigstillKlagebehandlingRouteTest {
                         utfall = Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.UGUNST,
                     )
                 },
-            ) shouldBe null
+            )!!
+            val resultat = klagebehandling.resultat as Klagebehandlingsresultat.Opprettholdt
+            json.toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                fnr = "12345678911",
+                saksbehandler = "saksbehandlerKlagebehandling",
+                resultat = "OPPRETTHOLDT",
+                vedtakDetKlagesPå = sak.rammevedtaksliste.first().id.toString(),
+                status = "FERDIGSTILT",
+                kanIverksetteVedtak = null,
+                rammebehandlingId = null,
+                brevtekst = listOf(
+                    """{"tittel":"Hva klagesaken gjelder","tekst":"Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
+                    """{"tittel":"Klagers anførsler","tekst":"<saksbehandler fyller ut>"}""",
+                    """{"tittel":"Vurdering av klagen","tekst":"<saksbehandler fyller ut>"}""",
+                ),
+                hjemler = listOf("ARBEIDSMARKEDSLOVEN_17"),
+                iverksattOpprettholdelseTidspunkt = true,
+                journalføringstidspunktInnstillingsbrev = true,
+                distribusjonstidspunktInnstillingsbrev = true,
+                oversendtKlageinstansenTidspunkt = true,
+                ferdigstiltTidspunkt = true,
+                journalpostIdInnstillingsbrev = "2",
+                dokumentInfoIder = listOf("1"),
+                klageinstanshendelser = listOf(
+                    """
+                     {
+                      "klagehendelseId": "${resultat.klageinstanshendelser.single().klagehendelseId}",
+                      "klagebehandlingId": "${klagebehandling.id}",
+                      "opprettet": "TIMESTAMP",
+                      "sistEndret": "TIMESTAMP",
+                      "eksternKlagehendelseId": "${resultat.klageinstanshendelser.single().eksternKlagehendelseId}",
+                      "avsluttetTidspunkt": "TIMESTAMP",
+                      "journalpostreferanser": [
+                        "123",
+                        "456"
+                       ],
+                      "utfall": "UGUNST",
+                      "hendelsestype": "KLAGEBEHANDLING_AVSLUTTET"
+                    }
+                    """.trimIndent(),
+                ),
+            )
         }
     }
 
     @Test
-    fun `omgjør avsluttet hendelse (medhold) og oppretter revurdering-omgjøring`() {
+    fun `kan ferdigstille en klagebehandling (omgjøring) uten å opprette ny rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = `opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling`(
+            val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, _) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!
 
-            rammebehandlingJson.toString().shouldEqualJsonIgnoringTimestamps(
-                //language=json
-                """
-                {
-                  "avbrutt": null,
-                  "attesteringer": [],
-                  "saksnummer": "${sak.saksnummer}",
-                  "saksbehandler": "saksbehandlerKlagebehandling",
-                  "utbetalingskontroll": null,
-                  "iverksattTidspunkt": null,
-                  "vedtaksperiode": null,
-                  "fritekstTilVedtaksbrev": null,
-                  "resultat": "OMGJØRING_IKKE_VALGT",
-                  "type": "REVURDERING",
-                  "automatiskOpprettetGrunn": null,
-                  "beslutter": null,
-                  "begrunnelseVilkårsvurdering": null,
-                  "klagebehandlingId": "${klagebehandling.id}",
-                  "tilbakekrevingId": null,
-                  "utbetaling": null,
-                  "ventestatus": null,
-                  "omgjørVedtak": "${klagebehandling.formkrav.vedtakDetKlagesPå!!}",
-                  "saksopplysninger": {
-                    "oppslagstidspunkt": "2025-01-01T01:02:52.456789",
-                    "tiltaksdeltagelse": [
-                      {
-                        "typeKode": "GRUPPE_AMO",
-                        "gjennomforingsprosent": null,
-                        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-                        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-                        "antallDagerPerUke": 5,
-                        "deltakelseStatus": "Deltar",
-                        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                        "deltagelseFraOgMed": "2023-01-01",
-                        "deltagelseTilOgMed": "2023-03-31",
-                        "kilde": "Komet",
-                        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                        "deltakelseProsent": 100
-                      }
-                    ],
-                    "fødselsdato": "2001-01-01",
-                    "ytelser": [],
-                    "tiltakspengevedtakFraArena": [],
-                    "periode": {
-                      "fraOgMed": "2023-01-01",
-                      "tilOgMed": "2023-03-31"
-                    }
-                  },
-                  "rammevedtakId": null,
-                  "sistEndret": "2025-01-01T01:02:51.456789",
-                  "sakId": "${sak.id}",
-                  "id": "${rammebehandling.id}",
-                  "status": "UNDER_BEHANDLING",
-                  "skalSendeVedtaksbrev": true
-                }
-                """.trimIndent(),
-            )
+            val (_, _, ferdigstiltklageJson) = ferdigstillKlagebehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+            )!!
 
-            klagebehandling.rammebehandlingId shouldBe rammebehandling.id
-            klagebehandling.status shouldBe Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
-            klagebehandling.resultat.shouldBeInstanceOf<Klagebehandlingsresultat.Opprettholdt>()
-            klagebehandling.resultat.ferdigstiltTidspunkt.shouldNotBeNull()
+            ferdigstiltklageJson.toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                fnr = "12345678911",
+                saksbehandler = "saksbehandlerKlagebehandling",
+                resultat = "OMGJØR",
+                årsak = "PROSESSUELL_FEIL",
+                begrunnelse = "Begrunnelse for omgjøring",
+                vedtakDetKlagesPå = rammevedtakSøknadsbehandling.id.toString(),
+                status = "FERDIGSTILT",
+                rammebehandlingId = null,
+                ferdigstiltTidspunkt = true,
+                iverksattTidspunkt = null,
+            )
         }
     }
 
     @Test
-    fun `iverksetter klagebehandling med søknadsbehandling`() {
+    fun `kan ikke ferdigstille en klagebehandling (omgjøring) som har en aktiv rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
+            val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
                 tac = tac,
-                behandlingstype = "SØKNADSBEHANDLING_INNVILGELSE",
-                hendelseGenerering = { _, klagebehandling ->
-                    GenerererKlageinstanshendelse.avsluttetJson(
-                        eventId = UUID.randomUUID().toString(),
-                        kildeReferanse = klagebehandling.id.toString(),
-                        kabalReferanse = UUID.randomUUID().toString(),
-                        avsluttetTidspunkt = nå(tac.clock).toString(),
-                        utfall = Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD,
-                    )
-                },
             )!!
 
-            klagebehandling.status shouldBe Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
-            klagebehandling.resultat.shouldBeInstanceOf<Klagebehandlingsresultat.Opprettholdt>()
-
-            val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            oppdaterSøknadsbehandlingInnvilgelse(
+            ferdigstillKlagebehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                saksbehandler = saksbehandler,
-            )
-            sendSøknadsbehandlingTilBeslutningForBehandlingId(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                saksbehandler = saksbehandler,
-            )
-            val beslutter = ObjectMother.beslutter()
-            taBehandling(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                saksbehandler = beslutter,
-            )
-            val (_, rammevedtak, iverksattRammebehandling, iverksattRammebehandlingJson) = iverksettForBehandlingId(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                beslutter = beslutter,
-            )!!
-
-            iverksattRammebehandlingJson.toString().shouldEqualJsonIgnoringTimestamps(
-                //language=json
-                """
-                {
-                  "attesteringer": [
-                    {
-                      "begrunnelse": null,
-                      "endretAv": "B12345",
-                      "endretTidspunkt": "2025-01-01T01:03:05.456789",
-                      "status": "GODKJENT"
-                    }
-                  ],
-                  "saksnummer": "202501011001",
-                  "utbetalingskontroll": null,
-                  "iverksattTidspunkt": "2025-01-01T01:03:06.456789",
-                  "vedtaksperiode": {
-                    "fraOgMed": "2023-01-01",
-                    "tilOgMed": "2023-03-31"
-                  },
-                  "type": "SØKNADSBEHANDLING",
-                  "utbetaling": null,
-                  "manueltBehandlesGrunner": [],
-                  "saksopplysninger": {
-                    "oppslagstidspunkt": "2025-01-01T01:02:52.456789",
-                    "tiltaksdeltagelse": [
-                      {
-                        "typeKode": "GRUPPE_AMO",
-                        "gjennomforingsprosent": null,
-                        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-                        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-                        "antallDagerPerUke": 5,
-                        "deltakelseStatus": "Deltar",
-                        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                        "deltagelseFraOgMed": "2023-01-01",
-                        "deltagelseTilOgMed": "2023-03-31",
-                        "kilde": "Komet",
-                        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                        "deltakelseProsent": 100
-                      }
-                    ],
-                    "fødselsdato": "2001-01-01",
-                    "ytelser": [],
-                    "tiltakspengevedtakFraArena": [],
-                    "periode": {
-                      "fraOgMed": "2023-01-01",
-                      "tilOgMed": "2023-03-31"
-                    }
-                  },
-                  "sakId": "${sak.id}",
-                  "id": "${rammebehandling.id}",
-                  "avbrutt": null,
-                  "saksbehandler": "saksbehandlerKlagebehandling",
-                  "barnetillegg": {
-                    "begrunnelse": null,
-                    "perioder": [
-                      {
-                        "antallBarn": 0,
-                        "periode": {
-                          "fraOgMed": "2023-01-01",
-                          "tilOgMed": "2023-03-31"
+                klagebehandlingId = rammebehandlingMedKlagebehandling.klagebehandling!!.id,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    //language=json
+                    """
+                        {
+                          "kode": "klagebehandling_er_knyttet_til_rammebehandling",
+                          "melding": "Klagebehandlingen er knyttet til en rammebehandling og kan derfor ikke ferdigstilles. Rammebehandlingen må enten avbrytes, eller vedtas"
                         }
-                      }
-                    ]
-                  },
-                  "fritekstTilVedtaksbrev": null,
-                  "resultat": "INNVILGELSE",
-                  "beslutter": "B12345",
-                  "begrunnelseVilkårsvurdering": null,
-                  "klagebehandlingId": "${klagebehandling.id}",
-                  "tilbakekrevingId": null,
-                  "kanInnvilges": true,
-                  "ventestatus": null,
-                  "innvilgelsesperioder": [
-                    {
-                      "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                      "periode": {
-                        "fraOgMed": "2023-01-01",
-                        "tilOgMed": "2023-03-31"
-                      },
-                      "antallDagerPerMeldeperiode": 10
-                    }
-                  ],
-                  "rammevedtakId": "${rammevedtak.id}",
-                  "sistEndret": "2025-01-01T01:03:06.456789",
-                  "automatiskSaksbehandlet": false,
-                  "søknad": {
-                    "avbrutt": null,
-                    "svar": {
-                      "harSøktPåTiltak": { "svar": "JA" },
-                      "kvp": { "svar": "NEI", "periode": null },
-                      "gjenlevendepensjon": { "svar": "NEI", "periode": null },
-                      "harSøktOmBarnetillegg": { "svar": "NEI" },
-                      "sykepenger": { "svar": "NEI", "periode": null },
-                      "etterlønn": { "svar": "NEI" },
-                      "institusjon": { "svar": "NEI", "periode": null },
-                      "trygdOgPensjon": { "svar": "NEI", "periode": null },
-                      "intro": { "svar": "NEI", "periode": null },
-                      "supplerendeStønadAlder": { "svar": "NEI", "periode": null },
-                      "jobbsjansen": { "svar": "NEI", "periode": null },
-                      "alderspensjon": { "svar": "NEI", "fraOgMed": null },
-                      "supplerendeStønadFlyktning": { "svar": "NEI", "periode": null }
-                    },
-                    "tiltaksdeltakelseperiodeDetErSøktOm": {
-                      "fraOgMed": "2023-01-01",
-                      "tilOgMed": "2023-03-31"
-                    },
-                    "barnetillegg": [],
-                    "opprettet": "2023-01-01T00:00:00",
-                    "antallVedlegg": 0,
-                    "tiltak": {
-                      "fraOgMed": "2023-01-01",
-                      "typeKode": "GRUPPEAMO",
-                      "tilOgMed": "2023-03-31",
-                      "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                      "id": "61328250-7d5d-4961-b70e-5cb727a34371"
-                    },
-                    "manueltSattTiltak": null,
-                    "søknadstype": "DIGITAL",
-                    "behandlingsarsak": null,
-                    "kanInnvilges": true,
-                    "tidsstempelHosOss": "2023-01-01T00:00:00",
-                    "id": "${(iverksattRammebehandling as Søknadsbehandling).søknad.id}",
-                    "journalpostId": "123456789"
-                  },
-                  "status": "VEDTATT",
-                  "skalSendeVedtaksbrev": true
-                }
-                """.trimIndent(),
+                    """.trimIndent()
+                },
             )
-
-            // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage
-            hentSakForSaksnummer(tac, sak.saksnummer)!!
         }
     }
 
     @Test
-    fun `iverksetter klagebehandling og revurdering innvilgelse`() {
+    fun `kan ferdigstille med begrunnelse for ferdigstilling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
+            val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, _) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
-                behandlingstype = "REVURDERING_INNVILGELSE",
-                hendelseGenerering = { _, klagebehandling ->
-                    GenerererKlageinstanshendelse.avsluttetJson(
-                        eventId = UUID.randomUUID().toString(),
-                        kildeReferanse = klagebehandling.id.toString(),
-                        kabalReferanse = UUID.randomUUID().toString(),
-                        avsluttetTidspunkt = nå(tac.clock).toString(),
-                        utfall = Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD,
-                    )
-                },
             )!!
 
-            klagebehandling.status shouldBe Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
-            klagebehandling.resultat.shouldBeInstanceOf<Klagebehandlingsresultat.Opprettholdt>()
-
-            val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            oppdaterRevurderingInnvilgelse(
+            val (_, _, ferdigstiltklageJson) = ferdigstillKlagebehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                saksbehandler = saksbehandler,
-            )
-            sendRevurderingTilBeslutningForBehandlingId(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                saksbehandler = saksbehandler,
-            )
-            val beslutter = ObjectMother.beslutter()
-            taBehandling(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                saksbehandler = beslutter,
-            )
-            val (_, rammevedtak, iverksattRammebehandling, iverksattRammebehandlingJson) = iverksettForBehandlingId(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                beslutter = beslutter,
+                klagebehandlingId = klagebehandling.id,
+                begrunnelse = "Dette er en veltenkt begrunnelse for ferdigstilling",
             )!!
 
-            iverksattRammebehandlingJson.toString().shouldEqualJsonIgnoringTimestamps(
-                //language=json
-                """
-                {
-                  "avbrutt": null,
-                  "attesteringer": [
-                    {
-                      "begrunnelse": null,
-                      "endretAv": "B12345",
-                      "endretTidspunkt": "2025-01-01T01:03:04.456789",
-                      "status": "GODKJENT"
-                    }
-                  ],
-                  "saksnummer": "202501011001",
-                  "saksbehandler": "saksbehandlerKlagebehandling",
-                  "utbetalingskontroll": null,
-                  "barnetillegg": {
-                    "begrunnelse": null,
-                    "perioder": [
-                      {
-                        "antallBarn": 0,
-                        "periode": {
-                          "fraOgMed": "2023-01-01",
-                          "tilOgMed": "2023-03-31"
-                        }
-                      }
-                    ]
-                  },
-                  "iverksattTidspunkt": "2025-01-01T01:03:05.456789",
-                  "vedtaksperiode": {
-                    "fraOgMed": "2023-01-01",
-                    "tilOgMed": "2023-03-31"
-                  },
-                  "fritekstTilVedtaksbrev": null,
-                  "resultat": "REVURDERING_INNVILGELSE",
-                  "automatiskOpprettetGrunn": null,
-                  "type": "REVURDERING",
-                  "beslutter": "B12345",
-                  "begrunnelseVilkårsvurdering": null,
-                  "klagebehandlingId": "${klagebehandling.id}",
-                  "tilbakekrevingId": null,
-                  "utbetaling": null,
-                  "ventestatus": null,
-                  "innvilgelsesperioder": [
-                    {
-                      "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                      "periode": {
-                        "fraOgMed": "2023-01-01",
-                        "tilOgMed": "2023-03-31"
-                      },
-                      "antallDagerPerMeldeperiode": 10
-                    }
-                  ],
-                  "saksopplysninger": {
-                    "oppslagstidspunkt": "2025-01-01T01:02:52.456789",
-                    "tiltaksdeltagelse": [
-                      {
-                        "typeKode": "GRUPPE_AMO",
-                        "gjennomforingsprosent": null,
-                        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-                        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-                        "antallDagerPerUke": 5,
-                        "deltakelseStatus": "Deltar",
-                        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                        "deltagelseFraOgMed": "2023-01-01",
-                        "deltagelseTilOgMed": "2023-03-31",
-                        "kilde": "Komet",
-                        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                        "deltakelseProsent": 100
-                      }
-                    ],
-                    "fødselsdato": "2001-01-01",
-                    "ytelser": [],
-                    "tiltakspengevedtakFraArena": [],
-                    "periode": {
-                      "fraOgMed": "2023-01-01",
-                      "tilOgMed": "2023-03-31"
-                    }
-                  },
-                  "rammevedtakId": "${rammevedtak.id}",
-                  "sistEndret": "2025-01-01T01:03:05.456789",
-                  "sakId": "${sak.id}",
-                  "id": "${iverksattRammebehandling.id}",
-                  "status": "VEDTATT",
-                  "skalSendeVedtaksbrev": true
-                }
-                """.trimIndent(),
-            )
-
-            // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage
-            hentSakForSaksnummer(tac, sak.saksnummer)!!
-        }
-    }
-
-    @Test
-    fun `iverksetter klagebehandling og revurdering omgjøring`() {
-        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
-                tac = tac,
-                hendelseGenerering = { _, klagebehandling ->
-                    GenerererKlageinstanshendelse.avsluttetJson(
-                        eventId = UUID.randomUUID().toString(),
-                        kildeReferanse = klagebehandling.id.toString(),
-                        kabalReferanse = UUID.randomUUID().toString(),
-                        avsluttetTidspunkt = nå(tac.clock).toString(),
-                        utfall = Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD,
-                    )
-                },
-            )!!
-
-            sak.vedtaksliste.alle.size shouldBe 1
-
-            val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            oppdaterOmgjøringInnvilgelse(
-                tac = tac,
+            ferdigstiltklageJson.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                saksbehandler = saksbehandler,
-                vedtaksperiode = (sak.vedtaksliste.alle.first() as Rammevedtak).periode,
+                klagebehandlingId = klagebehandling.id,
+                fnr = "12345678911",
+                saksbehandler = "saksbehandlerKlagebehandling",
+                resultat = "OMGJØR",
+                årsak = "PROSESSUELL_FEIL",
+                begrunnelse = "Begrunnelse for omgjøring",
+                vedtakDetKlagesPå = rammevedtakSøknadsbehandling.id.toString(),
+                status = "FERDIGSTILT",
+                rammebehandlingId = null,
+                ferdigstiltTidspunkt = true,
+                iverksattTidspunkt = null,
+                begrunnelseFerdigstilling = "Dette er en veltenkt begrunnelse for ferdigstilling",
             )
-            sendRevurderingTilBeslutningForBehandlingId(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                saksbehandler = saksbehandler,
-            )
-            val beslutter = ObjectMother.beslutter()
-            taBehandling(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                saksbehandler = beslutter,
-            )
-            val (_, rammevedtak, iverksattRammebehandling, iverksattRammebehandlingJson) = iverksettForBehandlingId(
-                tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
-                beslutter = beslutter,
-            )!!
-
-            iverksattRammebehandlingJson.toString().shouldEqualJsonIgnoringTimestamps(
-                //language=json
-                """
-                {
-                  "avbrutt": null,
-                  "attesteringer": [
-                    {
-                      "begrunnelse": null,
-                      "endretAv": "B12345",
-                      "endretTidspunkt": "2025-01-01T01:03:04.456789",
-                      "status": "GODKJENT"
-                    }
-                  ],
-                  "saksnummer": "202501011001",
-                  "saksbehandler": "saksbehandlerKlagebehandling",
-                  "utbetalingskontroll": null,
-                  "barnetillegg": {
-                    "begrunnelse": null,
-                    "perioder": [
-                      {
-                        "antallBarn": 0,
-                        "periode": {
-                          "fraOgMed": "2023-01-01",
-                          "tilOgMed": "2023-03-31"
-                        }
-                      }
-                    ]
-                  },
-                  "iverksattTidspunkt": "2025-01-01T01:03:05.456789",
-                  "vedtaksperiode": {
-                    "fraOgMed": "2023-01-01",
-                    "tilOgMed": "2023-03-31"
-                  },
-                  "fritekstTilVedtaksbrev": null,
-                  "resultat": "OMGJØRING",
-                  "automatiskOpprettetGrunn": null,
-                  "type": "REVURDERING",
-                  "beslutter": "B12345",
-                  "begrunnelseVilkårsvurdering": null,
-                  "klagebehandlingId": "${klagebehandling.id}",
-                  "tilbakekrevingId": null,
-                  "utbetaling": null,
-                  "ventestatus": null,
-                  "innvilgelsesperioder": [
-                    {
-                      "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                      "periode": {
-                        "fraOgMed": "2023-01-01",
-                        "tilOgMed": "2023-03-31"
-                      },
-                      "antallDagerPerMeldeperiode": 10
-                    }
-                  ],
-                  "omgjørVedtak": "${klagebehandling.formkrav.vedtakDetKlagesPå!!}",
-                  "saksopplysninger": {
-                    "oppslagstidspunkt": "2025-01-01T01:02:52.456789",
-                    "tiltaksdeltagelse": [
-                      {
-                        "typeKode": "GRUPPE_AMO",
-                        "gjennomforingsprosent": null,
-                        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-                        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-                        "antallDagerPerUke": 5,
-                        "deltakelseStatus": "Deltar",
-                        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                        "deltagelseFraOgMed": "2023-01-01",
-                        "deltagelseTilOgMed": "2023-03-31",
-                        "kilde": "Komet",
-                        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                        "deltakelseProsent": 100
-                      }
-                    ],
-                    "fødselsdato": "2001-01-01",
-                    "ytelser": [],
-                    "tiltakspengevedtakFraArena": [],
-                    "periode": {
-                      "fraOgMed": "2023-01-01",
-                      "tilOgMed": "2023-03-31"
-                    }
-                  },
-                  "rammevedtakId": "${rammevedtak.id}",
-                  "sistEndret": "2025-01-01T01:03:05.456789",
-                  "sakId": "${sak.id}",
-                  "id": "${rammebehandling.id}",
-                  "status": "VEDTATT",
-                  "skalSendeVedtaksbrev": true
-                }
-                """.trimIndent(),
-            )
-
-            // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage
-            hentSakForSaksnummer(tac, sak.saksnummer)!!
         }
     }
 }

@@ -25,6 +25,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.withSaksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 
+internal const val AVBRYT_SØKNAD_OG_BEHANDLING_PATH = "$SAK_PATH/{saksnummer}/avbryt-aktiv-behandling"
+
 fun Route.avbrytSøknadOgBehandling(
     auditService: AuditService,
     avbrytSøknadOgBehandlingService: AvbrytSøknadOgBehandlingService,
@@ -32,8 +34,8 @@ fun Route.avbrytSøknadOgBehandling(
     tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger {}
-    post("$SAK_PATH/{saksnummer}/avbryt-aktiv-behandling") {
-        logger.debug { "Mottatt post-request på $SAK_PATH/{saksnummer}/avbryt-aktiv-behandling - Prøver å avslutte søknad og behandling" }
+    post(AVBRYT_SØKNAD_OG_BEHANDLING_PATH) {
+        logger.debug { "Mottatt post-request på $AVBRYT_SØKNAD_OG_BEHANDLING_PATH - Prøver å avslutte søknad og behandling" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSaksnummer { saksnummer ->

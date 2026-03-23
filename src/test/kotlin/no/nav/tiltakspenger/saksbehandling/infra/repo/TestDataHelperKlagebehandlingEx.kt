@@ -331,6 +331,7 @@ internal fun TestDataHelper.persisterFerdigstiltKlagebehandling(
         kommando = FerdigstillKlagebehandlingKommando(
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
+            begrunnelse = null,
             saksbehandler = saksbehandler,
             correlationId = CorrelationId.generate(),
         ),
