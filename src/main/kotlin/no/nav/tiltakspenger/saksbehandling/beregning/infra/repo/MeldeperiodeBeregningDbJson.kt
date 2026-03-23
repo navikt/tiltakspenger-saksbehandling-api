@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
@@ -26,6 +27,19 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortstatusD
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toTiltakstypeSomGirRett
 import java.time.LocalDate
+import java.time.LocalDateTime
+
+private data class BeregningDbJson(
+    val beregninger: List<MeldeperiodeBeregningDbJson>,
+    val beregningstidspunkt: String?,
+)
+
+private data class MeldeperiodeBeregningDbJson(
+    val beregningId: String,
+    val kjedeId: String,
+    val meldekortId: String,
+    val dager: List<MeldeperiodeBeregningDagDbJson>,
+)
 
 /**
  * @property reduksjon null dersom den ikke er utfylt
@@ -37,7 +51,6 @@ private data class MeldeperiodeBeregningDagDbJson(
     val reduksjon: ReduksjonAvYtelsePåGrunnAvFraværDb?,
     val beregningsdag: BeregningsdagDbJson?,
 ) {
-
     enum class ReduksjonAvYtelsePåGrunnAvFraværDb {
         IngenReduksjon,
         DelvisReduksjon,
@@ -118,71 +131,87 @@ private data class MeldeperiodeBeregningDagDbJson(
     }
 }
 
-private data class MeldeperiodeBeregningDbJson(
-    val beregningId: String,
-    val kjedeId: String,
-    val meldekortId: String,
-    val dager: List<MeldeperiodeBeregningDagDbJson>,
-)
-
-private fun List<MeldeperiodeBeregningDag>.toDbJson() = this.map { meldekortdag ->
-    MeldeperiodeBeregningDagDbJson(
-        tiltakstype = meldekortdag.tiltakstype?.toDb(),
-        dato = meldekortdag.dato.toString(),
-        reduksjon = meldekortdag.reduksjon.toDb(),
-        beregningsdag = meldekortdag.beregningsdag?.toDbJson(),
-        status =
-        when (meldekortdag) {
-            is DeltattUtenLønnITiltaket -> MeldekortstatusDb.DELTATT_UTEN_LØNN_I_TILTAKET
-            is DeltattMedLønnITiltaket -> MeldekortstatusDb.DELTATT_MED_LØNN_I_TILTAKET
-            is SykBruker -> MeldekortstatusDb.FRAVÆR_SYK
-            is SyktBarn -> MeldekortstatusDb.FRAVÆR_SYKT_BARN
-            is FraværGodkjentAvNav -> MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV
-            is FraværSterkeVelferdsgrunnerEllerJobbintervju -> MeldekortstatusDb.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
-            is FraværAnnet -> MeldekortstatusDb.FRAVÆR_ANNET
-            is MeldeperiodeBeregningDag.IkkeBesvart -> MeldekortstatusDb.IKKE_BESVART
-            is IkkeDeltatt -> MeldekortstatusDb.IKKE_TILTAKSDAG
-            is IkkeRettTilTiltakspenger -> MeldekortstatusDb.IKKE_RETT_TIL_TILTAKSPENGER
-        },
-    )
+private fun List<MeldeperiodeBeregningDag>.toDbJson(): List<MeldeperiodeBeregningDagDbJson> {
+    return this.map { meldekortdag ->
+        MeldeperiodeBeregningDagDbJson(
+            tiltakstype = meldekortdag.tiltakstype?.toDb(),
+            dato = meldekortdag.dato.toString(),
+            reduksjon = meldekortdag.reduksjon.toDb(),
+            beregningsdag = meldekortdag.beregningsdag?.toDbJson(),
+            status =
+            when (meldekortdag) {
+                is DeltattUtenLønnITiltaket -> MeldekortstatusDb.DELTATT_UTEN_LØNN_I_TILTAKET
+                is DeltattMedLønnITiltaket -> MeldekortstatusDb.DELTATT_MED_LØNN_I_TILTAKET
+                is SykBruker -> MeldekortstatusDb.FRAVÆR_SYK
+                is SyktBarn -> MeldekortstatusDb.FRAVÆR_SYKT_BARN
+                is FraværGodkjentAvNav -> MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV
+                is FraværSterkeVelferdsgrunnerEllerJobbintervju -> MeldekortstatusDb.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
+                is FraværAnnet -> MeldekortstatusDb.FRAVÆR_ANNET
+                is MeldeperiodeBeregningDag.IkkeBesvart -> MeldekortstatusDb.IKKE_BESVART
+                is IkkeDeltatt -> MeldekortstatusDb.IKKE_TILTAKSDAG
+                is IkkeRettTilTiltakspenger -> MeldekortstatusDb.IKKE_RETT_TIL_TILTAKSPENGER
+            },
+        )
+    }
 }
 
-private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb =
-    when (this) {
+private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb {
+    return when (this) {
         ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon -> MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb.IngenReduksjon
         ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon -> MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb.DelvisReduksjon
         ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb.YtelsenFallerBort
     }
-
-fun Beregning.tilBeregningerDbJson(): String {
-    return this.beregninger.map {
-        MeldeperiodeBeregningDbJson(
-            beregningId = it.id.toString(),
-            kjedeId = it.kjedeId.toString(),
-            meldekortId = it.meldekortId.toString(),
-            dager = it.dager.toDbJson(),
-        )
-    }.let { serialize(it) }
 }
 
-fun String.tilMeldeperiodeBeregningerFraMeldekort(meldekortId: MeldekortId): NonEmptyList<MeldeperiodeBeregning> =
-    deserializeList<MeldeperiodeBeregningDbJson>(this).map {
-        MeldeperiodeBeregning(
-            id = BeregningId(it.beregningId),
-            kjedeId = MeldeperiodeKjedeId(it.kjedeId),
-            meldekortId = MeldekortId.fromString(it.meldekortId),
-            beregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortId),
-            dager = it.dager.map { dag -> dag.tilMeldeperiodeBeregningDag() }.toNonEmptyListOrNull()!!,
-        )
-    }.toNonEmptyListOrNull()!!
+fun Beregning.tilBeregningerDbJson(): String {
+    return BeregningDbJson(
+        beregninger = this.beregninger.map {
+            MeldeperiodeBeregningDbJson(
+                beregningId = it.id.toString(),
+                kjedeId = it.kjedeId.toString(),
+                meldekortId = it.meldekortId.toString(),
+                dager = it.dager.toDbJson(),
+            )
+        },
+        beregningstidspunkt = this.beregningstidspunkt?.toString(),
+    ).let { serialize(it) }
+}
 
-fun String.tilMeldeperiodeBeregningerFraBehandling(behandlingId: BehandlingId): NonEmptyList<MeldeperiodeBeregning> =
-    deserializeList<MeldeperiodeBeregningDbJson>(this).map {
+private fun String.tilBeregningDbJson(): BeregningDbJson {
+    return runCatching { deserialize<BeregningDbJson>(this) }
+        .getOrElse {
+            BeregningDbJson(
+                beregninger = deserializeList<MeldeperiodeBeregningDbJson>(this),
+                beregningstidspunkt = null,
+            )
+        }
+}
+
+private fun List<MeldeperiodeBeregningDbJson>.tilMeldeperiodeBeregninger(
+    beregningKilde: BeregningKilde,
+): NonEmptyList<MeldeperiodeBeregning> {
+    return this.map {
         MeldeperiodeBeregning(
             id = BeregningId(it.beregningId),
             kjedeId = MeldeperiodeKjedeId(it.kjedeId),
             meldekortId = MeldekortId.fromString(it.meldekortId),
-            beregningKilde = BeregningKilde.BeregningKildeRammebehandling(behandlingId),
+            beregningKilde = beregningKilde,
             dager = it.dager.map { dag -> dag.tilMeldeperiodeBeregningDag() }.toNonEmptyListOrNull()!!,
         )
     }.toNonEmptyListOrNull()!!
+}
+
+private fun BeregningDbJson.tilBeregning(beregningKilde: BeregningKilde): Beregning {
+    return Beregning(
+        beregninger = beregninger.tilMeldeperiodeBeregninger(beregningKilde),
+        beregningstidspunkt = beregningstidspunkt?.let { LocalDateTime.parse(it) },
+    )
+}
+
+fun String.tilBeregningFraMeldekortbehandling(meldekortId: MeldekortId): Beregning {
+    return tilBeregningDbJson().tilBeregning(BeregningKilde.BeregningKildeMeldekort(meldekortId))
+}
+
+fun String.tilBeregningFraRammebehandling(behandlingId: BehandlingId): Beregning {
+    return tilBeregningDbJson().tilBeregning(BeregningKilde.BeregningKildeRammebehandling(behandlingId))
+}

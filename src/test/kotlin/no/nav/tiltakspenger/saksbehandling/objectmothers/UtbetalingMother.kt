@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.Satstype
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -86,17 +87,19 @@ interface UtbetalingMother : MotherOfAllMothers {
         beregningKilde: BeregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortId),
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(
-            Periode(startDato, startDato.plusDays(13)),
+            periode = Periode(startDato, startDato.plusDays(13)),
         ),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
         beregningDager: NonEmptyList<MeldeperiodeBeregningDag> = maksAntallDeltattTiltaksdagerIMeldekortperiode(
-            startDato,
-            meldekortId,
-            tiltakstype,
-            barnetilleggsPerioder,
+            startDato = startDato,
+            meldekortId = meldekortId,
+            tiltakstype = tiltakstype,
+            barnetilleggsPerioder = barnetilleggsPerioder,
         ),
+        clock: Clock = fixedClock,
+        beregningstidspunkt: LocalDateTime = nå(clock),
     ): Beregning {
         val beregninger = nonEmptyListOf(
             MeldeperiodeBeregning(
@@ -109,8 +112,8 @@ interface UtbetalingMother : MotherOfAllMothers {
         )
 
         return when (beregningKilde) {
-            is BeregningKilde.BeregningKildeRammebehandling -> Beregning(beregninger)
-            is BeregningKilde.BeregningKildeMeldekort -> Beregning(beregninger)
+            is BeregningKilde.BeregningKildeRammebehandling -> Beregning(beregninger, beregningstidspunkt)
+            is BeregningKilde.BeregningKildeMeldekort -> Beregning(beregninger, beregningstidspunkt)
         }
     }
 

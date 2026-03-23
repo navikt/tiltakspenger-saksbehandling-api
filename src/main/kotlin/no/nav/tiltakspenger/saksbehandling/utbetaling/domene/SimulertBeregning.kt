@@ -193,8 +193,7 @@ data class SimulertBeregning(
             return SimulertBeregning(
                 beregningskilde = beregning.beregningKilde,
                 meldeperioder = perMeldeperiode,
-                // TODO jah: Grav i hvorfor denne tilsynelatende ikke finnes.
-                beregningstidspunkt = null,
+                beregningstidspunkt = beregning.beregningstidspunkt,
                 simuleringstidspunkt = simulering?.simuleringstidspunkt,
                 simuleringsdato = (simulering as? Simulering.Endring)?.datoBeregnet,
                 simuleringTotalBeløp = (simulering as? Simulering.Endring)?.totalBeløp,
