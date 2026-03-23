@@ -38,6 +38,8 @@ data class VurderOmgjørKlagebehandlingKommando(
             årsak = årsak,
             begrunnelse = begrunnelse,
             rammebehandlingId = null,
+            ferdigstiltTidspunkt = null,
+            begrunnelseFerdigstilling = null,
         )
     }
 }

@@ -461,37 +461,39 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 val attesteringer = attesteringer.leggTil(attestering)
                 val iverksattTidspunkt = nå(clock)
 
-                val (oppdatertKlagebehandling, klagestatistikk) = when (klagebehandling?.resultat) {
-                    is Klagebehandlingsresultat.Avvist -> throw IllegalStateException("Klagebehandling med avvist resultat skal ikke være knyttet til en rammebehandling. Dette skjedde for sakId: $sakId, saksnummer: $saksnummer, behandling: ${this.id}, klagebehandlingId: ${klagebehandling!!.id}")
+                val (oppdatertKlagebehandling, klagestatistikk) =
+                    if (klagebehandling?.erFerdigstilt == true) {
+                        // man har mulighet til å opprette rammebehandling på en ferdigstilt klagebehandling.
+                        klagebehandling to Statistikkhendelser.empty()
+                    } else {
+                        when (klagebehandling?.resultat) {
+                            is Klagebehandlingsresultat.Avvist -> throw IllegalStateException("Klagebehandling med avvist resultat skal ikke være knyttet til en rammebehandling. Dette skjedde for sakId: $sakId, saksnummer: $saksnummer, behandling: ${this.id}, klagebehandlingId: ${klagebehandling!!.id}")
 
-                    is Klagebehandlingsresultat.Omgjør -> {
-                        klagebehandling?.iverksettOmgjøring(
-                            IverksettOmgjøringKommando(
-                                sakId = sakId,
-                                klagebehandlingId = klagebehandling!!.id,
-                                correlationId = correlationId,
-                                iverksattTidspunkt = iverksattTidspunkt,
-                            ),
-                        )
-                            ?.getOrElse { throw IllegalStateException("Feil ved iverksetting av rammebehandling $id knyttet til klagebehandling ${klagebehandling!!.id}. Underliggende feil: $it, sakId: $sakId, saksnummer: $saksnummer") }
-                            ?: (null to Statistikkhendelser.empty())
+                            is Klagebehandlingsresultat.Omgjør -> klagebehandling?.iverksettOmgjøring(
+                                IverksettOmgjøringKommando(
+                                    sakId = sakId,
+                                    klagebehandlingId = klagebehandling!!.id,
+                                    correlationId = correlationId,
+                                    iverksattTidspunkt = iverksattTidspunkt,
+                                ),
+                            )
+                                ?.getOrElse { throw IllegalStateException("Feil ved iverksetting av rammebehandling $id knyttet til klagebehandling ${klagebehandling!!.id}. Underliggende feil: $it, sakId: $sakId, saksnummer: $saksnummer") }
+                                ?: (null to Statistikkhendelser.empty())
+
+                            is Klagebehandlingsresultat.Opprettholdt -> klagebehandling?.iverksettOpprettholdelse(
+                                IverksettOpprettholdelseKommando(
+                                    sakId = sakId,
+                                    klagebehandlingId = klagebehandling!!.id,
+                                    correlationId = correlationId,
+                                    iverksattTidspunkt = iverksattTidspunkt,
+                                ),
+                            )
+                                ?.getOrElse { throw IllegalStateException("Feil ved iverksetting av rammebehandling $id knyttet til klagebehandling ${klagebehandling!!.id}. Underliggende feil: $it, sakId: $sakId, saksnummer: $saksnummer") }
+                                ?: (null to Statistikkhendelser.empty())
+
+                            null -> (null to Statistikkhendelser.empty())
+                        }
                     }
-
-                    is Klagebehandlingsresultat.Opprettholdt -> {
-                        klagebehandling?.iverksettOpprettholdelse(
-                            IverksettOpprettholdelseKommando(
-                                sakId = sakId,
-                                klagebehandlingId = klagebehandling!!.id,
-                                correlationId = correlationId,
-                                iverksattTidspunkt = iverksattTidspunkt,
-                            ),
-                        )
-                            ?.getOrElse { throw IllegalStateException("Feil ved iverksetting av rammebehandling $id knyttet til klagebehandling ${klagebehandling!!.id}. Underliggende feil: $it, sakId: $sakId, saksnummer: $saksnummer") }
-                            ?: (null to Statistikkhendelser.empty())
-                    }
-
-                    null -> (null to Statistikkhendelser.empty())
-                }
 
                 val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
@@ -690,8 +692,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 // Vi kan ikke kreve at resultatet er satt dersom den har vært underkjent, siden hentOpplysninger kan resette saksoplysninger og implisitt resultatet.
                 if (klagebehandling != null) {
                     require(
-                        (klagebehandling!!.resultat is Klagebehandlingsresultat.Omgjør && klagebehandling!!.status == Klagebehandlingsstatus.UNDER_BEHANDLING) ||
-                            (klagebehandling!!.resultat is Klagebehandlingsresultat.Opprettholdt && klagebehandling!!.status == Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS),
+                        (klagebehandling!!.resultat is Klagebehandlingsresultat.Omgjør && (klagebehandling!!.status == Klagebehandlingsstatus.UNDER_BEHANDLING || klagebehandling!!.status == Klagebehandlingsstatus.FERDIGSTILT)) ||
+                            (klagebehandling!!.resultat is Klagebehandlingsresultat.Opprettholdt && (klagebehandling!!.status == Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS || klagebehandling!!.status == Klagebehandlingsstatus.FERDIGSTILT)),
                     ) {
                         "Klagebehandling knyttet til en rammebehandling som er UNDER_BEHANDLING må ha status UNDER_BEHANDLING/OMGJØRING_ETTER_KLAGEINSTANS, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                     }
@@ -709,8 +711,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen KLAR_TIL_BESLUTNING" }
                 require(erFerdigutfylt())
                 if (klagebehandling != null) {
-                    require(klagebehandling!!.status == Klagebehandlingsstatus.UNDER_BEHANDLING || klagebehandling!!.status == Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS) {
-                        "Klagebehandling knyttet til en rammebehandling som er KLAR_TIL_BESLUTNING må ha status UNDER_BEHANDLING/OMGJØRING_ETTER_KLAGEINSTANS, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                    require(klagebehandling!!.status == Klagebehandlingsstatus.UNDER_BEHANDLING || klagebehandling!!.status == Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS || klagebehandling!!.status == Klagebehandlingsstatus.FERDIGSTILT) {
+                        "Klagebehandling knyttet til en rammebehandling som er KLAR_TIL_BESLUTNING må ha status UNDER_BEHANDLING/OMGJØRING_ETTER_KLAGEINSTANS/FERDIGSTILT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                     }
                 }
             }
@@ -724,8 +726,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen UNDER_BESLUTNING" }
                 require(erFerdigutfylt())
                 if (klagebehandling != null) {
-                    require(klagebehandling!!.status == Klagebehandlingsstatus.UNDER_BEHANDLING || klagebehandling!!.status == Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS) {
-                        "Klagebehandling knyttet til en rammebehandling som er UNDER_BESLUTNING/FERDIGSTILT må ha status UNDER_BEHANDLING, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                    require(klagebehandling!!.status == Klagebehandlingsstatus.UNDER_BEHANDLING || klagebehandling!!.status == Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS || klagebehandling!!.status == Klagebehandlingsstatus.FERDIGSTILT) {
+                        "Klagebehandling knyttet til en rammebehandling som er UNDER_BESLUTNING må ha status UNDER_BEHANDLING/FERDIGSITLT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                     }
                 }
             }
@@ -740,8 +742,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen VEDTATT" }
                 require(erFerdigutfylt())
                 if (klagebehandling != null) {
-                    require(klagebehandling!!.status == Klagebehandlingsstatus.VEDTATT) {
-                        "Klagebehandling knyttet til en rammebehandling som er VEDTATT må ha status VEDTATT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                    require(klagebehandling!!.status == Klagebehandlingsstatus.VEDTATT || klagebehandling!!.status == Klagebehandlingsstatus.FERDIGSTILT) {
+                        "Klagebehandling knyttet til en rammebehandling som er VEDTATT må ha status VEDTATT/FERDIGSTILT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                     }
                 }
             }
@@ -765,15 +767,12 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 "Klagebehandlingens saksnummer må være lik behandlingens saksnummer. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
             }
         }
-        if (klagebehandling != null && !erAvbrutt) {
+        if (klagebehandling != null && !erAvbrutt && !klagebehandling!!.erFerdigstilt) {
             require(saksbehandler == klagebehandling!!.saksbehandler) {
                 "Klagebehandlingens saksbehandler må være lik behandlingens saksbehandler. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
             }
             require(klagebehandling!!.resultat is Klagebehandlingsresultat.Omgjør || klagebehandling!!.resultat is Klagebehandlingsresultat.Opprettholdt) {
                 "Klagebehandlingens resultat må være Omgjør/Opprettholdt når den er knyttet til en rammebehandling som ikke er avbrutt. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
-            }
-            require(klagebehandling!!.rammebehandlingId == this.id) {
-                "Klagebehandlingens rammebehandlingId må være lik behandlingens id. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
             }
         }
     }

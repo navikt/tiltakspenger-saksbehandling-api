@@ -87,7 +87,7 @@ fun Klagebehandling.iverksettOpprettholdelse(
         ).left()
     }
 
-    if (!resultat.skalOmgjøresEtterKA) {
+    if (!(kanOmgjøresEtterKA && erKnyttetTilRammebehandling)) {
         return KanIkkeIverksetteKlagebehandling.SkalIkkeOmgjøresEtterKA.left()
     }
 

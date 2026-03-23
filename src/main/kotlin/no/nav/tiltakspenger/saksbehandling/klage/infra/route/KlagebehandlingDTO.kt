@@ -80,17 +80,20 @@ fun KlageFormkrav.toDTO(): KlageFormkravDTO = KlageFormkravDTO(
 sealed interface KlagebehandlingsresultatDTO {
 
     val type: KlageresultatstypeDto
+    val begrunnelseFerdigstilling: String?
 
     data class Avvist(
         val brevtekst: List<TittelOgTekstDTO>,
     ) : KlagebehandlingsresultatDTO {
         override val type = KlageresultatstypeDto.AVVIST
+        override val begrunnelseFerdigstilling: String? = null
     }
 
     data class Omgjør(
         val årsak: String,
         val begrunnelse: String,
         val rammebehandlingId: String?,
+        override val begrunnelseFerdigstilling: String?,
     ) : KlagebehandlingsresultatDTO {
         override val type = KlageresultatstypeDto.OMGJØR
     }
@@ -106,6 +109,7 @@ sealed interface KlagebehandlingsresultatDTO {
         val ferdigstiltTidspunkt: LocalDateTime?,
         val journalpostIdInnstillingsbrev: String?,
         val dokumentInfoIder: List<String>?,
+        override val begrunnelseFerdigstilling: String?,
     ) : KlagebehandlingsresultatDTO {
         override val type = KlageresultatstypeDto.OPPRETTHOLDT
     }
@@ -143,6 +147,7 @@ fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): Klagebehandlingsr
             årsak = årsak.name,
             begrunnelse = begrunnelse.verdi,
             rammebehandlingId = rammebehandlingId?.toString(),
+            begrunnelseFerdigstilling = begrunnelseFerdigstilling?.verdi,
         )
 
         is Klagebehandlingsresultat.Opprettholdt -> KlagebehandlingsresultatDTO.Opprettholdt(
@@ -156,6 +161,7 @@ fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): Klagebehandlingsr
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
             journalpostIdInnstillingsbrev = journalpostIdInnstillingsbrev?.toString(),
             dokumentInfoIder = dokumentInfoIder?.map { it.toString() },
+            begrunnelseFerdigstilling = begrunnelseFerdigstilling?.verdi,
         )
     }
 }

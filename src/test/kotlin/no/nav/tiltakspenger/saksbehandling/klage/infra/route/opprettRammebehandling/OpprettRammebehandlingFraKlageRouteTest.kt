@@ -16,8 +16,14 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillOppretholdtKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
 
 class OpprettRammebehandlingFraKlageRouteTest {
@@ -44,6 +50,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
                     rammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    ferdigstiltTidspunkt = null,
+                    begrunnelseFerdigstilling = null,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -219,6 +227,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
                     rammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    ferdigstiltTidspunkt = null,
+                    begrunnelseFerdigstilling = null,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -319,6 +329,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
                     rammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    ferdigstiltTidspunkt = null,
+                    begrunnelseFerdigstilling = null,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -419,6 +431,56 @@ class OpprettRammebehandlingFraKlageRouteTest {
                     """.trimIndent()
                 },
             )
+        }
+    }
+
+    @Test
+    fun `kan opprette, og vedta rammebehandling for en ferdigstilt klagebehandling `() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, ferdigstiltKlagebehandling, _) = opprettSakOgFerdigstillOppretholdtKlagebehandling(
+                tac = tac,
+            )!!
+            val saksbehandler = ObjectMother.saksbehandler(ferdigstiltKlagebehandling.saksbehandler!!)
+            val (_, opprettetRammebehandling) = opprettRammebehandlingForKlage(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = ferdigstiltKlagebehandling.id,
+                søknadId = null,
+                vedtakIdSomOmgjøres = ferdigstiltKlagebehandling.formkrav.vedtakDetKlagesPå!!.toString(),
+                type = "REVURDERING_OMGJØRING",
+            )!!
+
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = opprettetRammebehandling.id,
+                saksbehandler = saksbehandler,
+                vedtaksperiode = ObjectMother.vedtaksperiode(),
+            )
+            sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = opprettetRammebehandling.id,
+                saksbehandler = saksbehandler,
+            )
+            val beslutter = ObjectMother.beslutter()
+            taBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = opprettetRammebehandling.id,
+                saksbehandler = beslutter,
+            )
+            iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = opprettetRammebehandling.id,
+                beslutter = beslutter,
+            )!!
+
+            /*
+            formålet er å sjekke at hele flyten går ok uten noen exceptions, derfor ingen videre asserts
+            Vi har lignende tester med asserts.
+             */
         }
     }
 }
