@@ -16,9 +16,8 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
-import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningFraMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
-import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
@@ -514,8 +513,7 @@ class MeldekortBehandlingPostgresRepo(
             val behandlingSendtTilDatadeling = row.localDateTimeOrNull("behandling_sendt_til_datadeling")
 
             val beregning = row.stringOrNull("beregninger")
-                ?.tilMeldeperiodeBeregningerFraMeldekort(id)
-                ?.let { Beregning(it) }
+                ?.tilBeregningFraMeldekortbehandling(id)
 
             val fritekstTilVedtaksbrev = row.stringOrNull("tekst_til_vedtaksbrev")?.let {
                 FritekstTilVedtaksbrev.create(it)

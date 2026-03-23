@@ -46,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePå
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 private typealias HentAntallBarn = (dato: LocalDate) -> AntallBarn?
@@ -304,7 +305,11 @@ private fun Meldekortvedtak.tilSkalBeregnes(): MeldeperiodeSomSkalBeregnes {
     )
 }
 
-fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode): Beregning? {
+fun Sak.beregnRevurderingStans(
+    behandlingId: BehandlingId,
+    stansperiode: Periode,
+    beregningstidspunkt: LocalDateTime,
+): Beregning? {
     val behandling = hentRammebehandling(behandlingId)
 
     require(behandling is Revurdering && behandling.resultat is Revurderingsresultat.Stans) {
@@ -315,10 +320,15 @@ fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansperiode: Periode
         behandlingId = behandlingId,
         vedtaksperiode = stansperiode,
         innvilgelsesperioder = null,
+        beregningstidspunkt = beregningstidspunkt,
     )
 }
 
-fun Sak.beregnOpphør(behandlingId: BehandlingId, opphørsperiode: Periode): Beregning? {
+fun Sak.beregnOpphør(
+    behandlingId: BehandlingId,
+    opphørsperiode: Periode,
+    beregningstidspunkt: LocalDateTime,
+): Beregning? {
     val behandling = hentRammebehandling(behandlingId)
 
     require(behandling is Revurdering && behandling.resultat is Omgjøringsresultat) {
@@ -329,6 +339,7 @@ fun Sak.beregnOpphør(behandlingId: BehandlingId, opphørsperiode: Periode): Ber
         behandlingId = behandlingId,
         vedtaksperiode = opphørsperiode,
         innvilgelsesperioder = null,
+        beregningstidspunkt = beregningstidspunkt,
     )
 }
 
@@ -344,12 +355,14 @@ fun Sak.beregnInnvilgelse(
     vedtaksperiode: Periode,
     innvilgelsesperioder: Innvilgelsesperioder,
     barnetilleggsperioder: Periodisering<AntallBarn>,
+    beregningstidspunkt: LocalDateTime,
 ): Beregning? {
     return beregnRammebehandling(
         behandlingId = behandlingId,
         vedtaksperiode = vedtaksperiode,
         innvilgelsesperioder = innvilgelsesperioder,
         nyeBarnetilleggsperioder = barnetilleggsperioder,
+        beregningstidspunkt = beregningstidspunkt,
     )
 }
 
@@ -364,6 +377,7 @@ private fun Sak.beregnRammebehandling(
     vedtaksperiode: Periode,
     innvilgelsesperioder: Innvilgelsesperioder?,
     nyeBarnetilleggsperioder: Periodisering<AntallBarn>? = null,
+    beregningstidspunkt: LocalDateTime,
 ): Beregning? {
     require(innvilgelsesperioder == null || innvilgelsesperioder.perioder.all { vedtaksperiode.inneholderHele(it) }) {
         "Vedtaksperioden $vedtaksperiode må inneholde alle innvilgelsesperiodene ${innvilgelsesperioder!!.perioder}"
@@ -394,7 +408,7 @@ private fun Sak.beregnRammebehandling(
         },
         gjeldendeBeregninger = this.meldeperiodeBeregninger,
         meldekortvedtakTidslinje = this.meldekortvedtaksliste.tidslinje,
-    ).beregn().let { Beregning(it) }
+    ).beregn().let { Beregning(it, beregningstidspunkt) }
 }
 
 fun Sak.beregnMeldekort(

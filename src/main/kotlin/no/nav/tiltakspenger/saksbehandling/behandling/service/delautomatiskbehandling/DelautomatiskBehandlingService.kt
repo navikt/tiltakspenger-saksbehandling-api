@@ -4,6 +4,7 @@ import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
@@ -146,6 +147,7 @@ class DelautomatiskBehandlingService(
         correlationId: CorrelationId,
     ) {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
+        val nå = nå(clock)
         val innvilgelsesperiode = behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()
         val barnetillegg = utledBarnetillegg(behandling)
         val tiltaksdeltakelse = utledTiltaksdeltakelser(behandling)
@@ -181,6 +183,7 @@ class DelautomatiskBehandlingService(
             vedtaksperiode = innvilgelsesperiode,
             innvilgelsesperioder = oppdaterKommando.tilInnvilgelseperioder(behandling),
             barnetilleggsperioder = barnetillegg.periodisering,
+            beregningstidspunkt = nå,
         )?.let {
             val navkontor = navkontorService.hentOppfolgingsenhet(this.fnr)
             val simuleringMedMetadata = simulerService.simulerSøknadsbehandlingEllerRevurdering(

@@ -714,7 +714,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                         }
                       }
                     ],
-                    "beregningstidspunkt": null,
+                    "beregningstidspunkt": "TIMESTAMP",
                     "beregning": {
                       "totalt": {
                         "før": null,

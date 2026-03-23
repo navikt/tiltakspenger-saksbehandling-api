@@ -5,15 +5,18 @@ import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.collections.first
 
 /**
  * En beregning for en eller flere meldeperioder.
  * Vil enten ha [BeregningKilde.BeregningKildeMeldekort] eller [BeregningKilde.BeregningKildeRammebehandling] som kilde.
  * Vil kunne ha hull. Er sortert og uten overlapp. En meldeperiodekjede er representert maks en gang.
+ * @param beregningstidspunkt tidspunktet for når beregningen ble utført. Vil være null for ikke-migrerte beregninger.
  */
 data class Beregning(
     val beregninger: NonEmptyList<MeldeperiodeBeregning>,
+    val beregningstidspunkt: LocalDateTime?,
 ) : List<MeldeperiodeBeregning> by beregninger {
 
     val fraOgMed: LocalDate = beregninger.first().fraOgMed

@@ -78,7 +78,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgels
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
@@ -307,6 +306,8 @@ interface MeldekortMother : MotherOfAllMothers {
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
         reduksjon: ReduksjonAvYtelsePåGrunnAvFravær = ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon,
+        clock: Clock = fixedClock,
+        beregningstidspunkt: LocalDateTime = nå(clock),
     ): Beregning {
         return Beregning(
             nonEmptyListOf(
@@ -366,6 +367,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     }.toNonEmptyListOrNull()!!,
                 ),
             ),
+            beregningstidspunkt = beregningstidspunkt,
         )
     }
 
@@ -387,6 +389,8 @@ interface MeldekortMother : MotherOfAllMothers {
             tiltakstype,
             barnetilleggsPerioder,
         ),
+        clock: Clock = fixedClock,
+        beregningstidspunkt: LocalDateTime = nå(clock),
     ): Beregning {
         return Beregning(
             nonEmptyListOf(
@@ -398,6 +402,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     dager = beregningDager,
                 ),
             ),
+            beregningstidspunkt = beregningstidspunkt,
         )
     }
 

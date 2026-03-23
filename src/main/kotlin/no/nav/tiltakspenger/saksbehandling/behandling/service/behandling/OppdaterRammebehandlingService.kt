@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
@@ -30,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetada
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import java.time.Clock
+import java.time.LocalDateTime
 
 class OppdaterRammebehandlingService(
     private val sakService: SakService,
@@ -44,7 +46,7 @@ class OppdaterRammebehandlingService(
     suspend fun oppdater(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Pair<Sak, Rammebehandling>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
         val behandling: Rammebehandling = sak.hentRammebehandling(kommando.behandlingId)!!
-
+        val nå = nå(clock)
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
             return BehandlingenEiesAvAnnenSaksbehandler(behandling.saksbehandler).left()
         }
@@ -57,7 +59,7 @@ class OppdaterRammebehandlingService(
             return it.left()
         }
 
-        val (utbetaling, simuleringMedMetadata) = sak.beregnOgSimulerHvisAktuelt(kommando, behandling)
+        val (utbetaling, simuleringMedMetadata) = sak.beregnOgSimulerHvisAktuelt(kommando, behandling, nå)
 
         return when (kommando) {
             is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando, utbetaling)
@@ -81,6 +83,7 @@ class OppdaterRammebehandlingService(
     private suspend fun Sak.beregnOgSimulerHvisAktuelt(
         kommando: OppdaterBehandlingKommando,
         behandling: Rammebehandling,
+        beregningstidspunkt: LocalDateTime,
     ): Pair<BehandlingUtbetaling?, SimuleringMedMetadata?> {
         log.debug { "Beregner hvis aktuelt ifm oppdatering av behandling ${behandling.id} for sak ${behandling.sakId}" }
         val beregning = when (kommando) {
@@ -91,6 +94,7 @@ class OppdaterRammebehandlingService(
                 vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
                 innvilgelsesperioder = kommando.tilInnvilgelseperioder(behandling),
                 barnetilleggsperioder = kommando.barnetillegg.periodisering,
+                beregningstidspunkt = beregningstidspunkt,
             )
 
             is OppdaterOmgjøringKommando.OmgjøringInnvilgelse,
@@ -100,6 +104,7 @@ class OppdaterRammebehandlingService(
                     vedtaksperiode = kommando.vedtaksperiode,
                     innvilgelsesperioder = kommando.tilInnvilgelseperioder(behandling),
                     barnetilleggsperioder = kommando.barnetillegg.periodisering,
+                    beregningstidspunkt = beregningstidspunkt,
                 )
             }
 
@@ -107,11 +112,13 @@ class OppdaterRammebehandlingService(
                 behandlingId = kommando.behandlingId,
                 // Vi kan ikke stanse hvis vi ikke har en rettighetsperiode.
                 stansperiode = kommando.utledStansperiode(this.førsteDagSomGirRett!!, this.sisteDagSomGirRett!!),
+                beregningstidspunkt = beregningstidspunkt,
             )
 
             is OppdaterOmgjøringKommando.OmgjøringOpphør -> this.beregnOpphør(
                 behandlingId = kommando.behandlingId,
                 opphørsperiode = kommando.vedtaksperiode,
+                beregningstidspunkt = beregningstidspunkt,
             )
 
             is OppdaterSøknadsbehandlingKommando.Avslag,

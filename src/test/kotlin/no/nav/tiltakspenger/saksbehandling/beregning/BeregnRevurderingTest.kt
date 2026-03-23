@@ -7,6 +7,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
@@ -132,6 +133,7 @@ class BeregnRevurderingTest {
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            beregningstidspunkt = nå(fixedClock),
         )
 
         nyBeregning.shouldNotBeNull()
@@ -170,6 +172,7 @@ class BeregnRevurderingTest {
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            beregningstidspunkt = nå(fixedClock),
         )
 
         nyBeregning.shouldBeInstanceOf<Beregning>()
@@ -195,6 +198,7 @@ class BeregnRevurderingTest {
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            beregningstidspunkt = nå(fixedClock),
         ).shouldBeNull()
     }
 
@@ -215,6 +219,7 @@ class BeregnRevurderingTest {
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            beregningstidspunkt = nå(fixedClock),
         )!!.size shouldBe 1
     }
 
@@ -252,6 +257,7 @@ class BeregnRevurderingTest {
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            beregningstidspunkt = nå(fixedClock),
         )
 
         beregning.shouldNotBeNull()
@@ -304,6 +310,7 @@ class BeregnRevurderingTest {
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
             barnetilleggsperioder = kommando.barnetillegg.periodisering,
+            beregningstidspunkt = nå(fixedClock),
         )
 
         // 8 dager med rett i første meldeperiode for dette vedtaket
