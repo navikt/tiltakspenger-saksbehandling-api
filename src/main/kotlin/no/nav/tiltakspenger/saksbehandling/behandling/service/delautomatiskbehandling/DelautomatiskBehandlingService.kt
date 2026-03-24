@@ -176,6 +176,7 @@ class DelautomatiskBehandlingService(
             ).tilIkkeTomPeriodisering(),
             barnetillegg = barnetillegg,
             automatiskSaksbehandlet = true,
+            skalSendeVedtaksbrev = true,
         )
 
         val (utbetaling, simuleringMedMetadata) = this.beregnInnvilgelse(
@@ -377,6 +378,7 @@ class DelautomatiskBehandlingService(
         return tiltakFraSaksopplysning.deltakelseFraOgMed == null || tiltakFraSaksopplysning.deltakelseTilOgMed == null
     }
 
+    @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
     private fun tiltakFraSoknadHarEndretPeriode(
         tiltakFraSoknad: Søknadstiltak,
         tiltakFraSaksopplysning: Tiltaksdeltakelse,

@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test
 class OppdaterRevurderingOpphørRouteTest {
 
     @Test
-    fun `skal oppdatere revurdering med opphør av hele vedtaket`() {
+    fun `skal oppdatere revurdering med opphør av hele vedtaket med brev`() {
         withTestApplicationContext { tac ->
             val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
 
@@ -42,10 +42,42 @@ class OppdaterRevurderingOpphørRouteTest {
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
                 vedtaksperiode = innvilgelsesperiode,
+                skalSendeVedtaksbrev = true,
             )
 
             oppdatertOmgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringOpphør>()
             oppdatertOmgjøring.resultat!!.vedtaksperiode shouldBe innvilgelsesperiode
+            oppdatertOmgjøring.skalSendeVedtaksbrev shouldBe true
+        }
+    }
+
+    @Test
+    fun `skal oppdatere revurdering med opphør av hele vedtaket uten brev`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+
+            val (sak, _, søknadVedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+
+            val (_, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadVedtak.id,
+            )!!
+
+            val (_, oppdatertOmgjøring) = oppdaterOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = innvilgelsesperiode,
+                skalSendeVedtaksbrev = false,
+            )
+
+            oppdatertOmgjøring.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringOpphør>()
+            oppdatertOmgjøring.resultat!!.vedtaksperiode shouldBe innvilgelsesperiode
+            oppdatertOmgjøring.skalSendeVedtaksbrev shouldBe false
         }
     }
 

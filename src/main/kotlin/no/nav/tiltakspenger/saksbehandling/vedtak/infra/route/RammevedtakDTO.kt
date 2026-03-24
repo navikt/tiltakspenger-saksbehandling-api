@@ -47,6 +47,7 @@ data class RammevedtakDTO(
     val erGjeldende: Boolean,
     val gyldigeKommandoer: Map<RammevedtakKommandoDTO.KommandoType, RammevedtakKommandoDTO>,
     val omgjortGrad: OmgjøringsgradDTO?,
+    val skalSendeVedtaksbrev: Boolean,
 )
 
 enum class OmgjøringsgradDTO {
@@ -85,6 +86,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         erGjeldende = this.erGjeldende,
         gyldigeKommandoer = this.gyldigeKommandoer.toDTO(),
         omgjortGrad = this.omgjortGrad?.tilDTO(),
+        skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
     )
 }
 

@@ -86,6 +86,7 @@ data class Rammevedtak(
 
     val klagebehandling: Klagebehandling? = rammebehandling.klagebehandling
     val klagebehandlingsresultat: Klagebehandlingsresultat? = klagebehandling?.resultat
+    val skalSendeVedtaksbrev: Boolean = rammebehandling.skalSendeVedtaksbrev
 
     val omgjortGrad: Omgjøringsgrad? by lazy {
         if (omgjortAvRammevedtak.isEmpty()) {

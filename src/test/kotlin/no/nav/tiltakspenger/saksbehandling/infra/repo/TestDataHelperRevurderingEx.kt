@@ -101,6 +101,7 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
     valgteHjemler: NonEmptySet<HjemmelForStans> = nonEmptySetOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     utbetaling: BehandlingUtbetaling? = null,
     clock: Clock = this.clock,
+    skalSendeVedtaksbrev: Boolean = true,
     genererSak: (Sak?) -> Pair<Sak, Revurdering> = { s -> this.persisterOpprettetRevurdering(s) },
 ): Pair<Sak, Revurdering> {
     val (sakMedRevurdering, revurdering) = genererSak(s)
@@ -113,6 +114,7 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
         stansFraOgMed = OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed.create(stansFraOgMed),
         valgteHjemler = valgteHjemler,
         fritekstTilVedtaksbrev = FritekstTilVedtaksbrev.create("TestDataHelper.persisterRevurderingTilBeslutning"),
+        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
     )
     val stansperiode = kommando.utledStansperiode(
         førsteDagSomGirRett = sakMedRevurdering.førsteDagSomGirRett!!,

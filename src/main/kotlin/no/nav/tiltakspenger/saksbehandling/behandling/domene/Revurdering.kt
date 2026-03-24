@@ -60,6 +60,7 @@ data class Revurdering(
     override val utbetaling: BehandlingUtbetaling?,
     override val utbetalingskontroll: Utbetalingskontroll?,
     override val klagebehandling: Klagebehandling?,
+    override val skalSendeVedtaksbrev: Boolean,
     val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 ) : Rammebehandling {
 
@@ -125,6 +126,7 @@ data class Revurdering(
                 omgjørRammevedtak = omgjørRammevedtak,
             ),
             utbetaling = utbetaling,
+            skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
         ).also {
             // TODO jah: Etter omgjøring, fjern denne sjekken, fjern nullstill resultat og påse at dette gjøres ved send til beslutter + iverksett.
             require(it.resultat.erFerdigutfylt(saksopplysninger))
@@ -154,6 +156,7 @@ data class Revurdering(
                 omgjørRammevedtak = omgjørRammevedtak,
             ),
             utbetaling = utbetaling,
+            skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
         ).right()
     }
 
@@ -317,6 +320,7 @@ data class Revurdering(
                 utbetaling = null,
                 utbetalingskontroll = null,
                 klagebehandling = klagebehandling,
+                skalSendeVedtaksbrev = true,
                 automatiskOpprettetGrunn = automatiskOpprettetGrunn,
             )
         }

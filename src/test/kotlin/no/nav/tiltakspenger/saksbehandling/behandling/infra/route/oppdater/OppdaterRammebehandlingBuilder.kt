@@ -43,6 +43,7 @@ interface OppdaterRammebehandlingBuilder {
         behandlingId: BehandlingId,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
+        skalSendeVedtaksbrev: Boolean = true,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
@@ -58,6 +59,7 @@ interface OppdaterRammebehandlingBuilder {
                 barnetillegg,
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
+                skalSendeVedtaksbrev,
             )
         }
             }
@@ -110,6 +112,7 @@ interface OppdaterRammebehandlingBuilder {
         avslagsgrunner: Set<Avslagsgrunnlag> = setOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        skalSendeVedtaksbrev: Boolean = true,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -117,7 +120,8 @@ interface OppdaterRammebehandlingBuilder {
               "resultat": "AVSLAG",
               "avslagsgrunner": [${avslagsgrunner.joinToString(",") { it.toString().medQuotes() }}],
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
-              "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()}
+              "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
+              "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev
             }
         """.trimIndent()
 
@@ -141,6 +145,7 @@ interface OppdaterRammebehandlingBuilder {
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        skalSendeVedtaksbrev: Boolean = true,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -152,6 +157,7 @@ interface OppdaterRammebehandlingBuilder {
                 barnetillegg,
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
+                skalSendeVedtaksbrev,
             )
         }
             }
@@ -178,6 +184,7 @@ interface OppdaterRammebehandlingBuilder {
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        skalSendeVedtaksbrev: Boolean = true,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -190,6 +197,7 @@ interface OppdaterRammebehandlingBuilder {
                 barnetillegg,
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
+                skalSendeVedtaksbrev,
             )
         }
             }
@@ -215,6 +223,7 @@ interface OppdaterRammebehandlingBuilder {
         fritekstTilVedtaksbrev: String? = null,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        skalSendeVedtaksbrev: Boolean = true,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -223,7 +232,8 @@ interface OppdaterRammebehandlingBuilder {
               "vedtaksperiode": ${serialize(vedtaksperiode.toDTO())},
               "valgteHjemler": [${valgteHjemler.joinToString(",") { it.tilHjemmelForOpphørDTO().toString().medQuotes() }}],
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
-              "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()}
+              "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
+                "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev
             }
         """.trimIndent()
 
@@ -272,6 +282,7 @@ interface OppdaterRammebehandlingBuilder {
         valgteHjemler: Set<HjemmelForStans> = setOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        skalSendeVedtaksbrev: Boolean = true,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -281,7 +292,8 @@ interface OppdaterRammebehandlingBuilder {
               "valgteHjemler": [${valgteHjemler.joinToString(",") { it.tilDTO().toString().medQuotes() }}],
               "harValgtStansFraFørsteDagSomGirRett": $harValgtStansFraFørsteDagSomGirRett,
               "stansFraOgMed": ${stansFraOgMed?.toString()?.medQuotes()},
-              "resultat": "STANS"
+              "resultat": "STANS",
+                "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev
             }
         """.trimIndent()
 
@@ -332,6 +344,7 @@ interface OppdaterRammebehandlingBuilder {
         barnetillegg: Barnetillegg,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
+        skalSendeVedtaksbrev: Boolean = true,
     ): String {
         return """            
             "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
@@ -365,7 +378,8 @@ interface OppdaterRammebehandlingBuilder {
                         }
                 """.trimIndent()
             }
-        }
+        },
+        "skalSendeVedtaksbrev": $skalSendeVedtaksbrev
         """.trimIndent()
     }
 }

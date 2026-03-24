@@ -23,6 +23,7 @@ sealed interface OppdaterBehandlingDTO {
     val resultat: RammebehandlingResultatTypeDTO?
     val fritekstTilVedtaksbrev: String?
     val begrunnelseVilkårsvurdering: String?
+    val skalSendeVedtaksbrev: Boolean
 
     fun tilDomene(
         sakId: SakId,

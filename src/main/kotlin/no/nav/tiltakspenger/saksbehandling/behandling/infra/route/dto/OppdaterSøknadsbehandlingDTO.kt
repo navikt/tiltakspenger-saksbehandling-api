@@ -30,6 +30,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         override val begrunnelseVilkårsvurdering: String?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
         val barnetillegg: BarnetilleggDTO,
+        override val skalSendeVedtaksbrev: Boolean = true,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.INNVILGELSE
 
@@ -51,6 +52,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
                 automatiskSaksbehandlet = false,
+                skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             )
         }
     }
@@ -59,6 +61,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
         val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
+        override val skalSendeVedtaksbrev: Boolean = true,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.AVSLAG
 
@@ -76,6 +79,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.toBegrunnelse(),
                 avslagsgrunner = avslagsgrunner.toAvslagsgrunnlag(),
+                skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             )
         }
     }
@@ -85,6 +89,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         override val begrunnelseVilkårsvurdering: String?,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat = null
+        override val skalSendeVedtaksbrev: Boolean = true
 
         override fun tilDomene(
             sakId: SakId,

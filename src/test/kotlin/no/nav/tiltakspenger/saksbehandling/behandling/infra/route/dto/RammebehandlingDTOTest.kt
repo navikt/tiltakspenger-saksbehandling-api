@@ -259,7 +259,8 @@ class RammebehandlingDTOTest {
           "automatiskSaksbehandlet": false,
           "manueltBehandlesGrunner": [],
           "kanInnvilges": true,
-          "type": "SØKNADSBEHANDLING"
+          "type": "SØKNADSBEHANDLING",
+          "skalSendeVedtaksbrev": true
         }
         """.trimIndent()
 
@@ -453,7 +454,8 @@ class RammebehandlingDTOTest {
               "automatiskSaksbehandlet": false,
               "manueltBehandlesGrunner": [],
               "type": "SØKNADSBEHANDLING",
-              "kanInnvilges": false
+              "kanInnvilges": false,
+              "skalSendeVedtaksbrev": true
             }
         """.trimIndent()
 
@@ -633,7 +635,8 @@ class RammebehandlingDTOTest {
               "automatiskSaksbehandlet": false,
               "manueltBehandlesGrunner": [],
               "type": "SØKNADSBEHANDLING",
-              "kanInnvilges": true
+              "kanInnvilges": true,
+              "skalSendeVedtaksbrev": true
             }
         """.trimIndent()
 
@@ -758,7 +761,8 @@ class RammebehandlingDTOTest {
           },
           "resultat": "REVURDERING_INNVILGELSE",
           "type": "REVURDERING",
-          "automatiskOpprettetGrunn": null
+          "automatiskOpprettetGrunn": null,
+          "skalSendeVedtaksbrev": true
         }
         """.trimIndent()
 
@@ -868,7 +872,8 @@ class RammebehandlingDTOTest {
               "harValgtStansFraFørsteDagSomGirRett": false,
               "resultat": "STANS",
               "type": "REVURDERING",
-              "automatiskOpprettetGrunn": null
+              "automatiskOpprettetGrunn": null,
+              "skalSendeVedtaksbrev": true
             }
         """.trimIndent()
 
@@ -1009,7 +1014,8 @@ class RammebehandlingDTOTest {
               "omgjørVedtak": "vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6",
               "resultat": "OMGJØRING_IKKE_VALGT",
               "type": "REVURDERING",
-              "automatiskOpprettetGrunn": null
+              "automatiskOpprettetGrunn": null,
+              "skalSendeVedtaksbrev": true
             }
         """.trimIndent()
 

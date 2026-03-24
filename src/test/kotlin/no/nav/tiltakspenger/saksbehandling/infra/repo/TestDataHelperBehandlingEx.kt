@@ -286,6 +286,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     /** Brukt for å styre meldeperiode generering */
     clock: Clock = this.clock,
     automatiskSaksbehandlet: Boolean = false,
+    skalSendeVedtaksbrev: Boolean = true,
 ): Pair<Sak, Rammebehandling> {
     val (sak, søknadsbehandling) = persisterOpprettetSøknadsbehandling(
         sakId = sak.id,
@@ -315,6 +316,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                         innvilgelsesperioder = innvilgelsesperioder,
                         barnetillegg = Barnetillegg.utenBarnetillegg(tiltaksOgVedtaksperiode),
                         automatiskSaksbehandlet = automatiskSaksbehandlet,
+                        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
 
                     SøknadsbehandlingsresultatType.AVSLAG -> oppdaterSøknadsbehandlingAvslagKommando(
@@ -325,6 +327,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avslagsgrunner = avslagsgrunner!!,
+                        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 },
                 clock = clock,
@@ -526,6 +529,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
      * Brukt for å styre meldeperiode generering
      */
     clock: Clock = this.clock,
+    skalSendeVedtaksbrev: Boolean = true,
 ): Triple<Sak, Rammevedtak, Rammebehandling> {
     val (sak, søknadsbehandling) = persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sak.id,
@@ -542,6 +546,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
         correlationId = correlationId,
         clock = clock,
+        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
     )
 
     val oppdatertRammebehandling = søknadsbehandling

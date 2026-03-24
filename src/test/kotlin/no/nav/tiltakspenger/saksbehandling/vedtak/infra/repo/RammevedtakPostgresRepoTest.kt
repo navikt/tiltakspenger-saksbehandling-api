@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo
 
 import io.kotest.matchers.shouldBe
+import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingInnvilgelseIverksatt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort
@@ -75,6 +77,25 @@ class RammevedtakPostgresRepoTest {
             vedtakFraDb shouldBe vedtak
 
             vedtakFraDb!!.utbetaling!!.id shouldBe utbetalinger.last().id
+        }
+    }
+
+    @Test
+    fun `hentRammevedtakSomSkalJournalføres returnerer vedtak når skalSendeVedtaksbrev er true`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val (_, rammevedtak, _) = testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = true)
+            val vedtakSomSkalJournalføres = testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(10)
+            vedtakSomSkalJournalføres.size shouldBe 1
+            vedtakSomSkalJournalføres.first().id shouldBe rammevedtak.id
+        }
+    }
+
+    @Test
+    fun `hentRammevedtakSomSkalJournalføres returnerer ikke vedtak når skalSendeVedtaksbrev er false`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val (_, _, _) = testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = false)
+            val vedtakSomSkalJournalføres = testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(10)
+            vedtakSomSkalJournalføres.size shouldBe 0
         }
     }
 }

@@ -230,7 +230,8 @@ class AvbrytRammebehandlingRouteTest {
   "automatiskSaksbehandlet": false,
   "manueltBehandlesGrunner": [],
   "kanInnvilges": true,
-  "type": "SØKNADSBEHANDLING"
+  "type": "SØKNADSBEHANDLING",
+  "skalSendeVedtaksbrev": true
 }
                 """.trimIndent(),
             )

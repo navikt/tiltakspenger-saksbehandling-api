@@ -53,6 +53,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             ),
         ),
         correlationId: CorrelationId = CorrelationId.generate(),
+        skalSendeVedtaksbrev: Boolean = true,
     ): OppdaterSøknadsbehandlingKommando.Innvilgelse {
         return OppdaterSøknadsbehandlingKommando.Innvilgelse(
             sakId = sakId,
@@ -64,6 +65,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             automatiskSaksbehandlet = automatiskSaksbehandlet,
             innvilgelsesperioder = innvilgelsesperioder.tilPeriodisering(),
             barnetillegg = barnetillegg,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }
 
@@ -75,6 +77,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         begrunnelseVilkårsvurdering: String? = null,
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag> = nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
         correlationId: CorrelationId = CorrelationId.generate(),
+        skalSendeVedtaksbrev: Boolean = true,
     ): OppdaterSøknadsbehandlingKommando.Avslag {
         return OppdaterSøknadsbehandlingKommando.Avslag(
             sakId = sakId,
@@ -84,6 +87,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.createOrThrow(it) },
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { Begrunnelse.createOrThrow(it) },
             avslagsgrunner = avslagsgrunner,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }
 
@@ -102,6 +106,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             ),
         ),
         correlationId: CorrelationId = CorrelationId.generate(),
+        skalSendeVedtaksbrev: Boolean = true,
     ): OppdaterRevurderingKommando.Innvilgelse {
         return OppdaterRevurderingKommando.Innvilgelse(
             sakId = sakId,
@@ -112,6 +117,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { Begrunnelse.createOrThrow(it) },
             innvilgelsesperioder = innvilgelsesperioder.tilPeriodisering(),
             barnetillegg = barnetillegg,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }
 }
