@@ -33,7 +33,9 @@ class TilbakekrevingBehandlingPostgresRepo(
                         url,
                         kravgrunnlag_periode,
                         totalt_feilutbetalt_beløp,
-                        varsel_sendt
+                        varsel_sendt,
+                        saksbehandler_ident,
+                        beslutter_ident
                     ) VALUES (
                         :id,
                         :sak_id,
@@ -45,7 +47,9 @@ class TilbakekrevingBehandlingPostgresRepo(
                         :url,
                         :kravgrunnlag_periode::periode,
                         :totalt_feilutbetalt_belop,
-                        :varsel_sendt
+                        :varsel_sendt,
+                        :saksbehandler_ident,
+                        :beslutter_ident
                     )
                     ON CONFLICT (id) DO UPDATE SET
                         status = :status,
@@ -53,7 +57,9 @@ class TilbakekrevingBehandlingPostgresRepo(
                         kravgrunnlag_periode = :kravgrunnlag_periode::periode,
                         totalt_feilutbetalt_beløp = :totalt_feilutbetalt_belop,
                         varsel_sendt = :varsel_sendt,
-                        sist_endret = :sist_endret
+                        sist_endret = :sist_endret,
+                        saksbehandler_ident = :saksbehandler_ident,
+                        beslutter_ident = :beslutter_ident
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "sak_id" to tilbakekrevingBehandling.sakId.toString(),
@@ -66,8 +72,35 @@ class TilbakekrevingBehandlingPostgresRepo(
                     "kravgrunnlag_periode" to tilbakekrevingBehandling.kravgrunnlagTotalPeriode.tilDbPeriode(),
                     "totalt_feilutbetalt_belop" to tilbakekrevingBehandling.totaltFeilutbetaltBeløp,
                     "varsel_sendt" to tilbakekrevingBehandling.varselSendt,
+                    "saksbehandler_ident" to tilbakekrevingBehandling.saksbehandlerIdent,
+                    "beslutter_ident" to tilbakekrevingBehandling.beslutterIdent,
                 ).asUpdate,
             )
+        }
+    }
+
+    override fun taBehandling(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    UPDATE tilbakekreving_behandling SET
+                        saksbehandler_ident = :saksbehandler_ident,
+                        beslutter_ident = :beslutter_ident,
+                        status = :status,
+                        sist_endret = :sist_endret
+                    WHERE id = :id
+                    """.trimIndent(),
+                    "id" to tilbakekrevingBehandling.id.toString(),
+                    "saksbehandler_ident" to tilbakekrevingBehandling.saksbehandlerIdent,
+                    "beslutter_ident" to tilbakekrevingBehandling.beslutterIdent,
+                    "status" to tilbakekrevingBehandling.status.tilDb(),
+                    "sist_endret" to tilbakekrevingBehandling.sistEndret,
+                ).asUpdate,
+            ) > 0
         }
     }
 
@@ -152,6 +185,8 @@ class TilbakekrevingBehandlingPostgresRepo(
                 kravgrunnlagTotalPeriode = periode("kravgrunnlag_periode"),
                 totaltFeilutbetaltBeløp = bigDecimal("totalt_feilutbetalt_beløp"),
                 varselSendt = localDateOrNull("varsel_sendt"),
+                saksbehandlerIdent = stringOrNull("saksbehandler_ident"),
+                beslutterIdent = stringOrNull("beslutter_ident"),
             )
         }
     }
@@ -160,14 +195,18 @@ class TilbakekrevingBehandlingPostgresRepo(
 private enum class TilbakekrevingBehandlingsstatusDb {
     OPPRETTET,
     TIL_BEHANDLING,
+    UNDER_BEHANDLING,
     TIL_GODKJENNING,
+    UNDER_GODKJENNING,
     AVSLUTTET,
     ;
 
     fun tilDomene() = when (this) {
         OPPRETTET -> TilbakekrevingBehandlingsstatus.OPPRETTET
         TIL_BEHANDLING -> TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
+        UNDER_BEHANDLING -> TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING
         TIL_GODKJENNING -> TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
+        UNDER_GODKJENNING -> TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING
         AVSLUTTET -> TilbakekrevingBehandlingsstatus.AVSLUTTET
     }
 }
@@ -176,7 +215,9 @@ private fun TilbakekrevingBehandlingsstatus.tilDb(): String {
     return when (this) {
         TilbakekrevingBehandlingsstatus.OPPRETTET -> TilbakekrevingBehandlingsstatusDb.OPPRETTET
         TilbakekrevingBehandlingsstatus.TIL_BEHANDLING -> TilbakekrevingBehandlingsstatusDb.TIL_BEHANDLING
+        TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING -> TilbakekrevingBehandlingsstatusDb.UNDER_BEHANDLING
         TilbakekrevingBehandlingsstatus.TIL_GODKJENNING -> TilbakekrevingBehandlingsstatusDb.TIL_GODKJENNING
+        TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING -> TilbakekrevingBehandlingsstatusDb.UNDER_GODKJENNING
         TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingsstatusDb.AVSLUTTET
     }.name
 }

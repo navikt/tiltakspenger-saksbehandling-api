@@ -12,4 +12,5 @@ interface TilbakekrevingBehandlingRepo {
     fun hentForTilbakeBehandlingId(id: String, sessionContext: SessionContext? = null): TilbakekrevingBehandling?
     fun hentForSakId(sakId: SakId, sessionContext: SessionContext? = null): List<TilbakekrevingBehandling>
     fun hentForUtbetalingId(utbetalingId: UtbetalingId, sessionContext: SessionContext? = null): List<TilbakekrevingBehandling>
+    fun taBehandling(tilbakekrevingBehandling: TilbakekrevingBehandling, sessionContext: SessionContext? = null): Boolean
 }

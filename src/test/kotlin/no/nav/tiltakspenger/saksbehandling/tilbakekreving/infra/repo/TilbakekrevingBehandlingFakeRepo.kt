@@ -13,6 +13,15 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
     }
 
+    override fun taBehandling(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        data.get()[tilbakekrevingBehandling.id] ?: return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
+    }
+
     override fun hent(id: TilbakekrevingId, sessionContext: SessionContext?): TilbakekrevingBehandling? {
         return data.get()[id]
     }

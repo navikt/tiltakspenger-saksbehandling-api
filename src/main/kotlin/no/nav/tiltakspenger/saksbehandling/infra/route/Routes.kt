@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonopplysni
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.sakRoutes
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.route.meRoute
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.søknadRoutes
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.tilbakekrevingRoutes
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.hentTiltakdeltakelserRoute
 
 fun Route.routes(
@@ -108,6 +109,13 @@ fun Route.routes(
             sakService = applicationContext.sakContext.sakService,
             validerJournalpostService = applicationContext.søknadContext.validerJournalpostService,
             tiltaksdeltakerRepo = applicationContext.tiltakContext.tiltaksdeltakerRepo,
+        )
+
+        tilbakekrevingRoutes(
+            auditService = applicationContext.personContext.auditService,
+            taTilbakekrevingBehandlingService = applicationContext.taTilbakekrevingBehandlingService,
+            tilgangskontrollService = applicationContext.tilgangskontrollService,
+            clock = applicationContext.clock,
         )
 
         hentTiltakdeltakelserRoute(

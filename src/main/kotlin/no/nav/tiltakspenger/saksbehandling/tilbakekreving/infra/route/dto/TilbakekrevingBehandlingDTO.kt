@@ -24,12 +24,16 @@ data class TilbakekrevingBehandlingDTO(
     val kravgrunnlagTotalPeriode: PeriodeDTO,
     val totaltFeilutbetaltBeløp: BigDecimal,
     val varselSendt: LocalDate?,
+    val saksbehandler: String?,
+    val beslutter: String?,
 ) {
 
     enum class TilbakekrevingBehandlingsstatusDTO {
         OPPRETTET,
         TIL_BEHANDLING,
+        UNDER_BEHANDLING,
         TIL_GODKJENNING,
+        UNDER_GODKJENNING,
         AVSLUTTET,
     }
 }
@@ -37,7 +41,9 @@ data class TilbakekrevingBehandlingDTO(
 private fun TilbakekrevingBehandlingsstatus.tilDTO() = when (this) {
     TilbakekrevingBehandlingsstatus.OPPRETTET -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.OPPRETTET
     TilbakekrevingBehandlingsstatus.TIL_BEHANDLING -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.TIL_BEHANDLING
+    TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.UNDER_BEHANDLING
     TilbakekrevingBehandlingsstatus.TIL_GODKJENNING -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.TIL_GODKJENNING
+    TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.UNDER_GODKJENNING
     TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.AVSLUTTET
 }
 
@@ -57,5 +63,7 @@ fun TilbakekrevingBehandling.tilTilbakekrevingBehandlingDTO(utbetaling: VedtattU
         kravgrunnlagTotalPeriode = kravgrunnlagTotalPeriode.toDTO(),
         totaltFeilutbetaltBeløp = totaltFeilutbetaltBeløp,
         varselSendt = varselSendt,
+        saksbehandler = saksbehandlerIdent,
+        beslutter = beslutterIdent,
     )
 }
