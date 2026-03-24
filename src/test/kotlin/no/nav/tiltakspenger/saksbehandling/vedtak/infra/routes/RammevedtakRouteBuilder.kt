@@ -174,6 +174,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
     stanskommando: String? = null,
     opphørskommando: String? = null,
     klagebehandlingId: KlagebehandlingId? = null,
+    skalSendeVedtaksbrev: Boolean = true,
 ) {
     this.toString().shouldEqualJsonIgnoringTimestamps {
         fieldComparison = FieldComparison.Strict
@@ -225,7 +226,8 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
               "omgjortGrad": ${omgjortGrad?.let { "\"$omgjortGrad\"" }},
               "gyldigeKommandoer": {
                 ${listOfNotNull(omgjøringskommando, opphørskommando, stanskommando).joinToString(",\n")}
-              }
+              },
+              "skalSendeVedtaksbrev": $skalSendeVedtaksbrev
         }
             """.trimIndent(),
         ).toString()

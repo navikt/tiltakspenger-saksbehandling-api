@@ -15,6 +15,7 @@ sealed interface OppdaterBehandlingKommando {
     val correlationId: CorrelationId
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val begrunnelseVilkårsvurdering: Begrunnelse?
+    val skalSendeVedtaksbrev: Boolean
 
     sealed interface Innvilgelse {
         val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>

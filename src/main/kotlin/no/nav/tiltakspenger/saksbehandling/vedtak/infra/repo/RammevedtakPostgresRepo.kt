@@ -79,10 +79,12 @@ class RammevedtakPostgresRepo(
             session.run(
                 queryOf(
                     """
-                    select *
-                    from rammevedtak
-                    where journalpost_id is null
-                    order by opprettet
+                    select rv.*
+                    from rammevedtak rv
+                    join behandling b on b.id = rv.behandling_id
+                    where rv.journalpost_id is null
+                      and b.skal_sende_vedtaksbrev = true
+                    order by rv.opprettet
                     limit :limit
                     """.trimIndent(),
                     mapOf(

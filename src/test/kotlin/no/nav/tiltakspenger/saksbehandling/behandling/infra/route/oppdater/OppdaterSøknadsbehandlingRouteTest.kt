@@ -56,7 +56,7 @@ class OppdaterSøknadsbehandlingRouteTest {
     }
 
     @Test
-    fun `kan oppdatere innvilget søknadsbehandling`() {
+    fun `kan oppdatere innvilget søknadsbehandling med brev`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
@@ -84,6 +84,7 @@ class OppdaterSøknadsbehandlingRouteTest {
                 begrunnelseVilkårsvurdering = "ny begrunnelse",
                 innvilgelsesperioder = nyeInnvilgelsesperioder,
                 barnetillegg = barnetillegg,
+                skalSendeVedtaksbrev = true,
             )
 
             val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
@@ -99,7 +100,52 @@ class OppdaterSøknadsbehandlingRouteTest {
     }
 
     @Test
-    fun `kan oppdatere avslått søknadsbehandling`() {
+    fun `kan oppdatere innvilget søknadsbehandling uten brev`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltakelser.first()
+            val nyInnvilgelsesperiode = tiltaksdeltakelse.periode!!.minusTilOgMed(1)
+
+            val barnetillegg = barnetillegg(
+                begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
+                periode = nyInnvilgelsesperiode,
+                antallBarn = AntallBarn(1),
+            )
+
+            val antallDager = SammenhengendePeriodisering(
+                AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+                nyInnvilgelsesperiode,
+            )
+
+            val nyeInnvilgelsesperioder = innvilgelsesperioder(nyInnvilgelsesperiode, tiltaksdeltakelse)
+
+            oppdaterSøknadsbehandlingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                fritekstTilVedtaksbrev = "ny brevtekst",
+                begrunnelseVilkårsvurdering = "ny begrunnelse",
+                innvilgelsesperioder = nyeInnvilgelsesperioder,
+                barnetillegg = barnetillegg,
+                skalSendeVedtaksbrev = false,
+            )
+
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
+
+            oppdatertBehandling.resultat.shouldBeInstanceOf<Søknadsbehandlingsresultat.Innvilgelse>()
+            oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
+            oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
+            oppdatertBehandling.vedtaksperiode shouldBe nyInnvilgelsesperiode
+            oppdatertBehandling.barnetillegg shouldBe barnetillegg
+            oppdatertBehandling.antallDagerPerMeldeperiode shouldBe antallDager
+            oppdatertBehandling.innvilgelsesperioder shouldBe nyeInnvilgelsesperioder
+            oppdatertBehandling.skalSendeVedtaksbrev shouldBe false
+        }
+    }
+
+    @Test
+    fun `kan oppdatere avslått søknadsbehandling med brev`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
@@ -110,6 +156,7 @@ class OppdaterSøknadsbehandlingRouteTest {
                 fritekstTilVedtaksbrev = "ny brevtekst",
                 begrunnelseVilkårsvurdering = "ny begrunnelse",
                 avslagsgrunner = setOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
+                skalSendeVedtaksbrev = true,
             )
 
             val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
@@ -118,6 +165,31 @@ class OppdaterSøknadsbehandlingRouteTest {
             oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
             (oppdatertBehandling.resultat as Avslag).avslagsgrunner shouldBe nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak)
+        }
+    }
+
+    @Test
+    fun `kan oppdatere avslått søknadsbehandling uten brev`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            oppdaterSøknadsbehandlingAvslag(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                fritekstTilVedtaksbrev = "ny brevtekst",
+                begrunnelseVilkårsvurdering = "ny begrunnelse",
+                avslagsgrunner = setOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
+                skalSendeVedtaksbrev = false,
+            )
+
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
+
+            oppdatertBehandling.resultat.shouldBeInstanceOf<Avslag>()
+            oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
+            oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
+            (oppdatertBehandling.resultat as Avslag).avslagsgrunner shouldBe nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak)
+            oppdatertBehandling.skalSendeVedtaksbrev shouldBe false
         }
     }
 

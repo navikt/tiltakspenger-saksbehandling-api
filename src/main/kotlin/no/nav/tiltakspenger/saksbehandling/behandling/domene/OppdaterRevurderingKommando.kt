@@ -28,6 +28,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         val valgteHjemler: NonEmptySet<HjemmelForStans>,
         val stansFraOgMed: ValgtStansFraOgMed,
+        override val skalSendeVedtaksbrev: Boolean,
     ) : OppdaterRevurderingKommando {
 
         /** Dersom saksbehandler har valgt at det skal stanses fra første dag som gir rett */
@@ -79,6 +80,7 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
         override val barnetillegg: Barnetillegg,
+        override val skalSendeVedtaksbrev: Boolean,
     ) : OppdaterRevurderingKommando,
         OppdaterBehandlingKommando.Innvilgelse
 }
@@ -96,6 +98,7 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         override val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
         override val barnetillegg: Barnetillegg,
         override val vedtaksperiode: Periode,
+        override val skalSendeVedtaksbrev: Boolean,
     ) : OppdaterOmgjøringKommando,
         OppdaterBehandlingKommando.Innvilgelse
 
@@ -108,6 +111,7 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val vedtaksperiode: Periode,
         val valgteHjemler: NonEmptySet<HjemmelForOpphør>,
+        override val skalSendeVedtaksbrev: Boolean,
     ) : OppdaterOmgjøringKommando
 
     data class OmgjøringIkkeValgt(
@@ -119,5 +123,6 @@ sealed interface OppdaterOmgjøringKommando : OppdaterRevurderingKommando {
         override val vedtaksperiode = null
         override val begrunnelseVilkårsvurdering = null
         override val fritekstTilVedtaksbrev = null
+        override val skalSendeVedtaksbrev = true
     }
 }

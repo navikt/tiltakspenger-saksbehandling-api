@@ -186,7 +186,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "automatiskSaksbehandlet": false,
               "manueltBehandlesGrunner": [],
               "kanInnvilges": true,
-              "type": "SØKNADSBEHANDLING"
+              "type": "SØKNADSBEHANDLING",
+              "skalSendeVedtaksbrev": true
               }
                 """.trimIndent(),
             )
@@ -284,7 +285,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
               "barnetillegg": null,
               "resultat": "REVURDERING_INNVILGELSE",
               "automatiskOpprettetGrunn": null,
-              "type": "REVURDERING"
+              "type": "REVURDERING",
+              "skalSendeVedtaksbrev": true
               }
                 """.trimIndent(),
             )
@@ -381,7 +383,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                   "omgjørVedtak": "${sak.vedtaksliste.rammevedtaksliste.first().id}",
                   "resultat": "OMGJØRING_IKKE_VALGT",
                   "automatiskOpprettetGrunn": null,
-                  "type": "REVURDERING"
+                  "type": "REVURDERING",
+                  "skalSendeVedtaksbrev": true
                 }
                 """.trimIndent(),
             )

@@ -163,7 +163,8 @@ class FerdigstillKlagebehandlingRouteTest {
                   "sistEndret": "2025-01-01T01:02:51.456789",
                   "sakId": "${sak.id}",
                   "id": "${rammebehandling.id}",
-                  "status": "UNDER_BEHANDLING"
+                  "status": "UNDER_BEHANDLING",
+                  "skalSendeVedtaksbrev": true
                 }
                 """.trimIndent(),
             )
@@ -347,7 +348,8 @@ class FerdigstillKlagebehandlingRouteTest {
                     "id": "${(iverksattRammebehandling as Søknadsbehandling).søknad.id}",
                     "journalpostId": "123456789"
                   },
-                  "status": "VEDTATT"
+                  "status": "VEDTATT",
+                  "skalSendeVedtaksbrev": true
                 }
                 """.trimIndent(),
             )
@@ -488,7 +490,8 @@ class FerdigstillKlagebehandlingRouteTest {
                   "sistEndret": "2025-01-01T01:03:05.456789",
                   "sakId": "${sak.id}",
                   "id": "${iverksattRammebehandling.id}",
-                  "status": "VEDTATT"
+                  "status": "VEDTATT",
+                  "skalSendeVedtaksbrev": true
                 }
                 """.trimIndent(),
             )
@@ -629,7 +632,8 @@ class FerdigstillKlagebehandlingRouteTest {
                   "sistEndret": "2025-01-01T01:03:05.456789",
                   "sakId": "${sak.id}",
                   "id": "${rammebehandling.id}",
-                  "status": "VEDTATT"
+                  "status": "VEDTATT",
+                  "skalSendeVedtaksbrev": true
                 }
                 """.trimIndent(),
             )

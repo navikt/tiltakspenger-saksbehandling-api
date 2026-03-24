@@ -28,6 +28,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val automatiskSaksbehandlet: Boolean,
         override val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>,
         override val barnetillegg: Barnetillegg,
+        override val skalSendeVedtaksbrev: Boolean,
     ) : OppdaterSøknadsbehandlingKommando,
         OppdaterBehandlingKommando.Innvilgelse
 
@@ -39,6 +40,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
+        override val skalSendeVedtaksbrev: Boolean,
     ) : OppdaterSøknadsbehandlingKommando {
         override val automatiskSaksbehandlet: Boolean = false
     }
@@ -55,5 +57,6 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val begrunnelseVilkårsvurdering: Begrunnelse?,
     ) : OppdaterSøknadsbehandlingKommando {
         override val automatiskSaksbehandlet: Boolean = false
+        override val skalSendeVedtaksbrev: Boolean = true
     }
 }

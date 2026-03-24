@@ -433,6 +433,7 @@ class RammebehandlingPostgresRepo(
                         },
                         utbetaling = utbetaling,
                         utbetalingskontroll = utbetalingskontroll,
+                        skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
                     )
                 }
 
@@ -503,6 +504,7 @@ class RammebehandlingPostgresRepo(
                         utbetaling = utbetaling,
                         utbetalingskontroll = utbetalingskontroll,
                         automatiskOpprettetGrunn = stringOrNull("automatisk_opprettet_grunn")?.toAutomatiskOpprettetRevurderingGrunn(),
+                        skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
                     )
                 }
             }
@@ -562,7 +564,8 @@ class RammebehandlingPostgresRepo(
                 innvilgelsesperioder,
                 omgjør_rammevedtak,
                 klagebehandling_id,
-                automatisk_opprettet_grunn
+                automatisk_opprettet_grunn,
+                skal_sende_vedtaksbrev
             ) values (
                 :id,
                 :sak_id,
@@ -602,7 +605,8 @@ class RammebehandlingPostgresRepo(
                 to_jsonb(:innvilgelsesperioder::jsonb),
                 to_jsonb(:omgjoer_rammevedtak::jsonb),
                 :klagebehandling_id,
-                to_jsonb(:automatisk_opprettet_grunn::jsonb)
+                to_jsonb(:automatisk_opprettet_grunn::jsonb),
+                :skal_sende_vedtaksbrev
             )
             """.trimIndent()
 
@@ -645,7 +649,8 @@ class RammebehandlingPostgresRepo(
                 innvilgelsesperioder = to_jsonb(:innvilgelsesperioder::jsonb),
                 omgjør_rammevedtak = to_jsonb(:omgjoer_rammevedtak::jsonb),
                 klagebehandling_id = :klagebehandling_id,
-                automatisk_opprettet_grunn = to_jsonb(:automatisk_opprettet_grunn::jsonb)
+                automatisk_opprettet_grunn = to_jsonb(:automatisk_opprettet_grunn::jsonb),
+                skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -781,6 +786,7 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
             is Revurdering -> this.automatiskOpprettetGrunn?.toDbJson()
             is Søknadsbehandling -> null
         },
+        "skal_sende_vedtaksbrev" to this.skalSendeVedtaksbrev,
 
         *this.resultat.tilDbParams(),
     )

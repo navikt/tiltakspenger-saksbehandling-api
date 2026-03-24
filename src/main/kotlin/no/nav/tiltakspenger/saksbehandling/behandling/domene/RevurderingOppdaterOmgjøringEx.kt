@@ -33,7 +33,7 @@ fun Revurdering.oppdaterOmgjøring(
         )
 
         is OppdaterOmgjøringKommando.OmgjøringOpphør -> {
-            val måHaFritekst = kommando.valgteHjemler.any {
+            val måHaFritekst = kommando.skalSendeVedtaksbrev && kommando.valgteHjemler.any {
                 Omgjøringsresultat.OmgjøringOpphør.hjemlerSomMåHaFritekst.contains(it)
             }
 
@@ -99,6 +99,7 @@ private fun Revurdering.oppdaterOmgjøringInnvilgelse(
             omgjørRammevedtak = rammevedtakSomOmgjøres,
         ),
         utbetaling = utbetaling,
+        skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
     ).right()
 }
 
@@ -143,6 +144,7 @@ private fun Revurdering.oppdaterOmgjøringOpphør(
             valgteHjemler = kommando.valgteHjemler,
         ),
         utbetaling = utbetaling,
+        skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
     ).right()
 }
 

@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -135,6 +136,39 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 forventetStatus = HttpStatusCode.InternalServerError,
             ).also {
                 it.second.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadsbehandlingVedtak.id
+            }
+        }
+    }
+
+    @Test
+    fun `kan oppdatere uten brev`() {
+        withTestApplicationContext { tac ->
+            val førsteInnvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+
+            val innvilgelsesperioder = innvilgelsesperioder(førsteInnvilgelsesperiode)
+
+            val (sakMedSøknadsbehandling, _, søknadsbehandlingVedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder,
+            )
+
+            val sakId = sakMedSøknadsbehandling.id
+
+            val (_, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sakId,
+                rammevedtakIdSomOmgjøres = søknadsbehandlingVedtak.id,
+            )!!
+
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sakId,
+                innvilgelsesperioder = innvilgelsesperioder,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = førsteInnvilgelsesperiode,
+                skalSendeVedtaksbrev = false,
+            ).also {
+                it.second.skalSendeVedtaksbrev shouldBe false
             }
         }
     }

@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
 class OppdaterRevurderingStansRouteTest {
 
     @Test
-    fun `kan oppdatere revurdering stans`() {
+    fun `kan oppdatere revurdering stans med brev`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
                 tac,
@@ -32,6 +32,7 @@ class OppdaterRevurderingStansRouteTest {
                 begrunnelseVilkårsvurdering = "ny begrunnelse",
                 stansFraOgMed = 9.april(2025),
                 harValgtStansFraFørsteDagSomGirRett = false,
+                skalSendeVedtaksbrev = true,
             )
 
             val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
@@ -41,6 +42,37 @@ class OppdaterRevurderingStansRouteTest {
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
             oppdatertBehandling.vedtaksperiode!!.fraOgMed shouldBe 9.april(2025)
             (oppdatertBehandling.resultat as Stans).valgtHjemmel shouldBe listOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak)
+            oppdatertBehandling.skalSendeVedtaksbrev shouldBe true
+        }
+    }
+
+    @Test
+    fun `kan oppdatere revurdering stans uten brev`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
+                tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 30.april(2025)),
+            )
+
+            oppdaterRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                fritekstTilVedtaksbrev = "ny brevtekst",
+                begrunnelseVilkårsvurdering = "ny begrunnelse",
+                stansFraOgMed = 9.april(2025),
+                harValgtStansFraFørsteDagSomGirRett = false,
+                skalSendeVedtaksbrev = false,
+            )
+
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
+
+            oppdatertBehandling.resultat.shouldBeInstanceOf<Stans>()
+            oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
+            oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
+            oppdatertBehandling.vedtaksperiode!!.fraOgMed shouldBe 9.april(2025)
+            (oppdatertBehandling.resultat as Stans).valgtHjemmel shouldBe listOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak)
+            oppdatertBehandling.skalSendeVedtaksbrev shouldBe false
         }
     }
 

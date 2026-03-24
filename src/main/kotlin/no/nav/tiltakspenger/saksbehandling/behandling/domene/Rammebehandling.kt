@@ -121,6 +121,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     val klagebehandling: Klagebehandling?
 
+    val skalSendeVedtaksbrev: Boolean
+
     fun inneholderSaksopplysningerInternDeltakelseId(internDeltakelseId: TiltaksdeltakerId): Boolean =
         saksopplysninger.tiltaksdeltakelser.find { it.internDeltakelseId == internDeltakelseId } != null
 

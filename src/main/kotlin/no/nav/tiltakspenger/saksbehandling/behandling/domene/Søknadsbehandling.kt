@@ -70,6 +70,7 @@ data class Søknadsbehandling(
     override val utbetaling: BehandlingUtbetaling?,
     override val utbetalingskontroll: Utbetalingskontroll?,
     override val klagebehandling: Klagebehandling?,
+    override val skalSendeVedtaksbrev: Boolean,
 ) : Rammebehandling {
 
     override val vedtaksperiode = resultat?.vedtaksperiode
@@ -154,6 +155,7 @@ data class Søknadsbehandling(
             resultat = resultat,
             automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
             utbetaling = utbetaling,
+            skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
         ).also {
             require(it.resultat?.erFerdigutfylt(saksopplysninger) != false) {
                 "Behandlingsresultatet må være ferdigutfylt etter vi oppdaterer søknadsbehandlingen"
@@ -310,6 +312,7 @@ data class Søknadsbehandling(
                     saksbehandler = saksbehandler,
                     sistEndret = opprettet,
                 ),
+                skalSendeVedtaksbrev = true,
             )
             val statistikkhendelser = Statistikkhendelser(
                 opprettetSøknadsbehandling.genererSaksstatistikk(StatistikkhendelseType.OPPRETTET_BEHANDLING),
@@ -360,6 +363,7 @@ data class Søknadsbehandling(
                 utbetaling = null,
                 utbetalingskontroll = null,
                 klagebehandling = null,
+                skalSendeVedtaksbrev = true,
             )
             val statistikkhendelser = Statistikkhendelser(
                 opprettetSøknadsbehandling.genererSaksstatistikk(StatistikkhendelseType.OPPRETTET_BEHANDLING),

@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 class OppdaterRevurderingInnvilgelseRouteTest {
 
     @Test
-    fun `kan oppdatere revurdering innvilgelse`() {
+    fun `kan oppdatere revurdering innvilgelse med brev`() {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(tac)
 
@@ -44,6 +44,7 @@ class OppdaterRevurderingInnvilgelseRouteTest {
                 begrunnelseVilkårsvurdering = "ny begrunnelse",
                 innvilgelsesperioder = innvilgelsesperioder(nyInnvilgelsesperiode),
                 barnetillegg = barnetillegg,
+                skalSendeVedtaksbrev = true,
             )
 
             val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
@@ -54,6 +55,49 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             oppdatertBehandling.vedtaksperiode shouldBe nyInnvilgelsesperiode
             oppdatertBehandling.barnetillegg shouldBe barnetillegg
             oppdatertBehandling.antallDagerPerMeldeperiode shouldBe antallDager
+            oppdatertBehandling.skalSendeVedtaksbrev shouldBe true
+        }
+    }
+
+    @Test
+    fun `kan oppdatere revurdering innvilgelse uten brev`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(tac)
+
+            val tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first()
+            val nyInnvilgelsesperiode = tiltaksdeltakelse.periode!!.minusTilOgMed(1)
+
+            val barnetillegg = barnetillegg(
+                begrunnelse = Begrunnelse.create("barnetillegg begrunnelse"),
+                periode = nyInnvilgelsesperiode,
+                antallBarn = AntallBarn(1),
+            )
+
+            val antallDager = SammenhengendePeriodisering(
+                AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+                nyInnvilgelsesperiode,
+            )
+
+            oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                fritekstTilVedtaksbrev = "ny brevtekst",
+                begrunnelseVilkårsvurdering = "ny begrunnelse",
+                innvilgelsesperioder = innvilgelsesperioder(nyInnvilgelsesperiode),
+                barnetillegg = barnetillegg,
+                skalSendeVedtaksbrev = false,
+            )
+
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
+
+            oppdatertBehandling.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
+            oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
+            oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
+            oppdatertBehandling.vedtaksperiode shouldBe nyInnvilgelsesperiode
+            oppdatertBehandling.barnetillegg shouldBe barnetillegg
+            oppdatertBehandling.antallDagerPerMeldeperiode shouldBe antallDager
+            oppdatertBehandling.skalSendeVedtaksbrev shouldBe false
         }
     }
 }
