@@ -1,8 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
 import com.zaxxer.hikari.HikariDataSource
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.util.date.getTimeMillis
 import kotliquery.sessionOf
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
@@ -12,16 +10,12 @@ import no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 import org.testcontainers.postgresql.PostgreSQLContainer
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.sql.DataSource
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 internal class TestDatabaseManager {
-
-    private val log = KotlinLogging.logger {}
-
     private val postgres: PostgreSQLContainer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         PostgreSQLContainer("postgres:17-alpine").apply {
             withCommand("postgres", "-c", "wal_level=logical")
@@ -45,48 +39,36 @@ internal class TestDatabaseManager {
         }
     }
 
-    private val counter = AtomicInteger(0)
-
     private val saksnummerGenerator =
         TestSaksnummerGenerator(Saksnummer.genererSaknummer(løpenr = "1001", dato = 1.januar(2021)))
 
-    private val started: Long by lazy { getTimeMillis() }
-
-    @Volatile
-    private var isClosed = false
     private val lock = ReentrantReadWriteLock()
 
     /**
      * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon. Brukes når man gjør operasjoner på tvers av saker.
      */
-    fun withMigratedDb(runIsolated: Boolean = false, clock: TikkendeKlokke = TikkendeKlokke(), test: (TestDataHelper) -> Unit) {
-        if (isClosed) {
-            throw IllegalStateException("The test database is closed.")
-        }
-        counter.incrementAndGet()
-        try {
-            if (runIsolated) {
-                lock.write {
-                    cleanDatabase()
-                    test(TestDataHelper(dataSource, saksnummerGenerator, clock))
-                }
-            } else {
-                lock.read {
-                    test(TestDataHelper(dataSource, saksnummerGenerator, clock))
-                }
+    fun withMigratedDb(
+        runIsolated: Boolean = false,
+        clock: TikkendeKlokke = TikkendeKlokke(),
+        test: (TestDataHelper) -> Unit,
+    ) {
+        if (runIsolated) {
+            lock.write {
+                cleanDatabase()
+                test(TestDataHelper(dataSource, saksnummerGenerator, clock))
             }
-        } finally {
-            if (getTimeMillis() - started > 10 && counter.get() == 0) {
-                close()
+        } else {
+            lock.read {
+                test(TestDataHelper(dataSource, saksnummerGenerator, clock))
             }
         }
-        counter.decrementAndGet()
     }
 
     private fun cleanDatabase() {
-        sessionOf(dataSource).run(
-            sqlQuery(
-                """
+        sessionOf(dataSource).use { session ->
+            session.run(
+                sqlQuery(
+                    """
                 TRUNCATE
                   tiltaksdeltaker_kafka,
                   personhendelse,
@@ -112,19 +94,9 @@ internal class TestDatabaseManager {
                   tiltaksdeltaker,
                   tilbakekreving_hendelse,
                   tilbakekreving_behandling
-                """.trimIndent(),
-            ).asUpdate,
-        )
-    }
-
-    private fun close() {
-        if (!isClosed) {
-            log.info { "Stenger testdatabasen" }
-            dataSource.close()
-            postgres.stop()
-            isClosed = true
-        } else {
-            log.info { "Testdatabasen er allerede stengt. Vi gjør ingenting." }
+                    """.trimIndent(),
+                ).asUpdate,
+            )
         }
     }
 
