@@ -45,7 +45,7 @@ class AvbrytKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `kan avbryte hvis vi ikke har knyttet den til en klagebehandling enda`() {
+    fun `kan avbryte hvis vi ikke har knyttet den til en rammebehandling enda`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, _, rammevedtak, klagebehandling, _) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
@@ -164,6 +164,7 @@ class AvbrytKlagebehandlingRouteTest {
                 saksbehandler = "Z12345",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = sak.rammevedtaksliste.single().id.toString(),
+                behandlingDetKlagesPå = klagebehandling.formkrav.behandlingDetKlagesPå?.toString(),
                 status = "AVBRUTT",
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
@@ -188,7 +189,7 @@ class AvbrytKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                      {
-                        "melding": "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: $rammebehandlingId",
+                        "melding": "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: [$rammebehandlingId]",
                         "kode": "knyttet_til_ikke_avbrutt_rammebehandling"
                      }
                     """.trimIndent()

@@ -270,6 +270,7 @@ open class KlagebehandlingContext(
     open val ferdigstillKlagebehandlingService by lazy {
         FerdigstillKlagebehandlingService(
             klagebehandlingRepo = klagebehandlingRepo,
+            sakService = sakService,
             statistikkService = statistikkService,
             sessionFactory = sessionFactory,
             clock = clock,

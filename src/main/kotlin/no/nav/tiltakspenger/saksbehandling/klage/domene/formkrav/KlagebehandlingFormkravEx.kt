@@ -26,7 +26,7 @@ fun Klagebehandling.oppdaterFormkrav(
     val oppdaterteFormkrav = kommando.toKlageFormkrav(behandlingDetKlagesPå)
     val tidligereResultat = this.resultat
     val harTilknyttetRammebehandling =
-        this.resultat is Klagebehandlingsresultat.Omgjør && this.resultat.rammebehandlingId != null
+        this.resultat is Klagebehandlingsresultat.Omgjør && this.resultat.rammebehandlingId.isNotEmpty()
 
     if (oppdaterteFormkrav.erAvvisning && harTilknyttetRammebehandling) {
         return KanIkkeOppdatereFormkravPåKlagebehandling.KanIkkeEndreTilAvvisningNårTilknyttetRammebehandling.left()

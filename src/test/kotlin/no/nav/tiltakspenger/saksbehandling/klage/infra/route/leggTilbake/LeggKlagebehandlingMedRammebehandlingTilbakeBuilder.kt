@@ -62,6 +62,6 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
-        return Triple(oppdatertSak, oppdatertSak.hentRammebehandling(oppdatertKlagebehandling.rammebehandlingId!!)!!, json)
+        return Triple(oppdatertSak, oppdatertSak.hentRammebehandling(rammebehandlingMedKlagebehandling.id)!!, json)
     }
 }

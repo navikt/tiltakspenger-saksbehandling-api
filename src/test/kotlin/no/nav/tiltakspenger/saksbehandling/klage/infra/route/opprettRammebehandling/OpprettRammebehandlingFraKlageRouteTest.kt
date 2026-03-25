@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.februar
@@ -16,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
@@ -50,9 +50,10 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
+                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -227,9 +228,10 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
+                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -329,9 +331,10 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
+                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -482,6 +485,106 @@ class OpprettRammebehandlingFraKlageRouteTest {
             formålet er å sjekke at hele flyten går ok uten noen exceptions, derfor ingen videre asserts
             Vi har lignende tester med asserts.
              */
+        }
+    }
+
+    @Test
+    fun `kan opprette N antall behandlinger på ferdigstilt klage, så lenge det kun er 1 åpen om gangen`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, ferdigstiltKlagebehandling, _) = opprettSakOgFerdigstillOppretholdtKlagebehandling(
+                tac = tac,
+            )!!
+            val saksbehandler = ObjectMother.saksbehandler(ferdigstiltKlagebehandling.saksbehandler!!)
+            val (_, opprettetRammebehandling) = opprettRammebehandlingForKlage(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = ferdigstiltKlagebehandling.id,
+                søknadId = null,
+                vedtakIdSomOmgjøres = ferdigstiltKlagebehandling.formkrav.vedtakDetKlagesPå!!.toString(),
+                type = "REVURDERING_OMGJØRING",
+            )!!
+            // bare en sanity check på at vi får feil
+            opprettRammebehandlingForKlage(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = ferdigstiltKlagebehandling.id,
+                søknadId = null,
+                vedtakIdSomOmgjøres = ferdigstiltKlagebehandling.formkrav.vedtakDetKlagesPå.toString(),
+                type = "REVURDERING_OMGJØRING",
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    """
+                        {
+                          "melding": "Det finnes allerede en åpen rammebehandling ${opprettetRammebehandling.id} for denne klagebehandlingen.",
+                          "kode": "finnes_åpen_rammebehandling"
+                        }
+                    """.trimIndent()
+                },
+            )
+            val opprinneligvedtaksperiode = sak.vedtaksliste.rammevedtaksliste.single { it.id == ferdigstiltKlagebehandling.formkrav.vedtakDetKlagesPå }
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = opprettetRammebehandling.id,
+                saksbehandler = saksbehandler,
+                vedtaksperiode = opprinneligvedtaksperiode.periode,
+            )
+            sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = opprettetRammebehandling.id,
+                saksbehandler = saksbehandler,
+            )
+            val beslutter = ObjectMother.beslutter()
+            taBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = opprettetRammebehandling.id,
+                saksbehandler = beslutter,
+            )
+            val (_, nyttRammevedtak) = iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = opprettetRammebehandling.id,
+                beslutter = beslutter,
+            )!!
+
+            // andre behandling på ferdigstile klagebehandlingen
+            val (_, andreRammebehandling) = opprettRammebehandlingForKlage(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = ferdigstiltKlagebehandling.id,
+                søknadId = null,
+                vedtakIdSomOmgjøres = nyttRammevedtak.id.toString(),
+                type = "REVURDERING_OMGJØRING",
+            )!!
+
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = andreRammebehandling.id,
+                saksbehandler = saksbehandler,
+                vedtaksperiode = nyttRammevedtak.periode,
+            )
+            sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = andreRammebehandling.id,
+                saksbehandler = saksbehandler,
+            )
+            val andreRammebehandlingBeslutter = ObjectMother.beslutter()
+            taBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = andreRammebehandling.id,
+                saksbehandler = andreRammebehandlingBeslutter,
+            )
+            iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = andreRammebehandling.id,
+                beslutter = andreRammebehandlingBeslutter,
+            )!!
         }
     }
 }

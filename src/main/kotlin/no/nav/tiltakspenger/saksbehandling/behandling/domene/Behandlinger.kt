@@ -107,45 +107,51 @@ data class Behandlinger(
         require(slåttSammen.distinctBy { it.id }.size == slåttSammen.size) {
             "Behandlingene må ha unike IDer."
         }
-        klagebehandlinger.filter { it.rammebehandlingId != null }.forEach { klagebehandling ->
-            val rammebehandling = klagebehandling.rammebehandlingId!!.let { klagensRammebehandlingId ->
-                rammebehandlinger.single { it.id == klagensRammebehandlingId }
+        klagebehandlinger.filter { it.rammebehandlingId.isNotEmpty() }.forEach { klagebehandling ->
+            val rammebehandlinger = klagebehandling.rammebehandlingId.let { klagensRammebehandlingId ->
+                rammebehandlinger.filter { klagensRammebehandlingId.contains(it.id) }
             }
-            require(rammebehandling.klagebehandling == klagebehandling) {
-                "Klagebehandling ${klagebehandling.id} er tilknyttet rammebehandling ${rammebehandling.id}, men objektene er ikke identiske."
+
+            // Det skal kun være én rammebehandling som er under behandling for en gitt klagebehandling
+            require(rammebehandlinger.singleOrNull { it.erUnderAktivBehandling } != null || rammebehandlinger.all { it.erAvsluttet }) {
+                "Klagebehandling ${klagebehandling.id} er tilknyttet flere rammebehandlinger som er under aktiv behandling"
             }
-            when (klagebehandling.status) {
-                Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> require(rammebehandling.status == Rammebehandlingsstatus.KLAR_TIL_BEHANDLING) {
-                    "Forventet at rammebehandling ${rammebehandling.id} er KLAR_TIL_BEHANDLING når klagebehandling ${klagebehandling.id} er KLAR_TIL_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
+
+            // Alle rammebehandlinger som er tilknyttet en klagebehandling skal være i en status som er konsistent med klagebehandlingens status
+            rammebehandlinger.forEach { rammebehandling ->
+                require(rammebehandling.klagebehandling == klagebehandling) {
+                    "Klagebehandling ${klagebehandling.id} er tilknyttet rammebehandling ${rammebehandling.id}, men objektene er ikke identiske."
                 }
+                when (klagebehandling.status) {
+                    Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> require(rammebehandling.status == Rammebehandlingsstatus.KLAR_TIL_BEHANDLING) {
+                        "Forventet at rammebehandling ${rammebehandling.id} er KLAR_TIL_BEHANDLING når klagebehandling ${klagebehandling.id} er KLAR_TIL_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
+                    }
 
-                Klagebehandlingsstatus.UNDER_BEHANDLING,
-                Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS,
-                -> require(
-                    rammebehandling.status in listOf(
-                        Rammebehandlingsstatus.UNDER_BEHANDLING,
-                        Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
-                        Rammebehandlingsstatus.UNDER_BESLUTNING,
-                    ),
-                ) {
-                    "Forventet at rammebehandling ${rammebehandling.id} er [UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING] når klagebehandling ${klagebehandling.id} er UNDER_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
+                    Klagebehandlingsstatus.UNDER_BEHANDLING,
+                    Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS,
+                    -> require(
+                        rammebehandling.status in listOf(
+                            Rammebehandlingsstatus.UNDER_BEHANDLING,
+                            Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
+                            Rammebehandlingsstatus.UNDER_BESLUTNING,
+                        ),
+                    ) {
+                        "Forventet at rammebehandling ${rammebehandling.id} er [UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING] når klagebehandling ${klagebehandling.id} er UNDER_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
+                    }
+
+                    Klagebehandlingsstatus.VEDTATT -> require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT)
+
+                    Klagebehandlingsstatus.AVBRUTT -> throw IllegalStateException(
+                        "En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling",
+                    )
+
+                    Klagebehandlingsstatus.OPPRETTHOLDT,
+                    Klagebehandlingsstatus.OVERSENDT,
+                    Klagebehandlingsstatus.OVERSEND_FEILET,
+                    Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS,
+                    Klagebehandlingsstatus.FERDIGSTILT,
+                    -> Unit
                 }
-
-                Klagebehandlingsstatus.VEDTATT -> require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT)
-
-                Klagebehandlingsstatus.AVBRUTT -> throw IllegalStateException(
-                    "En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling",
-                )
-
-                Klagebehandlingsstatus.OPPRETTHOLDT,
-                Klagebehandlingsstatus.OVERSENDT,
-                Klagebehandlingsstatus.OVERSEND_FEILET,
-                Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS,
-                -> Unit
-
-                Klagebehandlingsstatus.FERDIGSTILT -> throw IllegalStateException(
-                    "En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling",
-                )
             }
         }
         // Siden [Rammebehandling] er "eieren" av relasjonen til [Klagebehandling], sjekker vi statusen i initen til implementasjonene av [Rammebehandling].

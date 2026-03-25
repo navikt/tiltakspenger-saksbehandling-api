@@ -24,17 +24,11 @@ suspend fun Sak.startRevurdering(
     val nå = nå(clock)
 
     val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let {
-        hentKlagebehandling(it).let { klagebehandling ->
-            if (klagebehandling.erFerdigstilt) {
-                klagebehandling
-            } else {
-                klagebehandling.oppdaterRammebehandlingId(
-                    rammebehandlingId = kommando.revurderingId,
-                    saksbehandler = kommando.saksbehandler!!,
-                    sistEndret = nå,
-                )
-            }
-        }
+        hentKlagebehandling(it).oppdaterRammebehandlingId(
+            rammebehandlingId = kommando.revurderingId,
+            saksbehandler = kommando.saksbehandler!!,
+            sistEndret = nå,
+        )
     }
 
     val revurdering = when (kommando.revurderingType) {

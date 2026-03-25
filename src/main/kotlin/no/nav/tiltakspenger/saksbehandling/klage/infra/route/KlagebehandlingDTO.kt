@@ -40,6 +40,8 @@ data class KlagebehandlingDTO(
     /** Vil være null mens den ikke er på vent. */
     val ventestatus: VentestatusHendelseDTO?,
     val formkrav: KlageFormkravDTO,
+    val tilknyttedeRammebehandlingIder: List<String>,
+    val åpenRammebehandlingId: String?,
 )
 
 data class KlageFormkravDTO(
@@ -92,7 +94,6 @@ sealed interface KlagebehandlingsresultatDTO {
     data class Omgjør(
         val årsak: String,
         val begrunnelse: String,
-        val rammebehandlingId: String?,
         override val begrunnelseFerdigstilling: String?,
     ) : KlagebehandlingsresultatDTO {
         override val type = KlageresultatstypeDto.OMGJØR
@@ -133,6 +134,8 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
     resultat = resultat?.tilKlagebehandlingsresultatDTO(),
     formkrav = formkrav.toDTO(),
+    tilknyttedeRammebehandlingIder = rammebehandlingId.map { it.toString() },
+    åpenRammebehandlingId = åpenRammebehandlingId?.toString(),
 )
 
 fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): KlagebehandlingsresultatDTO {
@@ -146,7 +149,6 @@ fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): Klagebehandlingsr
         is Klagebehandlingsresultat.Omgjør -> KlagebehandlingsresultatDTO.Omgjør(
             årsak = årsak.name,
             begrunnelse = begrunnelse.verdi,
-            rammebehandlingId = rammebehandlingId?.toString(),
             begrunnelseFerdigstilling = begrunnelseFerdigstilling?.verdi,
         )
 

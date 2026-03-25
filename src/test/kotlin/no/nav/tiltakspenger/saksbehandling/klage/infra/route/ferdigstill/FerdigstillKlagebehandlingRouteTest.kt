@@ -1,34 +1,21 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.ferdigstill
 
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
-import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
-import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenerererKlageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.`opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling`
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillKlagebehandlingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillOppretholdtKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgMottaOppretholdtKlagebehandlingFraKa
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -89,8 +76,6 @@ class FerdigstillKlagebehandlingRouteTest {
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val (sak, klagebehandling, json) = opprettSakOgFerdigstillOppretholdtKlagebehandling(
                 tac = tac,
-                forventetStatus = HttpStatusCode.InternalServerError,
-                forventetJsonBody = { """{"kode": "server_feil","melding": "Noe gikk galt på serversiden"}""" },
                 hendelseGenerering = { _, klagebehandling ->
                     GenerererKlageinstanshendelse.avsluttetJson(
                         eventId = UUID.randomUUID().toString(),
@@ -109,6 +94,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OPPRETTHOLDT",
                 vedtakDetKlagesPå = sak.rammevedtaksliste.first().id.toString(),
+                behandlingDetKlagesPå = klagebehandling.formkrav.behandlingDetKlagesPå?.toString(),
                 status = "FERDIGSTILT",
                 kanIverksetteVedtak = null,
                 rammebehandlingId = null,
@@ -123,8 +109,8 @@ class FerdigstillKlagebehandlingRouteTest {
                 distribusjonstidspunktInnstillingsbrev = true,
                 oversendtKlageinstansenTidspunkt = true,
                 ferdigstiltTidspunkt = true,
-                journalpostIdInnstillingsbrev = "2",
-                dokumentInfoIder = listOf("1"),
+                journalpostIdInnstillingsbrev = klagebehandling.journalpostIdInnstillingsbrev!!.toString(),
+                dokumentInfoIder = klagebehandling.dokumentInfoIder.map { it.toString() },
                 klageinstanshendelser = listOf(
                     """
                      {
@@ -170,10 +156,46 @@ class FerdigstillKlagebehandlingRouteTest {
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
                 vedtakDetKlagesPå = rammevedtakSøknadsbehandling.id.toString(),
+                behandlingDetKlagesPå = klagebehandling.formkrav.behandlingDetKlagesPå?.toString(),
                 status = "FERDIGSTILT",
                 rammebehandlingId = null,
                 ferdigstiltTidspunkt = true,
                 iverksattTidspunkt = null,
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke ferdigstille en klagebehandling (opprettholdelse) som har en aktiv rammebehandling`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, oversendtKlagebehandling, _) = opprettSakOgMottaOppretholdtKlagebehandlingFraKa(
+                tac = tac,
+            )!!
+
+            val (_, opprettetRammebehandling) = opprettRammebehandlingForKlage(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = oversendtKlagebehandling.id,
+                søknadId = null,
+                vedtakIdSomOmgjøres = oversendtKlagebehandling.formkrav.vedtakDetKlagesPå!!.toString(),
+                type = "REVURDERING_OMGJØRING",
+            )!!
+
+            ferdigstillKlagebehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = opprettetRammebehandling.klagebehandling!!.id,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    //language=json
+                    """
+                        {
+                          "kode": "klagebehandling_er_knyttet_til_rammebehandling",
+                          "melding": "Klagebehandlingen er knyttet til en rammebehandling og kan derfor ikke ferdigstilles. Rammebehandlingen må enten avbrytes, eller vedtas"
+                        }
+                    """.trimIndent()
+                },
             )
         }
     }
@@ -228,6 +250,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
                 vedtakDetKlagesPå = rammevedtakSøknadsbehandling.id.toString(),
+                behandlingDetKlagesPå = klagebehandling.formkrav.behandlingDetKlagesPå?.toString(),
                 status = "FERDIGSTILT",
                 rammebehandlingId = null,
                 ferdigstiltTidspunkt = true,

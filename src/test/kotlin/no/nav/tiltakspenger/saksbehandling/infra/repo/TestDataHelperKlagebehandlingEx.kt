@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KlagebehandlingBrev
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.oppdaterBrevtekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.FerdigstillKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.ferdigstill
+import no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill.ferdigstillKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.KlagehendelseId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OpprettholdKlagebehandlingKommando
@@ -327,7 +327,7 @@ internal fun TestDataHelper.persisterFerdigstiltKlagebehandling(
         klageinstanshendelser = klageinstanshendelser,
     )
 
-    val (ferdigstiltKlagebehandling, _) = klagebehandling.ferdigstill(
+    val (ferdigstiltKlagebehandling, _) = sak.ferdigstillKlagebehandling(
         kommando = FerdigstillKlagebehandlingKommando(
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,

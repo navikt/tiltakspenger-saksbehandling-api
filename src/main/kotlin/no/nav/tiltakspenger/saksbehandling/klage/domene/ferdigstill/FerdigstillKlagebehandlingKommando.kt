@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.ferdigstill
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 
 data class FerdigstillKlagebehandlingKommando(
     val sakId: SakId,

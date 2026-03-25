@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent
 
 import arrow.core.Either
-import arrow.core.Tuple4
 import arrow.core.right
+import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -19,7 +19,9 @@ suspend fun Sak.settKlagebehandlingPåVent(
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeSetteKlagebehandlingPåVent, Triple<Sak, Klagebehandling, Rammebehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
-        val rammebehandling = klagebehandling.rammebehandlingId?.let { this.hentRammebehandling(it) }
+        val rammebehandling = klagebehandling.rammebehandlingId.let { rammebehandlingId ->
+            rammebehandlingId.map { this.hentRammebehandling(it) }.singleOrNullOrThrow { it?.erUnderAktivBehandling == true }
+        }
         if (rammebehandling != null) {
             return settRammebehandlingPåVent(
                 SettRammebehandlingPåVentKommando(
