@@ -92,7 +92,7 @@ sealed interface KlagebehandlingsresultatDTO {
     data class Omgjør(
         val årsak: String,
         val begrunnelse: String,
-        val rammebehandlingId: String?,
+        val rammebehandlingId: List<String>,
         override val begrunnelseFerdigstilling: String?,
     ) : KlagebehandlingsresultatDTO {
         override val type = KlageresultatstypeDto.OMGJØR
@@ -146,7 +146,7 @@ fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): Klagebehandlingsr
         is Klagebehandlingsresultat.Omgjør -> KlagebehandlingsresultatDTO.Omgjør(
             årsak = årsak.name,
             begrunnelse = begrunnelse.verdi,
-            rammebehandlingId = rammebehandlingId?.toString(),
+            rammebehandlingId = rammebehandlingId?.map { it.toString() } ?: emptyList(),
             begrunnelseFerdigstilling = begrunnelseFerdigstilling?.verdi,
         )
 

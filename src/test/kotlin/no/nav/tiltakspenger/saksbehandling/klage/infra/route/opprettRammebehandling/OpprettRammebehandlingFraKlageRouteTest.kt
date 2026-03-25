@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.februar
@@ -49,7 +50,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
                 ),
@@ -226,7 +227,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
                 ),
@@ -328,7 +329,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
                 ),

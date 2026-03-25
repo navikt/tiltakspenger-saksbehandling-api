@@ -4,16 +4,33 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
 import java.time.Clock
 
+fun Sak.ferdigstillKlagebehandling(
+    kommando: FerdigstillKlagebehandlingKommando,
+    clock: Clock,
+): Either<KunneIkkeFerdigstilleKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    val klagebehandling = this.hentKlagebehandling(kommando.klagebehandlingId)
+
+    val tilknyttedeRammebehandlinger = klagebehandling.rammebehandlingId.let { rammebehandlingId ->
+        rammebehandlingId.mapNotNull { this.hentRammebehandling(it) }
+    }
+
+    return klagebehandling.ferdigstill(kommando, tilknyttedeRammebehandlinger, clock)
+}
+
 fun Klagebehandling.ferdigstill(
     kommando: FerdigstillKlagebehandlingKommando,
+    rammebehandlinger: List<Rammebehandling>,
     clock: Clock,
 ): Either<KunneIkkeFerdigstilleKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
@@ -25,6 +42,16 @@ fun Klagebehandling.ferdigstill(
 
     if (this.resultat !is Klagebehandlingsresultat.Opprettholdt && this.resultat !is Klagebehandlingsresultat.Omgjør) {
         return KunneIkkeFerdigstilleKlagebehandling.ResultatMåVæreOpprettholdtEllerOmgjør.left()
+    }
+
+    rammebehandlinger.forEach { rammebehandling ->
+        require(this.rammebehandlingId.contains(rammebehandling.id)) {
+            "Klagebehandling $id på sak $sakId har rammebehandlingId ${this.rammebehandlingId} som ikke finnes i listen over rammebehandlinger"
+        }
+    }
+
+    if (!rammebehandlinger.all { it.erAvsluttet }) {
+        return KunneIkkeFerdigstilleKlagebehandling.BehandlingErKnyttetTilEnRammebehandling.left()
     }
 
     return when (this.resultat) {
@@ -50,7 +77,7 @@ private fun Klagebehandling.ferdigstillOpprettholdelse(
     val oppdatertKlagebehandling = this.copy(
         status = Klagebehandlingsstatus.FERDIGSTILT,
         sistEndret = ferdigstiltTidspunkt,
-        resultat = this.resultat.oppdaterFerdigstilt(ferdigstiltTidspunkt, command.begrunnelse),
+        resultat = this.resultat.ferdigstill(ferdigstiltTidspunkt, command.begrunnelse),
     )
     val statistikkhendelser = Statistikkhendelser(
         oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.AVSLUTTET_BEHANDLING),
@@ -66,16 +93,12 @@ private fun Klagebehandling.feridgstillOmgjør(
         "Klagebehandling $id på sak $sakId må ha resultat Omgjør for å ferdigstilles ved omgjør"
     }
 
-    if (this.resultat.rammebehandlingId != null) {
-        return KunneIkkeFerdigstilleKlagebehandling.BehandlingErKnyttetTilEnRammebehandling.left()
-    }
-
     val ferdigstiltTidspunkt = nå(clock)
 
     val oppdatertKlagebehandling = this.copy(
         status = Klagebehandlingsstatus.FERDIGSTILT,
         sistEndret = ferdigstiltTidspunkt,
-        resultat = this.resultat.oppdaterFerdigstilt(ferdigstiltTidspunkt, command.begrunnelse),
+        resultat = this.resultat.ferdigstill(ferdigstiltTidspunkt, command.begrunnelse),
     )
     val statistikkhendelser = Statistikkhendelser(
         oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.AVSLUTTET_BEHANDLING),

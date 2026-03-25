@@ -188,7 +188,7 @@ class AvbrytKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                      {
-                        "melding": "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: $rammebehandlingId",
+                        "melding": "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: [$rammebehandlingId]",
                         "kode": "knyttet_til_ikke_avbrutt_rammebehandling"
                      }
                     """.trimIndent()

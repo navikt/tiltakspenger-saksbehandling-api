@@ -17,6 +17,12 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenerererKlageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillKlagebehandlingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillOppretholdtKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgMottaOppretholdtKlagebehandlingFraKa
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
@@ -174,6 +180,41 @@ class FerdigstillKlagebehandlingRouteTest {
                 rammebehandlingId = null,
                 ferdigstiltTidspunkt = true,
                 iverksattTidspunkt = null,
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke ferdigstille en klagebehandling (opprettholdelse) som har en aktiv rammebehandling`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, oversendtKlagebehandling, _) = opprettSakOgMottaOppretholdtKlagebehandlingFraKa(
+                tac = tac,
+            )!!
+
+            val (_, opprettetRammebehandling) = opprettRammebehandlingForKlage(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = oversendtKlagebehandling.id,
+                søknadId = null,
+                vedtakIdSomOmgjøres = oversendtKlagebehandling.formkrav.vedtakDetKlagesPå!!.toString(),
+                type = "REVURDERING_OMGJØRING",
+            )!!
+
+            ferdigstillKlagebehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = opprettetRammebehandling.klagebehandling!!.id,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    //language=json
+                    """
+                        {
+                          "kode": "klagebehandling_er_knyttet_til_rammebehandling",
+                          "melding": "Klagebehandlingen er knyttet til en rammebehandling og kan derfor ikke ferdigstilles. Rammebehandlingen må enten avbrytes, eller vedtas"
+                        }
+                    """.trimIndent()
+                },
             )
         }
     }

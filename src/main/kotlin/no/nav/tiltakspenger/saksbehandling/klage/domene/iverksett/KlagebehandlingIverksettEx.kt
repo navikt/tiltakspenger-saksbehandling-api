@@ -29,7 +29,7 @@ fun Klagebehandling.iverksettOmgjøring(
             status.toString(),
         ).left()
     }
-    require(resultat.rammebehandlingId != null) { "RammebehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
+    require(resultat.rammebehandlingId.isNotEmpty()) { "RammebehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
     // Vi aksepterer at den er null, siden denne funksjonen kun skal kalles fra Rammebehandling.
     require(kanIverksetteVedtak != false) { "Dette skal være håndtert over. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
 
@@ -97,7 +97,7 @@ fun Klagebehandling.iverksettOpprettholdelse(
             actualStatus = status.toString(),
         ).left()
     }
-    require(resultat.rammebehandlingId != null) { "RammebehandlingId skal ikke være null ved iverksettelse av opprettholdelse. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
+    require(resultat.rammebehandlingId.isNotEmpty()) { "RammebehandlingId skal ikke være null ved iverksettelse av opprettholdelse. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
     // Vi aksepterer at den er null, siden denne funksjonen kun skal kalles fra Rammebehandling.
     require(kanIverksetteVedtak != false) { "Dette skal være håndtert over. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
     val oppdatertKlagebehandling = this.copy(

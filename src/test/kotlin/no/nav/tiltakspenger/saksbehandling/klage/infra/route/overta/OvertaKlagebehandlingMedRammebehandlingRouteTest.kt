@@ -36,7 +36,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 kanIverksetteVedtak = null,
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
-                rammebehandlingId = "${rammebehandlingMedKlagebehandling.id}",
+                rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
             )
             rammebehandlingMedKlagebehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
             rammebehandlingMedKlagebehandling.saksbehandler shouldBe "saksbehandlerSomOvertarKlagebehandling"
@@ -77,7 +77,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 vedtakDetKlagesPå = "${sak.rammevedtaksliste.first().id}",
                 behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
                 kanIverksetteVedtak = null,
-                rammebehandlingId = "${rammebehandlingMedKlagebehandling.id}",
+                rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
                 status = "OMGJØRING_ETTER_KLAGEINSTANS",
                 brevtekst = listOf(
                     """{"tittel":"Hva klagesaken gjelder","tekst":"Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
