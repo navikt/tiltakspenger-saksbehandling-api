@@ -25,7 +25,7 @@ data class Klagevedtak(
     val vedtaksdato: LocalDate?,
     val sendtTilDatadeling: LocalDateTime?,
 ) : Vedtak {
-
+    override val behandlingId: KlagebehandlingId = behandling.id
     override val beregning: Beregning? = null
     override val utbetaling: VedtattUtbetaling? = null
     override val beslutter: String? = null

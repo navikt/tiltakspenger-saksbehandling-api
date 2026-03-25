@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.opprett
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -27,9 +28,10 @@ data class OpprettKlagebehandlingKommando(
     val innsendingskilde: KlageInnsendingskilde,
     val correlationId: CorrelationId,
 ) {
-    fun toKlageFormkrav(): KlageFormkrav {
+    fun toKlageFormkrav(behandlingDetKlagesPå: BehandlingId?): KlageFormkrav {
         return KlageFormkrav(
             vedtakDetKlagesPå = vedtakDetKlagesPå,
+            behandlingDetKlagesPå = behandlingDetKlagesPå,
             erKlagerPartISaken = erKlagerPartISaken,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
             erKlagefristenOverholdt = erKlagefristenOverholdt,

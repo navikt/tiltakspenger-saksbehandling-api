@@ -61,6 +61,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         journalpostOpprettet: LocalDateTime = LocalDateTime.now(clock),
         journalpostId: JournalpostId = JournalpostId("journalpostId"),
         vedtakDetKlagesPå: VedtakId? = null,
+        behandlingDetKlagesPå: BehandlingId? = null,
         erKlagerPartISaken: Boolean = true,
         klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
         erKlagefristenOverholdt: Boolean = true,
@@ -70,6 +71,11 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         innsendingskilde: KlageInnsendingskilde = KlageInnsendingskilde.DIGITAL,
         correlationId: CorrelationId = CorrelationId.generate(),
     ): Klagebehandling {
+        if (behandlingDetKlagesPå != null || vedtakDetKlagesPå != null) {
+            require(vedtakDetKlagesPå != null && behandlingDetKlagesPå != null) {
+                "vedtakDetKlagesPå og behandlingDetKlagesPå må begge være null eller satt. sakId: $sakId, klagebehandlingId: $id"
+            }
+        }
         return runBlocking {
             Klagebehandling.opprett(
                 id = id,
@@ -91,6 +97,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
                     innsendingskilde = innsendingskilde,
                     correlationId = correlationId,
                 ),
+                behandlingDetKlagesPå = behandlingDetKlagesPå,
             )
         }
     }
@@ -101,8 +108,12 @@ interface KlagebehandlingMother : MotherOfAllMothers {
     ): Klagebehandling {
         val clock = TikkendeKlokke()
         val correlationId: CorrelationId = CorrelationId.generate()
-        val opprettetKlagebehandling =
-            opprettKlagebehandling(vedtakDetKlagesPå = VedtakId.random(), clock = clock, correlationId = correlationId)
+        val opprettetKlagebehandling = opprettKlagebehandling(
+            vedtakDetKlagesPå = VedtakId.random(),
+            behandlingDetKlagesPå = BehandlingId.random(),
+            clock = clock,
+            correlationId = correlationId,
+        )
         val vurdertKlagebehandling = opprettetKlagebehandling.vurder(
             kommando = VurderOpprettholdKlagebehandlingKommando(
                 sakId = opprettetKlagebehandling.sakId,
@@ -136,7 +147,12 @@ interface KlagebehandlingMother : MotherOfAllMothers {
             ),
         ).getOrFail()
         return iverksattOpprettholdt
-            .oppdaterInnstillingsbrevJournalpost(LocalDate.now(fixedClock), innstillingsbrevJournalpostId, dokumentInfoIder, nå)
+            .oppdaterInnstillingsbrevJournalpost(
+                LocalDate.now(fixedClock),
+                innstillingsbrevJournalpostId,
+                dokumentInfoIder,
+                nå,
+            )
             .oppdaterInnstillingsbrevDistribusjon(DistribusjonId("distribusjonId"), nå)
     }
 

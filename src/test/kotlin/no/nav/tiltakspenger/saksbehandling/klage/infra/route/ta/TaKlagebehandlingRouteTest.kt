@@ -24,6 +24,7 @@ class TaKlagebehandlingRouteTest {
                 saksbehandler = "saksbehandlerSomTar",
                 resultat = null,
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
+                behandlingDetKlagesPå = "${rammevedtakSøknadsbehandling.behandlingId}",
                 status = "UNDER_BEHANDLING",
             )
         }
@@ -46,6 +47,7 @@ class TaKlagebehandlingRouteTest {
                 saksbehandler = "saksbehandlerSomOvertar",
                 resultat = null,
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
+                behandlingDetKlagesPå = "${rammevedtakSøknadsbehandling.behandlingId}",
                 status = "UNDER_BEHANDLING",
             )
         }

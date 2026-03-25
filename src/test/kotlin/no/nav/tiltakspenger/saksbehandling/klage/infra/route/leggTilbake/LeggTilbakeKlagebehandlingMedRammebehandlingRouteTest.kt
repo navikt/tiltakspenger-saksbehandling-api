@@ -32,6 +32,7 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
                 status = "KLAR_TIL_BEHANDLING",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = "${sak.rammevedtaksliste.first().id}",
+                behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
                 rammebehandlingId = "${rammebehandlingMedKlagebehandling.id}",

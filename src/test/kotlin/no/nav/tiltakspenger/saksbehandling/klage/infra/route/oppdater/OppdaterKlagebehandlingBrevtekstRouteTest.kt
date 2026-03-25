@@ -39,6 +39,7 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                 fnr = "12345678911",
                 resultat = "OPPRETTHOLDT",
                 vedtakDetKlagesPå = "${rammevedtak.id}",
+                behandlingDetKlagesPå = "${rammevedtak.behandlingId}",
                 kanIverksetteVedtak = null,
                 brevtekst = listOf(
                     """{"tittel": "Hva klagesaken gjelder","tekst": "Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",

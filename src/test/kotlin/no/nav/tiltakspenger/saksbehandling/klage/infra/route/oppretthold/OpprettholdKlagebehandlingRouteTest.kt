@@ -41,6 +41,7 @@ class OpprettholdKlagebehandlingRouteTest {
                 resultat = "OPPRETTHOLDT",
                 kanIverksetteVedtak = null,
                 vedtakDetKlagesPå = "${rammevedtakDetKlagesPå.id}",
+                behandlingDetKlagesPå = "${rammevedtakDetKlagesPå.behandlingId}",
                 brevtekst = listOf(
                     """{"tittel": "Hva klagesaken gjelder","tekst": "Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
                     """{"tittel": "Klagers anførsler","tekst": "<saksbehandler fyller ut>"}""",

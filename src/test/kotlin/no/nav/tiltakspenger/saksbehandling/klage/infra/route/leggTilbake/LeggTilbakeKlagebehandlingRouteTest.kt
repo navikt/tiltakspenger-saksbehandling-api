@@ -24,6 +24,7 @@ class LeggTilbakeKlagebehandlingRouteTest {
                 saksbehandler = null,
                 status = "KLAR_TIL_BEHANDLING",
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
+                behandlingDetKlagesPå = "${rammevedtakSøknadsbehandling.behandlingId}",
             )
         }
     }

@@ -37,16 +37,17 @@ import java.time.LocalDate
  * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.oppdaterKlagebehandlingFormkravRoute]
  */
 interface OppdaterKlagebehandlingFormkravBuilder {
-    /** 1. Oppretter ny sak
+    /**
+     *  Fungerer kun for avvisning siden vi ikke har et rammevedtak og klage på.
+     *  1. Oppretter ny sak
      *  2. Starter klagebehandling til avvisning
      *  3. Oppdaterer formkrav
      */
-    suspend fun ApplicationTestBuilder.opprettSakOgOppdaterKlagebehandlingFormkrav(
+    suspend fun ApplicationTestBuilder.opprettSakOgOppdaterKlagebehandlingTilAvvisning(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         journalpostId: JournalpostId = JournalpostId("12345"),
-        vedtakDetKlagesPå: VedtakId? = null,
         erKlagerPartISaken: Boolean = true,
         klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
         erKlagefristenOverholdt: Boolean = true,
@@ -67,7 +68,7 @@ interface OppdaterKlagebehandlingFormkravBuilder {
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandler,
             journalpostId = journalpostId,
-            vedtakDetKlagesPå = vedtakDetKlagesPå,
+            vedtakDetKlagesPå = null,
             erKlagerPartISaken = erKlagerPartISaken,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
             erKlagefristenOverholdt = erKlagefristenOverholdt,

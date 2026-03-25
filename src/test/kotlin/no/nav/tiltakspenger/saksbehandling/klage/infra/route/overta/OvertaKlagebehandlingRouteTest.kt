@@ -24,6 +24,7 @@ class OvertaKlagebehandlingRouteTest {
                 fnr = "12345678911",
                 saksbehandler = "saksbehandlerSomOvertar",
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
+                behandlingDetKlagesPå = "${rammevedtakSøknadsbehandling.behandlingId}",
             )
         }
     }
@@ -45,6 +46,7 @@ class OvertaKlagebehandlingRouteTest {
                 fnr = "12345678911",
                 saksbehandler = "saksbehandlerSomOvertar",
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
+                behandlingDetKlagesPå = "${rammevedtakSøknadsbehandling.behandlingId}",
             )
         }
     }

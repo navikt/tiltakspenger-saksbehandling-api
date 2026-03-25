@@ -48,6 +48,7 @@ class OpprettKlagebehandlingService(
             opprettet = nå(clock),
             journalpostOpprettet = journalpost.datoOpprettet,
             kommando = kommando,
+            behandlingDetKlagesPå = kommando.vedtakDetKlagesPå?.let { sak.vedtaksliste.hentRammebehandlingForVedtakId(it).id },
         )
 
         val oppdatertSak = sak.leggTilKlagebehandling(klagebehandling)

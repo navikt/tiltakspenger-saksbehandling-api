@@ -45,6 +45,7 @@ data class KlagebehandlingDTO(
 data class KlageFormkravDTO(
     /** Vil være null hvis bruker ikke har klaget på et vedtak. Formkravene vil ikke være oppfylt*/
     val vedtakDetKlagesPå: String?,
+    val behandlingDetKlagesPå: String?,
     val erKlagerPartISaken: Boolean,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
     val erKlagefristenOverholdt: Boolean,
@@ -61,6 +62,7 @@ data class KlageFormkravDTO(
 
 fun KlageFormkrav.toDTO(): KlageFormkravDTO = KlageFormkravDTO(
     vedtakDetKlagesPå = vedtakDetKlagesPå?.toString(),
+    behandlingDetKlagesPå = behandlingDetKlagesPå?.toString(),
     erKlagerPartISaken = erKlagerPartISaken,
     klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
     erKlagefristenOverholdt = erKlagefristenOverholdt,

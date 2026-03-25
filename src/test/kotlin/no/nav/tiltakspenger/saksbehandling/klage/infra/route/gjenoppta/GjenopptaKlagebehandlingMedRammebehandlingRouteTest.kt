@@ -39,6 +39,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = sak.rammevedtaksliste.first().id.toString(),
+                behandlingDetKlagesPå = sak.rammevedtaksliste.first().behandlingId.toString(),
                 status = "UNDER_BEHANDLING",
                 kanIverksetteVedtak = null,
                 årsak = "PROSESSUELL_FEIL",

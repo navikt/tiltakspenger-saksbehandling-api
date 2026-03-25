@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
@@ -94,6 +95,10 @@ data class Vedtaksliste(
 
     fun hentJournalpostIdForVedtakId(vedtakId: VedtakId): JournalpostId {
         return alle.single { it.id == vedtakId }.journalpostId!!
+    }
+
+    fun hentRammebehandlingForVedtakId(vedtakId: VedtakId): Rammebehandling {
+        return rammevedtaksliste.hentRammevedtakForId(vedtakId).rammebehandling
     }
 
     init {

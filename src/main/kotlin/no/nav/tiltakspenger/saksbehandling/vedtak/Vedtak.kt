@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.vedtak
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -16,6 +17,7 @@ import java.time.LocalDateTime
  */
 interface Vedtak {
     val id: VedtakId
+    val behandlingId: Ulid
     val sakId: SakId
     val saksnummer: Saksnummer
     val fnr: Fnr

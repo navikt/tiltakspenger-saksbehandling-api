@@ -47,6 +47,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OPPRETTHOLDT",
                 vedtakDetKlagesPå = sak.rammevedtaksliste.first().id.toString(),
+                behandlingDetKlagesPå = sak.rammevedtaksliste.first().behandlingId.toString(),
                 status = "FERDIGSTILT",
                 kanIverksetteVedtak = null,
                 rammebehandlingId = null,
