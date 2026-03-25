@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -17,6 +18,7 @@ data class OppdaterKlagebehandlingFormkravKommando(
     val saksbehandler: Saksbehandler,
     val journalpostId: JournalpostId,
     val vedtakDetKlagesPå: VedtakId?,
+    val behandlingDetKlagesPå: BehandlingId?,
     val erKlagerPartISaken: Boolean,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
     val erKlagefristenOverholdt: Boolean,
@@ -29,6 +31,7 @@ data class OppdaterKlagebehandlingFormkravKommando(
     fun toKlageFormkrav(): KlageFormkrav {
         return KlageFormkrav(
             vedtakDetKlagesPå = vedtakDetKlagesPå,
+            behandlingDetKlagesPå = behandlingDetKlagesPå,
             erKlagerPartISaken = erKlagerPartISaken,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
             erKlagefristenOverholdt = erKlagefristenOverholdt,

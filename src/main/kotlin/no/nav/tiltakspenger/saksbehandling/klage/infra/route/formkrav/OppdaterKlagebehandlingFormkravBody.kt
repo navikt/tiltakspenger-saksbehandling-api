@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -12,6 +13,7 @@ import java.time.LocalDate
 data class OppdaterKlagebehandlingFormkravBody(
     val journalpostId: String,
     val vedtakDetKlagesPå: String?,
+    val behandlingDetKlagesPå: String?,
     val erKlagerPartISaken: Boolean,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
     val erKlagefristenOverholdt: Boolean,
@@ -32,6 +34,7 @@ data class OppdaterKlagebehandlingFormkravBody(
             saksbehandler = saksbehandler,
             journalpostId = JournalpostId(journalpostId),
             vedtakDetKlagesPå = vedtakDetKlagesPå?.let { VedtakId.fromString(it) },
+            behandlingDetKlagesPå = behandlingDetKlagesPå?.let { BehandlingId.fromString(it) },
             erKlagerPartISaken = erKlagerPartISaken,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
             erKlagefristenOverholdt = erKlagefristenOverholdt,

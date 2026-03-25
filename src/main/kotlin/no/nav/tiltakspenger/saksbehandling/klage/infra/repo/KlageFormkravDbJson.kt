@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
@@ -40,6 +41,7 @@ enum class KlageInnsendingskildeDb {
 
 private data class KlagebehandlingFormkravDbJson(
     val vedtakDetKlagesPå: String?,
+    val behandlingDetKlagesPå: String?,
     val erKlagerPartISaken: Boolean,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
     val erKlagefristenOverholdt: Boolean,
@@ -51,6 +53,7 @@ private data class KlagebehandlingFormkravDbJson(
     fun toDomain(): KlageFormkrav {
         return KlageFormkrav(
             vedtakDetKlagesPå = vedtakDetKlagesPå?.let { VedtakId.fromString(it) },
+            behandlingDetKlagesPå = behandlingDetKlagesPå?.let { BehandlingId.fromString(it) },
             erKlagerPartISaken = erKlagerPartISaken,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
             erKlagefristenOverholdt = erKlagefristenOverholdt,
@@ -88,6 +91,7 @@ enum class KlagefristUnntakSvarordDb {
 fun KlageFormkrav.toDbJson(): String {
     return KlagebehandlingFormkravDbJson(
         vedtakDetKlagesPå = vedtakDetKlagesPå?.toString(),
+        behandlingDetKlagesPå = behandlingDetKlagesPå?.toString(),
         erKlagerPartISaken = erKlagerPartISaken,
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erKlagefristenOverholdt = erKlagefristenOverholdt,
