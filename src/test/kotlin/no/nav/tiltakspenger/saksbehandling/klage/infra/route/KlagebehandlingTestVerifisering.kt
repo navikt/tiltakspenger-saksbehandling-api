@@ -18,6 +18,7 @@ fun String.shouldBeKlagebehandlingDTO(
     status: String = "UNDER_BEHANDLING",
     resultat: String? = null,
     vedtakDetKlagesPå: String? = null,
+    behandlingDetKlagesPå: String? = null,
     erKlagerPartISaken: Boolean = true,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erKlagefristenOverholdt: Boolean = true,
@@ -102,6 +103,7 @@ fun String.shouldBeKlagebehandlingDTO(
          "ventestatus": $ventestatus,
          "formkrav": {
            "vedtakDetKlagesPå": ${vedtakDetKlagesPå.toJsonValue()},
+           "behandlingDetKlagesPå": ${behandlingDetKlagesPå.toJsonValue()},
            "erKlagerPartISaken": $erKlagerPartISaken,
            "klagesDetPåKonkreteElementerIVedtaket": $klagesDetPåKonkreteElementerIVedtaket,
            "erKlagefristenOverholdt": $erKlagefristenOverholdt,

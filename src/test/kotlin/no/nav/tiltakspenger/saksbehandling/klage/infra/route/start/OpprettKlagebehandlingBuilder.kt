@@ -96,6 +96,7 @@ interface OpprettKlagebehandlingBuilder {
         tac: TestApplicationContext,
         saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        fnr: Fnr = ObjectMother.gyldigFnr(),
         journalpostId: JournalpostId = JournalpostId("12345"),
         erKlagerPartISaken: Boolean = true,
         klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
@@ -108,6 +109,7 @@ interface OpprettKlagebehandlingBuilder {
         val (sak, søknad, vedtakSøknadsbehandling, _) = iverksettSøknadsbehandling(
             tac = tac,
             saksbehandler = saksbehandlerSøknadsbehandling,
+            fnr = fnr,
         )
         val (oppdatertSak, klagebehandling, klagebehandlingJson) = this.opprettKlagebehandlingForSakId(
             tac = tac,

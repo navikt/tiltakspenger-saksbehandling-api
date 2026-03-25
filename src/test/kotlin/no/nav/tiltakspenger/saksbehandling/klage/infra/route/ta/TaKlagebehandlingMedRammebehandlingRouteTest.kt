@@ -27,6 +27,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 saksbehandler = "saksbehandlerSomTarKlagebehandling",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = "${sak.rammevedtaksliste.first().id}",
+                behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
                 kanIverksetteVedtak = null,
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",

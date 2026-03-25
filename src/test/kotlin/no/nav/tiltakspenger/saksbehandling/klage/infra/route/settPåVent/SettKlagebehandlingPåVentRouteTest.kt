@@ -24,6 +24,7 @@ class SettKlagebehandlingPåVentRouteTest {
                 saksbehandler = null,
                 status = "KLAR_TIL_BEHANDLING",
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
+                behandlingDetKlagesPå = "${rammevedtakSøknadsbehandling.behandlingId}",
                 ventestatus = """{"sattPåVentAv": "saksbehandlerKlagebehandling","tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}""",
             )
         }

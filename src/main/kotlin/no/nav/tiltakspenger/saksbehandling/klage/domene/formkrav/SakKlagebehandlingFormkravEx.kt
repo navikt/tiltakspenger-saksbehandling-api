@@ -13,8 +13,11 @@ fun Sak.oppdaterKlagebehandlingFormkrav(
     journalpostOpprettet: LocalDateTime,
     clock: Clock,
 ): Either<KanIkkeOppdatereFormkravPåKlagebehandling, Pair<Sak, Klagebehandling>> {
+    val behandlingDetKlagesPå = kommando.vedtakDetKlagesPå?.let {
+        this.vedtaksliste.hentRammebehandlingForVedtakId(it).id
+    }
     return this.hentKlagebehandling(kommando.klagebehandlingId)
-        .oppdaterFormkrav(kommando, journalpostOpprettet, clock)
+        .oppdaterFormkrav(kommando, journalpostOpprettet, clock, behandlingDetKlagesPå)
         .map {
             val oppdatertSak = this.oppdaterKlagebehandling(it)
             Pair(oppdatertSak, it)

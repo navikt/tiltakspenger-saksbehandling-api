@@ -35,6 +35,7 @@ class VurderKlagebehandlingRouteTest {
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
+                behandlingDetKlagesPå = "${rammevedtakSøknadsbehandling.behandlingId}",
                 status = "UNDER_BEHANDLING",
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
@@ -64,6 +65,7 @@ class VurderKlagebehandlingRouteTest {
                 resultat = "OPPRETTHOLDT",
                 kanIverksetteVedtak = null,
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
+                behandlingDetKlagesPå = "${rammevedtakSøknadsbehandling.behandlingId}",
                 status = "UNDER_BEHANDLING",
                 hjemler = listOf("ARBEIDSMARKEDSLOVEN_17", "TILTAKSPENGEFORSKRIFTEN_2"),
             )
@@ -97,6 +99,7 @@ class VurderKlagebehandlingRouteTest {
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = "${vedtakDetKlagesPå.id}",
+                behandlingDetKlagesPå = "${vedtakDetKlagesPå.behandlingId}",
                 status = "UNDER_BEHANDLING",
                 kanIverksetteVedtak = null,
                 årsak = "ANNET",

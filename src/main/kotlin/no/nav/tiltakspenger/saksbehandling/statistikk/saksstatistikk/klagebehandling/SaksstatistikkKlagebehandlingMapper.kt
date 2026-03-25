@@ -23,7 +23,7 @@ fun Klagebehandling.genererSaksstatistikk(
             sakId = this.sakId.toString(),
             saksnummer = this.saksnummer.toString(),
             behandlingId = this.id.toString(),
-            relatertBehandlingId = this.resultat?.rammebehandlingId?.toString(),
+            relatertBehandlingId = this.formkrav.behandlingDetKlagesPå?.toString(),
             fnr = this.fnr.verdi,
             mottattTidspunkt = this.klagensJournalpostOpprettet,
             registrertTidspunkt = this.opprettet,

@@ -23,6 +23,7 @@ class GjenopptaKlagebehandlingRouteTest {
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = null,
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
+                behandlingDetKlagesPå = "${rammevedtakSøknadsbehandling.behandlingId}",
                 status = "UNDER_BEHANDLING",
                 ventestatus = """{"sattPåVentAv": "saksbehandlerKlagebehandling","tidspunkt": "TIMESTAMP","begrunnelse": "","erSattPåVent": false,"frist": null}""",
             )

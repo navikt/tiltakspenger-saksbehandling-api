@@ -33,7 +33,7 @@ data class Meldekortvedtak(
     val meldekortBehandling: MeldekortBehandling.Behandlet,
 ) : Vedtak,
     Periodiserbar {
-
+    override val behandlingId: MeldekortId = meldekortBehandling.id
     override val saksbehandler: String = meldekortBehandling.saksbehandler!!
     override val beslutter: String = meldekortBehandling.beslutter!!
 
