@@ -209,7 +209,7 @@ class OppdaterBeregningOgSimuleringService(
             is Søknadsbehandlingsresultat.Innvilgelse,
             -> this.beregnInnvilgelse(
                 behandlingId = behandlingId,
-                vedtaksperiode = behandling.innvilgelsesperioder!!.totalPeriode,
+                vedtaksperiode = behandling.vedtaksperiode!!,
                 innvilgelsesperioder = behandling.innvilgelsesperioder!!,
                 barnetilleggsperioder = behandling.barnetillegg!!.periodisering,
                 beregningstidspunkt = beregningstidspunkt,
