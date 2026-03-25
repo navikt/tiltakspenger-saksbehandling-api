@@ -1,12 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka
 
+import arrow.core.Either
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.kafka.Consumer
 import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
+import no.nav.tiltakspenger.libs.texas.log
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
@@ -48,31 +51,35 @@ class TilbakekrevingConsumer(
             tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
             sakRepo: SakRepo,
         ) {
+            // OBS: Merk at key er fødselsnummer, så det skal ikke logges.
             if (value == null) {
-                logger.warn { "Mottatt tilbakekrevingshendelse med key $key uten value" }
+                logger.warn { "Mottatt tilbakekrevingshendelse uten value, hendelsen forkastes." }
                 return
-            } else {
-                logger.info { "Mottatt tilbakekrevingshendelse med key $key" }
             }
 
             val hendelse = value.tilNyTilbakekrevingshendelse(key).getOrElse {
-                logger.error(it) { "Mottatt tilbakekrevingshendelse med key $key - Deserialize feilet for value $value" }
+                logger.error(it) { "Mottatt tilbakekrevingshendelse hvor vi ikke klarte deserialisere. Denne vil prøves på nytt." }
                 throw it
             }
 
             if (hendelse == null) {
-                logger.info { "Mottatt tilbakekrevingshendelse med key $key - Deserialisert til null, ignorerer" }
+                logger.debug { "Mottatt tilbakekrevingshendelse som vi tp-sak har produsert, hendelsen forkastes." }
                 return
             }
 
-            logger.info { "Lagrer tilbakekrevingshendelse type ${hendelse.hendelsestype} med key $key" }
-
-            val sakId = sakRepo.hentSakIdForSaksnummer(Saksnummer(hendelse.eksternFagsakId))
+            val sakId: SakId? = Either.catch {
+                sakRepo.hentSakIdForSaksnummer(Saksnummer(hendelse.eksternFagsakId))
+            }.getOrElse {
+                logger.error { "Mottatt tilbakekrevingshendelse. Fant ikke sak for eksternFagsakId ${hendelse.eksternFagsakId}, lagrer hendelse uten sakId" }
+                null
+            }
 
             val bleLagret = tilbakekrevingHendelseRepo.lagreNy(hendelse, sakId, key, value)
 
             if (!bleLagret) {
-                logger.info { "Tilbakekrevingshendelse type ${hendelse.hendelsestype} med key $key ble ikke lagret" }
+                logger.debug { "Tilbakekrevingshendelse type ${hendelse.hendelsestype}. sakId $sakId" }
+            } else {
+                logger.info { "Lagret ny tilbakekrevingshendelse type ${hendelse.hendelsestype}. sakId $sakId" }
             }
         }
     }
