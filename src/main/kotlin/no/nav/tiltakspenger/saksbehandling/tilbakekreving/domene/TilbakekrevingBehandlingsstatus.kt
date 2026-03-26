@@ -6,3 +6,12 @@ enum class TilbakekrevingBehandlingsstatus {
     TIL_GODKJENNING,
     AVSLUTTET,
 }
+
+enum class TilbakekrevingBehandlingsstatusIntern {
+    OPPRETTET,
+    TIL_BEHANDLING,
+    UNDER_BEHANDLING,
+    TIL_GODKJENNING,
+    UNDER_GODKJENNING,
+    AVSLUTTET,
+}

@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 
 private val logger = KotlinLogging.logger {}
 
@@ -122,6 +123,18 @@ internal suspend inline fun ApplicationCall.withBehandlingId(
         parse = BehandlingId::fromString,
         errorMessage = "Ugyldig behandling id",
         errorCode = "ugyldig_behandling_id",
+        onSuccess = onRight,
+    )
+}
+
+internal suspend inline fun ApplicationCall.withTilbakekrevingId(
+    crossinline onRight: suspend (TilbakekrevingId) -> Unit,
+) {
+    withValidParam(
+        paramName = "tilbakekrevingId",
+        parse = TilbakekrevingId::fromString,
+        errorMessage = "Ugyldig tilbakekreving id",
+        errorCode = "ugyldig_tilbakekreving_id",
         onSuccess = onRight,
     )
 }

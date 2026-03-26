@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 
@@ -11,6 +13,70 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
 
     override fun lagre(tilbakekrevingBehandling: TilbakekrevingBehandling, sessionContext: SessionContext?) {
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+    }
+
+    override fun taBehandlingSaksbehandler(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.saksbehandlerIdent != null || existing.status != TilbakekrevingBehandlingsstatus.TIL_BEHANDLING) return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
+    }
+
+    override fun taBehandlingBeslutter(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.beslutterIdent != null || existing.status != TilbakekrevingBehandlingsstatus.TIL_GODKJENNING) return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
+    }
+
+    override fun overtaSaksbehandler(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeSaksbehandler: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.saksbehandlerIdent != nåværendeSaksbehandler || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING) return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
+    }
+
+    override fun overtaBeslutter(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeBeslutter: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.beslutterIdent != nåværendeBeslutter || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING) return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
+    }
+
+    override fun leggTilbakeSaksbehandler(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeSaksbehandler: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.saksbehandlerIdent != nåværendeSaksbehandler || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING) return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
+    }
+
+    override fun leggTilbakeBeslutter(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeBeslutter: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.beslutterIdent != nåværendeBeslutter || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING) return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
     }
 
     override fun hent(id: TilbakekrevingId, sessionContext: SessionContext?): TilbakekrevingBehandling? {

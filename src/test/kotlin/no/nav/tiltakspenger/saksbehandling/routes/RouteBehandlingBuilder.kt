@@ -52,6 +52,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.underkjenn.Unde
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.HentSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.OpprettSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.MottaSøknadRouteBuilder
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.TilbakekrevingBehandlingBuilder
 
 object RouteBehandlingBuilder :
     OpprettSakRouteBuilder,
@@ -105,4 +106,5 @@ object RouteBehandlingBuilder :
     UnderkjennMeldekortbehandlingBuilder,
     ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder,
     FerdigstillKlagebehandlingBuilder,
-    VisInnstillingsbrevKlagebehandlingBuilder
+    VisInnstillingsbrevKlagebehandlingBuilder,
+    TilbakekrevingBehandlingBuilder

@@ -706,6 +706,8 @@ class BenkOversiktPostgresRepoTest {
                 kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
                 totaltFeilutbetaltBeløp = BigDecimal("1000.00"),
                 varselSendt = null,
+                saksbehandlerIdent = null,
+                beslutterIdent = null,
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilBehandling)
 
@@ -721,6 +723,8 @@ class BenkOversiktPostgresRepoTest {
                 kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
                 totaltFeilutbetaltBeløp = BigDecimal("2000.00"),
                 varselSendt = null,
+                saksbehandlerIdent = null,
+                beslutterIdent = null,
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilGodkjenning)
 
@@ -737,6 +741,8 @@ class BenkOversiktPostgresRepoTest {
                 kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
                 totaltFeilutbetaltBeløp = BigDecimal("500.00"),
                 varselSendt = null,
+                saksbehandlerIdent = null,
+                beslutterIdent = null,
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(opprettetTilbakekreving)
 
@@ -752,6 +758,8 @@ class BenkOversiktPostgresRepoTest {
                 kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
                 totaltFeilutbetaltBeløp = BigDecimal("750.00"),
                 varselSendt = null,
+                saksbehandlerIdent = null,
+                beslutterIdent = null,
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(avsluttetTilbakekreving)
 
@@ -819,6 +827,8 @@ class BenkOversiktPostgresRepoTest {
                 kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
                 totaltFeilutbetaltBeløp = BigDecimal("1000.00"),
                 varselSendt = null,
+                saksbehandlerIdent = null,
+                beslutterIdent = null,
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilbakekreving)
 
