@@ -26,6 +26,7 @@ private data class KlagebehandlingsresultatDbJson(
     val omgjørBegrunnelse: String?,
     val omgjørÅrsak: KlagebehandlingsOmgjørÅrsakDbEnum?,
     val rammebehandlingId: List<String>,
+    val åpenRammebehandlingId: String?,
     val hjemler: List<KlagehjemmelDb>?,
     val iverksattOpprettholdelseTidspunkt: LocalDateTime?,
     val brevdato: LocalDate?,
@@ -60,6 +61,7 @@ private data class KlagebehandlingsresultatDbJson(
                 årsak = omgjørÅrsak!!.toDomain(),
                 begrunnelse = Begrunnelse.create(omgjørBegrunnelse!!)!!,
                 rammebehandlingId = rammebehandlingId.map { BehandlingId.fromString(it) },
+                åpenRammebehandlingId = åpenRammebehandlingId?.let { BehandlingId.fromString(it) },
                 ferdigstiltTidspunkt = ferdigstiltTidspunkt,
                 begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
             )
@@ -79,6 +81,7 @@ private data class KlagebehandlingsresultatDbJson(
                 ferdigstiltTidspunkt = ferdigstiltTidspunkt,
                 rammebehandlingId = rammebehandlingId.map { BehandlingId.fromString(it) },
                 begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
+                åpenRammebehandlingId = åpenRammebehandlingId?.let { BehandlingId.fromString(it) },
             )
         }
     }
@@ -106,6 +109,7 @@ fun Klagebehandlingsresultat.toDbJson(): String {
         klageinstanshendelser = (this as? Opprettholdt)?.klageinstanshendelser?.toDb() ?: emptyList(),
         ferdigstiltTidspunkt = this.ferdigstiltTidspunkt,
         begrunnelseFerdigstilling = this.begrunnelseFerdigstilling?.verdi,
+        åpenRammebehandlingId = this.åpenRammebehandlingId?.toString(),
     ).let { serialize(it) }
 }
 

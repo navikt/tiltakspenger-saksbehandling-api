@@ -467,7 +467,10 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 val (oppdatertKlagebehandling, klagestatistikk) =
                     if (klagebehandling?.erFerdigstilt == true) {
                         // man har mulighet til å opprette rammebehandling på en ferdigstilt klagebehandling.
-                        klagebehandling to Statistikkhendelser.empty()
+                        // oppdaterer resultatets rammebehandling knyttninger
+                        klagebehandling!!.copy(
+                            resultat = klagebehandling!!.resultat!!.iverksett(),
+                        ) to Statistikkhendelser.empty()
                     } else {
                         when (klagebehandling?.resultat) {
                             is Klagebehandlingsresultat.Avvist -> throw IllegalStateException("Klagebehandling med avvist resultat skal ikke være knyttet til en rammebehandling. Dette skjedde for sakId: $sakId, saksnummer: $saksnummer, behandling: ${this.id}, klagebehandlingId: ${klagebehandling!!.id}")
@@ -768,6 +771,9 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             }
             require(saksnummer == klagebehandling!!.saksnummer) {
                 "Klagebehandlingens saksnummer må være lik behandlingens saksnummer. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+            }
+            require(klagebehandling!!.rammebehandlingId.contains(this.id)) {
+                "Klagebehandlingens rammebehandlingId må inneholde behandlingens id. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
             }
         }
         if (klagebehandling != null && !erAvbrutt && !klagebehandling!!.erFerdigstilt) {

@@ -105,6 +105,7 @@ class VurderKlagebehandlingRouteTest {
                 årsak = "ANNET",
                 begrunnelse = "oppdatert begrunnelse for omgjøring",
                 rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
             )
         }
     }

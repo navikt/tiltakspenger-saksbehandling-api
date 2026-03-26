@@ -42,6 +42,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
                 rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
                 ventestatus = """{"sattPåVentAv": "saksbehandlerKlagebehandling","tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}""",
             )
             rammebehandlingMedKlagebehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING

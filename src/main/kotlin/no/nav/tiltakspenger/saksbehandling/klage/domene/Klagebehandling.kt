@@ -91,6 +91,7 @@ data class Klagebehandling(
      */
     val erKnyttetTilRammebehandling: Boolean = resultat?.erKnyttetTilRammebehandling == true
     val rammebehandlingId: List<BehandlingId> = resultat?.rammebehandlingId ?: emptyList()
+    val åpenRammebehandlingId: BehandlingId? = resultat?.åpenRammebehandlingId
     val kanVæreKnyttetTilRammebehandling = resultat?.kanVæreKnyttetTilRammebehandling
     val kanOmgjøresEtterKA = resultat?.kanOmgjøresEtterKA == true
 

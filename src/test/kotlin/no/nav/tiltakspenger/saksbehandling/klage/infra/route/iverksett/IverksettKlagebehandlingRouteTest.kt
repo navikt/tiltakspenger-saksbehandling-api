@@ -67,7 +67,8 @@ class IverksettKlagebehandlingRouteTest {
             )
             klagevedtak.shouldBeEqualToIgnoringLocalDateTime(expectedKlagevedtak)
             tac.sessionFactory.withSession {
-                KlagevedtakPostgresRepo.hentForSakId(sak.id, it).single().shouldBeEqualToIgnoringLocalDateTime(expectedKlagevedtak)
+                KlagevedtakPostgresRepo.hentForSakId(sak.id, it).single()
+                    .shouldBeEqualToIgnoringLocalDateTime(expectedKlagevedtak)
             }
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
@@ -265,8 +266,14 @@ class IverksettKlagebehandlingRouteTest {
                 Klagebehandling::erAvsluttet,
                 Klagebehandling::erUnderBehandling,
                 Klagebehandling::erÅpen,
+                klagebehandling::åpenRammebehandlingId,
+                Klagebehandling::resultat,
             )
-            rammevedtak.klagebehandlingsresultat shouldBe klagebehandling.resultat
+            rammevedtak.klagebehandlingsresultat!!.shouldBeEqualToIgnoringFields(
+                klagebehandling.resultat!!,
+                // denne er fortsatt satt når den er åpen, men fjernes ved iverksettelse av omgjøring, så vi ignorerer den i sammenligningen
+                Klagebehandlingsresultat::åpenRammebehandlingId,
+            )
             json.getString("klagebehandlingId") shouldBe klagebehandling.id.toString()
         }
     }

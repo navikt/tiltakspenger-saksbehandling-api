@@ -33,6 +33,7 @@ fun String.shouldBeKlagebehandlingDTO(
     årsak: String? = null,
     begrunnelse: String? = null,
     rammebehandlingId: List<String>? = null,
+    åpenRammebehandlingId: String? = null,
     ventestatus: String? = null,
     hjemler: List<String> = emptyList(),
     iverksattOpprettholdelseTidspunkt: Boolean = false,
@@ -60,6 +61,8 @@ fun String.shouldBeKlagebehandlingDTO(
          "klagensJournalpostId": "$journalpostId",
          "klagensJournalpostOpprettet": "TIMESTAMP",
          "status": "$status",
+         "tilknyttedeRammebehandlingIder": ${if (rammebehandlingId.isNullOrEmpty()) "[]" else rammebehandlingId.map { "\"$it\"" }},
+         "åpenRammebehandlingId": ${åpenRammebehandlingId?.toJsonValue()},
          "resultat": ${
             when (resultat) {
                 "OPPRETTHOLDT" -> """
@@ -92,7 +95,6 @@ fun String.shouldBeKlagebehandlingDTO(
                       "type": "OMGJØR",
                       "årsak": ${årsak.toJsonValue()},
                       "begrunnelse": ${begrunnelse.toJsonValue()},
-                      "rammebehandlingId": ${if (rammebehandlingId.isNullOrEmpty()) "[]" else rammebehandlingId.map { "\"$it\"" }},
                       "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
                     }
                 """.trimIndent()

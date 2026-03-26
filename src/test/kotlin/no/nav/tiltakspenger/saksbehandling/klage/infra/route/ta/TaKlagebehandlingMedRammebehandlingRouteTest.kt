@@ -32,6 +32,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
                 rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
             )
             rammebehandlingMedKlagebehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
             rammebehandlingMedKlagebehandling.saksbehandler shouldBe "saksbehandlerSomTarKlagebehandling"
