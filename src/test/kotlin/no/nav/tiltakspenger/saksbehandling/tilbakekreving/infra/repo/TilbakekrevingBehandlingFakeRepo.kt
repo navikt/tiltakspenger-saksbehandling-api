@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 
@@ -13,11 +14,66 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
     }
 
-    override fun taBehandling(
+    override fun taBehandlingSaksbehandler(
         tilbakekrevingBehandling: TilbakekrevingBehandling,
         sessionContext: SessionContext?,
     ): Boolean {
-        data.get()[tilbakekrevingBehandling.id] ?: return false
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.saksbehandlerIdent != null || existing.status != TilbakekrevingBehandlingsstatus.TIL_BEHANDLING) return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
+    }
+
+    override fun taBehandlingBeslutter(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.beslutterIdent != null || existing.status != TilbakekrevingBehandlingsstatus.TIL_GODKJENNING) return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
+    }
+
+    override fun overtaSaksbehandler(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeSaksbehandler: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.saksbehandlerIdent != nåværendeSaksbehandler || existing.status != TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING) return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
+    }
+
+    override fun overtaBeslutter(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeBeslutter: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.beslutterIdent != nåværendeBeslutter || existing.status != TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING) return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
+    }
+
+    override fun leggTilbakeSaksbehandler(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeSaksbehandler: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.saksbehandlerIdent != nåværendeSaksbehandler || existing.status != TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING) return false
+        data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
+        return true
+    }
+
+    override fun leggTilbakeBeslutter(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeBeslutter: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
+        if (existing.beslutterIdent != nåværendeBeslutter || existing.status != TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING) return false
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
         return true
     }

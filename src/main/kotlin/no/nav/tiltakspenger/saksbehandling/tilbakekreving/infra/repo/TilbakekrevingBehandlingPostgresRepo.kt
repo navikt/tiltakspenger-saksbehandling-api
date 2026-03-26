@@ -79,7 +79,7 @@ class TilbakekrevingBehandlingPostgresRepo(
         }
     }
 
-    override fun taBehandling(
+    override fun taBehandlingSaksbehandler(
         tilbakekrevingBehandling: TilbakekrevingBehandling,
         sessionContext: SessionContext?,
     ): Boolean {
@@ -89,14 +89,131 @@ class TilbakekrevingBehandlingPostgresRepo(
                     """
                     UPDATE tilbakekreving_behandling SET
                         saksbehandler_ident = :saksbehandler_ident,
-                        beslutter_ident = :beslutter_ident,
+                        beslutter_ident = CASE WHEN beslutter_ident = :saksbehandler_ident THEN null ELSE beslutter_ident END,
                         status = :status,
                         sist_endret = :sist_endret
-                    WHERE id = :id
+                    WHERE id = :id AND saksbehandler_ident IS NULL AND status = 'TIL_BEHANDLING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "saksbehandler_ident" to tilbakekrevingBehandling.saksbehandlerIdent,
+                    "status" to tilbakekrevingBehandling.status.tilDb(),
+                    "sist_endret" to tilbakekrevingBehandling.sistEndret,
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    override fun taBehandlingBeslutter(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    UPDATE tilbakekreving_behandling SET
+                        beslutter_ident = :beslutter_ident,
+                        status = :status,
+                        sist_endret = :sist_endret
+                    WHERE id = :id AND beslutter_ident IS NULL AND status = 'TIL_GODKJENNING'
+                    """.trimIndent(),
+                    "id" to tilbakekrevingBehandling.id.toString(),
                     "beslutter_ident" to tilbakekrevingBehandling.beslutterIdent,
+                    "status" to tilbakekrevingBehandling.status.tilDb(),
+                    "sist_endret" to tilbakekrevingBehandling.sistEndret,
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    override fun overtaSaksbehandler(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeSaksbehandler: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    UPDATE tilbakekreving_behandling SET
+                        saksbehandler_ident = :ny_saksbehandler,
+                        beslutter_ident = CASE WHEN beslutter_ident = :ny_saksbehandler THEN null ELSE beslutter_ident END,
+                        sist_endret = :sist_endret
+                    WHERE id = :id AND saksbehandler_ident = :nåværende_saksbehandler AND status = 'UNDER_BEHANDLING'
+                    """.trimIndent(),
+                    "id" to tilbakekrevingBehandling.id.toString(),
+                    "ny_saksbehandler" to tilbakekrevingBehandling.saksbehandlerIdent,
+                    "nåværende_saksbehandler" to nåværendeSaksbehandler,
+                    "sist_endret" to tilbakekrevingBehandling.sistEndret,
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    override fun overtaBeslutter(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeBeslutter: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    UPDATE tilbakekreving_behandling SET
+                        beslutter_ident = :ny_beslutter,
+                        sist_endret = :sist_endret
+                    WHERE id = :id AND beslutter_ident = :nåværende_beslutter AND status = 'UNDER_GODKJENNING'
+                    """.trimIndent(),
+                    "id" to tilbakekrevingBehandling.id.toString(),
+                    "ny_beslutter" to tilbakekrevingBehandling.beslutterIdent,
+                    "nåværende_beslutter" to nåværendeBeslutter,
+                    "sist_endret" to tilbakekrevingBehandling.sistEndret,
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    override fun leggTilbakeSaksbehandler(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeSaksbehandler: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    UPDATE tilbakekreving_behandling SET
+                        saksbehandler_ident = null,
+                        status = :status,
+                        sist_endret = :sist_endret
+                    WHERE id = :id AND saksbehandler_ident = :nåværende_saksbehandler AND status = 'UNDER_BEHANDLING'
+                    """.trimIndent(),
+                    "id" to tilbakekrevingBehandling.id.toString(),
+                    "nåværende_saksbehandler" to nåværendeSaksbehandler,
+                    "status" to tilbakekrevingBehandling.status.tilDb(),
+                    "sist_endret" to tilbakekrevingBehandling.sistEndret,
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    override fun leggTilbakeBeslutter(
+        tilbakekrevingBehandling: TilbakekrevingBehandling,
+        nåværendeBeslutter: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    UPDATE tilbakekreving_behandling SET
+                        beslutter_ident = null,
+                        status = :status,
+                        sist_endret = :sist_endret
+                    WHERE id = :id AND beslutter_ident = :nåværende_beslutter AND status = 'UNDER_GODKJENNING'
+                    """.trimIndent(),
+                    "id" to tilbakekrevingBehandling.id.toString(),
+                    "nåværende_beslutter" to nåværendeBeslutter,
                     "status" to tilbakekrevingBehandling.status.tilDb(),
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,

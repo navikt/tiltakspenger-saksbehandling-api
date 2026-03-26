@@ -115,6 +115,7 @@ class TestApplicationContextMedInMemoryDb(
     private val tiltaksdeltakerFakeRepo = TiltaksdeltakerFakeRepo()
     private val fakeNavIdentClient = FakeNavIdentClient()
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
+    private val tilbakekrevingBehandlingFakeRepo = TilbakekrevingBehandlingFakeRepo()
 
     override val jwtGenerator: JwtGenerator = JwtGenerator()
 
@@ -159,6 +160,7 @@ class TestApplicationContextMedInMemoryDb(
             søknadFakeRepo = søknadFakeRepo,
             klagebehandlingFakeRepo = klagebehandlingFakeRepo,
             brukersMeldekortFakeRepo = brukersMeldekortFakeRepo,
+            tilbakekrevingBehandlingFakeRepo = tilbakekrevingBehandlingFakeRepo,
             clock = clock,
         )
 
@@ -352,5 +354,5 @@ class TestApplicationContextMedInMemoryDb(
 
     override val tilbakekrevingHendelseRepo by lazy { TilbakekrevingHendelseFakeRepo(clock) }
 
-    override val tilbakekrevingBehandlingRepo by lazy { TilbakekrevingBehandlingFakeRepo() }
+    override val tilbakekrevingBehandlingRepo by lazy { tilbakekrevingBehandlingFakeRepo }
 }

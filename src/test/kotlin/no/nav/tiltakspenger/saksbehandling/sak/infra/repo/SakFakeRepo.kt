@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
@@ -39,6 +40,7 @@ class SakFakeRepo(
     private val søknadFakeRepo: SøknadFakeRepo,
     private val klagebehandlingFakeRepo: KlagebehandlingFakeRepo,
     private val brukersMeldekortFakeRepo: BrukersMeldekortFakeRepo,
+    private val tilbakekrevingBehandlingFakeRepo: TilbakekrevingBehandlingFakeRepo,
     private val clock: Clock,
 ) : SakRepo {
     val data = Atomic(mutableMapOf<SakId, Sak>())
@@ -82,6 +84,7 @@ class SakFakeRepo(
             meldeperiodeKjeder = meldeperiodeRepo.hentForSakId(sakId),
             brukersMeldekort = brukersMeldekortFakeRepo.hentForSakId(sakId),
             søknader = soknader,
+            tilbakekrevinger = tilbakekrevingBehandlingFakeRepo.hentForSakId(sakId),
         )
     }
 
@@ -162,7 +165,8 @@ class SakFakeRepo(
         sakId: SakId,
         kanSendeInnHelgForMeldekort: Boolean,
         sessionContext: SessionContext?,
-    ) {}
+    ) {
+    }
 
     override fun hentSakerTilDatadeling(limit: Int): List<SakDb> {
         return emptyList()

@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.leggTilbake
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.overta
@@ -25,7 +26,23 @@ class TilbakekrevingBehandlingTildelingService(
         tilbakekrevingId: TilbakekrevingId,
         saksbehandler: Saksbehandler,
     ): Pair<Sak, TilbakekrevingBehandling> {
-        return oppdaterBehandling(sakId, tilbakekrevingId) { it.taBehandling(saksbehandler, clock) }
+        val (sak, behandling) = hentSakOgBehandling(sakId, tilbakekrevingId)
+        val oppdatert = behandling.taBehandling(saksbehandler, clock)
+
+        val harOppdatert = when (oppdatert.status) {
+            TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING ->
+                tilbakekrevingBehandlingRepo.taBehandlingSaksbehandler(oppdatert)
+
+            TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING ->
+                tilbakekrevingBehandlingRepo.taBehandlingBeslutter(oppdatert)
+
+            else -> throw IllegalStateException("Uventet status ${oppdatert.status} etter ta behandling for $tilbakekrevingId")
+        }
+        require(harOppdatert) {
+            "Oppdatering av tilbakekrevingbehandling feilet for $tilbakekrevingId. En annen bruker kan ha endret behandlingen."
+        }
+
+        return oppdatertSak(sak, oppdatert)
     }
 
     fun overtaBehandling(
@@ -33,7 +50,23 @@ class TilbakekrevingBehandlingTildelingService(
         tilbakekrevingId: TilbakekrevingId,
         saksbehandler: Saksbehandler,
     ): Pair<Sak, TilbakekrevingBehandling> {
-        return oppdaterBehandling(sakId, tilbakekrevingId) { it.overta(saksbehandler, clock) }
+        val (sak, behandling) = hentSakOgBehandling(sakId, tilbakekrevingId)
+        val oppdatert = behandling.overta(saksbehandler, clock)
+
+        val harOppdatert = when (behandling.status) {
+            TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING ->
+                tilbakekrevingBehandlingRepo.overtaSaksbehandler(oppdatert, behandling.saksbehandlerIdent!!)
+
+            TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING ->
+                tilbakekrevingBehandlingRepo.overtaBeslutter(oppdatert, behandling.beslutterIdent!!)
+
+            else -> throw IllegalStateException("Uventet status ${behandling.status} ved overta for $tilbakekrevingId")
+        }
+        require(harOppdatert) {
+            "Oppdatering av tilbakekrevingbehandling feilet for $tilbakekrevingId. En annen bruker kan ha endret behandlingen."
+        }
+
+        return oppdatertSak(sak, oppdatert)
     }
 
     fun leggTilbakeBehandling(
@@ -41,27 +74,39 @@ class TilbakekrevingBehandlingTildelingService(
         tilbakekrevingId: TilbakekrevingId,
         saksbehandler: Saksbehandler,
     ): Pair<Sak, TilbakekrevingBehandling> {
-        return oppdaterBehandling(sakId, tilbakekrevingId) { it.leggTilbake(saksbehandler, clock) }
+        val (sak, behandling) = hentSakOgBehandling(sakId, tilbakekrevingId)
+        val oppdatert = behandling.leggTilbake(saksbehandler, clock)
+
+        val harOppdatert = when (behandling.status) {
+            TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING ->
+                tilbakekrevingBehandlingRepo.leggTilbakeSaksbehandler(oppdatert, behandling.saksbehandlerIdent!!)
+
+            TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING ->
+                tilbakekrevingBehandlingRepo.leggTilbakeBeslutter(oppdatert, behandling.beslutterIdent!!)
+
+            else -> throw IllegalStateException("Uventet status ${behandling.status} ved legg tilbake for $tilbakekrevingId")
+        }
+        require(harOppdatert) {
+            "Oppdatering av tilbakekrevingbehandling feilet for $tilbakekrevingId. En annen bruker kan ha endret behandlingen."
+        }
+
+        return oppdatertSak(sak, oppdatert)
     }
 
-    private fun oppdaterBehandling(
+    private fun hentSakOgBehandling(
         sakId: SakId,
         tilbakekrevingId: TilbakekrevingId,
-        oppdatering: (TilbakekrevingBehandling) -> TilbakekrevingBehandling,
     ): Pair<Sak, TilbakekrevingBehandling> {
         val sak = sakService.hentForSakId(sakId)
-
-        val tilbakekrevingBehandling = sak.tilbakekrevinger.singleOrNull { it.id == tilbakekrevingId }
+        val behandling = sak.tilbakekrevinger.singleOrNull { it.id == tilbakekrevingId }
             ?: throw IllegalArgumentException("Fant ikke tilbakekrevingbehandling med id $tilbakekrevingId for sak $sakId")
+        return sak to behandling
+    }
 
-        val oppdatert = oppdatering(tilbakekrevingBehandling)
-
-        tilbakekrevingBehandlingRepo.taBehandling(oppdatert)
-
+    private fun oppdatertSak(sak: Sak, oppdatert: TilbakekrevingBehandling): Pair<Sak, TilbakekrevingBehandling> {
         val oppdatertSak = sak.copy(
             tilbakekrevinger = sak.tilbakekrevinger.map { if (it.id == oppdatert.id) oppdatert else it },
         )
-
         return oppdatertSak to oppdatert
     }
 }
