@@ -164,6 +164,7 @@ class AvbrytKlagebehandlingRouteTest {
                 saksbehandler = "Z12345",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = sak.rammevedtaksliste.single().id.toString(),
+                behandlingDetKlagesPå = klagebehandling.formkrav.behandlingDetKlagesPå?.toString(),
                 status = "AVBRUTT",
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",

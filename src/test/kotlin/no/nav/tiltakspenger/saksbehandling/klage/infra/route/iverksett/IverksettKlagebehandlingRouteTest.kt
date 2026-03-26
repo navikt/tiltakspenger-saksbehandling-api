@@ -443,7 +443,8 @@ class IverksettKlagebehandlingRouteTest {
                     "id": "${(iverksattRammebehandling as Søknadsbehandling).søknad.id}",
                     "journalpostId": "123456789"
                   },
-                  "status": "VEDTATT"
+                  "status": "VEDTATT",
+                  "skalSendeVedtaksbrev": true
                 }
                 """.trimIndent(),
             )
@@ -584,7 +585,8 @@ class IverksettKlagebehandlingRouteTest {
                   "sistEndret": "2025-01-01T01:03:05.456789",
                   "sakId": "${sak.id}",
                   "id": "${iverksattRammebehandling.id}",
-                  "status": "VEDTATT"
+                  "status": "VEDTATT",
+                  "skalSendeVedtaksbrev": true
                 }
                 """.trimIndent(),
             )
@@ -725,7 +727,8 @@ class IverksettKlagebehandlingRouteTest {
                   "sistEndret": "2025-01-01T01:03:05.456789",
                   "sakId": "${sak.id}",
                   "id": "${rammebehandling.id}",
-                  "status": "VEDTATT"
+                  "status": "VEDTATT",
+                  "skalSendeVedtaksbrev": true
                 }
                 """.trimIndent(),
             )

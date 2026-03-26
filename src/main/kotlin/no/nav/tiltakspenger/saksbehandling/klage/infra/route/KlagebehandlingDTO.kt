@@ -146,7 +146,7 @@ fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): Klagebehandlingsr
         is Klagebehandlingsresultat.Omgjør -> KlagebehandlingsresultatDTO.Omgjør(
             årsak = årsak.name,
             begrunnelse = begrunnelse.verdi,
-            rammebehandlingId = rammebehandlingId?.map { it.toString() } ?: emptyList(),
+            rammebehandlingId = rammebehandlingId.map { it.toString() },
             begrunnelseFerdigstilling = begrunnelseFerdigstilling?.verdi,
         )
 
