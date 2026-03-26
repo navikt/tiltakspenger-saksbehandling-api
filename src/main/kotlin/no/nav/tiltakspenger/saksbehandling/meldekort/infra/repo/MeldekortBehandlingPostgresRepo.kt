@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningFraMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJsonString
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
@@ -111,7 +111,7 @@ class MeldekortBehandlingPostgresRepo(
                     "fra_og_med" to meldekortBehandling.fraOgMed,
                     "til_og_med" to meldekortBehandling.tilOgMed,
                     "meldekortdager" to meldekortBehandling.dager.tilMeldekortDagerDbJson(),
-                    "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJson(),
+                    "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJsonString(),
                     "simulering" to simuleringMedMetadata?.toDbJson(),
                     // den er ferdig serialisert
                     "simulering_metadata" to simuleringMedMetadata?.originalResponseBody,
@@ -161,7 +161,7 @@ class MeldekortBehandlingPostgresRepo(
                     """,
                     "id" to meldekortBehandling.id.toString(),
                     "meldekortdager" to meldekortBehandling.dager.tilMeldekortDagerDbJson(),
-                    "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJson(),
+                    "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJsonString(),
                     "saksbehandler" to meldekortBehandling.saksbehandler,
                     "beslutter" to meldekortBehandling.beslutter,
                     "status" to meldekortBehandling.status.toDb(),
@@ -211,7 +211,7 @@ class MeldekortBehandlingPostgresRepo(
                     """,
                     "id" to meldekortBehandling.id.toString(),
                     "meldekortdager" to meldekortBehandling.dager.tilMeldekortDagerDbJson(),
-                    "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJson(),
+                    "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJsonString(),
                     "simulering" to simuleringMedMetadata?.toDbJson(),
                     "simulering_metadata" to simuleringMedMetadata?.originalResponseBody,
                     "saksbehandler" to meldekortBehandling.saksbehandler,

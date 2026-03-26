@@ -35,7 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.t
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningFraRammebehandling
-import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJsonString
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilRammebehandlingUtbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -776,7 +776,7 @@ private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "soknad_id" to søknadId,
         "automatisk_saksbehandlet" to automatiskSaksbehandlet,
         "manuelt_behandles_grunner" to manueltBehandlesGrunner?.toDbJson(),
-        "beregning" to this.utbetaling?.beregning?.tilBeregningerDbJson(),
+        "beregning" to this.utbetaling?.beregning?.tilBeregningerDbJsonString(),
         "simulering" to this.utbetaling?.simulering?.toDbJson(),
         "utbetalingskontroll" to this.utbetalingskontroll?.tilDbJson(),
         "navkontor" to this.utbetaling?.navkontor?.kontornummer,

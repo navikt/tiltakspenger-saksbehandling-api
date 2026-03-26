@@ -28,12 +28,12 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toTiltak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-private data class BeregningDbJson(
+data class BeregningDbJson(
     val beregninger: List<MeldeperiodeBeregningDbJson>,
     val beregningstidspunkt: String,
 )
 
-private data class MeldeperiodeBeregningDbJson(
+data class MeldeperiodeBeregningDbJson(
     val beregningId: String,
     val kjedeId: String,
     val meldekortId: String,
@@ -43,7 +43,7 @@ private data class MeldeperiodeBeregningDbJson(
 /**
  * @property reduksjon null dersom den ikke er utfylt
  */
-private data class MeldeperiodeBeregningDagDbJson(
+data class MeldeperiodeBeregningDagDbJson(
     val tiltakstype: String?,
     val dato: String,
     val status: MeldekortstatusDb,
@@ -162,7 +162,7 @@ private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): MeldeperiodeBeregningDagD
     }
 }
 
-fun Beregning.tilBeregningerDbJson(): String {
+fun Beregning.tilBeregningDbJson(): BeregningDbJson {
     return BeregningDbJson(
         beregninger = this.beregninger.map {
             MeldeperiodeBeregningDbJson(
@@ -173,7 +173,11 @@ fun Beregning.tilBeregningerDbJson(): String {
             )
         },
         beregningstidspunkt = this.beregningstidspunkt.toString(),
-    ).let { serialize(it) }
+    )
+}
+
+fun Beregning.tilBeregningerDbJsonString(): String {
+    return serialize(tilBeregningDbJson())
 }
 
 private fun String.tilBeregningDbJson(): BeregningDbJson {
@@ -199,6 +203,10 @@ private fun BeregningDbJson.tilBeregning(beregningKilde: BeregningKilde): Beregn
         beregninger = beregninger.tilMeldeperiodeBeregninger(beregningKilde),
         beregningstidspunkt = LocalDateTime.parse(beregningstidspunkt),
     )
+}
+
+fun BeregningDbJson.tilBeregningFraRammebehandling(behandlingId: BehandlingId): Beregning {
+    return tilBeregning(BeregningKilde.BeregningKildeRammebehandling(behandlingId))
 }
 
 fun String.tilBeregningFraMeldekortbehandling(meldekortId: MeldekortId): Beregning {

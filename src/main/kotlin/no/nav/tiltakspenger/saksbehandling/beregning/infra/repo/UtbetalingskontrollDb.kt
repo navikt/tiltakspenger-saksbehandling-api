@@ -5,18 +5,18 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFraDbJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.SimuleringDbJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringDbJson
 
 private data class UtbetalingskontrollDbJson(
-    val beregning: String,
-    val simulering: String,
+    val beregning: BeregningDbJson,
+    val simulering: SimuleringDbJson,
 )
 
 fun Utbetalingskontroll.tilDbJson(): String {
     return UtbetalingskontrollDbJson(
-        beregning = this.beregning.tilBeregningerDbJson(),
-        simulering = this.simulering.toDbJson(),
+        beregning = this.beregning.tilBeregningDbJson(),
+        simulering = this.simulering.toSimuleringDbJson(),
     ).let { serialize(it) }
 }
 
@@ -25,6 +25,6 @@ fun String.tilRammebehandlingUtbetalingskontroll(id: BehandlingId, meldeperiodek
 
     return Utbetalingskontroll(
         beregning = dbJson.beregning.tilBeregningFraRammebehandling(id),
-        simulering = dbJson.simulering.toSimuleringFraDbJson(meldeperiodekjeder),
+        simulering = dbJson.simulering.toDomain(meldeperiodekjeder),
     )
 }
