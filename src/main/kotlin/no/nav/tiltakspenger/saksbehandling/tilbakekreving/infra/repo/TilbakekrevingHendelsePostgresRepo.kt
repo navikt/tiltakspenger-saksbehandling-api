@@ -257,9 +257,7 @@ private data class TilbakekrevingBehandlingDb(
     enum class BehandlingsstatusDb {
         OPPRETTET,
         TIL_BEHANDLING,
-        UNDER_BEHANDLING,
         TIL_GODKJENNING,
-        UNDER_GODKJENNING,
         AVSLUTTET,
         ;
 
@@ -269,8 +267,6 @@ private data class TilbakekrevingBehandlingDb(
                 TIL_BEHANDLING -> TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
                 TIL_GODKJENNING -> TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
                 AVSLUTTET -> TilbakekrevingBehandlingsstatus.AVSLUTTET
-                UNDER_BEHANDLING -> TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
-                UNDER_GODKJENNING -> TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
             }
         }
     }
