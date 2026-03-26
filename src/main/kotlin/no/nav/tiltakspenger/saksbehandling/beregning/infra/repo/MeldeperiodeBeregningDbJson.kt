@@ -5,7 +5,6 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.json.deserialize
-import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
@@ -31,7 +30,7 @@ import java.time.LocalDateTime
 
 private data class BeregningDbJson(
     val beregninger: List<MeldeperiodeBeregningDbJson>,
-    val beregningstidspunkt: String?,
+    val beregningstidspunkt: String,
 )
 
 private data class MeldeperiodeBeregningDbJson(
@@ -173,18 +172,12 @@ fun Beregning.tilBeregningerDbJson(): String {
                 dager = it.dager.toDbJson(),
             )
         },
-        beregningstidspunkt = this.beregningstidspunkt?.toString(),
+        beregningstidspunkt = this.beregningstidspunkt.toString(),
     ).let { serialize(it) }
 }
 
 private fun String.tilBeregningDbJson(): BeregningDbJson {
-    return runCatching { deserialize<BeregningDbJson>(this) }
-        .getOrElse {
-            BeregningDbJson(
-                beregninger = deserializeList<MeldeperiodeBeregningDbJson>(this),
-                beregningstidspunkt = null,
-            )
-        }
+    return deserialize<BeregningDbJson>(this)
 }
 
 private fun List<MeldeperiodeBeregningDbJson>.tilMeldeperiodeBeregninger(
@@ -204,7 +197,7 @@ private fun List<MeldeperiodeBeregningDbJson>.tilMeldeperiodeBeregninger(
 private fun BeregningDbJson.tilBeregning(beregningKilde: BeregningKilde): Beregning {
     return Beregning(
         beregninger = beregninger.tilMeldeperiodeBeregninger(beregningKilde),
-        beregningstidspunkt = beregningstidspunkt?.let { LocalDateTime.parse(it) },
+        beregningstidspunkt = LocalDateTime.parse(beregningstidspunkt),
     )
 }
 

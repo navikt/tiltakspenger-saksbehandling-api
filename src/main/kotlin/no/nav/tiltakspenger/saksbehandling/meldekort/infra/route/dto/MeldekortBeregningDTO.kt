@@ -13,6 +13,7 @@ data class MeldekortBeregningDTO(
     val totalBeløp: BeløpDTO,
     val beregningForMeldekortetsPeriode: MeldeperiodeBeregningDTO,
     val beregningerForPåfølgendePerioder: List<MeldeperiodeBeregningDTO>,
+    val beregningstidspunkt: String?,
 )
 
 fun Beregning.tilMeldekortBeregningDTO(): MeldekortBeregningDTO {
@@ -24,6 +25,7 @@ fun Beregning.tilMeldekortBeregningDTO(): MeldekortBeregningDTO {
         ),
         beregningForMeldekortetsPeriode = førsteMeldeperiodeBeregning.tilMeldeperiodeBeregningDTO(),
         beregningerForPåfølgendePerioder = beregningerForPåfølgendePerioder.map { it.tilMeldeperiodeBeregningDTO() },
+        beregningstidspunkt = beregningstidspunkt.toString(),
     )
 }
 

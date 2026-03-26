@@ -24,7 +24,7 @@ data class SimulertBeregningDTO(
     val behandlingId: String,
     val behandlingstype: Behandlingstype,
     val meldeperioder: List<SimulertBeregningMeldeperiode>,
-    val beregningstidspunkt: LocalDateTime?,
+    val beregningstidspunkt: LocalDateTime,
     val simuleringstidspunkt: LocalDateTime?,
     val simuleringsdato: LocalDate?,
     val simuleringTotalBeløp: Int?,

@@ -18,19 +18,4 @@ class MeldeperiodeBeregningDbJsonTest {
 
         actual shouldBe beregning
     }
-
-    @Test
-    fun `leser legacy db-json uten beregningstidspunkt som null`() {
-        val beregning = ObjectMother.meldekortBeregning().copy(
-            beregningstidspunkt = LocalDateTime.of(2025, 5, 1, 12, 30),
-        )
-        val legacyJson = objectMapper.writeValueAsString(
-            objectMapper.readTree(beregning.tilBeregningerDbJson()).get("beregninger"),
-        )
-
-        val actual = legacyJson.tilBeregningFraMeldekortbehandling(beregning.førsteMeldeperiodeBeregning.meldekortId)
-
-        actual.beregninger shouldBe beregning.beregninger
-        actual.beregningstidspunkt shouldBe null
-    }
 }

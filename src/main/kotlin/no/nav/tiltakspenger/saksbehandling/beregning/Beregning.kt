@@ -16,7 +16,7 @@ import kotlin.collections.first
  */
 data class Beregning(
     val beregninger: NonEmptyList<MeldeperiodeBeregning>,
-    val beregningstidspunkt: LocalDateTime?,
+    val beregningstidspunkt: LocalDateTime,
 ) : List<MeldeperiodeBeregning> by beregninger {
 
     val fraOgMed: LocalDate = beregninger.first().fraOgMed

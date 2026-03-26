@@ -29,7 +29,7 @@ data class SimulertBeregning(
     val beregningskilde: BeregningKilde,
     val meldeperioder: Nel<SimulertBeregningMeldeperiode>,
     // TODO jah: Grav i hvorfor denne tilsynelatende ikke finnes.
-    val beregningstidspunkt: LocalDateTime?,
+    val beregningstidspunkt: LocalDateTime,
     val simuleringstidspunkt: LocalDateTime?,
     val simuleringsdato: LocalDate?,
     val simuleringTotalBeløp: Int?,

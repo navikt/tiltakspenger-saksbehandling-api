@@ -48,6 +48,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                   "type": "FØRSTE_BEHANDLING",
                   "meldeperiodeId": "${meldekortbehandling.meldeperiode.id}",
                   "beregning": {
+                    "beregningstidspunkt": "TIMESTAMP",
                     "beregningForMeldekortetsPeriode": {
                       "beløp": {
                         "totalt": 2682,
