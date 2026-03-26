@@ -3,15 +3,15 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import java.time.Clock
 
 /** Saksbehandler/beslutter overtar tilbakekrevingsbehandlingen fra en annen. */
 fun TilbakekrevingBehandling.overta(saksbehandler: Saksbehandler, clock: Clock): TilbakekrevingBehandling {
     val sistEndret = nå(clock)
 
-    return when (status) {
-        TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING -> {
+    return when (statusIntern) {
+        TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING -> {
             requireNotNull(this.saksbehandlerIdent) {
                 "Saksbehandler må være satt på behandlingen for å kunne overta. tilbakekrevingId: $id"
             }
@@ -26,7 +26,7 @@ fun TilbakekrevingBehandling.overta(saksbehandler: Saksbehandler, clock: Clock):
             )
         }
 
-        TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING -> {
+        TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING -> {
             requireNotNull(this.beslutterIdent) {
                 "Beslutter må være satt på behandlingen for å kunne overta. tilbakekrevingId: $id"
             }
@@ -43,10 +43,10 @@ fun TilbakekrevingBehandling.overta(saksbehandler: Saksbehandler, clock: Clock):
             )
         }
 
-        TilbakekrevingBehandlingsstatus.OPPRETTET,
-        TilbakekrevingBehandlingsstatus.TIL_BEHANDLING,
-        TilbakekrevingBehandlingsstatus.TIL_GODKJENNING,
-        TilbakekrevingBehandlingsstatus.AVSLUTTET,
+        TilbakekrevingBehandlingsstatusIntern.OPPRETTET,
+        TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING,
+        TilbakekrevingBehandlingsstatusIntern.TIL_GODKJENNING,
+        TilbakekrevingBehandlingsstatusIntern.AVSLUTTET,
         -> throw IllegalArgumentException(
             "Kan ikke overta behandling med status $status. Bruk ta() for å ta en ledig behandling. tilbakekrevingId: $id",
         )

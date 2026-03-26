@@ -139,7 +139,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                         saksbehandler_ident = :ny_saksbehandler,
                         beslutter_ident = CASE WHEN beslutter_ident = :ny_saksbehandler THEN null ELSE beslutter_ident END,
                         sist_endret = :sist_endret
-                    WHERE id = :id AND saksbehandler_ident = :nåværende_saksbehandler AND status = 'UNDER_BEHANDLING'
+                    WHERE id = :id AND saksbehandler_ident = :nåværende_saksbehandler AND status = 'TIL_BEHANDLING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "ny_saksbehandler" to tilbakekrevingBehandling.saksbehandlerIdent,
@@ -162,7 +162,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                     UPDATE tilbakekreving_behandling SET
                         beslutter_ident = :ny_beslutter,
                         sist_endret = :sist_endret
-                    WHERE id = :id AND beslutter_ident = :nåværende_beslutter AND status = 'UNDER_GODKJENNING'
+                    WHERE id = :id AND beslutter_ident = :nåværende_beslutter AND status = 'TIL_GODKJENNING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "ny_beslutter" to tilbakekrevingBehandling.beslutterIdent,
@@ -186,7 +186,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                         saksbehandler_ident = null,
                         status = :status,
                         sist_endret = :sist_endret
-                    WHERE id = :id AND saksbehandler_ident = :nåværende_saksbehandler AND status = 'UNDER_BEHANDLING'
+                    WHERE id = :id AND saksbehandler_ident = :nåværende_saksbehandler AND status = 'TIL_BEHANDLING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "nåværende_saksbehandler" to nåværendeSaksbehandler,
@@ -210,7 +210,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                         beslutter_ident = null,
                         status = :status,
                         sist_endret = :sist_endret
-                    WHERE id = :id AND beslutter_ident = :nåværende_beslutter AND status = 'UNDER_GODKJENNING'
+                    WHERE id = :id AND beslutter_ident = :nåværende_beslutter AND status = 'TIL_GODKJENNING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "nåværende_beslutter" to nåværendeBeslutter,
@@ -312,18 +312,14 @@ class TilbakekrevingBehandlingPostgresRepo(
 private enum class TilbakekrevingBehandlingsstatusDb {
     OPPRETTET,
     TIL_BEHANDLING,
-    UNDER_BEHANDLING,
     TIL_GODKJENNING,
-    UNDER_GODKJENNING,
     AVSLUTTET,
     ;
 
     fun tilDomene() = when (this) {
         OPPRETTET -> TilbakekrevingBehandlingsstatus.OPPRETTET
         TIL_BEHANDLING -> TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
-        UNDER_BEHANDLING -> TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING
         TIL_GODKJENNING -> TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
-        UNDER_GODKJENNING -> TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING
         AVSLUTTET -> TilbakekrevingBehandlingsstatus.AVSLUTTET
     }
 }
@@ -332,9 +328,7 @@ private fun TilbakekrevingBehandlingsstatus.tilDb(): String {
     return when (this) {
         TilbakekrevingBehandlingsstatus.OPPRETTET -> TilbakekrevingBehandlingsstatusDb.OPPRETTET
         TilbakekrevingBehandlingsstatus.TIL_BEHANDLING -> TilbakekrevingBehandlingsstatusDb.TIL_BEHANDLING
-        TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING -> TilbakekrevingBehandlingsstatusDb.UNDER_BEHANDLING
         TilbakekrevingBehandlingsstatus.TIL_GODKJENNING -> TilbakekrevingBehandlingsstatusDb.TIL_GODKJENNING
-        TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING -> TilbakekrevingBehandlingsstatusDb.UNDER_GODKJENNING
         TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingsstatusDb.AVSLUTTET
     }.name
 }

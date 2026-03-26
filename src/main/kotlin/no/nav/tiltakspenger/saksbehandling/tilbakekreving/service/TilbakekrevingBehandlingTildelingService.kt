@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.leggTilbake
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.overta
@@ -18,6 +18,7 @@ class TilbakekrevingBehandlingTildelingService(
     private val tilbakekrevingBehandlingRepo: TilbakekrevingBehandlingRepo,
     private val clock: Clock,
 ) {
+
     fun taBehandling(
         sakId: SakId,
         tilbakekrevingId: TilbakekrevingId,
@@ -26,14 +27,14 @@ class TilbakekrevingBehandlingTildelingService(
         val (sak, behandling) = hentSakOgBehandling(sakId, tilbakekrevingId)
         val oppdatert = behandling.taBehandling(saksbehandler, clock)
 
-        val harOppdatert = when (oppdatert.status) {
-            TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING ->
+        val harOppdatert = when (oppdatert.statusIntern) {
+            TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING ->
                 tilbakekrevingBehandlingRepo.taBehandlingSaksbehandler(oppdatert)
 
-            TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING ->
+            TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING ->
                 tilbakekrevingBehandlingRepo.taBehandlingBeslutter(oppdatert)
 
-            else -> throw IllegalStateException("Uventet status ${oppdatert.status} etter ta behandling for $tilbakekrevingId")
+            else -> throw IllegalStateException("Uventet status ${oppdatert.statusIntern} etter ta behandling for $tilbakekrevingId")
         }
         require(harOppdatert) {
             "Oppdatering av tilbakekrevingbehandling feilet for $tilbakekrevingId. En annen bruker kan ha endret behandlingen."
@@ -50,14 +51,14 @@ class TilbakekrevingBehandlingTildelingService(
         val (sak, behandling) = hentSakOgBehandling(sakId, tilbakekrevingId)
         val oppdatert = behandling.overta(saksbehandler, clock)
 
-        val harOppdatert = when (behandling.status) {
-            TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING ->
+        val harOppdatert = when (behandling.statusIntern) {
+            TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING ->
                 tilbakekrevingBehandlingRepo.overtaSaksbehandler(oppdatert, behandling.saksbehandlerIdent!!)
 
-            TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING ->
+            TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING ->
                 tilbakekrevingBehandlingRepo.overtaBeslutter(oppdatert, behandling.beslutterIdent!!)
 
-            else -> throw IllegalStateException("Uventet status ${behandling.status} ved overta for $tilbakekrevingId")
+            else -> throw IllegalStateException("Uventet status ${behandling.statusIntern} ved overta for $tilbakekrevingId")
         }
         require(harOppdatert) {
             "Oppdatering av tilbakekrevingbehandling feilet for $tilbakekrevingId. En annen bruker kan ha endret behandlingen."
@@ -74,14 +75,14 @@ class TilbakekrevingBehandlingTildelingService(
         val (sak, behandling) = hentSakOgBehandling(sakId, tilbakekrevingId)
         val oppdatert = behandling.leggTilbake(saksbehandler, clock)
 
-        val harOppdatert = when (behandling.status) {
-            TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING ->
+        val harOppdatert = when (behandling.statusIntern) {
+            TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING ->
                 tilbakekrevingBehandlingRepo.leggTilbakeSaksbehandler(oppdatert, behandling.saksbehandlerIdent!!)
 
-            TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING ->
+            TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING ->
                 tilbakekrevingBehandlingRepo.leggTilbakeBeslutter(oppdatert, behandling.beslutterIdent!!)
 
-            else -> throw IllegalStateException("Uventet status ${behandling.status} ved legg tilbake for $tilbakekrevingId")
+            else -> throw IllegalStateException("Uventet status ${behandling.statusIntern} ved legg tilbake for $tilbakekrevingId")
         }
         require(harOppdatert) {
             "Oppdatering av tilbakekrevingbehandling feilet for $tilbakekrevingId. En annen bruker kan ha endret behandlingen."

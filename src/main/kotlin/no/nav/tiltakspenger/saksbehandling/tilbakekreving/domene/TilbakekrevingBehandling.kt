@@ -9,7 +9,11 @@ import java.time.LocalDateTime
 
 /**
  *  [tilbakeBehandlingId] BehandlingId i ekstern saksbehandlingsløsning for tilbakekreving
+ *  [status] Status på behandlingen fra tilbakeløsningen
+ *  [statusIntern] Vår interne status, som tar hensyn til om behandlingen er tildelt saksbehandler eller beslutter
  *  [url] URL til behandlingen i ekstern saksbehandlingsløsning for tilbakekreving
+ *  [saksbehandlerIdent] Saksbehandler som har tatt behandlingen i vårt system. Håndheves ikke mot tilbakeløsningen, er kun ment for å hjelpe saksbehandlere med å fordele oppgaver
+ *  [beslutterIdent] Beslutter som har tatt behandlingen i vårt system. Håndheves ikke mot tilbakeløsningen, er kun ment for å hjelpe saksbehandlere med å fordele oppgaver
  * */
 data class TilbakekrevingBehandling(
     val id: TilbakekrevingId,
@@ -26,6 +30,27 @@ data class TilbakekrevingBehandling(
     val saksbehandlerIdent: String?,
     val beslutterIdent: String?,
 ) {
+    val statusIntern: TilbakekrevingBehandlingsstatusIntern by lazy {
+        when (status) {
+            TilbakekrevingBehandlingsstatus.OPPRETTET -> TilbakekrevingBehandlingsstatusIntern.OPPRETTET
+
+            TilbakekrevingBehandlingsstatus.TIL_BEHANDLING ->
+                if (saksbehandlerIdent != null) {
+                    TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING
+                } else {
+                    TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING
+                }
+
+            TilbakekrevingBehandlingsstatus.TIL_GODKJENNING ->
+                if (beslutterIdent != null) {
+                    TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING
+                } else {
+                    TilbakekrevingBehandlingsstatusIntern.TIL_GODKJENNING
+                }
+
+            TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingsstatusIntern.AVSLUTTET
+        }
+    }
 
     init {
         if (saksbehandlerIdent != null && beslutterIdent != null) {
@@ -33,40 +58,5 @@ data class TilbakekrevingBehandling(
                 "Saksbehandler og beslutter kan ikke være samme person. tilbakekrevingId: $id, sakId: $sakId"
             }
         }
-
-//        when (status) {
-//            TilbakekrevingBehandlingsstatus.OPPRETTET,
-//            TilbakekrevingBehandlingsstatus.TIL_BEHANDLING,
-//            -> {
-//                require(saksbehandlerIdent == null) {
-//                    "Tilbakekreving med status $status kan ikke ha saksbehandler satt. tilbakekrevingId: $id, sakId: $sakId"
-//                }
-//                require(beslutterIdent == null) {
-//                    "Tilbakekreving med status $status kan ikke ha beslutter satt. tilbakekrevingId: $id, sakId: $sakId"
-//                }
-//            }
-//
-//            TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING,
-//            TilbakekrevingBehandlingsstatus.TIL_GODKJENNING,
-//            -> {
-//                requireNotNull(saksbehandlerIdent) {
-//                    "Tilbakekreving med status $status må ha saksbehandler satt. tilbakekrevingId: $id, sakId: $sakId"
-//                }
-//                require(beslutterIdent == null) {
-//                    "Tilbakekreving med status $status kan ikke ha beslutter satt. tilbakekrevingId: $id, sakId: $sakId"
-//                }
-//            }
-//
-//            TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING,
-//            TilbakekrevingBehandlingsstatus.AVSLUTTET,
-//            -> {
-//                requireNotNull(saksbehandlerIdent) {
-//                    "Tilbakekreving med status $status må ha saksbehandler satt. tilbakekrevingId: $id, sakId: $sakId"
-//                }
-//                requireNotNull(beslutterIdent) {
-//                    "Tilbakekreving med status $status må ha beslutter satt. tilbakekrevingId: $id, sakId: $sakId"
-//                }
-//            }
-//        }
     }
 }
