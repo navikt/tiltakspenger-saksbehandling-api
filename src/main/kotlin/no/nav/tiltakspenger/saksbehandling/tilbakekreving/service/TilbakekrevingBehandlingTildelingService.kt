@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.service
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -19,8 +18,6 @@ class TilbakekrevingBehandlingTildelingService(
     private val tilbakekrevingBehandlingRepo: TilbakekrevingBehandlingRepo,
     private val clock: Clock,
 ) {
-    val logger = KotlinLogging.logger { }
-
     fun taBehandling(
         sakId: SakId,
         tilbakekrevingId: TilbakekrevingId,
