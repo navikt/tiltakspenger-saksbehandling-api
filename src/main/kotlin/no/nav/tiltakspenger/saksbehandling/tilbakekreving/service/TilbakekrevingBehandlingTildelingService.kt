@@ -7,10 +7,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.leggTilbake
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.overta
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.taBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingRepo
 import java.time.Clock
 
-class TaTilbakekrevingBehandlingService(
+class TilbakekrevingBehandlingTildelingService(
     private val sakService: SakService,
     private val tilbakekrevingBehandlingRepo: TilbakekrevingBehandlingRepo,
     private val clock: Clock,
@@ -22,12 +25,36 @@ class TaTilbakekrevingBehandlingService(
         tilbakekrevingId: TilbakekrevingId,
         saksbehandler: Saksbehandler,
     ): Pair<Sak, TilbakekrevingBehandling> {
+        return oppdaterBehandling(sakId, tilbakekrevingId) { it.taBehandling(saksbehandler, clock) }
+    }
+
+    fun overtaBehandling(
+        sakId: SakId,
+        tilbakekrevingId: TilbakekrevingId,
+        saksbehandler: Saksbehandler,
+    ): Pair<Sak, TilbakekrevingBehandling> {
+        return oppdaterBehandling(sakId, tilbakekrevingId) { it.overta(saksbehandler, clock) }
+    }
+
+    fun leggTilbakeBehandling(
+        sakId: SakId,
+        tilbakekrevingId: TilbakekrevingId,
+        saksbehandler: Saksbehandler,
+    ): Pair<Sak, TilbakekrevingBehandling> {
+        return oppdaterBehandling(sakId, tilbakekrevingId) { it.leggTilbake(saksbehandler, clock) }
+    }
+
+    private fun oppdaterBehandling(
+        sakId: SakId,
+        tilbakekrevingId: TilbakekrevingId,
+        oppdatering: (TilbakekrevingBehandling) -> TilbakekrevingBehandling,
+    ): Pair<Sak, TilbakekrevingBehandling> {
         val sak = sakService.hentForSakId(sakId)
+
         val tilbakekrevingBehandling = sak.tilbakekrevinger.singleOrNull { it.id == tilbakekrevingId }
             ?: throw IllegalArgumentException("Fant ikke tilbakekrevingbehandling med id $tilbakekrevingId for sak $sakId")
 
-        val nå = java.time.LocalDateTime.now(clock)
-        val oppdatert = tilbakekrevingBehandling.taBehandling(saksbehandler, nå)
+        val oppdatert = oppdatering(tilbakekrevingBehandling)
 
         tilbakekrevingBehandlingRepo.taBehandling(oppdatert)
 

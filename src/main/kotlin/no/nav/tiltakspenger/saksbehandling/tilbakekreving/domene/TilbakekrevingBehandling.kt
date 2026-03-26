@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene
 
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import java.math.BigDecimal
@@ -28,46 +27,46 @@ data class TilbakekrevingBehandling(
     val beslutterIdent: String?,
 ) {
 
-    /** Saksbehandler tar tilbakekrevingsbehandlingen. */
-    fun taBehandling(saksbehandler: Saksbehandler, nå: LocalDateTime): TilbakekrevingBehandling {
-        return when (status) {
-            TilbakekrevingBehandlingsstatus.TIL_BEHANDLING -> {
-                require(this.saksbehandlerIdent == null) {
-                    "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er TIL_BEHANDLING"
-                }
-                this.copy(
-                    saksbehandlerIdent = saksbehandler.navIdent,
-                    beslutterIdent = if (saksbehandler.navIdent == beslutterIdent) null else beslutterIdent,
-                    status = TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING,
-                    sistEndret = nå,
-                )
+    init {
+        if (saksbehandlerIdent != null && beslutterIdent != null) {
+            require(saksbehandlerIdent != beslutterIdent) {
+                "Saksbehandler og beslutter kan ikke være samme person. tilbakekrevingId: $id, sakId: $sakId"
             }
-
-            TilbakekrevingBehandlingsstatus.TIL_GODKJENNING -> {
-                check(saksbehandler.navIdent != this.saksbehandlerIdent) {
-                    "Beslutter (${saksbehandler.navIdent}) kan ikke være den samme som saksbehandleren (${this.saksbehandlerIdent})"
-                }
-                require(this.beslutterIdent == null) {
-                    "Behandlingen har en eksisterende beslutter. For å overta behandlingen, bruk overta()"
-                }
-                this.copy(
-                    beslutterIdent = saksbehandler.navIdent,
-                    status = TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING,
-                    sistEndret = nå,
-                )
-            }
-
-            TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING,
-            TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING,
-            -> throw IllegalStateException(
-                "Kan ikke ta behandling som allerede er tatt. For å overta, bruk overta(). tilbakekrevingId: $id, status: $status",
-            )
-
-            TilbakekrevingBehandlingsstatus.OPPRETTET,
-            TilbakekrevingBehandlingsstatus.AVSLUTTET,
-            -> throw IllegalArgumentException(
-                "Kan ikke ta behandling når behandlingen har status $status. tilbakekrevingId: $id",
-            )
         }
+
+//        when (status) {
+//            TilbakekrevingBehandlingsstatus.OPPRETTET,
+//            TilbakekrevingBehandlingsstatus.TIL_BEHANDLING,
+//            -> {
+//                require(saksbehandlerIdent == null) {
+//                    "Tilbakekreving med status $status kan ikke ha saksbehandler satt. tilbakekrevingId: $id, sakId: $sakId"
+//                }
+//                require(beslutterIdent == null) {
+//                    "Tilbakekreving med status $status kan ikke ha beslutter satt. tilbakekrevingId: $id, sakId: $sakId"
+//                }
+//            }
+//
+//            TilbakekrevingBehandlingsstatus.UNDER_BEHANDLING,
+//            TilbakekrevingBehandlingsstatus.TIL_GODKJENNING,
+//            -> {
+//                requireNotNull(saksbehandlerIdent) {
+//                    "Tilbakekreving med status $status må ha saksbehandler satt. tilbakekrevingId: $id, sakId: $sakId"
+//                }
+//                require(beslutterIdent == null) {
+//                    "Tilbakekreving med status $status kan ikke ha beslutter satt. tilbakekrevingId: $id, sakId: $sakId"
+//                }
+//            }
+//
+//            TilbakekrevingBehandlingsstatus.UNDER_GODKJENNING,
+//            TilbakekrevingBehandlingsstatus.AVSLUTTET,
+//            -> {
+//                requireNotNull(saksbehandlerIdent) {
+//                    "Tilbakekreving med status $status må ha saksbehandler satt. tilbakekrevingId: $id, sakId: $sakId"
+//                }
+//                requireNotNull(beslutterIdent) {
+//                    "Tilbakekreving med status $status må ha beslutter satt. tilbakekrevingId: $id, sakId: $sakId"
+//                }
+//            }
+//        }
     }
 }

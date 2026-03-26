@@ -55,7 +55,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.Tilbakekrev
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.service.TaTilbakekrevingBehandlingService
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.service.TilbakekrevingBehandlingTildelingService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
@@ -494,8 +494,8 @@ open class ApplicationContext(
         )
     }
 
-    val taTilbakekrevingBehandlingService by lazy {
-        TaTilbakekrevingBehandlingService(
+    val tilbakekrevingBehandlingTildelingService by lazy {
+        TilbakekrevingBehandlingTildelingService(
             sakService = sakContext.sakService,
             tilbakekrevingBehandlingRepo = tilbakekrevingBehandlingRepo,
             clock = clock,

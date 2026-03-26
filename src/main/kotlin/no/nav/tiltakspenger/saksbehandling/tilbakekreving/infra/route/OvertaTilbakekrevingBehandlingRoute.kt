@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.post
+import io.ktor.server.routing.patch
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -19,9 +19,9 @@ import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.service.TilbakekrevingBehandlingTildelingService
 import java.time.Clock
 
-private const val TA_TILBAKEKREVING_PATH = "/sak/{sakId}/tilbakekreving/{tilbakekrevingId}/ta"
+private const val OVERTA_TILBAKEKREVING_PATH = "/sak/{sakId}/tilbakekreving/{tilbakekrevingId}/overta"
 
-fun Route.taTilbakekrevingBehandlingRoute(
+fun Route.overtaTilbakekrevingBehandlingRoute(
     auditService: AuditService,
     tilbakekrevingBehandlingTildelingService: TilbakekrevingBehandlingTildelingService,
     tilgangskontrollService: TilgangskontrollService,
@@ -29,22 +29,22 @@ fun Route.taTilbakekrevingBehandlingRoute(
 ) {
     val logger = KotlinLogging.logger {}
 
-    post(TA_TILBAKEKREVING_PATH) {
-        logger.debug { "Mottatt post-request på '$TA_TILBAKEKREVING_PATH' - Knytter saksbehandler/beslutter til tilbakekrevingsbehandlingen." }
-        val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
-        val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
+    patch(OVERTA_TILBAKEKREVING_PATH) {
+        logger.debug { "Mottatt patch-request på '$OVERTA_TILBAKEKREVING_PATH' - Overtar tilbakekrevingsbehandlingen." }
+        val token = call.principal<TexasPrincipalInternal>()?.token ?: return@patch
+        val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@patch
         call.withSakId { sakId ->
             call.withTilbakekrevingId { tilbakekrevingId ->
                 val correlationId = call.correlationId()
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                tilbakekrevingBehandlingTildelingService.taBehandling(sakId, tilbakekrevingId, saksbehandler)
+                tilbakekrevingBehandlingTildelingService.overtaBehandling(sakId, tilbakekrevingId, saksbehandler)
                     .also { (sak) ->
                         auditService.logMedSakId(
                             sakId = sakId,
                             navIdent = saksbehandler.navIdent,
                             action = AuditLogEvent.Action.UPDATE,
-                            contextMessage = "Saksbehandler tar tilbakekrevingsbehandlingen",
+                            contextMessage = "Saksbehandler overtar tilbakekrevingsbehandlingen",
                             correlationId = correlationId,
                             behandlingId = tilbakekrevingId,
                         )

@@ -113,7 +113,7 @@ fun Route.routes(
 
         tilbakekrevingRoutes(
             auditService = applicationContext.personContext.auditService,
-            taTilbakekrevingBehandlingService = applicationContext.taTilbakekrevingBehandlingService,
+            tilbakekrevingBehandlingTildelingService = applicationContext.tilbakekrevingBehandlingTildelingService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             clock = applicationContext.clock,
         )
